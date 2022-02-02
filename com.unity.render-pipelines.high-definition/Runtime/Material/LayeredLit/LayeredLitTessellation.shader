@@ -244,7 +244,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         // Following are builtin properties
 
-        [Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1, From AO and Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
@@ -387,7 +387,9 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
+
+        // Ray Tracing
+        [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
@@ -511,9 +513,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
-    // not local as it is use in shader stripper to discard the pass if not needed
-    // not _fragment as it prevent the stripper to work
-    #pragma shader_feature _FORCE_FORWARD_EMISSIVE
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -715,8 +714,8 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -964,8 +963,8 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -1013,53 +1012,6 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
-
-            #pragma vertex Vert
-            #pragma fragment Frag
-            #pragma hull Hull
-            #pragma domain Domain
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "ForwardEmissiveForDeferred"
-            Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
-
-            Blend One One
-            // In case of forward we want to have depth equal for opaque mesh
-            ZTest [_ZTestDepthEqualForOpaque]
-            ZWrite [_ZWrite]
-            Cull [_CullModeForward]
-
-            HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-            #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
-
-            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
-            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
-                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
-            #endif
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -1126,8 +1078,9 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
-        SubShader
+    SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"
@@ -1135,7 +1088,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1183,7 +1136,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1228,7 +1181,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1267,7 +1220,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1296,7 +1249,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1333,7 +1286,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 

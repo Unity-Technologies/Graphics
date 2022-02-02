@@ -54,19 +54,19 @@ namespace UnityEditor.Rendering.LookDev
 
             internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
 
-            internal static readonly (Texture2D icon, string tooltip)k_Layout1Icon =
+            internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),
                     "First view");
-            internal static readonly (Texture2D icon, string tooltip)k_Layout2Icon =
+            internal static readonly (Texture2D icon, string tooltip) k_Layout2Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true),
                     "Second view");
-            internal static readonly (Texture2D icon, string tooltip)k_LayoutVerticalIcon =
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutVerticalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true),
                     "Both views split vertically");
-            internal static readonly (Texture2D icon, string tooltip)k_LayoutHorizontalIcon =
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutHorizontalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true),
                     "Both views split horizontally");
-            internal static readonly (Texture2D icon, string tooltip)k_LayoutStackIcon =
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutStackIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true),
                     "Both views stacked");
 

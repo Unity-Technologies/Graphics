@@ -1,6 +1,6 @@
 #ifndef UNITY_DECLARE_OPAQUE_TEXTURE_INCLUDED
 #define UNITY_DECLARE_OPAQUE_TEXTURE_INCLUDED
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
 
 TEXTURE2D_X(_CameraOpaqueTexture);
 SAMPLER(sampler_CameraOpaqueTexture);

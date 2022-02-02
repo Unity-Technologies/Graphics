@@ -36,7 +36,8 @@ namespace UnityEditor.Rendering
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
         /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
         /// <param name="defaultExpandedState">The default state if the header is not present</param>
-        public MaterialHeaderScope(GUIContent title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, bool subHeader = false, uint defaultExpandedState = uint.MaxValue)
+        /// <param name="documentationURL">[optional] Documentation page</param>
+        public MaterialHeaderScope(GUIContent title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, bool subHeader = false, uint defaultExpandedState = uint.MaxValue, string documentationURL = "")
         {
             if (title == null)
                 throw new ArgumentNullException(nameof(title));
@@ -56,7 +57,7 @@ namespace UnityEditor.Rendering
             bool saveChangeState = GUI.changed;
             expanded = subHeader
                 ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpanded, isBoxed: false)
-                : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpanded);
+                : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpanded, documentationURL: documentationURL);
             if (expanded ^ beforeExpanded)
             {
                 materialEditor.SetIsAreaExpanded((uint)bitExpanded, expanded);

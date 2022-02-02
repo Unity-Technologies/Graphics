@@ -5,7 +5,28 @@ using UnityEngine.Experimental.Rendering;
 
 internal class WorleyfBmGenerator : MonoBehaviour
 {
-    static Texture2D GenerateWorleyfBm(int width, int height, int depth, bool perlinWorley)
+    internal enum NoiseType
+    {
+        PerlinWorley,
+        Worley,
+        Perlin
+    }
+
+    static string NoiseTypeToKernelName(NoiseType noiseType)
+    {
+        switch (noiseType)
+        {
+            case NoiseType.PerlinWorley:
+                return "PerlinWorleyNoiseEvaluator";
+            case NoiseType.Worley:
+                return "WorleyNoiseEvaluator";
+            case NoiseType.Perlin:
+                return "PerlinNoiseEvaluator";
+        }
+        return "";
+    }
+
+    static Texture2D GenerateWorleyfBm(int width, int height, int depth, NoiseType noiseType)
     {
         // Load our compute shader
         ComputeShader worleyCS = (ComputeShader)AssetDatabase.LoadAssetAtPath("Packages/com.unity.render-pipelines.high-definition/Editor/Lighting/VolumetricClouds/WorleyEvaluator.compute", typeof(ComputeShader));
@@ -21,7 +42,7 @@ internal class WorleyfBmGenerator : MonoBehaviour
         rTexture0.Create();
 
         // Fetch the target kernel
-        int kernel = worleyCS.FindKernel(perlinWorley ? "PerlinWorleyNoiseEvaluator" : "WorleyNoiseEvaluator");
+        int kernel = worleyCS.FindKernel(NoiseTypeToKernelName(noiseType));
 
         // Create the intermediate texture
         Texture2D tex2d = new Texture2D(width, height * depth, TextureFormat.R8, false);
@@ -57,10 +78,15 @@ internal class WorleyfBmGenerator : MonoBehaviour
     [MenuItem("Generation/Generate Worley Textures")]
     static public void GenerateTextures()
     {
-        Texture2D result = GenerateWorleyfBm(128, 128, 128, true);
+        Texture2D result = GenerateWorleyfBm(128, 128, 128, NoiseType.PerlinWorley);
         SaveTextureAsPNG(result, "Assets/WorleyNoise128RGBA.png");
-        result = GenerateWorleyfBm(32, 32, 32, false);
+
+        result = GenerateWorleyfBm(32, 32, 32, NoiseType.Worley);
         SaveTextureAsPNG(result, "Assets/WorleyNoise32RGB.png");
+
+        result = GenerateWorleyfBm(32, 32, 32, NoiseType.Perlin);
+        SaveTextureAsPNG(result, "Assets/PerlinNoise32RGB.png");
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }

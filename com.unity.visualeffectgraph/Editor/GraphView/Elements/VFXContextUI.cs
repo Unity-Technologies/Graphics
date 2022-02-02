@@ -650,7 +650,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        class GrowContext : IDisposable
+        internal class GrowContext : IDisposable
         {
             VFXContextUI m_Context;
             float m_PrevSize;
@@ -692,7 +692,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            using (var growContext = new GrowContext(this))
+            using (new GrowContext(this))
             {
                 controller.AddBlock(blockIndex, descriptor.CreateInstance(), true /* freshly created block, should init space */);
             }
@@ -711,7 +711,8 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -758,7 +759,7 @@ namespace UnityEditor.VFX.UI
         public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
             public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
-                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
+                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext) })
             {
             }
 
@@ -792,7 +793,8 @@ namespace UnityEditor.VFX.UI
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
         void ConvertContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
@@ -814,7 +816,7 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if ((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if (!newContextController.model.CanTransferSetting(setting))
                     continue;
 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)

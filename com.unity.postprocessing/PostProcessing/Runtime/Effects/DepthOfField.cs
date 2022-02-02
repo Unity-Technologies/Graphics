@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="KernelSize"/> value.
     /// </summary>
     [Serializable]
-    public sealed class KernelSizeParameter : ParameterOverride<KernelSize> {}
+    public sealed class KernelSizeParameter : ParameterOverride<KernelSize> { }
 
     /// <summary>
     /// This class holds settings for the Depth of Field effect.

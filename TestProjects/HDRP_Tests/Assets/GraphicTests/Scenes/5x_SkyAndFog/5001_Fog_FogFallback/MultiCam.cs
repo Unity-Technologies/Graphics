@@ -97,14 +97,14 @@ public class MultiCam : MonoBehaviour
         {
             for (var x = 0; x < tiles.x; ++x)
             {
-                if ( i < sets.Length ) sets[i].gameObject.SetActive(true);
-                if ( i < modifiers.Length ) modifiers[i].Invoke();
+                if (i < sets.Length) sets[i].gameObject.SetActive(true);
+                if (i < modifiers.Length) modifiers[i].Invoke();
 
                 targetCam.Render();
 
-                Graphics.CopyTexture(smallRT, 0, 0, 0, 0, singleRes.x, singleRes.y, rt, 0, 0, x*singleRes.x, (tiles.y-y-1)*singleRes.y);
+                Graphics.CopyTexture(smallRT, 0, 0, 0, 0, singleRes.x, singleRes.y, rt, 0, 0, x * singleRes.x, (tiles.y - y - 1) * singleRes.y);
 
-                if ( i < sets.Length ) sets[i].gameObject.SetActive(false);
+                if (i < sets.Length) sets[i].gameObject.SetActive(false);
                 ++i;
             }
         }
@@ -116,7 +116,7 @@ public class MultiCam : MonoBehaviour
         if (displayObject != null && displayObject.sharedMaterial != null)
         {
             displayObject.sharedMaterial.SetTexture(displayTextureProperty, rt);
-            displayObject.transform.localScale = new Vector3( (singleRes.x*tiles.x) * 1f/(singleRes.y*tiles.y) ,1f,1f);
+            displayObject.transform.localScale = new Vector3((singleRes.x * tiles.x) * 1f / (singleRes.y * tiles.y), 1f, 1f);
         }
     }
 

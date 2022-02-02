@@ -20,14 +20,14 @@ public class AutoSizeGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         SetCellSize();
-        #else
+#else
         if (dynamic)
         {
             SetCellSize();
         }
-        #endif
+#endif
     }
 
     void SetCellSize()

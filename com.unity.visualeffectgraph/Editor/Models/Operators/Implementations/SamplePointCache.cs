@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.Operator
 
                 Type outputType = GetOutputType(asset.surfaces[i]);
                 var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
-                var outputExpr = Activator.CreateInstance(type, new object[] {surfaceExpr, x, y });
+                var outputExpr = Activator.CreateInstance(type, new object[] { surfaceExpr, x, y });
 
                 expressions[i + 1] = (VFXExpression)outputExpr;
             }

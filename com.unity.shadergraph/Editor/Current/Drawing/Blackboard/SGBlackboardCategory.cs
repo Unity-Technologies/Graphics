@@ -11,7 +11,7 @@ using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulat
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class SGBlackboardCategory : GraphElement, ISGControlledElement<BlackboardCategoryController>, ISelection
+    sealed class SGBlackboardCategory : GraphElement, ISGControlledElement<BlackboardCategoryController>, ISelection, IComparable<SGBlackboardCategory>
     {
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -66,23 +66,44 @@ namespace UnityEditor.ShaderGraph.Drawing
         int m_InsertIndex;
         SGBlackboard blackboard => m_ViewModel.parentView as SGBlackboard;
 
+        bool m_IsDragInProgress;
+        bool m_WasHoverExpanded;
+
+        bool m_DroppedOnBottomEdge;
+        bool m_DroppedOnTopEdge;
+
+        bool m_RenameInProgress;
+
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
         public CanAcceptDropDelegate canAcceptDrop { get; set; }
 
         int InsertionIndex(Vector2 pos)
         {
-            int index = BlackboardUtils.GetInsertionIndex(this, pos, Children());
-            return Mathf.Clamp(index, 0, index);
+            // For an empty category can always just insert at the start
+            if (this.childCount == 0)
+                return 0;
+
+            var blackboardRows = this.Query<SGBlackboardRow>().ToList();
+            for (int index = 0; index < blackboardRows.Count; index++)
+            {
+                var blackboardRow = blackboardRows[index];
+                var localPosition = this.ChangeCoordinatesTo(blackboardRow, pos);
+                if (blackboardRow.ContainsPoint(localPosition))
+                {
+                    return index;
+                }
+            }
+            return -1;
         }
 
-        VisualElement FindCategoryDirectChild(VisualElement element)
+        static VisualElement FindCategoryDirectChild(SGBlackboardCategory blackboardCategory, VisualElement element)
         {
             VisualElement directChild = element;
 
-            while ((directChild != null) && (directChild != this))
+            while ((directChild != null) && (directChild != blackboardCategory))
             {
-                if (directChild.parent == this)
+                if (directChild.parent == blackboardCategory)
                 {
                     return directChild;
                 }
@@ -249,9 +270,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Foldout.SetValueWithoutNotify(expand);
             if (!expand)
+            {
+                m_DragIndicator.visible = true;
                 m_RowsContainer.RemoveFromHierarchy();
+            }
             else
+            {
+                m_DragIndicator.visible = false;
                 m_MainContainer.Add(m_RowsContainer);
+            }
 
             var key = $"{blackboard.controller.editorPrefsBaseKey}.{viewDataKey}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}";
             EditorPrefs.SetBool(key, expand);
@@ -265,6 +292,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 OpenTextEditor();
                 e.PreventDefault();
             }
+            else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                // Select the child elements within this category (the field views)
+                var fieldViews = this.Query<SGBlackboardField>();
+                foreach (var child in fieldViews.ToList())
+                {
+                    this.AddToSelection(child);
+                }
+            }
         }
 
         internal void OpenTextEditor()
@@ -274,6 +310,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TitleLabel.visible = false;
             m_TextField.Q(TextField.textInputUssName).Focus();
             m_TextField.SelectAll();
+
+            m_RenameInProgress = true;
         }
 
         void OnEditTextFinished()
@@ -293,15 +331,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Reset text field to original name
                 m_TextField.value = title;
             }
+
+            m_RenameInProgress = false;
         }
 
         void OnHoverStartEvent(MouseEnterEvent evt)
         {
             AddToClassList("hovered");
+            if (selection.OfType<SGBlackboardField>().Any()
+                && controller.Model.IsNamedCategory()
+                && m_IsDragInProgress
+                && !viewModel.isExpanded)
+            {
+                m_WasHoverExpanded = true;
+                TryDoFoldout(true);
+            }
         }
 
         void OnHoverEndEvent(MouseLeaveEvent evt)
         {
+            if (m_WasHoverExpanded && m_IsDragInProgress)
+            {
+                m_WasHoverExpanded = false;
+                TryDoFoldout(false);
+            }
             RemoveFromClassList("hovered");
         }
 
@@ -309,30 +362,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
-            VisualElement sourceItem = null;
-
-            bool fieldInSelection = false;
-
-            foreach (ISelectable selectedElement in selection)
-            {
-                sourceItem = selectedElement as VisualElement;
-                if (sourceItem is SGBlackboardField blackboardField)
-                    fieldInSelection = true;
-                // Don't show drag indicator if selection has categories,
-                // We don't want category drag & drop to be ambiguous with shader input drag & drop
-                if (sourceItem is SGBlackboardCategory blackboardCategory)
-                {
-                    SetDragIndicatorVisible(false);
-                    return;
-                }
-            }
-
-            // If can't find at least one blackboard field in the selection, don't update drag indicator
-            if (fieldInSelection == false)
+            // Don't show drag indicator if selection has categories,
+            // We don't want category drag & drop to be ambiguous with shader input drag & drop
+            if (selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetDragIndicatorVisible(false);
                 return;
             }
+
+            // If can't find at least one blackboard field in the selection, don't update drag indicator
+            if (selection.OfType<SGBlackboardField>().Any() == false)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            m_IsDragInProgress = true;
 
             Vector2 localPosition = evt.localMousePosition;
 
@@ -340,38 +385,59 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_InsertIndex != -1)
             {
                 float indicatorY = 0;
-
-                if (m_InsertIndex == childCount)
+                bool inMoveRange = false;
+                // When category is empty
+                if (this.childCount == 0)
                 {
-                    // When category is empty
-                    if (this.childCount == 0)
-                    {
-                        // This moves the indicator to the bottom of the category in case of an empty category
-                        indicatorY = this.layout.height * 0.9f;
-                    }
-                    else
-                    {
-                        VisualElement lastChild = this[childCount - 1];
-                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
-                    }
+                    // This moves the indicator to the bottom of the category in case of an empty category
+                    indicatorY = this.layout.height * 0.9f;
+                    m_DragIndicator.style.marginBottom = 8;
+                    inMoveRange = true;
                 }
-                else if (this.childCount > 0)
+                else
                 {
+                    m_DragIndicator.style.marginBottom = 0;
+
+                    var relativePosition = new Vector2();
+                    var childHeight = 0.0f;
                     VisualElement childAtInsertIndex = this[m_InsertIndex];
-                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
+                    childHeight = childAtInsertIndex.layout.height;
+
+                    relativePosition = this.ChangeCoordinatesTo(childAtInsertIndex, localPosition);
+
+                    if (relativePosition.y > 0 && relativePosition.y < childHeight * 0.25f)
+                    {
+                        // Top Edge
+                        inMoveRange = true;
+                        indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, 0)).y;
+                        m_DragIndicator.style.rotate = new StyleRotate(Rotate.None());
+                        m_DroppedOnBottomEdge = false;
+                        m_DroppedOnTopEdge = true;
+                    }
+                    else if (relativePosition.y > 0.75f * childHeight && relativePosition.y < childHeight)
+                    {
+                        // Bottom Edge
+                        inMoveRange = true;
+                        indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, 0)).y + childAtInsertIndex.layout.height;
+                        //m_DragIndicator.style.rotate = new StyleRotate(new Rotate(-180));
+                        m_DroppedOnBottomEdge = true;
+                        m_DroppedOnTopEdge = false;
+                    }
                 }
 
-                SetDragIndicatorVisible(true);
+                if (inMoveRange)
+                {
+                    SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.width = layout.width;
-                var newPosition = indicatorY - m_DragIndicator.layout.height / 2;
-                m_DragIndicator.style.top = newPosition;
+                    m_DragIndicator.style.width = layout.width;
+                    var newPosition = indicatorY;
+                    m_DragIndicator.style.top = newPosition;
+                }
+                else
+                    SetDragIndicatorVisible(true);
             }
             else
-            {
                 SetDragIndicatorVisible(false);
-                m_InsertIndex = -1;
-            }
 
             if (m_InsertIndex != -1)
             {
@@ -383,16 +449,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
-            foreach (ISelectable selectedElement in selection)
-            {
-                var sourceItem = selectedElement as VisualElement;
+            m_IsDragInProgress = false;
 
-                // Don't show drag indicator if selection has categories,
-                // We don't want category drag & drop to be ambiguous with shader input drag & drop
-                if (sourceItem is SGBlackboardCategory blackboardCategory)
-                {
-                    SetDragIndicatorVisible(false);
-                }
+            // Don't show drag indicator if selection has categories,
+            // We don't want category drag & drop to be ambiguous with shader input drag & drop
+            if (selection.OfType<SGBlackboardCategory>().Any())
+            {
+                SetDragIndicatorVisible(false);
+                return;
             }
 
             if (m_InsertIndex == -1)
@@ -401,94 +465,185 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (!CategoryContains(selection))
+            // Map of containing categories to the actual dragged elements within them
+            SortedDictionary<SGBlackboardCategory, List<VisualElement>> draggedElements = new SortedDictionary<SGBlackboardCategory, List<VisualElement>>();
+
+            foreach (ISelectable selectedElement in selection)
             {
-                List<VisualElement> draggedElements = new List<VisualElement>();
-                foreach (ISelectable selectedElement in selection)
-                {
-                    if (selectedElement is VisualElement draggedElement)
-                    {
-                        draggedElements.Add(draggedElement);
-                    }
-                }
-                if (draggedElements.Count == 0)
-                {
-                    SetDragIndicatorVisible(false);
-                    return;
-                }
+                var draggedElement = selectedElement as VisualElement;
+                if (draggedElement == null)
+                    continue;
 
-                foreach (var draggedElement in draggedElements)
+                if (this.Contains(draggedElement))
                 {
-                    var addItemToCategoryAction = new AddItemToCategoryAction();
-                    if (draggedElement.userData is ShaderInput newShaderInput)
+                    if (draggedElements.ContainsKey(this))
+                        draggedElements[this].Add(FindCategoryDirectChild(this, draggedElement));
+                    else
+                        draggedElements.Add(this, new List<VisualElement> { FindCategoryDirectChild(this, draggedElement) });
+                }
+                else
+                {
+                    var otherCategory = draggedElement.GetFirstAncestorOfType<SGBlackboardCategory>();
+                    if (otherCategory != null)
                     {
-                        addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
-                        addItemToCategoryAction.addActionSource = AddItemToCategoryAction.AddActionSource.DragDrop;
-                        addItemToCategoryAction.itemToAdd = newShaderInput;
-                        addItemToCategoryAction.indexToAddItemAt = m_InsertIndex;
-                        m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
-
-                        // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
-                        selection.Remove(draggedElement as ISelectable);
+                        if (draggedElements.ContainsKey(otherCategory))
+                            draggedElements[otherCategory].Add(FindCategoryDirectChild(otherCategory, draggedElement));
+                        else
+                            draggedElements.Add(otherCategory, new List<VisualElement> { FindCategoryDirectChild(otherCategory, draggedElement) });
                     }
-                    m_InsertIndex++;
                 }
             }
-            else
+
+            if (draggedElements.Count == 0)
             {
-                List<Tuple<VisualElement, VisualElement>> draggedElements = new List<Tuple<VisualElement, VisualElement>>();
+                SetDragIndicatorVisible(false);
+                return;
+            }
 
-                foreach (ISelectable selectedElement in selection)
-                {
-                    var draggedElement = selectedElement as VisualElement;
-
-                    if (draggedElement != null && Contains(draggedElement))
-                    {
-                        draggedElements.Add(new Tuple<VisualElement, VisualElement>(FindCategoryDirectChild(draggedElement), draggedElement));
-                    }
-                }
-
-                if (draggedElements.Count == 0)
-                {
-                    SetDragIndicatorVisible(false);
-                    return;
-                }
-
+            foreach (var categoryToChildrenTuple in draggedElements)
+            {
+                var containingCategory = categoryToChildrenTuple.Key;
+                var childList = categoryToChildrenTuple.Value;
                 // Sorts the dragged elements from their relative order in their parent
-                draggedElements.Sort((pair1, pair2) => { return IndexOf(pair1.Item1).CompareTo(IndexOf(pair2.Item1)); });
+                childList.Sort((item1, item2) => containingCategory.IndexOf(item1).CompareTo(containingCategory.IndexOf(item2)));
+            }
 
-                int insertIndex = m_InsertIndex;
+            int insertIndex = Mathf.Clamp(m_InsertIndex, 0, m_InsertIndex);
 
-                foreach (Tuple<VisualElement, VisualElement> draggedElement in draggedElements)
+            bool adjustedInsertIndex = false;
+            VisualElement lastInsertedElement = null;
+            /* Handles moving elements within a category */
+            foreach (var categoryToChildrenTuple in draggedElements)
+            {
+                var childList = categoryToChildrenTuple.Value;
+                VisualElement firstChild = childList.First();
+                foreach (var draggedElement in childList)
                 {
-                    VisualElement categoryDirectChild = draggedElement.Item1;
+                    var blackboardField = draggedElement.Q<SGBlackboardField>();
+                    ShaderInput shaderInput = null;
+                    if (blackboardField != null)
+                        shaderInput = blackboardField.controller.Model;
+
+                    // Skip if this field is not contained by this category as we handle that in the next loop below
+                    if (shaderInput == null || !this.Contains(blackboardField))
+                        continue;
+
+                    VisualElement categoryDirectChild = draggedElement;
                     int indexOfDraggedElement = IndexOf(categoryDirectChild);
 
-                    if (!((indexOfDraggedElement == insertIndex) || ((insertIndex - 1) == indexOfDraggedElement)))
+                    bool listEndInsertion = false;
+                    // Only find index for the first item
+                    if (draggedElement == firstChild)
                     {
-                        var moveShaderInputAction = new MoveShaderInputAction();
-                        if (draggedElement.Item2.userData is ShaderInput shaderInput)
+                        adjustedInsertIndex = true;
+                        // Handles case of inserting after last item in list
+                        if (insertIndex == childCount - 1 && m_DroppedOnBottomEdge)
                         {
-                            if (insertIndex == contentContainer.childCount)
+                            listEndInsertion = true;
+                        }
+                        // Handles case of inserting after any item except the last in list
+                        else if (m_DroppedOnBottomEdge)
+                            insertIndex++;
+
+                        insertIndex = Mathf.Clamp(insertIndex, 0, childCount - 1);
+
+                        if (insertIndex != indexOfDraggedElement)
+                        {
+                            // If ever placing it at end of list, make sure to place after last item
+                            if (listEndInsertion)
                             {
-                                insertIndex = contentContainer.childCount - 1;
-                                categoryDirectChild.PlaceInFront(this[contentContainer.childCount - 1]);
+                                categoryDirectChild.PlaceInFront(this[insertIndex]);
                             }
                             else
                             {
                                 categoryDirectChild.PlaceBehind(this[insertIndex]);
                             }
-
-                            moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
-                            moveShaderInputAction.shaderInputReference = shaderInput;
-                            moveShaderInputAction.newIndexValue = insertIndex;
-                            m_ViewModel.requestModelChangeAction(moveShaderInputAction);
                         }
+
+                        lastInsertedElement = firstChild;
+                    }
+                    //  Place every subsequent row after that use PlaceInFront(), this prevents weird re-ordering issues as long as we can get the first index right
+                    else
+                    {
+                        var indexOfFirstChild = this.IndexOf(lastInsertedElement);
+                        categoryDirectChild.PlaceInFront(this[indexOfFirstChild]);
+                        lastInsertedElement = categoryDirectChild;
                     }
 
-                    if (insertIndex > indexOfDraggedElement)     // No need to increment the insert index for the next dragged element if the current dragged element is above the current insert location.
+                    if (insertIndex > childCount - 1 || listEndInsertion)
+                        insertIndex = -1;
+
+                    var moveShaderInputAction = new MoveShaderInputAction();
+                    moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
+                    moveShaderInputAction.shaderInputReference = shaderInput;
+                    moveShaderInputAction.newIndexValue = insertIndex;
+                    m_ViewModel.requestModelChangeAction(moveShaderInputAction);
+
+                    // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
+                    selection.Remove(blackboardField);
+
+                    if (insertIndex > indexOfDraggedElement)
                         continue;
+
+                    // If adding to the end of the list, we no longer need to increment the index
+                    if (insertIndex != -1)
+                        insertIndex++;
+                }
+            }
+
+            /* Handles moving elements from one category to another (including between different graph windows) */
+            // Handles case of inserting after item in list
+            if (!adjustedInsertIndex)
+            {
+                if (m_DroppedOnBottomEdge)
+                {
                     insertIndex++;
+                }
+                // Only ever do this for the first item
+                else if (m_DroppedOnTopEdge && insertIndex == 0)
+                {
+                    insertIndex = Mathf.Clamp(insertIndex - 1, 0, childCount - 1);
+                }
+            }
+            else if (lastInsertedElement != null)
+            {
+                insertIndex = this.IndexOf(lastInsertedElement) + 1;
+            }
+
+            foreach (var categoryToChildrenTuple in draggedElements)
+            {
+                var childList = categoryToChildrenTuple.Value;
+                foreach (var draggedElement in childList)
+                {
+                    var blackboardField = draggedElement.Q<SGBlackboardField>();
+                    ShaderInput shaderInput = null;
+                    if (blackboardField != null)
+                        shaderInput = blackboardField.controller.Model;
+                    if (shaderInput == null)
+                        continue;
+
+                    // If the blackboard field is contained by this category its already been handled above, skip
+                    if (this.Contains(blackboardField))
+                        continue;
+
+                    var addItemToCategoryAction = new AddItemToCategoryAction();
+                    addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
+                    addItemToCategoryAction.addActionSource = AddItemToCategoryAction.AddActionSource.DragDrop;
+                    addItemToCategoryAction.itemToAdd = shaderInput;
+
+                    // If adding to end of list, make the insert index -1 to ensure op goes through as expected
+                    if (insertIndex > childCount - 1)
+                        insertIndex = -1;
+
+                    addItemToCategoryAction.indexToAddItemAt = insertIndex;
+                    m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
+
+                    // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
+                    selection.Remove(blackboardField);
+
+                    // If adding to the end of the list, we no longer need to increment the index
+                    if (insertIndex != -1)
+                        insertIndex++;
                 }
             }
 
@@ -503,6 +658,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void OnDragActionCanceled()
         {
             SetDragIndicatorVisible(false);
+            m_IsDragInProgress = false;
         }
 
         public override void Select(VisualElement selectionContainer, bool additive)
@@ -517,12 +673,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void OnSelected()
         {
             AddToClassList("selected");
-            // Select the child elements within this category (the field views)
-            var fieldViews = this.Query<SGBlackboardField>();
-            foreach (var child in fieldViews.ToList())
-            {
-                this.AddToSelection(child);
-            }
         }
 
         public override void OnUnselected()
@@ -532,9 +682,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void AddToSelection(ISelectable selectable)
         {
-            // Don't add the un-named/default category to graph selections
+            // Don't add the un-named/default category to graph selections,
             if (controller.Model.IsNamedCategory() == false && selectable == this)
                 return;
+
+            // Don't add to selection if a rename op is in progress
+            if (m_RenameInProgress)
+            {
+                RemoveFromSelection(this);
+                return;
+            }
 
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
@@ -596,6 +753,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 evt.menu.AppendAction("Delete", evt => RequestCategoryDelete());
             }
+        }
+
+        public int CompareTo(SGBlackboardCategory other)
+        {
+            if (other == null)
+                return 1;
+
+            var thisBlackboard = this.blackboard;
+            var otherBlackboard = other.blackboard;
+
+            return thisBlackboard.IndexOf(this).CompareTo(otherBlackboard.IndexOf(other));
         }
     }
 }

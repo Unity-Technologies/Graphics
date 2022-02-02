@@ -44,7 +44,7 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 }
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/BuiltInDOTSInstancing.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/BuiltInDOTSInstancing.hlsl"
 //#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 #endif // UNITY_INPUTS_SHIM_INCLUDED

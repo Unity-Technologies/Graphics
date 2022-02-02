@@ -28,11 +28,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public static SharedObjectPool<T> sharedPool => s_Instance.Value;
         }
 
-        Dictionary<(Type, int), Stack<object>>  m_ArrayPool = new Dictionary<(Type, int), Stack<object>>();
-        List<(object, (Type, int))>             m_AllocatedArrays = new List<(object, (Type, int))>();
-        List<MaterialPropertyBlock>             m_AllocatedMaterialPropertyBlocks = new List<MaterialPropertyBlock>();
+        Dictionary<(Type, int), Stack<object>> m_ArrayPool = new Dictionary<(Type, int), Stack<object>>();
+        List<(object, (Type, int))> m_AllocatedArrays = new List<(object, (Type, int))>();
+        List<MaterialPropertyBlock> m_AllocatedMaterialPropertyBlocks = new List<MaterialPropertyBlock>();
 
-        internal RenderGraphObjectPool() {}
+        internal RenderGraphObjectPool() { }
 
         /// <summary>
         /// Allocate a temporary typed array of a specific size.

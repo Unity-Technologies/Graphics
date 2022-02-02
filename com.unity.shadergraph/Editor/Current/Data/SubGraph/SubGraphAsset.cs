@@ -27,6 +27,38 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
+    [Serializable]
+    class SlotCapability
+    {
+        public string slotName;
+        public ShaderStageCapability capabilities = ShaderStageCapability.All;
+    }
+
+    [Serializable]
+    class SlotDependencyPair
+    {
+        public string inputSlotName;
+        public string outputSlotName;
+    }
+
+    /// Cached run-time information for slot dependency tracking within a sub-graph
+    class SlotDependencyInfo
+    {
+        internal string slotName;
+        internal ShaderStageCapability capabilities = ShaderStageCapability.All;
+        internal HashSet<string> dependencies = new HashSet<string>();
+
+        internal void AddDepencencySlotName(string slotName)
+        {
+            dependencies.Add(slotName);
+        }
+
+        internal bool ContainsSlot(MaterialSlot slot)
+        {
+            return dependencies.Contains(slot.RawDisplayName());
+        }
+    }
+
     class SubGraphData : JsonObject
     {
         public List<JsonData<AbstractShaderProperty>> inputs = new List<JsonData<AbstractShaderProperty>>();
@@ -82,8 +114,26 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
-        public ShaderStageCapability effectiveShaderStage;
+        public List<SlotCapability> inputCapabilities = new List<SlotCapability>();
+        public List<SlotCapability> outputCapabilities = new List<SlotCapability>();
+        // Every unique input/output dependency pair
+        public List<SlotDependencyPair> slotDependencies = new List<SlotDependencyPair>();
 
+        Dictionary<string, SlotDependencyInfo> m_InputDependencies = new Dictionary<string, SlotDependencyInfo>();
+        Dictionary<string, SlotDependencyInfo> m_OutputDependencies = new Dictionary<string, SlotDependencyInfo>();
+
+
+        public SlotDependencyInfo GetInputDependencies(string slotName)
+        {
+            m_InputDependencies.TryGetValue(slotName, out SlotDependencyInfo result);
+            return result;
+        }
+
+        public SlotDependencyInfo GetOutputDependencies(string slotName)
+        {
+            m_OutputDependencies.TryGetValue(slotName, out SlotDependencyInfo result);
+            return result;
+        }
 
         // this is the precision that the entire subgraph is set to (indicates whether the graph is hard-coded or switchable)
         public GraphPrecision subGraphGraphPrecision;
@@ -161,6 +211,45 @@ namespace UnityEditor.ShaderGraph
             if (!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
+            }
+        }
+
+        internal void LoadDependencyData()
+        {
+            m_InputDependencies.Clear();
+            m_OutputDependencies.Clear();
+
+            foreach (var capabilityInfo in inputCapabilities)
+            {
+                var dependencyInfo = new SlotDependencyInfo();
+                dependencyInfo.slotName = capabilityInfo.slotName;
+                dependencyInfo.capabilities = capabilityInfo.capabilities;
+                if (m_InputDependencies.ContainsKey(dependencyInfo.slotName))
+                {
+                    Debug.LogWarning($"SubGraph '{hlslName}' has multiple input slots named '{dependencyInfo.slotName}', which is unsupported.  Please assign the input slots unique names.");
+                    continue;
+                }
+                m_InputDependencies.Add(dependencyInfo.slotName, dependencyInfo);
+            }
+            foreach (var capabilityInfo in outputCapabilities)
+            {
+                var dependencyInfo = new SlotDependencyInfo();
+                dependencyInfo.slotName = capabilityInfo.slotName;
+                dependencyInfo.capabilities = capabilityInfo.capabilities;
+                if (m_OutputDependencies.ContainsKey(dependencyInfo.slotName))
+                {
+                    Debug.LogWarning($"SubGraph '{hlslName}' has multiple output slots named '{dependencyInfo.slotName}', which is unsupported.  Please assign the output slots unique names.");
+                    continue;
+                }
+                m_OutputDependencies.Add(dependencyInfo.slotName, dependencyInfo);
+            }
+            foreach (var slotDependency in slotDependencies)
+            {
+                // This shouldn't fail since every input/output must be in the above lists...
+                if (m_InputDependencies.ContainsKey(slotDependency.inputSlotName))
+                    m_InputDependencies[slotDependency.inputSlotName].AddDepencencySlotName(slotDependency.outputSlotName);
+                if (m_OutputDependencies.ContainsKey(slotDependency.outputSlotName))
+                    m_OutputDependencies[slotDependency.outputSlotName].AddDepencencySlotName(slotDependency.inputSlotName);
             }
         }
     }

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: DeferredRenderer_AccurateGBuffer
   m_EditorClassIdentifier: 
   debugShaders:
@@ -36,6 +36,7 @@ MonoBehaviour:
       type: 3}
     objectMotionVector: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486,
       type: 3}
+  m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -52,6 +53,8 @@ MonoBehaviour:
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 1
   m_DepthPrimingMode: 0
+  m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 1
   m_ClusteredRendering: 0
   m_TileSize: 32
+  m_IntermediateTextureMode: 0

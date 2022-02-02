@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             TypeCache.GetMethodsWithAttribute<BuiltinKeywordAttribute>()
                 .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
                 .Select(method =>
-                    (KeywordDescriptor)method.Invoke(null, new object[0] {}));
+                    (KeywordDescriptor)method.Invoke(null, new object[0] { }));
 
         public static ConcreteSlotValueType ToConcreteSlotValueType(this KeywordType keywordType)
         {
@@ -173,34 +173,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static int GetKeywordPermutationCount(this GraphData graph)
-        {
-            // Gather all unique keywords from the Graph including Sub Graphs
-            IEnumerable<ShaderKeyword> allKeywords = graph.keywords;
-            var subGraphNodes = graph.GetNodes<SubGraphNode>();
-            foreach (SubGraphNode subGraphNode in subGraphNodes)
-            {
-                if (subGraphNode.asset == null)
-                {
-                    continue;
-                }
-                allKeywords = allKeywords.Union(subGraphNode.asset.keywords);
-            }
-            allKeywords = allKeywords.Distinct();
-
-            // Get permutation count for all Keywords
-            int permutationCount = 1;
-            foreach (ShaderKeyword keyword in allKeywords)
-            {
-                if (keyword.keywordType == KeywordType.Boolean)
-                    permutationCount *= 2;
-                else
-                    permutationCount *= keyword.entries.Count;
-            }
-
-            return permutationCount;
-        }
-
         public static string GetKeywordPermutationSetConditional(List<int> permutationSet)
         {
             StringBuilder sb = new StringBuilder();
@@ -232,7 +204,7 @@ namespace UnityEditor.ShaderGraph
             for (int p = 0; p < permutations.Count; p++)
             {
                 // ShaderStringBuilder.Append doesnt apply indentation
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
 
                 // Append correct if
                 bool isLast = false;

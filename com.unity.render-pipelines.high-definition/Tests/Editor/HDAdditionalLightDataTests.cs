@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {

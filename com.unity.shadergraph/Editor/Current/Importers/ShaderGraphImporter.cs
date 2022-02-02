@@ -19,16 +19,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-#if ENABLE_HYBRID_RENDERER_V2
-    // Bump the version number when Hybrid Renderer V2 is enabled, to make
-    // sure that all shader graphs get re-imported. Re-importing is required,
-    // because the shader graph codegen is different for V2.
-    // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(121, Extension, -902)]
-#else
-    [ScriptedImporter(50, Extension, -902)]
-#endif
-
+    [ScriptedImporter(126, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -114,6 +105,8 @@ Shader ""Hidden/GraphErrorShader2""
             if (oldShader != null)
                 ShaderUtil.ClearShaderMessages(oldShader);
 
+            var importLog = new AssetImportErrorLog(ctx);
+
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
 
@@ -123,7 +116,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -163,7 +157,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 #endif
 
-                ReportErrors(graph, shader, path);
+                ReportErrors(graph, shader, path, importLog);
 
                 EditorMaterialUtility.SetShaderDefaults(
                     shader,
@@ -193,6 +187,12 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 #endif
+
+            if (shader != null)
+            {
+                Material material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) + " Material" };
+                ctx.AddObjectToAsset("Material", material);
+            }
 
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
@@ -231,7 +231,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
+            List<GraphInputData> inputInspectorDataList = new List<GraphInputData>();
             foreach (AbstractShaderProperty property in graph.properties)
             {
                 // Don't write out data for non-exposed blackboard items
@@ -242,7 +242,7 @@ Shader ""Hidden/GraphErrorShader2""
                 if (property is VirtualTextureShaderProperty virtualTextureShaderProperty)
                     inputInspectorDataList.Add(MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty));
                 else
-                    inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
+                    inputInspectorDataList.Add(new GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false });
             }
             foreach (ShaderKeyword keyword in graph.keywords)
             {
@@ -254,7 +254,7 @@ Shader ""Hidden/GraphErrorShader2""
                 if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
                     sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
 
-                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
+                inputInspectorDataList.Add(new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true });
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
@@ -267,11 +267,11 @@ Shader ""Hidden/GraphErrorShader2""
                 MinimalCategoryData mcd = new MinimalCategoryData()
                 {
                     categoryName = categoryData.name,
-                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
+                    propertyDatas = new List<GraphInputData>()
                 };
                 foreach (var input in categoryData.Children)
                 {
-                    MinimalCategoryData.GraphInputData propData;
+                    GraphInputData propData;
                     // Only write out data for exposed blackboard items
                     if (input.isExposed == false)
                         continue;
@@ -290,12 +290,12 @@ Shader ""Hidden/GraphErrorShader2""
                         if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
                             sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
 
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true};
+                        propData = new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true };
                     }
                     else
                     {
                         var prop = input as AbstractShaderProperty;
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
+                        propData = new GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
                     }
 
                     mcd.propertyDatas.Add(propData);
@@ -325,7 +325,7 @@ Shader ""Hidden/GraphErrorShader2""
                     // Ensure that dependency path is relative to project
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
                     {
-                        Debug.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
+                        importLog.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
                     }
                 }
 
@@ -339,12 +339,42 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        static void ReportErrors(GraphData graph, Shader shader, string path)
+        internal class AssetImportErrorLog : MessageManager.IErrorLog
+        {
+            AssetImportContext ctx;
+            public AssetImportErrorLog(AssetImportContext ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public void LogError(string message, UnityEngine.Object context = null)
+            {
+                // Note: if you get sent here by clicking on a ShaderGraph error message,
+                // this is a bug in the scripted importer system, not being able to link import error messages to the imported asset
+                ctx.LogImportError(message, context);
+            }
+
+            public void LogWarning(string message, UnityEngine.Object context = null)
+            {
+                ctx.LogImportWarning(message, context);
+            }
+        }
+
+        static bool NodeWasUsedByGraph(string nodeId, GraphData graphData)
+        {
+            var node = graphData.GetNodeFromId(nodeId);
+            return node?.wasUsedByGenerator ?? false;
+        }
+
+        // error messages should be reported through the asset import context, so that object references are translated properly (in the future), and the error is associated with the import
+        static void ReportErrors(GraphData graph, Shader shader, string path, AssetImportErrorLog importLog)
         {
             // Grab any messages from the shader compiler
             var messages = ShaderUtil.GetShaderMessages(shader);
 
-            bool anyNodeHasError = graph.messageManager.nodeMessagesChanged && graph.messageManager.AnyError();
+            var errors = graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graph));
+            int errCount = errors.Count();
+
             // Find the first compiler message that's an error
             int firstShaderUtilErrorIndex = -1;
             if (messages != null)
@@ -352,13 +382,30 @@ Shader ""Hidden/GraphErrorShader2""
 
             // Display only one message. Bias towards shader compiler messages over node messages and within that bias errors over warnings.
             if (firstShaderUtilErrorIndex != -1)
-                MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
-            else if (anyNodeHasError)
-                Debug.LogError($"Shader Graph at {path} has at least one error.");
+            {
+                // if shader compiler reported an error, show that
+                MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader, importLog);
+            }
+            else if (errCount > 0)
+            {
+                // otherwise show node errors
+                var firstError = errors.FirstOrDefault();
+                importLog.LogError($"Shader Graph at {path} has {errCount} error(s), the first is: {firstError}", shader);
+            }
             else if (messages.Length != 0)
-                MessageManager.Log(path, messages[0], shader);
+            {
+                // otherwise show shader compiler warnings
+                MessageManager.Log(path, messages[0], shader, importLog);
+            }
             else if (graph.messageManager.nodeMessagesChanged)
-                Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
+            {
+                // otherwise show node warnings
+                var warnings = graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graph), Rendering.ShaderCompilerMessageSeverity.Warning);
+                var warnCount = warnings.Count();
+                var firstWarning = warnings.FirstOrDefault();
+                if (warnCount > 0)
+                    importLog.LogWarning($"Shader Graph at {path} has {warnCount} warning(s), the first is: {firstWarning}", shader);
+            }
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null)
@@ -379,7 +426,8 @@ Shader ""Hidden/GraphErrorShader2""
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
 
-                if (graph.messageManager.AnyError())
+                // we only care if an error was reported for a node that we actually used
+                if (graph.messageManager.AnyError((nodeId) => NodeWasUsedByGraph(nodeId, graph)))
                 {
                     shaderString = null;
                 }
@@ -392,7 +440,12 @@ Shader ""Hidden/GraphErrorShader2""
                 // ignored
             }
 
-            return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+            if (shaderString == null)
+            {
+                shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+            }
+
+            return shaderString;
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
@@ -400,7 +453,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -414,7 +468,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             GraphData graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -655,12 +710,12 @@ Shader ""Hidden/GraphErrorShader2""
             var outputStructName = $"SG_Output_{assetGuid}";
             var evaluationFunctionName = $"SG_Evaluate_{assetGuid}";
 
-            #region Input Struct
+        #region Input Struct
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"struct {inputStructName}{nl}{{{nl}");
 
-            #region Requirements
+        #region Requirements
 
             var portRequirements = new ShaderGraphRequirements[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
@@ -710,9 +765,12 @@ Shader ""Hidden/GraphErrorShader2""
             AddCoordinateSpaceSnippets(InterpolatorType.BiTangent, r => r.requiresBitangent);
             AddCoordinateSpaceSnippets(InterpolatorType.ViewDirection, r => r.requiresViewDir);
             AddCoordinateSpaceSnippets(InterpolatorType.Position, r => r.requiresPosition);
+            AddCoordinateSpaceSnippets(InterpolatorType.PositionPredisplacement, r => r.requiresPositionPredisplacement);
 
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
+            AddRequirementsSnippet(r => r.requiresNDCPosition, $"float2 {ShaderGeneratorNames.NDCPosition}");
+            AddRequirementsSnippet(r => r.requiresPixelPosition, $"float2 {ShaderGeneratorNames.PixelPosition}");
             AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
 
             foreach (var uvChannel in EnumInfo<UVChannel>.values)
@@ -722,12 +780,12 @@ Shader ""Hidden/GraphErrorShader2""
 
             AddRequirementsSnippet(r => r.requiresTime, $"float3 {ShaderGeneratorNames.TimeParameters}");
 
-            #endregion
+        #endregion
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"}};{nl}{nl}");
 
-            #endregion
+        #endregion
 
             // VFX Code heavily relies on the slotId from the original MasterNodes
             // Since we keep these around for upgrades anyway, for now it is simpler to use them
@@ -748,7 +806,7 @@ Shader ""Hidden/GraphErrorShader2""
                 originialPortIds[i] = originalId;
             }
 
-            #region Output Struct
+        #region Output Struct
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"struct {outputStructName}{nl}{{");
@@ -763,9 +821,9 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{nl}}};{nl}{nl}");
 
-            #endregion
+        #endregion
 
-            #region Graph Function
+        #region Graph Function
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
@@ -808,7 +866,7 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
 
-            #region Node Code
+        #region Node Code
 
             for (var mappingIndex = 0; mappingIndex < bodySb.mappings.Count; mappingIndex++)
             {
@@ -832,9 +890,9 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            #endregion
+        #endregion
 
-            #region Output Mapping
+        #region Output Mapping
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{nl}{indent}// VFXMasterNode{nl}{indent}{outputStructName} OUT;{nl}");
@@ -847,13 +905,13 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.graphDefaultConcretePrecision)};{nl}");
             }
 
-            #endregion
+        #endregion
 
             // Function end
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{indent}return OUT;{nl}}}{nl}");
 
-            #endregion
+        #endregion
 
             result.codeSnippets = codeSnippets.ToArray();
             result.sharedCodeIndices = sharedCodeIndices.ToArray();

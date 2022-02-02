@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                         builder.AppendLine(alphas[i]);
                     builder.AppendLine("return g;", true);
                 }
-                builder.AppendIndentation();
+                builder.TryAppendIndentation();
                 builder.Append("#define {0} {0}_Definition()", referenceName);
             };
 

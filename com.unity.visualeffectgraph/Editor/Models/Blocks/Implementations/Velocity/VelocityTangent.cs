@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
     class VelocityTangent : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Tangent"); } }
-        protected override bool altersDirection {  get { return true; } }
+        protected override bool altersDirection { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

@@ -10,6 +10,12 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int m_ShadowGroup = 0;
         List<ShadowCaster2D> m_ShadowCasters;
 
+        internal virtual void CacheValues()
+        {
+            for (int i = 0; i < m_ShadowCasters.Count; i++)
+                m_ShadowCasters[i].CacheValues();
+        }
+
         public List<ShadowCaster2D> GetShadowCasters() { return m_ShadowCasters; }
 
         public int GetShadowGroup() { return m_ShadowGroup; }

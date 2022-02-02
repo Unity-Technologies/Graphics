@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
             m_Index = -1;
         }
 
-        abstract protected T[] infos {get; }
+        abstract protected T[] infos { get; }
 
         protected VFXViewController m_ViewController;
 
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        override protected VFXUI.GroupInfo[] infos {get {return m_UI.groupInfos; }}
+        override protected VFXUI.GroupInfo[] infos { get { return m_UI.groupInfos; } }
 
 
         void AddNodeID(VFXNodeID nodeID)

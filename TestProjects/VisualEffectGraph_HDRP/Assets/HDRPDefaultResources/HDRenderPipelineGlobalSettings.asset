@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 87872878411613
-      data2: 4539628434053070872
+      data2: 4539628438348038168
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -65,29 +65,40 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
+  afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   lightLayerName0: 
-  lightLayerName1: 
-  lightLayerName2: 
-  lightLayerName3: 
-  lightLayerName4: 
-  lightLayerName5: 
-  lightLayerName6: 
-  lightLayerName7: 
-  decalLayerName0: 
-  decalLayerName1: 
-  decalLayerName2: 
-  decalLayerName3: 
+  lightLayerName1: Light Layer 1
+  lightLayerName2: Light Layer 2
+  lightLayerName3: Light Layer 3
+  lightLayerName4: Light Layer 4
+  lightLayerName5: Light Layer 5
+  lightLayerName6: Light Layer 6
+  lightLayerName7: Light Layer 7
+  decalLayerName0: Decal Layer default
+  decalLayerName1: Decal Layer 1
+  decalLayerName2: Decal Layer 2
+  decalLayerName3: Decal Layer 3
   decalLayerName4: 
-  decalLayerName5: 
-  decalLayerName6: 
-  decalLayerName7: 
+  decalLayerName5: Decal Layer 5
+  decalLayerName6: Decal Layer 6
+  decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
+  rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
-  m_Version: 2
+  supportProbeVolumes: 0
+  supportRuntimeDebugDisplay: 1
+  apvScenesData:
+    serializedBounds: []
+    serializedHasVolumes: []
+    serializedProfiles: []
+    serializedBakeSettings: []
+    serializedBakingSets: []
+  m_Version: 3

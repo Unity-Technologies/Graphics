@@ -1,9 +1,16 @@
 using NUnit.Framework;
+using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
     public class TestStorage : ContextLayeredDataStorage
     {
+        protected override void AddDefaultLayers()
+        {
+            m_layerList.AddLayer(0, "TestRoot", true);
+        }
+
+
         [TestFixture]
         class ContextLayeredDataStorageFixture
         {
@@ -133,7 +140,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Assert.NotNull(elemB);
                 Assert.True(elemB.TryGetData(out data));
                 Assert.AreEqual(data, 15);
-                store.AddData("Root", "foo.bar", 12);
+                store.AddData("TestRoot", "foo.bar", 12);
                 var search = store.Search("foo.bar");
                 Assert.NotNull(search);
                 Assert.True(search.TryGetData(out data));
@@ -173,6 +180,28 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Assert.IsNotNull(elem);
                 Assert.AreEqual(elem.id, "bar.baz");
 
+            }
+
+            [Test]
+            public void CanSerializeDeserializeComplex()
+            {
+                TestStorage store = new TestStorage();
+                store.AddData("a");
+                store.AddData("a.b", 13);
+                store.AddData("a.b.c.d", 35.4f);
+                store.AddData("a.b.c.f", new Vector3Int(1, 2, 3));
+                string serialized = EditorJsonUtility.ToJson(store, true);
+                Debug.Log(serialized);
+                TestStorage storeDeserialized = new TestStorage();
+                EditorJsonUtility.FromJsonOverwrite(serialized, storeDeserialized);
+                var elem = storeDeserialized.Search("a.b"); 
+                Assert.IsNotNull(elem);
+                Assert.IsTrue(elem.TryGetData(out int data));
+                Assert.AreEqual(data, 13);
+                elem = storeDeserialized.Search("a.b.c.f"); 
+                Assert.IsNotNull(elem);
+                Assert.IsTrue(elem.TryGetData(out Vector3Int data2));
+                Assert.AreEqual(data2, new Vector3Int(1,2,3));
             }
         }
     }

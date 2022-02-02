@@ -4,6 +4,7 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
 {
     public int WaitFrames = 0;
     public bool XRCompatible = true;
+    public bool CheckMemoryAllocation = true;
 
     public UniversalGraphicsTestSettings()
     {

@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DecalDrawScreenSpaceSystem : DecalDrawSystem
     {
-        public DecalDrawScreenSpaceSystem(DecalEntityManager entityManager) : base("DecalDrawScreenSpaceSystem.Execute", entityManager) {}
+        public DecalDrawScreenSpaceSystem(DecalEntityManager entityManager) : base("DecalDrawScreenSpaceSystem.Execute", entityManager) { }
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexScreenSpace;
     }
 

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Tests
         internal static List<IMaterial> CreateMockMaterials(IEnumerable<(string ID, string ShaderName)> materials)
         {
             var result = new List<IMaterial>();
-            foreach (var(id, shaderName) in materials)
+            foreach (var (id, shaderName) in materials)
             {
                 var m = new Mock<IMaterial>();
                 m.SetupGet(m => m.ID).Returns(id);
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.Tests
             string propertyName, string expectedPropertyName, ShaderPropertyType expectedType
         )
         {
-            var binding = new EditorCurveBinding { propertyName = propertyName};
+            var binding = new EditorCurveBinding { propertyName = propertyName };
 
             var actual = AnimationClipUpgrader.InferShaderProperty(binding);
 
@@ -463,8 +463,8 @@ namespace UnityEditor.Rendering.Tests
             ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) }),
             ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
         };
-        static readonly (string OldShader, string NewShader, (string From, string To, int Type)[])k_KnownUpgrade =
-            ("OldShader1", "NewShader1", new[] { (From : "_Color", To : "_BaseColor1", Type : (int)MaterialPropertyType.Color) });
+        static readonly (string OldShader, string NewShader, (string From, string To, int Type)[]) k_KnownUpgrade =
+            ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) });
 
         static readonly TestCaseData[] k_OneKnownUpgradePathTestCases =
         {
@@ -652,7 +652,7 @@ namespace UnityEditor.Rendering.Tests
             };
             upgradedClip.Setup(c => c.GetCurveBindings()).Returns(Array.Empty<EditorCurveBinding>());
             upgradedClip.Setup(c => c.ReplaceBindings(It.IsAny<EditorCurveBinding[]>(), It.IsAny<EditorCurveBinding[]>()))
-                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => {});
+                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => { });
             var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
             var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
 

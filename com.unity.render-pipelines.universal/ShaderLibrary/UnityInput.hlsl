@@ -98,6 +98,8 @@ float4x4 unity_CameraToWorld;
 
 // ----------------------------------------------------------------------------
 
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
+
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
 // Space block Feature
@@ -151,6 +153,8 @@ float4x4 unity_MatrixPreviousMI;
 //W : Camera only
 float4 unity_MotionVectorsParams;
 CBUFFER_END
+
+#endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

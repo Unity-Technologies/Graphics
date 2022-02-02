@@ -447,14 +447,35 @@ namespace UnityEngine.Rendering.PostProcessing
 #if UNITY_2018_2_OR_NEWER
                 if (!m_Camera.usePhysicalProperties)
 #endif
-                m_Camera.ResetProjectionMatrix();
+                {
+                    m_Camera.ResetProjectionMatrix();
+                    m_Camera.nonJitteredProjectionMatrix = m_Camera.projectionMatrix;
+#if (ENABLE_VR_MODULE && ENABLE_VR)
+                    if (m_Camera.stereoEnabled)
+                    {
+                        m_Camera.ResetStereoProjectionMatrices();
+                        if (m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Right)
+                        {
+                            m_Camera.CopyStereoDeviceProjectionMatrixToNonJittered(Camera.StereoscopicEye.Right);
+                            m_Camera.projectionMatrix = m_Camera.GetStereoNonJitteredProjectionMatrix(Camera.StereoscopicEye.Right);
+                            m_Camera.nonJitteredProjectionMatrix = m_Camera.projectionMatrix;
+                            m_Camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, m_Camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right));
+                        }
+                        else if (m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Left || m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Mono)
+                        {
+                            m_Camera.CopyStereoDeviceProjectionMatrixToNonJittered(Camera.StereoscopicEye.Left); // device to unjittered
+                            m_Camera.projectionMatrix = m_Camera.GetStereoNonJitteredProjectionMatrix(Camera.StereoscopicEye.Left);
+                            m_Camera.nonJitteredProjectionMatrix = m_Camera.projectionMatrix;
+                            m_Camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, m_Camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left));
+                        }
+                    }
+#endif
+                }
             }
-            m_Camera.nonJitteredProjectionMatrix = m_Camera.projectionMatrix;
 
 #if (ENABLE_VR_MODULE && ENABLE_VR)
             if (m_Camera.stereoEnabled)
             {
-                m_Camera.ResetStereoProjectionMatrices();
                 Shader.SetGlobalFloat(ShaderIDs.RenderViewportScaleFactor, XRSettings.renderViewportScale);
             }
             else
@@ -519,7 +540,7 @@ namespace UnityEngine.Rendering.PostProcessing
         void BuildCommandBuffers()
         {
             var context = m_CurrentContext;
-            var sourceFormat = m_Camera.allowHDR ? RuntimeUtilities.defaultHDRRenderTextureFormat : RenderTextureFormat.Default;
+            var sourceFormat = m_Camera.targetTexture ? m_Camera.targetTexture.format : (m_Camera.allowHDR ? RuntimeUtilities.defaultHDRRenderTextureFormat : RenderTextureFormat.Default);
 
             if (!RuntimeUtilities.isFloatingPointFormat(sourceFormat))
                 m_NaNKilled = true;
@@ -607,7 +628,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 if (isScreenSpaceReflectionsActive)
                 {
-                    ssrRenderer.Render(context);
+                    ssrRenderer.RenderOrLog(context);
                     opaqueOnlyEffects--;
                     UpdateSrcDstForOpaqueOnly(ref srcTarget, ref dstTarget, context, cameraTarget, opaqueOnlyEffects);
                 }
@@ -689,12 +710,19 @@ namespace UnityEngine.Rendering.PostProcessing
                     m_Camera.usePhysicalProperties = true;
                 else
 #endif
-                m_Camera.ResetProjectionMatrix();
-
-                if (m_CurrentContext.stereoActive)
                 {
-                    if (RuntimeUtilities.isSinglePassStereoEnabled || m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Right)
-                        m_Camera.ResetStereoProjectionMatrices();
+                    // The camera must be reset on precull and post render to avoid issues with alpha when toggling TAA.
+                    m_Camera.ResetProjectionMatrix();
+                    if (m_CurrentContext.stereoActive)
+                    {
+                        if (RuntimeUtilities.isSinglePassStereoEnabled || m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Right)
+                        {
+                            m_Camera.ResetStereoProjectionMatrices();
+                            // copy the left eye onto the projection matrix so that we're using the correct projection matrix after calling m_Camera.ResetProjectionMatrix(); above.
+                            if (XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
+                                m_Camera.projectionMatrix = m_Camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
+                        }
+                    }
                 }
             }
         }
@@ -1125,7 +1153,7 @@ namespace UnityEngine.Rendering.PostProcessing
             // If there's only one active effect, we can simply execute it and skip the rest
             if (count == 1)
             {
-                m_ActiveEffects[0].Render(context);
+                m_ActiveEffects[0].RenderOrLog(context);
             }
             else
             {
@@ -1150,7 +1178,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     context.source = m_Targets[i];
                     context.destination = m_Targets[i + 1];
-                    m_ActiveEffects[i].Render(context);
+                    m_ActiveEffects[i].RenderOrLog(context);
                 }
 
                 cmd.ReleaseTemporaryRT(tempTarget1);
@@ -1218,7 +1246,13 @@ namespace UnityEngine.Rendering.PostProcessing
                 m_LogHistogram.Generate(context);
 
             // Uber effects
+            // 1336238: override xrActiveEye in multipass with the currently rendered eye to fix flickering issue.
+            int xrActiveEyeBackup = context.xrActiveEye;
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
+                context.xrActiveEye = eye;
             RenderEffect<AutoExposure>(context);
+            context.xrActiveEye = xrActiveEyeBackup; // restore the eye
+
             uberSheet.properties.SetTexture(ShaderIDs.AutoExposureTex, context.autoExposureTexture);
 
             RenderEffect<LensDistortion>(context);
@@ -1373,7 +1407,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             if (!useTempTarget)
             {
-                effect.renderer.Render(context);
+                effect.renderer.RenderOrLog(context);
                 return -1;
             }
 
@@ -1381,7 +1415,7 @@ namespace UnityEngine.Rendering.PostProcessing
             var tempTarget = m_TargetPool.Get();
             context.GetScreenSpaceTemporaryRT(context.command, tempTarget, 0, context.sourceFormat);
             context.destination = tempTarget;
-            effect.renderer.Render(context);
+            effect.renderer.RenderOrLog(context);
             context.source = tempTarget;
             context.destination = finalDestination;
             return tempTarget;

@@ -16,3 +16,6 @@ You can customize the behavior of a Reflection Probe in the Inspector. Both type
 To make sure HDRP does not apply post-processing effects twice, once in a Reflection Probe's capture and once in a Camera's capture of the reflection, HDRP does not apply post-processing to the Reflection Probe capture.
 
 For more information about how to use the reflection probe, see [Reflection Probe Usage](Reflection-Probe-Usage.md).
+
+## Preset
+Presets of Reflection Probes are not supported on HDRP.

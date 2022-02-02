@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Boolean field.
         /// </summary>
-        public class BoolField : Field<bool> {}
+        public class BoolField : Field<bool> { }
         /// <summary>
         /// Boolean field with history.
         /// </summary>
@@ -525,6 +525,49 @@ namespace UnityEngine.Rendering
             /// Number of decimals.
             /// </summary>
             public int decimals = 3;
+        }
+
+        /// <summary>
+        /// Object field.
+        /// </summary>
+        public class ObjectField : Field<Object>
+        {
+            /// <summary>
+            /// Object type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Object list field.
+        /// </summary>
+        public class ObjectListField : Field<Object[]>
+        {
+            /// <summary>
+            /// Objects type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Simple message box widget, providing a couple of different styles.
+        /// </summary>
+        public class MessageBox : Widget
+        {
+            /// <summary>
+            /// Label style defines text color and background.
+            /// </summary>
+            public enum Style
+            {
+                Info,
+                Warning,
+                Error
+            }
+
+            /// <summary>
+            /// Style used to render displayName.
+            /// </summary>
+            public Style style = Style.Info;
         }
     }
 }

@@ -1,35 +1,27 @@
-using System;
-using System.Runtime.CompilerServices;
 using System.Diagnostics;
-using UnityEngine;
-
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Conditional("UNITY_EDITOR")]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = false)]
-    internal class HDRPHelpURLAttribute : HelpURLAttribute
+    internal class HDRPHelpURLAttribute : CoreRPHelpURLAttribute
     {
-        //This must be used like
-        //[HDRPHelpURLAttribute("some-page")]
-        //It cannot support String.Format nor string interpolation.
         public HDRPHelpURLAttribute(string pageName)
-            : base(Documentation.GetPageLink(pageName))
+            : base(pageName, Documentation.packageName)
         {
         }
     }
 
-
-    //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
-    class Documentation : DocumentationInfo
+    internal class Documentation : DocumentationInfo
     {
-        internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@";
-        internal const string subURL = "/manual/";
-        internal const string endURL = ".html";
-
-        internal static string GetPageLink(string pageName)
-        {
-            return baseURL + version + subURL + pageName + endURL;
-        }
+        /// <summary>
+        /// The name of the package
+        /// </summary>
+        public const string packageName = "com.unity.render-pipelines.high-definition";
+        /// <summary>
+        /// Generates a help url for the given package and page name
+        /// </summary>
+        /// <param name="pageName">The page name</param>
+        /// <returns>The full url page</returns>
+        public static string GetPageLink(string pageName) => GetPageLink(packageName, pageName);
     }
 }

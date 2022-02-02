@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public HyperbolicCosineNode()
         {
             name = "Hyperbolic Cosine";
+            synonyms = new string[] { "cosh" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

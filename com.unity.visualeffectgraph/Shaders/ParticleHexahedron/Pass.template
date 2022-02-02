@@ -28,8 +28,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	
 	float3 offsets = (float3)0;
 	offsets.x = float(id & 1);
-	offsets.y = float((id & 2) >> 1);
-	offsets.z = float((id & 6) >> 2);
+	offsets.y = (id & 2) * 0.5f;
+	offsets.z = (id & 4) * 0.25f;
 	offsets -= 0.5f;
 	
 	${VFXLoadSize}

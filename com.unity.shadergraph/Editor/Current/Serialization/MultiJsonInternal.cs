@@ -265,8 +265,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             public override PropertyType propertyType => PropertyType.Float;
-            internal override void GetPropertyReferenceNames(List<string> result) {}
-            internal override void GetPropertyDisplayNames(List<string> result) {}
+            internal override void GetPropertyReferenceNames(List<string> result) { }
+            internal override void GetPropertyDisplayNames(List<string> result) { }
             internal override string GetPropertyBlockString() { return ""; }
             internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
             {
@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override ConcreteSlotValueType concreteValueType => ConcreteSlotValueType.Vector1;
 
-            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) {}
+            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) { }
 
             public override void CopyValuesFrom(MaterialSlot foundSlot)
             {
@@ -677,7 +677,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
                 const string k_NewLineString = "\n";
                 var sb = new StringBuilder();
-                foreach (var(id, json) in idJsonList)
+                foreach (var (id, json) in idJsonList)
                 {
                     sb.Append(json);
                     sb.Append(k_NewLineString);

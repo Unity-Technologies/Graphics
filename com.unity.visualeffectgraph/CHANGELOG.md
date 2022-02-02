@@ -4,6 +4,49 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+### Added
+- Multiple VFX graphs can be opened at the same time
+
+### Changed
+- Search window now lists more nodes variants and they are organized by attribute first instead of operation
+
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
+- Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
+- Fix SDF Baker fail on PS4 & PS5 [Case 1351595](https://fogbugz.unity3d.com/f/cases/1351595/)
+- Particles were rendered pink with some debug modes [Case 1342276](https://issuetracker.unity3d.com/product/unity/issues/guid/1342276/)
+- Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)
+- Extract position from a transform is wrong on GPU [Case 1353533](https://issuetracker.unity3d.com/product/unity/issues/guid/1353533/)
+- Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
+- Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
+- Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
+- Fixed Collision with Depth when using a physical camera. [Case 1344733](https://issuetracker.unity3d.com/product/unity/issues/guid/1344733/)
+- Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
+
+## [13.1.0] - 2021-09-24
+
+### Fixed
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+
+## [13.0.0] - 2021-09-01
+### Added
+- New options to select how to sort particles in the Output Context.
+
+
+### Fixed
+- Prevent vector truncation error in HDRP Decal template
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
+- Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
+- Unexpected compilation error while modifying ShaderGraph exposed properties [Case 1361601](https://issuetracker.unity3d.com/product/unity/issues/guid/1361601/)
+- Compilation issue while using new SG integration and SampleTexture/SampleMesh [Case 1359391](https://issuetracker.unity3d.com/product/unity/issues/guid/1359391/)
+- Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
+- Prevent VFX Graph compilation each time a property's min/max value is changed
+- Prevent vfx re-compilation in some cases when a value has not changed
+- Eye dropper in the color fields kept updating after pressing the Esc key
+- Automatically offset contexts when a new node is inserted to avoid overlapping
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
@@ -18,12 +61,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Provide explicit access to spawnCount in graph
 - Support of direct link event to initialize context (which support several event within the same frame)
 - Structured Graphics Buffer support as exposed type
+- Added HDRP Decal output context.
+- Motion vectors enabled for particle strips
+- Added Is Inside subgraph into VFX Graph additions package
+- The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
+- Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
+- Improved toolbar design: added icons, removed labels and grouped commands into dropdown menus
 
 ### Changed
 - Allow remaking an existing link.
 - Sphere and Cube outputs are now experimental
 - Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
 - Property Binder : Prevent multiple VFXPropertyBinder within the same game object
+- Transform integrated to VFXTypes : Circle, ArcCircle, Sphere, ArcSphere, Torus, ArcTorus, Cone, ArcCone
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime
@@ -65,6 +115,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- In the Gradient editor undo will now properly refresh the gradient preview (color swatches)
+- Eye dropper in the color fields kept updating after pressing the Esc key
+- Sticky notes can now be deleted through contextual manual menu
+- Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
+- Properties labels do not overlap anymore
+- VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
+- Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
+- When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
+- Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Inspector group headers now have a better indentation and alignment
+- Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
+- Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
+- Fixed Collision with Depth Buffer when using Orthographic camera [Case 1309958](https://issuetracker.unity3d.com/product/unity/issues/guid/1309958/)
+- Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
+- Compilation issue when normal is used in shadergraph for opacity with unlit output
+- Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
+- Fix IsFrontFace shader graph node for VFX.
+- Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
+- Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
+- GPU hang on some initialize dispatch during dichotomy (platform specific)
+- Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
+- Exposed Parameter placement can be moved after sanitize
+- Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
+- Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
+- Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
 ### Added

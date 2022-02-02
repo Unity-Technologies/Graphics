@@ -39,6 +39,7 @@ MonoBehaviour:
   m_RequireOpaqueTexture: 0
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 0
+  m_StoreActionsOptimization: 0
   m_SupportsHDR: 0
   m_MSAA: 1
   m_RenderScale: 1
@@ -63,9 +64,12 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
+  m_AdditionalLightsCookieResolution: 2048
+  m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 0
+  m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
@@ -77,4 +81,5 @@ MonoBehaviour:
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateMode: 0
   m_ShadowCascades: 2

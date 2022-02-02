@@ -191,6 +191,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: HDRP
       objectReference: {fileID: 0}
+    - target: {fileID: 5870183540159428619, guid: 0ecfb9aa1bc41c049aab025283598019,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 5870183541744189769, guid: 0ecfb9aa1bc41c049aab025283598019,
         type: 3}
       propertyPath: m_Materials.Array.data[0]

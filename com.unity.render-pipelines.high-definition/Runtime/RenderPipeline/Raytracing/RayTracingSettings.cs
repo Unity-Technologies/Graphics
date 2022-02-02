@@ -4,10 +4,35 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Control the ray tracing acceleration structure build mode
+    /// </summary>
+    public enum RTASBuildMode
+    {
+        /// <summary>HDRP automatically collects mesh renderers and builds the ray tracing acceleration structure every frame</summary>
+        Automatic,
+        /// <summary>Uses a ray tracing acceleration structure handeled by the user.</summary>
+        Manual
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="RTASMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class RTASBuildModeParameter : VolumeParameter<RTASBuildMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="RTASBuildModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public RTASBuildModeParameter(RTASBuildMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that holds the general settings for ray traced effects.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings (Preview)")]
     [HDRPHelpURLAttribute("Ray-Tracing-Settings")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Ray Tracing Settings (Preview)", typeof(HDRenderPipeline))]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>
@@ -40,6 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the fallback directional shadow value that is used when the point to shade is outside of the cascade.")]
         public ClampedFloatParameter directionalShadowFallbackIntensity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls how the ray tracing acceleration structure is build.
+        /// </summary>
+        [AdditionalProperty]
+        public RTASBuildModeParameter buildMode = new RTASBuildModeParameter(RTASBuildMode.Automatic);
 
         /// <summary>
         /// Default constructor for the ray tracing settings volume component.

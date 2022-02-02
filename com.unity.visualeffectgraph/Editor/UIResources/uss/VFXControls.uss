@@ -59,6 +59,22 @@ VFXColorField #indeterminate
     flex:0 0 auto;
 }
 
+.sliderMinMaxField
+{
+    flex-direction:row;
+}
+
+.sliderMinMaxField .unity-min-max-slider
+{
+    flex:1 0 auto;
+    overflow: visible;
+}
+.sliderMinMaxField #indeterminate
+{
+    width: 40px;
+    flex:0 0 auto;
+}
+
 .PopupButton
 {
     -unity-text-align:middle-left;

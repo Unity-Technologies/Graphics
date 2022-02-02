@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Operator
         bool safeNormalize = false;
 
 
-        protected override sealed string operatorName { get {return safeNormalize ?  "Safe Normalize" :  "Normalize"; } }
+        protected override sealed string operatorName { get { return safeNormalize ? "Safe Normalize" : "Normalize"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

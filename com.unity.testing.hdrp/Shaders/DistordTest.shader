@@ -1,16 +1,16 @@
 Shader "Hidden/DistordTest"
 {
-	Properties
-	{
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+    Properties
+    {
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
-		Pass
-		{
-			CGPROGRAM
+        Pass
+        {
+            CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment frag
@@ -18,8 +18,8 @@ Shader "Hidden/DistordTest"
 
 #define CENTER 0.15
 
-			float4 frag(v2f_customrendertexture IN) : SV_Target
-			{
+            float4 frag(v2f_customrendertexture IN) : SV_Target
+            {
                 float4 col = float4(0,0,0,1);
 
                 fixed2 centeredUV = IN.localTexcoord.xy * 2 - 1;
@@ -68,9 +68,9 @@ Shader "Hidden/DistordTest"
 
                 col.b += 1-saturate( length(centeredUV) );
 
-				return col;
-			}
-			ENDCG
-		}
-	}
+                return col;
+            }
+            ENDCG
+        }
+    }
 }

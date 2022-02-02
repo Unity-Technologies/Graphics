@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
-using UnityEditor.VFX;
+
 
 namespace UnityEditor.VFX.UI
 {
     abstract class VFXAbstractProvider<T> : VFXFilterWindow.IProvider
     {
-        Action<T, Vector2> m_onSpawnDesc;
+        readonly Action<T, Vector2> m_onSpawnDesc;
 
         protected class VFXBlockElement : VFXFilterWindow.Element
         {
@@ -17,10 +18,7 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                var str = name;
-                if (!string.IsNullOrEmpty(category))
-                    str += " (" + category.Replace("/", " ") + ") ";
-                content = new GUIContent(str /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                content = new GUIContent(name /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }
         }
@@ -44,37 +42,41 @@ namespace UnityEditor.VFX.UI
             tree.Add(new VFXFilterWindow.GroupElement(0, title));
             var descriptors = GetDescriptors();
 
+            var depth = 1;
             string prevCategory = "";
-            int depth = 1;
+            var prevSplit = new string[0];
+            var noCategory = new List<T>();
 
             foreach (var desc in descriptors)
             {
                 var category = GetCategory(desc);
-                if (category == null)
-                    category = "";
+                if (string.IsNullOrEmpty(category))
+                {
+                    noCategory.Add(desc);
+                    continue;
+                }
 
                 if (category != prevCategory)
                 {
-                    depth = 0;
-
                     var split = category.Split('/').Where(o => o != "").ToArray();
-                    var prevSplit = prevCategory.Split('/').Where(o => o != "").ToArray();
 
-                    while ((depth < split.Length) && (depth < prevSplit.Length) && (split[depth] == prevSplit[depth]))
-                        depth++;
-
-                    while (depth < split.Length)
+                    for (int i = 0; i < split.Length; i++)
                     {
-                        tree.Add(new VFXFilterWindow.GroupElement(depth + 1, split[depth]));
-                        depth++;
+                        if (i >= prevSplit.Length || (i < prevSplit.Length && split[i] != prevSplit[i]))
+                        {
+                            depth = i + 1;
+                            tree.Add(new VFXFilterWindow.GroupElement(depth, split[i]));
+                        }
                     }
 
-                    depth++;
+                    prevCategory = category;
+                    prevSplit = split;
                 }
 
-                tree.Add(new VFXBlockElement(depth, desc, category, GetName(desc)));
-                prevCategory = category;
+                tree.Add(new VFXBlockElement(depth + 1, desc, category, GetName(desc)));
             }
+
+            noCategory.ForEach(x => tree.Add(new VFXBlockElement(1, x, string.Empty, GetName(x))));
         }
 
         public bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent)
@@ -111,7 +113,7 @@ namespace UnityEditor.VFX.UI
                 this.newBlock = newBlock;
             }
 
-            public override string category { get { return newBlock.info.category; } }
+            public override string category { get { return newBlock.category; } }
             public override string name { get { return newBlock.name; } }
         }
 
@@ -127,8 +129,7 @@ namespace UnityEditor.VFX.UI
             public override string name { get { return item.name; } }
         }
 
-
-        VFXContextController m_ContextController;
+        readonly VFXContextController m_ContextController;
         public VFXBlockProvider(VFXContextController context, Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
         {
             m_ContextController = context;
@@ -146,31 +147,23 @@ namespace UnityEditor.VFX.UI
 
         protected override string title
         {
-            get {return "Block"; }
+            get { return "Block"; }
         }
 
         protected override IEnumerable<VFXBlockProvider.Descriptor> GetDescriptors()
         {
-            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).Select(t => (Descriptor) new NewBlockDescriptor(t));
-
-
-            filteredBlocks = filteredBlocks.Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphBlock)).Where(t =>
-                (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleType & m_ContextController.model.contextType) != 0  &&
-                (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleData & m_ContextController.model.ownedType) != 0
-                ).Select(t => (Descriptor) new SubgraphBlockDescriptor(t)));
-
-            var blockList = filteredBlocks.ToList();
-
-            blockList.Sort((blockA, blockB) =>
-            {
-                var infoA = blockA;
-                var infoB = blockB;
-                int res = infoA.category.CompareTo(infoB.category);
-                return res != 0 ? res : blockA.name.CompareTo(blockB.name);
-            });
-
-            return blockList;
+            return VFXLibrary.GetBlocks()
+                .Where(b => b.AcceptParent(m_ContextController.model))
+                .Select(t => (Descriptor)new NewBlockDescriptor(t))
+                .Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphBlock))
+                    .Where(t =>
+                        (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleType &
+                            m_ContextController.model.contextType) != 0 &&
+                        (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleData &
+                            m_ContextController.model.ownedType) != 0)
+                    .Select(t => (Descriptor)new SubgraphBlockDescriptor(t)))
+                .OrderBy(x => x.category)
+                .ThenBy(x => x.name);
         }
     }
 }

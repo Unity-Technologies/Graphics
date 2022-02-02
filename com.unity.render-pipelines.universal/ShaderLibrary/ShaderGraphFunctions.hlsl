@@ -9,6 +9,8 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_URPMainLightDirection
+
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -63,9 +65,14 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
     float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
     float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    // ComputeFogFactorZ0ToFar returns the fog "occlusion" (0 for full fog and 1 for no fog) so this has to be inverted for density.
     density = 1.0f - ComputeFogIntensity(ComputeFogFactorZ0ToFar(nearZ0ToFarZ));
+    #else
+    density = 0.0f;
+    #endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
@@ -88,6 +95,11 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
+}
+
+float3 shadergraph_URPMainLightDirection()
+{
+    return -GetMainLight().direction;
 }
 
 // Always include Shader Graph version

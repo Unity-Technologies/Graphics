@@ -13,12 +13,9 @@ MonoBehaviour:
   m_Name: BluePP
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 1
 --- !u!114 &-3239717423278587703
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -32,12 +29,9 @@ MonoBehaviour:
   m_Name: GreenPP
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 1
 --- !u!114 &-942316994979640664
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -51,12 +45,9 @@ MonoBehaviour:
   m_Name: DepthTAA
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,6 +65,23 @@ MonoBehaviour:
   - {fileID: -3239717423278587703}
   - {fileID: -5087565363566395768}
   - {fileID: -942316994979640664}
+  - {fileID: 493946168717640151}
+--- !u!114 &493946168717640151
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 975ab06fcdf742d4d9609e397e3de106, type: 3}
+  m_Name: AfterPPBlurs
+  m_EditorClassIdentifier: 
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
 --- !u!114 &6985434391746351988
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -87,9 +95,6 @@ MonoBehaviour:
   m_Name: RedPP
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 1

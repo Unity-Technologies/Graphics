@@ -4,38 +4,45 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     VertexDescriptionInputs output;
     ZERO_INITIALIZE(VertexDescriptionInputs, output);
 
-    $VertexDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           input.normalOS;
-    $VertexDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            TransformObjectToWorldNormal(input.normalOS);
-    $VertexDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             TransformWorldToViewDir(output.WorldSpaceNormal);
-    $VertexDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-    $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS.xyz;
-    $VertexDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           TransformObjectToWorldDir(input.tangentOS.xyz);
-    $VertexDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
-    $VertexDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-    $VertexDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        normalize(cross(input.normalOS.xyz, input.tangentOS.xyz) * (input.tangentOS.w > 0.0f ? 1.0f : -1.0f) * GetOddNegativeScale());
-    $VertexDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         TransformObjectToWorldDir(output.ObjectSpaceBiTangent);
-    $VertexDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
-    $VertexDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
-    $VertexDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         input.positionOS;
-    $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          TransformObjectToWorld(input.positionOS);
-    $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
-    $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-    $VertexDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS).xyz);
-    $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
-    $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-    $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
-    $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
-    $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
-    $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(output.WorldSpacePosition), _ProjectionParams.x);
-    $VertexDescriptionInputs.uv0:                       output.uv0 =                         input.uv0;
-    $VertexDescriptionInputs.uv1:                       output.uv1 =                         input.uv1;
-    $VertexDescriptionInputs.uv2:                       output.uv2 =                         input.uv2;
-    $VertexDescriptionInputs.uv3:                       output.uv3 =                         input.uv3;
-    $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
-    $VertexDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
-    $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
-    $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
-    $VertexDescriptionInputs.VertexID:                  output.VertexID =                    input.vertexID;
+    $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          input.normalOS;
+    $VertexDescriptionInputs.WorldSpaceNormal:                          output.WorldSpaceNormal =                           TransformObjectToWorldNormal(input.normalOS);
+    $VertexDescriptionInputs.ViewSpaceNormal:                           output.ViewSpaceNormal =                            TransformWorldToViewDir(output.WorldSpaceNormal);
+    $VertexDescriptionInputs.TangentSpaceNormal:                        output.TangentSpaceNormal =                         float3(0.0f, 0.0f, 1.0f);
+    $VertexDescriptionInputs.ObjectSpaceTangent:                        output.ObjectSpaceTangent =                         input.tangentOS.xyz;
+    $VertexDescriptionInputs.WorldSpaceTangent:                         output.WorldSpaceTangent =                          TransformObjectToWorldDir(input.tangentOS.xyz);
+    $VertexDescriptionInputs.ViewSpaceTangent:                          output.ViewSpaceTangent =                           TransformWorldToViewDir(output.WorldSpaceTangent);
+    $VertexDescriptionInputs.TangentSpaceTangent:                       output.TangentSpaceTangent =                        float3(1.0f, 0.0f, 0.0f);
+    $VertexDescriptionInputs.ObjectSpaceBiTangent:                      output.ObjectSpaceBiTangent =                       normalize(cross(input.normalOS.xyz, input.tangentOS.xyz) * (input.tangentOS.w > 0.0f ? 1.0f : -1.0f) * GetOddNegativeScale());
+    $VertexDescriptionInputs.WorldSpaceBiTangent:                       output.WorldSpaceBiTangent =                        TransformObjectToWorldDir(output.ObjectSpaceBiTangent);
+    $VertexDescriptionInputs.ViewSpaceBiTangent:                        output.ViewSpaceBiTangent =                         TransformWorldToViewDir(output.WorldSpaceBiTangent);
+    $VertexDescriptionInputs.TangentSpaceBiTangent:                     output.TangentSpaceBiTangent =                      float3(0.0f, 1.0f, 0.0f);
+    $VertexDescriptionInputs.ObjectSpacePosition:                       output.ObjectSpacePosition =                        input.positionOS;
+    $VertexDescriptionInputs.WorldSpacePosition:                        output.WorldSpacePosition =                         TransformObjectToWorld(input.positionOS);
+    $VertexDescriptionInputs.ViewSpacePosition:                         output.ViewSpacePosition =                          TransformWorldToView(output.WorldSpacePosition);
+    $VertexDescriptionInputs.TangentSpacePosition:                      output.TangentSpacePosition =                       float3(0.0f, 0.0f, 0.0f);
+    $VertexDescriptionInputs.AbsoluteWorldSpacePosition:                output.AbsoluteWorldSpacePosition =                 GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS).xyz);
+    $VertexDescriptionInputs.ObjectSpacePositionPredisplacement:        output.ObjectSpacePositionPredisplacement =         input.positionOS;
+    $VertexDescriptionInputs.WorldSpacePositionPredisplacement:         output.WorldSpacePositionPredisplacement =          TransformObjectToWorld(input.positionOS);
+    $VertexDescriptionInputs.ViewSpacePositionPredisplacement:          output.ViewSpacePositionPredisplacement =           TransformWorldToView(output.WorldSpacePosition);
+    $VertexDescriptionInputs.TangentSpacePositionPredisplacement:       output.TangentSpacePositionPredisplacement =        float3(0.0f, 0.0f, 0.0f);
+    $VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement: output.AbsoluteWorldSpacePositionPredisplacement =  GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS).xyz);
+    $VertexDescriptionInputs.WorldSpaceViewDirection:                   output.WorldSpaceViewDirection =                    GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
+    $VertexDescriptionInputs.ObjectSpaceViewDirection:                  output.ObjectSpaceViewDirection =                   TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+    $VertexDescriptionInputs.ViewSpaceViewDirection:                    output.ViewSpaceViewDirection =                     TransformWorldToViewDir(output.WorldSpaceViewDirection);
+    $VertexDescriptionInputs.TangentSpaceViewDirection:                 float3x3 tangentSpaceTransform =                    float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
+    $VertexDescriptionInputs.TangentSpaceViewDirection:                 output.TangentSpaceViewDirection =                  TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
+    $VertexDescriptionInputs.ScreenPosition:                            output.ScreenPosition =                             ComputeScreenPos(TransformWorldToHClip(output.WorldSpacePosition), _ProjectionParams.x);
+    $VertexDescriptionInputs.NDCPosition:                               output.NDCPosition =                                output.ScreenPosition.xy / output.ScreenPosition.w;
+    $VertexDescriptionInputs.PixelPosition:                             output.PixelPosition =                              float2(output.NDCPosition.x, 1.0f - output.NDCPosition.y) * _ScreenParams.xy;
+    $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        input.uv0;
+    $VertexDescriptionInputs.uv1:                                       output.uv1 =                                        input.uv1;
+    $VertexDescriptionInputs.uv2:                                       output.uv2 =                                        input.uv2;
+    $VertexDescriptionInputs.uv3:                                       output.uv3 =                                        input.uv3;
+    $VertexDescriptionInputs.VertexColor:                               output.VertexColor =                                input.color;
+    $VertexDescriptionInputs.TimeParameters:                            output.TimeParameters =                             _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
+    $VertexDescriptionInputs.BoneWeights:                               output.BoneWeights =                                input.weights;
+    $VertexDescriptionInputs.BoneIndices:                               output.BoneIndices =                                input.indices;
+    $VertexDescriptionInputs.VertexID:                                  output.VertexID =                                   input.vertexID;
 
     return output;
 }
@@ -81,6 +88,17 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     return input;
 }
 
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+// Return precomputed Velocity in object space
+float3 GetCustomVelocity(AttributesMesh input)
+{
+    // build graph inputs
+    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    return vertexDescription.CustomVelocity;
+}
+#endif
+
 FragInputs BuildFragInputs(VaryingsMeshToPS input)
 {
     FragInputs output;
@@ -92,20 +110,22 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     output.tangentToWorld = k_identity3x3;
     output.positionSS = input.positionCS;       // input.positionCS is SV_Position
 
-    $FragInputs.positionRWS:        output.positionRWS = input.positionRWS;
-    $FragInputs.tangentToWorld:     output.tangentToWorld = BuildTangentToWorld(input.tangentWS, input.normalWS);
-    $FragInputs.texCoord0:          output.texCoord0 = input.texCoord0;
-    $FragInputs.texCoord1:          output.texCoord1 = input.texCoord1;
-    $FragInputs.texCoord2:          output.texCoord2 = input.texCoord2;
-    $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
-    $FragInputs.color:              output.color = input.color;
+    $FragInputs.positionRWS:                    output.positionRWS =                input.positionRWS;
+    $FragInputs.positionPixel:                  output.positionPixel =              input.positionCS.xy; // NOTE: this is not actually in clip space, it is the VPOS pixel coordinate value
+    $FragInputs.positionPredisplacementRWS:     output.positionPredisplacementRWS = input.positionPredisplacementRWS;
+    $FragInputs.tangentToWorld:                 output.tangentToWorld =             BuildTangentToWorld(input.tangentWS, input.normalWS);
+    $FragInputs.texCoord0:                      output.texCoord0 =                  input.texCoord0;
+    $FragInputs.texCoord1:                      output.texCoord1 =                  input.texCoord1;
+    $FragInputs.texCoord2:                      output.texCoord2 =                  input.texCoord2;
+    $FragInputs.texCoord3:                      output.texCoord3 =                  input.texCoord3;
+    $FragInputs.color:                          output.color =                      input.color;
 
 #ifdef HAVE_VFX_MODIFICATION
     // FragInputs from VFX come from two places: Interpolator or CBuffer.
     $splice(VFXSetFragInputs)
 
-    $FragInputs.elementToWorld:     BuildElementToWorld(input);
-    $FragInputs.worldToElement:     BuildWorldToElement(input);
+    $FragInputs.elementToWorld:                 BuildElementToWorld(input);
+    $FragInputs.worldToElement:                 BuildWorldToElement(input);
 #endif
 
     // splice point to copy custom interpolator fields from varyings to frag inputs

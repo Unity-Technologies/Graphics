@@ -67,8 +67,12 @@ MonoBehaviour:
   - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforePostProcessCustomPostProcesses:
   - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  afterPostProcessBlursCustomPostProcesses:
+  - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   afterPostProcessCustomPostProcesses:
   - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   beforeTAACustomPostProcesses:
   - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   lightLayerName0: Light Layer default
@@ -89,6 +93,7 @@ MonoBehaviour:
   decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
   - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
@@ -110,7 +115,10 @@ MonoBehaviour:
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
   supportRuntimeDebugDisplay: 0
-  apvScenesBounds:
+  apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
+    serializedProfiles: []
+    serializedBakeSettings: []
+    serializedBakingSets: []
   m_Version: 3

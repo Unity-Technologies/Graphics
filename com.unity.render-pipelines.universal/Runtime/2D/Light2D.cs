@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
@@ -57,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// The accuracy of how the normap map calculation.
+        /// The accuracy of how the normal map calculation.
         /// </summary>
         public enum NormalMapQuality
         {
@@ -85,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             Additive,
             /// <summary>
-            /// Colors are blended using standed blending (alpha, 1-alpha)
+            /// Colors are blended using standard blending (alpha, 1-alpha)
             /// </summary>
             AlphaBlend
         }
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -147,6 +148,7 @@ namespace UnityEngine.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
+
         Mesh m_Mesh;
 
         [SerializeField]
@@ -161,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
+        internal Vector3 m_CachedPosition;
+
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -180,6 +184,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
+
 
         /// <summary>
         /// The light's current type
@@ -250,14 +255,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
+        public Sprite lightCookieSprite { get => m_LightCookieSprite; set => m_LightCookieSprite = value; }
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
-        public float falloffIntensity => m_FalloffIntensity;
+        public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
         [Obsolete]
-        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 
         /// <summary>
         /// Returns the overlap operation mode.
@@ -279,7 +284,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        /// <summary>
+        /// Returns if volumetric shadows should be rendered.
+        /// </summary>
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
+
+
+        internal void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+        }
 
         internal int GetTopMostLitLayer()
         {
@@ -300,6 +314,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return largestIndex;
+        }
+
+        internal Bounds UpdateSpriteMesh()
+        {
+            if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
+            {
+                m_Vertices = new LightUtility.LightMeshVertex[1];
+                m_Triangles = new ushort[1];
+            }
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
         internal void UpdateMesh(bool forceUpdate)
@@ -326,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+                        m_LocalBounds = UpdateSpriteMesh();
                         break;
                     case LightType.Point:
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
@@ -365,13 +389,22 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
-            bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
-            UpdateMesh(updateMesh);
-            if (hasCachedMesh)
+#if UNITY_EDITOR
+            // Default target sorting layers to "All"
+            if (m_ApplyToSortingLayers == null)
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
+#endif
+
+            if (m_LightCookieSprite != null)
             {
-                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
-                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
-                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
+                UpdateMesh(updateMesh);
+                if (hasCachedMesh)
+                {
+                    lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                    lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                    lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                }
             }
         }
 
@@ -388,6 +421,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
+#endif
+
             if (m_LightType == LightType.Global)
                 return;
 
@@ -395,11 +432,17 @@ namespace UnityEngine.Rendering.Universal
             UpdateBoundingSphere();
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        /// <summary>
+        /// OnAfterSerialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version

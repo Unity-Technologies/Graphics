@@ -77,4 +77,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
     guid: aee9f891d65e44daf811d30053402efd
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesEveryFrameTest.unity
+    guid: aea08d28b240a4fbcad63f84cd63bce4
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesUsePipelineTest.unity
+    guid: 7962ed0a9378644e194cd1dc78107545
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesViaScriptingTest.unity
+    guid: 3f6f1488245db419bab368d787dcc0b1
+  - enabled: 1
+    path: Assets/Scenes/200_Lens_Flare_Sanity.unity
+    guid: b51c203a350144f97ba208c293ab8333
+  - enabled: 1
+    path: Assets/Scenes/240_DepthPriming.unity
+    guid: 06d3d04c77b97ba40969b415bc9a25dd
   m_configObjects: {}

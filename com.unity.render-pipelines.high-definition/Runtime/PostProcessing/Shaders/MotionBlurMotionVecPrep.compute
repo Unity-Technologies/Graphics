@@ -145,14 +145,18 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     float3 motionVecAndDepth = 0.0f;
-    float4 motionVecBufferSample = LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy);
+
+    float2 motionVecUV = FromOutputPosSSToPreupsampleUV(dispatchThreadId.xy);
+    motionVecUV = ClampAndScaleUVForPoint(motionVecUV);
+
+    float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, motionVecUV, 0);
     // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
     bool forceNoMotion = PixelSetAsNoMotionVectors(motionVecBufferSample);
 
     float2 motionVec;
     DecodeMotionVector(motionVecBufferSample, motionVec);
 
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = LoadCameraDepth(FromOutputPosSSToPreupsamplePosSS(dispatchThreadId.xy));
 
 
     if ( !forceNoMotion

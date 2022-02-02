@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(levelRect, label, self.useOverride);
             {
                 EditorGUI.BeginChangeCheck();
-                var(level, useOverride) = LevelFieldGUI(
+                var (level, useOverride) = LevelFieldGUI(
                     levelRect,
                     GUIContent.none,
                     schema,

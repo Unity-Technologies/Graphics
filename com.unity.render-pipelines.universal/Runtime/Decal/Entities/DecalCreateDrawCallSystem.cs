@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetCapacity(int newCapacity)
         {
-            ResizeNativeArray(ref decalToWorlds, newCapacity);
-            ResizeNativeArray(ref normalToDecals, newCapacity);
-            ResizeNativeArray(ref subCalls, newCapacity);
+            decalToWorlds.ResizeArray(newCapacity);
+            normalToDecals.ResizeArray(newCapacity);
+            subCalls.ResizeArray(newCapacity);
             capacity = newCapacity;
         }
 
@@ -62,6 +62,15 @@ namespace UnityEngine.Rendering.Universal
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
         private float m_MaxDrawDistance;
+
+        /// <summary>
+        /// Provides acces to the maximum draw distance.
+        /// </summary>
+        public float maxDrawDistance
+        {
+            get { return m_MaxDrawDistance; }
+            set { m_MaxDrawDistance = value; }
+        }
 
         public DecalCreateDrawCallSystem(DecalEntityManager entityManager, float maxDrawDistance)
         {

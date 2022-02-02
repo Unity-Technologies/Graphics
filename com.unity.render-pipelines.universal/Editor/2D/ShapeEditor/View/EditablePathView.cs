@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
         private GUIAction m_MoveRightTangentAction;
         private IDrawer m_Drawer;
 
-        public EditablePathView() : this(new Drawer()) {}
+        public EditablePathView() : this(new Drawer()) { }
 
         public EditablePathView(IDrawer drawer)
         {
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
                 onSliderChanged = (guiState, control, position) =>
                 {
                     var index = control.hotLayoutData.index;
-                    var delta = position -  GetPoint(index).position;
+                    var delta = position - GetPoint(index).position;
 
                     controller.MoveEdge(index, delta);
                 }
@@ -466,7 +466,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
         private bool EnableCreatePointRepaint(IGUIState guiState, GUIAction action)
         {
             return guiState.nearestControl != m_PointControl.ID &&
-                guiState.hotControl == 0  &&
+                guiState.hotControl == 0 &&
                 (guiState.nearestControl != m_LeftTangentControl.ID) &&
                 (guiState.nearestControl != m_RightTangentControl.ID);
         }

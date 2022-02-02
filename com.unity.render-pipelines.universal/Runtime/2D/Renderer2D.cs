@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
+        UpscalePass m_UpscalePass;
         FinalBlitPass m_FinalBlitPass;
         Light2DCullResult m_LightCullResult;
 
@@ -42,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
+            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 
@@ -148,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
             if (DebugHandler != null)
             {
 #if UNITY_EDITOR
-                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.materialSettings.materialDebugMode == DebugMaterialMode.SpriteMask);
 #endif
                 if (DebugHandler.AreAnySettingsActive)
                 {
@@ -184,8 +186,8 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.orthographic = true;
                     renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
-                    colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+                    colorTextureFilterMode = FilterMode.Point;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
                 }
             }
 
@@ -244,20 +246,32 @@ namespace UnityEngine.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.enabled && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Windowbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.StretchFill))
+            RenderTargetHandle finalTargetHandle = colorTargetHandle;
+
+            if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
             {
                 m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
+
+                // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
+                if (ppc.requiresUpscalePass)
+                {
+                    int upscaleWidth = ppc.refResolutionX * ppc.pixelRatio;
+                    int upscaleHeight = ppc.refResolutionY * ppc.pixelRatio;
+
+                    m_UpscalePass.Setup(colorTargetHandle, upscaleWidth, upscaleHeight, ppc.finalBlitFilterMode, out finalTargetHandle);
+                    EnqueuePass(m_UpscalePass);
+                }
             }
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(finalTargetHandle);
                 EnqueuePass(finalPostProcessPass);
             }
-            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
+            else if (lastCameraInStack && finalTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, finalTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
         }

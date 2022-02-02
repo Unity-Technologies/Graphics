@@ -39,13 +39,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #region Decal Gizmo Color
+    #region Decal Gizmo Color
 
         static readonly Color k_DecalGizmoColorBase = new Color(1, 1, 1, 8f / 255);
         static Func<Color>    GetColorPrefDecalGizmoColor;
         public static Color   decalGizmoColor => GetColorPrefDecalGizmoColor();
 
-        #endregion
+    #endregion
 
         static class Keys
         {

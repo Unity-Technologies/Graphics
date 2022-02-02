@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             textSize,
         }
 
-        public Change change {get; protected set; }
+        public Change change { get; protected set; }
     }
 
     class StickyNote : GraphElement, ISGResizable
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public TextSize textSize
         {
-            get {return m_TextSize; }
+            get { return m_TextSize; }
             set
             {
                 if (m_TextSize != value)
@@ -272,7 +272,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Fit To Text", OnFitToText, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
 
-                evt.menu.AppendAction("Delete",  OnDelete, e => DropdownMenuAction.Status.Normal);
+                evt.menu.AppendAction("Delete", OnDelete, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -313,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string contents
         {
-            get {return m_Contents.text; }
+            get { return m_Contents.text; }
             set
             {
                 if (m_Contents != null)
@@ -324,7 +324,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         public new string title
         {
-            get {return m_Title.text; }
+            get { return m_Title.text; }
             set
             {
                 if (m_Title != null)

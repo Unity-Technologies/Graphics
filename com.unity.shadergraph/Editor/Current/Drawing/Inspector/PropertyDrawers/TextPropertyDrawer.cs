@@ -45,9 +45,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newStringValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newStringValue}),
+                newStringValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newStringValue }),
                 (string)propertyInfo.GetValue(actualObject),
                 attribute.labelName);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

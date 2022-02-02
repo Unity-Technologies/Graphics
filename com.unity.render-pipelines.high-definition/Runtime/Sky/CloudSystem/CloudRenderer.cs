@@ -7,9 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>The 2D cookie texture to use.</summary>
         public Texture texture;
-        /// <summary>The size size of the projected cookie texture in pixels.</summary>
+        /// <summary>The size of the projected cookie texture in pixels.</summary>
         public Vector2 size;
-        /// <summary>The wrold space position to use as projection origin.</summary>
+        /// <summary>The world space position to use as projection origin.</summary>
         public Vector3 position;
     }
 
@@ -45,10 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// HDRP calls this function once every frame where GetSunLightCookieParameters returns true.
         /// Implement it if your CloudRenderer needs to render a texture to use for the light cookie (for example for cloud shadow rendering).
         /// </summary>
-        /// <param name="settings">Current cloud settings.</param>
-        /// <param name="sunLight">The main directional light of the scene.</param>
-        /// <param name="cmd">Command buffer used for rendering.</param>
-        public virtual void RenderSunLightCookie(CloudSettings settings, Light sunLight, CommandBuffer cmd) {}
+        /// <param name="builtinParams">Engine parameters that you can use to render the sun light cookie.</param>
+        public virtual void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams) { }
 
         /// <summary>
         /// HDRP calls this function once every frame. Implement it if your CloudRenderer needs to iterate independently of the user defined update frequency (see CloudSettings UpdateMode).
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
         /// <param name="renderForCubemap">Pass in true if you want to render the clouds into a cubemap for lighting. This is useful when the cloud renderer needs a different implementation in this case.</param>
-        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) {}
+        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) { }
 
         /// <summary>
         /// Whether the PreRenderClouds step is required.

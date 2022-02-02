@@ -57,9 +57,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<ColorCurves>(serializedObject);
 
             m_Master = Unpack(o.Find(x => x.master));
-            m_Red    = Unpack(o.Find(x => x.red));
-            m_Green  = Unpack(o.Find(x => x.green));
-            m_Blue   = Unpack(o.Find(x => x.blue));
+            m_Red = Unpack(o.Find(x => x.red));
+            m_Green = Unpack(o.Find(x => x.green));
+            m_Blue = Unpack(o.Find(x => x.blue));
 
             m_HueVsHue = Unpack(o.Find(x => x.hueVsHue));
             m_HueVsSat = Unpack(o.Find(x => x.hueVsSat));
@@ -67,9 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LumVsSat = Unpack(o.Find(x => x.lumVsSat));
 
             m_RawMaster = o.Find("master.m_Value.m_Curve");
-            m_RawRed    = o.Find("red.m_Value.m_Curve");
-            m_RawGreen  = o.Find("green.m_Value.m_Curve");
-            m_RawBlue   = o.Find("blue.m_Value.m_Curve");
+            m_RawRed = o.Find("red.m_Value.m_Curve");
+            m_RawGreen = o.Find("green.m_Value.m_Curve");
+            m_RawBlue = o.Find("blue.m_Value.m_Curve");
 
             m_RawHueVsHue = o.Find("hueVsHue.m_Value.m_Curve");
             m_RawHueVsSat = o.Find("hueVsSat.m_Value.m_Curve");
@@ -82,14 +82,14 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CurveEditor = new InspectorCurveEditor();
             m_CurveDict = new Dictionary<SerializedProperty, Color>();
 
-            SetupCurve(m_RawMaster,   new Color(1f,   1f, 1f), 2, false);
-            SetupCurve(m_RawRed,      new Color(1f,   0f, 0f), 2, false);
-            SetupCurve(m_RawGreen,    new Color(0f,   1f, 0f), 2, false);
-            SetupCurve(m_RawBlue,     new Color(0f, 0.5f, 1f), 2, false);
-            SetupCurve(m_RawHueVsHue, new Color(1f,   1f, 1f), 0, true);
-            SetupCurve(m_RawHueVsSat, new Color(1f,   1f, 1f), 0, true);
-            SetupCurve(m_RawSatVsSat, new Color(1f,   1f, 1f), 0, false);
-            SetupCurve(m_RawLumVsSat, new Color(1f,   1f, 1f), 0, false);
+            SetupCurve(m_RawMaster, new Color(1f, 1f, 1f), 2, false);
+            SetupCurve(m_RawRed, new Color(1f, 0f, 0f), 2, false);
+            SetupCurve(m_RawGreen, new Color(0f, 1f, 0f), 2, false);
+            SetupCurve(m_RawBlue, new Color(0f, 0.5f, 1f), 2, false);
+            SetupCurve(m_RawHueVsHue, new Color(1f, 1f, 1f), 0, true);
+            SetupCurve(m_RawHueVsSat, new Color(1f, 1f, 1f), 0, true);
+            SetupCurve(m_RawSatVsSat, new Color(1f, 1f, 1f), 0, false);
+            SetupCurve(m_RawLumVsSat, new Color(1f, 1f, 1f), 0, false);
         }
 
         void SetupCurve(SerializedProperty prop, Color color, uint minPointCount, bool loop)
@@ -266,10 +266,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         switch (curveEditingId)
                         {
-                            case 0: m_RawMaster.animationCurveValue   = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
-                            case 1: m_RawRed.animationCurveValue      = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
-                            case 2: m_RawGreen.animationCurveValue    = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
-                            case 3: m_RawBlue.animationCurveValue     = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
+                            case 0: m_RawMaster.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
+                            case 1: m_RawRed.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
+                            case 2: m_RawGreen.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
+                            case 3: m_RawBlue.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f); break;
                             case 4: m_RawHueVsHue.animationCurveValue = new AnimationCurve(); break;
                             case 5: m_RawHueVsSat.animationCurveValue = new AnimationCurve(); break;
                             case 6: m_RawSatVsSat.animationCurveValue = new AnimationCurve(); break;

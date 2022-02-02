@@ -5,8 +5,34 @@ using static UnityEditor.Rendering.HighDefinition.HDEditorUtils;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal partial class CameraSettingsUI
+    //Currently for Reflection Probes
+    class CameraSettingsUI
     {
+        static class Styles
+        {
+            public static readonly GUIContent bufferClearColorMode = EditorGUIUtility.TrTextContent("Clear Mode");
+            public static readonly GUIContent bufferClearBackgroundColorHDR = EditorGUIUtility.TrTextContent("Background Color");
+            public static readonly GUIContent bufferClearClearDepth = EditorGUIUtility.TrTextContent("Clear Depth");
+            public static readonly GUIContent volumesLayerMask = EditorGUIUtility.TrTextContent("Volume Layer Mask");
+            public static readonly GUIContent volumesAnchorOverride = EditorGUIUtility.TrTextContent("Volume Anchor Override");
+            public static readonly GUIContent cullingUseOcclusionCulling = EditorGUIUtility.TrTextContent("Occlusion Culling");
+            public static readonly GUIContent cullingCullingMask = EditorGUIUtility.TrTextContent("Culling Mask");
+            public static readonly GUIContent cullingInvertFaceCulling = EditorGUIUtility.TrTextContent("Invert Backface Culling");
+            public static readonly GUIContent frustumAspect = EditorGUIUtility.TrTextContent("Aspect");
+            public static readonly GUIContent frustumFieldOfView = EditorGUIUtility.TrTextContent("Field Of View");
+            public static readonly GUIContent clippingPlanesLabel = EditorGUIUtility.TrTextContent("Clipping Planes");
+            public static readonly GUIContent[] clippingPlanes = new[]
+            {
+                EditorGUIUtility.TrTextContent("Near"),
+                EditorGUIUtility.TrTextContent("Far"),
+            };
+            public static readonly GUIContent frustumFarClipPlane = EditorGUIUtility.TrTextContent("Far Clip Plane"); //alone version
+            public static readonly GUIContent frustumNearClipPlane = EditorGUIUtility.TrTextContent("Near Clip Plane"); //alone version
+            public static readonly GUIContent flipYMode = EditorGUIUtility.TrTextContent("Flip Y");
+            public static readonly GUIContent probeLayerMask = EditorGUIUtility.TrTextContent("Probe Layer Mask");
+            public static readonly GUIContent customRenderingSettings = EditorGUIUtility.TrTextContent("Custom Frame Settings");
+        }
+
         public static void Draw(
             SerializedCameraSettings serialized, Editor owner,
             CameraSettingsOverride displayedFields
@@ -31,43 +57,43 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((displayedFields.camera & bufferFields) != 0)
             {
-                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearColorMode, serialized.bufferClearColorMode, EditorGUIUtility.TrTextContent("Clear Mode"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearBackgroundColorHDR, serialized.bufferClearBackgroundColorHDR, EditorGUIUtility.TrTextContent("Background Color"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearClearDepth, serialized.bufferClearClearDepth, EditorGUIUtility.TrTextContent("Clear Depth"), displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearColorMode, serialized.bufferClearColorMode, Styles.bufferClearColorMode, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearBackgroundColorHDR, serialized.bufferClearBackgroundColorHDR, Styles.bufferClearBackgroundColorHDR, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearClearDepth, serialized.bufferClearClearDepth, Styles.bufferClearClearDepth, displayedFields.camera);
                 EditorGUILayout.Space();
             }
 
             if ((displayedFields.camera & volumesFields) != 0)
             {
-                PropertyFieldWithoutToggle(CameraSettingsFields.volumesLayerMask, serialized.volumesLayerMask, EditorGUIUtility.TrTextContent("Volume Layer Mask"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.volumesAnchorOverride, serialized.volumesAnchorOverride, EditorGUIUtility.TrTextContent("Volume Anchor Override"), displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.volumesLayerMask, serialized.volumesLayerMask, Styles.volumesLayerMask, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.volumesAnchorOverride, serialized.volumesAnchorOverride, Styles.volumesAnchorOverride, displayedFields.camera);
                 EditorGUILayout.Space();
             }
 
             if ((displayedFields.camera & cullingFields) != 0)
             {
-                PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, EditorGUIUtility.TrTextContent("Use Occlusion Culling"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.cullingCullingMask, serialized.cullingCullingMask, EditorGUIUtility.TrTextContent("Culling Mask"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.cullingInvertFaceCulling, serialized.cullingCullingMask, EditorGUIUtility.TrTextContent("Invert Backface Culling"), displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, Styles.cullingUseOcclusionCulling, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.cullingCullingMask, serialized.cullingCullingMask, Styles.cullingCullingMask, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.cullingInvertFaceCulling, serialized.cullingInvertFaceCulling, Styles.cullingInvertFaceCulling, displayedFields.camera);
                 EditorGUILayout.Space();
             }
 
             if ((displayedFields.camera & frustumFields) != 0)
             {
-                PropertyFieldWithoutToggle(CameraSettingsFields.frustumAspect, serialized.frustumAspect, EditorGUIUtility.TrTextContent("Aspect"), displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.frustumFieldOfView, serialized.frustumFieldOfView, EditorGUIUtility.TrTextContent("Field Of View"), displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.frustumAspect, serialized.frustumAspect, Styles.frustumAspect, displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.frustumFieldOfView, serialized.frustumFieldOfView, Styles.frustumFieldOfView, displayedFields.camera);
                 var areBothDisplayed = displayedFields.camera.HasFlag(frustumFarOrNearPlane);
                 if (areBothDisplayed)
                 {
                     CoreEditorUtils.DrawMultipleFields(
-                        "Clipping Planes",
+                        Styles.clippingPlanesLabel,
                         new[] { serialized.frustumNearClipPlane, serialized.frustumFarClipPlane },
-                        new[] { EditorGUIUtility.TrTextContent("Near"), EditorGUIUtility.TrTextContent("Far") });
+                        Styles.clippingPlanes);
                 }
                 else
                 {
-                    PropertyFieldWithoutToggle(CameraSettingsFields.frustumFarClipPlane, serialized.frustumFarClipPlane, EditorGUIUtility.TrTextContent("Far Clip Plane"), displayedFields.camera);
-                    PropertyFieldWithoutToggle(CameraSettingsFields.frustumNearClipPlane, serialized.frustumNearClipPlane, EditorGUIUtility.TrTextContent("Near Clip Plane"), displayedFields.camera);
+                    PropertyFieldWithoutToggle(CameraSettingsFields.frustumFarClipPlane, serialized.frustumFarClipPlane, Styles.frustumFarClipPlane, displayedFields.camera);
+                    PropertyFieldWithoutToggle(CameraSettingsFields.frustumNearClipPlane, serialized.frustumNearClipPlane, Styles.frustumNearClipPlane, displayedFields.camera);
                 }
 
                 // Enforce valid value range
@@ -76,9 +102,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
             }
 
-            PropertyFieldWithoutToggle(CameraSettingsFields.flipYMode, serialized.flipYMode, EditorGUIUtility.TrTextContent("Flip Y"), displayedFields.camera);
-            PropertyFieldWithoutToggle(CameraSettingsFields.probeLayerMask, serialized.probeLayerMask, EditorGUIUtility.TrTextContent("Probe Layer Mask"), displayedFields.camera);
-            PropertyFieldWithoutToggle(CameraSettingsFields.customRenderingSettings, serialized.customRenderingSettings, EditorGUIUtility.TrTextContent("Custom Frame Settings"), displayedFields.camera);
+            PropertyFieldWithoutToggle(CameraSettingsFields.flipYMode, serialized.flipYMode, Styles.flipYMode, displayedFields.camera);
+            PropertyFieldWithoutToggle(CameraSettingsFields.probeLayerMask, serialized.probeLayerMask, Styles.probeLayerMask, displayedFields.camera);
+            PropertyFieldWithoutToggle(CameraSettingsFields.customRenderingSettings, serialized.customRenderingSettings, Styles.customRenderingSettings, displayedFields.camera);
 
             if ((displayedFields.camera & CameraSettingsFields.frameSettings) != 0)
             {

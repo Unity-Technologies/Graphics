@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     class CopyToTests
     {
-        class DummyMonoBehaviour : MonoBehaviour {}
+        class DummyMonoBehaviour : MonoBehaviour { }
 
         GameObject m_Root;
         List<UnityObject> m_ToClean;

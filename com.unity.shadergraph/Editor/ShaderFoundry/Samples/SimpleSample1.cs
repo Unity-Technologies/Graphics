@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderFoundry
     internal static class SimpleSample1
     {
         // Menu item to make it easier to run and output the test to a file
-        //[MenuItem("Test/FoundrySimpleTest")]
+        [MenuItem("Test/FoundrySimpleTest")]
         internal static void RunSimpleTest()
         {
             const string ShaderName = "SimpleSample1";

@@ -16,32 +16,24 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
     using UnityEditor;
 
-    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
         // We do not want that GC frees the preferences that have been added, used to store their references
         static readonly ConcurrentStack<object> s_ColorPref = new ConcurrentStack<object>();
 
-        #region Volumes Gizmo Color
+    #region Volumes Gizmo Color
 
-        static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.125f);
-        private static Func<Color> GetColorPrefVolumeGizmoColor;
+        [Obsolete("Use VolumePreferences", false)]
+        public static Color volumeGizmoColor { get; } = new Color(0.2f, 0.8f, 0.1f, 0.125f);
 
-        public static Color volumeGizmoColor => GetColorPrefVolumeGizmoColor();
+    #endregion
 
-        #endregion
-
-        #region Preview Camera Background Color
+    #region Preview Camera Background Color
 
         static readonly Color kPreviewCameraBackgroundColorDefault = new Color(82f / 255.0f, 82f / 255.0f, 82.0f / 255.0f, 0.0f);
         public static Color previewBackgroundColor => kPreviewCameraBackgroundColorDefault;
 
-        #endregion
-
-        static CoreRenderPipelinePreferences()
-        {
-            GetColorPrefVolumeGizmoColor = RegisterPreferenceColor("Scene/Volume Gizmo", s_VolumeGizmoColorDefault);
-        }
+    #endregion
 
         /// <summary>
         /// Adds a <see cref="PrefColor"/> into the **Preferences > Colors** panel./>

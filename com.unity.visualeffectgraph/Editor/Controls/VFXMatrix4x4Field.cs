@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
+
 
 using Action = System.Action;
 
-using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEngine.UIElements.FloatField, float>;
 
 namespace UnityEditor.VFX.UI
 {
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
             {
-                var line = new VisualElement() {name = "matrixLine"};
+                var line = new VisualElement() { name = "matrixLine" };
                 line.style.flexDirection = FlexDirection.Row;
 
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)

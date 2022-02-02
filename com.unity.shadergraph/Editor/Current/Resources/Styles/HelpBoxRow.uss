@@ -57,9 +57,11 @@ HelpBoxRow
 #message-warn
 {
     color:#584308;
+    white-space: normal;
 }
 
 #message-info
 {
     color:#d2d2d2;
+    white-space: normal;
 }

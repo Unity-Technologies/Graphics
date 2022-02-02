@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool fogEnabled;
 
         public float accumulatedWeight;
-        public uint  currentIteration;
+        public uint currentIteration;
     }
 
     // Helper class to manage time-scale in Unity when recording multi-frame sequences where one final frame is an accumulation of multiple sub-frames
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (int camID in m_CameraCache.Keys.ToList())
                 maxIteration = Math.Max(maxIteration, GetCameraData(camID).currentIteration);
 
-            if (maxIteration == m_AccumulationSamples)
+            if (maxIteration >= m_AccumulationSamples)
             {
                 Reset();
             }
@@ -262,6 +262,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public void PrepareNewSubFrame()
         {
             m_SubFrameManager.PrepareNewSubFrame();
+        }
+
+        /// <summary>
+        /// Checks if the multi-frame accumulation is completed for a given camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation status is checked.</param>
+        /// <returns><c>true</c> if the accumulation is completed, <c>false</c> otherwise.</returns>
+        public bool IsFrameCompleted(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            return camData.currentIteration >= m_SubFrameManager.subFrameCount;
         }
 
         class RenderAccumulationPassData

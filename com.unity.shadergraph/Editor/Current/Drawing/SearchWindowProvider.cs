@@ -110,6 +110,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateKnowNodes");
             foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
@@ -135,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
                             if (multiple)
-                                AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                                AddEntries(depNode, titleAttribute.title.Append($"v{i}").ToArray(), nodeEntries);
                             else
                                 AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }
@@ -146,10 +148,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            Profiler.EndSample();
 
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
+            foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                if (asset == null)
+                    continue;
+
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
 
@@ -168,7 +175,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
             foreach (var property in m_Graph.properties)
             {
                 if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
@@ -199,6 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;

@@ -39,20 +39,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_LowestCloudAltitude;
         SerializedDataParameter m_CloudThickness;
+        SerializedDataParameter m_FadeInMode;
+        SerializedDataParameter m_FadeInStart;
+        SerializedDataParameter m_FadeInDistance;
 
         SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_ShapeFactor;
         SerializedDataParameter m_ShapeScale;
-        SerializedDataParameter m_ShapeOffsetX;
-        SerializedDataParameter m_ShapeOffsetZ;
+        SerializedDataParameter m_ShapeOffset;
         SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_ErosionScale;
+        SerializedDataParameter m_ErosionNoiseType;
 
         // Lighting
         SerializedDataParameter m_ScatteringTint;
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+        SerializedDataParameter m_SunLightDimmer;
         SerializedDataParameter m_ErosionOcclusion;
 
         // Wind
@@ -61,9 +65,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudMapSpeedMultiplier;
         SerializedDataParameter m_ShapeSpeedMultiplier;
         SerializedDataParameter m_ErosionSpeedMultiplier;
+        SerializedDataParameter m_VerticalShapeWindSpeed;
+        SerializedDataParameter m_VerticalErosionWindSpeed;
+        SerializedDataParameter m_AltitudeDistortion;
 
         // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
+        SerializedDataParameter m_GhostingReduction;
         SerializedDataParameter m_NumPrimarySteps;
         SerializedDataParameter m_NumLightSteps;
 
@@ -110,19 +118,24 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
             m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
 
+            m_FadeInMode = Unpack(o.Find(x => x.fadeInMode));
+            m_FadeInStart = Unpack(o.Find(x => x.fadeInStart));
+            m_FadeInDistance = Unpack(o.Find(x => x.fadeInDistance));
+
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
             m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
-            m_ShapeOffsetX = Unpack(o.Find(x => x.shapeOffsetX));
-            m_ShapeOffsetZ = Unpack(o.Find(x => x.shapeOffsetZ));
+            m_ShapeOffset = Unpack(o.Find(x => x.shapeOffset));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
+            m_ErosionNoiseType = Unpack(o.Find(x => x.erosionNoiseType));
 
             // Lighting
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+            m_SunLightDimmer = Unpack(o.Find(x => x.sunLightDimmer));
             m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
 
             // Wind
@@ -131,9 +144,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudMapSpeedMultiplier = Unpack(o.Find(x => x.cloudMapSpeedMultiplier));
             m_ShapeSpeedMultiplier = Unpack(o.Find(x => x.shapeSpeedMultiplier));
             m_ErosionSpeedMultiplier = Unpack(o.Find(x => x.erosionSpeedMultiplier));
+            m_VerticalShapeWindSpeed = Unpack(o.Find(x => x.verticalShapeWindSpeed));
+            m_VerticalErosionWindSpeed = Unpack(o.Find(x => x.verticalErosionWindSpeed));
+            m_AltitudeDistortion = Unpack(o.Find(x => x.altitudeDistortion));
 
             // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
+            m_GhostingReduction = Unpack(o.Find(x => x.ghostingReduction));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
             m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
 
@@ -146,6 +163,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
 
+        static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
+        static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
+        static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
+
         public override void OnInspectorGUI()
         {
             // This whole editor has nothing to display if the SSR feature is not supported
@@ -153,7 +174,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
                 return;
             }
 
@@ -182,15 +204,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_CumulonimbusMapMultiplier);
                     PropertyField(m_RainMap);
                     PropertyField(m_CloudMapResolution);
-                    PropertyField(m_CloudTiling);
-                    PropertyField(m_CloudOffset);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
+                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else if (controlMode == VolumetricClouds.CloudControl.Manual)
                 {
                     PropertyField(m_CloudMap);
                     PropertyField(m_CloudLut);
-                    PropertyField(m_CloudTiling);
-                    PropertyField(m_CloudOffset);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
+                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else
                 {
@@ -204,26 +226,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (new IndentLevelScope(needsIntendation ? 16 : 0))
                     {
+                        PropertyField(m_DensityMultiplier);
                         if (controlMode == VolumetricClouds.CloudControl.Simple)
                         {
                             PropertyField(m_CustomDensityCurve);
+                        }
+                        PropertyField(m_ShapeFactor);
+                        PropertyField(m_ShapeScale);
+                        PropertyField(m_ShapeOffset);
+                        PropertyField(m_ErosionFactor);
+                        PropertyField(m_ErosionScale);
+                        PropertyField(m_ErosionNoiseType);
+                        if (controlMode == VolumetricClouds.CloudControl.Simple)
+                        {
                             PropertyField(m_CustomErosionCurve);
                             PropertyField(m_CustomAmbientOcclusionCurve);
                         }
-                        PropertyField(m_DensityMultiplier);
-                        PropertyField(m_ShapeFactor);
-                        PropertyField(m_ShapeScale);
-                        PropertyField(m_ShapeOffsetX);
-                        PropertyField(m_ShapeOffsetZ);
-                        PropertyField(m_ErosionFactor);
-                        PropertyField(m_ErosionScale);
                     }
                 }
                 else
-                {
-                    PropertyField(m_ShapeOffsetX);
-                    PropertyField(m_ShapeOffsetZ);
-                }
+                    PropertyField(m_ShapeOffset);
             }
 
             PropertyField(m_EarthCurvature);
@@ -231,26 +253,30 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudThickness);
 
             DrawHeader("Wind");
-            PropertyField(m_GlobalWindSpeed);
+            PropertyField(m_GlobalWindSpeed, k_GlobalHorizontalWindSpeedText);
+            if (showAdditionalProperties)
+            {
+                using (new IndentLevelScope())
+                {
+                    if (hasCloudMap)
+                        PropertyField(m_CloudMapSpeedMultiplier);
+                    PropertyField(m_ShapeSpeedMultiplier);
+                    PropertyField(m_ErosionSpeedMultiplier);
+                }
+            }
+            PropertyField(m_Orientation);
             using (new IndentLevelScope())
             {
-                PropertyField(m_Orientation);
-                if (hasCloudMap)
-                    PropertyField(m_CloudMapSpeedMultiplier);
-                PropertyField(m_ShapeSpeedMultiplier);
-                PropertyField(m_ErosionSpeedMultiplier);
+                PropertyField(m_AltitudeDistortion);
             }
 
-            DrawHeader("Quality");
-            {
-                PropertyField(m_TemporalAccumulationFactor);
-                PropertyField(m_NumPrimarySteps);
-                PropertyField(m_NumLightSteps);
-            }
+            PropertyField(m_VerticalShapeWindSpeed);
+            PropertyField(m_VerticalErosionWindSpeed);
 
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+                PropertyField(m_SunLightDimmer);
                 PropertyField(m_ErosionOcclusion);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);
@@ -267,6 +293,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ShadowDistance);
                     PropertyField(m_ShadowPlaneHeightOffset);
                     PropertyField(m_ShadowOpacityFallback);
+                }
+            }
+
+            DrawHeader("Quality");
+            {
+                PropertyField(m_TemporalAccumulationFactor);
+                PropertyField(m_GhostingReduction);
+                PropertyField(m_NumPrimarySteps);
+                PropertyField(m_NumLightSteps);
+                PropertyField(m_FadeInMode);
+                using (new IndentLevelScope())
+                {
+                    if ((VolumetricClouds.CloudFadeInMode)m_FadeInMode.value.enumValueIndex == (VolumetricClouds.CloudFadeInMode.Manual))
+                    {
+                        PropertyField(m_FadeInStart);
+                        PropertyField(m_FadeInDistance);
+                    }
                 }
             }
         }

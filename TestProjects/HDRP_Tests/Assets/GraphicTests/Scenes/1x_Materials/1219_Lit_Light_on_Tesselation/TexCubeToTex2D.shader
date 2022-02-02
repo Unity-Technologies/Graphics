@@ -1,50 +1,50 @@
 Shader "Hiddent/HDRP/Tests/TexCubeToTex2D"
 {
-	Properties
-	{
-		_MainTex ("Texture", Cube) = "white" {}
+    Properties
+    {
+        _MainTex ("Texture", Cube) = "white" {}
         _CorrectGamma ("Correct Gamma", float ) = 0
         _BoxLayout ("Box Layout", float) = 0
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			
-			#include "UnityCG.cginc"
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
 
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
+            #include "UnityCG.cginc"
 
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				float4 vertex : SV_POSITION;
-			};
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+            };
 
             samplerCUBE _MainTex;
             bool _CorrectGamma;
             float _BoxLayout;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
+                return o;
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
                 float3 coords = float3(0,0,0);
 
                 coords.x = cos( i.uv.x * UNITY_PI * 2 );
@@ -121,14 +121,14 @@ Shader "Hiddent/HDRP/Tests/TexCubeToTex2D"
                     coords = normalize(coords);
                 }
 
-				col.rgb *= texCUBElod(_MainTex, float4(coords, 0)).rgb;
+                col.rgb *= texCUBElod(_MainTex, float4(coords, 0)).rgb;
 
                 if (_CorrectGamma == 1)
                     col.rgb = pow(col.rgb, 0.4545454545); // Gamma Correction
 
                 return col;
-			}
-			ENDCG
-		}
-	}
+            }
+            ENDCG
+        }
+    }
 }

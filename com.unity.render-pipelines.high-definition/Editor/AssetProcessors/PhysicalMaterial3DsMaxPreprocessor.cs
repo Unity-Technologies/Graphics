@@ -50,8 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (HDRenderPipeline.currentAsset == null)
                 return;
 
             if (Is3DsMaxPhysicalMaterial(description))

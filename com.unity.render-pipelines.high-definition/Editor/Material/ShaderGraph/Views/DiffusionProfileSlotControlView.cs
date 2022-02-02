@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing.Slots
     {
         DiffusionProfileInputMaterialSlot m_Slot;
 
-        ObjectField     diffusionProfileField;
+        ObjectField diffusionProfileField;
 
         public DiffusionProfileSlotControlView(DiffusionProfileInputMaterialSlot slot)
         {

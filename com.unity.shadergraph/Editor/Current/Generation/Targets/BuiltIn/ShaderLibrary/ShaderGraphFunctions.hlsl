@@ -9,13 +9,14 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_MainLightDirection
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/DeclareDepthTexture.hlsl"
 #endif
 
 #if defined(REQUIRE_OPAQUE_TEXTURE)
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #endif
 
 float shadergraph_LWSampleSceneDepth(float2 uv)
@@ -57,7 +58,12 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 void shadergraph_LWFog(float3 position, out float4 color, out float density)
 {
     color = unity_FogColor;
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    // ComputeFogFactor returns the fog density (0 for no fog and 1 for full fog).
     density = ComputeFogFactor(TransformObjectToHClip(position).z);
+    #else
+    density = 0.0f;
+    #endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
@@ -80,6 +86,11 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
+}
+
+float3 shadergraph_MainLightDirection()
+{
+    return 0.0f;
 }
 
 // Always include Shader Graph version

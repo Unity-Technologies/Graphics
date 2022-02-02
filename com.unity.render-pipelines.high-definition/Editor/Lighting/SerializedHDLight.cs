@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
 
-        private SerializedProperty pointLightHDType;
+        internal SerializedProperty pointLightHDType;
         private SerializedProperty areaLightShapeProperty;
 
         private GameObject[] emissiveMeshes;
@@ -150,22 +150,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (value != (objects[index] as HDAdditionalLightData).type)
                         return true;
                 return false;
-            }
-        }
-
-        // This scope is here mainly to keep pointLightHDType isolated
-        public struct LightTypeEditionScope : System.IDisposable
-        {
-            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
-            {
-                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
-                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
-            }
-
-            void System.IDisposable.Dispose()
-            {
-                EditorGUI.EndProperty();
-                EditorGUI.EndProperty();
             }
         }
 

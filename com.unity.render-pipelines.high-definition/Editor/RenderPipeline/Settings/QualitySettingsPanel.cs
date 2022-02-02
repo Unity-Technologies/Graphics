@@ -23,12 +23,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
+            var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<QualitySettingsPanelIMGUI.Styles>()
+                .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles>());
+
+            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
+
             return new SettingsProvider("Project/Quality/HDRP", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<QualitySettingsPanelIMGUI.Styles>()
-                    .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles>())
-                    .ToArray(),
+                keywords = keywords.ToArray(),
                 guiHandler = s_IMGUIImpl.OnGUI,
             };
         }
@@ -70,6 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_HDRPAssets.Clear();
                 PopulateHDRPAssetsFromQualitySettings(m_HDRPAssets);
+
+                m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == HDRenderPipeline.currentAsset);
+                m_HDRPAssetsUIList.index = m_SelectedHDRPAssetIndex;
             }
 
             /// <summary>

@@ -45,6 +45,15 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
+        //Expecting only one value in this field in editor mode, it's actually a dummy variadic parameter to help filter in observer database
+        static IEnumerable<string> allActiveSRP
+        {
+            get
+            {
+                yield return UnityEngine.VFX.PerformanceTest.VFXPerformanceUseGraphicsTestCasesAttribute.GetPrefix();
+            }
+        }
+
         static IEnumerable<string> allCompilationMode
         {
             get
@@ -100,7 +109,7 @@ namespace UnityEditor.VFX.PerformanceTest
         }
 
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void Load_VFXLibrary()
+        public void Load_VFXLibrary([ValueSource(nameof(allActiveSRP))] string srp)
         {
             for (int i = 0; i < 16; i++) //Doing this multiple time to have an average result
             {
@@ -113,7 +122,7 @@ namespace UnityEditor.VFX.PerformanceTest
         }
 
         [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
-        public IEnumerator VFXViewWindow_Open_And_Render([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        public IEnumerator VFXViewWindow_Open_And_Render([ValueSource(nameof(allActiveSRP))] string srp, [ValueSource(nameof(allVisualEffectAsset))] string vfxAssetPath)
         {
             VFXGraph graph;
             string fullPath;
@@ -155,7 +164,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
         //Measure backup (for undo/redo & Duplicate) time for every existing asset
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void Backup_And_Restore([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        public void Backup_And_Restore([ValueSource(nameof(allActiveSRP))] string srp, [ValueSource(nameof(allVisualEffectAsset))] string vfxAssetPath)
         {
             VFXGraph graph;
             string fullPath;
@@ -184,7 +193,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
         static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void Compilation(/*[ValueSource("allForceShaderValidation")] string forceShaderValidationModeName,*/ [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        public void Compilation([ValueSource(nameof(allActiveSRP))] string srp, /*[ValueSource("allForceShaderValidation")] string forceShaderValidationModeName,*/ [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             VFXCompilationMode compilationMode;
             Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);

@@ -8,7 +8,7 @@ When you create your own C# Custom Pass using the instructions in [The Custom Pa
 
 ## **The Custom Pass C# template**
 
-To create a new Custom pass, go to **Assets > Create > Rendering > C# Custom Pass**. This creates a new script that contains the Custom Pass C# template:
+To create a new Custom pass, go to **Assets > Create > Rendering > HDRP C# Custom Pass**. This creates a new script that contains the Custom Pass C# template:
 
 ```C#
 class #SCRIPTNAME# : CustomPass
@@ -22,8 +22,6 @@ class #SCRIPTNAME# : CustomPass
 ```
 
 The C# Custom Pass template includes the following entry points to code your custom pass:
-
-
 
 | **Entry Point** | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -48,12 +46,20 @@ This shader code performs the following steps:
 3. Searches neighboring pixels to check if this is the case.
 4. If Unity finds a pixel above the threshold, it applies the outline effect.
 
+<a name="Creating-Cusom-Pass-script"></a>
+
 ### Creating a CustomPass script
 
-To create a CustomPass script:
+This section provides an example of a Custom Pass C# script that applies an outline effect to every GameObject in a Layer.
 
-1. Create a new C# script using **Assets > Create > C# Script**.
-2. Name your script. In this example, the new script is called “Outline”
+The following pass renders all the GameObjects in the `Outline Layer` into a custom buffer named `outlineBuffer` in the code. It then performs an edge detection algorithm over the screen that checks for all the GameObjects rendered in the `outlineBuffer`. This edge detection algorithm creates an outline around objects rendered in the `outlineBuffer`. Finally, `CoreUtils.DrawFullScreen` applies the full screen effect.
+
+This example only supports a single outline color for all the objects in a Layer.
+
+To use this example Custom Pass script:
+
+1. Create a new C# script (menu: **Assets > Create > C# Script)**.
+2. Name your script. In this example, the new script is called “Outline”.
 3. Enter the following code:
 
 ```C#
@@ -114,11 +120,13 @@ class Outline : CustomPass
 }
 ```
 
-### Creating a Unity shader
+<a name="Creating-Cusom-Pass-Shader"></a>
+
+### Scripting a Custom Pass shader
 
 To create a new shader:
 
-1. Create a new Unity shader using **Assets> Create> Shader**
+1. Create a new Unity shader using **Assets> Create> Shader > HDRP Custom FullScreen Pass**
 2. Name the new shader source file “Outline”
 3. Enter the following code:
 
@@ -218,42 +226,149 @@ Shader "Hidden/Outline"
 }
 ```
 
-### Using a C# Custom Pass effect
+### Using a C# Custom Pass Shader effect
 
-To enable an effect you created in a shader, assign it to the **FullScreen Material** property of a [Full-screeen Custom Pass](Custom-Pass-Creating.md#Full-Screen-Custom-Pass) component.
+To enable a full-screen effect that you have created in a shader, assign it to the **FullScreen Material** property of a [**FullScreeenCustomPass**](Custom-Pass-Creating.md#Full-Screen-Custom-Pass) component.
+
+To enable a Draw renderers Custom Pass that you have created in a shader, assign it to the Material property of a [**DrawRenderersCustomPass**](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) component.
+
+You can also make your Custom Pass effect visible automatically in script. To do this, assign a Material to a shader within a Custom Pass script. The example script provided in [Creating a Custom Pass script](#Creating-Cusom-Pass-script) does this in the following lines:
+
+Reference the shader in a serialized field:
+
+```c#
+// To make sure the shader ends up in the build, we keep a reference to it
+​    [SerializeField, HideInInspector]
+​    Shader                  outlineShader;
+```
+
+Reference the shader when you create a material:
+
+```c#
+fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
+```
+
 
 ## Controlling a Custom Pass Volume component using code
 
-You can retrieve the `CustomPassVolume` in a script using [GetComponent](https://docs.unity3d.com/ScriptReference/GameObject.GetComponent.html) and access most of the things available from the UI like `isGlobal`, `fadeRadius` and `injectionPoint`.
+You can use [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) to retrieve the `CustomPassVolume` in a script and access most of the properties available in the UI (for example,`isGlobal`, `fadeRadius` and `injectionPoint`).
 
-You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
+You can also dynamically change the list of Custom Passes that Unity executes. To do this, modify the `customPasses` list.
 
-### Scripting the Custom Pass Volume component properties
-
-To customize the properties of a Custom Pass in the Inspector window, you can use a similar pattern to the [CustomPropertyDrawer](https://docs.unity3d.com/ScriptReference/CustomPropertyDrawer.html) MonoBehaviour Editor, but with different attributes.
-
-The following example is a part of the full-screen Custom Pass drawer:
+The following example copies the current camera color buffer to a render texture asset:
 
 ```C#
-[CustomPassDrawerAttribute(typeof(FullScreenCustomPass))]
-public class FullScreenCustomPassDrawer : CustomPassDrawer
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+// Custom pass to copy the current camera color buffer to a render texture asset
+public class CopyPass : CustomPass
 {
-    protected override void Initialize(SerializedProperty customPass)
+    public RenderTexture colorBuffer;
+    protected override void Execute(CustomPassContext ctx)
     {
-        // Initialize the local SerializedProperty you will use in your pass.
+        if (colorBuffer != null)
+        {
+            var scale = RTHandles.rtHandleProperties.rtHandleScale;
+            ctx.cmd.Blit(ctx.cameraColorBuffer, colorBuffer, new Vector2(scale.x, scale.y), Vector2.zero, 0, 0);
+            // Notify Unity that the color buffer content changed.
+            colorBuffer.IncrementUpdateCount();
+        }
     }
+}
+public class ExtractColorBuffer : MonoBehaviour
+{
+    public RenderTexture            colorBuffer;
+    public CustomPassInjectionPoint injectionPoint;
+    CustomPassVolume    volume;
+    CopyPass            copyPass;
+    void Start()
+    {
+        volume = gameObject.AddComponent<CustomPassVolume>();
+        // Make the volume invisible in the inspector
+        volume.hideFlags = HideFlags.HideInInspector | HideFlags.DontSave;
+        // Add the copy pass to the hidden custom pass volume
+        copyPass = volume.AddPassOfType(typeof(CopyPass)) as CopyPass;
+    }
+    void Update()
+    {
+        // Sync properties in case they change in the editor
+        copyPass.colorBuffer = colorBuffer;
+        volume.injectionPoint = injectionPoint;
+    }
+}
+```
 
-    protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
-    {
-        // Draw your custom GUI using `EditorGUI` calls. Note that the Layout methods don't work here
-    }
+### Creating a custom editor for a C# custom pass
 
-    protected override float GetPassHeight(SerializedProperty customPass)
-    {
-        // Return the vertical height in pixels that you used in the DoPassGUI method above.
-        // Can be dynamic.
-        return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * X;
-    }
+To write a custom editor you can use a similar pattern to the [CustomPropertyDrawer](https://docs.unity3d.com/ScriptReference/CustomPropertyDrawer.html) MonoBehaviour Editor, but with different attributes.
+
+The following script creates a [custom editor](https://docs.unity3d.com/Manual/editor-CustomEditors.html) that you can use to customize the properties of a Custom Pass in the Inspector window:
+
+```C#
+public class OutlineDrawer : CustomPassDrawer
+{
+   // This property field allow you to control which common UI property to show.
+   // For the outline we only need the name and target color buffer.
+   protected override PassUIFlag commonPassUIFlags => PassUIFlag.TargetColorBuffer | PassUIFlag.Name;
+   SerializedProperty outlineLayer, outlineColor, threshold;
+   static float lineAndSpaceHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+   protected override void Initialize(SerializedProperty customPass)
+   {
+       // Initialize the local SerializedProperty you will use in your pass.
+       outlineLayer = customPass.FindPropertyRelative(nameof(Outline.outlineLayer));
+       outlineColor = customPass.FindPropertyRelative(nameof(Outline.outlineColor));
+       threshold = customPass.FindPropertyRelative(nameof(Outline.threshold));
+   }
+   protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
+   {
+       // Draw your custom GUI using `EditorGUI` calls. Note that the Layout methods don't work here
+       Rect propertyRect = rect;
+       propertyRect.height = EditorGUIUtility.singleLineHeight;
+       EditorGUI.PropertyField(propertyRect, outlineLayer);
+       propertyRect.y += lineAndSpaceHeight;
+       EditorGUI.PropertyField(propertyRect, outlineColor);
+       propertyRect.y += lineAndSpaceHeight;
+       EditorGUI.PropertyField(propertyRect, threshold);
+   }
+   protected override float GetPassHeight(SerializedProperty customPass)
+   {
+       // Return the vertical height in pixels that you used in the DoPassGUI method above.
+       // Can be dynamic.
+       return (lineAndSpaceHeight) * 3;
+   }
+}
+
+{
+   // This property field allow you to control which common UI property to show.
+   // For the outline we only need the name and target color buffer.
+   protected override PassUIFlag commonPassUIFlags => PassUIFlag.TargetColorBuffer | PassUIFlag.Name;
+   SerializedProperty outlineLayer, outlineColor, threshold;
+   static float lineAndSpaceHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+   protected override void Initialize(SerializedProperty customPass)
+   {
+       // Initialize the local SerializedProperty you will use in your pass.
+       outlineLayer = customPass.FindPropertyRelative(nameof(Outline.outlineLayer));
+       outlineColor = customPass.FindPropertyRelative(nameof(Outline.outlineColor));
+       threshold = customPass.FindPropertyRelative(nameof(Outline.threshold));
+   }
+   protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
+   {
+       // Draw your custom GUI using `EditorGUI` calls. Note that the Layout methods don't work here
+       Rect propertyRect = rect;
+       propertyRect.height = EditorGUIUtility.singleLineHeight;
+       EditorGUI.PropertyField(propertyRect, outlineLayer);
+       propertyRect.y += lineAndSpaceHeight;
+       EditorGUI.PropertyField(propertyRect, outlineColor);
+       propertyRect.y += lineAndSpaceHeight;
+       EditorGUI.PropertyField(propertyRect, threshold);
+   }
+   protected override float GetPassHeight(SerializedProperty customPass)
+   {
+       // Return the vertical height in pixels that you used in the DoPassGUI method above.
+       // Can be dynamic.
+       return (lineAndSpaceHeight) * 3;
+   }
 }
 ```
 

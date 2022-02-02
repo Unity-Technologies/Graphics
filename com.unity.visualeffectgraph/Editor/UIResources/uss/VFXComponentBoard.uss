@@ -164,9 +164,9 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-top: 8px;
 }
 
-#on-play-stop
+#play-rate-container, #debug-tool-container, #events-tool-container, #bounds-tool-container
 {
-    padding-bottom: 8px;
+    margin: 8px;
 }
 
 #debug-container
@@ -299,7 +299,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #bounds-actions-container
 {
     flex-direction:row;
-    height: 40px;
+    height: 30px;
     align-items: center;
     padding-bottom: 2px;
     padding-top: 2px;
@@ -324,8 +324,6 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
         width: 16px;
 }
 
-
-
 VFXComponentBoardEventUI
 {
     flex-direction:row;
@@ -334,4 +332,25 @@ VFXComponentBoardEventUI
 VFXComponentBoardEventUI #event-name
 {
     flex:1;
+}
+
+#subtitle
+{
+    flex-direction:row;
+    flex:1 0 auto;
+    align-items:center;
+}
+
+#subTitleLabel
+{
+    height: 16px;
+    flex-grow: 1;
+    -unity-text-align: lower-left;
+    margin-right: 4px;
+    overflow: hidden;
+}
+
+#subTitle-icon
+{
+    margin-right: 4px;
 }

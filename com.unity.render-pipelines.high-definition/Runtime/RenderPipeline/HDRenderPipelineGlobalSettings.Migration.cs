@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MovedSupportRuntimeDebugDisplayToGlobalSettings
         }
 
-        static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] {};
+        static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
 
         [SerializeField]
         Version m_Version = MigrationDescription.LastVersion<Version>();

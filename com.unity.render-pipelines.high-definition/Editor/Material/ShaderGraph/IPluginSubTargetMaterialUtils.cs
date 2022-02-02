@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    public static class PluginMaterial
+    static class PluginMaterial
     {
         public enum GenericVersions
         {
@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
         public const int k_NeverMigratedVersion = 0;
     }
-    public interface IPluginSubTargetMaterialUtils
+    interface IPluginSubTargetMaterialUtils
     {
         int latestMaterialVersion { get; }
         int latestSubTargetVersion { get; }

@@ -55,11 +55,11 @@ namespace UnityEngine.Rendering.Universal
         Vector4 m_DebugRenderTargetPixelRect;
         RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
-        readonly DebugDisplaySettings m_DebugDisplaySettings;
+        readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
-        DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
-        DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
-        DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
+        DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.lightingSettings;
+        DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.materialSettings;
+        DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.renderingSettings;
 
         #region IDebugDisplaySettingsQuery
 
@@ -69,12 +69,12 @@ namespace UnityEngine.Rendering.Universal
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
-            m_DebugDisplaySettings.LightingSettings.DebugLightingMode != DebugLightingMode.None ||
-            m_DebugDisplaySettings.LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.MaterialValidationMode != DebugMaterialValidationMode.None;
+            m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
+            m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
+            m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
+            m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
+            m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
+            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         internal Material ReplacementMaterial => m_ReplacementMaterial;
-        internal DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+        internal UniversalRenderPipelineDebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
         internal bool IsScreenClearNeeded
         {
@@ -96,11 +96,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsRenderPassSupported
+        {
+            get
+            {
+                return RenderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None || RenderingSettings.sceneOverrideMode == DebugSceneOverrideMode.Overdraw;
+            }
+        }
+
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
-            m_DebugDisplaySettings = DebugDisplaySettings.Instance;
+            m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
@@ -117,15 +125,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int textureHeightPercent)
         {
-            debugFullScreenMode = RenderingSettings.debugFullScreenMode;
-            textureHeightPercent = RenderingSettings.debugFullScreenModeOutputSizeScreenPercent;
+            debugFullScreenMode = RenderingSettings.fullScreenDebugMode;
+            textureHeightPercent = RenderingSettings.fullScreenDebugModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
         {
-            if (LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+            if (LightingSettings.lightingDebugMode == DebugLightingMode.ShadowCascades)
             {
                 // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                 cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
@@ -135,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
 
-            switch (RenderingSettings.debugSceneOverrideMode)
+            switch (RenderingSettings.sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
@@ -171,19 +179,19 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            switch (MaterialSettings.MaterialValidationMode)
+            switch (MaterialSettings.materialValidationMode)
             {
                 case DebugMaterialValidationMode.Albedo:
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMinLuminanceId, MaterialSettings.AlbedoMinLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMaxLuminanceId, MaterialSettings.AlbedoMaxLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoSaturationToleranceId, MaterialSettings.AlbedoSaturationTolerance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoHueToleranceId, MaterialSettings.AlbedoHueTolerance);
-                    cmd.SetGlobalColor(k_DebugValidateAlbedoCompareColorId, MaterialSettings.AlbedoCompareColor.linear);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMinLuminanceId, MaterialSettings.albedoMinLuminance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMaxLuminanceId, MaterialSettings.albedoMaxLuminance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoSaturationToleranceId, MaterialSettings.albedoSaturationTolerance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoHueToleranceId, MaterialSettings.albedoHueTolerance);
+                    cmd.SetGlobalColor(k_DebugValidateAlbedoCompareColorId, MaterialSettings.albedoCompareColor.linear);
                     break;
 
                 case DebugMaterialValidationMode.Metallic:
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMinValueId, MaterialSettings.MetallicMinValue);
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMaxValueId, MaterialSettings.MetallicMaxValue);
+                    cmd.SetGlobalFloat(k_DebugValidateMetallicMinValueId, MaterialSettings.metallicMinValue);
+                    cmd.SetGlobalFloat(k_DebugValidateMetallicMaxValueId, MaterialSettings.metallicMaxValue);
                     break;
             }
         }
@@ -228,12 +236,12 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, m_DebugRenderTargetSupportsStereo ? 1 : 0);
             }
 
-            var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
+            var renderingSettings = m_DebugDisplaySettings.renderingSettings;
             if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
                 cmd.SetGlobalInteger(k_ValidationChannelsId, (int)renderingSettings.validationChannels);
-                cmd.SetGlobalFloat(k_RangeMinimumId, renderingSettings.ValidationRangeMin);
-                cmd.SetGlobalFloat(k_RangeMaximumId, renderingSettings.ValidationRangeMax);
+                cmd.SetGlobalFloat(k_RangeMinimumId, renderingSettings.validationRangeMin);
+                cmd.SetGlobalFloat(k_RangeMaximumId, renderingSettings.validationRangeMax);
             }
         }
 
@@ -247,22 +255,22 @@ namespace UnityEngine.Rendering.Universal
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
                 // Material settings...
-                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
-                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
+                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
+                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.vertexAttributeDebugMode);
 
-                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
+                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.materialValidationMode);
 
                 // Rendering settings...
-                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
-                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
-                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
+                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
+                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.sceneOverrideMode);
+                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.fullScreenDebugMode);
                 cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
                 cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
                 cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
                 // Lighting settings...
-                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.DebugLightingMode);
-                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
+                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.lightingDebugMode);
+                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.lightingFeatureFlags);
 
                 // Set-up any other persistent properties...
                 cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
@@ -294,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
                 {
-                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
 
                     m_DebugHandler = debugHandler;
                     m_Context = context;

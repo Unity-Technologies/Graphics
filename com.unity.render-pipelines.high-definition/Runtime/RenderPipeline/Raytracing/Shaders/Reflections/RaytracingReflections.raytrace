@@ -54,10 +54,10 @@ void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload
 
     float weight = 0.0f;
 
-    if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingFallbackHierarchy)
+    if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy)
         rayIntersection.color = RayTraceReflectionProbes(rayOrigin, rayDirection, weight);
 
-    if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight < 1.0)
+    if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight < 1.0)
     {
         rayIntersection.color += SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz * (1.0 - weight);
         weight = 1.0f;

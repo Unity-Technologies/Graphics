@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     /// <typeparam name="T">The type of the scalable setting.</typeparam>
     [Serializable]
-    public class ScalableSetting<T>: ISerializationCallbackReceiver
+    public class ScalableSetting<T> : ISerializationCallbackReceiver
     {
         [SerializeField] private T[] m_Values;
         [SerializeField] private ScalableSettingSchemaId m_SchemaId;
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="values">The values of the settings</param>
         /// <param name="schemaId">The schema of the setting.</param>
-        public IntScalableSetting(int[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) {}
+        public IntScalableSetting(int[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="values">The values of the settings</param>
         /// <param name="schemaId">The schema of the setting.</param>
-        public UintScalableSetting(uint[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) {}
+        public UintScalableSetting(uint[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="values">The values of the settings</param>
         /// <param name="schemaId">The schema of the setting.</param>
-        public FloatScalableSetting(float[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) {}
+        public FloatScalableSetting(float[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="values">The values of the settings</param>
         /// <param name="schemaId">The schema of the setting.</param>
-        public BoolScalableSetting(bool[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) {}
+        public BoolScalableSetting(bool[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     #endregion
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Linq;
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,12 +12,19 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [ExecuteAlways]
     [HDRPHelpURLAttribute("Custom-Pass")]
-    public class CustomPassVolume : MonoBehaviour
+    public class CustomPassVolume : MonoBehaviour, IVolume
     {
+        [SerializeField, FormerlySerializedAs("isGlobal")]
+        private bool m_IsGlobal = true;
+
         /// <summary>
         /// Whether or not the volume is global. If true, the component will ignore all colliders attached to it
         /// </summary>
-        public bool isGlobal = true;
+        public bool isGlobal
+        {
+            get => m_IsGlobal;
+            set => m_IsGlobal = value;
+        }
 
         /// <summary>
         /// Distance where the volume start to be rendered, the fadeValue field in C# will be updated to the normalized blend factor for your custom C# passes
@@ -42,6 +50,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
 
+        [SerializeField]
+        internal Camera m_TargetCamera;
+
+        /// <summary>
+        /// Use this field to force the custom pass volume to be executed only for one camera.
+        /// </summary>
+        public Camera targetCamera
+        {
+            /// <summary>
+            /// Get the target camera of the custom pass. The target camera can be null if the custom pass is in local or global mode.
+            /// </summary>
+            get => useTargetCamera ? m_TargetCamera : null;
+            /// <summary>
+            /// Sets the target camera of the custom pass volume, this will bypass the volume mode (local or global) and the volume mask of the camera.
+            /// </summary>
+            /// <value>The new camera value. A null value will disable target camera mode and fall back to local or global.</value>
+            set
+            {
+                m_TargetCamera = value;
+                useTargetCamera = value != null;
+            }
+        }
+
         /// <summary>
         /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
@@ -54,12 +85,21 @@ namespace UnityEngine.Rendering.HighDefinition
         bool visible = true;
 #endif
 
-        // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
-        static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
-        static List<CustomPassVolume>       m_OverlappingPassVolumes = new List<CustomPassVolume>();
+        [SerializeField]
+        internal bool useTargetCamera;
 
-        List<Collider>          m_Colliders = new List<Collider>();
-        List<Collider>          m_OverlappingColliders = new List<Collider>();
+        // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
+        static HashSet<CustomPassVolume> m_ActivePassVolumes = new HashSet<CustomPassVolume>();
+        static List<CustomPassVolume> m_OverlappingPassVolumes = new List<CustomPassVolume>();
+
+        internal List<Collider> m_Colliders = new List<Collider>();
+
+        /// <summary>
+        /// The colliders of the volume if <see cref="isGlobal"/> is false
+        /// </summary>
+        public List<Collider> colliders => m_Colliders;
+
+        List<Collider> m_OverlappingColliders = new List<Collider>();
 
         static List<CustomPassInjectionPoint> m_InjectionPoints;
         static List<CustomPassInjectionPoint> injectionPoints
@@ -109,6 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.camera.cameraType == CameraType.SceneView && !visible)
                 return false;
 #endif
+
+            if (useTargetCamera)
+                return targetCamera == hdCamera.camera;
 
             // We never execute volume if the layer is not within the culling layers of the camera
             // Special case for the scene view: we can't easily change it's volume later mask, so by default we show all custom passes
@@ -175,6 +218,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!volume.IsVisible(camera))
                     continue;
 
+                if (volume.useTargetCamera)
+                {
+                    if (volume.targetCamera == camera.camera)
+                        m_OverlappingPassVolumes.Add(volume);
+                    continue;
+                }
+
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
@@ -219,7 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Sort the overlapping volumes by priority order (smaller first, then larger and finally globals)
-            m_OverlappingPassVolumes.Sort((v1, v2) => {
+            m_OverlappingPassVolumes.Sort((v1, v2) =>
+            {
                 float GetVolumeExtent(CustomPassVolume volume)
                 {
                     float extent = 0;
@@ -255,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCamera hdCamera)
         {
-            CullingResults?  result = null;
+            CullingResults? result = null;
 
             // We need to sort the volumes first to know which one will be executed
             // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera
@@ -341,72 +392,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
         void Update() => GetComponents(m_Colliders);
-
-        void OnDrawGizmos()
-        {
-            if (isGlobal || m_Colliders.Count == 0 || !enabled)
-                return;
-
-            var scale = transform.localScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
-
-            // Draw a separate gizmo for each collider
-            foreach (var collider in m_Colliders)
-            {
-                if (!collider || !collider.enabled)
-                    continue;
-
-                // We'll just use scaling as an approximation for volume skin. It's far from being
-                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
-                // field or at least a tesselate + push modifier on the collider's mesh to get a
-                // better approximation, but the current Gizmo system is a bit limited and because
-                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
-                // track of changes in an elegant way (which we'd need to implement a nice cache
-                // system for generated volume meshes).
-                switch (collider)
-                {
-                    case BoxCollider c:
-                        Gizmos.DrawCube(c.center, c.size);
-                        if (fadeRadius > 0)
-                        {
-                            // invert te scale for the fade radius because it's in fixed units
-                            Vector3 s = new Vector3(
-                                (fadeRadius * 2) / scale.x,
-                                (fadeRadius * 2) / scale.y,
-                                (fadeRadius * 2) / scale.z
-                            );
-                            Gizmos.DrawWireCube(c.center, c.size + s);
-                        }
-                        break;
-                    case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
-                        Matrix4x4 oldMatrix = Gizmos.matrix;
-                        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
-                        Gizmos.DrawSphere(c.center, c.radius);
-                        if (fadeRadius > 0)
-                            Gizmos.DrawWireSphere(c.center, c.radius + fadeRadius / scale.x);
-                        Gizmos.matrix = oldMatrix;
-                        break;
-                    case MeshCollider c:
-                        // Only convex mesh m_Colliders are allowed
-                        if (!c.convex)
-                            c.convex = true;
-
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
-
-                        // We don't display the Gizmo for fade distance mesh because the distances would be wrong
-                        break;
-                    default:
-                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                        // other m_Colliders...
-                        break;
-                }
-            }
-        }
-
 #endif
     }
 }

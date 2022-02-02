@@ -15,17 +15,17 @@ namespace UnityEngine.Rendering.PostProcessing
             var blueNoise = context.resources.blueNoise64;
             Assert.IsTrue(blueNoise != null && blueNoise.Length > 0);
 
-        #if POSTFX_DEBUG_STATIC_DITHERING // Used by QA for automated testing
+#if POSTFX_DEBUG_STATIC_DITHERING // Used by QA for automated testing
             m_NoiseTextureIndex = 0;
             float rndOffsetX = 0f;
             float rndOffsetY = 0f;
-        #else
+#else
             if (++m_NoiseTextureIndex >= blueNoise.Length)
                 m_NoiseTextureIndex = 0;
 
             float rndOffsetX = (float)m_Random.NextDouble();
             float rndOffsetY = (float)m_Random.NextDouble();
-        #endif
+#endif
 
             var noiseTex = blueNoise[m_NoiseTextureIndex];
             var uberSheet = context.uberSheet;

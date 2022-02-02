@@ -114,5 +114,17 @@ namespace UnityEditor.VFX
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "primitiveType";
+            }
+        }
     }
 }

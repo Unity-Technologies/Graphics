@@ -43,18 +43,6 @@ CBUFFER_END
     #endif
 #endif
 
-// Declare distortion variables just to make the code compile with the Debug Menu.
-// See LitBuiltinData.hlsl:73.
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER(sampler_DistortionVectorMap);
-
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
-
 #ifdef _ALPHATEST_ON
 TEXTURE2D(_TerrainHolesTexture);
 SAMPLER(sampler_TerrainHolesTexture);

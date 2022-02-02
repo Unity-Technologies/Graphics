@@ -280,11 +280,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXReorderableList()
         {
-            m_ListContainer = new VisualElement() {name = "ListContainer"};
+            m_ListContainer = new VisualElement() { name = "ListContainer" };
 
             Add(m_ListContainer);
 
-            m_Toolbar = new VisualElement() { name = "Toolbar"};
+            m_Toolbar = new VisualElement() { name = "Toolbar" };
 
             var add = new VisualElement() { name = "Add" };
             add.Add(new VisualElement() { name = "icon" });
@@ -339,7 +339,7 @@ namespace UnityEditor.VFX.UI
 
         public bool toolbar
         {
-            get {return m_Toolbar.parent != null; }
+            get { return m_Toolbar.parent != null; }
 
             set
             {

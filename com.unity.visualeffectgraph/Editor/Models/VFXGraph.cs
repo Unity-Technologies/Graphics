@@ -21,19 +21,59 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
-        void OnPreprocessAsset()
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
-            if (isVFX)
+            List<string> assetToReimport = null;
+
+            foreach (var assetPath in importedAssets)
             {
-                VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
-                if (resource == null)
-                    return;
-                VFXGraph graph = resource.graph as VFXGraph;
-                if (graph != null)
-                    graph.SanitizeForImport();
-                else
-                    Debug.LogError("VisualEffectGraphResource without graph");
+                bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
+                if (isVFX)
+                {
+                    VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                    if (resource == null)
+                        continue;
+                    VFXGraph graph = resource.GetOrCreateGraph(); //resource.graph should be already != null at this stage but GetOrCreateGraph is also assigning the visualEffectResource. It's required for UpdateSubAssets
+                    if (graph != null)
+                    {
+                        bool wasGraphSanitized = graph.sanitized;
+
+                        try
+                        {
+                            graph.SanitizeForImport();
+                            if (!wasGraphSanitized && graph.sanitized)
+                            {
+                                if (assetToReimport == null)
+                                    assetToReimport = new List<string>();
+                                assetToReimport.Add(assetPath);
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("VisualEffectGraphResource without graph : {0}", assetPath);
+                    }
+                }
+            }
+
+            //Relaunch previously skipped OnCompileResource
+            if (assetToReimport != null)
+            {
+                foreach (var assetPath in assetToReimport)
+                {
+                    try
+                    {
+                        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
+                    }
+                }
             }
         }
 
@@ -57,7 +97,30 @@ namespace UnityEditor.VFX
             {
                 VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
-                    resource.GetOrCreateGraph().CompileForImport();
+                {
+                    if (!graph.sanitized)
+                    {
+                        //Early return, the reimport will be forced with the next OnPostprocessAllAssets after Sanitize
+                        resource.ClearRuntimeData();
+                    }
+                    else
+                    {
+                        //Workaround, use backup system to prevent any modification of the graph during compilation
+                        //The responsible of this unexpected change is PrepareSubgraphs => RecurseSubgraphRecreateCopy => ResyncSlots
+                        //It will let the VFXGraph in a really bad state after compilation.
+                        graph = resource.GetOrCreateGraph();
+                        var dependencies = new HashSet<ScriptableObject>();
+                        dependencies.Add(graph);
+                        graph.CollectDependencies(dependencies);
+                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
+
+                        graph.CompileForImport();
+
+                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
+                        //You have to avoid because it will call ResyncSlot
+                    }
+                }
                 else
                     Debug.LogError("OnCompileResource error - VisualEffectResource without graph");
             }
@@ -83,6 +146,12 @@ namespace UnityEditor.VFX
                 //    Debug.LogError("OnSetupMaterial error - VisualEffectResource and VFXModel graph do not match");
                 //    return;
                 //}
+
+                if (!resource.GetOrCreateGraph().sanitized)
+                {
+                    Debug.LogError("OnSetupMaterial error - Graph hasn't been sanitized");
+                    return;
+                }
 
                 // Actual call
                 if (model is IVFXSubRenderer)
@@ -182,9 +251,9 @@ namespace UnityEditor.VFX
         {
             if (string.IsNullOrEmpty(filePath))
                 return false;
-            return filePath.EndsWith(VisualEffectResource.Extension)
-                || filePath.EndsWith(VisualEffectSubgraphBlock.Extension)
-                || filePath.EndsWith(VisualEffectSubgraphOperator.Extension);
+            return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.InvariantCultureIgnoreCase);
         }
 
         static string[] OnWillSaveAssets(string[] paths)
@@ -195,7 +264,7 @@ namespace UnityEditor.VFX
                 var vfxResource = VisualEffectResource.GetResourceAtPath(path);
                 if (vfxResource != null)
                 {
-                    var graph = vfxResource.GetOrCreateGraph();
+                    vfxResource.GetOrCreateGraph().UpdateSubAssets();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -430,7 +499,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e, e.StackTrace));
                 }
 
             systemNames.Sync(this);
@@ -467,7 +536,7 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
 
-            UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
+            UpdateSubAssets(); //Force remove no more referenced object from the asset & *important* register as persistent new dependencies
         }
 
         private void SanitizeCameraBuffers(HashSet<ScriptableObject> objs)
@@ -881,6 +950,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                // Check Graph Before Import can be needed to synchronize modified shaderGraph
+                foreach (var child in children)
+                    child.CheckGraphBeforeImport();
+
                 // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
@@ -947,6 +1021,9 @@ namespace UnityEditor.VFX
                 return m_CompiledData;
             }
         }
+
+        public bool sanitized { get { return m_GraphSanitized; } }
+
         public int version { get { return m_GraphVersion; } }
 
         [SerializeField]

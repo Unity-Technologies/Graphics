@@ -31,19 +31,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField][Min(1f)] int m_Iso;
-        [SerializeField][Min(0f)] float m_ShutterSpeed;
+        [SerializeField] [Min(1f)] int m_Iso;
+        [SerializeField] [Min(0f)] float m_ShutterSpeed;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture;
-        [SerializeField][Min(0.1f)] float m_FocusDistance;
+        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField] [Min(0.1f)] float m_FocusDistance;
 
         // Aperture shape
-        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
         [SerializeField] Vector2 m_Curvature;
-        [SerializeField][Range(0f, 1f)] float m_BarrelClipping;
-        [SerializeField][Range(-1f, 1f)] float m_Anamorphism;
+        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
+        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
 
         /// <summary>
         /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
+    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer, IAdditionalData
     {
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.
@@ -324,6 +324,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
         public bool taaAntiHistoryRinging = false;
+
+        /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
+        [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
+        public float taaBaseBlendFactor = 0.875f;
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
@@ -591,6 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.taaBaseBlendFactor = taaBaseBlendFactor;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
@@ -651,7 +656,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
-                    VolumeDebugSettings.RegisterCamera(this);
+                    HDVolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -665,7 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    VolumeDebugSettings.UnRegisterCamera(this);
+                    HDVolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;

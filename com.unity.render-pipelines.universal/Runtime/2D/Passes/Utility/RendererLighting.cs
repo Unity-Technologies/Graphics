@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
                 descriptor.graphicsFormat = GetRenderTextureFormat();
                 descriptor.useMipMap = false;
                 descriptor.autoGenerateMips = false;
-                descriptor.depthBufferBits = 0;
+                descriptor.depthBufferBits = pass.rendererData.useDepthStencilBuffer ? 32 : 0;
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
 
@@ -314,7 +314,9 @@ namespace UnityEngine.Rendering.Universal
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
                     var light = lights[lightIndex + batchedLights];
-                    if (light.renderVolumetricShadows)
+
+                    var topMostLayerValue = light.GetTopMostLitLayer();
+                    if (light.renderVolumetricShadows && endLayerValue == topMostLayerValue)
                     {
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
                         shadowLightCount++;
@@ -508,7 +510,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, storeAction);
 
-                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
+                cmd.ClearRenderTarget(pass.rendererData.useDepthStencilBuffer, true, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -520,6 +522,16 @@ namespace UnityEngine.Rendering.Universal
 
         public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, ref LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
         {
+            // Before rendering the lights cache some values that are expensive to get/calculate
+            var culledLights = pass.rendererData.lightCullResult.visibleLights;
+            for (var i = 0; i < culledLights.Count; i++)
+            {
+                culledLights[i].CacheValues();
+            }
+
+            ShadowCasterGroup2DManager.CacheValues();
+
+
             var blendStyles = pass.rendererData.lightBlendStyles;
 
             for (var i = 0; i < blendStyles.Length; ++i)

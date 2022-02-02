@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
 {
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
-        PropertyRM      m_PropertyRM;
+        PropertyRM m_PropertyRM;
 
         VFXView m_View;
 

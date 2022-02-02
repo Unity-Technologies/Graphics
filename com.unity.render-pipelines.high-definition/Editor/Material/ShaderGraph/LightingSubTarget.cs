@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -31,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
-        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => LightingShaderGraphGUI.SetupLightingKeywordsAndPass;
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateLightingMaterial;
 
         protected override string renderQueue
         {
@@ -83,19 +79,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Misc
-            context.AddField(LightingGI,                           descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
-            context.AddField(BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(BentNormal,                           descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
-            context.AddField(HDFields.AmbientOcclusion,                     context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
+            context.AddField(LightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
+            context.AddField(BackLightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
+            context.AddField(BentNormal, descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
+            context.AddField(HDFields.AmbientOcclusion, context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
 
             // Specular Occlusion Fields
-            context.AddField(SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
-            context.AddField(SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
-            context.AddField(SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            context.AddField(SpecularOcclusionFromAO, lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
+            context.AddField(SpecularOcclusionFromAOBentNormal, lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
+            context.AddField(SpecularOcclusionCustom, lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
 
             // Double Sided
-            context.AddField(DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
-            context.AddField(DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+            context.AddField(DoubleSidedFlip, systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+            context.AddField(DoubleSidedMirror, systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
@@ -149,19 +145,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Specular AA
             context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold, lightingData.specularAA);
 
             // Baked GI
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,              lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,          lightingData.overrideBakedGI);
+            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI, lightingData.overrideBakedGI);
+            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI, lightingData.overrideBakedGI);
 
             // Misc
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,    lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion, lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
 
             // Normal dropoff space
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,               lightingData.normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, lightingData.normalDropOffSpace == NormalDropOffSpace.World);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

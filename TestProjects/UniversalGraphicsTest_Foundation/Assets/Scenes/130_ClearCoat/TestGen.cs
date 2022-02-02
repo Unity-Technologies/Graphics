@@ -13,7 +13,7 @@ public class TestGen : MonoBehaviour
     {
         gos = new GameObject[xCount * yCount];
 
-        float mask       = 1;
+        float mask = 1;
         float smoothness = 1;
         for (var y = 0; y < yCount; y++)
         {

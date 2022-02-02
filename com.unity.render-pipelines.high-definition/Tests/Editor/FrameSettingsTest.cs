@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     CoreUtils.Destroy(m_ToClean);
                 FrameSettingsHistory.containers?.Clear();
             }
-            catch {}
+            catch { }
         }
 
         [Test]

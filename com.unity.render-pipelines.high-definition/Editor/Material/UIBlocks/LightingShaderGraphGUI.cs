@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public class LightingShaderGraphGUI : HDShaderGUI
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
-        const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
             | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 
         MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
@@ -37,29 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Sets up the keywords and passes for a Lit Shader Graph material.
-        /// </summary>
-        /// <param name="material">The target material.</param>
-        public static void SetupLightingKeywordsAndPass(Material material)
-        {
-            SynchronizeShaderGraphProperties(material);
-
-            BaseLitGUI.SetupBaseLitKeywords(material);
-            BaseLitGUI.SetupBaseLitMaterialPass(material);
-
-            bool receiveSSR = false;
-            if (material.GetSurfaceType() == SurfaceType.Transparent)
-                receiveSSR = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
-            else
-                receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
-            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0 : false;
-            BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
-        }
-
-        /// <summary>
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        public override void ValidateMaterial(Material material) => SetupLightingKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => ShaderGraphAPI.ValidateLightingMaterial(material);
     }
 }

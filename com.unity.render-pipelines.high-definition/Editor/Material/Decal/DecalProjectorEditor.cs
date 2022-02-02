@@ -57,17 +57,17 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
-        int layerMask => (target as Component).gameObject.layer;
+        int layerMask => (target as DecalProjector).cachedEditorLayer;
         bool layerMaskHasMultipleValue
         {
             get
             {
                 if (targets.Length < 2)
                     return false;
-                int layerMask = (targets[0] as Component).gameObject.layer;
+                int layerMask = (targets[0] as DecalProjector).cachedEditorLayer;
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if ((targets[index] as Component).gameObject.layer != layerMask)
+                    if ((targets[index] as DecalProjector).cachedEditorLayer != layerMask)
                         return true;
                 }
                 return false;
@@ -341,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Smoothly update the decal image projected
-                    DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
+                    DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector);
                 }
             }
         }
@@ -534,7 +534,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (float.IsNaN(saved[axe]))
                 {
                     float oldSize = currentTarget.m_Size[axe];
-                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    saved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
                     ratioSizePivotPositionSaved[currentTarget] = saved;
                 }
 
@@ -568,6 +568,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            bool supportDecals = false;
+            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+            if (hdrp != null)
+                supportDecals = hdrp.currentPlatformRenderPipelineSettings.supportDecals;
+
+            if (!supportDecals)
+            {
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Decals.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecals");
+                EditorGUILayout.Space();
+            }
+
             serializedObject.Update();
 
             if (m_RequireUpdateMaterialEditor)
@@ -621,10 +633,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
                 bool decalLayerEnabled = false;
-                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
-                    decalLayerEnabled = hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
+                    decalLayerEnabled = supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
                     using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                     {
                         EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
@@ -652,8 +663,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!decalLayerEnabled)
                 {
-                    EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
-                        MessageType.Info);
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
+                    EditorGUILayout.Space();
                 }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
@@ -689,7 +701,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We need to prevent the user to edit default decal materials
                 bool isDefaultMaterial = false;
                 bool isValidDecalMaterial = true;
-                var hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
                     foreach (var decalProjector in targets)

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 78ec04c4abf3e224fa4403171c5420d0
 ModelImporter:
-  serializedVersion: 21202
+  serializedVersion: 22101
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -127,6 +127,7 @@ ModelImporter:
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 16
     useFileScale: 1
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

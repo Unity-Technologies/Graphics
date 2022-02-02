@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.MoveItemInCategory(shaderInputReference, newIndexValue, associatedCategoryGuid);
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  MoveShaderInput;
+        public Action<GraphData> modifyGraphDataAction => MoveShaderInput;
 
         internal string associatedCategoryGuid { get; set; }
 
@@ -123,6 +123,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var categoryItem in categoryData.Children)
             {
+                if (categoryItem == null)
+                {
+                    AssertHelpers.Fail("Failed to insert blackboard row into category due to shader input being null.");
+                    continue;
+                }
                 InsertBlackboardRow(categoryItem);
             }
         }
@@ -145,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case AddShaderInputAction addBlackboardItemAction:
-                    if (IsInputInCategory(addBlackboardItemAction.shaderInputReference))
+                    if (addBlackboardItemAction.shaderInputReference != null && IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = FindBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         if (blackboardRow == null)
@@ -161,12 +166,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case CopyShaderInputAction copyShaderInputAction:
                     // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
                     if (copyShaderInputAction.copiedShaderInput != null && IsInputInCategory(copyShaderInputAction.copiedShaderInput))
-                        InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                    {
+                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                        if (blackboardRow != null)
+                        {
+                            var graphView = ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
+                            var propertyView = blackboardRow.Q<SGBlackboardField>();
+                            graphView?.AddToSelectionNoUndoRecord(propertyView);
+                        }
+                    }
                     break;
 
                 case AddItemToCategoryAction addItemToCategoryAction:
                     // If item was added to category that this controller manages, then add blackboard row to represent that item
-                    if (addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    if (addItemToCategoryAction.itemToAdd != null && addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
                     {
                         InsertBlackboardRow(addItemToCategoryAction.itemToAdd, addItemToCategoryAction.indexToAddItemAt);
                     }

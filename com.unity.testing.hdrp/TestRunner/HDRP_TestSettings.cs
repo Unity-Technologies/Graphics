@@ -16,9 +16,9 @@ using UnityEngine.SceneManagement;
 [ExecuteAlways]
 public class HDRP_TestSettings : GraphicsTestSettings
 {
-	public UnityEngine.Events.UnityEvent doBeforeTest;
-	public int captureFramerate = 0;
-	public int waitFrames = 0;
+    public UnityEngine.Events.UnityEvent doBeforeTest;
+    public int captureFramerate = 0;
+    public int waitFrames = 0;
     public bool xrCompatible = true;
 
     [UnityEngine.Range(1.0f, 10.0f)]
@@ -40,7 +40,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
         if (currentRP != renderPipelineAsset)
         {
-            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {((currentRP==null)?"null": currentRP.name)} => {renderPipelineAsset.name}");
+            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {((currentRP == null) ? "null" : currentRP.name)} => {renderPipelineAsset.name}");
 
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }

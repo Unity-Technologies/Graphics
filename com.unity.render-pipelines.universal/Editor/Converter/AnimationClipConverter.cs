@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.Universal
             if ((usage & kSuccessFlags) != 0 && (usage & kFilterFlags) == 0)
                 return;
 
-            if (usage ==  SerializedShaderPropertyUsage.Unknown)
+            if (usage == SerializedShaderPropertyUsage.Unknown)
             {
                 ctx.didFail = true;
                 ctx.info = L10n.Tr("The animation clip is not used by any objects with renderers currently in the project, so it may not be safe to automatically upgrade.");

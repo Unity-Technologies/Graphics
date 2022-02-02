@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3 m_ObsoleteBoxSideFadePositive = Vector3.one;
         [SerializeField, FormerlySerializedAs("boxSideFadeNegative"), System.Obsolete("boxSideFadeNegative is deprecated, use influenceVolume parameters instead")]
         Vector3 m_ObsoleteBoxSideFadeNegative = Vector3.one;
-        #pragma warning restore 649 //never assigned
+#pragma warning restore 649 //never assigned
         #endregion
     }
 }

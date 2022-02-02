@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0885f594ab85594caa28e1a96cbe0d8, type: 3}
+  m_Name: Welcome
+  m_EditorClassIdentifier: 
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Image: {fileID: 2800000, guid: fe95a7a8bd7b1f44288442c6a4f60bee, type: 3}
+  m_WindowTitle:
+    m_Untranslated: Tutorials
+  m_Title:
+    m_Untranslated: High Definition Render Pipeline
+  m_Description:
+    m_Untranslated: 'This short series of tutorials is designed for beginners and
+      intermediate users who want to discover the core lighting and rendering features
+      of the High Definition Render Pipeline. To provide feedback or ask questions,
+      please consult this <a href="https://forum.unity.com/threads/try-the-new-hdrp-scene-template.1035355/">thread</a>
+      on the official forum.
+
+
+      In case you do not see the Tutorials Window
+      located on the right side of the Editor, head to the main toolbar and select
+      <b>Tutorials</b> > <b>Show Tutorials.</b>
+
+
+      If you do not wish to follow
+      this tutorial nor use the data associated with this template, feel free to
+      delete the <b>SampleSceneAssets</b> folder in your <b>Project Window</b> and
+      create a new Scene.'
+  m_Buttons:
+  - Text:
+      m_Untranslated: Close
+    Tooltip:
+      m_Untranslated: 
+    OnClick:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 11400000}
+          m_TargetAssemblyTypeName: Unity.Tutorials.Core.Editor.TutorialWelcomePage,
+            Unity.Tutorials.Core.Editor
+          m_MethodName: CloseCurrentModalDialog
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 1

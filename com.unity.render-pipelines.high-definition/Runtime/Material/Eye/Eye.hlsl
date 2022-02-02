@@ -658,7 +658,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF

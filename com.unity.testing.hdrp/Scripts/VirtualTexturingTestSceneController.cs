@@ -17,7 +17,7 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
     protected GameObject cameraGO;
 
     // Rotation
-    public float sensitivity = 30.0f; 
+    public float sensitivity = 30.0f;
     public float maxX = 88.0f;
     public float minX = -5.0f;
     private float rotX = 0.0f;
@@ -39,13 +39,12 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
 
     public void Update()
     {
-
         // Don't do anything until this has been actived, which is done with any input.
         if (Input.anyKeyDown)
         {
             activated = true;
         }
-        else if (!activated) 
+        else if (!activated)
         {
             return;
         }
@@ -61,9 +60,9 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
         }
         if (Input.GetKeyDown("t"))
         {
-#if ENABLE_VIRTUALTEXTURES            
+#if ENABLE_VIRTUALTEXTURES
             UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled = !UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled;
-#endif            
+#endif
         }
 
         if (dirLight != null && rotateLight)
@@ -112,5 +111,4 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
     {
         return gameObject;
     }
-
 }

@@ -2,41 +2,45 @@
 
 Install the following Editor and package versions to begin working with the __2D Renderer__:
 
-- __Unity 2019.2.0b1__ or later
+- __Unity 2021.2.0b1__ or later
 
-- __Universal Render Pipeline__ version 6.7 or higher (available via the Package Manager)
+- __Universal Render Pipeline__ version 10 or higher (available via the Package Manager)
 
 ## 2D Renderer Setup
 1. Create a new Project using the [2D template](https://docs.unity3d.com/Manual/ProjectTemplates.html).![](Images/2D/New_Project_With_Template.png)
 
 
-2. Create a new __Pipeline Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > Universal Render Pipeline > Pipeline Asset__ and then name the Asset.![](Images/2D/image_2.png)
+2. Create a new __Pipeline Asset__ and __Renderer Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > URP Asset (with 2D Renderer)__.
+   ![](Images/2D/2d-urp12-create-renderer-asset.png)
+   <br/>
 
+3. Enter the name for both the Pipeline and Renderer Assets. The name is automatically applied to both, wi th "_Renderer" appended to the name of the Renderer Asset.
+   ![](Images/2D/2d-urp12-pipeline-renderer-assets.png)
+   <br/>
 
-3. Create a new __2D Renderer__ by going to __Assets > Create > Rendering > URP 2D Renderer__. Give it a name when prompted.
+4. The Renderer Asset is automatically assigned to the Pipeline Asset.
+   ![](Images/2D/2d-urp12-pipeline-renderer-assigned.png)
+   <br/>
 
-   ![](Images/2D/image_3.png)
-
-
-4. Assign the __2D Renderer__ as the default Renderer for the Render Pipeline Asset. Drag the __2D Renderer__ Asset onto the __Renderer List__, or select the circle icon to open the __Select Object__ window and then select the __2D Renderer__ Asset from the list.
-
-
-5. Set the graphics quality settings:
+5. To set the graphics quality settings, there are two options:
 
    __Option 1: For a single setting across all platforms__
-
-   ![](Images/2D/image_4.png)
-
    1. Go to __Edit > Project Settings__ and select the __Graphics__ category.
-   2. Drag the __Pipeline Asset__ created earlier to the __Scriptable Render Pipeline Settings__ box, or select the circle icon to the right of the box to open the __Select Object__ window and then select the Asset from the list.
+   ![](Images/2D/2d-urp12-graphics-srpsettings.png)
+   <br/>
+   2. Drag the __Pipeline Asset__ created earlier to the __Scriptable Render Pipeline Settings__ box, and adjust the quality settings.
+   <br/>
 
-   __Option 2: For settings per quality level__![](Images/2D/Quality_Settings.png)
-
+   __Option 2: For settings per quality level__
    1. Go to __Edit > Project Settings__ and select the [Quality](https://docs.unity3d.com/Manual/class-QualitySettings.html) category.
-   2. Select a quality level to be included in your Project.
-   3. Drag the __Pipeline Asset__ created earlier to the __Rendering__ box, or select the circle open to the right of the box to open the __Select Object__ window and then select the Asset from the list.
-   4. Repeat steps 2-3 for each quality level and platform included in your  Project.
+   ![](Images/2D/2d-urp12-graphics-qualitysettings.png)
+   <br/>
+   2. Select the quality levels to be included in your Project.
+   3. Drag the __Pipeline Asset__ created earlier to the __Rendering__ box.
+   ![](Images/2D/2d-urp12-graphics-quality-add-rendering-asset.png)
+   <br/>
+   4. Repeat steps 2-3 for each quality level and platform included in your Project.
 
 The __2D Renderer__ is now set up for your Project.
 
-__Note:__ If you use the __2D Renderer__ in your Project, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not have any impact on your final app or game.
+__Note:__ If you use the __2D Renderer__ in your Project, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not affect or impact on your final app or game.

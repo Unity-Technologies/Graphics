@@ -7,6 +7,7 @@ using NUnit.Framework.Internal.Builders;
 using NUnit.Framework;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Scripting;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Linq;
@@ -19,6 +20,17 @@ namespace UnityEngine.VFX.PerformanceTest
     public class VFXPerformanceUseGraphicsTestCasesAttribute : UnityTestAttribute, ITestBuilder
     {
         NUnitTestCaseBuilder m_Builder = new NUnitTestCaseBuilder();
+
+        public static string GetPrefix()
+        {
+            //Can't use SRPBinder here, this code is also runtime
+            var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+            if (currentSRP == null)
+                return "BRP";
+            if (currentSRP.name.Contains("HDRenderPipeline"))
+                return "HDRP";
+            return currentSRP.name;
+        }
 
         IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
         {
@@ -49,7 +61,7 @@ namespace UnityEngine.VFX.PerformanceTest
                 if (test.parms != null)
                     test.parms.HasExpectedResult = false;
 
-                test.Name = Path.GetFileNameWithoutExtension(scenePath);
+                test.Name = string.Format("{0}.{1}", GetPrefix(), Path.GetFileNameWithoutExtension(scenePath));
                 results.Add(test);
             }
             return results;

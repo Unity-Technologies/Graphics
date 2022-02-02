@@ -1,9 +1,9 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShaderGraphTestSceneController : MonoBehaviour {
-
+public class ShaderGraphTestSceneController : MonoBehaviour
+{
     public GameObject[] shGraphObjs;
     public GameObject[] builtInObjs;
     private Vector3[] startingLocPosSG;
@@ -28,7 +28,7 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
     protected GameObject cameraGO;
 
     // Rotation
-    public float sensitivity = 30.0f; 
+    public float sensitivity = 30.0f;
     public float maxX = 88.0f;
     public float minX = -5.0f;
     private float rotX = 0.0f;
@@ -102,7 +102,7 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
             mode = 1;
             changed = true;
         }
-        else if (!activated) 
+        else if (!activated)
         {
             return;
         }
@@ -152,7 +152,7 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
                 else
                 {
                     bool active = ((mode - 1) == x);
-                    bool sgActive = active &&  viewingSG;
+                    bool sgActive = active && viewingSG;
                     bool biActive = active && !viewingSG;
                     if (!shGraphObjs[x].isStatic) shGraphObjs[x].SetActive(sgActive);
                     if (!builtInObjs[x].isStatic) builtInObjs[x].SetActive(biActive);
@@ -211,5 +211,4 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
     {
         return gameObject;
     }
-
 }

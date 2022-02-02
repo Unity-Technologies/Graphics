@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         ACES,    // ACES Filmic reference tonemapper (custom approximation)
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(UniversalRenderPipeline))]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Select a tonemapping algorithm to use for the color grading process.")]
@@ -21,5 +21,5 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Serializable]
-    public sealed class TonemappingModeParameter : VolumeParameter<TonemappingMode> { public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) {} }
+    public sealed class TonemappingModeParameter : VolumeParameter<TonemappingMode> { public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { } }
 }

@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         public SceneColorNode()
         {
             name = "Scene Color";
+            synonyms = new string[] { "screen buffer" };
             UpdateNodeAfterDeserialization();
         }
 

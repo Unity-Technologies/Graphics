@@ -1,0 +1,25 @@
+{
+    "name": "Unity.ShaderGraph.Generation.Tests",
+    "rootNamespace": "",
+    "references": [
+        "Unity.ShaderGraph.Editor",
+        "ContextLayeredDataStorage",
+        "Unity.ShaderGraph.GraphDeltaRegistry",
+        "Unity.ShaderFoundry.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

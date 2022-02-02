@@ -70,24 +70,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         readonly List<XRView> views = new List<XRView>(2);
 
-        internal bool enabled      { get => views.Count > 0; }
+        internal bool enabled { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
-        internal bool copyDepth    { get; private set; }
+        internal bool copyDepth { get; private set; }
 
-        internal int multipassId    { get; private set; }
-        internal int cullingPassId  { get; private set; }
+        internal int multipassId { get; private set; }
+        internal int cullingPassId { get; private set; }
 
         // Ability to specify where to render the pass
-        internal RenderTargetIdentifier  renderTarget     { get; private set; }
+        internal RenderTargetIdentifier renderTarget { get; private set; }
         internal RenderTextureDescriptor renderTargetDesc { get; private set; }
-        static RenderTargetIdentifier    invalidRT = -1;
-        internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
+        static RenderTargetIdentifier invalidRT = -1;
+        internal bool renderTargetValid { get => renderTarget != invalidRT; }
 
         // Access to view information
-        internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
-        internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
+        internal Matrix4x4 GetProjMatrix(int viewIndex = 0) { return views[viewIndex].projMatrix; }
+        internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
-        internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
+        internal Rect GetViewport(int viewIndex = 0) { return views[viewIndex].viewport; }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
@@ -399,10 +399,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderOcclusionMeshes(CommandBuffer cmd, Color clearColor, RTHandle colorBuffer, RTHandle depthBuffer)
         {
-        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
                 return;
-        #endif
+#endif
 
             if (isOcclusionMeshSupported)
             {

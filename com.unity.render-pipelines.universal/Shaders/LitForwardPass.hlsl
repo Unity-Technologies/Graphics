@@ -220,7 +220,6 @@ half4 LitPassFragment(Varyings input) : SV_Target
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
-
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 

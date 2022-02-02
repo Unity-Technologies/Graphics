@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void ClearIsOccupied()
             {
                 UInt16 isOccupiedMask = (UInt16)Atlas3DNodeFlags.IsOccupied;
-                m_Flags &= (UInt16) ~isOccupiedMask;
+                m_Flags &= (UInt16)~isOccupiedMask;
             }
 
             public bool IsLeafNode()
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
             isUploadNeeded = true;
             scale.Scale(new Vector3(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Depth));
             bias.Scale(new Vector3(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Depth));
-            m_AllocationCache.Add(key, new Texture3DAtlasScaleBias { scale = scale, bias = bias});
+            m_AllocationCache.Add(key, new Texture3DAtlasScaleBias { scale = scale, bias = bias });
             return true;
         }
 

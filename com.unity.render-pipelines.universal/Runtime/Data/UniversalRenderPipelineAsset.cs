@@ -83,8 +83,10 @@ namespace UnityEngine.Rendering.Universal
     public enum ShaderVariantLogLevel
     {
         Disabled,
+        [InspectorName("Only URP Shaders")]
         OnlyUniversalRPShaders,
-        AllShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
@@ -159,7 +161,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -196,6 +197,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -206,7 +209,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -258,6 +262,9 @@ namespace UnityEngine.Rendering.Universal
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
+
             return instance;
         }
 
@@ -275,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
-                "UniversalRenderPipelineAsset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", null, null);
         }
 
         internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
@@ -360,6 +367,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
+                    return null;
+
+                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                    .Contains("Universal.ForwardRendererData"))
                     return null;
 
                 Debug.LogError(
@@ -670,7 +681,7 @@ namespace UnityEngine.Rendering.Universal
         public LightRenderingMode additionalLightsRenderingMode
         {
             get { return m_AdditionalLightsRenderingMode; }
-            internal set { m_AdditionalLightsRenderingMode = value;}
+            internal set { m_AdditionalLightsRenderingMode = value; }
         }
 
         public int maxAdditionalLightsCount
@@ -907,6 +918,25 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseAdaptivePerformance = value; }
         }
 
+        /// <summary>
+        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
+        /// </summary>
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        /// <summary>
+        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
+        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
+        /// </summary>
+        public int numIterationsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
+        }
+
         public override Material defaultMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Standard); }
@@ -1040,6 +1070,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
+
+        /// <summary>Names used for display of rendering layer masks with prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.

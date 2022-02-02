@@ -7,7 +7,6 @@ using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
-using Unity.Entities;
 
 public class GraphicsTests
 {
@@ -22,8 +21,6 @@ public class GraphicsTests
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-        CleanUp();
-
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -39,10 +36,6 @@ public class GraphicsTests
         #endif
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        //var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
-
-        //Scene scene = SceneManager.GetActiveScene();
 
         yield return null;
 
@@ -85,20 +78,6 @@ public class GraphicsTests
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
 
-        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>()) 
-        // {
-        //     Object.Destroy(o);
-        // }
-
-        CleanUp();
-
         XRGraphicsAutomatedTests.running = false;
     }
-
-    public void CleanUp()
-    {
-        EntityManager m_Manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        m_Manager.DestroyEntity(m_Manager.GetAllEntities());
-    }
-
 }

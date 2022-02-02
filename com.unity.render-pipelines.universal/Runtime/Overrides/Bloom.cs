@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
     public sealed class Bloom : VolumeComponent, IPostProcessComponent
     {
         [Header("Bloom")]
@@ -12,13 +12,13 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Strength of the bloom filter.")]
         public MinFloatParameter intensity = new MinFloatParameter(0f, 0f);
 
-        [Tooltip("Changes the extent of veiling effects.")]
+        [Tooltip("Set the radius of the bloom effect")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
-        [Tooltip("Clamps pixels to control the bloom amount.")]
+        [Tooltip("Set the maximum intensity that Unity uses to calculate Bloom. If pixels in your Scene are more intense than this, URP renders them at their current intensity, but uses this intensity value for the purposes of Bloom calculations.")]
         public MinFloatParameter clamp = new MinFloatParameter(65472f, 0f);
 
-        [Tooltip("Global tint of the bloom filter.")]
+        [Tooltip("Use the color picker to select a color for the Bloom effect to tint to.")]
         public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
 
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]

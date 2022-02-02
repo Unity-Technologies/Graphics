@@ -149,6 +149,8 @@ CBUFFER_END
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+#define UNITY_PREV_MATRIX_M   unity_MatrixPreviousM
+#define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
 
 // Note: #include order is important here.
 // UnityInput.hlsl must be included before UnityInstancing.hlsl, so constant buffer
@@ -157,6 +159,12 @@ CBUFFER_END
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalDOTSInstancing.hlsl"
+
+// VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
+#ifdef HAVE_VFX_MODIFICATION
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXMatricesOverride.hlsl"
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 #endif

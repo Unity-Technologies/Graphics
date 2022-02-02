@@ -51,9 +51,9 @@ namespace UnityEngine.Rendering
             float X = Y * x / y;
             float Z = Y * (1f - x - y) / y;
 
-            float L =  0.7328f * X + 0.4296f * Y - 0.1624f * Z;
+            float L = 0.7328f * X + 0.4296f * Y - 0.1624f * Z;
             float M = -0.7036f * X + 1.6975f * Y + 0.0061f * Z;
-            float S =  0.0030f * X + 0.0136f * Y + 0.9834f * Z;
+            float S = 0.0030f * X + 0.0136f * Y + 0.9834f * Z;
 
             return new Vector3(L, M, S);
         }
@@ -298,6 +298,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="hex">A 32-bit hexadecimal value.</param>
         /// <returns>A color value.</returns>
-        public static Color ToRGBA(uint hex) => new Color(((hex >> 16) & 0xff) / 255f, ((hex >>  8) & 0xff) / 255f, (hex & 0xff) / 255f, ((hex >> 24) & 0xff) / 255f);
+        public static Color ToRGBA(uint hex) => new Color(((hex >> 16) & 0xff) / 255f, ((hex >> 8) & 0xff) / 255f, (hex & 0xff) / 255f, ((hex >> 24) & 0xff) / 255f);
     }
 }

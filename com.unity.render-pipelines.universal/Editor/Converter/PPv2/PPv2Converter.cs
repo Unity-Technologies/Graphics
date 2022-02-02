@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             return null;
         }
 
-        #region Conversion_Entry_Points
+#region Conversion_Entry_Points
 
         private void ConvertVolume(BIRPRendering.PostProcessVolume oldVolume, ref bool succeeded,
             StringBuilder errorString)
@@ -344,7 +344,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             // - Alternatively, leave deletion of Profiles entirely to the user. (I think this is preferred)
         }
 
-        #endregion Conversion_Entry_Points
+#endregion Conversion_Entry_Points
 
         private bool ConvertVolumeComponent(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
         {

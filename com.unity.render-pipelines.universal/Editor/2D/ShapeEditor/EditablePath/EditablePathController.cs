@@ -208,8 +208,8 @@ namespace UnityEditor.Rendering.Universal.Path2D
             editablePath.SetPoint(index, controlPoint);
         }
 
-        public void ClearClosestPath() {}
-        public void AddClosestPath(float distance) {}
+        public void ClearClosestPath() { }
+        public void AddClosestPath(float distance) { }
 
         private Vector3 GetLeftTangentPosition(int index)
         {

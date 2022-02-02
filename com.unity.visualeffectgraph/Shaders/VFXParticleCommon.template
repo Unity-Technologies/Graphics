@@ -2,7 +2,7 @@ ${VFXBegin:VFXVertexCommonProcess}
 #if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
 o.VFX_VARYING_COLOR = attributes.color;
 #endif
-#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
+#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
 o.VFX_VARYING_ALPHA = attributes.alpha;
 #endif
 
@@ -27,6 +27,21 @@ ${VFXLoadParameter:{uvBias}}
 #if defined (VFX_VARYING_UV)
 o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #endif
+#endif
+
+#ifdef VFX_VARYING_ANGLEFADE
+${VFXLoadParameter:{angleFade}}
+o.VFX_VARYING_ANGLEFADE = angleFade;
+#endif
+
+#ifdef VFX_VARYING_FADEFACTOR
+${VFXLoadParameter:{fadeFactor}}
+o.VFX_VARYING_FADEFACTOR = fadeFactor;
+#endif
+
+#ifdef VFX_VARYING_DECALLAYER
+${VFXLoadParameter:{decalLayerMask}}
+o.VFX_VARYING_DECALLAYER = decalLayerMask;
 #endif
 
 #if defined(VFX_VARYING_POSWS)
@@ -82,16 +97,19 @@ ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
 deadCount = deadListCount.Load(0);
-#endif	
+#endif
 if (index >= asuint(nbMax) - deadCount)
+{
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
+	o.pos.x = VFX_NAN;
 	return o; // cull
 #endif
+}
 
-Attributes attributes = (Attributes)0;
-SourceAttributes sourceAttributes = (SourceAttributes)0;
+VFXAttributes attributes = (VFXAttributes)0;
+VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];
@@ -100,9 +118,12 @@ ${VFXLoadAttributes}
 ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
 if (!attributes.alive)
-	return o;
+{
+	o.pos.x = VFX_NAN;
+	return o; // cull
+}
 #endif
-	
+
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 
@@ -128,7 +149,12 @@ o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f
 if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
 {
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-	uint elementToVFXIndex = elementToVFXBaseIndex + (id % VFX_FEATURE_MOTION_VECTORS_VERTS) * viewCount * 2;
+#if HAS_STRIPS
+	uint vertIndex = (id / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#else
+	uint vertIndex = id % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#endif
+	uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
 	elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
 	elementToVFXIndex += unity_StereoEyeIndex * 2;
 	uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
@@ -226,6 +252,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
 		#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
@@ -256,12 +284,12 @@ void frag(ps_input i
 		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		#ifndef WRITE_MSAA_DEPTH
-			dummy = (float4)0;
+		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
 		#endif
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		dummy = (float4)0;
 	#else
-		#error VFX_PASSDEPTH undefined 
+		#error VFX_PASSDEPTH undefined
 	#endif
 }
 ${VFXEnd}
@@ -270,7 +298,7 @@ ${VFXEnd}
 ${VFXBegin:VFXDeclareGetStripTangent}
 float3 GetParticlePosition(uint index)
 {
-	struct Attributes attributes = (Attributes)0;
+	VFXAttributes attributes = (VFXAttributes)0;
 	${VFXLoadAttributes:{position}}
 	return attributes.position;
 }
@@ -283,15 +311,49 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
 		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
 	}
-	
+
 	float3 nextTangent = (float3)0.0f;
 	if (relativeIndex < stripData.nextIndex - 1)
 	{
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
 		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
 	}
-	
+
 	return normalize(prevTangent + nextTangent);
 }
 ${VFXEnd}
+
+${VFXBegin:VFXFeedSortingKeys}
+                Kvp output;
+#if VFX_CUSTOM_SORT_KEY
+                ${VFXLoadParameter:{sortKey}}
+                output.sortKey = -1.0f * sortKey; //Lowest values are rendered first
+#elif VFX_DISTANCE_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 camToPos = posRWS - GetCurrentViewPosition();
+
+                output.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
+#elif VFX_DEPTH_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 zAxisCam = -GetWorldToViewMatrix()[2].xyz;
+                float depth = dot(posRWS, zAxisCam);
+                output.sortKey = depth;
+
+#elif VFX_YOUNGEST_SORT_KEY
+                ${VFXLoadAttributes:{age}}
+                output.sortKey = attributes.age;
+
+#endif //VFX_[CRITERION]_SORT_KEY
+                output.index = index;
+                output.sortKey *= SORTING_SIGN;
+${VFXEnd}
+
 

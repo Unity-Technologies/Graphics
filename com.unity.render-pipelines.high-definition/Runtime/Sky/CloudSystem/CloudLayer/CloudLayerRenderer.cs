@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cloudLayer.CastShadows)
             {
                 if (m_PrecomputedData == null || m_PrecomputedData.cloudShadowsRT == null)
-                    UpdateCache(cloudLayer, HDRenderPipeline.currentPipeline.GetCurrentSunLight());
+                    UpdateCache(cloudLayer, HDRenderPipeline.currentPipeline.GetMainLight());
 
                 cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
                 cookieParams.size = new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
@@ -82,8 +82,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public override void RenderSunLightCookie(CloudSettings settings, Light sunLight, CommandBuffer cmd)
-            => m_PrecomputedData.BakeCloudShadows((CloudLayer)settings, sunLight, cmd);
+        public override void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams)
+            => m_PrecomputedData.BakeCloudShadows((CloudLayer)builtinParams.cloudSettings, builtinParams.sunLight, builtinParams.hdCamera, builtinParams.commandBuffer);
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
             float intensity = builtinParams.sunLight ? builtinParams.sunLight.intensity : 1;
-            var paramsA = cloudLayer.layerA.GetRenderingParameters(intensity);
-            var paramsB = cloudLayer.layerB.GetRenderingParameters(intensity);
+            var paramsA = cloudLayer.layerA.GetRenderingParameters(hdCamera, intensity);
+            var paramsB = cloudLayer.layerB.GetRenderingParameters(hdCamera, intensity);
             paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
             paramsB.Item1.w = cloudLayer.opacity.value;
 
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
             if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)
-                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.value * dt * 0.01f;
+                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.01f;
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_FLOWMAP", cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap);
             if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
                 m_CloudLayerMaterial.SetTexture(_FlowmapA, cloudLayer.layerA.flowmap.value);
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_CLOUD_MOTION", cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None);
                 if (cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None)
-                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.value * dt * 0.01f;
+                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.01f;
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_FLOWMAP", cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap);
                 if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
                     m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
@@ -130,7 +130,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-            CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
+
+            if (renderForCubemap)
+            {
+                CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer, ClearFlag.None, 0, builtinParams.cubemapFace);
+                CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, 0);
+            }
+            else
+            {
+                if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
+                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer);
+                else
+                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, 1);
+            }
         }
 
         class PrecomputationCache
@@ -280,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return true;
             }
 
-            public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
+            public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, HDCamera camera, CommandBuffer cmd)
             {
                 InitIfNeeded(cloudLayer, sunLight, cmd);
                 Vector4 _Params = sunLight.transform.forward;
@@ -298,8 +311,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
 
-                var paramsA = cloudLayer.layerA.GetRenderingParameters(0);
-                var paramsB = cloudLayer.layerB.GetRenderingParameters(0);
+                var paramsA = cloudLayer.layerA.GetRenderingParameters(camera, 0);
+                var paramsB = cloudLayer.layerB.GetRenderingParameters(camera, 0);
                 paramsA.Item1.z = paramsA.Item1.z * 0.2f;
                 paramsB.Item1.z = paramsB.Item1.z * 0.2f;
                 paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
@@ -338,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static PrecomputationCache  s_PrecomputationCache = new PrecomputationCache();
-        PrecomputationData          m_PrecomputedData;
+        static PrecomputationCache s_PrecomputationCache = new PrecomputationCache();
+        PrecomputationData m_PrecomputedData;
     }
 }

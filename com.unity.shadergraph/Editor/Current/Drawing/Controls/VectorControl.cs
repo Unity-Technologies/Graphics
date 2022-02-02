@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls

@@ -62,7 +62,7 @@ int VirtualTexturingLookup(
             dx = ddx(texCoord) * offsetPow2;
             dy = ddy(texCoord) * offsetPow2;
         }
-        // In low qauality we don't care about cache derivatives and will add the bias later
+        // In low quality we don't care about cache derivatives and will add the bias later
         else
         {
             dx = ddx(texCoord);

@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: Exposure
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
     m_Value: 0
@@ -119,19 +118,15 @@ MonoBehaviour:
   adaptationSpeedDarkToLight:
     m_OverrideState: 0
     m_Value: 3
-    min: 0.001
   adaptationSpeedLightToDark:
     m_OverrideState: 0
     m_Value: 1
-    min: 0.001
   weightTextureMask:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 0
     m_Value: {x: 40, y: 90}
-    min: 0
-    max: 100
   histogramUseCurveRemapping:
     m_OverrideState: 0
     m_Value: 0
@@ -156,7 +151,6 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
 --- !u!114 &-6901118705532630215
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -170,46 +164,33 @@ MonoBehaviour:
   m_Name: Tonemapping
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
     m_Value: 2
   toeStrength:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 1
   toeLength:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
-    max: 1
   shoulderStrength:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 1
   shoulderLength:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
   shoulderAngle:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 1
   gamma:
     m_OverrideState: 0
     m_Value: 1
-    min: 0.001
   lutTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   lutContribution:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
 --- !u!114 &-1982369472900735902
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -223,37 +204,27 @@ MonoBehaviour:
   m_Name: Bloom
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
     m_Value: 2
   threshold:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.15
-    min: 0
-    max: 1
   scatter:
     m_OverrideState: 1
     m_Value: 0.65
-    min: 0
-    max: 1
   tint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   dirtTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   dirtIntensity:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   anamorphic:
     m_OverrideState: 0
     m_Value: 1
@@ -279,12 +250,9 @@ MonoBehaviour:
   m_Name: CloudLayer
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 1
   opacity:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
@@ -294,20 +262,18 @@ MonoBehaviour:
   resolution:
     m_OverrideState: 0
     m_Value: 1024
-  shadowOpacity:
+  shadowMultiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   shadowTint:
     m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 0, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
-  shadowsResolution:
-    m_OverrideState: 1
-    m_Value: 512
+  shadowResolution:
+    m_OverrideState: 0
+    m_Value: 256
+  shadowSize:
+    m_OverrideState: 0
+    m_Value: 500
   layerA:
     cloudMap:
       m_OverrideState: 1
@@ -315,49 +281,41 @@ MonoBehaviour:
     opacityR:
       m_OverrideState: 0
       m_Value: 1
-      min: 0
-      max: 1
     opacityG:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 1
     opacityB:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 1
     opacityA:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 1
     rotation:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 360
     tint:
       m_OverrideState: 1
       m_Value: {r: 0.8396226, g: 0.66069466, b: 0.5029815, a: 1}
-      hdr: 0
-      showAlpha: 0
-      showEyeDropper: 1
     exposure:
       m_OverrideState: 1
       m_Value: 0
     distortionMode:
       m_OverrideState: 0
       m_Value: 0
-    scrollDirection:
+    scrollOrientation:
       m_OverrideState: 0
-      m_Value: 0
-      min: 0
-      max: 360
+      m_Value:
+        mode: 1
+        customValue: 0
+        additiveValue: 0
+        multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 0
-      m_Value: 1
-      min: 0
+      m_Value:
+        mode: 1
+        customValue: 100
+        additiveValue: 0
+        multiplyValue: 1
     flowmap:
       m_OverrideState: 0
       m_Value: {fileID: 0}
@@ -367,13 +325,9 @@ MonoBehaviour:
     steps:
       m_OverrideState: 1
       m_Value: 5
-      min: 1
-      max: 10
     thickness:
       m_OverrideState: 1
       m_Value: 0.36
-      min: 0
-      max: 1
     castShadows:
       m_OverrideState: 1
       m_Value: 1
@@ -384,49 +338,41 @@ MonoBehaviour:
     opacityR:
       m_OverrideState: 1
       m_Value: 0
-      min: 0
-      max: 1
     opacityG:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 1
     opacityB:
       m_OverrideState: 1
       m_Value: 1
-      min: 0
-      max: 1
     opacityA:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 1
     rotation:
       m_OverrideState: 0
       m_Value: 0
-      min: 0
-      max: 360
     tint:
       m_OverrideState: 0
       m_Value: {r: 1, g: 1, b: 1, a: 1}
-      hdr: 0
-      showAlpha: 0
-      showEyeDropper: 1
     exposure:
       m_OverrideState: 1
       m_Value: -3.5
     distortionMode:
       m_OverrideState: 0
       m_Value: 0
-    scrollDirection:
+    scrollOrientation:
       m_OverrideState: 0
-      m_Value: 0
-      min: 0
-      max: 360
+      m_Value:
+        mode: 1
+        customValue: 0
+        additiveValue: 0
+        multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 0
-      m_Value: 1
-      min: 0
+      m_Value:
+        mode: 1
+        customValue: 100
+        additiveValue: 0
+        multiplyValue: 1
     flowmap:
       m_OverrideState: 0
       m_Value: {fileID: 0}
@@ -436,13 +382,9 @@ MonoBehaviour:
     steps:
       m_OverrideState: 0
       m_Value: 4
-      min: 1
-      max: 10
     thickness:
       m_OverrideState: 0
       m_Value: 0.5
-      min: 0
-      max: 1
     castShadows:
       m_OverrideState: 0
       m_Value: 0
@@ -477,7 +419,6 @@ MonoBehaviour:
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 4
@@ -485,8 +426,14 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   skyAmbientMode:
+    m_OverrideState: 1
+    m_Value: 0
+  windOrientation:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 100
   fogType:
     m_OverrideState: 0
     m_Value: 0

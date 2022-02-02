@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalBlockFields.SurfaceDescription.MAOSAlpha,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }
     }
 }

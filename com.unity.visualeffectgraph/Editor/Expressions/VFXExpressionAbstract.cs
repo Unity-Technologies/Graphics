@@ -76,15 +76,15 @@ namespace UnityEditor.VFX
         [Flags]
         public enum Flags
         {
-            None =            0,
-            Value =           1 << 0, // Expression is a value, get/set can be called on it
-            Foldable =        1 << 1, // Expression is not a constant but can be folded anyway
-            Constant =        1 << 2, // Expression is a constant, it can be folded
-            InvalidOnGPU =    1 << 3, // Expression can be evaluated on GPU
-            InvalidOnCPU =    1 << 4, // Expression can be evaluated on CPU
+            None = 0,
+            Value = 1 << 0, // Expression is a value, get/set can be called on it
+            Foldable = 1 << 1, // Expression is not a constant but can be folded anyway
+            Constant = 1 << 2, // Expression is a constant, it can be folded
+            InvalidOnGPU = 1 << 3, // Expression can be evaluated on GPU
+            InvalidOnCPU = 1 << 4, // Expression can be evaluated on CPU
             InvalidConstant = 1 << 5, // Expression can be folded (for UI) but constant folding is forbidden
-            PerElement =      1 << 6, // Expression is per element
-            PerSpawn =        1 << 7, // Expression relies on event attribute or spawn context
+            PerElement = 1 << 6, // Expression is per element
+            PerSpawn = 1 << 7, // Expression relies on event attribute or spawn context
             NotCompilableOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 
@@ -227,6 +227,12 @@ namespace UnityEditor.VFX
                     return false;
             }
             return true;
+        }
+
+        public static bool IsTexture(Type type)
+        {
+            var valueType = GetVFXValueTypeFromType(type);
+            return IsTexture(valueType);
         }
 
         public static bool IsTexture(VFXValueType type)
@@ -378,7 +384,7 @@ namespace UnityEditor.VFX
             if (allconstructors.Length == 0)
                 return null; //Only static readonly expression allowed, constructors are private (attribute or builtIn)
 
-            var constructor =   allconstructors
+            var constructor = allconstructors
                 .OrderBy(o => o.GetParameters().Count())                 //promote simplest (or default) constructors
                 .First();
             var param = constructor.GetParameters().Select(o =>
@@ -440,8 +446,8 @@ namespace UnityEditor.VFX
             return Enumerable.Empty<VFXAttributeInfo>();
         }
 
-        public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
-        public bool IsAny(Flags flag)   { return (m_Flags & flag) != 0; }
+        public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
+        public bool IsAny(Flags flag) { return (m_Flags & flag) != 0; }
 
         public virtual VFXValueType valueType
         {
@@ -578,23 +584,33 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static VFXExpression operator*(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
-        public static VFXExpression operator/(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
-        public static VFXExpression operator+(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }
-        public static VFXExpression operator-(VFXExpression a, VFXExpression b) { return new VFXExpressionSubtract(a, b); }
+        internal static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
+        {
+            if (processed.Contains(entry))
+                return;
 
-        public static VFXExpression operator|(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseOr(a, b); }
-        public static VFXExpression operator&(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseAnd(a, b); }
-        public static VFXExpression operator|(VFXExpression a, uint b) { return new VFXExpressionBitwiseOr(a, VFXValue.Constant(b)); }
-        public static VFXExpression operator&(VFXExpression a, uint b) { return new VFXExpressionBitwiseAnd(a, VFXValue.Constant(b)); }
-        public static VFXExpression operator<<(VFXExpression a, int shift) { return new VFXExpressionBitwiseLeftShift(a, VFXValue.Constant((uint)shift)); }
-        public static VFXExpression operator>>(VFXExpression a, int shift) { return new VFXExpressionBitwiseRightShift(a, VFXValue.Constant((uint)shift)); }
+            foreach (var parent in entry.parents) CollectParentExpressionRecursively(parent, processed);
+
+            processed.Add(entry);
+        }
+
+        public static VFXExpression operator *(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
+        public static VFXExpression operator /(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
+        public static VFXExpression operator +(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }
+        public static VFXExpression operator -(VFXExpression a, VFXExpression b) { return new VFXExpressionSubtract(a, b); }
+
+        public static VFXExpression operator |(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseOr(a, b); }
+        public static VFXExpression operator &(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseAnd(a, b); }
+        public static VFXExpression operator |(VFXExpression a, uint b) { return new VFXExpressionBitwiseOr(a, VFXValue.Constant(b)); }
+        public static VFXExpression operator &(VFXExpression a, uint b) { return new VFXExpressionBitwiseAnd(a, VFXValue.Constant(b)); }
+        public static VFXExpression operator <<(VFXExpression a, int shift) { return new VFXExpressionBitwiseLeftShift(a, VFXValue.Constant((uint)shift)); }
+        public static VFXExpression operator >>(VFXExpression a, int shift) { return new VFXExpressionBitwiseRightShift(a, VFXValue.Constant((uint)shift)); }
 
         public VFXExpression this[int index] { get { return new VFXExpressionExtractComponent(this, index); } }
-        public VFXExpression x { get { return new VFXExpressionExtractComponent(this, 0); }  }
-        public VFXExpression y { get { return new VFXExpressionExtractComponent(this, 1); }  }
-        public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); }  }
-        public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); }  }
+        public VFXExpression x { get { return new VFXExpressionExtractComponent(this, 0); } }
+        public VFXExpression y { get { return new VFXExpressionExtractComponent(this, 1); } }
+        public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); } }
+        public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); } }
         public VFXExpression xxx { get { return new VFXExpressionCombine(x, x, x); } }
         public VFXExpression yyy { get { return new VFXExpressionCombine(y, y, y); } }
         public VFXExpression zzz { get { return new VFXExpressionCombine(z, z, z); } }

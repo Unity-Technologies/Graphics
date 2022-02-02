@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static AOVRequestData NewDefault() => new AOVRequestData
         {
             m_Settings = AOVRequest.NewDefault(),
-            m_RequestedAOVBuffers = new AOVBuffers[] {},
+            m_RequestedAOVBuffers = new AOVBuffers[] { },
             m_Callback = null
         };
 
@@ -335,6 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="gameObject">The game object of the light to be rendered.</param>
         /// <returns><c>true</c> when the light must be rendered, <c>false</c> when it should be ignored.</returns>
         public bool IsLightEnabled(GameObject gameObject) => m_LightFilter == null || m_LightFilter.Contains(gameObject);
+
+        internal bool hasLightFilter => m_LightFilter != null;
 
         internal int GetHash()
         {

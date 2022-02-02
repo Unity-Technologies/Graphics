@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             m_FunctionBody.RegisterCallback<FocusOutEvent>(s =>
             {
-                if (m_FunctionBody.value  == "")
+                if (m_FunctionBody.value == "")
                     m_FunctionBody.value = CustomFunctionNode.defaultFunctionBody;
 
                 if (m_FunctionBody.value != node.functionBody)

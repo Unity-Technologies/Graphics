@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
             // Make sure the array is not null or empty and that the first texture is a render-texture or a texture2D
-            if (textureArray == null || textureArray.Length == 0  && (!(textureArray[0] is RenderTexture) && !(textureArray[0] is Texture2D)))
+            if (textureArray == null || textureArray.Length == 0 && (!(textureArray[0] is RenderTexture) && !(textureArray[0] is Texture2D)))
             {
                 return false;
             }

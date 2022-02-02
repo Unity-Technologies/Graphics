@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     class ColorRGBAMaterialSlot : Vector4MaterialSlot
     {
-        public ColorRGBAMaterialSlot() {}
+        public ColorRGBAMaterialSlot() { }
 
         public ColorRGBAMaterialSlot(
             int slotId,

@@ -147,6 +147,11 @@ namespace Tests
                         Assert.That(encoding.GetString(buffer), Is.EqualTo(unityMagicString), $"{settingsFile} does not start with {unityMagicString}");
                     }
                 }
+                else if (settingsFilename.Equals("boot.config", StringComparison.OrdinalIgnoreCase))
+                {
+                    var fi1eInfo = new FileInfo(settingsFile);
+                    Assert.That(fi1eInfo.Length, Is.EqualTo(0), "Boot.config file must be empty");
+                }
                 else
                 {
                     throw new Exception($"Unexpected file found {settingsFile}");

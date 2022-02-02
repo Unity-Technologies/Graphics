@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Preprocess for rendering the sky. Called before the DepthPrePass operations
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
-        public virtual void PreRenderSky(BuiltinSkyParameters builtinParams) {}
+        public virtual void PreRenderSky(BuiltinSkyParameters builtinParams) { }
 
 
         /// <summary>

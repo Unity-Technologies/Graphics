@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override string documentationURL => Documentation.GetPageLink("SGNode-Exposure");
 
         [SerializeField]
-        ExposureType        m_ExposureType;
+        ExposureType m_ExposureType;
         [EnumControl("Type")]
         public ExposureType exposureType
         {
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new ColorRGBMaterialSlot(kExposureOutputSlotId, kExposureOutputSlotName, kExposureOutputSlotName , SlotType.Output, Color.black, ColorMode.Default));
+            AddSlot(new ColorRGBMaterialSlot(kExposureOutputSlotId, kExposureOutputSlotName, kExposureOutputSlotName, SlotType.Output, Color.black, ColorMode.Default));
 
             RemoveSlotsNameNotMatching(new[]
             {

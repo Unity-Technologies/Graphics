@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
         int id;
     }
 
-    #pragma warning disable 0659
+#pragma warning disable 0659
     class VFXExpressionRandom : VFXExpression
     {
         public VFXExpressionRandom(bool perElement, RandId id) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
@@ -82,10 +82,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFixedRandom : VFXExpression
     {
-        public VFXExpressionFixedRandom() : this(VFXValue<uint>.Default) {}
-        public VFXExpressionFixedRandom(VFXExpression hash) : base(VFXExpression.Flags.None, hash) {}
+        public VFXExpressionFixedRandom() : this(VFXValue<uint>.Default) { }
+        public VFXExpressionFixedRandom(VFXExpression hash) : base(VFXExpression.Flags.None, hash) { }
 
-        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateFixedRandom; }}
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateFixedRandom; } }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -104,5 +104,5 @@ namespace UnityEditor.VFX
             return string.Format("FixedRand({0})", parents[0]);
         }
     }
-    #pragma warning restore 0659
+#pragma warning restore 0659
 }

@@ -189,6 +189,21 @@ namespace UnityEngine.Rendering.HighDefinition
         MeteringWeighted,
     }
 
+    /// <summary>
+    /// HDR debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum HDRDebugMode
+    {
+        /// <summary>No hdr debug.</summary>
+        None,
+        /// <summary>Gamut view - show the gamuts and what part of the gamut are represented in the image.</summary>
+        GamutView,
+        /// <summary>Gamut clip - show what part of the scene are covered by the Rec709 gamut and what parts are in the Rec2020 gamut.</summary>
+        GamutClip,
+        /// <summary>Show in colors between yellow and red any value that is above the paper white value. Luminance otherwise.</summary>
+        ValuesAbovePaperWhite,
+    }
 
     /// <summary>
     /// Probe Volume Debug Modes.
@@ -248,109 +263,113 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Current Light Filtering.</summary>
         public DebugLightFilterMode debugLightFilterMode = DebugLightFilterMode.None;
         /// <summary>Current Full Screen Lighting debug mode.</summary>
-        public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
+        public DebugLightingMode debugLightingMode = DebugLightingMode.None;
         /// <summary>True if light layers visualization is enabled.</summary>
-        public bool                 debugLightLayers = false;
+        public bool debugLightLayers = false;
         /// <summary>Current Light Layers Filtering mode.</summary>
-        public DebugLightLayersMask  debugLightLayersFilterMask = (DebugLightLayersMask)(-1); // Select Everything by default
+        public DebugLightLayersMask debugLightLayersFilterMask = (DebugLightLayersMask)(-1); // Select Everything by default
         /// <summary>True if light layers visualization uses light layers of the selected light.</summary>
-        public bool                 debugSelectionLightLayers = false;
+        public bool debugSelectionLightLayers = false;
         /// <summary>True if light layers visualization uses shadow layers of the selected light.</summary>
-        public bool                 debugSelectionShadowLayers = false;
+        public bool debugSelectionShadowLayers = false;
         /// <summary>Rendering Layers Debug Colors.</summary>
-        public Vector4[]            debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
+        public Vector4[] debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
         /// <summary>Current Shadow Maps debug mode.</summary>
-        public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
+        public ShadowMapDebugMode shadowDebugMode = ShadowMapDebugMode.None;
         /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
-        public bool                 shadowDebugUseSelection = false;
+        public bool shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
-        public uint                 shadowMapIndex = 0;
+        public uint shadowMapIndex = 0;
         /// <summary>Shadow Map debug display visual remapping minimum value.</summary>
-        public float                shadowMinValue = 0.0f;
+        public float shadowMinValue = 0.0f;
         /// <summary>Shadow Map debug display visual remapping maximum value.</summary>
-        public float                shadowMaxValue = 1.0f;
+        public float shadowMaxValue = 1.0f;
         /// <summary>Use this value to force a rescale of all shadow atlases.</summary>
-        public float                shadowResolutionScaleFactor = 1.0f;
+        public float shadowResolutionScaleFactor = 1.0f;
         /// <summary>Clear shadow atlases each frame.</summary>
-        public bool                 clearShadowAtlas = false;
+        public bool clearShadowAtlas = false;
 
         /// <summary>Override smoothness of the whole scene for lighting debug.</summary>
-        public bool                 overrideSmoothness = false;
+        public bool overrideSmoothness = false;
         /// <summary>Value used when overriding smoothness.</summary>
-        public float                overrideSmoothnessValue = 0.5f;
+        public float overrideSmoothnessValue = 0.5f;
         /// <summary>Override albedo of the whole scene for lighting debug.</summary>
-        public bool                 overrideAlbedo = false;
+        public bool overrideAlbedo = false;
         /// <summary>Color used when overriding albedo.</summary>
-        public Color                overrideAlbedoValue = new Color(0.5f, 0.5f, 0.5f);
+        public Color overrideAlbedoValue = new Color(0.5f, 0.5f, 0.5f);
         /// <summary>Override normal of the whole scene with object normals for lighting debug.</summary>
-        public bool                 overrideNormal = false;
+        public bool overrideNormal = false;
         /// <summary>Override ambient occlusion of the whole scene for lighting debug.</summary>
-        public bool                 overrideAmbientOcclusion = false;
+        public bool overrideAmbientOcclusion = false;
         /// <summary>Value used when overriding ambient occlusion.</summary>
-        public float                overrideAmbientOcclusionValue = 1.0f;
+        public float overrideAmbientOcclusionValue = 1.0f;
         /// <summary>Override specular color of the whole scene for lighting debug.</summary>
-        public bool                 overrideSpecularColor = false;
+        public bool overrideSpecularColor = false;
         /// <summary>Color used when overriding specular color.</summary>
-        public Color                overrideSpecularColorValue = new Color(1.0f, 1.0f, 1.0f);
+        public Color overrideSpecularColorValue = new Color(1.0f, 1.0f, 1.0f);
         /// <summary>Override emissive color of the whole scene for lighting debug.</summary>
-        public bool                 overrideEmissiveColor = false;
+        public bool overrideEmissiveColor = false;
         /// <summary>Color used when overriding emissive color.</summary>
-        public Color                overrideEmissiveColorValue = new Color(1.0f, 1.0f, 1.0f);
+        public Color overrideEmissiveColorValue = new Color(1.0f, 1.0f, 1.0f);
 
         /// <summary>Display sky reflection cubemap as an overlay.</summary>
-        public bool                 displaySkyReflection = false;
+        public bool displaySkyReflection = false;
         /// <summary>Mip map of the displayed sky reflection.</summary>
-        public float                skyReflectionMipmap = 0.0f;
+        public float skyReflectionMipmap = 0.0f;
 
         /// <summary>Display lights bounding volumes as a transparent overlay in the scene.</summary>
-        public bool                 displayLightVolumes = false;
+        public bool displayLightVolumes = false;
         /// <summary>Type of light bounding volumes to display.</summary>
-        public LightVolumeDebug     lightVolumeDebugByCategory = LightVolumeDebug.Gradient;
+        public LightVolumeDebug lightVolumeDebugByCategory = LightVolumeDebug.Gradient;
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
-        public uint                 maxDebugLightCount = 24;
+        public uint maxDebugLightCount = 24;
 
         /// <summary>Exposure debug mode.</summary>
-        public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
+        public ExposureDebugMode exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
-        public float                debugExposure = 0.0f;
+        public float debugExposure = 0.0f;
         /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Global Settings.</summary>
         [Obsolete("Please use the lens attenuation mode in HDRP Global Settings", true)]
-        public float                debugLensAttenuation = 0.65f;
+        public float debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
-        public bool                 showTonemapCurveAlongHistogramView = true;
+        public bool showTonemapCurveAlongHistogramView = true;
         /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
-        public bool                 centerHistogramAroundMiddleGrey = false;
+        public bool centerHistogramAroundMiddleGrey = false;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
-        public bool                 displayFinalImageHistogramAsRGB = false;
+        public bool displayFinalImageHistogramAsRGB = false;
         /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
-        public bool                 displayMaskOnly = false;
+        public bool displayMaskOnly = false;
+
+        /// <summary>HDR debug mode.</summary>
+        public HDRDebugMode hdrDebugMode = HDRDebugMode.None;
+
 
         /// <summary>Display the light cookies atlas.</summary>
-        public bool                 displayCookieAtlas = false;
+        public bool displayCookieAtlas = false;
         /// <summary>Display the light cookies cubemap array.</summary>
-        public bool                 displayCookieCubeArray = false;
+        public bool displayCookieCubeArray = false;
         /// <summary>Index of the light cubemap to display.</summary>
-        public uint                 cubeArraySliceIndex = 0;
+        public uint cubeArraySliceIndex = 0;
         /// <summary>Mip level of the cookie cubemap display.</summary>
-        public uint                 cookieAtlasMipLevel = 0;
+        public uint cookieAtlasMipLevel = 0;
         /// <summary>Clear cookie atlas each frame.</summary>
-        public bool                 clearCookieAtlas = false;
+        public bool clearCookieAtlas = false;
 
         /// <summary>Display the planar reflection atlas.</summary>
-        public bool                 displayPlanarReflectionProbeAtlas = false;
+        public bool displayPlanarReflectionProbeAtlas = false;
         /// <summary>Mip level of the planar reflection atlas display.</summary>
-        public uint                 planarReflectionProbeMipLevel = 0;
+        public uint planarReflectionProbeMipLevel = 0;
         /// <summary>Clear planar reflection atlas each frame.</summary>
-        public bool                 clearPlanarReflectionProbeAtlas = false;
+        public bool clearPlanarReflectionProbeAtlas = false;
 
         /// <summary>True if punctual lights should be displayed in the scene.</summary>
-        public bool                 showPunctualLight = true;
+        public bool showPunctualLight = true;
         /// <summary>True if directional lights should be displayed in the scene.</summary>
-        public bool                 showDirectionalLight = true;
+        public bool showDirectionalLight = true;
         /// <summary>True if area lights should be displayed in the scene.</summary>
-        public bool                 showAreaLight = true;
+        public bool showAreaLight = true;
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
-        public bool                 showReflectionProbe = true;
+        public bool showReflectionProbe = true;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
         public bool displayLocalVolumetricFogAtlas = false;

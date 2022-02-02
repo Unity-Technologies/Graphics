@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
-        Volume                  m_Volume;
+        Volume m_Volume;
 
-        DiffusionProfileSettingsListUI      listUI = new DiffusionProfileSettingsListUI();
+        DiffusionProfileSettingsListUI listUI = new DiffusionProfileSettingsListUI();
 
         static GUIContent m_DiffusionProfileLabel = new GUIContent("Diffusion Profile List", "Diffusion Profile List from current HDRenderPipeline Asset");
 
@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
+            rect.y += 2;
             EditorGUI.BeginDisabledGroup(!m_DiffusionProfiles.overrideState.boolValue);
             EditorGUI.ObjectField(rect, element, new GUIContent("Profile " + index));
             EditorGUI.EndDisabledGroup();

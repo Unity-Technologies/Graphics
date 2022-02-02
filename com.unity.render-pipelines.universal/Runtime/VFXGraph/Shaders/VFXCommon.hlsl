@@ -75,21 +75,49 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
 
 float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 {
-#if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
-    return posWS - _WorldSpaceCameraPos.xyz;
-#else
-    return posWS;
+#if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
+#error VFX Camera Relative rendering isn't supported in URP.
 #endif
+    return posWS;
 }
+
+//Compatibility functions for the common ShaderGraph integration
+float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+{
+    return modelMatrix;
+}
+float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+{
+    return inverseModelMatrix;
+}
+float4x4 GetRawUnityObjectToWorld()
+{
+    return unity_ObjectToWorld;
+}
+float4x4 GetRawUnityWorldToObject()
+{
+    return unity_WorldToObject;
+}
+//End of compatibility functions
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return GetRawUnityObjectToWorld();
+#else
     return GetObjectToWorldMatrix();
+#endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return GetRawUnityWorldToObject();
+#else
     return GetWorldToObjectMatrix();
+#endif
 }
 
 float3x3 VFXGetWorldToViewRotMatrix()
@@ -116,12 +144,13 @@ float3 GetWorldStereoOffset()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LoadSceneDepth(uint2(posSS.xy));
-}
+    float2 screenUV = GetNormalizedScreenSpaceUV(posSS.xy);
 
-float VFXLinearEyeDepth(float depth)
-{
-    return LinearEyeDepth(depth, _ZBufferParams);
+    // In URP, the depth texture is optional and could be 4x4 white texture, Load isn't appropriate in that case.
+    //float depth = LoadSceneDepth(screenUV * _ScreenParams.xy);
+    float depth = SampleSceneDepth(screenUV);
+
+    return depth;
 }
 
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)

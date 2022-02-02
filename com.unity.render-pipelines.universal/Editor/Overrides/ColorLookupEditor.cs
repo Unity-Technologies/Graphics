@@ -30,9 +30,9 @@ namespace UnityEditor.Rendering.Universal
             if (asset != null)
             {
                 if (asset.supportsHDR && asset.colorGradingMode == ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox("Color Grading Mode in the Universal Render Pipeline Settings is set to HDR. As a result, this LUT will be applied after the internal color grading and tonemapping have been applied.", MessageType.Info);
+                    EditorGUILayout.HelpBox("The Grading Mode in the current Universal Render Pipeline Asset is set to High Dynamic Range (HDR). As a result, this Lookup Table (LUT) will be applied after the internal color grading and tonemapping have been applied.", MessageType.Info);
                 else
-                    EditorGUILayout.HelpBox("Color Grading Mode in the Universal Render Pipeline Settings is set to LDR. As a result, this LUT will be applied after tonemapping and before the internal color grading has been applied.", MessageType.Info);
+                    EditorGUILayout.HelpBox("The Grading Mode in the current Universal Render Pipeline Asset is set to Low Dynamic Range (LDR). As a result, this Lookup Table (LUT) will be applied after tonemapping and before the internal color grading has been applied.", MessageType.Info);
             }
         }
     }

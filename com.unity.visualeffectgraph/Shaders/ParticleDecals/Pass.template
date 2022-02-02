@@ -1,6 +1,6 @@
 #pragma target 4.5
 ${VFXPassForwardAdditionalPragma}
-	
+
 struct ps_input
 {
 	float4 pos : SV_POSITION;
@@ -26,17 +26,17 @@ struct ps_input
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD7;
 	#endif
 	#endif
-	
+
 	nointerpolation float4 viewToDecal0 : TEXCOORD2;
 	nointerpolation float4 viewToDecal1 : TEXCOORD3;
 	nointerpolation float4 viewToDecal2 : TEXCOORD4;
-	
+
 	#if VFX_NEEDS_POSWS_INTERPOLATOR
 	float3 posWS : TEXCOORD5;
 	#endif
-	
+
 	UNITY_VERTEX_OUTPUT_STEREO
-	
+
 	#if USE_UV_SCALE_BIAS
 	nointerpolation float4 scaleBias : TEXCOORD6;
 	#endif
@@ -62,7 +62,7 @@ struct ps_output
 #endif
 #endif
 #if USE_FLIPBOOK_MOTIONVECTORS
-#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #endif
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
@@ -74,7 +74,7 @@ struct ps_output
 #define VFX_VARYING_UV_SCALE scaleBias.xy
 #define VFX_VARYING_UV_BIAS scaleBias.zw
 #endif
-				
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 float4x4 viewToDecal = GetVFXToElementMatrix(
 	attributes.axisX,
@@ -84,7 +84,7 @@ float4x4 viewToDecal = GetVFXToElementMatrix(
 	float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 	size3,
 	attributes.position);
-	
+
 #if VFX_LOCAL_SPACE
 viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
 #endif
@@ -93,40 +93,41 @@ o.viewToDecal0 = viewToDecal[0];
 o.viewToDecal1 = viewToDecal[1];
 o.viewToDecal2 = viewToDecal[2];
 ${VFXEnd}
-			
+
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
 #endif
-	
+
 #pragma fragment frag
 ps_output frag(ps_input i)
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
 	VFXTransformPSInputs(i);
-	
+
 	float3 clipPos;
 	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
 	clipPos.z = VFXSampleDepth(i.pos);
-	clipPos *= VFXLinearEyeDepth(clipPos.z);
-	
-	float4 worldPos;
-	worldPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
-	worldPos.y = clipPos.y / -UNITY_MATRIX_P[1][1];
-	worldPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
-	worldPos.w = 1.0f;
-	
+	if (_ProjectionParams.x < 0)
+        clipPos.y = -clipPos.y;
+
+    float4 hpositionWS = mul(UNITY_MATRIX_I_VP, float4(clipPos,1.0f));
+    float4 worldPos = float4(hpositionWS.xyz / hpositionWS.w, 1.0f);
+
 	float4x4 viewToElement;
 	viewToElement[0] = i.viewToDecal0;
 	viewToElement[1] = i.viewToDecal1;
 	viewToElement[2] = i.viewToDecal2;
 	viewToElement[3] = float4(0,0,0,1);
-	
-	float3 elementPos = mul(viewToElement,worldPos).xyz * 2.0f;
-			
+
+    float4x4 worldToElement = mul(viewToElement, UNITY_MATRIX_V);
+    worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
+
+    float3 elementPos = mul(worldToElement, worldPos).xyz * 2.0f;
+
 	const float bias = 0.0f;
 	clip(1.0f - abs(elementPos) + bias);
 
@@ -138,7 +139,7 @@ ps_output frag(ps_input i)
 	o.color = VFXApplyPreExposure(o.color, i);
 	o.color = VFXApplyFog(o.color,i);
 	VFXClipFragmentColor(o.color.a,i);
-	
+
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 	o.color = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #else

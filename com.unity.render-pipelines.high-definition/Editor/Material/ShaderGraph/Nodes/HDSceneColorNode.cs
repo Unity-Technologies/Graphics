@@ -12,20 +12,21 @@ namespace UnityEditor.Rendering.HighDefinition
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "HD Scene Color")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDSceneColorNode")]
-    class HDSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
+    class HDSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         public HDSceneColorNode()
         {
             name = "HD Scene Color";
+            synonyms = new string[] { "screen buffer" };
             UpdateNodeAfterDeserialization();
         }
 
         public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Color");
 
         [SerializeField]
-        bool                m_Exposure;
+        bool m_Exposure;
         [ToggleControl]
-        public ToggleData   exposure
+        public ToggleData exposure
         {
             get => new ToggleData(m_Exposure);
             set
@@ -49,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
             AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName , SlotType.Output, Color.black, ColorMode.HDR));
+            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Color.black, ColorMode.HDR));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -111,9 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
-        {
-            return true;
-        }
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresScreenPosition(stageCapability) ?? false;
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresNDCPosition(stageCapability) ?? false;
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresPixelPosition(stageCapability) ?? false;
+
     }
 }

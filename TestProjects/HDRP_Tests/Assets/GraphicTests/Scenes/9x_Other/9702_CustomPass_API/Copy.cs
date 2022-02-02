@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 class Copy : CustomPass
 {
-    RTHandle    halfResTarget;
+    RTHandle halfResTarget;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {

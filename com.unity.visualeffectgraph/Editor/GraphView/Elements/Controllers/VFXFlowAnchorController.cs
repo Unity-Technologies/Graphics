@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual string title
         {
-            get {return ""; }
+            get { return ""; }
         }
 
         static private IEnumerable<VFXContext> GetFlowAncestor(VFXContext from)

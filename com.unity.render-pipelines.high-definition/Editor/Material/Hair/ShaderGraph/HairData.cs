@@ -8,14 +8,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            KajiyaKay,
-            Marschner
+            Approximate,
+            Physical
         }
 
         public enum ScatteringMode
         {
             Approximate,
-            DensityVolume
+            Physical
+        }
+
+        public enum ColorParameterization
+        {
+            BaseColor,
+            Melanin,
+            Absorption
+        }
+
+        public enum GeometryType
+        {
+            Cards,
+            Strands
         }
 
         [SerializeField]
@@ -36,11 +49,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_UseLightFacingNormal = false;
-        public bool useLightFacingNormal
+        ColorParameterization m_ColorParameterization = ColorParameterization.BaseColor;
+
+        public ColorParameterization colorParameterization
         {
-            get => m_UseLightFacingNormal;
-            set => m_UseLightFacingNormal = value;
+            get => m_ColorParameterization;
+            set => m_ColorParameterization = value;
+        }
+
+        [SerializeField]
+        GeometryType m_GeometryType;
+
+        public GeometryType geometryType
+        {
+            get => m_GeometryType;
+            set => m_GeometryType = value;
         }
     }
 }

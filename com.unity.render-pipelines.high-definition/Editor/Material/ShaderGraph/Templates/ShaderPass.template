@@ -24,12 +24,6 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
-    // Early Instancing Defines
-    $splice(DotsInstancingOptions)
-
-    // Injected Instanced Properties (must be included before UnityInstancing.hlsl)
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // For custom interpolators to inject a substruct definition before FragInputs definition,
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
@@ -58,39 +52,43 @@ Pass
     // Defines
 
     // Attribute
-    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
-    $AttributesMesh.vertexID:           #define ATTRIBUTES_NEED_VERTEXID
-    $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
-    $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:        #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
-    $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
-    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
+    $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+    $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
-    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
 
-    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
-    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+    $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
+
+    $VertexDescription.CustomVelocity: #define _ADD_CUSTOM_VELOCITY
 
     $splice(GraphDefines)
 
-	$features.graphTessellation: #ifdef TESSELLATION_ON
-	$features.graphTessellation: // World and normal are always available
-	$features.graphTessellation: $VaryingsMeshToDS.tangentWS:        #define VARYINGS_DS_NEED_TANGENT
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:        #define VARYINGS_DS_NEED_TEXCOORD0
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:        #define VARYINGS_DS_NEED_TEXCOORD1
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:        #define VARYINGS_DS_NEED_TEXCOORD2
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:        #define VARYINGS_DS_NEED_TEXCOORD3
-    $features.graphTessellation: $VaryingsMeshToDS.color:            #define VARYINGS_DS_NEED_COLOR
+    $features.graphTessellation: #ifdef TESSELLATION_ON
+    $features.graphTessellation: // World and normal are always available
+    $features.graphTessellation: $VaryingsMeshToDS.positionPredisplacementRWS:          #define VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT
+    $features.graphTessellation: $VaryingsMeshToDS.tangentWS:                           #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:                           #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:                           #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:                           #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:                           #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:                               #define VARYINGS_DS_NEED_COLOR
 	$features.graphTessellation: #endif
 
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
@@ -196,10 +194,15 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-
-	$features.graphVFX:     $include("VFX/Config.template.hlsl")
+    #ifdef HAVE_VFX_MODIFICATION
+    #define VFX_SRP_ATTRIBUTES AttributesMesh
+    #define VaryingsMeshType VaryingsMeshToPS
+    #define VFX_SRP_VARYINGS VaryingsMeshType
+    #define VFX_SRP_SURFACE_INPUTS FragInputs
+    #endif
+    $features.graphVFX:     $include("VFXConfig.template.hlsl")
     $features.graphVertex:  $include("Vertex.template.hlsl")
-	$features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphTessellation:  $include("Tessellation.template.hlsl")
     $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
@@ -277,7 +280,7 @@ Pass
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
-        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
         #if defined(DEBUG_DISPLAY)
@@ -298,15 +301,14 @@ Pass
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-		// If we want to force forward emissive and we have GBuffer pass, don't do anything
-		#if !(SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE))
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
-		#endif
 
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
         // This is a limitation of the current MRT approach.
+        #ifdef UNITY_VIRTUAL_TEXTURING
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+        #endif
 
         #if _DEPTHOFFSET_ON
         builtinData.depthOffset = surfaceDescription.DepthOffset;

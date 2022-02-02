@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
                     GetRoughnessAndAngle(roughnessIndex, thetaIndex, tableResolution, parametrization, out alpha, out cosTheta);
 
                     // Export the matrix as a list of 3x3 doubles, columns first
-                    double  factor = 1.0 / ltcData.invM.m22;
+                    double factor = 1.0 / ltcData.invM.m22;
 
                     string matrixString = (factor * ltcData.invM.m00) + ", " + (factor * ltcData.invM.m10) + ", " + (factor * ltcData.invM.m20) + ", ";
                     matrixString += (factor * ltcData.invM.m01) + ", " + (factor * ltcData.invM.m11) + ", " + (factor * ltcData.invM.m21) + ", ";

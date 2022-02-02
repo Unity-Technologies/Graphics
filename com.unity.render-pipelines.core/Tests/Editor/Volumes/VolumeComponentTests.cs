@@ -10,12 +10,14 @@ namespace UnityEngine.Rendering.Tests
     public class VolumeComponentEditorTests
     {
         [HideInInspector]
+        [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(RenderPipeline))]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
         [HideInInspector]
+        [VolumeComponentMenuForRenderPipeline("Tests/All Additional", typeof(RenderPipeline))]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -26,6 +28,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [HideInInspector]
+        [VolumeComponentMenuForRenderPipeline("Tests/Mixed Additional", typeof(RenderPipeline))]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -159,5 +162,23 @@ namespace UnityEngine.Rendering.Tests
         }
 
         #endregion
+
+        [Test]
+        public void TestSupportedOnAvoidedIfHideInInspector()
+        {
+            Type[] types = new[]
+            {
+                typeof(VolumeComponentNoAdditionalAttributes),
+                typeof(VolumeComponentAllAdditionalAttributes),
+                typeof(VolumeComponentMixedAdditionalAttributes)
+            };
+
+            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEditor.Rendering.VolumeComponentProvider");
+            var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
+                types, typeof(RenderPipeline)) as List<(string, Type)>;
+
+            Assert.NotNull(volumeComponents);
+            Assert.False(volumeComponents.Any());
+        }
     }
 }

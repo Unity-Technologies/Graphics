@@ -20,13 +20,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Hides all the fields.</summary>
-            None        = 0,
+            None = 0,
             /// <summary>Displays the distortion fields.</summary>
-            Distortion  = 1 << 0,
+            Distortion = 1 << 0,
             /// <summary>Displays the refraction fields.</summary>
-            Refraction  = 1 << 1,
+            Refraction = 1 << 1,
             /// <summary>Displays all the fields.</summary>
-            All         = ~0
+            All = ~0
         }
 
         internal class Styles
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Transparency Inputs");
         }
 
-        Features            m_Features;
+        Features m_Features;
         MaterialUIBlockList m_TransparencyBlocks;
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Loads the material properties for the block.
         /// </summary>
-        public override void LoadMaterialProperties() {}
+        public override void LoadMaterialProperties() { }
 
         /// <summary>
         /// If the section should be shown

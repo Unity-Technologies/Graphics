@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             void SetRequirements(ShaderGraphRequirements value);
 
-            ShaderGraphRequirements requirements { get; set;  }
+            ShaderGraphRequirements requirements { get; set; }
         }
 
         public interface IRequirementsSet : KeywordDependentCollection.ISet<IRequirements>
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Internal
             private ShaderGraphRequirementsPerKeyword m_Source;
 
             public int instanceCount => 1;
-            public int permutationIndex => - 1;
+            public int permutationIndex => -1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
             public IEnumerable<IRequirements> instances => Enumerable.Repeat<IRequirements>(this, 1);
 

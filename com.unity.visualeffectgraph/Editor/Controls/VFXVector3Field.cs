@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
+
 
 using Action = System.Action;
 
-using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEngine.UIElements.FloatField, float>;
 namespace UnityEditor.VFX.UI
 {
     abstract class VFXVectorNField<T> : VFXControl<T>
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
         VisualElement[] m_FieldParents;
         VisualElement[] m_TooltipHolders;
 
-        protected abstract int componentCount {get; }
+        protected abstract int componentCount { get; }
         public virtual string GetComponentName(int i)
         {
             switch (i)
@@ -79,10 +79,10 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].onValueDragFinished = t => ValueDragFinished();
                 m_Fields[i].onValueDragStarted = t => ValueDragStarted();
 
-                m_FieldParents[i] = new VisualElement {name = "FieldParent" };
+                m_FieldParents[i] = new VisualElement { name = "FieldParent" };
                 m_FieldParents[i].Add(m_Fields[i]);
                 m_FieldParents[i].style.flexGrow = 1;
-                m_TooltipHolders[i] = new VisualElement {name = "TooltipHolder" };
+                m_TooltipHolders[i] = new VisualElement { name = "TooltipHolder" };
                 m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
                 m_TooltipHolders[i].style.top = 0;
                 m_TooltipHolders[i].style.left = 0;
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector3Field : VFXVectorNField<Vector3>
     {
-        protected override  int componentCount {get {return 3; }}
+        protected override int componentCount { get { return 3; } }
         protected override void SetValueComponent(ref Vector3 value, int i, float componentValue)
         {
             switch (i)

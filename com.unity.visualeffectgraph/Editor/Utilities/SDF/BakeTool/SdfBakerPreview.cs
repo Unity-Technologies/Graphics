@@ -216,7 +216,7 @@ namespace UnityEditor.VFX.SDF
             int submeshes = mesh.subMeshCount;
             var tintSubmeshes = false;
             var colorPropID = 0;
-            if (submeshes > 1  && customProperties == null && meshSubset == -1)
+            if (submeshes > 1 && customProperties == null && meshSubset == -1)
             {
                 tintSubmeshes = true;
                 customProperties = new MaterialPropertyBlock();

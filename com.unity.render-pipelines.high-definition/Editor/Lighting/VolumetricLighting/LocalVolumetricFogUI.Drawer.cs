@@ -169,10 +169,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     float distanceFadeStart = Mathf.Max(0, serialized.distanceFadeStart.floatValue);
-                    float distanceFadeEnd   = Mathf.Max(distanceFadeStart, serialized.distanceFadeEnd.floatValue);
+                    float distanceFadeEnd = Mathf.Max(distanceFadeStart, serialized.distanceFadeEnd.floatValue);
 
                     serialized.distanceFadeStart.floatValue = distanceFadeStart;
-                    serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
+                    serialized.distanceFadeEnd.floatValue = distanceFadeEnd;
                 }
             }
         }

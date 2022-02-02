@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
-        public override int priority => - 9000;
+        public override int priority => -9000;
         public override string name => "Rendering Settings";
 
         public override string info =>
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 m_SettingsItems.Add(projectSettings);
 
                 var setting = QualitySettings.GetRenderPipelineAssetAt(id);
-                var item = new ConverterItemDescriptor {name = $"Quality Level {id}: {levelName}"};
+                var item = new ConverterItemDescriptor { name = $"Quality Level {id}: {levelName}" };
 
                 if (setting != null)
                 {
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // Shadows
             asset.shadowDistance = settings.ShadowDistance;
-            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 0;
+            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 1;
             asset.cascade2Split = settings.CascadeSplit2;
             asset.cascade4Split = settings.CascadeSplit4;
             asset.supportsSoftShadows = settings.Shadows == ShadowQuality.All;
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             public RenderingPath RenderingPath;
         }
 
-        private class SettingsItem {}
+        private class SettingsItem { }
 
         private class RenderSettingItem : SettingsItem
         {

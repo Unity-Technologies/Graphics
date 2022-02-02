@@ -50,7 +50,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 material.SetFloat(Property.ZTest(), (float)target.zTestMode);
             }
 
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
             material.SetFloat(Property.QueueOffset(), 0.0f);
+            material.SetFloat(Property.QueueControl(), (float)BuiltInBaseShaderGUI.QueueControl.Auto);
 
             // call the full unlit material setup function
             BuiltInUnlitGUI.UpdateMaterial(material);
@@ -84,7 +88,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
 
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
             collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
+            collector.AddFloatProperty(Property.QueueControl(), -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -185,7 +193,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #region Includes
         static class UnlitIncludes
         {
-            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
+            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {

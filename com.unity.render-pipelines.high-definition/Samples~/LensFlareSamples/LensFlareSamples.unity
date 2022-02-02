@@ -568,6 +568,7 @@ MonoBehaviour:
     m_Iso: 200
     m_ShutterSpeed: 0.005
     m_Aperture: 16
+    m_FocusDistance: 10
     m_BladeCount: 5
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -789,6 +790,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7b784bb991e5254499f0339a1da9960c, type: 2}
   - {fileID: 11400000, guid: b586a74942fa7fb4585fc03acb473887, type: 2}
   - {fileID: 11400000, guid: 22ae2bca5df960246a3108606371c4bd, type: 2}
+  - {fileID: 11400000, guid: cbfa29c94a55abb4a9e7f95e23279388, type: 2}
   - {fileID: 11400000, guid: 632ff411dbbf5d54593d6e684940a2bf, type: 2}
   - {fileID: 11400000, guid: 3d06c7e513973914d98d12f2f668741a, type: 2}
   - {fileID: 11400000, guid: 87b3236eee3798646863f18655766828, type: 2}
@@ -1019,11 +1021,11 @@ RectTransform:
   m_Father: {fileID: 912585141}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 20, y: -1060}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 20, y: 20}
   m_SizeDelta: {x: 216.33, y: 0}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &1045076802
 MonoBehaviour:
   m_ObjectHideFlags: 0

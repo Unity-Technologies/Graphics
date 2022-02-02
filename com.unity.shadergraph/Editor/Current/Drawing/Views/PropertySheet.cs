@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertySheet"));
             m_ContentContainer = new VisualElement { name = "content" };
             m_HeaderContainer = new VisualElement { name = "header" };
-            m_WarningContainer = new VisualElement {name = "error"};
+            m_WarningContainer = new VisualElement { name = "error" };
             m_WarningContainer.Add(new Label(""));
             if (header != null)
                 m_HeaderContainer.Add(header);

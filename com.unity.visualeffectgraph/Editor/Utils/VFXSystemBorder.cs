@@ -11,7 +11,7 @@ using UnityObject = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
-    {}
+    { }
 
 
     class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
@@ -128,8 +128,21 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool IsDifferenceTooSmall(float x, float y)
+        {
+            return Mathf.Abs(x - y) < 1f;
+        }
+
         void OnTitleRelayout(GeometryChangedEvent e)
         {
+            if (IsDifferenceTooSmall(e.oldRect.x, e.newRect.x) &&
+                IsDifferenceTooSmall(e.oldRect.y, e.newRect.y) &&
+                IsDifferenceTooSmall(e.oldRect.width, e.newRect.width) &&
+                IsDifferenceTooSmall(e.oldRect.height, e.newRect.height))
+            {
+                return;
+            }
+
             UpdateTitleFieldRect();
             RecomputeBounds();
         }
@@ -137,7 +150,6 @@ namespace UnityEditor.VFX.UI
         void UpdateTitleFieldRect()
         {
             Rect rect = m_Title.layout;
-
             m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
 
@@ -191,11 +203,12 @@ namespace UnityEditor.VFX.UI
         {
             if (m_WaitingRecompute)
                 return;
+
             visible = true;
             //title width should be at least as wide as a context to be valid.
             float titleWidth = m_Title.layout.width;
-            bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;
-            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || invalidTitleWidth;
+            bool shouldDeferRecompute = float.IsNaN(titleWidth) || titleWidth < 50;
+            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || shouldDeferRecompute;
             if (titleEmpty)
             {
                 m_Title.AddToClassList("empty");
@@ -226,17 +239,18 @@ namespace UnityEditor.VFX.UI
             }
 
             if (float.IsNaN(rect.xMin) || float.IsNaN(rect.yMin) || float.IsNaN(rect.width) || float.IsNaN(rect.height))
+            {
                 rect = Rect.zero;
+            }
 
             rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
-
-            if (invalidTitleWidth)
+            if (shouldDeferRecompute)
             {
                 SetPosition(rect);
                 if (!m_WaitingRecompute)
                 {
                     m_WaitingRecompute = true;
-                    schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
+                    schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds(); }).ExecuteLater(0); // title height might have changed if width have changed
                 }
             }
             else

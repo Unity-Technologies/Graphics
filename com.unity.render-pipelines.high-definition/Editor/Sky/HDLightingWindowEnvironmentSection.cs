@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedObject serializedObject;
             public SerializedProperty skyUniqueID;
             public SerializedProperty cloudUniqueID;
+            public SerializedProperty volumetricCloudsToggle;
             public VolumeProfile volumeProfile
             {
                 get => (serializedObject.targetObject as StaticLightingSky).profile;
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedObject = new SerializedObject(staticLightingSky);
                 skyUniqueID = serializedObject.FindProperty("m_StaticLightingSkyUniqueID");
                 cloudUniqueID = serializedObject.FindProperty("m_StaticLightingCloudsUniqueID");
+                volumetricCloudsToggle = serializedObject.FindProperty("m_StaticLightingVolumetricClouds");
             }
 
             public void Apply() => serializedObject.ApplyModifiedProperties();
@@ -195,6 +197,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Clouds", "Specify which kind of clouds you want to use for static ambient in the referenced profile for active scene."));
                 }
+
+                EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
+
+                EditorGUILayout.HelpBox("The interaction between the Scene Volume sky type and the Scene's dominant directional light may affect the visual characteristics of this bake.", MessageType.Info);
 
                 --EditorGUI.indentLevel;
             }

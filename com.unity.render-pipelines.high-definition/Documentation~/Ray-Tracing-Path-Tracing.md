@@ -14,7 +14,7 @@ Noisy image with **Maximum Samples** set to 1
 
 Clean image with **Maximum Samples** set to 256
 
-The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit, and Unlit materials, and area, point, directional, and environment lights.
+The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit, Stacklit, AxF, and Unlit materials, and area, point, directional, and environment lights.
 
 ## Setting up path tracing
 
@@ -52,6 +52,50 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 **Minimum Depth** set to 2, **Maximum Depth** set to 2: indirect lighting only (1 bounce)
 
+## Materials parameterization
+
+Some phenomena like refraction, absorption in transmissive objects, or subsurface scattering, can be expressed more naturally in a path tracing setting than in its rasterized counterpart, and as such require less material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+
+### Refraction model
+
+In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
+
+For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+
+| Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
+|-------------------|---------------------------------------------------|---------------------------------------------------|
+| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode             |
+| *Thin*            | *Thin* object (e.g soap bubble or window)         | Double sided, with *Flip* or *Mirror* normal mode |
+| *None*            | *Thin* object, with smoothness = 1 and no Fresnel | Double sided, with *Flip* or *Mirror* normal mode |
+
+The reason why normal mode should be set to *None* for *thick* objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
+
+### Subsurface scattering
+
+In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be *Double-Sided* (any normal mode will do), in which case it will receive light from both sides.
+
+Here is an example of a sheet of fabric, lit from below by a point light:
+
+![](Images/Path-traced-SSS-Single-sided.png)
+
+Single-sided or no Transmission
+
+![](Images/Path-traced-SSS-Double-sided.png)
+
+Double-sided + Transmission
+
+### Hair
+
+Path tracing can easily compute the complex multiple scattering events that occur within a head of hair, crucial for producing the volumetric look of lighter colored hair.
+
+The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it is required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
+
+Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure is not equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
+
+The path traced **Physical** hair mode shares the exact same meaning for its parameters as its rasterized counterpart. However, the underlying model for path tracing differs: it performs a much more rigorous evaluation of the scattering within the fiber, while the rasterized version is only an approximated version of this result. Additionally, path tracing a volume of densely packed hair fibers allows you to compute the complex multiple scattering "for free", whereas in rasterizing we again must approximate this.
+
+You can read more about the parameterization details of the **Physical** hair mode [here](master-stack-hair.md).
+
 ## Limitations
 
 This section contains information on the limitations of HDRP's path tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its path-traced render pipeline.
@@ -65,6 +109,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
 - Does not support 3D Text and TextMeshPro.
 - Does not support Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
+- Does not support Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
 - Does not support decals.
 - Does not support tessellation.
 - Does not support Tube and Disc-shaped Area Lights.
@@ -72,6 +117,5 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - Does not support several of HDRP's Materials. This includes Eye, Hair, and Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Does not support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).

@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         /// <param name="_alpha">Surface roughness</param>
         /// <param name="_pdf">The Probability Density Function of sampling the light in that direction</param>
         /// <returns></returns>
-        double  Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf);
+        double Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf);
 
         /// <summary>
         /// Gets an importance-sampled light direction given a view vector and the surface roughness

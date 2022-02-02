@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual int id
         {
-            get {return 0; }
+            get { return 0; }
         }
 
         bool m_SyncingSlots;

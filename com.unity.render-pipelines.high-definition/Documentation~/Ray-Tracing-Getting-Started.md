@@ -34,6 +34,17 @@ Full ray tracing hardware acceleration is available on following GPUs:
   - RTX 5000
   - RTX 6000
   - RTX 8000
+- AMD RX series:
+  - RX 6600
+  - RX 6600 XT
+  - RX 6700
+  - RX 6700 XT
+  - RX 6800
+  - RX 6800 XT
+  - RX 6900 XT
+- AMD Radeon Pro series:
+  - Pro W6600
+  - Pro W6800
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
@@ -42,10 +53,11 @@ NVIDIA also provides a ray tracing fallback for some previous generation graphic
 - NVIDIA TITAN V
 - NVIDIA Quadro: P4000, P5000, P6000, V100
 
-
 If your computer has one of these graphics cards, it can run ray tracing in Unity.
 
 Before you open Unity, make sure to update your NVIDIA drivers to the latest version, and also make sure your Windows version is at least 1809.
+
+The boolean [SystemInfo.supportsRayTracing](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsRayTracing.html) can be used to validate if the current system supports ray tracing. This function checks the operating system, GPU, graphics driver and API.
 
 <a name="Integration"></a>
 
@@ -250,25 +262,26 @@ This section contains information on the limitations of HDRP's ray tracing imple
 
 There is no support for ray tracing on platforms other than DX12 for now.
 
-HDRP ray tracing in Unity 2020.2 has the following limitations:
+HDRP ray tracing in Unity has the following limitations:
 - Does not support vertex animation.
 - Does not support decals.
+- Does not support the volumetric part of the [fog](Override-Fog.md).
 - Does not support tessellation.
 - Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 - HDRP does not support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.
+- Ray Traced and Screen Space effects will not appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you will not be able to see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflection](Ray-Traced-Reflections.md).
 
 ### Unsupported shader graph nodes for ray tracing
 
 When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
 - DDX, DDY and DDXY nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
-- Checkerboard node.
+Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) are not supported in ray tracing.
 
 ### Unsupported features of path tracing
 

@@ -104,7 +104,7 @@ ${VFXEnd}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}
 
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
-            outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, builtinEmissiveColor, builtinOpacity);
+            outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, normalWS);
         #else
             outColor = VFXGetPixelOutputForward(i, normalWS, uvData);
         #endif

@@ -47,7 +47,10 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
 
             if (!links.AreSymbolicLinks())
-                SymbolicLinkUtilities.CreateSymbolicLinks(links, targets);
+            {
+                if (!SymbolicLinkUtilities.CreateSymbolicLinks(links, targets))
+                    throw new Exception("Failed to create packages symlinks in ProjectFolder/Library/ShaderAnalysis/PackageSymlinks/Packages/*. Please check if you have sufficient privileges to create symlinks or manually create the symlinks for each package.");
+            }
         }
 
         static int FilterLocalPackagesInPlace(
@@ -78,15 +81,6 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
         }
 
-        static PackageManager.PackageInfo[] AllPackages => GetAllPackages();
-        static readonly Func<PackageManager.PackageInfo[]> GetAllPackages = CompileGetAllPackages();
-
-        static Func<PackageManager.PackageInfo[]> CompileGetAllPackages()
-        {
-            var type = typeof(PackageManager.PackageInfo);
-            var method = type.GetMethod("GetAll", BindingFlags.Static | BindingFlags.NonPublic);
-            var result = Expression.Lambda<Func<PackageManager.PackageInfo[]>>(Expression.Call(method)).Compile();
-            return result;
-        }
+        static PackageManager.PackageInfo[] AllPackages => PackageManager.PackageInfo.GetAllRegisteredPackages();
     }
 }

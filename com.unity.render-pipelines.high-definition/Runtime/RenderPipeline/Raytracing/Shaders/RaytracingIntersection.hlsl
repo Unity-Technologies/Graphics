@@ -104,6 +104,7 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
 
     #ifdef ATTRIBUTES_NEED_COLOR
     outVertex.color      = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeColor);
+
     #else
     outVertex.color  = 0.0;
     #endif

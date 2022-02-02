@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                fixed(HDProbeBakedState* oldBakedStates = &m_HDProbeBakedStates[0])
+                fixed (HDProbeBakedState* oldBakedStates = &m_HDProbeBakedStates[0])
                 {
                     // == 3. ==
                     // Compare hashes between baked probe states and desired probe states
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Array.Resize(ref m_HDProbeBakedStates, targetSize);
                 if (targetSize > 0)
                 {
-                    fixed(HDProbeBakedState* bakedStates = &m_HDProbeBakedStates[0])
+                    fixed (HDProbeBakedState* bakedStates = &m_HDProbeBakedStates[0])
                     {
                         UnsafeUtility.MemCpy(
                             bakedStates,

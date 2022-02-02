@@ -363,10 +363,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
                 (Matrix4x4)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Callback used when the panel is set dirty.
             /// </summary>
-            public event Action<Panel> onSetDirty = delegate {};
+            public event Action<Panel> onSetDirty = delegate { };
 
             /// <summary>
             /// Constructor.
@@ -101,8 +101,9 @@ namespace UnityEngine.Rendering
             /// </summary>
             public void SetDirty()
             {
-                foreach (var child in children)
-                    child.GenerateQueryPath();
+                int numChildren = children.Count;
+                for (int i = 0; i < numChildren; i++)
+                    children[i].GenerateQueryPath();
 
                 onSetDirty(this);
             }
@@ -116,8 +117,10 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + displayName.GetHashCode();
 
-                foreach (var child in children)
-                    hash = hash * 23 + child.GetHashCode();
+
+                int numChildren = children.Count;
+                for (int i = 0; i < numChildren; i++)
+                    hash = hash * 23 + children[i].GetHashCode();
 
                 return hash;
             }

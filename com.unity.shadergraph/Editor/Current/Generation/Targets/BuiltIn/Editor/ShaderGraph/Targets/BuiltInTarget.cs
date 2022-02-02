@@ -73,8 +73,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public const string kPipelineTag = "BuiltInPipeline";
         public const string kLitMaterialTypeTag = "\"BuiltInMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"BuiltInMaterialType\" = \"Unlit\"";
-        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Templates" }).ToArray();
-        public const string kTemplatePath = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Templates/ShaderPass.template";
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] { "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Templates" }).ToArray();
+        public const string kTemplatePath = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -334,7 +334,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 customEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
         }
 
         public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -986,16 +986,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     {
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
-        const string kCore = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
-        const string kLighting = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
-        const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        const string kVaryings = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
-        const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
-        const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+        const string kCore = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
+        const string kLighting = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
+        const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
+        const string kVaryings = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
+        const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
+        const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
+        const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
 
-        const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
-        const string kLegacySurfaceVertex = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LegacySurfaceVertex.hlsl";
+        const string kShims = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
+        const string kLegacySurfaceVertex = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LegacySurfaceVertex.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {

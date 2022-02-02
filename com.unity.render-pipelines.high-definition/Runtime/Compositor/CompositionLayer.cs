@@ -193,11 +193,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static T AddComponent<T>(GameObject go) where T : Component
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             return UnityEditor.Undo.AddComponent<T>(go);
-            #else
+#else
             return go.AddComponent<T>();
-            #endif
+#endif
         }
 
         public int pixelWidth

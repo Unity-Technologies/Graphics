@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 /// <returns>Returns a <see cref="TextureSize" /> with default values.</returns>
                 public static TextureSize NewDefault()
                 {
-                    return new TextureSize {mode = Mode.UseProbeResolution};
+                    return new TextureSize { mode = Mode.UseProbeResolution };
                 }
 
                 /// <summary>

@@ -11,12 +11,13 @@ namespace UnityEngine.Rendering
     /// on Volumes.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class VolumeComponentMenu : Attribute
+    public class VolumeComponentMenu : Attribute
     {
         /// <summary>
         /// The name of the entry in the override list. You can use slashes to create sub-menus.
         /// </summary>
         public readonly string menu;
+
         // TODO: Add support for component icons
 
         /// <summary>
@@ -29,6 +30,42 @@ namespace UnityEngine.Rendering
             this.menu = menu;
         }
     }
+
+    /// <summary>
+    /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
+    /// on Volumes and specify for which render pipelines will be supported
+    /// </summary>
+    public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
+    {
+        /// <summary>
+        /// The list of pipeline types that the target class supports
+        /// </summary>
+        public Type[] pipelineTypes { get; }
+
+        /// <summary>
+        /// Creates a new <seealso cref="VolumeComponentMenuForRenderPipeline"/> instance.
+        /// </summary>
+        /// <param name="menu">The name of the entry in the override list. You can use slashes to
+        /// create sub-menus.</param>
+        /// <param name="pipelineTypes">The list of pipeline types that the target class supports</param>
+        public VolumeComponentMenuForRenderPipeline(string menu, params Type[] pipelineTypes)
+            : base(menu)
+        {
+            if (pipelineTypes == null)
+                throw new Exception("Specify a list of supported pipeline");
+
+            // Make sure that we only allow the class types that inherit from the render pipeline
+            foreach (var t in pipelineTypes)
+            {
+                if (!typeof(RenderPipeline).IsAssignableFrom(t))
+                    throw new Exception(
+                        $"You can only specify types that inherit from {typeof(RenderPipeline)}, please check {t}");
+            }
+
+            this.pipelineTypes = pipelineTypes;
+        }
+    }
+
 
     /// <summary>
     /// An attribute to hide the volume component to be added through `Add Override` button on the volume component list
@@ -47,7 +84,7 @@ namespace UnityEngine.Rendering
     /// <code>
     /// using UnityEngine.Rendering;
     ///
-    /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
+    /// [Serializable, VolumeComponentMenuForRenderPipeline("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
     ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
@@ -57,6 +94,21 @@ namespace UnityEngine.Rendering
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {
+        /// <summary>
+        /// Local attribute for VolumeComponent fields only.
+        /// It handles relative indentation of a property for inspector.
+        /// </summary>
+        public sealed class Indent : PropertyAttribute
+        {
+            /// <summary> Relative indent amount registered in this atribute </summary>
+            public readonly int relativeAmount;
+
+            /// <summary> Constructor </summary>
+            /// <param name="relativeAmount">Relative indent change to use</param>
+            public Indent(int relativeAmount = 1)
+                => this.relativeAmount = relativeAmount;
+        }
+
         /// <summary>
         /// The active state of the set of parameters defined in this class. You can use this to
         /// quickly turn on or off all the overrides at once.

@@ -96,6 +96,15 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
     outputDepth = posInput.deviceDepth;
+
+
+#if SHADERPASS == SHADERPASS_SHADOWS
+    // If we are using the depth offset and manually outputting depth, the slope-scale depth bias is not properly applied
+    // we need to manually apply.
+    float bias = max(abs(ddx(posInput.deviceDepth)), abs(ddy(posInput.deviceDepth))) * _SlopeScaleDepthBias;
+    outputDepth += bias;
+#endif
+
 #endif
 
 #ifdef SCENESELECTIONPASS

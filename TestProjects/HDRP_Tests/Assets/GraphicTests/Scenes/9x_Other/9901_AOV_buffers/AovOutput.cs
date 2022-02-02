@@ -23,38 +23,38 @@ public class AovOutput : MonoBehaviour
         if (bufferID == AOVBuffers.Output)
             return _rt.output ??
                 (_rt.output = RTHandles.Alloc(
-                    _outputTexture.width, _outputTexture.height, 1,
-                    DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
+                _outputTexture.width, _outputTexture.height, 1,
+                DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
 
         if (bufferID == AOVBuffers.Color)
             return _rt.color ??
                 (_rt.color = RTHandles.Alloc(
-                    _colorTexture.width, _colorTexture.height, 1,
-                    DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
+                _colorTexture.width, _colorTexture.height, 1,
+                DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
 
         if (bufferID == AOVBuffers.DepthStencil)
             return _rt.depth ??
                 (_rt.depth = RTHandles.Alloc(
-                    _depthTexture.width, _depthTexture.height, 1,
-                    DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
+                _depthTexture.width, _depthTexture.height, 1,
+                DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
 
 
         if (bufferID == AOVBuffers.Normals)
             return _rt.normal ??
                 (_rt.normal = RTHandles.Alloc(
-                    _normalTexture.width, _normalTexture.height, 1,
-                    DepthBits.None, GraphicsFormat.R8G8B8A8_UNorm));
+                _normalTexture.width, _normalTexture.height, 1,
+                DepthBits.None, GraphicsFormat.R8G8B8A8_UNorm));
 
         return _rt.motionvector ??
             (_rt.motionvector = RTHandles.Alloc(
-                _motionVectorsTexture.width, _motionVectorsTexture.height, 1,
-                DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
+            _motionVectorsTexture.width, _motionVectorsTexture.height, 1,
+            DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
     }
 
     void AovCallback(
-    CommandBuffer cmd,
-    List<RTHandle> buffers,
-    RenderOutputProperties outProps
+        CommandBuffer cmd,
+        List<RTHandle> buffers,
+        RenderOutputProperties outProps
     )
     {
         // Shader objects instantiation
@@ -106,15 +106,16 @@ public class AovOutput : MonoBehaviour
             AOVRequest.NewDefault(),
             RTAllocator,
             null, // lightFilter
-            new[] {
-                    AOVBuffers.Output,
-                    AOVBuffers.Color,
-                    AOVBuffers.DepthStencil,
-                    AOVBuffers.Normals,
-                    AOVBuffers.MotionVectors
+            new[]
+            {
+                AOVBuffers.Output,
+                AOVBuffers.Color,
+                AOVBuffers.DepthStencil,
+                AOVBuffers.Normals,
+                AOVBuffers.MotionVectors
             },
             AovCallback
-        ).Build();
+            ).Build();
     }
 
     void OnDisable()

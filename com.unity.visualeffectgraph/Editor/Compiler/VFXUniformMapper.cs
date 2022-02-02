@@ -122,7 +122,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_UniformToName.Select(s => {
+                return m_UniformToName.Select(s =>
+                {
                     string code = null;
                     string firstName = s.Value.First();
                     switch (s.Key.valueType)

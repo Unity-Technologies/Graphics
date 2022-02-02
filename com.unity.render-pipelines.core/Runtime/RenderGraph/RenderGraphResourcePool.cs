@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
-        protected  Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
+        protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
         protected List<int> m_RemoveList = new List<int>(32); // Used to remove stale resources as there is no RemoveAll on SortedLists
 
         // This list allows us to determine if all resources were correctly released in the frame.

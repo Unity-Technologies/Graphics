@@ -31,12 +31,19 @@ namespace UnityEngine.Rendering.HighDefinition
         // Displacement vector of the wind
         public Vector2 _WindVector;
 
+        // Offset Applied when applying the shaping (X,Z)
+        public Vector2 _ShapeNoiseOffset;
+        // Displacement of the wind vertically for the shaping
+        public float _VerticalShapeWindDisplacement;
+        // Displacement of the wind vertically for the erosion
+        public float _VerticalErosionWindDisplacement;
+
+        // Vertical shape noise offset
+        public float _VerticalShapeNoiseOffset;
         // Wind speed controllers
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
         public float _SmallWindSpeed;
-        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
-        public int _ExposureSunColor;
 
         // Color * intensity of the directional light
         public Vector4 _SunLightColor;
@@ -85,15 +92,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
 
-        // Offset Applied when applying the shaping
-        public Vector2 _ShapeNoiseOffset;
+        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
+        public int _ExposureSunColor;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
+        // Render the clouds for the sky
+        public int _RenderForSky;
 
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
+        // Fade in parameters
+        public float _FadeInStart;
+        public float _FadeInDistance;
+        // Flag that defines if the clouds should be evaluated at full resolution
+        public int _LowResolutionEvaluation;
+        // Flag that defines if the we should enable integration, checkerboard rendering, etc.
+        public int _EnableIntegration;
+
+        // Current ambient probe evaluated for both directions of the vertical axis
+        public Vector4 _AmbientProbeTop;
+        public Vector4 _AmbientProbeBottom;
 
         // Right direction of the sun
         public Vector4 _SunRight;
@@ -120,9 +138,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
+        public Matrix4x4 _CloudsPixelCoordToViewDirWS;
 
-        // Fast tonemapping settings
-        public Vector3 _Padding2;
-        public int     _EnableFastToneMapping;
+        // Controls the intensity of the wind distortion at high altitudes
+        public float _AltitudeDistortion;
+        // Internal parameters that compensates the erosion factor to match between the different erosion noises
+        public float _ErosionFactorCompensation;
+        // Fast tone mapping settings
+        public int _EnableFastToneMapping;
+        // Flag that defines if the current camera is a planar reflection
+        public int _IsPlanarReflection;
+
+        // Flag that allows us to know if the maxZMask texture is valid
+        public int _ValidMaxZMask;
+        // Flag that allows to know if we should be using the improved transmittance blending
+        public int _ImprovedTransmittanceBlend;
+        // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
+        public int _CubicTransmittance;
+        public int _Padding1;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }

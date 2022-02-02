@@ -49,13 +49,24 @@ This section contains properties that define which layers the renderer draws.
 | **Opaque Layer Mask** | Select which opaque layers this Renderer draws |
 | **Transparent Layer Mask** | Select which transparent layers this Renderer draws |
 
-### Lighting
+### Rendering
 
-This section contains properties related to lighting.
+This section contains properties related to rendering.
 
 | Property | Description |
 |:-|:-|
 | **Rendering&#160;Path** | Select the Rendering Path.<br/>Options:<ul><li>**Forward**: The Forward Rendering Path.</li><li>**Deferred**: The Deferred Rendering Path. For more information, see [Deferred Rendering Path](rendering/deferred-rendering-path.md).</li></ul> |
+| &nbsp;&nbsp;**Depth Priming Mode** | Specifies when to perform depth priming. Depth priming is an optimization method that checks for pixels URP doesn't need to render during a [Base Camera's](camera-types-and-render-type.md#base-camera) opaque render pass. It uses the depth buffer generated in a depth prepass. The options are:<br />&#8226; **Disabled**: URP doesn't perform depth priming.<br />&#8226; **Auto**: URP performs depth priming for render passes that require a depth prepass.<br />&#8226; **Forced**: URP always performs depth priming. To do this, it also performs a depth prepass for every render pass.<br /><br />this property only appears if you set **Rendering Path** to **Forward** |
+| &nbsp;&nbsp;**Accurate G-buffer normals** | Indicates whether to use a more resource-intensive normal encoding/decoding method to improve visual quality.<br /><br />This property only appears if you set **Rendering Path** to **Deferred**. |
+| **Copy Depth Mode** | Specifies the stage in the render pipeline at which to copy the scene depth to a depth texture. The options are:<br/>&#8226; **After Opaques**: URP copies the scene depth after the opaques render pass.<br/>&#8226; **After Transparents**: URP copies the scene depth after the transparents render pass.<br/><br/>**Note**: On mobile devices, the **After Transparents** option can lead to a significant improvement in memory bandwidth. |
+
+### Native RenderPass
+
+This section contains properties related to URP's Native RenderPass API.
+
+| Property | Description |
+|:-|:-|
+| **Native RenderPass** | Indicates whether to use URP's Native RenderPass API. When enabled, URP uses this API to structure render passes. As a result, you can use [programmable blending](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html#using-shader-framebuffer-fetch) in custom URP shaders. For more information about the RenderPass API, see [ScriptableRenderContext.BeginRenderPass](https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.BeginRenderPass.html).<br/><br/>**Note**: Enabling this property has no effect on OpenGL ES. |
 
 ### Shadows
 
@@ -76,6 +87,14 @@ With this check box selected, the Renderer processes the Stencil buffer values.
 ![URP Universal Renderer Stencil override](Images/urp-assets/urp-universal-renderer-stencil-on.png)
 
 For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
+
+### Compatibility
+
+This section contains settings related to backwards compatibility.
+
+| Property | Description |
+|:-|:-|
+| **Intermediate Texture** | This property lets you force URP to renders via an intermediate texture.<br/>Options: <ul><li>**Auto**: URP uses the information provided by the `ScriptableRenderPass.ConfigureInput` method to determine automatically whether rendering via an intermediate texture is necessary.</li><li>**Always**: forces rendering via an intermediate texture. Use this option only for compatibility with Renderer Features that do not declare their inputs with `ScriptableRenderPass.ConfigureInput`. Using this option might have a significant performance impact on some platforms.</li></ul> |
 
 ### Renderer Features
 

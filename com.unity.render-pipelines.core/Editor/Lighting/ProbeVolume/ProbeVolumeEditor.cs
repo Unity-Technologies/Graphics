@@ -96,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering
 
                     probeVolume.size = s_ShapeBox.size;
                     Vector3 delta = probeVolume.transform.rotation * s_ShapeBox.center - probeVolume.transform.position;
-                    probeVolume.transform.position += delta;;
+                    probeVolume.transform.position += delta; ;
                 }
             }
         }

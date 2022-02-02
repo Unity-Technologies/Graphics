@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.PostProcessing
     }
 
 #if POSTFX_DEBUG_STATIC_GRAIN
-    #pragma warning disable 414
+#pragma warning disable 414
 #endif
     [UnityEngine.Scripting.Preserve]
     internal sealed class GrainRenderer : PostProcessEffectRenderer<Grain>
@@ -122,6 +122,6 @@ namespace UnityEngine.Rendering.PostProcessing
     }
 
 #if POSTFX_DEBUG_STATIC_GRAIN
-    #pragma warning restore 414
+#pragma warning restore 414
 #endif
 }

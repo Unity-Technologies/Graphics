@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
+            RemovalOfUpscaleFilter,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -133,11 +134,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
             {
-            #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
                 bool previouslyHighQuality = data.m_RenderPipelineSettings.m_ObsoleteincreaseSssSampleCount;
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_ObsoleteFrameSettingsMovedToDefaultSettings,                  previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_ObsoleteFrameSettingsMovedToDefaultSettings, previouslyHighQuality);
                 FrameSettings.MigrateSubsurfaceParams(ref data.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings, previouslyHighQuality);
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings,      previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings, previouslyHighQuality);
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.RemoveCookieCubeAtlasToOctahedral2D, (HDRenderPipelineAsset data) =>
@@ -166,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings);
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings);
 #pragma warning restore 618
-            }) ,
+            }),
             MigrationStep.New(Version.AddedHDRenderPipelineGlobalSettings, (HDRenderPipelineAsset data) =>
             {
 #if UNITY_EDITOR
@@ -204,12 +205,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName6 = null;
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName7 = null;
 #pragma warning restore 618
-            }) ,
+            }),
             MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.supportSurfaceGradient = false;
+            }),
+#pragma warning disable 618 // Type or member is obsolete
+            MigrationStep.New(Version.RemovalOfUpscaleFilter, (HDRenderPipelineAsset data) =>
+            {
+                if (data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter == DynamicResUpscaleFilter.Bilinear)
+                    data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
+                if (data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter == DynamicResUpscaleFilter.Lanczos)
+                    data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.ContrastAdaptiveSharpen;
             })
-        );
+#pragma warning restore 618
+            );
         #endregion
 
         [SerializeField]

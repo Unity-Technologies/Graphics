@@ -1,6 +1,0 @@
-/* TODO VladN: fix for light skin, remove when GTF supports light skin */
-.ge-blackboard-variable-property-view__row-label,
-.ge-blackboard-section__title,
-.ge-blackboard-header-part__subtitle {
-    color: #CCCCCC;
-}

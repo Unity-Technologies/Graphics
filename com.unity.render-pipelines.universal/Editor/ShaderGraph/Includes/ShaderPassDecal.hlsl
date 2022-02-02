@@ -181,10 +181,18 @@ void Frag(PackedVaryings packedInput,
 
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
+#if _RENDER_PASS_ENABLED
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy);
+#else
     float depth = LoadSceneDepth(input.positionCS.xy);
+#endif
+#else
+#if _RENDER_PASS_ENABLED
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy));
 #else
     // Adjust z to match NDC for OpenGL
     float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(input.positionCS.xy));
+#endif
 #endif
 #endif
 

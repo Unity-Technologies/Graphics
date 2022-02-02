@@ -17,7 +17,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621263709
-      data2: 4539628434053070872
+      data2: 4539628436200587288
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -31,8 +31,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 139742655312669
-      data2: 4539628424389459992
+      data1: 139746950279965
+      data2: 4539628424389492760
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -46,8 +46,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 139716617048837
-      data2: 4539628424389459992
+      data1: 139720912016133
+      data2: 4539628424389492760
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -88,11 +88,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
-  rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
   apvScenesBounds:
     serializedBounds: []
     serializedHasVolumes: []
-  m_Version: 2
+  m_Version: 3

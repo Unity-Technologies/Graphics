@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering
         public int inlineCpuSampleCount => 0;
 #endif
         // Keep the constructor private
-        ProfilingSampler() {}
+        ProfilingSampler() { }
     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR

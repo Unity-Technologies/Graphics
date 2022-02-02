@@ -14,6 +14,18 @@ public class MultipleViewGCTest : MonoBehaviour
     {
         //Issue was caused by different nbr of cameras between views
         var mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            // If main camera is missing, then try to recreate default scene and try again.
+            // NOTE: It can be missing if prior test created an empty scene for example. Tests can be dependent on other tests unfortunately :(
+            UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.DefaultGameObjects);
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogError($"Main camera is missing.");
+            }
+        }
+
         for (int i = 0; i < 4; ++i)
         {
             var newCam = Instantiate(mainCamera);

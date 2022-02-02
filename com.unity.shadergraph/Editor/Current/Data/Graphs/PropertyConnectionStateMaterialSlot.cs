@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     class PropertyConnectionStateMaterialSlot : MaterialSlot, IMaterialSlotHasValue<bool>
     {
         public PropertyConnectionStateMaterialSlot()
-        {}
+        { }
 
         public PropertyConnectionStateMaterialSlot(
             int slotId,

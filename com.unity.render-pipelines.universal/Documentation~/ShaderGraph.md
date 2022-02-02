@@ -2,32 +2,35 @@
 
 ## Creating a Lit Shader
 
-1. Create a new Asset by selecting __Create > Shader > 2D Renderer > Lit Sprite Graph__.
+1. Create a new Asset by selecting __Assets > Create > Shader Graph > URP > Sprite Lit Shader Graph__. The Shader Graph Asset is then created in the Asset window.
 
-   ![](Images/2D/image_49.png)
-
-
+   ![](Images/2D/2d-urp12-create-lit-shader.png)
+   <br/>
 
 2. Double-click the new Asset to open the __Shader Graph__.
+   ![](Images/2D/2d-urp12-open-shader-graph.png)
+   <br/>
 
-   ![](Images/2D/image_50.png)
+3. Create three **Sample Texture 2D** Nodes by right-clicking on the Shader Graph window and selecting **Create Node**, then search for and select the **Sample Texture 2D** option.
+   ![](Images/2D/2d-urp12-create-node.png)
+   <br/>
 
-3. Attach the Sample Texture 2D Nodes to Color, Mask, and Normal. Change the type on the sampler connected to normal from Default to Normal.
+4. Change the **Type** of one of the Nodes to **Normal**.
+   ![](Images/2D/2d-urp12-3-node-normal.png)
+   <br/>
 
-   ![](Images/2D/image_51.png)
+5. Attach the RGBA(4) **Output Slot** of the **Default Type** Nodes as shown below. Note that you should attach the **Normal Type** Node's Output Slot to the **Normal(Tangent Space)(3)** Input Slot.
+      ![](Images/2D/2d-urp12-attach-textures.png)
+      <br/>
 
-4. In the Blackboard on the left side, add three new Texture2D items which can be named anything. However, it is required to name the reference for MainTex as _MainTex to render Sprites. It is also recommended to name the references for Mask as _MaskTex and Normal as _NormalMap to match the Shader inputs used in this package.
+6. Create three **Texture 2D** properties by selecting the **+** on the [Blackboard](http://docs.unity3d.com/Packages/com.unity.shadergraph@12.0/manual/Blackboard.html), and then select **Texture 2D**. Name them 'MainTex', 'MaskTex', and 'NormalMap' for this example.
+   ![](Images/2D/2d-urp12-3-create-texture-2D.png) ![](Images/2D/2d-urp12-3-three-textures.png)
+   <br/>
 
-   ![](Images/2D/image_52.png)
+7. Drag each of the **Texture 2D** properties onto the editor window. Attach each of the properties to the **Input Slots** of the Sample Texture 2D Nodes as shown below. Note that the 'NormalMap' property must be attached to the **Normal Type** Node only.
+   ![](Images/2D/2d-urp12-3-attach-properties.png)
+   <br/>
+8. Select **Save Asset** to save the Shader.
+   ![](Images/2D/2d-urp12-3-save-shader.png)
 
-   Lastly the mode on Normal should be set to Bump so that if a normal map is not supplied, an appropriate default Texture is still available.
-
-5. Drag MainTex, Mask, and Normal from the Blackboard to the Shader Graph work area.![](Images/2D/image_53.png)
-
-6. Connect the MainTex, Mask, and Normal nodes to their respective Sample Texture2D nodes.
-
-7. Select 'Save Asset' to save the Shader.
-
-   ![](Images/2D/image_54.png)
-
-    You can now assign new materials to the newly built Shader.
+You can now apply the newly built Shader to materials.

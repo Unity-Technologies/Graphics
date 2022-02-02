@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering
             Vector2 scalePadding = ((textureSize + paddingSize) / textureSize);            // Size of padding (sampling) rectangle relative to the payload texture.
             Vector2 offsetPadding = (paddingSize / 2.0f) / (textureSize + paddingSize);    // Padding offset in the padding rectangle
 
-            Vector2 insetScale  = subTexScale / scalePadding;                 // Size of payload rectangle in sub-tex
+            Vector2 insetScale = subTexScale / scalePadding;                 // Size of payload rectangle in sub-tex
             Vector2 insetOffset = subTexOffset + subTexScale * offsetPadding; // Offset of payload rectangle in sub-tex
 
             return new Vector4(insetScale.x, insetScale.y, insetOffset.x, insetOffset.y);
@@ -300,7 +300,8 @@ namespace UnityEngine.Rendering
             ResetAllocator();
 
             // Sort entries from biggest to smallest
-            entries.Sort((c1, c2) => {
+            entries.Sort((c1, c2) =>
+            {
                 return c2.size.magnitude.CompareTo(c1.size.magnitude);
             });
 

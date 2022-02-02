@@ -10,11 +10,15 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         partial class Rendering
         {
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Rendering.Styles.header,
-                Expandable.Rendering,
-                k_ExpandedState,
-                FoldoutOption.Indent,
+            enum AdditionalProperties
+            {
+                Rendering = 1 << 5,
+            }
+            readonly static AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData>(0, "HDRP");
+            static bool s_IsRunningTAAU = false;
+
+
+            public static readonly CED.IDrawer RenderingDrawer = CED.Group(
                 CED.Group(
                     Drawer_Rendering_AllowDynamicResolution,
                     Drawer_Rendering_Antialiasing
@@ -40,9 +44,51 @@ namespace UnityEditor.Rendering.HighDefinition
                 )
             );
 
+            public static readonly CED.IDrawer Drawer = CED.AdditionalPropertiesFoldoutGroup(CameraUI.Rendering.Styles.header, Expandable.Rendering, k_ExpandedState, AdditionalProperties.Rendering, k_AdditionalPropertiesState, RenderingDrawer, Draw_Rendering_Advanced);
+
+            internal static void RegisterEditor(HDCameraEditor editor)
+            {
+                k_AdditionalPropertiesState.RegisterEditor(editor);
+            }
+
+            internal static void UnregisterEditor(HDCameraEditor editor)
+            {
+                k_AdditionalPropertiesState.UnregisterEditor(editor);
+            }
+
+            [SetAdditionalPropertiesVisibility]
+            internal static void SetAdditionalPropertiesVisibility(bool value)
+            {
+                if (value)
+                    k_AdditionalPropertiesState.ShowAll();
+                else
+                    k_AdditionalPropertiesState.HideAll();
+            }
+
+            static void Draw_Rendering_Advanced(SerializedHDCamera p, Editor owner)
+            { }
+
+            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
+                CameraUI.Rendering.Styles.header,
+                Expandable.Rendering,
+                k_ExpandedState,
+                FoldoutOption.Indent,
+                CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+            );
+
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
                 CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+
+                var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
+
+                if (s_IsRunningTAAU)
+                {
+                    EditorGUILayout.HelpBox(Styles.taauInfoBox, MessageType.Info);
+                    p.antialiasing.intValue = (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUI.indentLevel++;
@@ -118,21 +164,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 showAntialiasContentAsFallback = isDLSSEnabled;
 #endif
 
-                Rect antiAliasingRect = EditorGUILayout.GetControlRect();
-                EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
                 {
-                    EditorGUI.BeginChangeCheck();
-                    int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, showAntialiasContentAsFallback ? Styles.antialiasingContentFallback : Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
+                    Rect antiAliasingRect = EditorGUILayout.GetControlRect();
+                    EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, showAntialiasContentAsFallback ? Styles.antialiasingContentFallback : Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
 
-                    if (EditorGUI.EndChangeCheck())
-                        p.antialiasing.intValue = selectedValue;
+                        if (EditorGUI.EndChangeCheck())
+                            p.antialiasing.intValue = selectedValue;
+                    }
+                    EditorGUI.EndProperty();
                 }
             }
 
             static CED.IDrawer AntialiasingModeDrawer(HDAdditionalCameraData.AntialiasingMode antialiasingMode, CED.ActionDrawer antialiasingDrawer)
             {
                 return CED.Conditional(
-                    (serialized, owner) => serialized.antialiasing.intValue == (int)antialiasingMode,
+                    (serialized, owner) => (serialized.antialiasing.intValue == (int)antialiasingMode) && (s_IsRunningTAAU ? serialized.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing : true),
                     CED.Group(
                         GroupOption.Indent,
                         antialiasingDrawer
@@ -145,9 +195,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(p.SMAAQuality, Styles.SMAAQualityPresetContent);
             }
 
+            static void Draw_Rendering_Antialiasing_TAA_Advanced(SerializedHDCamera p, Editor owner)
+            {
+                EditorGUILayout.PropertyField(p.taaBaseBlendFactor, Styles.TAABaseBlendFactor);
+            }
+
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
+                {
+                    EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
+                }
+                if (s_IsRunningTAAU)
+                    p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
+
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
 
                 if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
@@ -160,6 +221,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(p.taaMotionVectorRejection, Styles.TAAMotionVectorRejection);
                     EditorGUILayout.PropertyField(p.taaAntiRinging, Styles.TAAAntiRinging);
+                }
+
+                if (k_AdditionalPropertiesState[AdditionalProperties.Rendering])
+                {
+                    Draw_Rendering_Antialiasing_TAA_Advanced(p, owner);
                 }
             }
 

@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Matrix4x4 m_DefaultValue = Matrix4x4.identity;
 
-        static readonly string[] k_Labels = {"X", "Y", "Z", "W"};
+        static readonly string[] k_Labels = { "X", "Y", "Z", "W" };
 
         private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Vector4;
 
@@ -56,10 +56,22 @@ namespace UnityEditor.ShaderGraph
             return new MultiFloatSlotControlView(owner, labels, () => value.GetRow(0), (newValue) =>
                 value = new Matrix4x4()
                 {
-                    m00 = newValue.x, m01 = newValue.y, m02 = newValue.z, m03 = newValue.w,
-                    m10 = value.m10, m11 = value.m11, m12 = value.m12, m13 = value.m13,
-                    m20 = value.m20, m21 = value.m21, m22 = value.m22, m23 = value.m23,
-                    m30 = value.m30, m31 = value.m31, m32 = value.m32, m33 = value.m33,
+                    m00 = newValue.x,
+                    m01 = newValue.y,
+                    m02 = newValue.z,
+                    m03 = newValue.w,
+                    m10 = value.m10,
+                    m11 = value.m11,
+                    m12 = value.m12,
+                    m13 = value.m13,
+                    m20 = value.m20,
+                    m21 = value.m21,
+                    m22 = value.m22,
+                    m23 = value.m23,
+                    m30 = value.m30,
+                    m31 = value.m31,
+                    m32 = value.m32,
+                    m33 = value.m33,
                 });
         }
 

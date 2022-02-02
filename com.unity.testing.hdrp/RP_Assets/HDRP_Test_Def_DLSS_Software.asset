@@ -265,10 +265,10 @@ MonoBehaviour:
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   virtualTexturingSettings:
-    streamingCpuCacheSizeInMegaBytes: 256
+    streamingCpuCacheSizeInMegaBytes: 80
     streamingGpuCacheSettings:
     - format: 0
-      sizeInMegaBytes: 128
+      sizeInMegaBytes: 32
   m_UseRenderGraph: 1
   m_Version: 20
   m_ObsoleteFrameSettings:

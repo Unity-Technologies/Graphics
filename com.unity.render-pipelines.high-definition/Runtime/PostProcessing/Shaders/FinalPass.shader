@@ -11,8 +11,9 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
+        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
-        #pragma multi_compile_local_fragment _ BILINEAR CATMULL_ROM_4 LANCZOS BYPASS
+        #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -21,15 +22,30 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
+#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
+
         TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
         TEXTURE2D_X(_AlphaTexture);
 
+        TEXTURE2D_X(_UITexture);
+
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
+
+        #define FSR_INPUT_TEXTURE _InputTexture
+        #define FSR_INPUT_SAMPLER s_linear_clamp_sampler
+        #if ENABLE_ALPHA
+            // When alpha is in use, activate the alpha-passthrough mode in the RCAS implementation.
+            // When this mode is active, ApplyRCAS returns a four component vector (rgba) instead of a three component vector (rgb).
+            #define FSR_ENABLE_ALPHA 1
+        #endif
+        #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
 
         float2 _GrainParams;            // x: intensity, y: response
         float4 _GrainTextureParams;     // xy: _ScreenSize.xy / GrainTextureSize.xy, zw: (random offset in UVs) *  _GrainTextureParams.xy
@@ -37,6 +53,13 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _UVTransform;
         float4 _ViewPortSize;
         float  _KeepAlpha;
+
+        float4 _HDROutputParams;
+        float4 _HDROutputParams2;
+        #define _MinNits    _HDROutputParams.x
+        #define _MaxNits    _HDROutputParams.y
+        #define _PaperWhite _HDROutputParams.z
+        #define _RangeReductionMode    (int)_HDROutputParams2.x
 
         struct Attributes
         {
@@ -66,12 +89,8 @@ Shader "Hidden/HDRP/FinalPass"
         #if DEBUG_UPSCALE_POINT
             return Nearest(_InputTexture, UV);
         #else
-            #if BILINEAR
-                return Bilinear(_InputTexture, UV);
-            #elif CATMULL_ROM_4
+            #if CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
-            #elif LANCZOS
-                return Lanczos(_InputTexture, UV, _ViewPortSize.xy);
             #else
                 return Nearest(_InputTexture, UV);
             #endif
@@ -85,15 +104,18 @@ Shader "Hidden/HDRP/FinalPass"
 
             float2 positionNDC = input.texcoord;
             uint2 positionSS = input.texcoord * _ScreenSize.xy;
+            uint2 scaledPositionSS = ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy;
 
             // Flip logic
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-            #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
+            #ifdef CATMULL_ROM_4
             CTYPE outColor = UpscaledResult(positionNDC.xy);
+            #elif defined(RCAS)
+            CTYPE outColor = ApplyRCAS(scaledPositionSS);
             #elif defined(BYPASS)
-            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy).CTYPE_SWIZZLE;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, scaledPositionSS).CTYPE_SWIZZLE;
             #else
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif
@@ -152,8 +174,22 @@ Shader "Hidden/HDRP/FinalPass"
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
             float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            #ifdef HDR_OUTPUT
+                afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
+            #endif
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
+            #endif
+
+
+            #ifdef HDR_OUTPUT
+            // Screen space overlay blending.
+            {
+                float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+                outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
+
+                outColor.rgb = OETF(outColor.rgb);
+            }
             #endif
 
         #if !defined(ENABLE_ALPHA)

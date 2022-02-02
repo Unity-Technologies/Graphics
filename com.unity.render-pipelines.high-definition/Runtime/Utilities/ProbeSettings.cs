@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
         /// <summary> An int scalable setting value</summary>
-        [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> {}
+        [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> { }
         /// <summary>Camera settings to use when capturing data.</summary>
         /// <summary>The resolution of the probe.</summary>
         public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;

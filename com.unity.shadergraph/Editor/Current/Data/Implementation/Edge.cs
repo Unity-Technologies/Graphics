@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing
         private SlotReference m_InputSlot;
 
         public Edge()
-        {}
+        { }
 
         public Edge(SlotReference outputSlot, SlotReference inputSlot)
         {

@@ -9,7 +9,7 @@ using UnityObject = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
-    {}
+    { }
 
     class VFXContextBorder : ImmediateModeElement, IDisposable
     {
@@ -108,7 +108,7 @@ namespace UnityEditor.VFX.UI
 
                 Vector4 size = new Vector4(layout.width * .5f, layout.height * 0.5f, 0, 0);
                 m_Mat.SetVector("_Size", size);
-                m_Mat.SetFloat("_Border", realBorder < 1.75f ?  1.75f / view.scale : style.borderLeftWidth.value);
+                m_Mat.SetFloat("_Border", realBorder < 1.75f ? 1.75f / view.scale : style.borderLeftWidth.value);
                 m_Mat.SetFloat("_Radius", radius);
 
                 m_Mat.SetColor("_ColorStart", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor);

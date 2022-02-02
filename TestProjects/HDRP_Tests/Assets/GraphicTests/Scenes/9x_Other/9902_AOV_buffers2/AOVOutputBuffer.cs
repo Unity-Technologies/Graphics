@@ -17,13 +17,14 @@ public class AOVOutputBuffer : MonoBehaviour
     {
         return _rt ?? (_rt = RTHandles.Alloc(_outputTexture.width, _outputTexture.height));
     }
+
     void AovCallback(
         CommandBuffer cmd,
         List<RTHandle> buffers,
         RenderOutputProperties outProps
-        )
+    )
     {
-        if(buffers.Count > 0)
+        if (buffers.Count > 0)
         {
             cmd.Blit(buffers[0], _outputTexture);
         }
@@ -42,11 +43,12 @@ public class AOVOutputBuffer : MonoBehaviour
             aovRequest,
             RTAllocator,
             null, // lightFilter
-            new[] {
-                    AOVBuffers.Output,
+            new[]
+            {
+                AOVBuffers.Output,
             },
             AovCallback
-        ).Build();
+            ).Build();
     }
 
     // Start is called before the first frame update
@@ -58,6 +60,5 @@ public class AOVOutputBuffer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
 }

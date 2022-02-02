@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
             var asset = UniversalRenderPipeline.asset;
             if (asset != null && !asset.supportsHDR)
             {
-                EditorGUILayout.HelpBox("Tonemapping should only be used when working in HDR.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Tonemapping should only be used when working with High Dynamic Range (HDR). Please enable HDR through the active Render Pipeline Asset.", MessageType.Warning);
                 return;
             }
         }

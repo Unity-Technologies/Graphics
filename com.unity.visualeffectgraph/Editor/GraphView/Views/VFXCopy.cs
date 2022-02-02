@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.UI
                         VFXGroupNodeController groupNode = groupNodes[i];
                         VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
 
-                        serializableGraph.groupNodes[i] = new GroupNode { infos = new VFXUI.UIInfo(info)};
+                        serializableGraph.groupNodes[i] = new GroupNode { infos = new VFXUI.UIInfo(info) };
 
                         // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
                         if (info.contents != null)

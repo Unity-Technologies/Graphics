@@ -23,7 +23,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     int _RayTracingDiffuseLightingOnly;
     float _DirectionalShadowFallbackIntensity;
     float _RayTracingLodBias;
-    int _RayTracingFallbackHierarchy;
+    int _RayTracingRayMissFallbackHierarchy;
+    int _RayTracingLastBounceFallbackHierarchy;
+    int _Padding0;
+    int _Padding1;
 CBUFFER_END
 
 

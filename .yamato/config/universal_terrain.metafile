@@ -16,12 +16,14 @@ reuse_blocks:
 
 test_platforms:
   - type: Standalone
+    allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.set_screen_resolution>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [OSX_Metal]: --timeout=2400
@@ -33,15 +35,18 @@ test_platforms:
           - [all]: --timeout=3000
 
   - type: playmode
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_with_utr>
 
   - type: editmode
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_with_utr>
 
   - type: playmode
     name: playmode_XR
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
@@ -51,6 +56,7 @@ test_platforms:
 
   - type: Standalone
     name: Standalone_XR
+    allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -161,6 +167,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+          - Standalone_XR
           - playmode_XR
           - editmode
       - platform: Win
@@ -169,6 +176,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+          - Standalone_XR
       - platform: Win
         api: Vulkan
         build_config: mono
@@ -193,12 +201,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      - platform: iPhone
-        api: Metal
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
       - platform: OSX
         api: Metal
         build_config: mono
@@ -212,24 +214,13 @@ jobs:
         color_space: Linear
         test_platforms:
           - editmode
-      - platform: Android
-        api: OpenGLES3
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-      - platform: Android
-        api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-      - platform: iPhone
-        api: Metal
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
+      # Disabled until https://fogbugz.unity3d.com/f/cases/1309660/ is fixed.
+      # - platform: iPhone
+      #   api: Metal
+      #   build_config: il2cpp
+      #   color_space: Linear
+      #   test_platforms:
+      #     - Standalone
 
   - name: Extra <PROJECT_NAME>
     dependencies:

@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyFloatField,
             int indentLevel = 0)
         {
-            var integerField = new IntegerField {value = fieldToDraw};
+            var integerField = new IntegerField { value = fieldToDraw };
 
             if (valueChangedCallback != null)
             {
@@ -41,10 +41,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
                 (int)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

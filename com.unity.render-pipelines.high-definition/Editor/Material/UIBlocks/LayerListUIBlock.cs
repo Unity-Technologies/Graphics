@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -21,9 +22,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty layerCount = null;
 
-        bool[]          m_WithUV = new bool[kMaxLayerCount];
-        Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
-        AssetImporter   m_MaterialImporter;
+        bool[] m_WithUV = new bool[kMaxLayerCount];
+        Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+        AssetImporter m_MaterialImporter;
 
         int numLayer => (int)layerCount.floatValue;
 
@@ -58,48 +59,58 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            bool    layersChanged = false;
-            var     oldLabelWidth = EditorGUIUtility.labelWidth;
+            bool layersChanged = false;
+            int oldindentLevel = EditorGUI.indentLevel;
 
             // TODO: does not work with multi-selection
             Material material = materials[0];
 
             float indentOffset = EditorGUI.indentLevel * 15f;
-            float UVWidth = 30;
-            float resetButtonWidth = 43;
-            float padding = 4f;
-            float endOffset = 2f;
-            float labelWidth = 100f;
-            float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            const int UVWidth = 14;
+            const int resetButtonWidth = 43;
+            const int endOffset = 2;
+            const int horizontalSpacing = 4;
+            const int headerHeight = 15;
 
-            EditorGUIUtility.labelWidth = labelWidth;
+            EditorGUI.indentLevel = 0;
 
-            Rect headerLineRect = GUILayoutUtility.GetRect(1, height);
-            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15f, height);
-            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37f - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
-            Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 20f, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, height);
+            Rect headerLineRect = GUILayoutUtility.GetRect(1, headerHeight);
+            Rect labelRect = new Rect(headerLineRect.x + indentOffset, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset, headerHeight);
+            Rect uvRect = new Rect(headerLineRect.x + headerLineRect.width - horizontalSpacing - UVWidth - resetButtonWidth - endOffset, headerLineRect.y, UVWidth, headerHeight);
+            Rect materialDropRect = new Rect(labelRect.xMax + horizontalSpacing, headerLineRect.y, uvRect.xMin - labelRect.xMax - 2 * horizontalSpacing, headerHeight);
 
-            EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.centeredGreyMiniLabel);
+            //Minilabel is slighly shifted from 2 px.
+            const int shift = 2;
+            const int textOverflow = 2;
+            Rect headerLabelRect = new Rect(labelRect) { xMin = labelRect.xMin - shift, xMax = labelRect.xMax + shift };
+            Rect headerUVRect = new Rect(uvRect) { xMin = uvRect.xMin - shift, xMax = uvRect.xMax + shift + textOverflow }; //dealing with text overflow (centering "UV" on sligthly larger area)
+            Rect headerMaterialDropRect = new Rect(materialDropRect) { xMin = materialDropRect.xMin - shift, xMax = materialDropRect.xMax + shift };
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.miniLabel);
+            }
 
             for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                    Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+                    lineRect.xMin += indentOffset;
+                    lineRect.yMax -= EditorGUIUtility.standardVerticalSpacing;
 
-                    Rect materialRect = new Rect(lineRect.x + padding, lineRect.y, lineRect.width - UVWidth - padding - 3 - resetButtonWidth + endOffset, lineRect.height);
-                    Rect uvRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - padding - UVWidth - endOffset, lineRect.y, UVWidth, lineRect.height);
-                    Rect resetRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - endOffset, lineRect.y, resetButtonWidth, lineRect.height);
+                    Rect lineLabelRect = new Rect(labelRect.x, lineRect.y, labelRect.width, lineRect.height);
+                    Rect lineMaterialRect = new Rect(materialDropRect.x, lineRect.y, materialDropRect.width, lineRect.height);
+                    Rect lineUvRect = new Rect(uvRect.x, lineRect.y, uvRect.width, lineRect.height);
+                    Rect lineResetRect = new Rect(uvRect.xMax + horizontalSpacing, lineRect.y, resetButtonWidth, lineRect.height);
 
-                    materialRect.yMin += EditorGUIUtility.standardVerticalSpacing;
-                    uvRect.yMin += EditorGUIUtility.standardVerticalSpacing;
-                    resetRect.yMin += EditorGUIUtility.standardVerticalSpacing;
+                    using (new EditorGUIUtility.IconSizeScope(LayersUIBlock.Styles.layerIconSize))
+                        EditorGUI.LabelField(lineLabelRect, LayersUIBlock.Styles.layers[layerIndex]);
 
                     EditorGUI.BeginChangeCheck();
-                    using (new EditorGUIUtility.IconSizeScope(LayersUIBlock.Styles.layerIconSize))
-                        m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(materialRect, LayersUIBlock.Styles.layers[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), allowSceneObjects: true) as Material;
+                    m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(lineMaterialRect, GUIContent.none, m_MaterialLayers[layerIndex], typeof(Material), allowSceneObjects: true) as Material;
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Change layer material");
@@ -115,14 +126,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     EditorGUI.BeginChangeCheck();
-                    m_WithUV[layerIndex] = EditorGUI.Toggle(uvRect, m_WithUV[layerIndex]);
+                    m_WithUV[layerIndex] = EditorGUI.Toggle(lineUvRect, m_WithUV[layerIndex]);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Change layer material");
                         layersChanged = true;
                     }
 
-                    if (GUI.Button(resetRect, Styles.resetButtonIcon))
+                    if (GUI.Button(lineResetRect, Styles.resetButtonIcon))
                     {
                         Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Reset layer material");
                         LayeredLitGUI.SynchronizeLayerProperties(material, layerIndex, m_MaterialLayers[layerIndex], m_WithUV[layerIndex]);
@@ -138,13 +149,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorGUIUtility.labelWidth = oldLabelWidth;
+            EditorGUI.indentLevel = oldindentLevel;
 
             if (layersChanged)
             {
                 foreach (var mat in materials)
                 {
-                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data

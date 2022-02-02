@@ -38,7 +38,7 @@ For more information about this feature, see [Exposure](Override-Exposure.md).
 
 HDRP now includes new debug modes that can help you to set the correct exposure for your Scene.
 
-For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Render Pipeline Debug](Render-Pipeline-Debug-Window.md).
+For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 
 ### Scalability settings
@@ -78,12 +78,12 @@ To help you to debug lighting in your Scene, HDRP now includes various lighting 
 
 HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 #### Volume debug mode
 ![](Images/VolumeDebugMode.png)
 
-The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 

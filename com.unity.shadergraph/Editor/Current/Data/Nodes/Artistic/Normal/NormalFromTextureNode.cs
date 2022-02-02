@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
         public NormalFromTextureNode()
         {
             name = "Normal From Texture";
+            synonyms = new string[] { "convert to normal", "bump map" };
             UpdateNodeAfterDeserialization();
         }
 

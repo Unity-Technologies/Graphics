@@ -21,7 +21,70 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.Value>(widget);
             var rect = PrepareControlRect();
-            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.GetValue().ToString()));
+            var value = w.GetValue();
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.FormatString(value)));
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ValueTuple Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ValueTuple))]
+    public sealed class DebugUIDrawerValueTuple : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ValueTuple DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ValueTuple>(widget);
+
+            var labelRect = PrepareControlRect();
+            EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+
+            // Following layout should match DebugUIDrawerFoldout to make column labels align
+            Rect drawRect = GUILayoutUtility.GetLastRect();
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; //be at left of rects
+            for (int i = 0; i < w.numElements; i++)
+            {
+                var columnRect = drawRect;
+                columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
+                var value = w.values[i].GetValue();
+                EditorGUI.LabelField(columnRect, w.values[i].FormatString(value));
+            }
+            EditorGUI.indentLevel = indent;
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ProgressBarValue Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
+    public sealed class DebugUIDrawerProgressBarValue : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Value DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ProgressBarValue>(widget);
+
+            var labelRect = PrepareControlRect();
+            var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            float value = (float)w.GetValue();
+            EditorGUI.ProgressBar(progressBarRect, value, w.FormatString(value));
+
             return true;
         }
     }
@@ -435,14 +498,13 @@ namespace UnityEditor.Rendering
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
-                const int oneColumnWidth = 70;
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 for (int i = 0; i < w.columnLabels.Length; i++)
                 {
                     var columnRect = drawRect;
-                    columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
-                    columnRect.width = oneColumnWidth;
+                    columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                    columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
                     string label = w.columnLabels[i] ?? "";
                     string tooltip = w.columnTooltips?.ElementAtOrDefault(i) ?? "";
                     EditorGUI.LabelField(columnRect, EditorGUIUtility.TrTextContent(label, tooltip), EditorStyles.miniBoldLabel);
@@ -461,8 +523,8 @@ namespace UnityEditor.Rendering
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
-            var s = Cast<DebugStateBool>(state);
-            return s.value;
+            var w = Cast<DebugUI.Foldout>(widget);
+            return w.opened;
         }
 
         /// <summary>
@@ -593,6 +655,111 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for <see cref="DebugUI.ObjectField"> Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ObjectField))]
+    public sealed class DebugUIDrawerObjectField : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Object DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ObjectField>(widget);
+
+            EditorGUI.BeginChangeCheck();
+
+            var rect = PrepareControlRect();
+            var value = EditorGUI.ObjectField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.type, true);
+
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, state, value);
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"> Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
+    public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ObjectList DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ObjectListField>(widget);
+            var objects = w.GetValue();
+
+            float height = Math.Max(objects != null ? objects.Length : 0, 1) * DebugWindow.Styles.singleRowHeight;
+            var rect = PrepareControlRect(height);
+
+            rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName));
+
+            EditorGUI.BeginChangeCheck();
+            DoObjectList(rect, w, objects);
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, state, objects);
+
+            return true;
+        }
+
+        internal static void DoObjectList(Rect rect, DebugUI.ObjectListField widget, UnityEngine.Object[] objects)
+        {
+            if (objects == null || objects.Length == 0)
+            {
+                EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent("Empty"));
+                return;
+            }
+
+            rect.height = EditorGUIUtility.singleLineHeight;
+            for (int i = 0; i < objects.Length; i++)
+            {
+                objects[i] = EditorGUI.ObjectField(rect, GUIContent.none, objects[i], widget.type, true);
+                rect.y += DebugWindow.Styles.singleRowHeight;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for MessageBox Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.MessageBox))]
+    public sealed class DebugUIDrawerMessageBox : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for TextLabel DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.MessageBox>(widget);
+
+            var type = w.style switch
+            {
+                DebugUI.MessageBox.Style.Info => MessageType.Info,
+                DebugUI.MessageBox.Style.Warning => MessageType.Warning,
+                DebugUI.MessageBox.Style.Error => MessageType.Error,
+                _ => MessageType.None
+            };
+
+            EditorGUILayout.HelpBox(w.displayName, type);
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for Container Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Container))]
@@ -690,14 +857,21 @@ namespace UnityEditor.Rendering
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
+            const float k_ScrollBarHeight = 15;
+
             var w = Cast<DebugUI.Table>(widget);
             var header = w.Header;
+            var visible = header.state.visibleColumns;
+
+            float contentHeight = 0.0f;
+            foreach (DebugUI.Table.Row row in w.children)
+                contentHeight += row != null ? GetRowHeight(row, visible) : EditorGUIUtility.singleLineHeight;
 
             // Put some space before the array
             PrepareControlRect(EditorGUIUtility.singleLineHeight * 0.5f);
 
             // Draw an outline around the table
-            var rect = EditorGUI.IndentedRect(PrepareControlRect(header.height + (w.children.Count + 1) * EditorGUIUtility.singleLineHeight));
+            var rect = EditorGUI.IndentedRect(PrepareControlRect(header.height + contentHeight + k_ScrollBarHeight));
             rect = DrawOutline(rect);
 
             // Compute rects
@@ -705,8 +879,7 @@ namespace UnityEditor.Rendering
             var contentRect = new Rect(rect.x, headerRect.yMax, rect.width, rect.height - headerRect.height);
             var viewRect = new Rect(contentRect.x, contentRect.y, header.state.widthOfAllVisibleColumns, contentRect.height);
             var rowRect = contentRect;
-            rowRect.height = EditorGUIUtility.singleLineHeight;
-            viewRect.height -= EditorGUIUtility.singleLineHeight;
+            viewRect.height -= k_ScrollBarHeight;
 
             // Show header
             header.OnGUI(headerRect, Mathf.Max(w.scroll.x, 0f));
@@ -715,24 +888,27 @@ namespace UnityEditor.Rendering
             w.scroll = GUI.BeginScrollView(contentRect, w.scroll, viewRect);
             {
                 var columns = header.state.columns;
-                var visible = header.state.visibleColumns;
                 for (int r = 0; r < w.children.Count; r++)
                 {
                     var row = Cast<DebugUI.Container>(w.children[r]);
                     rowRect.x = contentRect.x;
                     rowRect.width = columns[0].width;
+                    rowRect.height = (row is DebugUI.Table.Row tableRow) ? GetRowHeight(tableRow, visible) : EditorGUIUtility.singleLineHeight;
 
                     rowRect.xMin += 2;
                     rowRect.xMax -= 2;
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName));
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), DebugWindow.Styles.centeredLeft);
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 
-                    for (int c = 1; c < visible.Length; c++)
+                    using (new EditorGUI.DisabledScope(w.isReadOnly))
                     {
-                        rowRect.x += rowRect.width;
-                        rowRect.width = columns[visible[c]].width;
-                        DisplayChild(rowRect, row.children[visible[c] - 1], w.isReadOnly);
+                        for (int c = 1; c < visible.Length; c++)
+                        {
+                            rowRect.x += rowRect.width;
+                            rowRect.width = columns[visible[c]].width;
+                            DisplayChild(rowRect, row.children[visible[c] - 1]);
+                        }
                     }
                     rowRect.y += rowRect.height;
                 }
@@ -740,6 +916,19 @@ namespace UnityEditor.Rendering
             GUI.EndScrollView(false);
 
             return false;
+        }
+
+        internal float GetRowHeight(DebugUI.Table.Row row, int[] visibleColumns)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            for (int c = 1; c < visibleColumns.Length; c++)
+            {
+                var child = row.children[visibleColumns[c] - 1] as DebugUI.ObjectListField;
+                if (child == null || child.GetValue() == null)
+                    continue;
+                height = Mathf.Max(height, child.GetValue().Length * DebugWindow.Styles.singleRowHeight);
+            }
+            return height;
         }
 
         internal Rect DrawOutline(Rect rect)
@@ -761,7 +950,7 @@ namespace UnityEditor.Rendering
             return new Rect(rect.x + size, rect.y + size, rect.width - 2 * size, rect.height - 2 * size);
         }
 
-        internal void DisplayChild(Rect rect, DebugUI.Widget child, bool disable)
+        internal void DisplayChild(Rect rect, DebugUI.Widget child)
         {
             rect.xMin += 2;
             rect.xMax -= 2;
@@ -773,14 +962,22 @@ namespace UnityEditor.Rendering
             else if (child.GetType() == typeof(DebugUI.ColorField))
             {
                 var widget = Cast<DebugUI.ColorField>(child);
-                using (new EditorGUI.DisabledScope(disable))
-                    EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
+                EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
             }
             else if (child.GetType() == typeof(DebugUI.BoolField))
             {
                 var widget = Cast<DebugUI.BoolField>(child);
-                using (new EditorGUI.DisabledScope(disable))
-                    EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
+                EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
+            }
+            else if (child.GetType() == typeof(DebugUI.ObjectField))
+            {
+                var widget = Cast<DebugUI.ObjectField>(child);
+                EditorGUI.ObjectField(rect, GUIContent.none, widget.GetValue(), widget.type, true);
+            }
+            else if (child.GetType() == typeof(DebugUI.ObjectListField))
+            {
+                var widget = Cast<DebugUI.ObjectListField>(child);
+                DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
             }
         }
     }

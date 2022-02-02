@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             return !ReferenceEquals(value, null) ? value.m_Type : null;
         }
 
-        private SerializableType() {}
+        private SerializableType() { }
         public SerializableType(Type type)
         {
             m_Type = type;
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
             return m_Type == otherType;
         }
 
-        public static bool operator==(SerializableType left, SerializableType right)
+        public static bool operator ==(SerializableType left, SerializableType right)
         {
             if (!ReferenceEquals(left, null))
                 return left.Equals(right);
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             return true; // both null
         }
 
-        public static bool operator!=(SerializableType left, SerializableType right)
+        public static bool operator !=(SerializableType left, SerializableType right)
         {
             return !(left == right);
         }
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
     [Serializable]
     class VFXSerializableObject
     {
-        private VFXSerializableObject() {}
+        private VFXSerializableObject() { }
 
         public VFXSerializableObject(Type type, object obj) : this(type)
         {

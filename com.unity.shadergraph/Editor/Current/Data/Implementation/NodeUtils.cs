@@ -14,7 +14,7 @@ namespace UnityEditor.Graphing
     {
         public SlotConfigurationException(string message)
             : base(message)
-        {}
+        { }
     }
 
     static class NodeUtils
@@ -466,9 +466,9 @@ namespace UnityEditor.Graphing
                 {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
                     else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
                     foreach (var ownerSlot in ownerSlots)
                         s_SlotStack.Push(ownerSlot);
                 }
@@ -513,9 +513,9 @@ namespace UnityEditor.Graphing
                 {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
                     else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
                     foreach (var ownerSlot in ownerSlots)
                         s_SlotStack.Push(ownerSlot);
                 }

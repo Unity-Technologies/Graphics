@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     }
 
     [ExcludeFromPreset]
+    [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
     public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]

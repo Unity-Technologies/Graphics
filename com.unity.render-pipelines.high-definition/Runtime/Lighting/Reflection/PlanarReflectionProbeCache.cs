@@ -16,17 +16,17 @@ namespace UnityEngine.Rendering.HighDefinition
             Ready
         }
 
-        int                     m_ProbeSize;
-        IBLFilterGGX            m_IBLFilterGGX;
-        PowerOfTwoTextureAtlas  m_TextureAtlas;
-        RenderTexture           m_TempRenderTexture = null;
-        RenderTexture           m_ConvolutionTargetTexture;
+        int m_ProbeSize;
+        IBLFilterGGX m_IBLFilterGGX;
+        PowerOfTwoTextureAtlas m_TextureAtlas;
+        RenderTexture m_TempRenderTexture = null;
+        RenderTexture m_ConvolutionTargetTexture;
         Dictionary<Vector4, ProbeFilteringState> m_ProbeBakingState = new Dictionary<Vector4, ProbeFilteringState>();
-        Material                m_ConvertTextureMaterial;
-        MaterialPropertyBlock   m_ConvertTextureMPB;
-        Dictionary<int, uint>   m_TextureHashes = new Dictionary<int, uint>();
-        int                     m_FrameProbeIndex;
-        GraphicsFormat          m_ProbeFormat;
+        Material m_ConvertTextureMaterial;
+        MaterialPropertyBlock m_ConvertTextureMPB;
+        Dictionary<int, uint> m_TextureHashes = new Dictionary<int, uint>();
+        int m_FrameProbeIndex;
+        GraphicsFormat m_ProbeFormat;
 
         public PlanarReflectionProbeCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterGGX iblFilter, int atlasResolution, GraphicsFormat probeFormat, bool isMipmaped)
         {
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool UpdatePlanarTexture(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, ref Vector4 scaleOffset)
         {
-            bool    success = false;
+            bool success = false;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvolvePlanarReflectionProbe)))
             {
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint GetTextureHash(Texture texture)
         {
-            uint textureHash  = texture.updateCount;
+            uint textureHash = texture.updateCount;
             // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
 #if UNITY_EDITOR
             textureHash += (uint)texture.imageContentsHash.GetHashCode();

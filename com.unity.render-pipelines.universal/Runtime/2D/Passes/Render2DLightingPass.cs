@@ -390,6 +390,10 @@ namespace UnityEngine.Rendering.Universal
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
 
+                var sortSettings = unlitDrawSettings.sortingSettings;
+                GetTransparencySortingMode(camera, ref sortSettings);
+                unlitDrawSettings.sortingSettings = sortSettings;
+
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {

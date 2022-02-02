@@ -14,6 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_MinSmoothness;
+        SerializedDataParameter m_RayMiss;
+        SerializedDataParameter m_LastBounce;
 
         public override void OnEnable()
         {
@@ -24,6 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxDepth = Unpack(o.Find(x => x.maxDepth));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
+            m_LastBounce = Unpack(o.Find(x => x.lastBounce));
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays.");
@@ -39,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
             {
                 PropertyField(m_Enable);
 
@@ -51,6 +55,12 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_RayLength, k_RayLengthText);
                         PropertyField(m_MinSmoothness);
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                            PropertyField(m_RayMiss);
+                            PropertyField(m_LastBounce);
+                        }
                     }
                 }
             }

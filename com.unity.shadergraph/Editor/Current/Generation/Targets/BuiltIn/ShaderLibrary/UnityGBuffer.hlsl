@@ -1,8 +1,8 @@
 #ifndef BUILTIN_GBUFFERUTIL_INCLUDED
 #define BUILTIN_GBUFFERUTIL_INCLUDED
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl"
 
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 

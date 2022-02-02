@@ -128,11 +128,12 @@ float PowderEffect(float cloudDensity, float cosAngle, float intensity)
     return lerp(1.0, lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle)), intensity);
 }
 
-int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 result)
+int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
 {
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
     float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, start);
-    float c = dot(start, start) - (radius * radius);
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
     float d = (b*b) - 4.0*a*c;
     result = 0.0;
     int numSolutions = 0;
@@ -140,9 +141,8 @@ int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 res
     {
         // Compute the values required for the solution eval
         float sqrtD = sqrt(d);
-        float rcp2a = 1.0 / (2.0 * a);
-        result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
-
+        float q = -0.5*(b + FastSign(b) * sqrtD);
+        result = float2(c/q, q/a);
         // Remove the solutions we do not want
         numSolutions = 2;
         if (result.x < 0.0)
@@ -157,33 +157,34 @@ int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 res
     return numSolutions;
 }
 
-bool RaySphereIntersection(float3 start, float3 dir, float radius)
+bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
 {
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
     float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, start);
-    float c = dot(start, start) - (radius * radius);
-    float d = (b*b) - 4.0*a*c;
-
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
+    float d = (b * b) - 4.0 * a * c;
     bool flag = false;
     if (d >= 0.0)
     {
         // Compute the values required for the solution eval
         float sqrtD = sqrt(d);
-        float rcp2a = 1.0 / (2.0 * a);
-        float2 result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
+        float q = -0.5 * (b + FastSign(b) * sqrtD);
+        float2 result = float2(c/q, q/a);
         flag = result.x > 0.0 || result.y > 0.0;
     }
     return flag;
 }
 
-bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
+bool IntersectPlane(float3 ray_originWS, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
+    float3 ray_originPS = ray_originWS + float3(0, _EarthRadius, 0);
     float denom = dot(normal, ray_dir);
     bool flag = false;
     t = -1.0f;
     if (abs(denom) > 1e-6)
     {
-        float3 d = pos - ray_origin;
+        float3 d = pos - ray_originPS;
         t = dot(d, normal) / denom;
         flag = (t >= 0);
     }
@@ -199,21 +200,12 @@ float ConvertCloudDepth(float3 position)
 // Given that the sky is virtually a skybox, we cannot use the motion vector buffer
 float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float positionFlag)
 {
-#ifdef PLANAR_REFLECTION_CAMERA
-    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, _CameraInverseViewProjection_NO, UNITY_MATRIX_V);
-#else
-    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-#endif
+    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     float4 worldPos = float4(posInput.positionWS, positionFlag);
     float4 prevPos = worldPos;
 
-#ifdef PLANAR_REFLECTION_CAMERA
-    float4 prevClipPos = mul(_CameraPrevViewProjection_NO, prevPos);
-    float4 curClipPos = mul(_CameraViewProjection_NO, worldPos);
-#else
-    float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPos);
-    float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
-#endif
+    float4 prevClipPos = mul(_IsPlanarReflection ? _CameraPrevViewProjection_NO : UNITY_MATRIX_PREV_VP, prevPos);
+    float4 curClipPos = mul(_IsPlanarReflection ?  _CameraViewProjection_NO: UNITY_MATRIX_UNJITTERED_VP, worldPos);
 
     float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
     float2 positionCS = curClipPos.xy / curClipPos.w;
@@ -243,6 +235,11 @@ groupshared float gs_cacheA[36];
 groupshared float gs_cacheDP[36];
 groupshared float gs_cacheDC[36];
 groupshared float gs_cachePS[36];
+
+uint2 HalfResolutionIndexToOffset(uint index)
+{
+    return uint2(index & 0x1, index / 2);
+}
 
 uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
 {
@@ -287,7 +284,7 @@ CloudReprojectionData GetCloudReprojectionDataSample(uint2 groupThreadId, int2 o
 }
 
 // Function that fills the struct as we cannot use arrays
-void FillCloudReprojectionNeighborhoodData_NOLDS(int2 traceCoord, out NeighborhoodUpsampleData3x3 neighborhoodData)
+void FillCloudReprojectionNeighborhoodData_NOLDS(int2 traceCoord, int subRegionIdx, out NeighborhoodUpsampleData3x3 neighborhoodData)
 {
     // Fill the sample data
     neighborhoodData.lowValue0 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(-1, -1));
@@ -304,48 +301,57 @@ void FillCloudReprojectionNeighborhoodData_NOLDS(int2 traceCoord, out Neighborho
 
     int2 traceTapCoord = traceCoord + int2(-1, -1);
     int checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    int2 representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    int2 representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthA.x = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightA.x = _DistanceBasedWeights[subRegionIdx * 3 + 0].x;
 
     traceTapCoord = traceCoord + int2(0, -1);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthA.y = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightA.y = _DistanceBasedWeights[subRegionIdx * 3 + 0].y;
 
     traceTapCoord = traceCoord + int2(1, -1);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthA.z = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightA.z = _DistanceBasedWeights[subRegionIdx * 3 + 0].z;
 
     traceTapCoord = traceCoord + int2(-1, 0);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthA.w = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightA.w = _DistanceBasedWeights[subRegionIdx * 3 + 0].w;
 
     traceTapCoord = traceCoord + int2(0, 0);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthB.x = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightB.x = _DistanceBasedWeights[subRegionIdx * 3 + 1].x;
 
     traceTapCoord = traceCoord + int2(1, 0);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthB.y = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightB.y = _DistanceBasedWeights[subRegionIdx * 3 + 1].y;
 
     traceTapCoord = traceCoord + int2(-1, 1);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthB.z = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightB.z = _DistanceBasedWeights[subRegionIdx * 3 + 1].z;
 
     traceTapCoord = traceCoord + int2(0, 1);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthB.w = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightB.w = _DistanceBasedWeights[subRegionIdx * 3 + 1].w;
 
     traceTapCoord = traceCoord + int2(1, 1);
     checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
-    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    representativeCoord = traceTapCoord * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
     neighborhoodData.lowDepthC = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
 
     // In the reprojection case, all masks are valid
     neighborhoodData.lowMasksA = 1.0f;
@@ -353,46 +359,54 @@ void FillCloudReprojectionNeighborhoodData_NOLDS(int2 traceCoord, out Neighborho
     neighborhoodData.lowMasksC = 1.0f;
 }
 
-
 // Function that fills the struct as we cannot use arrays
-void FillCloudReprojectionNeighborhoodData(int2 groupThreadId, out NeighborhoodUpsampleData3x3 neighborhoodData)
+void FillCloudReprojectionNeighborhoodData(int2 groupThreadId, int subRegionIdx, out NeighborhoodUpsampleData3x3 neighborhoodData)
 {
     // Fill the sample data
     CloudReprojectionData data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, -1));
     neighborhoodData.lowValue0 = data.cloudLighting;
     neighborhoodData.lowDepthA.x = data.pixelDepth;
+    neighborhoodData.lowWeightA.x = _DistanceBasedWeights[subRegionIdx * 3 + 0].x;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(0, -1));
     neighborhoodData.lowValue1 = data.cloudLighting;
     neighborhoodData.lowDepthA.y = data.pixelDepth;
+    neighborhoodData.lowWeightA.y = _DistanceBasedWeights[subRegionIdx * 3 + 0].y;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(1, -1));
     neighborhoodData.lowValue2 = data.cloudLighting;
     neighborhoodData.lowDepthA.z = data.pixelDepth;
+    neighborhoodData.lowWeightA.z = _DistanceBasedWeights[subRegionIdx * 3 + 0].z;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, 0));
     neighborhoodData.lowValue3 = data.cloudLighting;
     neighborhoodData.lowDepthA.w = data.pixelDepth;
+    neighborhoodData.lowWeightA.w = _DistanceBasedWeights[subRegionIdx * 3 + 0].w;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(0, 0));
     neighborhoodData.lowValue4 = data.cloudLighting;
     neighborhoodData.lowDepthB.x = data.pixelDepth;
+    neighborhoodData.lowWeightB.x = _DistanceBasedWeights[subRegionIdx * 3 + 1].x;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(1, 0));
     neighborhoodData.lowValue5 = data.cloudLighting;
     neighborhoodData.lowDepthB.y = data.pixelDepth;
+    neighborhoodData.lowWeightB.y = _DistanceBasedWeights[subRegionIdx * 3 + 1].y;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, 1));
     neighborhoodData.lowValue6 = data.cloudLighting;
     neighborhoodData.lowDepthB.z = data.pixelDepth;
+    neighborhoodData.lowWeightB.z = _DistanceBasedWeights[subRegionIdx * 3 + 1].z;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(0, 1));
     neighborhoodData.lowValue7 = data.cloudLighting;
     neighborhoodData.lowDepthB.w = data.pixelDepth;
+    neighborhoodData.lowWeightB.w = _DistanceBasedWeights[subRegionIdx * 3 + 1].w;
 
     data = GetCloudReprojectionDataSample(groupThreadId, int2(1, 1));
     neighborhoodData.lowValue8 = data.cloudLighting;
     neighborhoodData.lowDepthC = data.pixelDepth;
+    neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
 
     // In the reprojection case, all masks are valid
     neighborhoodData.lowMasksA = 1.0f;
@@ -427,55 +441,71 @@ CloudUpscaleData GetCloudUpscaleDataSample(uint2 groupThreadId, int2 offset)
 }
 
 // Function that fills the struct as we cannot use arrays
-void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, out NeighborhoodUpsampleData3x3 neighborhoodData)
+void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, int subRegionIdx, out NeighborhoodUpsampleData3x3 neighborhoodData)
 {
     // Fill the sample data
     CloudUpscaleData data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, -1));
     neighborhoodData.lowValue0 = data.cloudLighting;
     neighborhoodData.lowDepthA.x = data.pixelDepth;
     neighborhoodData.lowMasksA.x = data.pixelStatus;
+    neighborhoodData.lowWeightA.x = _DistanceBasedWeights[subRegionIdx * 3 + 0].x;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(0, -1));
     neighborhoodData.lowValue1 = data.cloudLighting;
     neighborhoodData.lowDepthA.y = data.pixelDepth;
     neighborhoodData.lowMasksA.y = data.pixelStatus;
+    neighborhoodData.lowWeightA.y = _DistanceBasedWeights[subRegionIdx * 3 + 0].y;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(1, -1));
     neighborhoodData.lowValue2 = data.cloudLighting;
     neighborhoodData.lowDepthA.z = data.pixelDepth;
     neighborhoodData.lowMasksA.z = data.pixelStatus;
+    neighborhoodData.lowWeightA.z = _DistanceBasedWeights[subRegionIdx * 3 + 0].z;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, 0));
     neighborhoodData.lowValue3 = data.cloudLighting;
     neighborhoodData.lowDepthA.w = data.pixelDepth;
     neighborhoodData.lowMasksA.w = data.pixelStatus;
+    neighborhoodData.lowWeightA.w = _DistanceBasedWeights[subRegionIdx * 3 + 0].w;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(0, 0));
     neighborhoodData.lowValue4 = data.cloudLighting;
     neighborhoodData.lowDepthB.x = data.pixelDepth;
     neighborhoodData.lowMasksB.x = data.pixelStatus;
+    neighborhoodData.lowWeightB.x = _DistanceBasedWeights[subRegionIdx * 3 + 1].x;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(1, 0));
     neighborhoodData.lowValue5 = data.cloudLighting;
     neighborhoodData.lowDepthB.y = data.pixelDepth;
     neighborhoodData.lowMasksB.y = data.pixelStatus;
+    neighborhoodData.lowWeightB.y = _DistanceBasedWeights[subRegionIdx * 3 + 1].y;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, 1));
     neighborhoodData.lowValue6 = data.cloudLighting;
     neighborhoodData.lowDepthB.z = data.pixelDepth;
     neighborhoodData.lowMasksB.z = data.pixelStatus;
+    neighborhoodData.lowWeightB.z = _DistanceBasedWeights[subRegionIdx * 3 + 1].z;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(0, 1));
     neighborhoodData.lowValue7 = data.cloudLighting;
     neighborhoodData.lowDepthB.w = data.pixelDepth;
     neighborhoodData.lowMasksB.w = data.pixelStatus;
+    neighborhoodData.lowWeightB.w = _DistanceBasedWeights[subRegionIdx * 3 + 1].w;
 
     data = GetCloudUpscaleDataSample(groupThreadId, int2(1, 1));
     neighborhoodData.lowValue8 = data.cloudLighting;
     neighborhoodData.lowDepthC = data.pixelDepth;
     neighborhoodData.lowMasksC = data.pixelStatus;
+    neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
 }
 
+float EvaluateFinalTransmittance(float3 color, float transmittance)
+{
+    // Due to the high intensity of the sun, we often need apply the transmittance in a tonemapped space
+    float3 resultColor = color / (1.0 + color) * transmittance;
+    resultColor = resultColor / (1.0 - resultColor);
+    return _ImprovedTransmittanceBlend ? (resultColor / color) : transmittance;
+}
 #endif // REAL_TIME_VOLUMETRIC_CLOUDS
 
 #endif // VOLUMETRIC_CLOUD_UTILITIES_H

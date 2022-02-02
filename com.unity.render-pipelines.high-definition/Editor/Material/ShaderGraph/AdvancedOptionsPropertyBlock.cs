@@ -19,11 +19,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [Flags]
         public enum Features
         {
-            None                    = 0,
-            SpecularOcclusion       = 1 << 0,
+            None = 0,
+            SpecularOcclusion = 1 << 0,
 
-            StackLit                = All ^ SpecularOcclusion,
-            All                     = ~0
+            StackLit = All ^ SpecularOcclusion,
+            All = ~0
         }
 
         class Styles

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override int Priority => 100;
 
-        public CommonShaderPreprocessor() {}
+        public CommonShaderPreprocessor() { }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
@@ -656,9 +656,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // 1. It is set in a quality level
                 // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
                 //   AND at least one quality level does not have SRP override
-                // 3. It is set as default (GraphicsSettings.defaultRenderPipeline)
-                //   AND there is no main SRP
-                //   AND at least one quality level does not have SRP override
 
                 // Fetch all SRP overrides in all quality levels
                 // Note: QualitySettings contains only quality levels that are valid for the current platform.
@@ -674,10 +671,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!allQualityLevelsAreOverriden)
                 {
                     // We need to check the fallback cases
-                    if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp1)
-                        tmpAssets.Add(hdrp1);
-                    else if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp2)
-                        tmpAssets.Add(hdrp2);
+                    if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp)
+                        tmpAssets.Add(hdrp);
                 }
 
                 _hdrpAssets.AddRange(tmpAssets);

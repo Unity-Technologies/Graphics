@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Neutral,
 
         /// <summary>
-        /// Close approximation of the reference ACES tonemapper for a more filmic look.
+        /// ACES tonemapper for a more filmic look.
         /// </summary>
         ACES,
 
@@ -38,9 +38,104 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Available options for when HDR Output is enabled and Tonemap is set to Neutral.
+    /// </summary>
+    public enum NeutralRangeReductionMode
+    {
+        /// <summary>
+        /// Simple Reinhard tonemapping curve.
+        /// </summary>
+        Reinhard = 1,
+        /// <summary>
+        /// Range reduction curve as specified in the BT.2390 standard.
+        /// </summary>
+        BT2390 = 2
+    }
+
+    /// <summary>
+    /// Preset used when selecting ACES tonemapping for HDR displays.
+    /// </summary>
+    public enum HDRACESPreset
+    {
+        /// <summary>
+        /// Preset for display with maximum 1000 nits display.
+        /// </summary>
+        ACES1000Nits = HDRRangeReduction.ACES1000Nits,
+        /// <summary>
+        /// Preset for display with maximum 2000 nits display.
+        /// </summary>
+        ACES2000Nits = HDRRangeReduction.ACES2000Nits,
+        /// <summary>
+        /// Preset for display with maximum 4000 nits display.
+        /// </summary>
+        ACES4000Nits = HDRRangeReduction.ACES4000Nits,
+    }
+
+    /// <summary>
+    /// Tonemap mode to be used when outputting to HDR device and when the main mode is not supported on HDR.
+    /// </summary>
+    public enum FallbackHDRTonemap
+    {
+        /// <summary>
+        /// No tonemapping.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Tonemapping mode with minimal impact on color hue and saturation.
+        /// </summary>
+        Neutral,
+        /// <summary>
+        /// ACES tonemapper for a more filmic look.
+        /// </summary>
+        ACES
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="NeutralRangeReductionMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class NeutralRangeReductionModeParameter : VolumeParameter<NeutralRangeReductionMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="NeutralRangeReductionModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public NeutralRangeReductionModeParameter(NeutralRangeReductionMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="HDRACESPreset"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class HDRACESPresetParameter : VolumeParameter<HDRACESPreset>
+    {
+        /// <summary>
+        /// Creates a new <see cref="HDRACESPresetParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public HDRACESPresetParameter(HDRACESPreset value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FallbackHDRTonemap"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class FallbackHDRTonemapParameter : VolumeParameter<FallbackHDRTonemap>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FallbackHDRTonemapParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FallbackHDRTonemapParameter(FallbackHDRTonemap value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that holds settings for the Tonemapping effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
@@ -50,6 +145,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <seealso cref="TonemappingMode"/>
         [Tooltip("Specifies the tonemapping algorithm to use for the color grading process.")]
         public TonemappingModeParameter mode = new TonemappingModeParameter(TonemappingMode.None);
+
+        /// <summary>
+        /// Whether to use full ACES tonemap instead of an approximation.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Whether to use full ACES tonemap instead of an approximation. When outputting to an HDR display, full ACES is always used regardless of this checkbox.")]
+        public BoolParameter useFullACES = new BoolParameter(false);
 
         /// <summary>
         /// Controls the transition between the toe and the mid section of the curve. A value of 0
@@ -101,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="TonemappingMode.External"/> is set.
         /// </summary>
         [Tooltip("A custom 3D texture lookup table to apply.")]
-        public TextureParameter lutTexture = new TextureParameter(null);
+        public Texture3DParameter lutTexture = new Texture3DParameter(null);
 
         /// <summary>
         /// How much of the lookup texture will contribute to the color grading effect.
@@ -109,6 +211,60 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
         public ClampedFloatParameter lutContribution = new ClampedFloatParameter(1f, 0f, 1f);
+
+        // -- HDR Output options --
+
+        /// <summary>
+        /// Specifies the range reduction mode used when HDR output is enabled and Neutral tonemapping is enabled.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Specifies the range reduction mode used when HDR output is enabled and Neutral tonemapping is enabled.")]
+        public NeutralRangeReductionModeParameter neutralHDRRangeReductionMode = new NeutralRangeReductionModeParameter(NeutralRangeReductionMode.BT2390);
+
+        /// <summary>
+        /// Specifies the preset to be used for HDR displays.
+        /// </summary>
+        [Tooltip("Specifies the ACES preset to be used for HDR displays.")]
+        public HDRACESPresetParameter acesPreset = new HDRACESPresetParameter(HDRACESPreset.ACES1000Nits);
+
+        /// <summary>
+        /// Specifies the fallback tonemapping algorithm to use when outputting to an HDR device, when the main mode is not supported.
+        /// </summary>
+        /// <seealso cref="TonemappingMode"/>
+        [Tooltip("Specifies the fallback tonemapping algorithm to use when outputting to an HDR device, when the main mode is not supported.")]
+        public FallbackHDRTonemapParameter fallbackMode = new FallbackHDRTonemapParameter(FallbackHDRTonemap.Neutral);
+
+        /// <summary>
+        /// How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.
+        /// </summary>
+        [Tooltip("How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.")]
+        public ClampedFloatParameter hueShiftAmount = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Whether to use values detected from the output device as paperwhite. This value will often not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.
+        /// </summary>
+        [Tooltip("Whether to use values detected from the output device as paperwhite. This value will often not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.")]
+        public BoolParameter detectPaperWhite = new BoolParameter(false);
+        /// <summary>
+        /// The paper white value. It controls how bright a paper white surface should be, it also determines the maximum brightness of UI. The scene is also scaled relative to this value. Value in nits.
+        /// </summary>
+        [Tooltip("It controls how bright a paper white surface should be, it also determines the maximum brightness of UI. The scene is also scaled relative to this value. Value in nits.")]
+        public ClampedFloatParameter paperWhite = new ClampedFloatParameter(300.0f, 0.0f, 400.0f);
+        /// <summary>
+        /// Whether to use the minimum and maximum brightness values detected from the output device. It might be worth considering calibrating this values manually if the results are not the desired ones.
+        /// </summary>
+        [Tooltip("Whether to use the minimum and maximum brightness values detected from the output device. It might be worth considering calibrating this values manually if the results are not the desired ones.")]
+        public BoolParameter detectBrightnessLimits = new BoolParameter(true);
+        /// <summary>
+        /// The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.005f with ACES Tonemap.
+        /// </summary>
+        [Tooltip("The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.005 with ACES Tonemap.")]
+        public ClampedFloatParameter minNits = new ClampedFloatParameter(0.005f, 0.0f, 50.0f);
+        /// <summary>
+        /// The maximum brightness (in nits) of the screen. Note that this is assumed to be defined by the preset when ACES Tonemap is used.
+        /// </summary>
+        [Tooltip("The maximum brightness (in nits) of the screen. Note that this is assumed to be defined by the preset when ACES Tonemap is used.")]
+        public ClampedFloatParameter maxNits = new ClampedFloatParameter(1000.0f, 0.0f, 5000.0f);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
@@ -120,6 +276,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ValidateLUT() && lutContribution.value > 0f;
 
             return mode.value != TonemappingMode.None;
+        }
+
+        internal TonemappingMode GetHDRTonemappingMode()
+        {
+            if (mode.value == TonemappingMode.Custom ||
+                mode.value == TonemappingMode.External)
+            {
+                if (fallbackMode.value == FallbackHDRTonemap.None) return TonemappingMode.None;
+                if (fallbackMode.value == FallbackHDRTonemap.Neutral) return TonemappingMode.Neutral;
+                if (fallbackMode.value == FallbackHDRTonemap.ACES) return TonemappingMode.ACES;
+            }
+
+            return mode.value;
         }
 
         /// <summary>
@@ -165,6 +334,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) {}
+        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

@@ -123,12 +123,10 @@ HDRP caches shadow maps for punctual Lights into one atlas, area Lights into ano
 2. For punctual lights, go to **Lighting > Shadows > Punctual Light Shadows**. For area lights, go to **Lighting > Shadows > Area Light Shadows**.
 3. Set the value for **Cached Shadow Atlas Resolution** to the value you want. To help with shadow atlas organisation, try to keep the resolution of individual shadow maps as a multiple of 64. For the most optimal organisation, set the same resolution to as many shadow maps as possible.
 
-If the shadow atlas is full when a Light requests a spot, the cached shadow manager does not add the Light's shadow map and thus the Light does not cast shadows. This means that it is important to manage the space you have available. To check if a Light can fit in the shadow atlas, you can use the `HDCachedShadowManager.instance.WouldFitInAtlas` helper function. To see if a Light already has a place in the atlas or if it is waiting for one, the [Render Pipeline Debugger window](Render-Pipeline-Debug-Window.md) includes an option which logs the status of the cached shadow atlas. To use this:
+If the shadow atlas is full when a Light requests a spot, the cached shadow manager does not add the Light's shadow map and thus the Light does not cast shadows. This means that it is important to manage the space you have available. To check if a Light can fit in the shadow atlas, you can use the `HDCachedShadowManager.instance.WouldFitInAtlas` helper function. To see if a Light already has a place in the atlas or if it is waiting for one, the Light Explorer can be used:
 
-1. Click menu: **Window > Render Pipeline > Render Pipeline Debugger**.
-2. Go to **Lighting > Shadows**.
-3. Click the **Log Cached Shadow Atlas Status** button. This prints a message to the Console window which describes whether a Light has a place in the atlas or is waiting for one.
-
+1. Click menu: **Window > Rendering > Light Explorer**.
+2. Observe the column **Shadows Fit Atlas**.|
 
 
 After a Scene loads with all the already placed Lights, if you add a new Light with cached shadows to the Scene, HDRP tries to place it in order to fill the holes in the atlas. However, depending on the order of insertion, the atlas may be fragmented and the holes available are not enough to place the Light's shadow map in. In this case, you can defragment the atlas to allow for additional Lights. To do this, pass the target atlas into the following function: `HDCachedShadowManager.instance.DefragAtlas`
@@ -143,7 +141,7 @@ If you plan to only temporarily set a Light's **Update Mode** to **Every Frame**
 
 ### Mixed Cached Shadow Maps
 
-For non-directional lights It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for.
+In HDRP is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for. Additionally, for directional lights the feature needs to be enabled on the HDRP asset via **Lighting > Shadows > Directional Light Shadows > Allow Mixed Cached Shadows. **
 With this setup, HDRP renders static shadow casters into the shadow map depending on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. If the Update Mode is set to OnEnable, HDRP only renders static shadow casters when you enable the Light component. If the Update Mode is to OnDemand, HDRP only renders static shadow casters when you explicitly request an update.
 This setup is particularly useful if your environment consists of mostly static GameObjects and the lights do not move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
 

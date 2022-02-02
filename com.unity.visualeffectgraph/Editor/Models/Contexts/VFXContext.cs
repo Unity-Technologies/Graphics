@@ -34,11 +34,11 @@ namespace UnityEditor.VFX
     [Flags]
     enum VFXDataType
     {
-        None =          0,
-        SpawnEvent =    1 << 0,
-        OutputEvent =   1 << 1,
-        Particle =      1 << 2,
-        Mesh =          1 << 3,
+        None = 0,
+        SpawnEvent = 1 << 0,
+        OutputEvent = 1 << 1,
+        Particle = 1 << 2,
+        Mesh = 1 << 3,
         ParticleStrip = 1 << 4 | Particle, // strips
     };
 
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXContext(VFXContextType contextType) : this(contextType, VFXDataType.None, VFXDataType.None)
-        {}
+        { }
 
         // Called by VFXData
         public static T CreateImplicitContext<T>(VFXData data) where T : VFXContext
@@ -124,22 +124,22 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        public bool doesGenerateShader                                  { get { return codeGeneratorTemplate != null; } }
-        public virtual string codeGeneratorTemplate                     { get { return null; } }
-        public virtual bool codeGeneratorCompute                        { get { return true; } }
-        public virtual bool doesIncludeCommonCompute                    { get { return codeGeneratorCompute; } }
-        public virtual VFXContextType contextType                       { get { return m_ContextType; } }
-        public virtual VFXDataType inputType                            { get { return m_InputType; } }
-        public virtual VFXDataType outputType                           { get { return m_OutputType; } }
-        public virtual VFXDataType ownedType                            { get { return contextType == VFXContextType.Output ? inputType : outputType; } }
-        public virtual VFXTaskType taskType                             { get { return VFXTaskType.None; } }
-        public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
-        public virtual IEnumerable<VFXMapping> additionalMappings       { get { return Enumerable.Empty<VFXMapping>(); } }
-        public virtual IEnumerable<string> additionalDataHeaders        { get { return GetData().additionalHeaders; } }
-        public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
+        public bool doesGenerateShader { get { return codeGeneratorTemplate != null; } }
+        public virtual string codeGeneratorTemplate { get { return null; } }
+        public virtual bool codeGeneratorCompute { get { return true; } }
+        public virtual bool doesIncludeCommonCompute { get { return codeGeneratorCompute; } }
+        public virtual VFXContextType contextType { get { return m_ContextType; } }
+        public virtual VFXDataType inputType { get { return m_InputType; } }
+        public virtual VFXDataType outputType { get { return m_OutputType; } }
+        public virtual VFXDataType ownedType { get { return contextType == VFXContextType.Output ? inputType : outputType; } }
+        public virtual VFXTaskType taskType { get { return VFXTaskType.None; } }
+        public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual IEnumerable<VFXMapping> additionalMappings { get { return Enumerable.Empty<VFXMapping>(); } }
+        public virtual IEnumerable<string> additionalDataHeaders { get { return GetData().additionalHeaders; } }
+        public virtual IEnumerable<string> additionalDefines { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
-        public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
-        public virtual IEnumerable<string> vertexParameters             { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<string> fragmentParameters { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<string> vertexParameters { get { return Enumerable.Empty<string>(); } }
 
         public virtual bool CanBeCompiled()
         {
@@ -194,7 +194,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual bool SetupCompilation() { return true; }
-        public virtual void EndCompilation() {}
+        public virtual void EndCompilation() { }
 
 
         public void DetachAllInputFlowSlots(bool notify = true)
@@ -256,13 +256,21 @@ namespace UnityEditor.VFX
                 return false;
 
             //If link already present, returns false
-            if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to   && o.slotIndex == toIndex) ||
+            if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to && o.slotIndex == toIndex) ||
                 to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
-            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link.
-            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
+            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link on output & spawner.
+            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType != VFXContextType.Init)
                 return false;
+
+            //If we want to prevent no mixing of GPUEvent & Spawn Context on Initialize. (allowed but disconnect invalid link)
+            /*if (to.m_ContextType == VFXContextType.Init)
+            {
+                var currentSlot = to.m_InputFlowSlot.SelectMany(o => o.link).Select(o => o.context.m_ContextType).FirstOrDefault();
+                if (currentSlot != VFXContextType.None && currentSlot != from.m_ContextType)
+                    return false;
+            }*/
 
             //Can't connect directly event to context to OutputEvent
             if (from.m_ContextType == VFXContextType.Event && to.contextType == VFXContextType.OutputEvent)
@@ -324,16 +332,40 @@ namespace UnityEditor.VFX
                 || contextType == VFXContextType.OutputEvent
                 || contextType == VFXContextType.Spawner
                 || contextType == VFXContextType.Subgraph
-                ||  contextType == VFXContextType.Init;
+                || contextType == VFXContextType.Init;
         }
 
-        private static bool IsExclusiveLink(VFXContextType from, VFXContextType to)
+        private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType lastFavoriteTo)
         {
-            if (from == to)
-                return false;
-            if (from == VFXContextType.Spawner || from == VFXContextType.Event)
-                return false;
+            if (from == VFXContextType.Init || from == VFXContextType.Update)
+            {
+                if (lastFavoriteTo == VFXContextType.Update)
+                    return to == VFXContextType.Update;
+                if (lastFavoriteTo == VFXContextType.Output)
+                    return to == VFXContextType.Output;
+            }
+            //No special case outside init output which can't be mixed with output & update
             return true;
+        }
+
+        private static bool CanMixingTo(VFXContextType from, VFXContextType to, VFXContextType lastFavoriteFrom)
+        {
+            if (to == VFXContextType.Init)
+            {
+                //Init is exclusive either {event, spawner} xor {spawnerGPU}, not both
+                if (lastFavoriteFrom == VFXContextType.Event || lastFavoriteFrom == VFXContextType.Spawner)
+                    return from == VFXContextType.Event || from == VFXContextType.Spawner;
+                if (lastFavoriteFrom == VFXContextType.SpawnerGPU)
+                    return from == VFXContextType.SpawnerGPU;
+            }
+            else if (to == VFXContextType.Spawner || to == VFXContextType.OutputEvent)
+            {
+                //No special constraint on spawner or output event (gpuEvent isn't allowed anyway)
+                return true;
+            }
+
+            //Default case, type transfer aren't expected
+            return from == to && to == lastFavoriteFrom;
         }
 
         protected static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
@@ -344,16 +376,18 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || (IsExclusiveLink(link.context.contextType, to.contextType) && from.contextType == link.context.contextType))
+                if (!link.context.CanLinkFromMany()
+                    || !CanMixingFrom(from.contextType, link.context.contextType, to.contextType))
                 {
-                    if (link.context.inputFlowCount > toIndex)
+                    if (link.context.inputFlowCount > toIndex) //Special case from SubGraph, not sure how this test could be false
                         InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
             }
 
             foreach (var link in to.m_InputFlowSlot[toIndex].link.ToArray())
             {
-                if (!link.context.CanLinkToMany() || IsExclusiveLink(link.context.contextType, from.contextType))
+                if (!link.context.CanLinkToMany()
+                    || !CanMixingTo(link.context.contextType, to.contextType, from.contextType))
                 {
                     InnerUnlink(link.context, to, fromIndex, toIndex, notify);
                 }
@@ -387,13 +421,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXContextSlot[] inputFlowSlot { get { return m_InputFlowSlot == null ? new VFXContextSlot[] {} : m_InputFlowSlot; } }
-        public VFXContextSlot[] outputFlowSlot { get { return m_OutputFlowSlot == null ? new VFXContextSlot[] {} : m_OutputFlowSlot; } }
+        public VFXContextSlot[] inputFlowSlot { get { return m_InputFlowSlot == null ? new VFXContextSlot[] { } : m_InputFlowSlot; } }
+        public VFXContextSlot[] outputFlowSlot { get { return m_OutputFlowSlot == null ? new VFXContextSlot[] { } : m_OutputFlowSlot; } }
         protected virtual int inputFlowCount { get { return 1; } }
         protected virtual int outputFlowCount { get { return 1; } }
 
-        public IEnumerable<VFXContext> inputContexts    { get { return m_InputFlowSlot.SelectMany(l => l.link.Select(o => o.context)); } }
-        public IEnumerable<VFXContext> outputContexts   { get { return m_OutputFlowSlot.SelectMany(l => l.link.Select(o => o.context)); } }
+        public IEnumerable<VFXContext> inputContexts { get { return m_InputFlowSlot.SelectMany(l => l.link.Select(o => o.context)); } }
+        public IEnumerable<VFXContext> outputContexts { get { return m_OutputFlowSlot.SelectMany(l => l.link.Select(o => o.context)); } }
 
         public virtual VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
@@ -610,6 +644,25 @@ namespace UnityEditor.VFX
 
             foreach (var block in children)
                 block.CheckGraphBeforeImport();
+        }
+
+        //TODO: Register all the contexts that have issues when transfering settings (in ConvertContext() )
+        protected virtual IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        public bool CanTransferSetting(string settingName)
+        {
+            return !untransferableSettings.Contains(settingName);
+        }
+
+        public bool CanTransferSetting(VFXSetting setting)
+        {
+            return CanTransferSetting(setting.field.Name);
         }
     }
 }

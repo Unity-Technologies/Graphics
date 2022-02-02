@@ -3,7 +3,7 @@ Shader "Universal Render Pipeline/Unlit"
     Properties
     {
         [MainTexture] _BaseMap("Texture", 2D) = "white" {}
-        [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainColor] _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
         // BlendMode
@@ -14,6 +14,8 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
 
         // Editmode props
@@ -30,7 +32,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -44,7 +46,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -55,8 +57,8 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY
 
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
+            #pragma vertex UnlitPassVertex
+            #pragma fragment UnlitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
@@ -69,7 +71,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -151,7 +153,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -165,7 +167,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -174,8 +176,8 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ DEBUG_DISPLAY
 
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
+            #pragma vertex UnlitPassVertex
+            #pragma fragment UnlitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
@@ -188,7 +190,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

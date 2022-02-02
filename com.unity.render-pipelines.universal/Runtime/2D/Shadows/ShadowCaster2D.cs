@@ -44,13 +44,32 @@ namespace UnityEngine.Rendering.Universal
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
 
+        internal Vector3 m_CachedPosition;
+        internal Vector3 m_CachedLossyScale;
+        internal Quaternion m_CachedRotation;
+        internal Matrix4x4 m_CachedShadowMatrix;
+        internal Matrix4x4 m_CachedInverseShadowMatrix;
+        internal Matrix4x4 m_CachedLocalToWorldMatrix;
+
+        internal override void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+            m_CachedLossyScale = transform.lossyScale;
+            m_CachedRotation = transform.rotation;
+
+            m_CachedShadowMatrix = Matrix4x4.TRS(m_CachedPosition, m_CachedRotation, Vector3.one);
+            m_CachedInverseShadowMatrix = m_CachedShadowMatrix.inverse;
+
+            m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
+        }
+
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
         /// </summary>
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
-            get { return m_UseRendererSilhouette && m_HasRenderer;  }
+            get { return m_UseRendererSilhouette && m_HasRenderer; }
         }
 
         /// <summary>
@@ -86,7 +105,16 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsLit(Light2D light)
         {
-            Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
+            // Oddly adding and subtracting vectors is expensive here because of the new structures created...
+            Vector3 deltaPos;
+            deltaPos.x = m_ProjectedBoundingSphere.position.x + m_CachedPosition.x;
+            deltaPos.y = m_ProjectedBoundingSphere.position.y + m_CachedPosition.y;
+            deltaPos.z = m_ProjectedBoundingSphere.position.z + m_CachedPosition.z;
+
+            deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
+            deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
+            deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
+
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
             float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;

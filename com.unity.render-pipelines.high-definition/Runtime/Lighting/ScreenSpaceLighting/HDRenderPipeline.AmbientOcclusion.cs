@@ -21,12 +21,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderAOParameters
         {
-            public Vector2          runningRes;
-            public int              viewCount;
-            public bool             fullResolution;
-            public bool             runAsync;
-            public bool             temporalAccumulation;
-            public bool             bilateralUpsample;
+            public Vector2 runningRes;
+            public int viewCount;
+            public bool fullResolution;
+            public bool runAsync;
+            public bool temporalAccumulation;
+            public bool bilateralUpsample;
 
             public ShaderVariablesAmbientOcclusion cb;
         }
@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                parameters.runningRes = new Vector2(camera.actualWidth, camera.actualHeight) * 0.5f;
-                cb._AOBufferSize = new Vector4(camera.actualWidth * 0.5f, camera.actualHeight * 0.5f, 2.0f / camera.actualWidth, 2.0f / camera.actualHeight);
+                parameters.runningRes = new Vector2(Mathf.RoundToInt(camera.actualWidth * 0.5f), Mathf.RoundToInt(camera.actualHeight * 0.5f));
+                cb._AOBufferSize = new Vector4(parameters.runningRes.x, parameters.runningRes.y, 1.0f / parameters.runningRes.x, 1.0f / parameters.runningRes.y);
             }
 
             parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
@@ -153,8 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                        return RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer, rayCountTexture, shaderVariablesRaytracing);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
+                        result = RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer, rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
                         m_AOHistoryReady = !hdCamera.AllocateAmbientOcclusionHistoryBuffer(settings.fullResolution ? 1.0f : 0.5f);
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float scaleFactor = parameters.fullResolution ? 1.0f : 0.5f;
 
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
 

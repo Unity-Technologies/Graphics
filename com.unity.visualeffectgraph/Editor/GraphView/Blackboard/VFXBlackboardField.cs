@@ -12,7 +12,7 @@ using System.Text;
 using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboardField : BlackboardField, IControlledElement<VFXParameterController>
     {
@@ -34,9 +34,15 @@ namespace  UnityEditor.VFX.UI
         void PillBuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Duplicate %d", (a) => Duplicate(), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
 
             evt.StopPropagation();
+        }
+
+        public void Duplicate()
+        {
+            GetFirstAncestorOfType<VFXView>().DuplicateBlackboardFieldSelection();
         }
 
         void Delete()
@@ -55,7 +61,7 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
-        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) { }
 
         public void SelfChange()
         {

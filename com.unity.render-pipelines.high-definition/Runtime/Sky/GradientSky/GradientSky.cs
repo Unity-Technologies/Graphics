@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Gradient Sky Volume Component.
     /// This component setups gradient sky for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Gradient Sky")]
+    [VolumeComponentMenuForRenderPipeline("Sky/Gradient Sky", typeof(HDRenderPipeline))]
     [SkyUniqueID((int)SkyType.Gradient)]
     [HDRPHelpURLAttribute("Override-Gradient-Sky")]
     public class GradientSky : SkySettings

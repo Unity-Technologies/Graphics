@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable 0659
+#pragma warning disable 0659
     sealed class VFXSpawnerStateExpression : VFXExpression
     {
         public static readonly VFXExpression NewLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateNewLoop);
@@ -51,5 +51,5 @@ namespace UnityEditor.VFX
             return this;
         }
     }
-    #pragma warning restore 0659
+#pragma warning restore 0659
 }

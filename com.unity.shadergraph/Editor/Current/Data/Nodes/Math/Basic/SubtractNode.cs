@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public SubtractNode()
         {
             name = "Subtract";
+            synonyms = new string[] { "subtraction", "remove", "minus", "take away" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

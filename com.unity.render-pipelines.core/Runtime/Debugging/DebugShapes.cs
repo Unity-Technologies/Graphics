@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering
             }
 
             // Top cap
-            vertices[vert++] = new Vector3(0f, 0f , height);
+            vertices[vert++] = new Vector3(0f, 0f, height);
             while (vert <= nbSides * 2 + 1)
             {
                 float rad = (float)(vert - nbSides - 1) / nbSides * _2pi;

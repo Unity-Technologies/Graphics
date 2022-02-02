@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             node.Init(s_DescriptorA);
 
             var contextView = new ContextView("Test", graph.vertexContext, null);
-            var methodInfo = typeof(StackNode).GetMethod("AcceptsElement", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] {typeof(GraphElement), typeof(int).MakeByRefType(), typeof(int)}, null);
+            var methodInfo = typeof(StackNode).GetMethod("AcceptsElement", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(GraphElement), typeof(int).MakeByRefType(), typeof(int) }, null);
             Assert.IsNotNull(methodInfo);
 
             var acceptsElement = (bool)methodInfo.Invoke(contextView, new object[] { new MaterialNodeView() { userData = node }, 0, 0 });

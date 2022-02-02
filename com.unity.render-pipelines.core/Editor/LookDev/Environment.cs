@@ -123,11 +123,11 @@ namespace UnityEditor.Rendering.LookDev
         /// <param name="sky">Editor version of the datas</param>
         public UnityEngine.Rendering.LookDev.Sky sky
             => new UnityEngine.Rendering.LookDev.Sky()
-        {
-            cubemap = cubemap,
-            longitudeOffset = rotation,
-            exposure = exposure
-        };
+            {
+                cubemap = cubemap,
+                longitudeOffset = rotation,
+                exposure = exposure
+            };
 
         internal static Environment GetTemporaryEnvironmentForCubemap(Cubemap cubemap)
         {
@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.LookDev
         public sealed override VisualElement CreateInspectorGUI() => null;
 
         // Don't use ImGUI
-        public sealed override void OnInspectorGUI() {}
+        public sealed override void OnInspectorGUI() { }
 
         //but make preview in Project window
         override public Texture2D RenderStaticPreview(string assetPath, UnityEngine.Object[] subAssets, int width, int height)
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.LookDev
 
         public Environment target => environment;
 
-        public EnvironmentElement() => Create(withPreview : true);
+        public EnvironmentElement() => Create(withPreview: true);
         public EnvironmentElement(bool withPreview, Action OnChangeCallback = null)
         {
             this.OnChangeCallback = OnChangeCallback;

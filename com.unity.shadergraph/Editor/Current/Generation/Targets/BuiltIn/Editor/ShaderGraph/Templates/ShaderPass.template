@@ -20,9 +20,6 @@ HLSLPROGRAM
 // Pragmas
 $splice(PassPragmas)
 
-$splice(DotsInstancingOptions)
-$splice(HybridV1InjectedBuiltinProperties)
-
 // Keywords
 $splice(PassKeywords)
 $splice(GraphKeywords)

@@ -42,21 +42,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha" , "Mask Opacity" };
+        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha", "Mask Opacity" };
 
         string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
-        MaterialProperty baseColorMap = new MaterialProperty();
-        const string kBaseColorMap = "_BaseColorMap";
-
-        MaterialProperty baseColor = new MaterialProperty();
-        const string kBaseColor = "_BaseColor";
-
-        MaterialProperty normalMap = new MaterialProperty();
-        const string kNormalMap = "_NormalMap";
-
-        MaterialProperty maskMap = new MaterialProperty();
-        const string kMaskMap = "_MaskMap";
+        MaterialProperty baseColorMap = null;
+        MaterialProperty baseColor = null;
+        MaterialProperty normalMap = null;
+        MaterialProperty maskMap = null;
 
         MaterialProperty decalBlend = new MaterialProperty();
         const string kDecalBlend = "_DecalBlend";
@@ -99,40 +92,20 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kAO = "_AO";
 
         MaterialProperty smoothness = new MaterialProperty();
-        const string kSmoothness = "_Smoothness";
-
         MaterialProperty metallic = new MaterialProperty();
-        const string kMetallic = "_Metallic";
-
 
         MaterialProperty maskMapBlueScale = new MaterialProperty();
         const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
 
-        MaterialProperty emissiveColor = new MaterialProperty();
-        const string kEmissiveColor = "_EmissiveColor";
-
-        MaterialProperty emissiveColorMap = new MaterialProperty();
-        const string kEmissiveColorMap = "_EmissiveColorMap";
-
-        MaterialProperty affectEmission = new MaterialProperty();
-
+        MaterialProperty emissiveColor = null;
+        MaterialProperty emissiveColorMap = null;
+        MaterialProperty affectEmission = null;
         MaterialProperty emissiveIntensity = null;
-        const string kEmissiveIntensity = "_EmissiveIntensity";
-
         MaterialProperty emissiveIntensityUnit = null;
-        const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
-
         MaterialProperty useEmissiveIntensity = null;
-        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
-
         MaterialProperty emissiveColorLDR = null;
-        const string kEmissiveColorLDR = "_EmissiveColorLDR";
-
         MaterialProperty emissiveColorHDR = null;
-        const string kEmissiveColorHDR = "_EmissiveColorHDR";
-
         MaterialProperty emissiveExposureWeight = null;
-        const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
         /// <summary>
         /// Constructs a DecalSurfaceInputsUIBlock based on the parameters.
@@ -191,13 +164,13 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void OnGUIOpen()
         {
             var material = materials[0];
-            bool affectAlbedo     = material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f;
-            bool affectNormal     = material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f;
-            bool affectMetal      = material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
+            bool affectAlbedo = material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f;
+            bool affectNormal = material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f;
+            bool affectMetal = material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
             bool affectSmoothness = material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f;
-            bool affectAO         = material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
-            bool affectEmission   = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
-            bool affectMaskmap   = affectMetal || affectAO || affectSmoothness;
+            bool affectAO = material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
+            bool affectEmission = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
+            bool affectMaskmap = affectMetal || affectAO || affectSmoothness;
 
             bool perChannelMask = false;
             HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
@@ -281,18 +254,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (useEmissiveIntensity.floatValue == 0.0f)
                 {
+                    if (updateEmissiveColor)
+                        emissiveColorHDR.colorValue = emissiveColor.colorValue;
+
                     EditorGUI.BeginChangeCheck();
                     EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorHDR);
-                    if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
+                    if (EditorGUI.EndChangeCheck())
                         emissiveColor.colorValue = emissiveColorHDR.colorValue;
                 }
                 else
                 {
-                    EditorGUI.BeginChangeCheck();
+                    if (updateEmissiveColor)
+                        EmissionUIBlock.UpdateEmissiveColorLDRAndIntensityFromEmissiveColor(emissiveColorLDR, emissiveIntensity, emissiveColor);
+
                     EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorLDR);
                     EmissionUIBlock.DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
-                    if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                        EmissionUIBlock.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materialEditor, materials);
                 }
 
                 materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);

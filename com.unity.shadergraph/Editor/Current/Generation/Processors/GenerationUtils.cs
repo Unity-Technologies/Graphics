@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Profiling;
 using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
@@ -72,9 +73,9 @@ namespace UnityEditor.ShaderGraph
             return fieldActive;
         }
 
-        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out ShaderStringBuilder structBuilder)
+        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, bool humanReadable, out ShaderStringBuilder structBuilder)
         {
-            structBuilder = new ShaderStringBuilder();
+            structBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using (structBuilder.BlockSemicolonScope())
             {
@@ -123,9 +124,12 @@ namespace UnityEditor.ShaderGraph
 
         internal static void GeneratePackedStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out StructDescriptor packStruct)
         {
-            packStruct = new StructDescriptor() {
-                name = "Packed" + shaderStruct.name, packFields = true,
-                fields = new FieldDescriptor[] {} };
+            packStruct = new StructDescriptor()
+            {
+                name = "Packed" + shaderStruct.name,
+                packFields = true,
+                fields = new FieldDescriptor[] { }
+            };
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
@@ -149,10 +153,14 @@ namespace UnityEditor.ShaderGraph
 
                 if (fieldIsActive)
                 {
+                    // special case, "UNITY_STEREO_INSTANCING_ENABLED" fields must be packed at the end of the struct because they are system generated semantics
+                    //
+                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("INSTANCING")))
+                        postUnpackedSubscripts.Add(subscript);
                     // special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
                     // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
                     //
-                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
+                    else if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
                         postUnpackedSubscripts.Add(subscript);
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
@@ -188,13 +196,13 @@ namespace UnityEditor.ShaderGraph
             packStruct.fields = packedSubscripts.Concat(postUnpackedSubscripts).ToArray();
         }
 
-        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
+        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, bool humanReadable, out ShaderStringBuilder interpolatorBuilder)
         {
             //set up function string builders and struct builder
             List<int> packedCounts = new List<int>();
-            var packBuilder = new ShaderStringBuilder();
-            var unpackBuilder = new ShaderStringBuilder();
-            interpolatorBuilder = new ShaderStringBuilder();
+            var packBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            var unpackBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            interpolatorBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             string packedStruct = "Packed" + shaderStruct.name;
 
             //declare function headers
@@ -245,8 +253,9 @@ namespace UnityEditor.ShaderGraph
                         }
                         // add code to packer and unpacker -- add subscript to packedstruct
                         string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
-                        packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
-                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
+                        string index = interpIndex.ToString();
+                        packBuilder.AppendLine($"output.interp{index}.{packedChannels} =  input.{subscript.name};");
+                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{index}.{packedChannels};");
                     }
 
                     if (subscript.HasPreprocessor())
@@ -282,7 +291,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal static void GetActiveFieldsAndPermutationsForNodes(PassDescriptor pass,
-            KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
+            KeywordCollector keywordCollector, List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
         {
@@ -374,45 +383,54 @@ namespace UnityEditor.ShaderGraph
         {
             return new ConditionalField[]
             {
-                new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,           requirements.requiresScreenPosition),
-                new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,              requirements.requiresVertexColor),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,                               requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.NDCPosition,                                  requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.PixelPosition,                                requirements.requiresPixelPosition),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceNormal,          (requirements.requiresNormal & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceNormal,         (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,                                  requirements.requiresVertexColor),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,   (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,                            (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceNormal,                              (requirements.requiresNormal & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceNormal,                             (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceNormal,                           (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceTangent,         (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection,                     (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,                       (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,                      (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                    (requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,       (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,                           (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceTangent,                             (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceTangent,                            (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceTangent,                          (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePosition,      (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition, (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,                         (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,                           (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,                          (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceBiTangent,                        (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.uv0,                      requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
-                new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                      requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
-                new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                      requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
-                new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                      requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePosition,                          (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePosition,                            (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePosition,                           (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePosition,                         (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,                   (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,           requirements.requiresTime),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,           (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePositionPredisplacement,             (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePositionPredisplacement,            (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePositionPredisplacement,          (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,    (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
-                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
-                new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv0,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+
+                new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,                               requirements.requiresTime),
+
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,                                  requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,                                  requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                                     requirements.requiresVertexID),
 
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
@@ -423,46 +441,55 @@ namespace UnityEditor.ShaderGraph
         {
             return new ConditionalField[]
             {
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,          requirements.requiresScreenPosition),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,             requirements.requiresVertexColor),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                requirements.requiresFaceSign),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,                              requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.NDCPosition,                                 requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.PixelPosition,                               requirements.requiresPixelPosition),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,         (requirements.requiresNormal & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,      (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,                                 requirements.requiresVertexColor),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                                    requirements.requiresFaceSign),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,                           (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,                             (requirements.requiresNormal & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,                            (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,                          (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceTangent,     (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,                    (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,                      (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,                     (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                   (requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceBiTangent,   (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,                          (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,                            (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,                           (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceTangent,                         (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePosition,      (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition, (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,                        (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,                          (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,                         (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceBiTangent,                       (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                     requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                     requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                     requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv3,                     requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,                         (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,                           (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePosition,                          (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePosition,                        (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,                  (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,          requirements.requiresTime),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement,          (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePositionPredisplacement,            (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePositionPredisplacement,           (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePositionPredisplacement,         (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,   (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv3,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,                              requirements.requiresTime),
+
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,                                 requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,                                 requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                                    requirements.requiresVertexID),
 
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
@@ -540,11 +567,28 @@ namespace UnityEditor.ShaderGraph
 
             switch (convertToType)
             {
+                case ConcreteSlotValueType.Boolean:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("((bool) {0})", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("((bool) {0}.x)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("({0}).x", rawOutput);
+                    if (convertFromType == ConcreteSlotValueType.Boolean)
+                        return string.Format("(($precision) {0})", rawOutput);
+                    else
+                        return string.Format("({0}).x", rawOutput);
                 case ConcreteSlotValueType.Vector2:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
@@ -556,6 +600,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector3:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
@@ -568,6 +614,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector4:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
@@ -643,24 +691,66 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
 
-        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
+        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode, List<GraphInputData> graphInputs)
         {
             sb.AppendLine("Properties");
             using (sb.BlockScope())
             {
-                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                if (graphInputs == null || graphInputs.Count == 0)
                 {
-                    prop.AppendPropertyBlockStrings(sb);
+                    foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                    {
+                        prop.AppendPropertyBlockStrings(sb);
+                    }
+
+                    // Keywords use hardcoded state in preview
+                    // Do not add them to the Property Block
+                    if (mode == GenerationMode.Preview)
+                        return;
+
+                    foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                    {
+                        key.AppendPropertyBlockStrings(sb);
+                    }
                 }
-
-                // Keywords use hardcoded state in preview
-                // Do not add them to the Property Block
-                if (mode == GenerationMode.Preview)
-                    return;
-
-                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                else
                 {
-                    key.AppendPropertyBlockStrings(sb);
+                    var propertyInputs = propertyCollector.properties.Where(x => x.generatePropertyBlock).ToList();
+                    var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
+                    foreach (var input in graphInputs)
+                    {
+                        if (input.isKeyword && mode != GenerationMode.Preview)
+                        {
+                            var keyword = keywordInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            if (keyword != null)
+                            {
+                                keyword.AppendPropertyBlockStrings(sb);
+                                keywordInputs.Remove(keyword);
+                            }
+                        }
+                        else if (!input.isKeyword)
+                        {
+                            var property = propertyInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            if (property != null)
+                            {
+                                property.AppendPropertyBlockStrings(sb);
+                                propertyInputs.Remove(property);
+                            }
+                        }
+                    }
+
+                    foreach (var property in propertyInputs)
+                    {
+                        property.AppendPropertyBlockStrings(sb);
+                    }
+
+                    if (mode != GenerationMode.Preview)
+                    {
+                        foreach (var keyword in keywordInputs)
+                        {
+                            keyword.AppendPropertyBlockStrings(sb);
+                        }
+                    }
                 }
             }
         }
@@ -675,12 +765,19 @@ namespace UnityEditor.ShaderGraph
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb);
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb);
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresPositionPredisplacement, InterpolatorType.PositionPredisplacement, sb);
 
                 if (requirements.requiresVertexColor)
                     sb.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
 
                 if (requirements.requiresScreenPosition)
                     sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (requirements.requiresNDCPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.NDCPosition);
+
+                if (requirements.requiresPixelPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.PixelPosition);
 
                 if (requirements.requiresFaceSign)
                     sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
@@ -715,12 +812,19 @@ namespace UnityEditor.ShaderGraph
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPositionPredisplacement, InterpolatorType.PositionPredisplacement, sb, $"{variableName}.{{0}} = IN.{{0}};");
 
             if (requirements.requiresVertexColor)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
 
             if (requirements.requiresScreenPosition)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresNDCPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.NDCPosition} = IN.{ShaderGeneratorNames.NDCPosition};");
+
+            if (requirements.requiresPixelPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.PixelPosition} = IN.{ShaderGeneratorNames.PixelPosition};");
 
             if (requirements.requiresFaceSign)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");
@@ -867,7 +971,9 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeFunction");
                 functionNode.GenerateNodeFunction(functionRegistry, mode);
+                Profiler.EndSample();
             }
 
             if (activeNode is IGeneratesBodyCode bodyNode)
@@ -876,7 +982,9 @@ namespace UnityEditor.ShaderGraph
                     descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeCode");
                 bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                Profiler.EndSample();
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
 
                 if (keywordPermutations != null)
@@ -1001,12 +1109,14 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                Profiler.BeginSample("GenerateNodeDescriptions");
                 for (int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
+                Profiler.EndSample();
 
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null;

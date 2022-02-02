@@ -12,6 +12,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class ChangeExposedFlagAction : IGraphDataAction
     {
+        internal ChangeExposedFlagAction(ShaderInput shaderInput, bool newIsExposed)
+        {
+            this.shaderInputReference = shaderInput;
+            this.newIsExposedValue = newIsExposed;
+            this.oldIsExposedValue = shaderInput.generatePropertyBlock;
+        }
+
         void ChangeExposedFlag(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
@@ -24,11 +31,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action<GraphData> modifyGraphDataAction => ChangeExposedFlag;
 
         // Reference to the shader input being modified
-        internal ShaderInput shaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; private set; }
 
         // New value of whether the shader input should be exposed to the material inspector
-
-        internal bool newIsExposedValue { get; set; }
+        internal bool newIsExposedValue { get; private set; }
+        internal bool oldIsExposedValue { get; private set; }
     }
 
     class ChangePropertyValueAction : IGraphDataAction
@@ -39,37 +46,48 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
+            var material = graphData.owner.materialArtifact;
             switch (shaderInputReference)
             {
                 case BooleanShaderProperty booleanProperty:
                     booleanProperty.value = ((ToggleData)newShaderInputValue).isOn;
+                    if (material) material.SetFloat(shaderInputReference.referenceName, booleanProperty.value ? 1.0f : 0.0f);
                     break;
                 case Vector1ShaderProperty vector1Property:
                     vector1Property.value = (float)newShaderInputValue;
+                    if (material) material.SetFloat(shaderInputReference.referenceName, vector1Property.value);
                     break;
                 case Vector2ShaderProperty vector2Property:
                     vector2Property.value = (Vector2)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector2Property.value);
                     break;
                 case Vector3ShaderProperty vector3Property:
                     vector3Property.value = (Vector3)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector3Property.value);
                     break;
                 case Vector4ShaderProperty vector4Property:
                     vector4Property.value = (Vector4)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector4Property.value);
                     break;
                 case ColorShaderProperty colorProperty:
                     colorProperty.value = (Color)newShaderInputValue;
+                    if (material) material.SetColor(shaderInputReference.referenceName, colorProperty.value);
                     break;
                 case Texture2DShaderProperty texture2DProperty:
                     texture2DProperty.value.texture = (Texture)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture2DProperty.value.texture);
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
                     texture2DArrayProperty.value.textureArray = (Texture2DArray)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture2DArrayProperty.value.textureArray);
                     break;
                 case Texture3DShaderProperty texture3DProperty:
                     texture3DProperty.value.texture = (Texture3D)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture3DProperty.value.texture);
                     break;
                 case CubemapShaderProperty cubemapProperty:
                     cubemapProperty.value.cubemap = (Cubemap)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, cubemapProperty.value.cubemap);
                     break;
                 case Matrix2ShaderProperty matrix2Property:
                     matrix2Property.value = (Matrix4x4)newShaderInputValue;
@@ -114,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ChangeDisplayName;
+        public Action<GraphData> modifyGraphDataAction => ChangeDisplayName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -136,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ChangeReferenceName;
+        public Action<GraphData> modifyGraphDataAction => ChangeReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -154,7 +172,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderInputReference.overrideReferenceName = null;
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ResetReferenceName;
+        public Action<GraphData> modifyGraphDataAction => ResetReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -175,7 +193,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  DeleteShaderInput;
+        public Action<GraphData> modifyGraphDataAction => DeleteShaderInput;
 
         // Reference to the shader input(s) being deleted
         internal IList<ShaderInput> shaderInputsToDelete { get; set; } = new List<ShaderInput>();
@@ -200,6 +218,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void InitializeViewModel()
         {
+            if (Model == null)
+            {
+                AssertHelpers.Fail("Could not initialize shader input view model as shader input was null.");
+                return;
+            }
             ViewModel.model = Model;
             ViewModel.isSubGraph = DataStore.State.isSubGraph;
             ViewModel.isInputExposed = (DataStore.State.isSubGraph || (Model.isExposable && Model.generatePropertyBlock));
@@ -212,7 +235,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderProperty.onBeforeVersionChange += (_) => graphData.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:
-                    ViewModel.inputTypeName = shaderKeyword.keywordType  + " Keyword";
+                    ViewModel.inputTypeName = shaderKeyword.keywordType + " Keyword";
                     ViewModel.inputTypeName = shaderKeyword.isBuiltIn ? "Built-in " + ViewModel.inputTypeName : ViewModel.inputTypeName;
                     break;
                 case ShaderDropdown shaderDropdown:
@@ -239,27 +262,46 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case ChangeExposedFlagAction changeExposedFlagAction:
-                    ViewModel.isInputExposed = Model.generatePropertyBlock;
-                    DirtyNodes(ModificationScope.Graph);
-                    m_SgBlackboardField.UpdateFromViewModel();
+                    // ModelChanged is called overzealously on everything
+                    // but we only care if the action pertains to our Model
+                    if (changeExposedFlagAction.shaderInputReference == Model)
+                    {
+                        ViewModel.isInputExposed = Model.generatePropertyBlock;
+                        if (changeExposedFlagAction.oldIsExposedValue != changeExposedFlagAction.newIsExposedValue)
+                            DirtyNodes(ModificationScope.Graph);
+                        m_SgBlackboardField.UpdateFromViewModel();
+                    }
                     break;
 
                 case ChangePropertyValueAction changePropertyValueAction:
-                    DirtyNodes(ModificationScope.Graph);
-                    m_SgBlackboardField.MarkDirtyRepaint();
+                    if (changePropertyValueAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                        m_SgBlackboardField.MarkDirtyRepaint();
+                    }
                     break;
 
                 case ResetReferenceNameAction resetReferenceNameAction:
-                    DirtyNodes(ModificationScope.Graph);
+                    if (resetReferenceNameAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                    }
                     break;
 
                 case ChangeReferenceNameAction changeReferenceNameAction:
-                    DirtyNodes(ModificationScope.Graph);
+                    if (changeReferenceNameAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                    }
                     break;
+
                 case ChangeDisplayNameAction changeDisplayNameAction:
-                    ViewModel.inputName = Model.displayName;
-                    DirtyNodes(ModificationScope.Topological);
-                    m_SgBlackboardField.UpdateFromViewModel();
+                    if (changeDisplayNameAction.shaderInputReference == Model)
+                    {
+                        ViewModel.inputName = Model.displayName;
+                        DirtyNodes(ModificationScope.Topological);
+                        m_SgBlackboardField.UpdateFromViewModel();
+                    }
                     break;
             }
         }

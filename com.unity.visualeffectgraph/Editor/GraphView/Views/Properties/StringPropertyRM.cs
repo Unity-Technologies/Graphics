@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UI
                     {
                         var instance = Activator.CreateInstance((attribute as PushButtonAttribute).pushButtonProvider);
                         var pushButtonBehavior = instance as IPushButtonBehavior;
-                        return new StringPushButtonInfo() {action = (a) => pushButtonBehavior.OnClicked(a), buttonName = (attribute as PushButtonAttribute).buttonName};
+                        return new StringPushButtonInfo() { action = (a) => pushButtonBehavior.OnClicked(a), buttonName = (attribute as PushButtonAttribute).buttonName };
                     }
                 }
             }

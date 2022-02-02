@@ -39,16 +39,4 @@ namespace UnityEditor.VFX.UI
             return 224;
         }
     }
-
-    class Vector2PropertyRM : VectorPropertyRM<VFXVector2Field, Vector2>
-    {
-        public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {
-        }
-
-        public override float GetPreferredControlWidth()
-        {
-            return 120;
-        }
-    }
 }

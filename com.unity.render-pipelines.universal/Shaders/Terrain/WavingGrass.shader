@@ -1,4 +1,4 @@
-// Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
+// Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
 {
     Properties
@@ -13,8 +13,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
         Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" }//"DisableBatching"="True"
         Cull Off
         LOD 200
-        AlphaTest Greater [_Cutoff]
-        ColorMask RGB
 
         Pass
         {
@@ -25,8 +23,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
@@ -62,7 +60,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull Off
 
             HLSLPROGRAM

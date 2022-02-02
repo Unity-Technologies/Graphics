@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
             m_SkipZeroDeltaTimeProperty = serializedObject.FindProperty("skipZeroDeltaUpdate");
         }
 
-        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate(VFXBasicUpdate context)
+        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate (VFXBasicUpdate context)
         {
             var property = typeof(VFXBasicUpdate).GetProperty("filteredOutSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             return property.GetValue(context) as IEnumerable<string>;
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, filters out block execution if deltaTime is equal to 0.")]
         private bool skipZeroDeltaUpdate = false;
 
-        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) {}
+        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) { }
         public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
@@ -201,7 +201,7 @@ namespace UnityEditor.VFX
                 var lifeTime = data.IsCurrentAttributeWritten(VFXAttribute.Lifetime);
                 var age = data.IsCurrentAttributeUsed(VFXAttribute.Age);
                 var positionVelocity = data.IsCurrentAttributeWritten(VFXAttribute.Velocity);
-                var angularVelocity =   data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
+                var angularVelocity = data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ);
 
@@ -267,6 +267,12 @@ namespace UnityEditor.VFX
             var mapper = base.GetExpressionMapper(target);
             if (target == VFXDeviceTarget.GPU && skipZeroDeltaUpdate)
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
+            var dataParticle = GetData() as VFXDataParticle;
+
+            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds() && space == VFXCoordinateSpace.World)
+            {
+                mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+            }
             return mapper;
         }
 

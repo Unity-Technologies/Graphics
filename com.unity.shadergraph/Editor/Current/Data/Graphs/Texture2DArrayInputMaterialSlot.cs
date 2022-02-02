@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => textureArray == null;
 
         public Texture2DArrayInputMaterialSlot()
-        {}
+        { }
 
         public Texture2DArrayInputMaterialSlot(
             int slotId,
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStageCapability, hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {

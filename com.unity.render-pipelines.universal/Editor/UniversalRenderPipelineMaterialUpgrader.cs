@@ -4,14 +4,16 @@ using UnityEditor.Rendering.Universal.Converters;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
 {
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override int priority => - 1000;
+        public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
@@ -68,6 +70,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -168,7 +171,7 @@ namespace UnityEditor.Rendering.Universal
             upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
             upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
             upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
-            upgraders.Add(new SpeedTree8Upgrader("Nature/SpeedTree8"));
+            upgraders.Add(new UniversalSpeedTree8Upgrader("Nature/SpeedTree8"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -373,6 +376,7 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
@@ -391,7 +395,22 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
             CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", true);
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
+        }
+
+        static void UpdateDetailScaleOffset(Material material)
+        {
+            // In URP details tile/offset is multipied with base tile/offset, where in builtin is not
+            // Basically we setup new tile/offset values that in shader they would result in same values as in builtin
+            // This archieved with inverted calculation where scale=detailScale/baseScale and tile=detailOffset-baseOffset*scale
+            var baseScale = material.GetTextureScale("_BaseMap");
+            var baseOffset = material.GetTextureOffset("_BaseMap");
+            var detailScale = material.GetTextureScale("_DetailAlbedoMap");
+            var detailOffset = material.GetTextureOffset("_DetailAlbedoMap");
+            var scale = new Vector2(baseScale.x == 0 ? 0 : detailScale.x / baseScale.x, baseScale.y == 0 ? 0 : detailScale.y / baseScale.y);
+            material.SetTextureScale("_DetailAlbedoMap", scale);
+            material.SetTextureOffset("_DetailAlbedoMap", new Vector2((detailOffset.x - baseOffset.x * scale.x), (detailOffset.y - baseOffset.y * scale.y)));
         }
 
         // Converts from legacy RenderingMode to new SurfaceType and BlendMode
@@ -526,13 +545,6 @@ namespace UnityEditor.Rendering.Universal
         internal SpeedTreeBillboardUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
-        }
-    }
-    internal class SpeedTree8Upgrader : MaterialUpgrader
-    {
-        internal SpeedTree8Upgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
         }
     }
 

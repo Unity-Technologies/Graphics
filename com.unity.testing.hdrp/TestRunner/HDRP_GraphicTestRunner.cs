@@ -21,7 +21,7 @@ public class HDRP_GraphicTestRunner
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
-        for (int i=0 ; i<5 ; ++i)
+        for (int i = 0; i < 5; ++i)
             yield return new WaitForEndOfFrame();
 
         // Load the test settings
@@ -65,7 +65,7 @@ public class HDRP_GraphicTestRunner
         // Reset temporal effects on hdCamera
         HDCamera.GetOrCreate(camera).Reset();
 
-        for (int i=0; i<waitFrames; ++i)
+        for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
@@ -117,7 +117,7 @@ public class HDRP_GraphicTestRunner
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -133,7 +133,7 @@ public class HDRP_GraphicTestRunner
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -160,6 +160,6 @@ public class HDRP_GraphicTestRunner
     {
         XRGraphicsAutomatedTests.running = false;
     }
-#endif
 
+#endif
 }

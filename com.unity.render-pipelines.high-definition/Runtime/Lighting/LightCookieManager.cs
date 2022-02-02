@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // During the light loop, when reserving space for the cookies (first part of the light loop) the atlas
         // can run out of space, in this case, we set to true this flag which will trigger a re-layouting of the
         // atlas (sort entries by size and insert them again).
-        bool                m_2DCookieAtlasNeedsLayouting = false;
-        bool                m_NoMoreSpace = false;
-        readonly int        cookieAtlasLastValidMip;
+        bool m_2DCookieAtlasNeedsLayouting = false;
+        bool m_NoMoreSpace = false;
+        readonly int cookieAtlasLastValidMip;
         readonly GraphicsFormat cookieFormat;
 
         public LightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 Fetch2DCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
-            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int width = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
-            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int width = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cookieA == null || cookieB == null)
                 return;
 
-            int width  = (int)Mathf.Max(cookieA.width, cookieB.height);
+            int width = (int)Mathf.Max(cookieA.width, cookieB.height);
             int height = (int)Mathf.Max(cookieA.width, cookieB.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
 
-            int projectionSize  = 2 * cookie.width;
+            int projectionSize = 2 * cookie.width;
 
             if (projectionSize < k_MinCookieSize)
                 return;
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(cookieA.dimension == TextureDimension.Cube && cookieB.dimension == TextureDimension.Cube);
 
-            int projectionSize  = 2 * (int)Mathf.Max(cookieA.width, cookieB.width);
+            int projectionSize = 2 * (int)Mathf.Max(cookieA.width, cookieB.width);
 
             if (projectionSize < k_MinCookieSize)
                 return;

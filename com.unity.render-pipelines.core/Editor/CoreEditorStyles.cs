@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -78,6 +80,15 @@ namespace UnityEditor.Rendering
         /// <summary>Style of Sub-Section Headers.</summary>
         public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
 
+
+        static System.Lazy<GUIStyle> m_HelpBox = new(() =>
+        {
+            var style = new GUIStyle() { imagePosition = ImagePosition.ImageLeft, fontSize = 10, wordWrap = true };
+            style.normal.textColor = EditorStyles.helpBox.normal.textColor;
+            return style;
+        });
+        internal static GUIStyle helpBox => m_HelpBox.Value;
+
         #endregion
 
         #region Textures 2D
@@ -113,6 +124,28 @@ namespace UnityEditor.Rendering
         /// <summary>RenderPipeline Global Settings icon</summary>
         public static readonly Texture2D globalSettingsIcon;
 
+        /// <summary>
+        /// Gets the icon that describes the <see cref="MessageType"/>
+        /// </summary>
+        /// <param name="messageType">The <see cref="MessageType"/> to obtain the icon from</param>
+        /// <returns>a <see cref="Texture2D"/> with the icon for the <see cref="MessageType"/></returns>
+        internal static Texture2D GetMessageTypeIcon(MessageType messageType)
+        {
+            switch (messageType)
+            {
+                case MessageType.None:
+                    return null;
+                case MessageType.Info:
+                    return iconHelp;
+                case MessageType.Warning:
+                    return iconWarn;
+                case MessageType.Error:
+                    return iconFail;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(messageType), messageType, null);
+            }
+        }
+
         #endregion
 
         #region Colors
@@ -140,6 +173,11 @@ namespace UnityEditor.Rendering
 
         /// <summary>Reset All content</summary>
         public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
+
+        /// <summary>
+        /// Empty space content in case that you want to keep the indentation but have nothing to write
+        /// </summary>
+        public static readonly GUIContent empty = EditorGUIUtility.TrTextContent(" ");
 
         #endregion
 

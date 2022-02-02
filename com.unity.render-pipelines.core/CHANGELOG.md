@@ -4,11 +4,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Added
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+- Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
+- Added new DebugUI widget types: ProgressBarValue and ValueTuple
+- Added common support code for FSR
+
+### Fixed
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
+
+## [13.1.0] - 2021-09-24
+
+### Added
+- Debug Panels Framework See `IDebugDisplaySettingsQuery`.
+
+### Fixed
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
+
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+- Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
+- Added VolumeComponentMenuForRenderPipelineAttribute to specify a volume component only for certain RenderPipelines.
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
@@ -16,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added helper for Volumes (Enable All Overrides, Disable All Overrides, Remove All Overrides).
 - Added a blitter utility class. Moved from HDRP to RP core.
 - Added a realtime 2D texture atlas utility classes. Moved from HDRP to RP core.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
@@ -39,9 +75,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added common include file for meta pass functionality (case 1211436)
 - Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
 - Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
+- Added an option to change the visibilty of the Volumes Gizmos (Solid, Wireframe, Everything), available at Preferences > Core Render Pipeline
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
+- Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
 
 ### Fixed
+- Help boxes with fix buttons do not crop the label.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
@@ -49,6 +91,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Right Align of additional properties on Volume Components Editors
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 - Fixed L2 for Probe Volumes.
+- When adding Overrides to the Volume Profile, only show Volume Components from the current Pipeline.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
 - Explicit half precision not working even when Unified Shader Precision Model is enabled.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
@@ -61,8 +104,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 - Fixed alignment in Volume Components
+- Virtual Texturing fallback texture sampling code correctly honors the enableGlobalMipBias when virtual texturing is disabled.
+- Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
+- Fixed library function SurfaceGradientFromTriplanarProjection to match the mapping convention used in SampleUVMappingNormalInternal.hlsl and fix its description.
+- Fixed Volume Gizmo size when rescaling parent GameObject
+- Fixed rotation issue now all flare rotate on positive direction (1348570)
+- Fixed error when change Lens Flare Element Count followed by undo (1346894)
+- Fixed Lens Flare Thumbnails
+- Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
+- Fixed Lens Flare rotation for Curve Distribution
+- Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
+- Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
+- Improved the warning messages for Volumes and their Colliders.
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
@@ -81,6 +137,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
 - LensFlare Element editor now have Thumbnail preview
+- Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
+- DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
+- Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
+- Made occlusion Radius for lens flares in directional lights, be independant of the camera's far plane.
 
 ## [11.0.0] - 2020-10-21
 

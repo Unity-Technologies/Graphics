@@ -13,16 +13,16 @@ namespace UnityEditor.ShaderAnalysis
             bool logCommandLines = false
         )
             => new ShaderAnalysisReport<TAsset>
-        {
-            asset = asset,
-            common = new ShaderAnalysisReport
             {
-                targetPlatform = currentPlatform,
-                filter = filter,
-                features = features,
-                logCommandLines = logCommandLines
-            }
-        };
+                asset = asset,
+                common = new ShaderAnalysisReport
+                {
+                    targetPlatform = currentPlatform,
+                    filter = filter,
+                    features = features,
+                    logCommandLines = logCommandLines
+                }
+            };
 
         public BuildTarget targetPlatform;
         public ShaderProgramFilter filter;
@@ -38,9 +38,9 @@ namespace UnityEditor.ShaderAnalysis
 
         public ShaderAnalysisReport<TAsset2> Into<TAsset2>()
             => new ShaderAnalysisReport<TAsset2>
-        {
-            asset = (TAsset2)Convert.ChangeType(asset, typeof(TAsset2)),
-            common = common
-        };
+            {
+                asset = (TAsset2)Convert.ChangeType(asset, typeof(TAsset2)),
+                common = common
+            };
     }
 }

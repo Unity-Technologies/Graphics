@@ -1,7 +1,7 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {

@@ -12,13 +12,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            LitStandard             = 1 << 0,   // For material classification we need to identify that we are indeed use as standard material, else we are consider as sky/background element
-            LitSpecularColor        = 1 << 1,   // LitSpecularColor is not use statically but only dynamically
+            LitStandard = 1 << 0,   // For material classification we need to identify that we are indeed use as standard material, else we are consider as sky/background element
+            LitSpecularColor = 1 << 1,   // LitSpecularColor is not use statically but only dynamically
             LitSubsurfaceScattering = 1 << 2,
-            LitTransmission         = 1 << 3,
-            LitAnisotropy           = 1 << 4,
-            LitIridescence          = 1 << 5,
-            LitClearCoat            = 1 << 6
+            LitTransmission = 1 << 3,
+            LitAnisotropy = 1 << 4,
+            LitIridescence = 1 << 5,
+            LitClearCoat = 1 << 6
         };
 
         //-----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
-        public Lit() {}
+        public Lit() { }
 
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {

@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool gpuInstanced
         {
             get { return false; }
-            set {}
+            set { }
         }
 
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
@@ -126,8 +126,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public virtual string GetPropertyTypeString()
         {
-            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})";
-            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
+            var typeString = propertyType.ToString();
+            if (sgVersion < latestVersion)
+                typeString = $"{typeString} (Legacy v{sgVersion})";
+            return typeString;
         }
     }
 
@@ -265,9 +267,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool IsObjectType()
         {
             return type == HLSLType._SamplerState ||
-                type == HLSLType._Texture2D    ||
-                type == HLSLType._Texture3D    ||
-                type == HLSLType._TextureCube  ||
+                type == HLSLType._Texture2D ||
+                type == HLSLType._Texture3D ||
+                type == HLSLType._TextureCube ||
                 type == HLSLType._Texture2DArray;
         }
 

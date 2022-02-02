@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering
         static class Styles
         {
             // TODO: Better tooltip are needed here.
-            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how much bricks there is in a streamable unit.");
+            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how many bricks are in a streamable unit. Each simplification step adds a brick level above the minimum one.");
             public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
                 EditorGUILayout.HelpBox(Styles.simplificationLevelsHighWarning, MessageType.Warning);
             }
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
-            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters / 3.0f}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();

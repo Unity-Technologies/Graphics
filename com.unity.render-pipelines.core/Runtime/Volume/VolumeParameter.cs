@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
         /// </remarks>
         public T GetValue<T>()
         {
-            return ((VolumeParameter<T>) this).value;
+            return ((VolumeParameter<T>)this).value;
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Override this method to free all allocated resources
         /// </summary>
-        public virtual void Release() {}
+        public virtual void Release() { }
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">The first value in a <see cref="VolumeParameter"/>.</param>
         /// <param name="rhs">The second value.</param>
         /// <returns><c>true</c> if both values are equal, <c>false</c> otherwise.</returns>
-        public static bool operator==(VolumeParameter<T> lhs, T rhs) => lhs != null && !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
+        public static bool operator ==(VolumeParameter<T> lhs, T rhs) => lhs != null && !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
 
         /// <summary>
         /// Compares the value store in a parameter with another value of the same type.
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">The first value in a <see cref="VolumeParameter"/>.</param>
         /// <param name="rhs">The second value.</param>
         /// <returns><c>false</c> if both values are equal, <c>true</c> otherwise</returns>
-        public static bool operator!=(VolumeParameter<T> lhs, T rhs) => !(lhs == rhs);
+        public static bool operator !=(VolumeParameter<T> lhs, T rhs) => !(lhs == rhs);
 
         /// <summary>
         /// Checks if this parameter is equal to another.
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter</param>
         public BoolParameter(bool value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public LayerMaskParameter(LayerMask value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public IntParameter(int value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Interpolates between two <c>int</c> values.
@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpIntParameter(int value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -711,7 +711,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter</param>
         public FloatParameter(float value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Interpolates between two <c>float</c> values.
@@ -746,7 +746,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpFloatParameter(float value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1206,7 +1206,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public ColorParameter(Color value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Creates a new <seealso cref="ColorParameter"/> instance.
@@ -1277,7 +1277,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpColorParameter(Color value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Creates a new <seealso cref="NoInterpColorParameter"/> instance.
@@ -1310,7 +1310,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public Vector2Parameter(Vector2 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Interpolates between two <c>Vector2</c> values.
@@ -1338,7 +1338,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpVector2Parameter(Vector2 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1354,7 +1354,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public Vector3Parameter(Vector3 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Interpolates between two <c>Vector3</c> values.
@@ -1383,7 +1383,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpVector3Parameter(Vector3 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1399,7 +1399,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public Vector4Parameter(Vector4 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Interpolates between two <c>Vector4</c> values.
@@ -1429,7 +1429,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpVector4Parameter(Vector4 value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1444,7 +1444,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         // TODO: Texture interpolation
     }
@@ -1461,7 +1461,37 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpTextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a 2D <c>Texture</c> value.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class Texture2DParameter : VolumeParameter<Texture>
+    {
+        /// <summary>
+        /// Creates a new <seealso cref="Texture2DParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public Texture2DParameter(Texture value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a 3D <c>Texture</c> value.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class Texture3DParameter : VolumeParameter<Texture>
+    {
+        /// <summary>
+        /// Creates a new <seealso cref="Texture3DParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public Texture3DParameter(Texture value, bool overrideState = false)
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1476,7 +1506,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public RenderTextureParameter(RenderTexture value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         // TODO: RenderTexture interpolation
     }
@@ -1493,7 +1523,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpRenderTextureParameter(RenderTexture value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1508,7 +1538,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public CubemapParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
         // TODO: Cubemap interpolation
     }
 
@@ -1524,7 +1554,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpCubemapParameter(Cubemap value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -1617,7 +1647,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to be stored in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter</param>
         public AnimationCurveParameter(AnimationCurve value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         // TODO: Curve interpolation
     }

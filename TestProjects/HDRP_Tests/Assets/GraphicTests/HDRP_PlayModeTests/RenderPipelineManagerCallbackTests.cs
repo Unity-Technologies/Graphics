@@ -65,7 +65,7 @@ public class RenderPipelineManagerCallbackTests
     {
         var camera = SetupTest();
         var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
-        additionalData.customRender += (_, _) => {};
+        additionalData.customRender += (_, _) => { };
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
         return CheckResult(k_RenderCount);

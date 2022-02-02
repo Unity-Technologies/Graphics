@@ -10,7 +10,8 @@ Pass
 	
 	#pragma multi_compile _ LIGHT_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
-	
+    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+
 	#define UNITY_MATERIAL_LIT
 	
 	${VFXIncludeRP("VFXLitVaryings.template")}	
