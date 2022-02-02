@@ -702,10 +702,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeReader.TryGetPort(propertyName, out var portReader) ? portReader : null;
         }
 
-        DefaultTextureType Mock_GetDefaultTextureType(IPortReader portReader)
-        {
-            return DefaultTextureType.White;
-        }
+        // Stubbed function bodies below ----
+        // Will be implemented when shader variables are treated as properties in the MPB
 
         // This will return a uniquely qualified name for the property like:
         // Add1.InPort1

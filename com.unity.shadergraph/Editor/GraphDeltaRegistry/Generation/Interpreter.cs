@@ -31,11 +31,6 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ToString();
         }
 
-		public static string GetShaderForGraph(IGraphHandler graph, Registry.Registry registry)
-        {
-            return null;
-        }
-
         internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";

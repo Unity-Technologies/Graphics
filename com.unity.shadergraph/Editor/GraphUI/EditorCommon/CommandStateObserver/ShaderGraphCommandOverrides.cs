@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -221,12 +222,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             ShaderGraphModel shaderGraphModel,
             UpdatePortConstantCommand updatePortConstantCommand)
         {
-            if (updatePortConstantCommand.PortModel.NodeModel is GraphDataNodeModel nodeModel)
+            var portModel = updatePortConstantCommand.PortModel;
+            if (portModel.NodeModel is GraphDataNodeModel nodeModel)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeReader(nodeModel.graphDataName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
                 if (nodeWriter != null)
                 {
-                    // TODO: How to update ports on a graph Handler level?
+                    var vec4Value = updatePortConstantCommand.NewValue is Vector4 value ? value : default;
+                    nodeWriter.SetPortField(portModel.UniqueName, "c0", vec4Value.x);
+                    nodeWriter.SetPortField(portModel.UniqueName, "c1", vec4Value.y);
+                    nodeWriter.SetPortField(portModel.UniqueName, "c2", vec4Value.z);
+                    nodeWriter.SetPortField(portModel.UniqueName, "c3", vec4Value.w);
+
+                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, portModel.UniqueName, vec4Value);
                 }
             }
         }
