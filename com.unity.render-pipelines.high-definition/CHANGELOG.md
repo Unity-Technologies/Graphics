@@ -6,8 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.5] - 2022-01-14
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed sky jittering when TAA is enabled.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed warning when an APV baking set is renamed.
+- Fixed the Exposure field name to Exposure Compensation name in sky volume overrides (case 1392530).
+- Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed Post Process not editable in the default frame settings.
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
+- Fixed a null ref exception in Volume Explorer
+- Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
+- Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 
 ## [12.1.4] - 2021-12-07
 
@@ -78,6 +98,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [12.1.3] - 2021-11-17
 
