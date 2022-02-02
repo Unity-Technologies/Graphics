@@ -54,7 +54,7 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -125,7 +125,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -192,7 +192,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_20
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -290,7 +290,7 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -361,7 +361,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -428,7 +428,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -

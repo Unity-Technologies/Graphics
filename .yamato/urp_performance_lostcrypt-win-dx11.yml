@@ -71,7 +71,7 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -148,7 +148,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_2020.
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -221,7 +221,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_2020.3
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -342,7 +342,7 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -419,7 +419,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_CUSTO
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -492,7 +492,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config

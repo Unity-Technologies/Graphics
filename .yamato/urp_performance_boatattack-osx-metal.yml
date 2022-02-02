@@ -23,7 +23,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_20
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -99,7 +99,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_202
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -169,7 +169,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_2020
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -239,7 +239,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -315,7 +315,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -385,7 +385,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
