@@ -71,6 +71,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/063_Lighting_BasicVertexPosition.unity
     guid: e2daf39e5a0f09744a2a6851d38e7081
-  - enabled: 1
-    path: Assets/Scenes/070_FullscreenEffects.unity
-    guid: 973136f6e85b5aa408b497d12825f950
+  m_configObjects: {}
