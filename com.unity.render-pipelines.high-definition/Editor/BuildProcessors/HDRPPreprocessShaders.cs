@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -412,10 +413,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public HDRPreprocessShaders()
         {
-            // TODO: Grab correct configuration/quality asset.
-            if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
-                return;
-
             shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
         }
 
@@ -509,7 +506,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: Grab correct configuration/quality asset.
                 var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
 
-                if (hdPipelineAssets.Count == 0)
+                if (hdPipelineAssets == null || hdPipelineAssets.Count == 0)
                     return;
 
                 uint preStrippingCount = (uint)inputData.Count;
@@ -587,8 +584,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
+                // The list should always have been built before calling this (because we need the build target which we don't have here).
                 if (_hdrpAssets == null || _hdrpAssets.Count == 0)
-                    GetAllValidHDRPAssets();
+                    throw new System.InvalidOperationException();
                 return _hdrpAssets;
             }
         }
@@ -637,7 +635,59 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void GetAllValidHDRPAssets()
+        static bool TryGetRenderPipelineAssetsForBuildTarget<T>(BuildTarget buildTarget, List<T> srpAssets) where T : RenderPipelineAsset
+        {
+            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
+            if (qualitySettings == null)
+                return false;
+
+            var property = qualitySettings.FindProperty("m_QualitySettings");
+            if (property == null)
+                return false;
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+
+            var allQualityLevelsAreOverriden = true;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                bool isExcluded = false;
+
+                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
+                if (excludedTargetPlatforms == null)
+                    return false;
+
+                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
+                {
+                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
+                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
+                    {
+                        isExcluded = true;
+                        break;
+                    }
+                }
+
+                if (!isExcluded)
+                {
+                    var asset = QualitySettings.GetRenderPipelineAssetAt(i) as T;
+                    if (asset != null)
+                        srpAssets.Add(asset);
+                    else
+                        allQualityLevelsAreOverriden = false;
+                }
+            }
+
+            if (!allQualityLevelsAreOverriden)
+            {
+                // We need to check the fallback cases
+                if (GraphicsSettings.defaultRenderPipeline is T srpAsset)
+                    srpAssets.Add(srpAsset);
+            }
+
+            return true;
+        }
+
+        static void GetAllValidHDRPAssets(BuildTarget buildTarget)
         {
             s_PlayerNeedRaytracing = false;
 
@@ -649,34 +699,13 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 _hdrpAssets = new List<HDRenderPipelineAsset>();
 
-            using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
-            {
-                // Here we want the HDRP Assets that are actually used at runtime.
-                // An SRP asset is included if:
-                // 1. It is set in a quality level
-                // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
-                //   AND at least one quality level does not have SRP override
-
-                // Fetch all SRP overrides in all quality levels
-                // Note: QualitySettings contains only quality levels that are valid for the current platform.
-                var allQualityLevelsAreOverriden = true;
-                for (int i = 0, c = QualitySettings.names.Length; i < c; ++i)
-                {
-                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp)
-                        tmpAssets.Add(hdrp);
-                    else
-                        allQualityLevelsAreOverriden = false;
-                }
-
-                if (!allQualityLevelsAreOverriden)
-                {
-                    // We need to check the fallback cases
-                    if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp)
-                        tmpAssets.Add(hdrp);
-                }
-
-                _hdrpAssets.AddRange(tmpAssets);
-            }
+            // Here we want the HDRP Assets that are actually used at runtime.
+            // An SRP asset is included if:
+            // 1. It is set in an enabled quality level
+            // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
+            //   AND at least one quality level does not have SRP override
+            // Fetch all SRP overrides in all enabled quality levels for this platform
+            TryGetRenderPipelineAssetsForBuildTarget(buildTarget, _hdrpAssets);
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
@@ -700,10 +729,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add the HDRP assets that are in the Resources folders.
-            _hdrpAssets.AddRange(
-                Resources.FindObjectsOfTypeAll<HDRenderPipelineAsset>()
-                    .Where(a => !_hdrpAssets.Contains(a))
-            );
+            _hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
 
             // Add the HDRP assets that are labeled to be included
             _hdrpAssets.AddRange(
@@ -743,21 +769,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            /*
-            Debug.Log(string.Format("{0} HDRP assets in build:{1}",
+
+            Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,
                 _hdrpAssets
                     .Select(a => a.name)
-                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}" )
+                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}")
                 ));
-            // */
+
         }
 
         public int callbackOrder { get { return 0; } }
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            GetAllValidHDRPAssets();
+            GetAllValidHDRPAssets(report.summary.platform);
         }
     }
 }
