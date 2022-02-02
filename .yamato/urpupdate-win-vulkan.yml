@@ -17,7 +17,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -40,7 +40,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing
     artifacts:
         logs:
             paths:
@@ -59,7 +59,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -82,7 +82,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing
     artifacts:
         logs:
             paths:
@@ -101,7 +101,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -124,7 +124,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing
     artifacts:
         logs:
             paths:
@@ -143,7 +143,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -166,7 +166,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/URP-Update-Testing/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/URP-Update-Testing
     artifacts:
         logs:
             paths:

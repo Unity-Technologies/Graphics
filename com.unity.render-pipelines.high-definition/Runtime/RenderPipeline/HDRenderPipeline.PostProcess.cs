@@ -2174,6 +2174,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCircleOfConfusionCS.EnableKeyword("USE_MIN_DEPTH");
             }
 
+            if (m_DepthOfField.limitManualRangeNearBlur && m_DepthOfField.focusMode == DepthOfFieldMode.Manual && !m_DepthOfField.physicallyBased && m_DepthOfField.IsNearLayerActive())
+            {
+                parameters.dofCoCCS.EnableKeyword("FIX_NEAR_BLEND");
+            }
+
             parameters.useMipSafePath = m_UseSafePath;
 
             return parameters;
@@ -4609,6 +4614,14 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle UberPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle logLut, TextureHandle bloomTexture, TextureHandle source)
         {
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
+            var featureFlags = GetUberFeatureFlags(isSceneView);
+            // If we have nothing to do in Uber post we just skip it.
+            if (featureFlags == UberPostFeatureFlags.None && !m_ColorGradingFS && !m_BloomFS &&
+                m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.ColorLog)
+            {
+                return source;
+            }
+
             using (var builder = renderGraph.AddRenderPass<UberPostPassData>("Uber Post", out var passData, ProfilingSampler.Get(HDProfileId.UberPost)))
             {
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Uber Post Destination");
@@ -4617,7 +4630,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // if they are used or not so they can set default values if needed
                 passData.uberPostCS = defaultResources.shaders.uberPostCS;
                 passData.uberPostCS.shaderKeywords = null;
-                var featureFlags = GetUberFeatureFlags(isSceneView);
+
                 passData.uberPostKernel = passData.uberPostCS.FindKernel("Uber");
                 if (PostProcessEnableAlpha())
                 {

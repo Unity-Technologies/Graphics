@@ -6,14 +6,22 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(WaterRendering))]
+    [CustomEditor(typeof(WaterRendering))]
     class WaterRenderingEditor : VolumeComponentEditor
     {
         // General
         SerializedDataParameter m_Enable;
-        SerializedDataParameter m_GridResolution;
+
+        // LOD
         SerializedDataParameter m_GridSize;
         SerializedDataParameter m_NumLevelOfDetails;
+
+        // Tessellation
+        SerializedDataParameter m_MaxTessellationFactor;
+        SerializedDataParameter m_TessellationFactorFadeStart;
+        SerializedDataParameter m_TessellationFactorFadeRange;
+
+        // Lighting
         SerializedDataParameter m_AmbientProbeDimmer;
 
         public override void OnEnable()
@@ -21,9 +29,17 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<WaterRendering>(serializedObject);
             // General
             m_Enable = Unpack(o.Find(x => x.enable));
-            m_GridResolution = Unpack(o.Find(x => x.gridResolution));
+
+            // LOD
             m_GridSize = Unpack(o.Find(x => x.gridSize));
             m_NumLevelOfDetails = Unpack(o.Find(x => x.numLevelOfDetails));
+
+            // Tessellation
+            m_MaxTessellationFactor = Unpack(o.Find(x => x.maxTessellationFactor));
+            m_TessellationFactorFadeStart = Unpack(o.Find(x => x.tessellationFactorFadeStart));
+            m_TessellationFactorFadeRange = Unpack(o.Find(x => x.tessellationFactorFadeRange));
+
+            // Lighting
             m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
         }
 
@@ -40,9 +56,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
-            PropertyField(m_GridResolution);
+
+            EditorGUILayout.LabelField("Level of Detail", EditorStyles.miniLabel);
             PropertyField(m_GridSize);
             PropertyField(m_NumLevelOfDetails);
+
+            if (showAdditionalProperties)
+                EditorGUILayout.LabelField("Tessellation", EditorStyles.miniLabel);
+            PropertyField(m_MaxTessellationFactor);
+            PropertyField(m_TessellationFactorFadeStart);
+            PropertyField(m_TessellationFactorFadeRange);
+
+            EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
             PropertyField(m_AmbientProbeDimmer);
         }
     }

@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(Fog))]
+    [CustomEditor(typeof(Fog))]
     class FogEditor : VolumeComponentWithQualityEditor
     {
         protected SerializedDataParameter m_Enabled;

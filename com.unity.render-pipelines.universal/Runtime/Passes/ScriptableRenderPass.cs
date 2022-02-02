@@ -15,10 +15,29 @@ namespace UnityEngine.Rendering.Universal
     [Flags]
     public enum ScriptableRenderPassInput
     {
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> does not require any texture.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a depth texture.
+        /// </summary>
         Depth = 1 << 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// </summary>
         Normal = 1 << 1,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a color texture.
+        /// </summary>
         Color = 1 << 2,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
+        /// </summary>
         Motion = 1 << 3
     }
 
@@ -141,6 +160,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         static public RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
+        /// <summary>
+        /// The event when the render pass executes.
+        /// </summary>
         public RenderPassEvent renderPassEvent { get; set; }
 
         [Obsolete("Use colorAttachmentHandles")]
@@ -185,11 +207,17 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        /// <summary>
+        /// The store actions for Color.
+        /// </summary>
         public RenderBufferStoreAction[] colorStoreActions
         {
             get => m_ColorStoreActions;
         }
 
+        /// <summary>
+        /// The store actions for Depth.
+        /// </summary>
         public RenderBufferStoreAction depthStoreAction
         {
             get => m_DepthStoreAction;
@@ -214,11 +242,18 @@ namespace UnityEngine.Rendering.Universal
             get => m_Input;
         }
 
+        /// <summary>
+        /// The flag to use when clearing.
+        /// </summary>
+        /// <seealso cref="ClearFlag"/>
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
         }
 
+        /// <summary>
+        /// The color value to use when clearing.
+        /// </summary>
         public Color clearColor
         {
             get => m_ClearColor;
@@ -278,6 +313,9 @@ namespace UnityEngine.Rendering.Universal
             return null;
         }
 
+        /// <summary>
+        /// Creates a new <c>ScriptableRenderPass"</c> instance.
+        /// </summary>
         public ScriptableRenderPass()
         {
             m_UsesRTHandles = true;
@@ -457,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
-        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <param name="colorAttachments">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
         [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
@@ -478,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
-        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <param name="colorAttachments">Color attachment handle.</param>
         /// <param name="depthAttachment">Depth attachment handle.</param>
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment)
@@ -605,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
-        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <param name="colorAttachments">Color attachment handle.</param>
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle[] colorAttachments)
         {
@@ -775,11 +813,23 @@ namespace UnityEngine.Rendering.Universal
             return settings;
         }
 
+        /// <summary>
+        /// Compares two instances of <c>ScriptableRenderPass</c> by their <c>RenderPassEvent</c> and returns if <paramref name="lhs"/> is executed before <paramref name="rhs"/>.
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        /// <returns></returns>
         public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
         }
 
+        /// <summary>
+        /// Compares two instances of <c>ScriptableRenderPass</c> by their <c>RenderPassEvent</c> and returns if <paramref name="lhs"/> is executed after <paramref name="rhs"/>.
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        /// <returns></returns>
         public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;

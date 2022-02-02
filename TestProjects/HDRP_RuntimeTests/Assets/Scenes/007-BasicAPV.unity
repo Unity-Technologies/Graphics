@@ -957,30 +957,30 @@ MonoBehaviour:
   m_SHForNormalization:
     sh[ 0]: 277.11194
     sh[ 1]: -148.10918
-    sh[ 2]: 67.57195
-    sh[ 3]: 3.144598
-    sh[ 4]: -26.79524
-    sh[ 5]: -61.86737
+    sh[ 2]: 67.57194
+    sh[ 3]: 3.1445918
+    sh[ 4]: -26.79525
+    sh[ 5]: -61.867363
     sh[ 6]: -11.856552
-    sh[ 7]: 13.274286
-    sh[ 8]: -8.525034
-    sh[ 9]: 397.53387
-    sh[10]: -202.64886
-    sh[11]: -13.992485
-    sh[12]: 36.564384
-    sh[13]: -67.985954
-    sh[14]: 38.20926
-    sh[15]: -15.561094
+    sh[ 7]: 13.274283
+    sh[ 8]: -8.525043
+    sh[ 9]: 397.53394
+    sh[10]: -202.64891
+    sh[11]: -13.992484
+    sh[12]: 36.56438
+    sh[13]: -67.98595
+    sh[14]: 38.209255
+    sh[15]: -15.561092
     sh[16]: -19.606153
-    sh[17]: -15.917228
+    sh[17]: -15.917231
     sh[18]: 560.54004
     sh[19]: -84.47734
     sh[20]: -213.46635
-    sh[21]: 59.169132
+    sh[21]: 59.169117
     sh[22]: -53.81318
     sh[23]: 66.08101
-    sh[24]: 47.337315
-    sh[25]: -95.8706
+    sh[24]: 47.33732
+    sh[25]: -95.87061
     sh[26]: 28.853296
   m_SHValidForCapturePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_SHValidForSourcePosition: {x: -3.424, y: 13.12, z: 3.08}
@@ -1495,7 +1495,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   globalVolume: 1
   size: {x: 11.439015, y: 16.300907, z: 18.955118}
-  geometryDistanceOffset: 0.2
+  overrideRendererFilters: 0
+  minRendererVolumeSize: 0.1
   objectLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -1520,7 +1521,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: -670471317
+  cachedHashCode: 507495071
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -1888,6 +1889,8 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
+  fsrOverrideSharpness: 0
+  fsrSharpness: 0.92
   exposureTarget: {fileID: 0}
   materialMipBias: 0
   m_RenderingPathCustomFrameSettings:
@@ -2101,9 +2104,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedAssets:
-  - state: 0
-    asset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
+  asset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
+  cellSharedDataAsset: {fileID: 4900000, guid: 4262df70f9af54e479b53da2b0b6f384, type: 3}
+  cellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
+    type: 3}
+  serializedStates:
+  - state: Default
+    data:
+      sceneHash: 1784705805
+      cellDataAsset: {fileID: 4900000, guid: 33ad5211599350941aaefb40a027a52f, type: 3}
+      cellOptionalDataAsset: {fileID: 4900000, guid: 777185668354240419006bd3f247492e,
+        type: 3}
 --- !u!4 &1943135966
 Transform:
   m_ObjectHideFlags: 1

@@ -1549,7 +1549,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
                 {
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                    // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                    if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                        HDShadowManager.cachedShadowManager.RegisterLight(this);
                 }
 
                 m_ShadowUpdateMode = value;
@@ -1979,6 +1981,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary> A callback allowing the creation of a new Matrix4x4 based on the lightLocalToWorld matrix </summary>
+        public delegate Matrix4x4 CustomViewCallback(Matrix4x4 lightLocalToWorldMatrix);
+
+        /// <summary> Change the View matrix for Spot Light </summary>
+        public CustomViewCallback CustomViewCallbackEvent;
+
         void OnDestroy()
         {
             if (lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
@@ -2224,6 +2232,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
                         out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
+                    if (CustomViewCallbackEvent != null)
+                    {
+                        shadowRequest.view = CustomViewCallbackEvent(visibleLight.localToWorldMatrix);
+                    }
                     break;
                 case HDLightType.Directional:
                     UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
@@ -2683,6 +2695,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues(fromTimeLine: true);
+            UpdateRenderEntity();
         }
 
         /// <summary>
@@ -2796,6 +2809,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             data.UpdateAllLightValues();
+            data.UpdateRenderEntity();
         }
 
         // As we have our own default value, we need to initialize the light intensity correctly
@@ -3227,7 +3241,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
         }
 
@@ -3652,9 +3668,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             SetEmissiveMeshRendererEnabled(true);

@@ -77,6 +77,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
