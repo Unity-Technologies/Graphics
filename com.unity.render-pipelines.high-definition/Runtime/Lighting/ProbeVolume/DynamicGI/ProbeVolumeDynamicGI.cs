@@ -552,11 +552,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTargetIdentifier probeVolumeAtlasSHRTHandle, SphericalHarmonicsL2 ambientProbe)
         {
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
-
-            DispatchClearPreviousRadianceCache(cmd, probeVolume, previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive);
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
-                DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
+                    DispatchClearPreviousRadianceCache(cmd, probeVolume);
+            }
+            
+            if (probeVolume.HitNeighborAxisLength != 0)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
+                    DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            }
+            
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
                 DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, ambientProbe);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
@@ -579,26 +586,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool previousRadianceCacheInvalid)
+        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume)
         {
-            if (previousRadianceCacheInvalid)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
-                {
-                    var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
-                    var shader = _PropagationClearRadianceShader;
+            var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
+            var shader = _PropagationClearRadianceShader;
 
-                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
-                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
-                    cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
-                    cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
-                    cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+            cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
+            cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
+            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
+            cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
+            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
-                    int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
-                    int dispatchX = (numHits + 63) / 64;
-                    cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
-                }
-            }
+            int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
+            int dispatchX = (numHits + 63) / 64;
+            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
         void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
@@ -851,7 +852,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
             probeVolume.EnsureVolumeBuffers();
-            if (ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, probeVolume.HitNeighborAxisLength))
+            var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
+            if (hitNeighborAxisLength != 0 && ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, hitNeighborAxisLength))
             {
                 probeVolume.SetHitNeighborAxis(probeVolume.propagationBuffers.neighborHits);
             }
