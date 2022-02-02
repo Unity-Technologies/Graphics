@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
-        public virtual bool isRayTraced { get { return isRaytraced; } }
+        public virtual bool isRayTraced { get { return !HasStrips(true) && isRaytraced; } }
         protected virtual bool needsExposureWeight { get { return true; } }
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
@@ -509,7 +509,7 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
-                if (isRaytraced)
+                if (isRayTraced)
                     yield return "VFX_RT_DECIMATION_FACTOR " + decimationFactor;
             }
         }
@@ -551,6 +551,7 @@ namespace UnityEditor.VFX
                 {
                     yield return "sort";
                     yield return "frustumCulling";
+                    yield return "isRaytraced";
                 }
                 if (!usesFlipbook)
                 {
@@ -564,7 +565,7 @@ namespace UnityEditor.VFX
                     yield return "revertSorting";
                 }
 
-                if (!isRaytraced)
+                if (!isRayTraced)
                     yield return "decimationFactor";
             }
         }

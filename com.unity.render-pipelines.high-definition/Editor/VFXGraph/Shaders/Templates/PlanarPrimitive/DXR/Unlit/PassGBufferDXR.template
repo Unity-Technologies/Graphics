@@ -49,6 +49,8 @@
             // Graph functions
             ${VFXGeneratedBlockFunction}
 
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/EvaluateMaterialData.template")}
+
             [shader("closesthit")]
             void ClosestHit(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
@@ -57,27 +59,10 @@
                 // Compute the distance of the ray
                 rayIntersectionGbuffer.t = RayTCurrent();
 
-                // Evaluate the view direction
-                float3 viewWS = -WorldRayDirection();
-
-                // Evaluate the position
-                float3 positionRWS = WorldRayOrigin() + rayIntersectionGbuffer.t * WorldRayDirection();
-
-                // Evaluate the position input
-                PositionInputs posInput = GetPositionInput(0, _ScreenSize.zw, positionRWS);
-
-                // Index needs to be available in the context for the attribute load to work
-                ${VFXGetIndexFromRTPrimitiveIndex}
-
-                // Attributes of the paticle
-                VFXAttributes attributes;
-                ZERO_INITIALIZE(VFXAttributes, attributes);
-
-                // Load the VFX attributes that we need for this
-                ${VFXLoadAttributes}
-                ${VFXProcessBlocks}
-                ${VFXLoadSizeRT}
-                ${VFXGetColorRT}
+                // Read the material data
+                float4 color = 0.0;
+                float velocity = 0.0;
+                EvaluateUnlitMaterialData(attributeData, color, velocity);
 
                 // First we pack the data into the standard bsdf data
                 StandardBSDFData standardLitData;

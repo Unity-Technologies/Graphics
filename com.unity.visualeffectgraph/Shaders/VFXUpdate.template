@@ -1,5 +1,6 @@
 #pragma kernel CSMain
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+#pragma multi_compile _ VFX_COMPUTE_AABBS
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
@@ -125,8 +126,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #if VFX_COMPUTE_BOUNDS || VFX_COMPUTE_AABBS
     {
-    ${VFXLoadSize}
     #if VFX_COMPUTE_BOUNDS
+        ${VFXLoadSize}
         #if VFX_WORLD_SPACE
             ${VFXLoadParameter:{worldToLocal}}
         #else
@@ -136,12 +137,11 @@ void CSMain(uint3 groupId          : SV_GroupID,
     #endif
     }
     #if VFX_COMPUTE_AABBS
-        ${VFXLoadSizeRT}
-        int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
-        FillAabbBuffer(attributes, size3, index, rayTracingDecimationFactor);
+            ${VFXLoadSizeRT}
+            int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+            FillAabbBuffer(attributes, size3, index, rayTracingDecimationFactor);
     #endif
 #endif
-
 	}
 	#if VFX_COMPUTE_BOUNDS
 	PerformBoundsReduction(id, tid);

@@ -4,15 +4,17 @@ ${VFXBegin:VFXGetColorRT}
         ${VFXLoadParameter:{invFlipBookSize}}
         ${VFXLoadParameter:{flipBookSize}}
         VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, attributeData.barycentrics, attributes.texIndex);
+    #else
+        VFXUVData uvData = GetUVData(attributeData.barycentrics);
     #endif
 
-    float3 color = attributes.color;
+    float4 color = float4(attributes.color, attributes.alpha);
     #if VFX_COLORMAPPING_DEFAULT
-	    color = color * SampleTexture(VFX_SAMPLER(mainTexture),uvData);
+	    color = color * SampleTexture(VFX_SAMPLER(mainTexture), uvData);
     #endif
 
     #if VFX_COLORMAPPING_GRADIENTMAPPED
 	    ${VFXLoadAttributes:{gradient}}
-	    color = SampleGradient(gradient, SampleTexture(VFX_SAMPLER(mainTexture),uvData).a * color.a) * float4(color.rgb,1.0);
+	    color = SampleGradient(gradient, SampleTexture(VFX_SAMPLER(mainTexture),uvData).a * color.a) * float4(color.rgb, 1.0);
     #endif
 ${VFXEnd}
