@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 - Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed custom pass name being cut when too long in the inspector.
 
 ## [12.1.4] - 2021-12-07
 
