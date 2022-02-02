@@ -106,7 +106,7 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
-    
+
     //Motion vector is enabled in SG but not active in VFX
 #if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
     forceNoMotion = true;
