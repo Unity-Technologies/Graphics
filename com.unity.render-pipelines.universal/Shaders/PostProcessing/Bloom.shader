@@ -107,7 +107,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
 #if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
-            texelSize *= ApplyFoveatedRenderingDensity(uv).x;
+            float2 uvYflip = float2(uv.x, 1 - uv.y);
+            texelSize *= ApplyFoveatedRenderingDensity(uvYflip).x;
 #endif
 
             // 9-tap gaussian blur on the downsampled source
@@ -135,7 +136,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
 #if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
-            texelSize *= ApplyFoveatedRenderingDensity(uv).y;
+            float2 uvYflip = float2(uv.x, 1 - uv.y);
+            texelSize *= ApplyFoveatedRenderingDensity(uvYflip).y;
 #endif
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
