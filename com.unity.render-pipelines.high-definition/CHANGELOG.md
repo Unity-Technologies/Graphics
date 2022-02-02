@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 - Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
-- Fxied public API for Diffusion Profile Override volume Component.
+- Fixed public API for Diffusion Profile Override volume Component.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 
 ### Changed
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
