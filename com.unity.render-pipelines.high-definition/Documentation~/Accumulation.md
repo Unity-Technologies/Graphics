@@ -50,7 +50,7 @@ public class FrameManager : MonoBehaviour
     public float shutterBeginsClosing = 0.75f;
 
     // The desired frame rate when recording subframes.
-    [Min(0)]
+    [Min(1)]
     public int captureFrameRate = 30;
 
     bool m_Recording = false;
