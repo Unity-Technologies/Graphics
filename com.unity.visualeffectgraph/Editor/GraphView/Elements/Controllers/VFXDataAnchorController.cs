@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX.UI
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
     {
         private VFXNodeController m_SourceNode;
+        private int m_expressionHashCode;
 
         public VFXNodeController sourceNode
         {
@@ -125,7 +127,15 @@ namespace UnityEditor.VFX.UI
 
             if (m_GizmoContext != null)
             {
-                m_GizmoContext.Unprepare();
+                HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
+                model.GetExpressions(expressions);
+
+                var currentExpressionHashCode = UIUtilities.GetHashCode(expressions);
+                if (currentExpressionHashCode != m_expressionHashCode)
+                {
+                    RefreshGizmo();
+                    m_expressionHashCode = currentExpressionHashCode;
+                }
             }
             sourceNode.DataEdgesMightHaveChanged();
 
