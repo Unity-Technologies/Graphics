@@ -327,6 +327,19 @@ namespace UnityEngine.Experimental.Rendering
         /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
         /// </summary>
         public float weight;
+        /// <summary>
+        /// Method used for leak reduction.
+        /// </summary>
+        public APVLeakReductionMode leakReductionMode;
+        /// <summary>
+        /// Contribution of leak reduction weights.
+        /// </summary>
+        public float occlusionWeightContribution;
+        /// <summary>
+        /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
+        /// </summary>
+        public float minValidNormalWeight;
+
     }
 
     /// <summary>
@@ -377,9 +390,9 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+            public NativeArray<float> validity { get; internal set; }
 
             public NativeArray<Vector3> probePositions { get; internal set; }
-            public NativeArray<float> validity { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
         }
 
@@ -563,6 +576,13 @@ namespace UnityEngine.Experimental.Rendering
             /// Texture containing the fourth coefficient of Spherical Harmonics L2 band data.
             /// </summary>
             public Texture3D L2_3;
+
+            /// <summary>
+            /// Texture containing packed validity binary data for the neighbourhood of each probe. Only used when L1. Otherwise this info is stored
+            /// in the alpha channel of L2_3.
+            /// </summary>
+            public Texture3D Validity;
+
         }
 
         bool m_IsInitialized = false;
@@ -1295,7 +1315,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, cell.validity, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();
@@ -1389,6 +1409,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
             shaderVars._Weight_Padding = new Vector4(parameters.weight, 0.0f, 0.0f, 0.0f);
+            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
