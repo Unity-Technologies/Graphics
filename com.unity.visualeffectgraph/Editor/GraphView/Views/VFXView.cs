@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2127,9 +2128,62 @@ namespace UnityEditor.VFX.UI
         public override void ClearSelection()
         {
             base.ClearSelection();
-            if (Selection.activeObject is VFXObject)
+
+            // Delay the selection to see if anything has been added to the selection in the mean time
+            // Which means we did not clicked in the void
+            EditorApplication.delayCall += SelectAssetInInspector;
+        }
+
+        private void SelectAssetInInspector()
+        {
+            // Only select the vfx asset if the selection is empty
+            // Which means we clicked in the void
+            if (selection.Count > 0)
             {
-                Selection.activeObject = null;
+                return;
+            }
+
+            var inspector = EditorWindow.HasOpenInstances<InspectorWindow>() ? EditorWindow.GetWindow<InspectorWindow>() : null;
+
+            if (inspector == null)
+            {
+                return;
+            }
+
+            var inspectorObject = inspector.GetInspectedObject();
+            if (inspectorObject == null || inspectorObject is VFXObject)
+            {
+                // This is to select the current VFX asset in the inspector.
+                // But, we temporary lock the project window during the selection so that the project browser don't change directory
+                var projectBrowser = EditorWindow.HasOpenInstances<ProjectBrowser>() ? EditorWindow.GetWindow<ProjectBrowser>() : null;
+                var wasLocked = false;
+                if (projectBrowser != null)
+                {
+                    wasLocked = projectBrowser.isLocked;
+                    projectBrowser.isLocked = true;
+                }
+
+                Selection.activeObject = controller != null && controller.model != null
+                    ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
+                    : null;
+
+                if (projectBrowser != null && !wasLocked)
+                {
+                    EditorApplication.delayCall += () => UnlockProjectBrowser(inspector, projectBrowser, 4);
+                }
+            }
+        }
+
+        private void UnlockProjectBrowser(InspectorWindow inspector, ProjectBrowser projectBrowser, int maximumRetries)
+        {
+            if (inspector.GetInspectedObject() == Selection.activeObject)
+            {
+                projectBrowser.isLocked = false;
+                projectBrowser.Repaint();
+            }
+            else if (maximumRetries-- > 1)
+            {
+                EditorApplication.delayCall += () => UnlockProjectBrowser(inspector, projectBrowser, maximumRetries);
             }
         }
 
