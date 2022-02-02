@@ -608,6 +608,10 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeVolumeSceneData sceneData;
 
+        // We need to keep track the area, in cells, that is currently loaded. The index buffer will cover even unloaded areas, but we want to avoid sampling outside those areas.
+        Vector3Int minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        Vector3Int maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
         /// <summary>
         ///  The input to the retrieveExtraDataAction action.
         /// </summary>
@@ -900,6 +904,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
             {
+                minLoadedCellPos = Vector3Int.Min(minLoadedCellPos, cellInfo.cell.position);
+                maxLoadedCellPos = Vector3Int.Max(maxLoadedCellPos, cellInfo.cell.position);
+
                 return AddBricks(cellInfo, cellUpdateInfo);
             }
             else
@@ -922,6 +929,21 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = loadedCellsCount; i < m_LoadedCells.size; ++i)
             {
                 m_ToBeLoadedCells.Remove(m_LoadedCells[i]);
+            }
+        }
+
+        void RecomputeMinMaxLoadedCellPos()
+        {
+            minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+            maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
+            foreach (var cellInfo in cells.Values)
+            {
+                if (cellInfo.loaded)
+                {
+                    minLoadedCellPos = Vector3Int.Min(cellInfo.cell.position, minLoadedCellPos);
+                    maxLoadedCellPos = Vector3Int.Max(cellInfo.cell.position, maxLoadedCellPos);
+                }
             }
         }
 
@@ -971,8 +993,8 @@ namespace UnityEngine.Experimental.Rendering
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
-            Vector3Int minCellPosition = Vector3Int.zero;
-            Vector3Int maxCellPosition = Vector3Int.zero;
+            Vector3Int minCellPosition = Vector3Int.one * 10000;
+            Vector3Int maxCellPosition = Vector3Int.one * -10000;
 
             bool firstBound = true;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
@@ -1050,6 +1072,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             ClearDebugData();
+            RecomputeMinMaxLoadedCellPos();
         }
 
         void PerformPendingIndexChangeAndInit()
@@ -1411,7 +1434,8 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
             shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
-            shaderVars._Weight_Padding = new Vector4(parameters.weight, 0.0f, 0.0f, 0.0f);
+            shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
+            shaderVars._MaxLoadedCell_Padding = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, 0.0f);
             shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);

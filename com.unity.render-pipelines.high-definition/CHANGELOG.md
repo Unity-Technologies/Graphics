@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
 - Fixed custom pass name being cut when too long in the inspector.
 - Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
+- Fixed APV loading data outside of the relevant area containing probes.
 
 ## [14.0.0] - 2021-11-17
 
