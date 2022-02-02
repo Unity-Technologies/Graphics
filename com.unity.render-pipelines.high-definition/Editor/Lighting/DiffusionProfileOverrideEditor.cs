@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<DiffusionProfileOverride>(serializedObject);
-
             m_Volume = (m_Inspector.target as Volume);
             m_DiffusionProfiles = Unpack(o.Find(x => x.diffusionProfiles));
         }

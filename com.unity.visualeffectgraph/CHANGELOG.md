@@ -19,17 +19,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Some operators were missing in node search window (gradient for instance)
 
 ## [13.1.5] - 2021-12-17
-
 ### Fixed
 - Enable/disable state of VFX blocks and operators are preserved after copy/paste
+- Incorrect behavior of Tangent Space in ShaderGraph [Case 1363279](https://issuetracker.unity3d.com/product/unity/issues/guid/1363279/)
 
 ## [13.1.4] - 2021-12-04
-
 ### Fixed
 - Enable/disable state of VFX blocks and operators are preserved after copy/paste
 
 ## [13.1.3] - 2021-11-17
-
 ### Fixed
 - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
 - Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)

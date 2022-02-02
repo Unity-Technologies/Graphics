@@ -9,12 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+ - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
+
 ## [13.1.5] - 2021-12-17
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Fixed
+ - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+ - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
  - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
 
 ## [13.1.4] - 2021-12-04

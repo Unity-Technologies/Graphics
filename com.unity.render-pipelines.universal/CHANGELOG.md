@@ -8,12 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
+- Fixed some rendering inconsistencies when using Decals.
 
 ## [13.1.5] - 2021-12-17
 
 ### Fixed
 - Fixed a depth non-clear in XR due to wrong depth slice being checked.
 - Fixed decal compilation issue on mac.
+- Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
 
 ## [13.1.4] - 2021-12-04
 

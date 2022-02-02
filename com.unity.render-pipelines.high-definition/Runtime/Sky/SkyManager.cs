@@ -884,7 +884,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Debug.Log("Update Sky Lighting");
                             RenderSkyToCubemap(skyContext);
 
-                            if (updateAmbientProbe && !renderingContext.computeAmbientProbeRequested)
+                            if (updateAmbientProbe)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                                 {
@@ -892,7 +892,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
                                     cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
-                                    renderingContext.computeAmbientProbeRequested = true;
 
                                     // When the profiler is enabled, we don't want to submit the render context because
                                     // it will break all the profiling sample Begin() calls issued previously, which leads
