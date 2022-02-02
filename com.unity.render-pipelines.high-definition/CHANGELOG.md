@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed reflection probe rendering order when visible in multiple cameras.
 - Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
 - Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed Show/Hide all Additional Properties
 
 ## [14.0.0] - 2021-11-17
 

@@ -86,9 +86,9 @@ namespace UnityEditor.Rendering
             // Volume components
             foreach (var editorType in s_VolumeComponentEditorTypes)
             {
-                var editor = Activator.CreateInstance(editorType) as VolumeComponentEditor;
-                editor.InitAdditionalPropertiesPreference();
-                editor.SetAdditionalPropertiesPreference(value);
+                var key = VolumeComponentEditor.GetAdditionalPropertiesPreferenceKey(editorType);
+                var showAdditionalProperties = new EditorPrefBool(key);
+                showAdditionalProperties.value = value;
             }
 
             // Regular components
