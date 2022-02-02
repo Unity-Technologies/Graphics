@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         GraphViewStateObserver m_GraphViewStateObserver;
         PreviewManager m_PreviewManager;
 
+        ShaderGraphGraphTool m_GraphTool;
+
         [InitializeOnLoadMethod]
         static void RegisterTool()
         {
@@ -42,7 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<ShaderGraphGraphTool>();
+            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
+            return m_GraphTool;
         }
 
         protected override GraphView CreateGraphView()
@@ -71,6 +74,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewManager = new PreviewManager(asset.GraphModel as ShaderGraphModel);
             m_GraphViewStateObserver = new GraphViewStateObserver(GraphView.GraphViewState, m_PreviewManager);
             GraphView.GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
+
+            // Set reference so its available during command handling
+            m_GraphTool.previewManager = m_PreviewManager;
+
+            ShaderGraphState.RegisterCommandHandlers(GraphTool, GraphView, asset.GraphModel as ShaderGraphModel, GraphTool.Dispatcher);
 
             return asset is ShaderGraphAssetModel;
         }

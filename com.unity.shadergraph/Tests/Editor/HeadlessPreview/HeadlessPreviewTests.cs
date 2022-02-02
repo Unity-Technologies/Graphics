@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.Windows;
 using Types = UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
@@ -144,7 +145,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
-            nodeWriter.SetPortField("In1", "c0", 1f);
+            nodeWriter.SetPortField("In1", "c0", 1.0f);
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Seems weird we need to cast down for this...
@@ -279,7 +280,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
-            nodeWriter.SetPortField("In1", "c0", 1f);
+            nodeWriter.SetPortField("In1", "c0", 1.0f);
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Request node preview image once the graph has been setup correctly

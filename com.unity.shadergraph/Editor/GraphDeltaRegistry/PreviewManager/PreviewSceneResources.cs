@@ -66,9 +66,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             //previewScene.AddGameObject(l1);
             light1 = l1.GetComponent<Light>();
 
-            light0.color = new Color(0.769f, 0.769f, 0.769f, 1); // SceneView.kSceneViewFrontLight
+            light0.color = new Color(1.0f, 1.0f, 1.0f, 1); // SceneView.kSceneViewFrontLight
+
             light1.transform.rotation = Quaternion.Euler(340, 218, 177);
-            light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
+            light1.color = new Color(1.0f, 1.0f, 1.0f, 0f);
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
             m_BlitNoAlphaMaterial = new Material(Shader.Find("Hidden/BlitNoAlpha"));

@@ -33,7 +33,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
             m_DirtyNodes = new HashSet<string>();
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
 
-            // TODO: Create preview data for nodes already on the graph
+            // Initialize preview data for any nodes that exist on graph load
+            foreach (var nodeModel in graphModel.NodeModels)
+            {
+                if(nodeModel is GraphDataNodeModel graphDataNodeModel)
+                    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+            }
         }
 
         public void Update()

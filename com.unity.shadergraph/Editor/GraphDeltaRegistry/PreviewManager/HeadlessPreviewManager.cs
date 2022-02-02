@@ -98,6 +98,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
             AddMasterPreviewData();
+            InitializeSRPIfNeeded();
+        }
+
+        void InitializeSRPIfNeeded()
+        {
+            if ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0))
+            {
+                return;
+            }
+
+            // issue a dummy SRP render to force SRP initialization, use the master node texture
+            PreviewData renderData = m_MasterPreviewData;
+            var previousRenderTexture = RenderTexture.active;
+
+            //Temp workaround for alpha previews...
+            var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+            RenderTexture.active = temp;
+            Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
+
+            m_SceneResources.camera.targetTexture = temp;
+
+            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+            Unsupported.useScriptableRenderPipeline = true;
+            m_SceneResources.camera.Render();
+            Unsupported.useScriptableRenderPipeline = previousUseSRP;
+
+            RenderTexture.ReleaseTemporary(temp);
+
+            RenderTexture.active = previousRenderTexture;
         }
 
         /// <summary>
@@ -607,7 +636,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             using (RenderPreviewMarker.Auto())
             {
                 var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
-                ShaderUtil.allowAsyncCompilation = true;
+                ShaderUtil.allowAsyncCompilation = false;
 
                 // TODO: Setting properties on materials that arent supported by the MPB like Virtual Textures etc
                 // AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
@@ -631,7 +660,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = (renderData == m_MasterPreviewData);
+                // we seem to be using SRP for all renders now
+                Unsupported.useScriptableRenderPipeline = true;
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 

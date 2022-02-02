@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -11,9 +13,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     {
         public static Hash128 m_previewStateWindowGUID = Hash128.Compute(GUID.Generate().ToString());
 
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, Dispatcher dispatcher)
+        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, ShaderGraphModel graphModel, Dispatcher dispatcher)
         {
-            PreviewManager previewManagerInstance = null;
+            ShaderGraphGraphTool sgGraphTool = graphTool as ShaderGraphGraphTool;
+            PreviewManager previewManagerInstance = sgGraphTool?.previewManager;
 
             if (dispatcher is not CommandDispatcher commandDispatcher)
                 return;
@@ -88,6 +91,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 graphView.GraphViewState,
                 previewManagerInstance
             );
+
+            dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, ShaderGraphModel, UpdatePortConstantCommand>(
+                ShaderGraphCommandOverrides.HandleUpdatePortValue,
+                graphView.GraphViewState,
+                previewManagerInstance,
+                graphModel
+            );
+
         }
     }
 }

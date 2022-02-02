@@ -214,5 +214,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             //     }
             // }
         }
+
+        public static void HandleUpdatePortValue(
+            GraphViewStateComponent graphViewState,
+            PreviewManager previewManager,
+            ShaderGraphModel shaderGraphModel,
+            UpdatePortConstantCommand updatePortConstantCommand)
+        {
+            if (updatePortConstantCommand.PortModel.NodeModel is GraphDataNodeModel nodeModel)
+            {
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeReader(nodeModel.graphDataName);
+                if (nodeWriter != null)
+                {
+                    // TODO: How to update ports on a graph Handler level?
+                }
+            }
+        }
     }
 }
