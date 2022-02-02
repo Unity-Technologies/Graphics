@@ -1449,6 +1449,23 @@ namespace UnityEngine.Rendering
             : base(value, overrideState) { }
 
         // TODO: Texture interpolation
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1464,6 +1481,23 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpTextureParameter(Texture value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1479,6 +1513,23 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public Texture2DParameter(Texture value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1494,6 +1545,23 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public Texture3DParameter(Texture value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1511,6 +1579,23 @@ namespace UnityEngine.Rendering
             : base(value, overrideState) { }
 
         // TODO: RenderTexture interpolation
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1526,6 +1611,23 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpRenderTextureParameter(RenderTexture value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1542,6 +1644,23 @@ namespace UnityEngine.Rendering
         public CubemapParameter(Texture value, bool overrideState = false)
             : base(value, overrideState) { }
         // TODO: Cubemap interpolation
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
@@ -1557,6 +1676,23 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public NoInterpCubemapParameter(Cubemap value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                if (value != null)
+                    hash = 23 * CoreUtils.GetTextureHash(value);
+            }
+
+            return hash;
+        }
     }
 
     /// <summary>
