@@ -176,6 +176,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             throw new System.Exception();
         }
 
+        public IEnumerable<INodeReader> GetDownstreamNodes(INodeReader sourceNode)
+        {
+            return new List<INodeReader>();
+        }
 
         public void RemoveNode(string id)
         {

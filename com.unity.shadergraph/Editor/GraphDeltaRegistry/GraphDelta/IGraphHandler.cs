@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public INodeWriter GetNodeWriter(string name);
         public void RemoveNode(string name);
         public IEnumerable<INodeReader> GetNodes();
+        public IEnumerable<INodeReader> GetDownstreamNodes(INodeReader sourceNode);
 
         //public TargetRef AddTarget(TargetType targetType)
 

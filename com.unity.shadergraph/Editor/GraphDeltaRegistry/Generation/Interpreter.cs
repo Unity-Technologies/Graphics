@@ -66,14 +66,14 @@ namespace UnityEditor.ShaderGraph.Generation
                 outputVariables.Add(colorOut);
             }
 
-
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.GetName()}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
-                ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                if(!isContext || (isContext && node != rootNode))
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
             foreach(var func in shaderFunctions)
@@ -81,9 +81,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 blockBuilder.AddFunction(func);
             }
 
-
             var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
-
 
             mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
             if(isContext)
@@ -98,12 +96,12 @@ namespace UnityEditor.ShaderGraph.Generation
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()};");
                         }
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry)}");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry)};");
                         }
                     }
                 }
@@ -186,7 +184,12 @@ namespace UnityEditor.ShaderGraph.Generation
             return true;
         }
 
-        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
+        private static void ProcessNode(INodeReader node,
+            ref ShaderContainer container, ref List<BlockVariable> inputVariables,
+            ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder,
+            ref ShaderFunction.Builder mainBodyFunctionBuilder,
+            ref List<ShaderFunction> shaderFuncitons,
+            Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
             bool shouldAdd = true;

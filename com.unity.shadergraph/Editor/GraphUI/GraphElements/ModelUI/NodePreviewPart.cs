@@ -50,7 +50,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
 
             m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
-
             // TODO: Handle preview collapse/expand state serialization
             HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 

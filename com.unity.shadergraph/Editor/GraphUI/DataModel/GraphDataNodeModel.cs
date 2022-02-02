@@ -4,6 +4,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.Assertions;
@@ -11,6 +12,8 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
+    using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
+
     /// <summary>
     /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
     /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
@@ -118,7 +121,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         bool m_IsPreviewExpanded = true;
 
         // By default every node's preview uses the inherit mode
-        public PreviewMode NodePreviewMode { get; set; }
+        public PreviewRenderMode NodePreviewMode { get; set; }
 
         public Texture PreviewTexture { get; private set; }
 
@@ -126,7 +129,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public GraphDataNodeModel()
         {
-            NodePreviewMode = PreviewMode.Inherit;
+            NodePreviewMode = PreviewRenderMode.Inherit;
         }
 
         public bool IsPreviewVisible

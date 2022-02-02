@@ -291,7 +291,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-         internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
+        internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
