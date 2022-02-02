@@ -81,6 +81,7 @@
 }
 
 .GraphSubWindow > .mainContainer > #content > #header {
+    overflow: hidden;
     flex-direction: row;
     align-items: stretch;
     background-color: #393939;

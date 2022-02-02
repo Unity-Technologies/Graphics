@@ -1,6 +1,6 @@
 # HDRP custom Material Inspectors
 
-Custom Material Inspectors allow you to define how Unity displays properties in the Material Inspector for a particular shader. The High Definition Render Pipeline (HDRP) makes heavy use of this feature to make the editing experience for all of its shaders as simple and intuitive as possible.
+Custom Material Inspectors allow you to define how Unity displays properties in the Material Inspector for a particular shader. The High Definition Render Pipeline (HDRP) makes heavy use of this feature to make the editing experience for all its shaders as simple and intuitive as possible.
 
 This page contains information about how to create custom Material Inspectors in HDRP. For general information about what custom Material Inspectors are and how to assign one to a material, see [custom Material Inspector](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/manual/custom-material-inspector.html).
 
@@ -61,11 +61,13 @@ class ColorUIBlock : MaterialUIBlock
 ```
 
 
-This code sample fetches the `_MyColor` property in the shader and displays it. Note that if the Custom Material Inspector is for a Shader Graph, for the UI block to find the property, you must set the correct reference name in the Shader Graph's Node Settings. To do this:
+This code sample fetches the `_MyColor` property in the shader and displays it.
+
+**Note**: If the Custom Material Inspector is for a Shader Graph, for the UI block to find the property, you must set the correct reference name in the Shader Graph's Node Settings. To do this:
 
 1. Open the Shader Graph.
 2. Select the property to display and view it in the Node Settings tab of the Graph Inspector.
-3. Set **Reference** to the name `FindProperty` uses. In this example, it is **_MyColor**.
+3. Set **Reference** to the name `FindProperty` uses. In this example, it's **_MyColor**.
 
 ![](Images/custom-material-inspector-node-settings-example.png)
 
@@ -75,7 +77,7 @@ The following image shows how the Inspector looks for the UI block in the code s
 
 #### Implementing a foldout section
 
-By default, UI blocks are not nested in a foldout. The foldouts in other HDRP Material Inspectors use the `MaterialHeaderScope` class. This class specifies the name of the header and whether the section is expanded or not. For an example of how to implement a UI block in a foldout, see the following code sample:
+By default, UI blocks aren't nested in a foldout. The foldouts in other HDRP Material Inspectors use the `MaterialHeaderScope` class. This class specifies the name of the header and whether the section is expanded or not. For an example of how to implement a UI block in a foldout, see the following code sample:
 
 
 ```CSharp
@@ -109,9 +111,9 @@ class ColorUIBlock : MaterialUIBlock
 ```
 
 
-Note that to track whether the foldout is expanded or not, `MateralHeaderScope` uses an `ExpandableBit`. To assign the `ExpandableBit`, this UI block example has a constructor that takes an ExpandableBit as a parameter. Because Unity serializes the state of each foldout in Editor preferences, you should use the `User[0..19]` part of the ExpandableBit enum to avoid overlap with built-in reserved bits. For an example of how to do this, see the code sample in [Custom Lit Material Inspector](#custom-lit-material-inspector).
+**Note**: To track whether the foldout is expanded or not, `MateralHeaderScope` uses an `ExpandableBit`. To assign the `ExpandableBit`, this UI block example has a constructor that takes an ExpandableBit as a parameter. Because Unity serializes the state of each foldout in Editor preferences, you should use the `User[0..19]` part of the ExpandableBit enum to avoid overlap with built-in reserved bits. For an example of how to do this, see the code sample in [Custom Lit Material Inspector](#custom-lit-material-inspector).
 
-You can also hardcode the bit in a UI block but this is not best practice especially if you intend to create a lot of UI blocks that multiple materials share.
+You can also hardcode the bit in a UI block but this isn't best practice especially if you intend to create a lot of UI blocks that multiple materials share.
 
 The following image shows how the Inspector looks for the UI block in the above code sample.
 
@@ -243,6 +245,6 @@ public class ScratchInspectorExample : HDShaderGUI
 ```
 
 
-Note that `HDShaderGUI` directly inherits from `ShaderGUI`, which means you can override `ShaderGUI` functions such as `OnMaterialPreviewGUI`. The only function you cannot override is `OnGUI` because `HDShaderGUI` seals it. Instead, override the `OnMaterialGUI` function.
+**Note**: `HDShaderGUI` directly inherits from `ShaderGUI`, which means you can override `ShaderGUI` functions such as `OnMaterialPreviewGUI`. The only function you can't override is `OnGUI` because `HDShaderGUI` seals it. Instead, override the `OnMaterialGUI` function.
 
-The `ValidateMaterial` function is very important because it ensures that the Material uses the correct keyword setup. HDRP stores the Material state in the properties themselves, this function reads these properties and then sets up the shader keywords these properties require. For example, if you enable the `doubleSidedEnable` property on a Material, HDRP requires the `_DOUBLESIDED_ON` shader keyword otherwise the material does not work. `HDShaderUtils.ResetMaterialKeywords` enables/disables this shader keyword based on the value of the `doubleSidedEnable` property.
+The `ValidateMaterial` function is important because it ensures that the Material uses the correct keyword setup. HDRP stores the Material state in the properties themselves, this function reads these properties and then sets up the shader keywords these properties require. For example, if you enable the `doubleSidedEnable` property on a Material, HDRP requires the `_DOUBLESIDED_ON` shader keyword otherwise the material doesn't work. `HDShaderUtils.ResetMaterialKeywords` enables/disables this shader keyword based on the value of the `doubleSidedEnable` property.

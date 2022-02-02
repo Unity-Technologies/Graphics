@@ -67,8 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
 
-        readonly XRSystem m_XRSystem;
-
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
         bool m_PreviousLightsUseColorTemperature;
@@ -377,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
             RTHandles.Initialize(Screen.width, Screen.height);
 
-            m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
+            XRSystem.Initialize(XRPass.CreateDefault, asset.renderPipelineResources.shaders.xrOcclusionMeshPS, asset.renderPipelineResources.shaders.xrMirrorViewPS);
 
             m_MipGenerator = new MipGenerator(defaultResources);
             m_BlueNoise = new BlueNoise(defaultResources);
@@ -794,7 +792,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
 
-            m_XRSystem.Cleanup();
+            XRSystem.Dispose();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
@@ -989,7 +987,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.xr.UpdateBuiltinStereoMatrices(cmd, hdCamera);
+            XRBuiltinShaderConstants.Update(hdCamera.xr, cmd, true);
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
@@ -1098,6 +1096,37 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
             public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
+        }
+
+        private void VisitRenderRequestRecursive(List<RenderRequest> requests, List<int> visitStatus, int requestIndex, List<int> renderIndices)
+        {
+            if (visitStatus[requestIndex] == 1)
+                throw new Exception("Cycle in render request dependencies!");
+            if (visitStatus[requestIndex] != 0)
+                return;
+
+            // mark as visiting, iterate dependencies
+            visitStatus[requestIndex] = 1;
+            foreach (int dependsOnRequestIndex in requests[requestIndex].dependsOnRenderRequestIndices)
+                VisitRenderRequestRecursive(requests, visitStatus, dependsOnRequestIndex, renderIndices);
+
+            // dependencies are done, so mark visited and add to render order
+            visitStatus[requestIndex] = 2;
+            renderIndices.Add(requestIndex);
+        }
+
+        private void FlattenRenderRequestGraph(List<RenderRequest> requests, List<int> renderIndices)
+        {
+            using (ListPool<int>.Get(out List<int> visitStatus))
+            {
+                // mark everything as "not visited"
+                for (int i = 0; i < requests.Count; ++i)
+                    visitStatus.Add(0);
+
+                // iterate in request order (recursively visits dependencies first)
+                for (int i = 0; i < requests.Count; ++i)
+                    VisitRenderRequestRecursive(requests, visitStatus, i, renderIndices);
+            }
         }
 
         struct HDCullingResults
@@ -1245,16 +1274,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
+            var xrLayout = XRSystem.NewLayout();
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
-            using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
             using (HashSetPool<int>.Get(out HashSet<int> skipClearCullingResults))
             using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
-                var multipassCameras = m_XRSystem.SetupFrame(cameras, m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass, m_DebugDisplaySettings.data.xrSinglePassTestMode);
+                foreach (var c in cameras)
+                    xrLayout.AddCamera(c, HDUtils.TryGetAdditionalCameraDataOrDefault(c).xrRendering);
 
 #if UNITY_EDITOR
                 // See comment below about the preview camera workaround
@@ -1269,8 +1301,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
 
+                // We avoid ticking this per camera. Every time the resolution type changes from hardware to software, this will reinvalidate all the internal resources
+                // of the RTHandle system. So we just obey directly what the render pipeline quality asset says. Cameras that have DRS disabled should still pass a res percentage of %100
+                // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
+                RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
+
                 // Culling loop
-                foreach ((Camera camera, XRPass xrPass) in multipassCameras)
+                foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
                     if (camera == null)
                         continue;
@@ -1298,16 +1335,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDAdditionalCameraData hdCam = null;
                     var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
 
+                    #region DRS Setup
+                    ////////////////////////////////
+                    // setup of DRS in the camera //
+                    ////////////////////////////////
+                    // First step we tell the DRS handler that we will be using the scaler set by the user. Note DLSS can set a system slot in case it wants to provide
+                    // the scale.
                     DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.User);
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
                     }
 
+                    // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
                     SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera, drsSettings);
 
+                    // only select the current instance for this camera. We dont pass the settings set to prevent an update.
+                    // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera);
                     var dynResHandler = DynamicResolutionHandler.instance;
+
                     if (hdCam != null)
                     {
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
@@ -1319,11 +1366,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    // Notify the hanlder if this camera requests DRS.
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
                     dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
-                    RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
-
+                    // Finally, our configuration is prepared. Push it to the drs handler
+                    dynResHandler.Update(drsSettings);
+                    #endregion
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
@@ -1408,7 +1457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Render directly to XR render target if active
-                    if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+                    if (hdCamera.xr.enabled)
                         targetId = hdCamera.xr.renderTarget;
 
                     hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
@@ -1430,8 +1479,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
-                    // This is a root render request
-                    rootRenderRequestIndices.Add(request.index);
 
                     // Add visible probes to list
                     for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
@@ -1849,26 +1896,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
                 {
                     // Flatten the render requests graph in an array that guarantee dependency constraints
-                    {
-                        using (GenericPool<Stack<int>>.Get(out Stack<int> stack))
-                        {
-                            stack.Clear();
-                            for (int i = rootRenderRequestIndices.Count - 1; i >= 0; --i)
-                            {
-                                stack.Push(rootRenderRequestIndices[i]);
-                                while (stack.Count > 0)
-                                {
-                                    var index = stack.Pop();
-                                    if (!renderRequestIndicesToRender.Contains(index))
-                                        renderRequestIndicesToRender.Add(index);
-
-                                    var request = renderRequests[index];
-                                    for (int j = 0; j < request.dependsOnRenderRequestIndices.Count; ++j)
-                                        stack.Push(request.dependsOnRenderRequestIndices[j]);
-                                }
-                            }
-                        }
-                    }
+                    FlattenRenderRequestGraph(renderRequests, renderRequestIndicesToRender);
 
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
@@ -1877,7 +1905,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             Vector2Int maxSize = new Vector2Int(1, 1);
 
-                            for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
+                            for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
                             {
                                 var renderRequestIndex = renderRequestIndicesToRender[i];
                                 var renderRequest = renderRequests[renderRequestIndex];
@@ -1895,8 +1923,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                         // Execute render request graph, in reverse order
-                        for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
+                        for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
                         {
+                            bool isLast = i == renderRequestIndicesToRender.Count - 1;
                             var renderRequestIndex = renderRequestIndicesToRender[i];
                             var renderRequest = renderRequests[renderRequestIndex];
 
@@ -1989,11 +2018,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // Render XR mirror view once all render requests have been completed
-                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
+                            if (isLast && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
-                                    m_XRSystem.RenderMirrorView(cmd);
+                                    XRSystem.RenderMirrorView(cmd, renderRequest.hdCamera.camera);
                                 }
                             }
 
@@ -2011,7 +2040,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.ClearSelectedCamera();
 
             m_RenderGraph.EndFrame();
-            m_XRSystem.ReleaseFrame();
+            XRSystem.EndLayout();
 
 #if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);
@@ -2052,6 +2081,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
+
+            m_FullScreenDebugPushed = false;
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
@@ -2671,7 +2702,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+            // IMPORTANT NOTE: This is not checking for Transparent Motion Vectors because we need to explicitly write camera motion vectors
+            // for transparent objects too, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
         }
 
         /// <summary>
