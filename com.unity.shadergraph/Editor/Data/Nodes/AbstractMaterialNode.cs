@@ -756,6 +756,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        protected string GetRayTracingError() => $@"
+            #if defined(SHADER_STAGE_RAY_TRACING)
+            #error '{name}' node is not supported in ray tracing, please provide an alternate implementation, relying for instance on the 'Raytracing Quality' keyword
+            #endif";
+
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             using (var tempSlots = PooledList<MaterialSlot>.Get())

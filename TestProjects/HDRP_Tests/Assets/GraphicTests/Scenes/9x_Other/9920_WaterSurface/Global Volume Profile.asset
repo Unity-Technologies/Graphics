@@ -167,15 +167,21 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 1
-  gridResolution:
-    m_OverrideState: 1
-    m_Value: 512
   gridSize:
     m_OverrideState: 1
     m_Value: 500
   numLevelOfDetails:
     m_OverrideState: 1
     m_Value: 1
+  maxTessellationFactor:
+    m_OverrideState: 1
+    m_Value: 10
+  tessellationFactorFadeStart:
+    m_OverrideState: 1
+    m_Value: 150
+  tessellationFactorFadeRange:
+    m_OverrideState: 1
+    m_Value: 1850
   ambientProbeDimmer:
     m_OverrideState: 0
     m_Value: 1

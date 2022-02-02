@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -354,6 +355,17 @@ namespace UnityEngine.Rendering
                     indexes[i] = i;
                 }
             }
+        }
+
+        /// <summary>
+        /// Object PopupField
+        /// </summary>
+        public class ObjectPopupField : Field<Object>
+        {
+            /// <summary>
+            /// Callback to obtain the elemtents of the pop up
+            /// </summary>
+            public Func<IEnumerable<Object>> getObjects { get; set; }
         }
 
         /// <summary>

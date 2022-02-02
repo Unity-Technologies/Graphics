@@ -1,8 +1,10 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 #if defined(DEBUG_DISPLAY)
 
+int _DebugMaxPixelCost;
 int _ValidationChannels;
 float _RangeMinimum;
 float _RangeMaximum;
@@ -15,6 +17,14 @@ int _DebugRenderTargetSupportsStereo;
 
 bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 debugColor)
 {
+    if (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_OVERDRAW)
+    {
+        // color.r is (Number of overdraw / Max displayed overdraw count)
+        debugColor.rgb = GetOverdrawColor(color.r * _DebugMaxPixelCost, _DebugMaxPixelCost).rgb;
+        DrawOverdrawLegend(uv, _DebugMaxPixelCost, _ScreenSize, debugColor.rgb);
+        return true;
+    }
+
     switch(_DebugFullScreenMode)
     {
         case DEBUGFULLSCREENMODE_DEPTH:

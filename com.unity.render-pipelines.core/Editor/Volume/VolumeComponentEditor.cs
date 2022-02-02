@@ -166,6 +166,11 @@ namespace UnityEditor.Rendering
             set => m_Inspector = value;
         }
 
+        /// <summary>
+        /// Obtains the <see cref="Volume"/> that is being edited from this volume component
+        /// </summary>
+        protected Volume volume => inspector?.target as Volume;
+
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -213,9 +218,14 @@ namespace UnityEditor.Rendering
             base.Repaint();
         }
 
+        internal static string GetAdditionalPropertiesPreferenceKey(Type type)
+        {
+            return $"UI_Show_Additional_Properties_{type}";
+        }
+
         internal void InitAdditionalPropertiesPreference()
         {
-            string key = $"UI_Show_Additional_Properties_{GetType()}";
+            string key = GetAdditionalPropertiesPreferenceKey(GetType());
             m_ShowAdditionalProperties = new EditorPrefBool(key);
         }
 
