@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
 - Fixed custom pass name being cut when too long in the inspector.
 - Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
 
 ## [12.1.4] - 2021-12-07
 
