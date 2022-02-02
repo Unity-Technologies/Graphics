@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Show/Hide all Additional Properties
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
 - Fixed custom pass name being cut when too long in the inspector.
+- Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
 
 ## [14.0.0] - 2021-11-17
 
@@ -154,7 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 - Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
-
+- 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
