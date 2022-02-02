@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 - Added an option for culling objects out of the ray tracing acceleration structure.
+- Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added public API for Diffusion Profile Override volume Component.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 - Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
 - Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -91,6 +94,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed reflection probe rendering order when visible in multiple cameras.
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed Show/Hide all Additional Properties
+- Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 
 ## [14.0.0] - 2021-11-17
