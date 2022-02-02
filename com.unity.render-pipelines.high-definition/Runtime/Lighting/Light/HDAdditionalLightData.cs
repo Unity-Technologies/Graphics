@@ -3629,7 +3629,11 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
 
             // If we are pure shadowmask, we disable raytraced shadows.
+#if UNITY_EDITOR
             if (legacyLight.lightmapBakeType == LightmapBakeType.Mixed)
+#else
+            if (legacyLight.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+#endif
                 lightRenderData.useRayTracedShadows = !m_NonLightmappedOnly && m_UseRayTracedShadows;
             else
                 lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
