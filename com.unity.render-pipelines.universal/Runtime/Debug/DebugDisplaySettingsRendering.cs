@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.fullScreenDebugMode,
-                setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode) value,
+                setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value,
                 getIndex = () => (int)data.fullScreenDebugMode,
                 setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(DebugWireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => data.wireframeMode = (DebugWireframeMode) value,
+                setter = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 getIndex = () => (int)data.wireframeMode,
                 setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => data.validationMode = (DebugValidationMode) value,
+                setter = (value) => data.validationMode = (DebugValidationMode)value,
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => data.validationChannels = (PixelValidationChannels) value,
+                setter = (value) => data.validationChannels = (PixelValidationChannels)value,
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };

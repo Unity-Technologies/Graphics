@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MaterialOverride,
                 autoEnum = typeof(DebugMaterialMode),
                 getter = () => (int)data.materialDebugMode,
-                setter = (value) => data.materialDebugMode = (DebugMaterialMode) value,
+                setter = (value) => data.materialDebugMode = (DebugMaterialMode)value,
                 getIndex = () => (int)data.materialDebugMode,
                 setIndex = (value) => data.materialDebugMode = (DebugMaterialMode)value
             };
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.VertexAttribute,
                 autoEnum = typeof(DebugVertexAttributeMode),
                 getter = () => (int)data.vertexAttributeDebugMode,
-                setter = (value) => data.vertexAttributeDebugMode = (DebugVertexAttributeMode) value,
+                setter = (value) => data.vertexAttributeDebugMode = (DebugVertexAttributeMode)value,
                 getIndex = () => (int)data.vertexAttributeDebugMode,
                 setIndex = (value) => data.vertexAttributeDebugMode = (DebugVertexAttributeMode)value
             };
@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MaterialValidationMode,
                 autoEnum = typeof(DebugMaterialValidationMode),
                 getter = () => (int)data.materialValidationMode,
-                setter = (value) => data.materialValidationMode = (DebugMaterialValidationMode) value,
+                setter = (value) => data.materialValidationMode = (DebugMaterialValidationMode)value,
                 getIndex = () => (int)data.materialValidationMode,
                 setIndex = (value) => data.materialValidationMode = (DebugMaterialValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.ValidationPreset,
                 autoEnum = typeof(AlbedoDebugValidationPreset),
                 getter = () => (int)data.albedoValidationPreset,
-                setter = (value) => data.albedoValidationPreset = (AlbedoDebugValidationPreset) value,
+                setter = (value) => data.albedoValidationPreset = (AlbedoDebugValidationPreset)value,
                 getIndex = () => (int)data.albedoValidationPreset,
                 setIndex = (value) => data.albedoValidationPreset = (AlbedoDebugValidationPreset)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
