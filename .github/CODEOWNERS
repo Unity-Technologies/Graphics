@@ -1,26 +1,28 @@
 # Code Ownership File
 
-# Universal RP Team and URP Guardian
-/com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/com.unity.testing.urp-upgrade/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/com.unity.testing.urp/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/TestProjects/UniversalGraphicsTest_Foundation/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/TestProjects/UniversalGraphicsTest_Lighting/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/TestProjects/UniversalGraphicsTest_PostPro/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/TestProjects/UniversalGraphicsTest_Terrain/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/com.unity.template-universal/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
+# Universal RP Team
+/com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team
+/com.unity.testing.urp-upgrade/ @Unity-Technologies/universal-rp-team
+/com.unity.testing.urp/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGraphicsTest_Foundation/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGraphicsTest_Lighting/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGraphicsTest_PostPro/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGraphicsTest_Terrain/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGfxTestStereo/ @Unity-Technologies/universal-rp-team
+/com.unity.template-universal/ @Unity-Technologies/universal-rp-team
 
-# Universal RP Guardian
-/com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics @Unity-Technologies/urp-trunk-guardian
-/com.unity.render-pipelines.universal/Runtime/2D @Unity-Technologies/2d-graphics @Unity-Technologies/urp-trunk-guardian
-/com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics @Unity-Technologies/urp-trunk-guardian
-/com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics  @Unity-Technologies/urp-trunk-guardian
-/TestProjects/UniversalGraphicsTest_2D/ @Unity-Technologies/2d-graphics @Unity-Technologies/urp-trunk-guardian
-/com.unity.testing.xr/ @Unity-Technologies/urp-trunk-guardian
-
+# Universal 2D Renderer
+/com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics
+/com.unity.render-pipelines.universal/Runtime/2D @Unity-Technologies/2d-graphics
+/com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
+/com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
+/TestProjects/UniversalGraphicsTest_2D/ @Unity-Technologies/2d-graphics
 
 # Shader Graph
 /com.unity.shadergraph/ @Unity-Technologies/shader-graph
+
+# XR
+/com.unity.render-pipelines.core/Runtime/XR @Unity-Technologies/xr-graphics
 
 # Test systems
 /.github/ @Unity-Technologies/gfx-sdets

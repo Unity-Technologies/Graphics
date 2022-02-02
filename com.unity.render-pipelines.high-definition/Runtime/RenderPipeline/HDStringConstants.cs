@@ -527,14 +527,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterDisplacementBuffer = Shader.PropertyToID("_WaterDisplacementBuffer");
         public static readonly int _WaterAdditionalDataBuffer = Shader.PropertyToID("_WaterAdditionalDataBuffer");
         public static readonly int _WaterAdditionalDataBufferRW = Shader.PropertyToID("_WaterAdditionalDataBufferRW");
+        public static readonly int _PreviousWaterAdditionalDataBuffer = Shader.PropertyToID("_PreviousWaterAdditionalDataBuffer");
         public static readonly int _WaterMask = Shader.PropertyToID("_WaterMask");
         public static readonly int _FoamMask = Shader.PropertyToID("_FoamMask");
         public static readonly int _FoamTexture = Shader.PropertyToID("_FoamTexture");
         public static readonly int _WaterGBufferTexture0 = Shader.PropertyToID("_WaterGBufferTexture0");
         public static readonly int _WaterGBufferTexture1 = Shader.PropertyToID("_WaterGBufferTexture1");
         public static readonly int _WaterGBufferTexture2 = Shader.PropertyToID("_WaterGBufferTexture2");
+        public static readonly int _WaterGBufferTexture3 = Shader.PropertyToID("_WaterGBufferTexture3");
         public static readonly int _WaterSurfaceProfiles = Shader.PropertyToID("_WaterSurfaceProfiles");
         public static readonly int _WaterGBufferTexture0RW = Shader.PropertyToID("_WaterGBufferTexture0RW");
+        public static readonly int _WaterInitialFrame = Shader.PropertyToID("_WaterInitialFrame");
+        public static readonly int _WaterPatchData = Shader.PropertyToID("_WaterPatchData");
+        public static readonly int _WaterPatchDataRW = Shader.PropertyToID("_WaterPatchDataRW");
+        public static readonly int _WaterInstanceDataRW = Shader.PropertyToID("_WaterInstanceDataRW");
+        public static readonly int _FrustumGPUBuffer = Shader.PropertyToID("_FrustumGPUBuffer");
 
         // Water caustics
         public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");
@@ -1052,6 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
         public static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
         public static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
+        public static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
 
         // Custom Pass Utils API
         public static readonly int _SourceScaleBias = Shader.PropertyToID("_SourceScaleBias");

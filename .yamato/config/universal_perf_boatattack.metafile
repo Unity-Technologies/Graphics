@@ -35,7 +35,7 @@ reuse_blocks:
     - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
     - [all]: unity-config project add dependency com.unity.addressables@1.16.7
     - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-    - [all]: unity-config project add dependency com.unity.test-framework@1.1.29
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.30
     - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
     - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
     - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
