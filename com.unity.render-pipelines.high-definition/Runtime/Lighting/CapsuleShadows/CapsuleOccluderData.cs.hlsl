@@ -21,7 +21,7 @@
 // UnityEngine.Rendering.HighDefinition.CapsuleAmbientOcclusionMethod:  static fields
 //
 #define CAPSULEAMBIENTOCCLUSIONMETHOD_CLOSEST_SPHERE (0)
-#define CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_INTEGRAL (1)
+#define CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE (1)
 
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact

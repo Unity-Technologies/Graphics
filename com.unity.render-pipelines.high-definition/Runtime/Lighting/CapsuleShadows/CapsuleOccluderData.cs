@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum CapsuleAmbientOcclusionMethod
     {
         ClosestSphere,
-        LineIntegral,
+        LineAndClosestSphere,
     }
 
     [GenerateHLSL(needAccessors = false)]

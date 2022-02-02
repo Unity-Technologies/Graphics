@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The method used for ambient occlusion, if selected as the indirect shadowing method.
         /// </summary>
-        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.LineIntegral);
+        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.LineAndClosestSphere);
 
 
         CapsuleShadowsVolumeComponent()

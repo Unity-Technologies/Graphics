@@ -294,7 +294,7 @@ float LineDiffuseOcclusion(float3 p0, float3 wt, float t1, float t2, float3 n)
     return I*s/PI;
 }
 
-#define CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO     0x1
+#define CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE    0x1
 
 float EvaluateCapsuleAmbientOcclusion(
     uint flags,
@@ -324,7 +324,7 @@ float EvaluateCapsuleAmbientOcclusion(
         float cosAlpha = dot(normalWS, surfaceToSphereDir);
         float sphereAO = saturate(cosAlpha*Sq(capsuleRadius/sphereDistance));
 
-        if (flags & CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO)
+        if (flags & CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE)
         {
             // cosine-weighted occlusion from a thick line along the capsule axis
             float lineIntegral = LineDiffuseOcclusion(
