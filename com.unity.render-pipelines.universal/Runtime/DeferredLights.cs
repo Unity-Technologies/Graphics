@@ -723,8 +723,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-                if (HasCapsuleAmbientOcclusion())
-                    RenderStencilCapsuleAmbientOcclusion(cmd);
+                if (HasCapsuleAmbientOcclusion(ref renderingData))
+                    RenderStencilCapsuleAmbientOcclusion(cmd, ref renderingData);
                 if (HasStencilLightsOfType(LightType.Directional))
                     RenderStencilDirectionalLights(cmd, ref renderingData, visibleLights, renderingData.lightData.mainLightIndex);
                 if (HasStencilLightsOfType(LightType.Point))
@@ -736,13 +736,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        bool HasCapsuleAmbientOcclusion()
+        bool HasCapsuleAmbientOcclusion(ref RenderingData renderingData)
         {
-            // TODO: global setting
-            return CapsuleOccluderManager.instance.occluders.Count != 0;
+            return renderingData.shadowData.supportsCapsuleAmbientOcclusion
+                && renderingData.shadowData.capsuleAmbientOcclusionRange != 0.0f
+                && CapsuleOccluderManager.instance.occluders.Count != 0;
         }
 
-        void RenderStencilCapsuleAmbientOcclusion(CommandBuffer cmd)
+        void RenderStencilCapsuleAmbientOcclusion(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -756,8 +757,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float radius = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
                 float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
 
-                // cast up to 4 radii away from the surface
-                float shadowRange = 4.0f * radius;
+                // 
+                float shadowRange = renderingData.shadowData.capsuleAmbientOcclusionRange * radius;
 
                 // sphere from capsule surface to max range
                 float sphereRadius = offset + radius + shadowRange;
@@ -774,6 +775,62 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._CapsuleParams, new Vector4(radius, offset, 0.0f, shadowRange));
 
                 cmd.DrawMesh(m_SphereMesh, worldFromSphere, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.CapsuleAmbientOcclusion]);
+            }
+        }
+
+        void RenderStencilDirectionLightCapsuleShadows(CommandBuffer cmd, ref RenderingData renderingData, Vector3 lightDir, float lightHalfAngle, float shadowRange)
+        {
+            if (renderingData.shadowData.stencilCapsuleDirectShadows)
+                m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleShadowStencilRef, (float)StencilUsage.StencilShadow);
+            else
+                m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleShadowStencilRef, 0.0f);
+
+            float lightCosTheta = Mathf.Cos(lightHalfAngle);
+            float penumbraSize = Mathf.Tan(lightHalfAngle) * shadowRange;
+
+            foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
+            {
+                // extract capsule data into world space
+                Matrix4x4 localToWorld = occluder.capsuleToWorld;
+                Vector3 centerWS = localToWorld.MultiplyPoint3x4(Vector3.zero);
+                Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
+                float radius = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
+                float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
+
+                // align local X with the capsule axis
+                Vector3 localZ = lightDir;
+                Vector3 localX = Vector3.Cross(localZ, axisDirWS).normalized;
+                Vector3 localY = Vector3.Cross(localZ, localX);
+
+                // capsule bounds, extended along light direction
+                Vector3 cubeCenterWS = centerWS;
+                Vector3 halfExtentLS = new Vector3(
+                    Mathf.Abs(Vector3.Dot(axisDirWS, localX)) * offset + radius,
+                    Mathf.Abs(Vector3.Dot(axisDirWS, localY)) * offset + radius,
+                    Mathf.Abs(Vector3.Dot(axisDirWS, localZ)) * offset + radius);
+                halfExtentLS.z += 0.5f * shadowRange;
+                cubeCenterWS -= (0.5f * shadowRange) * localZ;
+
+                // expand by max penumbra
+                halfExtentLS.x += penumbraSize;
+                halfExtentLS.y += penumbraSize;
+
+                Matrix4x4 worldFromCube = new Matrix4x4(
+                    2.0f * halfExtentLS.x * localX,
+                    2.0f * halfExtentLS.y * localY,
+                    2.0f * halfExtentLS.z * localZ,
+                    cubeCenterWS);
+
+                // stencil the volume of influence for this capsules
+                if (renderingData.shadowData.stencilCapsuleDirectShadows)
+                    cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleStencilVolume]);
+
+                // combine capsule shadow into dest alpha
+                cmd.SetGlobalVector(ShaderConstants._CapsuleCenterWS, centerWS);
+                cmd.SetGlobalVector(ShaderConstants._CapsuleAxisDirWS, axisDirWS);
+                cmd.SetGlobalVector(ShaderConstants._CapsuleParams, new Vector4(radius, offset, lightCosTheta, shadowRange));
+
+                cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleShadow]);
             }
         }
 
@@ -836,55 +893,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
-                // extract light data
-                var lightData = vl.light.GetUniversalAdditionalLightData();
-                float lightHalfAngle = Mathf.Deg2Rad * Mathf.Clamp(lightData.capsuleShadowAngle, 0.1f, 90.0f) * 0.5f;
-                float shadowRange = Mathf.Max(lightData.capsuleShadowRange, 0.0f);
-                float lightCosTheta = Mathf.Cos(lightHalfAngle);
-
-                foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
+                if (renderingData.shadowData.supportsCapsuleDirectShadows)
                 {
-                    // extract capsule data into world space
-                    Matrix4x4 localToWorld = occluder.capsuleToWorld;
-                    Vector3 centerWS = localToWorld.MultiplyPoint3x4(Vector3.zero);
-                    Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
-                    float radius = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
-                    float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
-
-                    // align local X with the capsule axis
-                    Vector3 localZ = lightDir;
-                    Vector3 localX = Vector3.Cross(localZ, axisDirWS).normalized;
-                    Vector3 localY = Vector3.Cross(localZ, localX);
-
-                    // capsule bounds, extended along light direction
-                    Vector3 cubeCenterWS = centerWS;
-                    Vector3 halfExtentLS = new Vector3(
-                        Mathf.Abs(Vector3.Dot(axisDirWS, localX)) * offset + radius,
-                        Mathf.Abs(Vector3.Dot(axisDirWS, localY)) * offset + radius,
-                        Mathf.Abs(Vector3.Dot(axisDirWS, localZ)) * offset + radius);
-                    halfExtentLS.z += 0.5f * shadowRange;
-                    cubeCenterWS -= (0.5f * shadowRange) * localZ;
-
-                    // expand by max penumbra
-                    float penumbraSize = Mathf.Tan(lightHalfAngle) * shadowRange;
-                    halfExtentLS.x += penumbraSize;
-                    halfExtentLS.y += penumbraSize;
-
-                    Matrix4x4 worldFromCube = new Matrix4x4(
-                        2.0f * halfExtentLS.x * localX,
-                        2.0f * halfExtentLS.y * localY,
-                        2.0f * halfExtentLS.z * localZ,
-                        cubeCenterWS);
-
-                    // stencil the volume of influence for this capsules
-                    cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleStencilVolume]);
-
-                    // combine capsule shadow into dest alpha
-                    cmd.SetGlobalVector(ShaderConstants._CapsuleCenterWS, centerWS);
-                    cmd.SetGlobalVector(ShaderConstants._CapsuleAxisDirWS, axisDirWS);
-                    cmd.SetGlobalVector(ShaderConstants._CapsuleParams, new Vector4(radius, offset, lightCosTheta, shadowRange));
-
-                    cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleShadow]);
+                    // extract light data
+                    var lightData = vl.light.GetUniversalAdditionalLightData();
+                    float lightHalfAngle = Mathf.Deg2Rad * Mathf.Clamp(lightData.capsuleShadowAngle, 0.1f, 90.0f) * 0.5f;
+                    float shadowRange = Mathf.Max(lightData.capsuleShadowRange, 0.0f);
+                    RenderStencilDirectionLightCapsuleShadows(cmd, ref renderingData, lightDir, lightHalfAngle, shadowRange);
                 }
 
                 // Lighting pass.

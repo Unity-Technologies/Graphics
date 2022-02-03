@@ -279,6 +279,11 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
         public List<int> resolution;
 
+        public bool supportsCapsuleDirectShadows;
+        public bool stencilCapsuleDirectShadows;
+        public bool supportsCapsuleAmbientOcclusion;
+        public float capsuleAmbientOcclusionRange;
+
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
     }

@@ -51,6 +51,11 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty softShadowsSupportedProp { get; }
         public SerializedProperty conservativeEnclosingSphereProp { get; }
 
+        public SerializedProperty supportsCapsuleDirectShadowsProp {  get; }
+        public SerializedProperty stencilCapsuleDirectShadowsProp {  get; }
+        public SerializedProperty supportsCapsuleAmbientOcclusionProp { get; }
+        public SerializedProperty capsuleAmbientOcclusionRangeProp { get; }
+
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
@@ -108,6 +113,11 @@ namespace UnityEditor.Rendering.Universal
             reflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
 
             shadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
+
+            supportsCapsuleDirectShadowsProp = serializedObject.FindProperty("m_SupportsCapsuleDirectShadows");
+            stencilCapsuleDirectShadowsProp = serializedObject.FindProperty("m_StencilCapsuleDirectShadows");
+            supportsCapsuleAmbientOcclusionProp = serializedObject.FindProperty("m_SupportsCapsuleAmbientOcclusion");
+            capsuleAmbientOcclusionRangeProp = serializedObject.FindProperty("m_CapsuleAmbientOcclusionRange");
 
             shadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
             shadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");

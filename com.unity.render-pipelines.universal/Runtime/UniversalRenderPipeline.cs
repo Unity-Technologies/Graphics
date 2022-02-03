@@ -1141,6 +1141,11 @@ namespace UnityEngine.Rendering.Universal
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
 
+            shadowData.supportsCapsuleDirectShadows = settings.supportsCapsuleDirectShadows;
+            shadowData.stencilCapsuleDirectShadows = settings.stencilCapsuleDirectShadows;
+            shadowData.supportsCapsuleAmbientOcclusion = settings.supportsCapsuleAmbientOcclusion;
+            shadowData.capsuleAmbientOcclusionRange = settings.capsuleAmbientOcclusionRange;
+
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
             shadowData.isKeywordSoftShadowsEnabled = false;
