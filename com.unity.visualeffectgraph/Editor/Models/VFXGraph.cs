@@ -317,7 +317,7 @@ namespace UnityEditor.VFX
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
         {
-            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+            return AssetDatabase.IsOpenForEdit((UnityEngine.Object)resource.asset ?? resource.subgraph, StatusQueryOptions.UseCachedIfPossible);
         }
     }
 

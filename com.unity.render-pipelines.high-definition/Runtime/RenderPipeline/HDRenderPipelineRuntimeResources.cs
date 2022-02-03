@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader materialError;
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
+            public Shader probeVolumeOffsetDebugShader;
             [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
             public ComputeShader clearDebugBufferCS;
 
@@ -505,6 +507,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh sphereMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
             public Mesh probeDebugSphere;
+            [Reload("pyramid.fbx", ReloadAttribute.Package.Builtin)]
+            public Mesh pyramidMesh;
         }
 
         public ShaderResources shaders;
