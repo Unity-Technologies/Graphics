@@ -28,6 +28,9 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     public RenderPipelineAsset renderPipelineAsset;
 
+    [Tooltip("RP Asset change is only effective after a frame is render")]
+    public bool forceCameraRenderDuringSetup = false;
+
     void Awake()
     {
         if (renderPipelineAsset == null)
@@ -46,7 +49,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
             // Render pipeline is only reconstructed when a frame is renderer
             // If scene requires lightmap baking, we have to force it
-            if (!Application.isPlaying)
+            if (forceCameraRenderDuringSetup && !Application.isPlaying)
                 Camera.main.Render();
         }
     }

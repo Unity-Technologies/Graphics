@@ -184,8 +184,7 @@ namespace UnityEngine.Experimental.Rendering
 
         private void RemoveRequestsFromLightmapper()
         {
-            if (RenderPipelineManager.currentPipeline != null)
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
         }
 
         private void OnAdditionalProbesBakeCompleted()
