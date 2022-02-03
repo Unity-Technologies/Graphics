@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material converter not being able to be called in batch mode. [case 1375962]
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
-- Fixed URP Deferred Fog pass does not work in XR singlepass. [case 1390236]
+- Fixed URP Deferred Fog pass does not work in XR singlepass. [case 1390236](https://issuetracker.unity3d.com/product/unity/issues/guid/1390236/)
 
 ## [14.0.0] - 2021-11-17
 
