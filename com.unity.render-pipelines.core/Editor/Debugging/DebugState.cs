@@ -183,12 +183,6 @@ namespace UnityEditor.Rendering
     public sealed class DebugStateInt : DebugState<int> { }
 
     /// <summary>
-    /// Object Debug State.
-    /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
-    public sealed class DebugStateObject : DebugState<UnityEngine.Object> { }
-
-    /// <summary>
     /// Flags Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BitField))]

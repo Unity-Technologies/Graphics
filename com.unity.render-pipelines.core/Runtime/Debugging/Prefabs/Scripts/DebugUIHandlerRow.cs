@@ -19,29 +19,12 @@ namespace UnityEngine.Rendering.UI
 
         GameObject GetChild(int index)
         {
-            if (index < 0)
-                return null;
-
-            if (gameObject.transform != null)
-            {
-                var firstChild = gameObject.transform.GetChild(1);
-                if (firstChild != null && firstChild.childCount > index)
-                {
-                    return firstChild.GetChild(index).gameObject;
-                }
-            }
-
-            return null;
+            return gameObject.transform.GetChild(1).GetChild(index).gameObject;
         }
 
-        bool TryGetChild(int index, out GameObject child)
+        bool IsActive(DebugUI.Table table, int index, out GameObject child)
         {
             child = GetChild(index);
-            return child != null;
-        }
-
-        bool IsActive(DebugUI.Table table, int index, GameObject child)
-        {
             if (!table.GetColumnVisibility(index))
                 return false;
 
@@ -68,12 +51,8 @@ namespace UnityEngine.Rendering.UI
 
             for (int i = 0; i < row.children.Count; i++)
             {
-                if (!TryGetChild(i, out var child))
-                    continue;
-
-                bool active = IsActive(table, i, child);
-                if (child != null)
-                    child.SetActive(active);
+                bool active = IsActive(table, i, out var child);
+                child.SetActive(active);
                 if (active && refreshRow)
                 {
                     if (child.TryGetComponent<DebugUIHandlerColor>(out var color))
@@ -91,19 +70,13 @@ namespace UnityEngine.Rendering.UI
             for (int i = 0; i < row.children.Count; i++)
             {
                 itemWidget.previousUIHandler = previous;
-                if (!TryGetChild(i, out var child))
-                    continue;
-
-                if (IsActive(table, i, child))
+                if (IsActive(table, i, out var _))
                     previous = itemWidget;
 
                 bool found = false;
                 for (int j = i + 1; j < row.children.Count; j++)
                 {
-                    if (!TryGetChild(j, out var innerChild))
-                        continue;
-
-                    if (IsActive(table, j, innerChild))
+                    if (IsActive(table, j, out var child))
                     {
                         var childWidget = child.GetComponent<DebugUIHandlerWidget>();
                         itemWidget.nextUIHandler = childWidget;

@@ -1,10 +1,70 @@
+using System;
+using UnityEngine.UI;
+
 namespace UnityEngine.Rendering.UI
 {
     /// <summary>
     /// DebugUIHandler for enumerator widget.
     /// </summary>
-    public class DebugUIHandlerEnumField : DebugUIHandlerField<DebugUI.EnumField>
+    public class DebugUIHandlerEnumField : DebugUIHandlerWidget
     {
+        /// <summary>Text displayed for the "next" button.</summary>
+        public Text nextButtonText;
+        /// <summary>Text displayed for the "previous" button.</summary>
+        public Text previousButtonText;
+        /// <summary>Name of the enum field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the enum field.</summary>
+        public Text valueLabel;
+
+        internal protected DebugUI.EnumField m_Field;
+
+        internal override void SetWidget(DebugUI.Widget widget)
+        {
+            base.SetWidget(widget);
+            m_Field = CastWidget<DebugUI.EnumField>();
+            nameLabel.text = m_Field.displayName;
+            UpdateValueLabel();
+        }
+
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>State of the widget.</returns>
+        public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
+        {
+            if (nextButtonText != null)
+                nextButtonText.color = colorSelected;
+            if (previousButtonText != null)
+                previousButtonText.color = colorSelected;
+            nameLabel.color = colorSelected;
+            valueLabel.color = colorSelected;
+            return true;
+        }
+
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
+        public override void OnDeselection()
+        {
+            if (nextButtonText != null)
+                nextButtonText.color = colorDefault;
+            if (previousButtonText != null)
+                previousButtonText.color = colorDefault;
+            nameLabel.color = colorDefault;
+            valueLabel.color = colorDefault;
+        }
+
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
+        public override void OnAction()
+        {
+            OnIncrement(false);
+        }
+
         /// <summary>
         /// OnIncrement implementation.
         /// </summary>
@@ -119,7 +179,7 @@ namespace UnityEngine.Rendering.UI
         /// <summary>
         /// Update the label of the widget.
         /// </summary>
-        public override void UpdateValueLabel()
+        protected virtual void UpdateValueLabel()
         {
             int index = m_Field.currentIndex;
 
@@ -127,7 +187,16 @@ namespace UnityEngine.Rendering.UI
             if (index < 0)
                 index = 0;
 
-            SetLabelText(m_Field.enumNames[index].text);
+            string text = m_Field.enumNames[index].text;
+
+            // The UI implementation is tight with space, so let's just truncate the string here if too long.
+            const int maxLength = 26;
+            if (text.Length > maxLength)
+            {
+                text = text.Substring(0, maxLength - 3) + "...";
+            }
+
+            valueLabel.text = text;
         }
     }
 }
