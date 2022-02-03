@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector", "roughness", "postprocessinput", "blit", "issky"};
+            synonyms = new string[] { "normal", "motion vector", "roughness", "postprocessinput", "blit", "issky" };
             UpdateNodeAfterDeserialization();
         }
 
