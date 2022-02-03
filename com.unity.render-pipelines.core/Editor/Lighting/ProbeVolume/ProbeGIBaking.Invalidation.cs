@@ -26,7 +26,6 @@ namespace UnityEngine.Experimental.Rendering
 
         // TODO_FCC: Can we do better?
         static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
-        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
 
         internal static Vector3Int GetSampleOffset(int i)
         {

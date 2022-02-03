@@ -50,13 +50,12 @@ namespace UnityEditor.Experimental.Rendering
 
         protected void OnEnable()
         {
-            m_SerializedTouchupVolume = new SerializedProbeTouchupVolume(serializedObject);
+            if (serializedObject.targetObject != null)
+                m_SerializedTouchupVolume = new SerializedProbeTouchupVolume(serializedObject);
         }
 
         public override void OnInspectorGUI()
         {
-            ProbeVolume probeVolume = target as ProbeVolume;
-
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
             {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
+        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
 
         static void InitDilationShaders()
         {
@@ -90,12 +92,13 @@ namespace UnityEngine.Experimental.Rendering
             public ComputeBuffer validityBuffer { get; }
             public ComputeBuffer positionBuffer { get; }
             public ComputeBuffer outputProbes { get; }
+            public ComputeBuffer dilationThresholds { get; }
 
             DilatedProbe[] dilatedProbes;
 
             ProbeReferenceVolume.Cell cell;
 
-            public DataForDilation(ProbeReferenceVolume.Cell cell)
+            public DataForDilation(ProbeReferenceVolume.Cell cell, float defaultThreshold)
             {
                 this.cell = cell;
 
@@ -104,17 +107,22 @@ namespace UnityEngine.Experimental.Rendering
                 validityBuffer = new ComputeBuffer(probeCount, sizeof(float));
                 positionBuffer = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
                 outputProbes = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<DilatedProbe>());
+                dilationThresholds = new ComputeBuffer(probeCount, sizeof(float));
 
                 // Init with pre-dilated SH so we don't need to re-fill from sampled data from texture (that might be less precise).
                 dilatedProbes = new DilatedProbe[probeCount];
+                float[] thresholds = new float[probeCount];
+
                 for (int i = 0; i < probeCount; ++i)
                 {
                     dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                    thresholds[i] = s_CustomDilationThresh.ContainsKey(i) ? s_CustomDilationThresh[i] : defaultThreshold;
                 }
 
                 outputProbes.SetData(dilatedProbes);
                 validityBuffer.SetData(cell.validity);
                 positionBuffer.SetData(cell.probePositions);
+                dilationThresholds.SetData(thresholds);
             }
 
             public void ExtractDilatedProbes()
@@ -133,11 +141,13 @@ namespace UnityEngine.Experimental.Rendering
                 validityBuffer.Dispose();
                 positionBuffer.Dispose();
                 outputProbes.Dispose();
+                dilationThresholds.Dispose();
             }
         }
 
         static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
+        static readonly int _DilationThresholds = Shader.PropertyToID("_DilationThresholds");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
@@ -155,13 +165,15 @@ namespace UnityEngine.Experimental.Rendering
         {
             InitDilationShaders();
 
-            DataForDilation data = new DataForDilation(cell);
+            DataForDilation data = new DataForDilation(cell, settings.dilationValidityThreshold);
 
             var cmd = CommandBufferPool.Get("Cell Dilation");
 
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ValidityBuffer, data.validityBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ProbePositionsBuffer, data.positionBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
+            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _DilationThresholds, data.dilationThresholds);
+
 
             int probeCount = cell.probePositions.Length;
 
