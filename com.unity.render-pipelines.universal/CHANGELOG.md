@@ -6,15 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.6] - 2022-01-14
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed some rendering inconsistencies when using Decals.
 
 ## [13.1.5] - 2021-12-17
 
 ### Fixed
 - Fixed a depth non-clear in XR due to wrong depth slice being checked.
-
-## Fixed
 - Fixed decal compilation issue on mac.
 - Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
 
