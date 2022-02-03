@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Re-added the menu button to be able to convert selected materials.
 
 
+### Fixed
+- Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
+
 ## [12.1.4] - 2021-12-07
 
 ### Added
