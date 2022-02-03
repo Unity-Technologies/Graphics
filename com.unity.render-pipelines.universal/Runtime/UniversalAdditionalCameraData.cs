@@ -15,8 +15,20 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum CameraOverrideOption
     {
+        /// <summary>
+        /// Use this to disable regardless of what is set on the pipeline asset.
+        /// </summary>
         Off,
+
+        /// <summary>
+        /// Use this to enable regardless of what is set on the pipeline asset.
+        /// </summary>
         On,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
+        [InspectorName("Use settings from Render Pipeline Asset")]
         UsePipelineSettings,
     }
 
@@ -31,14 +43,27 @@ namespace UnityEngine.Rendering.Universal
     /// Holds information about the post-processing anti-aliasing mode.
     /// When set to <c>None</c> no post-processing anti-aliasing pass will be performed.
     /// When set to <c>Fast</c> a fast approximated anti-aliasing pass will render when resolving the camera to screen.
-    /// When set to <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass will render when resolving the camera to screen. You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>
+    /// When set to <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass will render when resolving the camera to screen.
+    /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
     /// </summary>
     public enum AntialiasingMode
     {
+        /// <summary>
+        /// Use this to have no post-processing anti-aliasing pass performed.
+        /// </summary>
         [InspectorName("No Anti-aliasing")]
         None,
+
+        /// <summary>
+        /// Use this to have a fast approximated anti-aliasing pass rendered when resolving the camera to screen
+        /// </summary>
         [InspectorName("Fast Approximate Anti-aliasing (FXAA)")]
         FastApproximateAntialiasing,
+
+        /// <summary>
+        /// Use this to have a <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass rendered when resolving the camera to screen
+        /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
+        /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
         //TemporalAntialiasing
@@ -51,17 +76,37 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum CameraRenderType
     {
+        /// <summary>
+        /// Use this to select the base camera render type.
+        /// Base rendering type allows the camera to render to either the screen or to a texture.
+        /// </summary>
         Base,
+
+        /// <summary>
+        /// Use this to select the overlay camera render type.
+        /// Overlay rendering type allows the camera to render on top of a previous camera output, thus compositing camera results.
+        /// </summary>
         Overlay,
     }
 
     /// <summary>
-    /// Controls SMAA anti-aliasing quality.
+    /// Controls <c>SubpixelMorphologicalAntiAliasing</c> SMAA anti-aliasing quality.
     /// </summary>
     public enum AntialiasingQuality
     {
+        /// <summary>
+        /// Use this to select the low <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         Low,
+
+        /// <summary>
+        /// Use this to select the medium <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         Medium,
+
+        /// <summary>
+        /// Use this to select the high <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         High
     }
 
@@ -111,11 +156,14 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in every frame.
-            if (!cameraData.requiresVolumeFrameworkUpdate)
+            // We also check the previous value to make sure we're not updating when
+            // switching between Camera ViaScripting and the URP Asset set to ViaScripting
+            if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
             {
                 camera.UpdateVolumeStack(cameraData);
             }
@@ -159,6 +207,27 @@ namespace UnityEngine.Rendering.Universal
 
             camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        public static void DestroyVolumeStack(this Camera camera)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            camera.DestroyVolumeStack(cameraData);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="cameraData"></param>
+        public static void DestroyVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
+        {
+            cameraData.volumeStack.Dispose();
+            cameraData.volumeStack = null;
         }
 
         /// <summary>
@@ -602,10 +671,12 @@ namespace UnityEngine.Rendering.Universal
             set => m_AllowXRRendering = value;
         }
 
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
         }
 
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             if (version <= 1)
@@ -615,6 +686,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnDrawGizmos()
         {
             string gizmoName = "";

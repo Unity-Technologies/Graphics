@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
+using UnityEngine;
 
 class FoundationEditorTests
 {
@@ -45,5 +46,11 @@ class FoundationEditorTests
     public void AllMaterialShadersAreNotBuiltin(ShaderPathID shaderPathID)
     {
         UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
+    }
+
+    [Test]
+    public void EnsureSingleQualityOption()
+    {
+        Assert.IsTrue(QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
     }
 }

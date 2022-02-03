@@ -52,6 +52,15 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DecalUpdateCullingGroupSystem
     {
+        /// <summary>
+        /// Provides acces to the bounding distance.
+        /// </summary>
+        public float boundingDistance
+        {
+            get { return m_BoundingDistance[0]; }
+            set { m_BoundingDistance[0] = value; }
+        }
+
         private float[] m_BoundingDistance = new float[1];
         private Camera m_Camera;
         private DecalEntityManager m_EntityManager;

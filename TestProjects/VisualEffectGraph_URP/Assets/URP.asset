@@ -23,12 +23,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 845861cca49e5da4cbdd24681c7b9305, type: 2}
   - {fileID: 11400000, guid: 7311f9f58efd121419b073bf39b4c2f2, type: 2}
   - {fileID: 11400000, guid: 8ca55f94ff1a1c34b8bb4cd78ed81cf2, type: 2}
+  - {fileID: 11400000, guid: b36a31d65ec51bd40848152d815b6000, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 0
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
-  m_StoreActionsOptimization: 0
   m_SupportsHDR: 0
   m_MSAA: 1
   m_RenderScale: 1
@@ -53,11 +53,16 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 0
+  m_ConservativeEnclosingSphere: 0
+  m_NumIterationsEnclosingSphere: 64
+  m_AdditionalLightsCookieResolution: 2048
+  m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 0
   m_SupportsDynamicBatching: 1
   m_MixedLightingSupported: 1
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
+  m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
@@ -68,4 +73,5 @@ MonoBehaviour:
   m_MaxPixelLights: 0
   m_ShadowAtlasResolution: 256
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateMode: 0
   m_ShadowCascades: 2

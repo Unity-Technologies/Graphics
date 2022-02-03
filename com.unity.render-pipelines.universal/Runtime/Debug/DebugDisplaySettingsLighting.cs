@@ -3,10 +3,20 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
+    /// <summary>
+    /// Lighting-related Rendering Debugger settings.
+    /// </summary>
+    public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
-        internal DebugLightingMode DebugLightingMode { get; private set; }
-        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
+        /// <summary>
+        /// Current debug lighting mode.
+        /// </summary>
+        public DebugLightingMode lightingDebugMode { get; set; }
+
+        /// <summary>
+        /// Current debug lighting feature flags mask that allows selective disabling individual lighting components.
+        /// </summary>
+        public DebugLightingFeatureFlags lightingFeatureFlags { get; set; }
 
         static class Strings
         {
@@ -20,17 +30,17 @@ namespace UnityEngine.Rendering.Universal
             {
                 nameAndTooltip = Strings.LightingDebugMode,
                 autoEnum = typeof(DebugLightingMode),
-                getter = () => (int)data.DebugLightingMode,
+                getter = () => (int)data.lightingDebugMode,
                 setter = (value) => { },
-                getIndex = () => (int)data.DebugLightingMode,
-                setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
+                getIndex = () => (int)data.lightingDebugMode,
+                setIndex = (value) => data.lightingDebugMode = (DebugLightingMode)value
             };
 
             internal static DebugUI.Widget CreateLightingFeatures(DebugDisplaySettingsLighting data) => new DebugUI.BitField
             {
                 nameAndTooltip = Strings.LightingFeatures,
-                getter = () => data.DebugLightingFeatureFlagsMask,
-                setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
+                getter = () => data.lightingFeatureFlags,
+                setter = (value) => data.lightingFeatureFlags = (DebugLightingFeatureFlags)value,
                 enumType = typeof(DebugLightingFeatureFlags),
             };
         }
@@ -41,6 +51,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -56,9 +68,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) || (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+        public bool AreAnySettingsActive => (lightingDebugMode != DebugLightingMode.None) || (lightingFeatureFlags != DebugLightingFeatureFlags.None);
 
-        public bool IsPostProcessingAllowed => (DebugLightingMode != DebugLightingMode.Reflections && DebugLightingMode != DebugLightingMode.ReflectionsWithSmoothness);
+        public bool IsPostProcessingAllowed => (lightingDebugMode != DebugLightingMode.Reflections && lightingDebugMode != DebugLightingMode.ReflectionsWithSmoothness);
 
         public bool IsLightingActive => true;
 
@@ -67,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        public IDebugDisplaySettingsPanelDisposable CreatePanel()
+        IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);
         }

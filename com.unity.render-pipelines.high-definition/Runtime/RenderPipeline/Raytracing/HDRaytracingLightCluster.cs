@@ -256,9 +256,11 @@ namespace UnityEngine.Rendering.HighDefinition
             totalLightCount = 0;
 
             int realIndex = 0;
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
-                HDAdditionalLightData currentLight = rayTracingLights.hdLightArray[lightIdx];
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData currentLight = lightEntities.hdAdditionalLightData[dataIndex];
 
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to not add it if it is null for that invalid frame
@@ -489,10 +491,20 @@ namespace UnityEngine.Rendering.HighDefinition
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_RenderPipeline.asset);
 
             // Build the data for every light
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            var processedLightEntity = new HDProcessedVisibleLight()
+            {
+                shadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None
+            };
+
+            var globalConfig = HDGpuLightsBuilder.CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings);
+            var shadowInitParams = m_RenderPipeline.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
                 // Grab the additinal light data to process
-                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
 
                 LightData lightData = new LightData();
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
@@ -513,18 +525,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 
+                ref HDLightRenderData lightRenderData = ref lightEntities.GetLightDataAsRef(dataIndex);
+
                 // Build the processed light data  that we need
-                ProcessedLightData processedData = new ProcessedLightData();
-                processedData.additionalLightData = additionalLightData;
-                processedData.lightType = additionalLightData.type;
-                processedData.lightCategory = lightCategory;
-                processedData.gpuLightType = gpuLightType;
-                processedData.lightVolumeType = lightVolumeType;
-                // Both of these positions are non-camera-relative.
-                processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
-                processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
-                processedData.volumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
-                processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
+                processedLightEntity.dataIndex = dataIndex;
+                processedLightEntity.gpuLightType = gpuLightType;
+                processedLightEntity.lightType = additionalLightData.type;
+                processedLightEntity.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
+                processedLightEntity.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.fadeDistance);
+                processedLightEntity.lightVolumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.volumetricFadeDistance);
+                processedLightEntity.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
                 // Build a visible light
                 Color finalColor = lightComponent.color.linear * lightComponent.intensity;
@@ -532,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
                 visibleLight.finalColor = finalColor;
                 visibleLight.range = lightComponent.range;
-                // This should be done explicitely, localtoworld matrix doesn't work here
+                // This should be done explicitly, localToWorld matrix doesn't work here
                 localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);
                 localToWorldMatrix.SetColumn(2, lightComponent.transform.forward);
                 localToWorldMatrix.SetColumn(1, lightComponent.transform.up);
@@ -541,13 +551,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 visibleLight.spotAngle = lightComponent.spotAngle;
 
                 int shadowIndex = additionalLightData.shadowIndex;
-                int screenSpaceShadowIndex = -1;
-                int screenSpaceChannelSlot = -1;
                 Vector3 lightDimensions = new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                HDGpuLightsBuilder.CreateGpuLightDataJob.ConvertLightToGPUFormat(
+                    lightCategory, gpuLightType, globalConfig,
+                    lightComponent.lightShadowCasterMode, lightComponent.bakingOutput,
+                    visibleLight, processedLightEntity, lightRenderData, out var _, ref lightData);
+                m_RenderPipeline.gpuLightList.ProcessLightDataShadowIndex(cmd, shadowInitParams, lightType, lightComponent, additionalLightData, shadowIndex, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -610,7 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightClusterDebugKernel;
             public Vector3 clusterCellSize;
             public Material debugMaterial;
-            public ComputeBuffer lightCluster;
+            public ComputeBufferHandle lightCluster;
             public ComputeShader lightClusterDebugCS;
 
             public TextureHandle depthStencilBuffer;
@@ -620,6 +631,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EvaluateClusterDebugView(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle depthPyramid)
         {
+            // TODO: Investigate why this behavior causes a leak in player mode only.
+            if (FullScreenDebugMode.LightCluster != m_RenderPipeline.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+                return;
+
             TextureHandle debugTexture;
             using (var builder = renderGraph.AddRenderPass<LightClusterDebugPassData>("Debug Texture for the Light Cluster", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugCluster)))
             {
@@ -628,7 +643,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
-                passData.lightCluster = m_LightCluster;
+                passData.lightCluster = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_LightCluster));
                 passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;
@@ -774,11 +789,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReserveCookieAtlasSlots(HDRayTracingLights rayTracingLights)
         {
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
                 // Grab the additional light data to process
-                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
-
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 

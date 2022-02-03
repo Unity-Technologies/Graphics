@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph
 
         // Common aggregates
         FragmentAndRaytracing = (Fragment | RayTracing),
+        VertexFragmentAndRaytracing = (Vertex | Fragment | RayTracing),
         All = (Vertex | Fragment | Geometry | Hull | Domain | RayTracing)
     }
 }

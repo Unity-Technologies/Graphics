@@ -96,23 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // ------------------------------------------------------------------------------------------
-
-        // ------------------------------------------------------------------------------------------
-        //          Functions for mixed cached shadows that need to live in cached atlas
-        // ------------------------------------------------------------------------------------------
-
-        public void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
-        {
-            foreach (var request in m_ShadowRequests)
-            {
-                if (request.shouldRenderCachedComponent) // meaning it has been updated this time frame
-                {
-                    dynamicAtlas.AddRequestToPendingBlitFromCache(request);
-                }
-            }
-        }
-
-        // ------------------------------------------------------------------------------------------
         //          Functions to access and deal with the C# representation of the atlas
         // ------------------------------------------------------------------------------------------
         private bool IsEntryEmpty(int x, int y)
@@ -574,7 +557,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!lightData.isActiveAndEnabled) return;
 
             int lightIdx = lightData.lightIdxForCachedShadows;
-            Debug.Assert(lightIdx >= 0);
 
             if (!m_PlacedShadows.ContainsKey(lightIdx))
             {

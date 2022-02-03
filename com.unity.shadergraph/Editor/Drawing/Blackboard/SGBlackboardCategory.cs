@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
-            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
+            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
             // Register hover callbacks
             RegisterCallback<MouseEnterEvent>(OnHoverStartEvent);
             RegisterCallback<MouseLeaveEvent>(OnHoverEndEvent);
@@ -291,6 +291,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 OpenTextEditor();
                 e.PreventDefault();
+            }
+            else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                // Select the child elements within this category (the field views)
+                var fieldViews = this.Query<SGBlackboardField>();
+                foreach (var child in fieldViews.ToList())
+                {
+                    this.AddToSelection(child);
+                }
             }
         }
 
@@ -664,12 +673,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void OnSelected()
         {
             AddToClassList("selected");
-            // Select the child elements within this category (the field views)
-            var fieldViews = this.Query<SGBlackboardField>();
-            foreach (var child in fieldViews.ToList())
-            {
-                this.AddToSelection(child);
-            }
         }
 
         public override void OnUnselected()
@@ -690,15 +693,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (selectable != this)
-                Inspector.InspectorView.forceNodeView = true;
-
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
-
-            if (materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
-                // Turns off the inspector being forced to trigger so user can still use Graph Settings tab if they want, on category selection
-                Inspector.InspectorView.forceNodeView = false;
         }
 
         public void RemoveFromSelection(ISelectable selectable)

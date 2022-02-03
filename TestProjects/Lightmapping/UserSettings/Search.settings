@@ -1,0 +1,16 @@
+trackSelection = true
+fetchPreview = true
+wantsMore = false
+keepOpen = false
+itemIconSize = 1
+queryFolder = "Assets"
+onBoardingDoNotAskAgain = true
+showPackageIndexes = false
+debounceMs = 250
+scopes = {
+}
+providers = {
+}
+recentSearches = [
+]
+savedSearchesSortOrder = 0

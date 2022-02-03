@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = litShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LitGUI.SetupLitKeywordsAndPass(mat);
+                    LitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
                 else if (mat.shader.name == "HDRP/LayeredLitTessellation")
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }
@@ -91,54 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Selected Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
-        {
-            var selection = UnityEditor.Selection.objects;
-
-            foreach (var obj in selection)
-            {
-                if (obj is Material material)
-                {
-                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                    {
-                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                        HDShaderUtils.ResetMaterialKeywords(material);
-                    }
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
         }
 
         [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
@@ -348,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Project and Scene High Definition Materials Keywords")]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
-            var openedScenes = new string[EditorSceneManager.loadedSceneCount];
+            var openedScenes = new string[SceneManager.loadedSceneCount];
             for (var i = 0; i < openedScenes.Length; ++i)
                 openedScenes[i] = SceneManager.GetSceneAt(i).path;
 

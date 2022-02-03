@@ -15,9 +15,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         const float k_InspectorUpdateInterval = 0.25f;
         const int k_InspectorElementLimit = 20;
 
+        bool m_GraphSettingsTabFocused = false;
+
         int m_CurrentlyInspectedElementsCount = 0;
 
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
+
+        HashSet<IInspectable> cachedInspectables = new();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
@@ -32,9 +36,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 
-        Label m_MaxItemsMessageLabel;
+        List<IPropertyDrawer> m_AllActivePropertyDrawers = new List<IPropertyDrawer>();
 
-        internal static bool forceNodeView = true;
+        Label m_MaxItemsMessageLabel;
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -83,8 +87,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
             m_ScrollView = this.Q<ScrollView>();
-            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += SetScrollModeHorizontal;
-            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += SetScrollModeHorizontalVertical;
+            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += GraphSettingsTabClicked;
+            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += NodeSettingsTabClicked;
 
             isWindowScrollable = true;
             isWindowResizable = true;
@@ -100,13 +104,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
         }
 
-        void SetScrollModeHorizontal(TabButton button)
+        void GraphSettingsTabClicked(TabButton button)
         {
+            m_GraphSettingsTabFocused = true;
             m_ScrollView.mode = ScrollViewMode.Vertical;
         }
 
-        void SetScrollModeHorizontalVertical(TabButton button)
+        void NodeSettingsTabClicked(TabButton button)
         {
+            m_GraphSettingsTabFocused = false;
             m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
         }
 
@@ -127,31 +133,49 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void Update()
         {
+            // Tear down all existing active property drawers, everything is getting rebuilt
+            foreach (IPropertyDrawer propDrawer in m_AllActivePropertyDrawers)
+                propDrawer.DisposePropertyDrawer();
+            m_AllActivePropertyDrawers.Clear();
+
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
-            m_CurrentlyInspectedElementsCount = 0;
 
             try
             {
                 bool anySelectables = false;
+                int currentInspectablesCount = 0;
+                var currentInspectables = new HashSet<IInspectable>();
                 foreach (var selectable in selection)
                 {
                     if (selectable is IInspectable inspectable)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
-                        m_CurrentlyInspectedElementsCount++;
+                        currentInspectablesCount++;
                         anySelectables = true;
+                        currentInspectables.Add(inspectable);
                     }
 
-                    if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                    if (currentInspectablesCount == k_InspectorElementLimit)
                     {
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                         m_MaxItemsMessageLabel.style.visibility = Visibility.Visible;
                         break;
                     }
                 }
-                if (anySelectables && forceNodeView)
+
+                // If we have changed our inspector selection while the graph settings tab was focused, we want to switch back to the node settings tab, so invalidate the flag
+                foreach (var currentInspectable in currentInspectables)
+                {
+                    if (cachedInspectables.Contains(currentInspectable) == false)
+                        m_GraphSettingsTabFocused = false;
+                }
+
+                cachedInspectables = currentInspectables;
+                m_CurrentlyInspectedElementsCount = currentInspectablesCount;
+
+                if (anySelectables && !m_GraphSettingsTabFocused)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab
@@ -174,15 +198,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, m_AllActivePropertyDrawers, propertyDrawerToUse);
         }
 
         internal void HandleGraphChanges()
         {
             float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
+
+            int currentInspectablesCount = 0;
+            foreach (var selectable in selection)
+            {
+                if (selectable is IInspectable)
+                    currentInspectablesCount++;
+            }
+
             // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
-            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
+            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && currentInspectablesCount != m_CurrentlyInspectedElementsCount)
+            {
+                m_GraphSettingsTabFocused = false;
                 Update();
+            }
         }
 
         void TriggerInspectorUpdate()
@@ -194,11 +229,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // which for SG, is a representation of the settings in GraphData
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
+            contentContainer.Clear();
+
             var graphEditorView = ParentView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
-            contentContainer.Clear();
             DrawInspectable(contentContainer, (IInspectable)ParentView, m_graphSettingsPropertyDrawer);
             contentContainer.MarkDirtyRepaint();
         }
@@ -211,6 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             VisualElement outputVisualElement,
             IInspectable inspectable,
             Action propertyChangeCallback,
+            List<IPropertyDrawer> allPropertyDrawerInstances,
             IPropertyDrawer propertyDrawerToUse = null)
         {
             var dataObject = inspectable.GetObjectToInspect();
@@ -229,16 +266,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
                 var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] { }).GetType();
 
-                if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
+                var propertyDrawerInstance = propertyDrawerToUse;
+                if (propertyDrawerInstance == null)
                 {
-                    var propertyDrawerInstance = propertyDrawerToUse ??
-                        (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
+                    if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
+                        propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
+                }
+
+                if (propertyDrawerInstance != null)
+                {
                     // Assign the inspector update delegate so any property drawer can trigger an inspector update if it needs it
                     propertyDrawerInstance.inspectorUpdateDelegate = propertyChangeCallback;
                     // Supply any required data to this particular kind of property drawer
                     inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, propertyChangeCallback);
                     var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
                     outputVisualElement.Add(propertyGUI);
+                    if (allPropertyDrawerInstances != null)
+                        allPropertyDrawerInstances.Add(propertyDrawerInstance);
                 }
             }
         }

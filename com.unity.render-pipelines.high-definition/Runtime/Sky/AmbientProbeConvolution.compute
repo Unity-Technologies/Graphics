@@ -1,26 +1,39 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
-#pragma kernel AmbientProbeConvolutionNoMip KERNEL_NAME=AmbientProbeConvolutionNoMip NO_MIPS
+// Regular ambient probe convolution
+// Always use mips and output separate diffuse buffer.
+// Volumetric output as an option
+#pragma kernel AmbientProbeConvolutionDiffuse KERNEL_NAME=AmbientProbeConvolutionDiffuse OUTPUT_DIFFUSE
+#pragma kernel AmbientProbeConvolutionVolumetric KERNEL_NAME=AmbientProbeConvolutionVolumetric OUTPUT_VOLUMETRIC
+#pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
+// Ambient probe convolution for clouds.
+// Does not output diffuse and volumetric buffer and does not use input texture mips.
+#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS
 
 // Input Cubemap
 TEXTURECUBE(_AmbientProbeInputCubemap);
 // Output buffer
 RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
+RWStructuredBuffer<float4> _VolumetricAmbientProbeOutputBuffer;
+RWStructuredBuffer<float4> _DiffuseAmbientProbeOutputBuffer;
 
-// Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
-// http://www.ppsloan.org/publications/StupidSH36.pdf
-//  [SH basis coeff] * [clamped cosine convolution factor]
-#define fC0 (rsqrt(PI * 4.0) * rsqrt(PI * 4.0))  // Equivalent (0.282095 * (1.0 / (2.0 * sqrtPI)))
-#define fC1 (rsqrt(PI * 4.0 / 3.0) * rsqrt(PI * 3.0)) // Equivalent to (0.488603 * (sqrt ( 3.0) / ( 3.0 * sqrtPI)))
-#define fC2 (rsqrt(PI * 4.0 / 15.0) * rsqrt(PI * 64.0 / 15.0)) // Equivalent to (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
-#define fC3 (rsqrt(PI * 16.0 / 5.0) * rsqrt(PI * 256.0 / 5.0)) // Equivalent to (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
-#define fC4 (rsqrt(PI * 16.0 / 15.0) * rsqrt(PI * 256.0 / 15.0)) // Equivalent to  (0.546274 * 0.5 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
+// If we use local VGPRs as a scratch buffer we end up using too many register
+// To avoid that we go through memory.
+// This is quite messy and bad for performance but this shader should never be critical so it should be fine.
+// Uint is used as it's the only format supported everywhere as read/write from same thread.
+RWStructuredBuffer<uint> _ScratchBuffer;
+
+uniform float4 _FogParameters;
+
+#define _FogDimmer _FogParameters.x
+#define _FogAnisotropy _FogParameters.y
 
 #define SAMPLE_COUNT 256
 #define SH_COEFF_COUNT 27
@@ -33,7 +46,44 @@ RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
 #endif
 
-static const float ConvolveCosineLobeBandFactor[] = { fC0, -fC1, fC1, -fC1, fC2, -fC2, fC3, -fC2, fC4 };
+    void PackSHFromScratchBuffer(RWStructuredBuffer<float4> buffer)
+    {
+        int c = 0;
+        for (c = 0; c < 3; c++)
+
+        {
+            buffer[c] = float4(asfloat(_ScratchBuffer[c * 9 + 3]), asfloat(_ScratchBuffer[c * 9 + 1]), asfloat(_ScratchBuffer[c * 9 + 2]), asfloat(_ScratchBuffer[c * 9 + 0]) - asfloat(_ScratchBuffer[c * 9 + 6]));
+        }
+
+        // Quadratic (4/5)
+        for (c = 0; c < 3; c++)
+        {
+            buffer[3 + c] = float4(asfloat(_ScratchBuffer[c * 9 + 4]), asfloat(_ScratchBuffer[c * 9 + 5]), asfloat(_ScratchBuffer[c * 9 + 6]) * 3.0f, asfloat(_ScratchBuffer[c * 9 + 7]));
+        }
+
+        // Quadratic (5)
+        buffer[6] = float4(asfloat(_ScratchBuffer[0 * 9 + 8]), asfloat(_ScratchBuffer[1 * 9 + 8]), asfloat(_ScratchBuffer[2 * 9 + 8]), 1.0f);
+    }
+
+    void ConvolveZonalFromScratchBuffer(float3 zh)
+    {
+        for (int l = 0; l <= 2; l++)
+        {
+            float n = sqrt((4.0f * PI) / (2 * l + 1));
+            float k = zh[l];
+            float p = n * k;
+
+            for (int m = -l; m <= l; m++)
+            {
+                int i = l * (l + 1) + m;
+
+                for (int c = 0; c < 3; c++)
+                {
+                    _ScratchBuffer[c * 9 + i] = asuint(asfloat(_ScratchBuffer[c * 9 + i]) * p);
+                }
+            }
+        }
+    }
 
 [numthreads(SAMPLE_COUNT, 1, 1)]
 void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
@@ -72,14 +122,15 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 
     for (int channel = 0; channel < 3; ++channel)
     {
+        // Note: SH coefficient are apply letter
         outputSHCoeffs[channel * 9 + 0] = value[channel];
-        outputSHCoeffs[channel * 9 + 1] = -n.y * value[channel];
+        outputSHCoeffs[channel * 9 + 1] = n.y * value[channel];
         outputSHCoeffs[channel * 9 + 2] = n.z * value[channel];
-        outputSHCoeffs[channel * 9 + 3] = -n.x * value[channel];
+        outputSHCoeffs[channel * 9 + 3] = n.x * value[channel];
         outputSHCoeffs[channel * 9 + 4] = n.x * n.y * value[channel];
-        outputSHCoeffs[channel * 9 + 5] = -n.y * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 5] = n.y * n.z * value[channel];
         outputSHCoeffs[channel * 9 + 6] = (3.0 * n.z * n.z - 1.0) * value[channel];
-        outputSHCoeffs[channel * 9 + 7] = -n.x * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 7] = n.x * n.z * value[channel];
         outputSHCoeffs[channel * 9 + 8] = (n.x * n.x - n.y * n.y) * value[channel];
     }
 
@@ -157,7 +208,50 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     {
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
+            // Sh Coefficient used for encoding
+            outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
         }
+
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            // ClampedCosine * SH Coefficient used in Decode
+            _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * kClampedCosineCoefs[i % 9] * kSHBasisCoef[i % 9];
+        }
+
+#if OUTPUT_DIFFUSE
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            _ScratchBuffer[i] = asuint(_AmbientProbeOutputBuffer[i]);
+        }
+
+        // Diffuse convolution packed to be ready for shader consumption
+        PackSHFromScratchBuffer(_DiffuseAmbientProbeOutputBuffer);
+#endif
+
+#if OUTPUT_VOLUMETRIC
+
+        // Note: Code below could be optimize (lot of constant multiplication), but compiler may figure it out and this path is rarely executed, so prefer clean code.
+        // Apply FogDimmer
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            _ScratchBuffer[i] = asuint(outputSHCoeffs[i] *_FogDimmer);
+        }
+
+        // Apply CornetteShank phase function
+        float3 zh;
+        GetCornetteShanksPhaseFunction(zh, _FogAnisotropy);
+        ConvolveZonalFromScratchBuffer(zh);
+
+        // Premultiplies the SH with the polynomial coefficients of SH basis functions,
+        // which avoids using any constants during SH evaluation.
+        // The resulting evaluation takes the form:
+        // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            _ScratchBuffer[i] = asuint(asfloat(_ScratchBuffer[i]) * kSHBasisCoef[i % 9]);
+        }
+
+        PackSHFromScratchBuffer(_VolumetricAmbientProbeOutputBuffer);
+#endif
     }
 }

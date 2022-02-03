@@ -324,6 +324,25 @@ real RotateHue(real value, real low, real hi)
                 : value;
 }
 
+// CIE xyY to CIE 1931 XYZ
+float3 xyYtoXYZ(float3 xyY)
+{
+    float x = xyY.x;
+    float y = xyY.y;
+    float Y = xyY.z;
+
+    float X = (Y / y) * x;
+    float Z = (Y / y) * (1.0 - x - y);
+
+    return float3(X, Y, Z);
+}
+
+// CIE 1931 XYZ to CIE xy (Y component not returned)
+float2 XYZtoxy(float3 XYZ)
+{
+    return XYZ.xy / (dot(XYZ, 1));
+}
+
 // Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
 // fine for our use case.
 float3 SoftLight(float3 base, float3 blend)
@@ -332,49 +351,6 @@ float3 SoftLight(float3 base, float3 blend)
     float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
     float3 t = step(0.5, blend);
     return r2 * t + (1.0 - t) * r1;
-}
-
-// SMPTE ST.2084 (PQ) transfer functions
-// 1.0 = 100nits, 100.0 = 10knits
-#define DEFAULT_MAX_PQ 100.0
-
-struct ParamsPQ
-{
-    real N, M;
-    real C1, C2, C3;
-};
-
-static const ParamsPQ PQ =
-{
-    2610.0 / 4096.0 / 4.0,   // N
-    2523.0 / 4096.0 * 128.0, // M
-    3424.0 / 4096.0,         // C1
-    2413.0 / 4096.0 * 32.0,  // C2
-    2392.0 / 4096.0 * 32.0,  // C3
-};
-
-real3 LinearToPQ(real3 x, real maxPQValue)
-{
-    x = PositivePow(x / maxPQValue, PQ.N);
-    real3 nd = (PQ.C1 + PQ.C2 * x) / (1.0 + PQ.C3 * x);
-    return PositivePow(nd, PQ.M);
-}
-
-real3 LinearToPQ(real3 x)
-{
-    return LinearToPQ(x, DEFAULT_MAX_PQ);
-}
-
-real3 PQToLinear(real3 x, real maxPQValue)
-{
-    x = PositivePow(x, rcp(PQ.M));
-    real3 nd = max(x - PQ.C1, 0.0) / (PQ.C2 - (PQ.C3 * x));
-    return PositivePow(nd, rcp(PQ.N)) * maxPQValue;
-}
-
-real3 PQToLinear(real3 x)
-{
-    return PQToLinear(x, DEFAULT_MAX_PQ);
 }
 
 // Alexa LogC converters (El 1000)
@@ -647,7 +623,9 @@ real3 CustomTonemap(real3 x, real3 curve, real4 toeSegmentA, real2 toeSegmentB, 
 
 // Filmic tonemapping (ACES fitting, unless TONEMAPPING_USE_FULL_ACES is set to 1)
 // Input is ACES2065-1 (AP0 w/ linear encoding)
+#ifndef TONEMAPPING_USE_FULL_ACES
 #define TONEMAPPING_USE_FULL_ACES 0
+#endif
 
 float3 AcesTonemap(float3 aces)
 {

@@ -19,46 +19,150 @@ namespace UnityEngine.Rendering.Universal
         SoftShadows,
     }
 
+    /// <summary>
+    /// This controls the size of the shadow map texture.
+    /// </summary>
     public enum ShadowResolution
     {
+        /// <summary>
+        /// Use this for 256x256 shadow resolution.
+        /// </summary>
         _256 = 256,
+
+        /// <summary>
+        /// Use this for 512x512 shadow resolution.
+        /// </summary>
         _512 = 512,
+
+        /// <summary>
+        /// Use this for 1024x1024 shadow resolution.
+        /// </summary>
         _1024 = 1024,
+
+        /// <summary>
+        /// Use this for 2048x2048 shadow resolution.
+        /// </summary>
         _2048 = 2048,
+
+        /// <summary>
+        /// Use this for 4096x4096 shadow resolution.
+        /// </summary>
         _4096 = 4096
     }
 
+    /// <summary>
+    /// This controls the size of the Light Cookie atlas texture for additional lights (point, spot).
+    /// </summary>
     public enum LightCookieResolution
     {
+        /// <summary>
+        /// Use this for 256x256 Light Cookie resolution.
+        /// </summary>
         _256 = 256,
+
+        /// <summary>
+        /// Use this for 512x512 Light Cookie resolution.
+        /// </summary>
         _512 = 512,
+
+        /// <summary>
+        /// Use this for 1024x1024 Light Cookie resolution.
+        /// </summary>
         _1024 = 1024,
+
+        /// <summary>
+        /// Use this for 2048x2048 Light Cookie resolution.
+        /// </summary>
         _2048 = 2048,
+
+        /// <summary>
+        /// Use this for 4096x4096 Light Cookie resolution.
+        /// </summary>
         _4096 = 4096
     }
 
+    /// <summary>
+    /// Options for selecting the format for the Light Cookie atlas texture for additional lights (point, spot).
+    /// Low precision saves memory and bandwidth.
+    /// </summary>
     public enum LightCookieFormat
     {
+        /// <summary>
+        /// Use this to select Grayscale format with low precision.
+        /// </summary>
         GrayscaleLow,
+
+        /// <summary>
+        /// Use this to select Grayscale format with high precision.
+        /// </summary>
         GrayscaleHigh,
+
+        /// <summary>
+        /// Use this to select Color format with low precision.
+        /// </summary>
         ColorLow,
+
+        /// <summary>
+        /// Use this to select Color format with high precision.
+        /// </summary>
         ColorHigh,
+
+        /// <summary>
+        /// Use this to select High Dynamic Range format.
+        /// </summary>
         ColorHDR,
     }
 
+    /// <summary>
+    /// Options for setting MSAA Quality.
+    /// This defines how many samples URP computes per pixel for evaluating the effect.
+    /// </summary>
     public enum MsaaQuality
     {
+        /// <summary>
+        /// Disables MSAA.
+        /// </summary>
         Disabled = 1,
+
+        /// <summary>
+        /// Use this for 2 samples per pixel.
+        /// </summary>
         _2x = 2,
+
+        /// <summary>
+        /// Use this for 4 samples per pixel.
+        /// </summary>
         _4x = 4,
+
+        /// <summary>
+        /// Use this for 8 samples per pixel.
+        /// </summary>
         _8x = 8
     }
 
+    /// <summary>
+    /// Options for selecting downsampling.
+    /// </summary>
     public enum Downsampling
     {
+        /// <summary>
+        /// Use this to disable downsampling.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Use this to produce a half-resolution image with bilinear filtering.
+        /// </summary>
         _2xBilinear,
+
+        /// <summary>
+        /// Use this to produce a quarter-resolution image with box filtering. This produces a softly blurred copy.
+        /// </summary>
         _4xBox,
+
+        /// <summary>
+        /// Use this to produce a quarter-resolution image with bi-linear filtering.
+        /// </summary>
         _4xBilinear
     }
 
@@ -73,20 +177,25 @@ namespace UnityEngine.Rendering.Universal
         Decal
     }
 
+    /// <summary>
+    /// Options for light rendering mode.
+    /// </summary>
     public enum LightRenderingMode
     {
+        /// <summary>
+        /// Use this to disable lighting.
+        /// </summary>
         Disabled = 0,
-        PerVertex = 2,
-        PerPixel = 1,
-    }
 
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
+        /// <summary>
+        /// Use this to select lighting to be calculated per vertex.
+        /// </summary>
+        PerVertex = 2,
+
+        /// <summary>
+        /// Use this to select lighting to be calculated per pixel.
+        /// </summary>
+        PerPixel = 1,
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
@@ -96,18 +205,43 @@ namespace UnityEngine.Rendering.Universal
         Profiling,
     }
 
+    /// <summary>
+    /// Options to select the type of Renderer to use.
+    /// </summary>
     public enum RendererType
     {
+        /// <summary>
+        /// Use this for Custom Renderer.
+        /// </summary>
         Custom,
+
+        /// <summary>
+        /// Use this for Universal Renderer.
+        /// </summary>
         UniversalRenderer,
+
+        /// <summary>
+        /// Use this for 2D Renderer.
+        /// </summary>
         _2DRenderer,
+
         [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
         ForwardRenderer = UniversalRenderer,
     }
 
+    /// <summary>
+    /// Options for selecting Color Grading modes, Low Dynamic Range (LDR) or High Dynamic Range (HDR)
+    /// </summary>
     public enum ColorGradingMode
     {
+        /// <summary>
+        /// This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.
+        /// </summary>
         LowDynamicRange,
+
+        /// <summary>
+        /// This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.
+        /// </summary>
         HighDynamicRange
     }
 
@@ -129,15 +263,53 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum VolumeFrameworkUpdateMode
     {
+        /// <summary>
+        /// Use this to have the Volume Framework update every frame.
+        /// </summary>
         [InspectorName("Every Frame")]
         EveryFrame = 0,
+
+        /// <summary>
+        /// Use this to disable Volume Framework updates or to update it manually via scripting.
+        /// </summary>
         [InspectorName("Via Scripting")]
         ViaScripting = 1,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         [InspectorName("Use Pipeline Settings")]
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Defines the upscaling filter selected by the user the universal render pipeline asset.
+    /// </summary>
+    public enum UpscalingFilterSelection
+    {
+        /// <summary>
+        /// Indicates that URP will select an appropriate upscaling filter automatically.
+        /// </summary>
+        [InspectorName("Automatic")]
+        Auto,
+
+        /// <summary>
+        /// Indicates that Bilinear filtering will be used when performing upscaling.
+        /// </summary>
+        [InspectorName("Bilinear")]
+        Linear,
+
+        /// <summary>
+        /// Indicates that Nearest-Neighbour filtering will be used when performing upscaling.
+        /// </summary>
+        [InspectorName("Nearest-Neighbor")]
+        Point,
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        FSR
+    }
+
     [ExcludeFromPreset]
+    [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
 
@@ -154,8 +326,8 @@ namespace UnityEngine.Rendering.Universal
         public ShaderResources shaders;
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 9;
-        [SerializeField] int k_AssetPreviousVersion = 9;
+        [SerializeField] int k_AssetVersion = 10;
+        [SerializeField] int k_AssetPreviousVersion = 10;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -171,12 +343,14 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] bool m_FsrOverrideSharpness = false;
+        [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -208,6 +382,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -219,6 +395,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -235,21 +412,20 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
-        public const int k_MinLutSize = 16;
-        public const int k_MaxLutSize = 65;
+        internal const int k_MinLutSize = 16;
+        internal const int k_MaxLutSize = 65;
 
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
 
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+        internal static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+        internal static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+        internal static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -269,6 +445,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
 
             return instance;
         }
@@ -384,8 +563,10 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            DestroyRenderers();
+            var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
-            return new UniversalRenderPipeline(this);
+            return pipeline;
         }
 
         void DestroyRenderers()
@@ -406,6 +587,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         protected override void OnValidate()
         {
             DestroyRenderers();
@@ -415,6 +597,7 @@ namespace UnityEngine.Rendering.Universal
             base.OnValidate();
         }
 
+        /// <inheritdoc/>
         protected override void OnDisable()
         {
             DestroyRenderers();
@@ -426,7 +609,14 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
-            DestroyRenderers();
+            if (m_Renderers != null)
+            {
+                for (int i = 0; i < m_Renderers.Length; ++i)
+                {
+                    if (m_Renderers[i] != null)
+                        Debug.LogError($"Creating renderers but previous instance wasn't properly destroyed: m_Renderers[{i}]");
+                }
+            }
 
             if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
                 m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
@@ -514,7 +704,10 @@ namespace UnityEngine.Rendering.Universal
 
             // RendererData list differs from RendererList. Create RendererList.
             if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+            {
+                DestroyRenderers();
                 CreateRenderers();
+            }
 
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data
@@ -663,6 +856,39 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        /// <summary>
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
+        /// </summary>
+        public UpscalingFilterSelection upscalingFilter
+        {
+            get { return m_UpscalingFilter; }
+            set { m_UpscalingFilter = value; }
+        }
+
+        /// <summary>
+        /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
+        /// sharpening filter associated with FidelityFX Super Resolution.
+        /// </summary>
+        public bool fsrOverrideSharpness
+        {
+            get { return m_FsrOverrideSharpness; }
+            set { m_FsrOverrideSharpness = value; }
+        }
+
+        /// <summary>
+        /// Controls the intensity of the sharpening filter associated with FidelityFX Super Resolution.
+        /// A value of 1.0 produces maximum sharpness while a value of 0.0 disables the sharpening filter entirely.
+        ///
+        /// Note: This value only has an effect when the fsrOverrideSharpness property is set to true.
+        /// </summary>
+        public float fsrSharpness
+        {
+            get { return m_FsrSharpness; }
+            set { m_FsrSharpness = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode
@@ -870,12 +1096,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsLightLayers; }
         }
 
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
-        }
-
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>
@@ -893,12 +1113,18 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
+        /// <summary>
+        /// Returns the selected ColorGradingMode in the URP Asset.
+        /// </summary>
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
             set { m_ColorGradingMode = value; }
         }
 
+        /// <summary>
+        /// Returns the selected LUT size for Color Grading in the URP Asset.
+        /// </summary>
         public int colorGradingLutSize
         {
             get { return m_ColorGradingLutSize; }
@@ -921,6 +1147,25 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
+        }
+
+        /// <summary>
+        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
+        /// </summary>
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        /// <summary>
+        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
+        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
+        /// </summary>
+        public int numIterationsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial
@@ -1148,6 +1393,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
+            if (k_AssetVersion < 10)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1184,6 +1435,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 9;
+            }
+
+            if (asset.k_AssetPreviousVersion < 10)
+            {
+                UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);

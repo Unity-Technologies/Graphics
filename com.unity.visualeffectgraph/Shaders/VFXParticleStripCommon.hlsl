@@ -43,8 +43,8 @@ uint GetRelativeIndex(uint particleIndex, const StripData data)
     return (data.capacity + particleIndex - data.firstIndex) % data.capacity;
 }
 
-#if HAS_ATTRIBUTES
-void InitStripAttributes(uint particleIndex, inout Attributes attributes, const StripData data)
+#if HAS_VFX_ATTRIBUTES
+void InitStripAttributes(uint particleIndex, inout VFXAttributes attributes, const StripData data)
 {
 #if VFX_USE_STRIPINDEX_CURRENT
     attributes.stripIndex = data.stripIndex;
@@ -57,7 +57,7 @@ void InitStripAttributes(uint particleIndex, inout Attributes attributes, const 
 #endif
 }
 
-void InitStripAttributesWithSpawn(uint spawnCount, uint particleIndex, inout Attributes attributes, const StripData data)
+void InitStripAttributesWithSpawn(uint spawnCount, uint particleIndex, inout VFXAttributes attributes, const StripData data)
 {
     InitStripAttributes(particleIndex, attributes, data);
 #if VFX_USE_PARTICLECOUNTINSTRIP_CURRENT

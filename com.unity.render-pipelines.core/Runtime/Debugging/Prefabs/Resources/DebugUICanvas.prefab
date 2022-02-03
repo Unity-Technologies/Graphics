@@ -58,6 +58,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -175,3 +176,21 @@ MonoBehaviour:
   - type: UnityEngine.Rendering.DebugUI+Table+Row, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 224053494956566916, guid: 2d019437ff89b8d44949727731cd9357, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+MessageBox, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224053494956566916, guid: 10a25524b0986f9488b430e2829bbbe8, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+ProgressBarValue, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224720214277421396, guid: d3770aaa3bbd8384aabab9ddd383e21e, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+ValueTuple, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224720214277421396, guid: a2148203dd960814ca5db0c293ceda35, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+ObjectField, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224720214277421396, guid: a87cfaef648f17c41b568e842e068c51, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+ObjectListField, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224224135738715566, guid: ad83bc56407925d44a77a5bd01cd6783, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+ObjectPopupField, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 4224455051203994714, guid: 48fb043c850cadc4a883b53785e14c6e, type: 3}

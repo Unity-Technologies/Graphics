@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(AmbientOcclusion))]
+    [CustomEditor(typeof(AmbientOcclusion))]
     class AmbientOcclusionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
@@ -72,11 +72,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportSSAO");
                 return;
             }
 
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
@@ -84,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            if (HDRenderPipeline.assetSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 base.OnInspectorGUI(); // Quality Setting

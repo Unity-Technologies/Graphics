@@ -126,8 +126,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public virtual string GetPropertyTypeString()
         {
-            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "")})";
-            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
+            var typeString = propertyType.ToString();
+            if (sgVersion < latestVersion)
+                typeString = $"{typeString} (Legacy v{sgVersion})";
+            return typeString;
         }
     }
 

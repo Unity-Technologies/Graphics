@@ -51,8 +51,9 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     bsdfData.soFixupStrengthFactor = 0.0;
 #endif
 
-    // We restore the original coatIor (see StackLit.hlsl, l471)
-    bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
+    // We restore the original coatIor by reverting the premultiplication, when possible (see StackLit.hlsl, l471)
+    if (bsdfData.coatMask > 0.001)
+        bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
 
     // Override exctinction, that we won't need, with the transmission value for the incoming segment
     float sinThetaI = sqrt(1.0 - Sq(NdotV));
@@ -114,7 +115,12 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         SSS::Result subsurfaceResult;
         float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+        bool isThin = true;
+#else
+        bool isThin = false;
+#endif
+        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, isThin))
             return false;
 
         shadingPosition = subsurfaceResult.exitPosition;

@@ -200,6 +200,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
 
+                EditorGUILayout.HelpBox("The interaction between the Scene Volume sky type and the Scene's dominant directional light may affect the visual characteristics of this bake.", MessageType.Info);
+
                 --EditorGUI.indentLevel;
             }
         }

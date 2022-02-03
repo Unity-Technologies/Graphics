@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Button name="saveAs" text="Save as..." tooltip="Save as..." style="margin-top:8px" />
+    <ui:Button name="showInInspector" text="Show in Inspector" tooltip="Shows currently opened VFX asset in the Inspector" />
+</UXML>

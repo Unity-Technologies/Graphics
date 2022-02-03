@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_Sensor,
                         Drawer_PhysicalCamera_CameraBody_ISO,
                         Drawer_PhysicalCamera_CameraBody_ShutterSpeed,
-                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_GateFit
+                        Drawer_PhysicalCamera_CameraBody_GateFit
                     )
                     ),
                 CED.Group(
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.Group(
                         GroupOption.Indent,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_Sensor,
-                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_GateFit
+                        Drawer_PhysicalCamera_CameraBody_GateFit
                     )
                     ),
                 CED.Group(
@@ -91,6 +91,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 "Second",
                 "1 \u2215 Second" // Don't use a slash here else Unity will auto-create a submenu...
             };
+
+            static void Drawer_PhysicalCamera_CameraBody_GateFit(SerializedHDCamera p, Editor owner)
+            {
+                using (var horizontal = new EditorGUILayout.HorizontalScope())
+                using (var propertyScope = new EditorGUI.PropertyScope(horizontal.rect, CameraUI.PhysicalCamera.Styles.gateFit, p.gateFit))
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
+                {
+                    int gateValue = (int)(Camera.GateFitMode)EditorGUILayout.EnumPopup(propertyScope.content, (Camera.GateFitMode)p.gateFit.intValue);
+                    if (checkScope.changed)
+                    {
+                        p.gateFit.intValue = gateValue;
+                    }
+                    // Change same property on base camera
+                    p.baseCameraSettings.gateFit.intValue = gateValue;
+                }
+            }
 
             static void Drawer_PhysicalCamera_CameraBody_ShutterSpeed(SerializedHDCamera p, Editor owner)
             {

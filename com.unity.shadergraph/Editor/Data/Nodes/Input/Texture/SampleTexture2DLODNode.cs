@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph
         public SampleTexture2DLODNode()
         {
             name = "Sample Texture 2D LOD";
+            synonyms = new string[] { "tex2dlod" };
             UpdateNodeAfterDeserialization();
         }
 

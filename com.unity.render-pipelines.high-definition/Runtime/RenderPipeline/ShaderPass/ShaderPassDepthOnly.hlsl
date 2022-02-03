@@ -96,6 +96,15 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
     outputDepth = posInput.deviceDepth;
+
+
+#if SHADERPASS == SHADERPASS_SHADOWS
+    // If we are using the depth offset and manually outputting depth, the slope-scale depth bias is not properly applied
+    // we need to manually apply.
+    float bias = max(abs(ddx(posInput.deviceDepth)), abs(ddy(posInput.deviceDepth))) * _SlopeScaleDepthBias;
+    outputDepth += bias;
+#endif
+
 #endif
 
 #ifdef SCENESELECTIONPASS
@@ -107,13 +116,11 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Depth and Alpha to coverage
     #ifdef WRITE_MSAA_DEPTH
-        // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-        depthColor = packedInput.vmesh.positionCS.z;
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
 
-        #ifdef _ALPHATOMASK_ON
-        // Alpha channel is used for alpha to coverage
-        depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-        #endif
+    // Alpha channel is used for alpha to coverage
+    depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
     #endif
 
     #if defined(WRITE_NORMAL_BUFFER)

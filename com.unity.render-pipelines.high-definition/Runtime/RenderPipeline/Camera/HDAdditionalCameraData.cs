@@ -11,6 +11,148 @@ namespace UnityEngine.Rendering.HighDefinition
     [Obsolete("Use SRPPhysicalCamera instead", false)]
     public class HDPhysicalCamera : SRPPhysicalCamera
     {
+       /* /// <summary>
+        /// The minimum allowed aperture.
+        /// </summary>
+        public const float kMinAperture = 0.7f;
+
+        /// <summary>
+        /// The maximum allowed aperture.
+        /// </summary>
+        public const float kMaxAperture = 32f;
+
+        /// <summary>
+        /// The minimum blade count for the aperture diaphragm.
+        /// </summary>
+        public const int kMinBladeCount = 3;
+
+        /// <summary>
+        /// The maximum blade count for the aperture diaphragm.
+        /// </summary>
+        public const int kMaxBladeCount = 11;
+
+        // Camera body
+        [SerializeField] [Min(1f)] int m_Iso;
+        [SerializeField] [Min(0f)] float m_ShutterSpeed;
+
+        // Lens
+        // Note: focalLength is already defined in the regular camera component
+        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField] [Min(0.1f)] float m_FocusDistance;
+        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+
+        // Aperture shape
+        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] Vector2 m_Curvature;
+        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
+        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
+
+        /// <summary>
+        /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
+        /// </summary>
+        public float focusDistance
+        {
+            get => m_FocusDistance;
+            set => m_FocusDistance = Mathf.Max(value, 0.1f);
+        }
+
+        /// <summary>
+        /// The sensor sensitivity (ISO).
+        /// </summary>
+        public int iso
+        {
+            get => m_Iso;
+            set => m_Iso = Mathf.Max(value, 1);
+        }
+
+        /// <summary>
+        /// The exposure time, in second.
+        /// </summary>
+        public float shutterSpeed
+        {
+            get => m_ShutterSpeed;
+            set => m_ShutterSpeed = Mathf.Max(value, 0f);
+        }
+
+        /// <summary>
+        /// The aperture number, in f-stop.
+        /// </summary>
+        public float aperture
+        {
+            get => m_Aperture;
+            set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
+        }
+
+        /// <summary>
+        /// The number of diaphragm blades.
+        /// </summary>
+        public int bladeCount
+        {
+            get => m_BladeCount;
+            set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
+        }
+
+        /// <summary>
+        /// Maps an aperture range to blade curvature.
+        /// </summary>
+        public Vector2 curvature
+        {
+            get => m_Curvature;
+            set
+            {
+                m_Curvature.x = Mathf.Max(value.x, kMinAperture);
+                m_Curvature.y = Mathf.Min(value.y, kMaxAperture);
+            }
+        }
+
+        /// <summary>
+        /// The strength of the "cat eye" effect on bokeh (optical vignetting).
+        /// </summary>
+        public float barrelClipping
+        {
+            get => m_BarrelClipping;
+            set => m_BarrelClipping = Mathf.Clamp01(value);
+        }
+
+        /// <summary>
+        /// Stretches the sensor to simulate an anamorphic look. Positive values distort the Camera
+        /// vertically, negative will distort the Camera horizontally.
+        /// </summary>
+        public float anamorphism
+        {
+            get => m_Anamorphism;
+            set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
+        }
+
+        /// <summary>
+        /// Copies the settings of this instance to another instance.
+        /// </summary>
+        /// <param name="c">The instance to copy the settings to.</param>
+        [Obsolete("The CopyTo method is obsolete and does not work anymore. Use the assignement operator instead to get a copy of the HDPhysicalCamera parameters.", true)]
+        public void CopyTo(HDPhysicalCamera c)
+        {
+        }
+
+        /// <summary>
+        /// A set of default physical camera parameters.
+        /// </summary>
+        /// <returns>Returns a set of default physical camera parameters.</returns>
+        public static HDPhysicalCamera GetDefaults()
+        {
+            HDPhysicalCamera val = new HDPhysicalCamera();
+            val.iso = 200;
+            val.shutterSpeed = 1f / 200f;
+            val.aperture = 16;
+            val.focusDistance = 10;
+            val.bladeCount = 5;
+            val.curvature = new Vector2(2f, 11f);
+            val.barrelClipping = 0.25f;
+            val.anamorphism = 0;
+            val.m_GateFit = Camera.GateFitMode.Vertical;
+
+            return val;
+        }*/
+
         public static HDPhysicalCamera GetDefaults()
         {
             HDPhysicalCamera val = new HDPhysicalCamera
@@ -24,9 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 barrelClipping = 0.25f,
                 anamorphism = 0
             };
-
             return val;
         }
+
     }
 
     /// <summary>
@@ -204,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool taaAntiHistoryRinging = false;
 
         /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
-        [Range(0.6f, 0.95f)]
+        [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
 
         /// <summary>Physical camera parameters.</summary>
@@ -266,6 +408,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
         [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
+
+        /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
+        public bool fsrOverrideSharpness = false;
+
+        /// <summary>Sets this camera's sharpness value for AMD FidelityFX Super Resolution.</summary>
+        [Tooltip("Sets this camera's sharpness value for AMD FidelityFX Super Resolution 1.0 (FSR).")]
+        [Range(0, 1)]
+        public float fsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
@@ -496,6 +647,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
             data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
 
+            data.fsrOverrideSharpness = fsrOverrideSharpness;
+            data.fsrSharpness = fsrSharpness;
+
             data.materialMipBias = materialMipBias;
 
             // We must not copy the following
@@ -534,7 +688,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
-                    VolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -548,7 +701,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    VolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
@@ -567,6 +719,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_Camera.allowHDR = false;
+
+            // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
+            // Wrong data is registered to the undo system because it did not get the chance to be updated once.
+            FrameSettings dummy = new FrameSettings();
+            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
 
             RegisterDebug();
 

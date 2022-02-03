@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    [VolumeComponentEditor(typeof(Exposure))]
+    [CustomEditor(typeof(Exposure))]
     sealed class ExposureEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;

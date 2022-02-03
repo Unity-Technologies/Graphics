@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    //NOTE: This class is meant to be removed when RTHandles get implemented in urp
     internal sealed class RenderTargetBufferSystem
     {
         struct SwapBuffer
         {
-            public RenderTargetHandle rt;
-            public int name;
+            public RTHandle rtMSAA;
+            public RTHandle rtResolve;
+            public string name;
             public int msaa;
         }
         SwapBuffer m_A, m_B;
@@ -22,70 +22,43 @@ namespace UnityEngine.Rendering.Universal.Internal
         static RenderTextureDescriptor m_Desc;
         FilterMode m_FilterMode;
         bool m_AllowMSAA = true;
-        bool m_RTisAllocated = false;
 
-        SwapBuffer backBuffer { get { return m_AisBackBuffer ? m_A : m_B; } }
-        SwapBuffer frontBuffer { get { return m_AisBackBuffer ? m_B : m_A; } }
+        ref SwapBuffer backBuffer { get { return ref m_AisBackBuffer ? ref m_A : ref m_B; } }
+        ref SwapBuffer frontBuffer { get { return ref m_AisBackBuffer ? ref m_B : ref m_A; } }
 
         public RenderTargetBufferSystem(string name)
         {
-            m_A.name = Shader.PropertyToID(name + "A");
-            m_B.name = Shader.PropertyToID(name + "B");
-            m_A.rt.Init(name + "A");
-            m_B.rt.Init(name + "B");
+            m_A.name = name + "A";
+            m_B.name = name + "B";
         }
 
-        public RenderTargetHandle GetBackBuffer()
+        public void Dispose()
         {
-            return backBuffer.rt;
+            m_A.rtMSAA?.Release();
+            m_B.rtMSAA?.Release();
+            m_A.rtResolve?.Release();
+            m_B.rtResolve?.Release();
         }
 
-        public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
+        public RTHandle PeekBackBuffer()
         {
-            if (!m_RTisAllocated)
-                Initialize(cmd);
-            return backBuffer.rt;
+            return (m_AllowMSAA && backBuffer.msaa > 1) ? backBuffer.rtMSAA : backBuffer.rtResolve;
         }
 
-        public RenderTargetHandle GetFrontBuffer(CommandBuffer cmd)
+        public RTHandle GetBackBuffer(CommandBuffer cmd)
         {
-            if (!m_RTisAllocated)
-                Initialize(cmd);
+            ReAllocate(cmd);
+            return PeekBackBuffer();
+        }
 
-            int pipelineMSAA = m_Desc.msaaSamples;
-            int bufferMSAA = frontBuffer.msaa;
+        public RTHandle GetFrontBuffer(CommandBuffer cmd)
+        {
+            if (!m_AllowMSAA && frontBuffer.msaa > 1)
+                frontBuffer.msaa = 1;
 
-            if (m_AllowMSAA && bufferMSAA != pipelineMSAA)
-            {
-                //We don't want a depth buffer on B buffer
-                var desc = m_Desc;
-                if (m_AisBackBuffer)
-                    desc.depthBufferBits = 0;
+            ReAllocate(cmd);
 
-                cmd.ReleaseTemporaryRT(frontBuffer.name);
-                cmd.GetTemporaryRT(frontBuffer.name, desc, m_FilterMode);
-
-                if (m_AisBackBuffer)
-                    m_B.msaa = desc.msaaSamples;
-                else m_A.msaa = desc.msaaSamples;
-            }
-            else if (!m_AllowMSAA && bufferMSAA > 1)
-            {
-                //We don't want a depth buffer on B buffer
-                var desc = m_Desc;
-                desc.msaaSamples = 1;
-                if (m_AisBackBuffer)
-                    desc.depthBufferBits = 0;
-
-                cmd.ReleaseTemporaryRT(frontBuffer.name);
-                cmd.GetTemporaryRT(frontBuffer.name, desc, m_FilterMode);
-
-                if (m_AisBackBuffer)
-                    m_B.msaa = desc.msaaSamples;
-                else m_A.msaa = desc.msaaSamples;
-            }
-
-            return frontBuffer.rt;
+            return (m_AllowMSAA && frontBuffer.msaa > 1) ? frontBuffer.rtMSAA : frontBuffer.rtResolve;
         }
 
         public void Swap()
@@ -93,46 +66,61 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AisBackBuffer = !m_AisBackBuffer;
         }
 
-        void Initialize(CommandBuffer cmd)
+        void ReAllocate(CommandBuffer cmd)
         {
-            m_A.msaa = m_Desc.msaaSamples;
-            m_B.msaa = m_Desc.msaaSamples;
+            var desc = m_Desc;
 
-            cmd.GetTemporaryRT(m_A.name, m_Desc, m_FilterMode);
-            var descB = m_Desc;
-            //descB.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_B.name, descB, m_FilterMode);
+            desc.msaaSamples = m_A.msaa;
+            if (desc.msaaSamples > 1)
+                RenderingUtils.ReAllocateIfNeeded(ref m_A.rtMSAA, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
 
-            m_RTisAllocated = true;
+            desc.msaaSamples = m_B.msaa;
+            if (desc.msaaSamples > 1)
+                RenderingUtils.ReAllocateIfNeeded(ref m_B.rtMSAA, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
+
+            desc.msaaSamples = 1;
+            RenderingUtils.ReAllocateIfNeeded(ref m_A.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
+            RenderingUtils.ReAllocateIfNeeded(ref m_B.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
+            cmd.SetGlobalTexture(m_A.name, m_A.rtResolve);
+            cmd.SetGlobalTexture(m_B.name, m_B.rtResolve);
         }
 
         public void Clear(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_A.name);
-            cmd.ReleaseTemporaryRT(m_B.name);
-
             m_AisBackBuffer = true;
-            m_AllowMSAA = true;
+            m_AllowMSAA = m_A.msaa > 1 || m_B.msaa > 1;
         }
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
         {
             Clear(cmd); //SetCameraSettings is called when new stack starts rendering. Make sure the targets are updated to use the new descriptor.
 
+            desc.depthBufferBits = 0;
             m_Desc = desc;
             m_FilterMode = filterMode;
 
-            Initialize(cmd);
+            m_A.msaa = m_Desc.msaaSamples;
+            m_B.msaa = m_Desc.msaaSamples;
+
+            if (m_Desc.msaaSamples > 1)
+                EnableMSAA(true);
+
+            ReAllocate(cmd);
         }
 
-        public RenderTargetHandle GetBufferA()
+        public RTHandle GetBufferA()
         {
-            return m_A.rt;
+            return (m_AllowMSAA && m_A.msaa > 1) ? m_A.rtMSAA : m_A.rtResolve;
         }
 
         public void EnableMSAA(bool enable)
         {
             m_AllowMSAA = enable;
+            if (enable)
+            {
+                m_A.msaa = m_Desc.msaaSamples;
+                m_B.msaa = m_Desc.msaaSamples;
+            }
         }
     }
 }

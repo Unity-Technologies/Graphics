@@ -21,12 +21,12 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel TraceGlobalIllumination          TRACE_GLOBAL_ILLUMINATION=TraceGlobalIllumination GI_TRACE
 #pragma kernel TraceGlobalIlluminationHalf      TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
 #pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
 #pragma kernel ReprojectGlobalIlluminationHalf  REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
-#pragma kernel ConvertSSGI                      CONVERT_SSGI=ConvertSSGI
-#pragma kernel ConvertSSGIHalf                  CONVERT_SSGI=ConvertSSGIHalf HALF_RES
 
 #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
@@ -37,9 +37,6 @@
 #define SSGI_MIP_OFFSET 1
 
 #define SSGI_CLAMP_VALUE 7.0f
-
-// Disabled for now
-//#define PERCEPTUAL_SPACE
 
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
@@ -140,15 +137,26 @@ void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayD
     GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
     totalWeight = 0.0f;
 
+    uint envStartFirstLane;
+    bool fastPath = IsFastPath(envLightStart, envStartFirstLane);
+
+    if (fastPath)
+        envLightStart = envStartFirstLane;
+
     // Scalarized loop, same rationale of the punctual light version
     uint v_envLightListOffset = 0;
     uint v_envLightIdx = envLightStart;
     while (v_envLightListOffset < envLightCount)
     {
         v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-        uint s_envLightIdx = v_envLightIdx;
+        uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
         if (s_envLightIdx == -1)
             break;
+
+        // Compiler has a tendency to bypass the scalarization, we force it again here.
+        #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        s_envLightIdx = WaveReadLaneFirst(s_envLightIdx);
+        #endif
 
         EnvLightData envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
 
@@ -180,7 +188,7 @@ void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayD
 TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
 // Depth buffer of the previous frame (full resolution)
 TEXTURE2D_X(_HistoryDepthTexture);
-RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
+RW_TEXTURE2D_X(float3, _IndirectDiffuseTextureRW);
 
 // The maximal difference in depth that is considered acceptable to read from the color pyramid
 #define DEPTH_DIFFERENCE_THRESHOLD 0.1
@@ -191,21 +199,21 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Compute the pixel position to process
-    uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
-
+    uint2 inputCoord = dispatchThreadId.xy;
+    uint2 currentCoord = dispatchThreadId.xy;
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    currentCoord = currentCoord * 2;
+    inputCoord = inputCoord * 2;
 #endif
 
     // Read the depth and compute the position
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    uint2 tileIndex = uint2(currentCoord) / GetTileSize();
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
+    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, inputCoord).x;
+    uint2 tileIndex = uint2(inputCoord) / GetTileSize();
+    PositionInputs posInput = GetPositionInput(inputCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
 
     // Read the pixel normal
     NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+    DecodeFromNormalBuffer(inputCoord.xy, normalData);
 
     // Generete a new direction to follow
     float2 newSample;
@@ -257,25 +265,22 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (!invalid)
     {
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier();
     }
     #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     else if(_EnableProbeVolumes)
     {
         BuiltinData apvBuiltinData;
         ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
-        SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
-        SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
         EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                     normalData.normalWS,
-                                    -normalData.normalWS,
+                                    -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     posInput.positionSS,
                                     apvBuiltinData.bakeDiffuseLighting,
-                                    apvBuiltinData.backBakeDiffuseLighting);
-        color = apvBuiltinData.bakeDiffuseLighting * GetCurrentExposureMultiplier();
-        invalid = false;
+                                    apvBuiltinData.backBakeDiffuseLighting); // Not used
+        color = apvBuiltinData.bakeDiffuseLighting;
     }
     #endif
     else
@@ -289,9 +294,6 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
             color += SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, sampleDir, 0.0, 0).xyz * (1.0 - weight);
             weight = 1.0;
         }
-
-        invalid = false;
-        color *= GetCurrentExposureMultiplier();
     }
 
     // TODO: Remove me when you can find where the nans come from
@@ -299,62 +301,12 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
         color = 0.0f;
 
     // Convert to HSV space
-    color = RgbToHsv(color);
+    color = RgbToHsv(color * GetCurrentExposureMultiplier());
     // Expose and clamp the final color
     color.z = clamp(color.z, 0.0, SSGI_CLAMP_VALUE);
     // Convert back to HSV space
     color = HsvToRgb(color);
 
-    // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal before denoising
-    #ifdef PERCEPTUAL_SPACE
-    color *= rcp(1.0 + color);
-    #endif
-
-    // We are simply interested to know if the intersected pixel was moving, so we multiply it by a big number
-    // TODO: make this process not binary
     // Write the output to the target pixel
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, 1.0f);
-}
-
-
-[numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Fetch the current pixel coordinate
-    uint2 currentCoord = dispatchThreadId.xy;
-
-    // If the depth of this pixel is the depth of the background, we can end the process right away
-#if HALF_RES
-    currentCoord = currentCoord * 2;
-#endif
-
-    // Fetch the depth of the current pixel
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-
-    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
-    {
-        _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.0, 0.0, 0.0, 0.0);
-        return;
-    }
-
-    // Grab the color value
-    float3 color = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, dispatchThreadId.xy).xyz;
-
-    // We invert the tonemap
-    #ifdef PERCEPTUAL_SPACE
-    color *= rcp(1.0 - color);
-    #endif
-
-    // In the future mixing this with light probes should increase significantly the image quality.
-    float validityMask = 1.0f;
-
-    // Does this pixel recieve SSGI?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
-    if ((stencilValue & _SsrStencilBit) == 0)
-        validityMask = 0.0;
-
-    // Output the color as well as the blend factor
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, validityMask);
+    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = color;
 }

@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal ShaderVariantLogLevel m_ObsoleteShaderVariantLogLevel;
+        internal int m_ObsoleteShaderVariantLogLevel;
         [SerializeField]
         [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal LensAttenuationMode m_ObsoleteLensAttenuation;

@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering
         /// Sets the texture mask used to weight the pixels in the buffer when computing exposure.
         /// </summary>
         [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure.")]
-        public NoInterpTextureParameter weightTextureMask = new NoInterpTextureParameter(null);
+        public Texture2DParameter weightTextureMask = new Texture2DParameter(null);
 
         /// <summary>
         /// These values are the lower and upper percentages of the histogram that will be used to

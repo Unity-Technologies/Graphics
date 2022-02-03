@@ -49,6 +49,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 
     [CustomPropertyDrawer(typeof(DiffusionProfileSettings))]

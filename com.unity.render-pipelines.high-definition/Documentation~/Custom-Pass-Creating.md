@@ -159,6 +159,8 @@ However, not all materials are supported by every injection point in a draw rend
 
 When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
 
+Note: HDRP does not support decals on GameObjects rendered in the DrawRenderers pass.
+
 <a name="Object-ID-Custom-Pass"></a>
 
 ## Object ID Custom Pass
@@ -463,6 +465,11 @@ You can also load custom buffers using the following functions:
 - `LoadCustomColor(uint2 pixelCoords)`
 - `LoadCustomDepth(uint2 pixelCoords)`
 
+Note that depending on the injection point used for the Fullscreen custom pass, sampling the custom buffer can result in incorrect scaling. Thus it's recommended to use these functions instead:
+
+- `CustomPassSampleCustomColor(float2 uv)`
+- `CustomPassLoadCustomColor(uint2 pixelCoords)`
+
 HDRP sets the custom pass target buffers to the Camera buffers by default. However, you can select a custom buffer in the UI of the Custom Pass. To do this, go to your Custom Pass component and change the **Target Color Buffer** or **Target Depth Buffer** properties.
 
 To change the buffer format of the Custom Pass component in your HDRP asset, go to **Rendering > Custom Pass > Custom Buffer Format** and select one of the following formats from the drop down menu:
@@ -470,6 +477,7 @@ To change the buffer format of the Custom Pass component in your HDRP asset, go 
 | **Format**   | **Bits Per Pixel** | **Description**                                              |
 | ------------ | ------------------ | ------------------------------------------------------------ |
 | R8G8B8A8     | 32                 | This format is the most resource efficient, but it might cause banding issues. HDRP uses this format by default. |
+| Signed R8G8B8A8 | 32              | This format is similar to R8G8B8A8 but you can store unsigned data. |
 | R11G11B10    | 32                 | This format has a higher precision than R8G8B8A8 but does not support alpha channels. |
 | R16G16B16A16 | 64                 | This format has the highest precision but uses twice as much memory as R8G8B8A8 and R11G11B10. |
 

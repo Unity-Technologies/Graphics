@@ -66,8 +66,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var inputFields = vector2Field.Query("unity-text-input").ToList();
             foreach (var inputField in inputFields)
             {
-                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
-                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback, TrickleDown.TrickleDown);
+                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback, TrickleDown.TrickleDown);
             }
             // Bind value changed event to callback to handle dragger behavior before actually settings the value
             vector2Field.RegisterValueChangedCallback(evt =>
@@ -100,5 +100,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

@@ -39,9 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal override void Apply()
         {
-            // Force the mode to real time so its influence is properly culled by the camera.
-            legacyMode.intValue = 1;
-
             serializedLegacyObject.ApplyModifiedProperties();
             base.Apply();
         }

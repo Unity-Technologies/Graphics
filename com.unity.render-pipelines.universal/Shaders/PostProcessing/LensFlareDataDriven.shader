@@ -16,13 +16,14 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
-            #pragma multi_compile_vertex _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -50,13 +51,14 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
-            #pragma multi_compile_vertex _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -84,13 +86,14 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
-            #pragma multi_compile_vertex _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -118,13 +121,14 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
-            #pragma multi_compile_vertex _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

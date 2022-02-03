@@ -14,10 +14,12 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
+    allow_cache: False
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: Standalone
     name: Standalone_XR
+    allow_cache: False
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -46,9 +48,10 @@ platforms:
         flavor: b1.xlarge
         model: rtx2080
       editmode:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
+        model: rtx2080
       standalone:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -70,6 +73,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+          - name: editmode_XR
+          - name: playmode
+          - name: playmode_XR
+          - name: Standalone_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
       - name: Vulkan
@@ -77,6 +93,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
 
 jobs:
   - name: PR <PROJECT_NAME>
@@ -119,7 +148,6 @@ jobs:
           - playmode
           - Standalone
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
-      # - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
@@ -156,6 +184,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+      - platform: OSX_Apple_Silicon
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
@@ -163,6 +197,6 @@ jobs:
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
-#      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
+      #- .yamato/all-hdrp_BatchRendererGroup.yml#HDRP_BatchRendererGroup_<TRACK>
       - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
       - .yamato/all-hdrp.yml#HDRP_<TRACK>

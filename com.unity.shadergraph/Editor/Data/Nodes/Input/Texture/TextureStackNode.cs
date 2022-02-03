@@ -121,6 +121,7 @@ namespace UnityEditor.ShaderGraph
                                 arrayIndex++;
                             }
 
+                            // TODO: should read from NDCPosition instead...
                             surfaceDescriptionFunction.AppendLine("uint pixelColumn = (IN.ScreenPosition.x / IN.ScreenPosition.w) * _ScreenParams.x;");
                             surfaceDescriptionFunction.AppendLine(
                                 "surface.VTPackedFeedback = GetPackedVTFeedback(VTFeedback_array[(pixelColumn + _FrameCount) % (uint)" + feedbackVariables.Count + "]);");

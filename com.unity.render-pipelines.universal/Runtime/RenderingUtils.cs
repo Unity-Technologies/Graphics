@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
@@ -139,75 +140,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
-        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
-        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
-        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixInvP");
-        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
-        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
-        internal static readonly int UNITY_STEREO_CAMERA_PROJECTION = Shader.PropertyToID("unity_StereoCameraProjection");
-        internal static readonly int UNITY_STEREO_CAMERA_INV_PROJECTION = Shader.PropertyToID("unity_StereoCameraInvProjection");
-        internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
-
-        // Hold the stereo matrices in this class to avoid allocating arrays every frame
-        internal class StereoConstants
-        {
-            public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invCameraProjMatrix = new Matrix4x4[2];
-            public Vector4[] worldSpaceCameraPos = new Vector4[2];
-        };
-
-        static readonly StereoConstants stereoConstants = new StereoConstants();
-
-        /// <summary>
-        /// Helper function to set all view and projection related matrices
-        /// Should be called before draw call and after cmd.SetRenderTarget
-        /// Internal usage only, function name and signature may be subject to change
-        /// </summary>
-        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
-        /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
-        /// <param name="projectionMatrix">Projection matrix to be set.Array size is 2.</param>
-        /// <param name="cameraProjectionMatrix">Camera projection matrix to be set.Array size is 2. Does not include platform specific transformations such as depth-reverse, depth range in post-projective space and y-flip. </param>
-        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
-        /// <returns>Void</c></returns>
-        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, Matrix4x4[] cameraProjMatrix, bool setInverseMatrices)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                stereoConstants.viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
-                stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
-                stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
-                stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
-                stereoConstants.invCameraProjMatrix[i] = Matrix4x4.Inverse(cameraProjMatrix[i]);
-                stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
-            }
-
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
-
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_PROJECTION, cameraProjMatrix);
-
-            if (setInverseMatrices)
-            {
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
-
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_INV_PROJECTION, stereoConstants.invCameraProjMatrix);
-            }
-            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
-        }
-
-#endif
-
         internal static void Blit(CommandBuffer cmd,
-            RenderTargetIdentifier source,
-            RenderTargetIdentifier destination,
+            RTHandle source,
+            RTHandle destination,
             Material material,
             int passIndex = 0,
             bool useDrawProcedural = false,
@@ -223,14 +158,13 @@ namespace UnityEngine.Rendering.Universal
                 Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
-                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
             {
-                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
+                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
             }
         }
 
@@ -335,6 +269,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
+        [Obsolete("Use RTHandles for colorBuffers")]
         internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
@@ -350,11 +285,41 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static uint GetValidColorBufferCount(RTHandle[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var identifier in colorBuffers)
+                {
+                    if (identifier != null && identifier.nameID != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
+        [Obsolete("Use RTHandles for colorBuffers")]
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static bool IsMRT(RTHandle[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
@@ -450,6 +415,165 @@ namespace UnityEngine.Rendering.Universal
                     return false;
 
             return true;
+        }
+
+        internal static bool MultisampleDepthResolveSupported()
+        {
+            // Temporarily disabling depth resolve a driver bug on OSX when using some AMD graphics cards. Temporarily disabling depth resolve on that platform
+            // TODO: re-enable once the issue is investigated/fixed
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+                return false;
+
+            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
+            return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
+        }
+
+        /// <summary>
+        /// Return true if handle does not match descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <param name="scaled">Check if the RTHandle has auto scaling enabled if not, check the widths and heights</param>
+        /// <returns></returns>
+        internal static bool RTHandleNeedsReAlloc(
+            RTHandle handle,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode,
+            TextureWrapMode wrapMode,
+            bool isShadowMap,
+            int anisoLevel,
+            float mipMapBias,
+            string name,
+            bool scaled)
+        {
+            if (handle == null || handle.rt == null)
+                return true;
+            if (handle.useScaling != scaled)
+                return true;
+            if (!scaled && (handle.rt.width != descriptor.width || handle.rt.height != descriptor.height))
+                return true;
+            return
+                handle.rt.descriptor.depthBufferBits != descriptor.depthBufferBits ||
+                (handle.rt.descriptor.depthBufferBits == (int)DepthBits.None && !isShadowMap && handle.rt.descriptor.graphicsFormat != descriptor.graphicsFormat) ||
+                handle.rt.descriptor.dimension != descriptor.dimension ||
+                handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
+                handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
+                handle.rt.descriptor.autoGenerateMips != descriptor.autoGenerateMips ||
+                handle.rt.descriptor.msaaSamples != descriptor.msaaSamples ||
+                handle.rt.descriptor.bindMS != descriptor.bindMS ||
+                handle.rt.descriptor.useDynamicScale != descriptor.useDynamicScale ||
+                handle.rt.descriptor.memoryless != descriptor.memoryless ||
+                handle.rt.filterMode != filterMode ||
+                handle.rt.wrapMode != wrapMode ||
+                handle.rt.anisoLevel != anisoLevel ||
+                handle.rt.mipMapBias != mipMapBias ||
+                handle.name != name;
+        }
+
+        /// <summary>
+        /// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns></returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            if (RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, false))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If the RTHandle should be re-allocated</returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            Vector2 scaleFactor,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingConstantScale = handle != null && handle.useScaling && handle.scaleFactor == scaleFactor;
+            if (!usingConstantScale || RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, true))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(scaleFactor, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done</returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            ScaleFunc scaleFunc,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingScaleFunction = handle != null && handle.useScaling && handle.scaleFactor == Vector2.zero;
+            if (!usingScaleFunction || RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, true))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(scaleFunc, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+
+            return false;
         }
     }
 }

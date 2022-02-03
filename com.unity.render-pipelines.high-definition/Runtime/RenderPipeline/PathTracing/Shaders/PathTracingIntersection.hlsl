@@ -22,4 +22,9 @@ struct PathIntersection
     float maxRoughness;
 };
 
+int GetCurrentDepth(PathIntersection pathIntersection)
+{
+    return _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+}
+
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

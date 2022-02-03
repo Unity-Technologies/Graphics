@@ -10,6 +10,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "BlitShadows"

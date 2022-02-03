@@ -24,7 +24,7 @@ RW_TEXTURE2D_X(float, _AmbientOcclusionTextureRW);
 RW_TEXTURE2D_X(float, _VelocityBuffer);
 
 [shader("miss")]
-void MissShaderAmbientOcclusion(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderAmbientOcclusion(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
 	rayIntersection.color += float3(1.0f, 1.0f, 1.0f);
 }
@@ -67,7 +67,10 @@ void RayGenAmbientOcclusion()
 
 	// Variable that accumulate the radiance
 	float finalColor = 0.0;
-	float velocity = 0.0f;
+	float velocity = 0.0;
+	RayDesc rayDescriptor;
+	RayIntersectionVisibility rayIntersection;
+
 	// Let's loop through th e samples
 	for (int i = 0; i < numSamples; ++i)
 	{
@@ -83,7 +86,6 @@ void RayGenAmbientOcclusion()
 	    float3 sampleDir = SampleHemisphereCosine(noiseValue.x, noiseValue.y, normalData.normalWS);
 		
 		// Create the ray descriptor for this pixel
-		RayDesc rayDescriptor;
 		rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 		rayDescriptor.Direction = sampleDir;
 		rayDescriptor.TMin = 0;
@@ -93,12 +95,10 @@ void RayGenAmbientOcclusion()
 		ApplyCameraRelativeXR(rayDescriptor.Origin);
 
 		// Create and init the RayIntersection structure for this
-		RayIntersection rayIntersection;
 		rayIntersection.color = float3(0.0, 0.0, 0.0);
-		rayIntersection.origin = rayDescriptor.Origin;
-		rayIntersection.t = 0.0f;
+		rayIntersection.t = 0.0;
         rayIntersection.pixelCoord = posInput.positionSS;
-        rayIntersection.velocity = 0.0f;
+        rayIntersection.velocity = 0.0;
 
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -118,7 +118,7 @@ void RayGenAmbientOcclusion()
 
 // Fallback default any hit shader for this raytrace shader
 [shader("anyhit")]
-void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHitMain(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     AcceptHitAndEndSearch();

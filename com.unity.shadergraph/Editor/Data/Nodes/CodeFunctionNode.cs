@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -565,7 +567,34 @@ namespace UnityEditor.ShaderGraph
                     if (slot.RequiresScreenPosition(stageCapability))
                         return true;
                 }
+                return false;
+            }
+        }
 
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresNDCPosition(stageCapability))
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresPixelPosition(stageCapability))
+                        return true;
+                }
                 return false;
             }
         }

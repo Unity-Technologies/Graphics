@@ -10,17 +10,16 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    enum ShaderVariantLogLevel
-    {
-        Disabled,
-        OnlyHDRPShaders,
-        AllShaders,
-    }
-
     enum LensAttenuationMode
     {
         ImperfectLens,
         PerfectLens
+    }
+
+    enum ColorGradingSpace
+    {
+        AcesCg = 0,
+        sRGB        // Legacy.
     }
 
     /// <summary>
@@ -769,12 +768,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Misc.
-
-        [SerializeField]
-        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
         [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
+
+        [SerializeField]
+        internal ColorGradingSpace colorGradingSpace;
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
@@ -826,10 +824,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this);
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesData.SetParentObject((Object)this);
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;
         }
 

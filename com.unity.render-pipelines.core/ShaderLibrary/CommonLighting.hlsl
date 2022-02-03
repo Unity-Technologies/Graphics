@@ -303,7 +303,7 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
     // sharpness = (log(Y) - log(A)) / (cos(X) - 1)
     // For AO cone, cos(X) = sqrt(1 - ambientOcclusion)
     // -> for Y = 0.1, sharpness = -1.0 / (sqrt(1-ao) - 1)
-    float vs = -1.0f / (sqrt(1.0f - ambientOcclusion) - 1.0f);
+    float vs = -1.0f / min(sqrt(1.0f - ambientOcclusion) - 1.0f, -0.001f);
 
     // 2. Approximate upper hemisphere with sharpness = 0.8 and amplitude = 1
     float us = 0.8f;
@@ -328,6 +328,16 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
 real ComputeWrappedDiffuseLighting(real NdotL, real w)
 {
     return saturate((NdotL + w) / ((1.0 + w) * (1.0 + w)));
+}
+
+// Ref: Stephen McAuley - Advances in Rendering: Graphics Research and Video Game Production
+real3 ComputeWrappedNormal(real3 N, real3 L, real w)
+{
+    real NdotL = dot(N, L);
+    real wrappedNdotL = saturate((NdotL + w) / (1 + w));
+    real sinPhi = lerp(w, 0.f, wrappedNdotL);
+    real cosPhi = sqrt(1.0f - sinPhi * sinPhi);
+    return normalize(cosPhi * N + sinPhi * cross(cross(N, L), N));
 }
 
 // Jimenez variant for eye

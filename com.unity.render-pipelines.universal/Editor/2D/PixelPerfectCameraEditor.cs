@@ -16,11 +16,13 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent refRes = new GUIContent("Reference Resolution", "The original resolution the Assets are designed for.");
             public GUIContent gridSnapping = new GUIContent("Grid Snapping", "Sets the snapping behavior for the camera and sprites.");
             public GUIContent cropFrame = new GUIContent("Crop Frame", "Crops the viewport to match the Reference Resolution, along the checked axis. Black bars will be added to fit the screen aspect ratio.");
+            public GUIContent filterMode = new GUIContent("Filter Mode", "Use selected Filter Mode when using Stretch Fill to upscale from Reference Resolution.");
             public GUIContent stretchFill = new GUIContent("Stretch Fill", "If enabled, expands the viewport to fit the screen resolution while maintaining the viewport aspect ratio.");
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
-            public const string nonRenderer2DError = "Pixel Perfect Camera requires a camera using a 2D Renderer.";
+            public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
+            public const string nonRenderer2DError = "URP Pixel Perfect Camera requires a camera using a 2D Renderer.";
 
             public GUIStyle centeredLabel;
 
@@ -40,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_RefResX;
         private SerializedProperty m_RefResY;
         private SerializedProperty m_CropFrame;
+        private SerializedProperty m_FilterMode;
         private SerializedProperty m_GridSnapping;
 
         private Vector2 m_GameViewSize = Vector2.zero;
@@ -55,11 +58,23 @@ namespace UnityEditor.Rendering.Universal
                 m_CurrentPixelRatioValue = new GUIContent();
         }
 
-        bool UsingRenderer2D()
+        UniversalAdditionalCameraData GetCameraData()
         {
             PixelPerfectCamera obj = target as PixelPerfectCamera;
             UniversalAdditionalCameraData cameraData = null;
             obj?.TryGetComponent(out cameraData);
+            return cameraData;
+        }
+
+        bool UsingSRP()
+        {
+            var cameraData = GetCameraData();
+            return cameraData?.scriptableRenderer != null;
+        }
+
+        bool UsingRenderer2D()
+        {
+            var cameraData = GetCameraData();
 
             if (cameraData != null)
             {
@@ -75,11 +90,9 @@ namespace UnityEditor.Rendering.Universal
         {
             m_CameraStacking = false;
 
-            PixelPerfectCamera obj = target as PixelPerfectCamera;
-            UniversalAdditionalCameraData cameraData = null;
-            obj?.TryGetComponent(out cameraData);
+            var cameraData = GetCameraData();
 
-            if (cameraData == null)
+            if (cameraData == null || cameraData.scriptableRenderer == null)
                 return;
 
             if (cameraData.renderType == CameraRenderType.Base)
@@ -97,6 +110,7 @@ namespace UnityEditor.Rendering.Universal
             m_RefResX = serializedObject.FindProperty("m_RefResolutionX");
             m_RefResY = serializedObject.FindProperty("m_RefResolutionY");
             m_CropFrame = serializedObject.FindProperty("m_CropFrame");
+            m_FilterMode = serializedObject.FindProperty("m_FilterMode");
             m_GridSnapping = serializedObject.FindProperty("m_GridSnapping");
         }
 
@@ -121,10 +135,15 @@ namespace UnityEditor.Rendering.Universal
         {
             LazyInit();
 
-            if (!UsingRenderer2D())
+            if (!UsingSRP())
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
                 return;
+            }
+            else if (!UsingRenderer2D())
+            {
+                EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
+                EditorGUILayout.Space();
             }
 
             float originalLabelWidth = EditorGUIUtility.labelWidth;
@@ -161,7 +180,10 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_CropFrame, m_Style.cropFrame);
             EditorGUILayout.PropertyField(m_GridSnapping, m_Style.gridSnapping);
-
+            if (m_CropFrame.enumValueIndex == (int)PixelPerfectCamera.CropFrame.StretchFill)
+            {
+                EditorGUILayout.PropertyField(m_FilterMode, m_Style.filterMode);
+            }
 
             serializedObject.ApplyModifiedProperties();
 

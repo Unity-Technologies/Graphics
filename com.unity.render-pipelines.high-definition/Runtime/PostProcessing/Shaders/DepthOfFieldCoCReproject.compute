@@ -54,10 +54,11 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float coc3 = cocBR.x;
     float coc4 = cocBR.z;
 #else
-    float coc1 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS - uint2(1u, 0u)).x; // Left
-    float coc2 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS - uint2(0u, 1u)).x; // Top
-    float coc3 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS + uint2(0u, 1u)).x; // Bottom
-    float coc4 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS + uint2(1u, 0u)).x; // Right
+    float2 coord = ClampAndScaleUVPostProcessTextureForPoint(posInputs.positionSS);
+    float coc1 = LOAD_TEXTURE2D_X(_InputCoCTexture, coord - uint2(1u, 0u)).x; // Left
+    float coc2 = LOAD_TEXTURE2D_X(_InputCoCTexture, coord - uint2(0u, 1u)).x; // Top
+    float coc3 = LOAD_TEXTURE2D_X(_InputCoCTexture, coord + uint2(0u, 1u)).x; // Bottom
+    float coc4 = LOAD_TEXTURE2D_X(_InputCoCTexture, coord + uint2(1u, 0u)).x; // Right
 #endif
 
     // Dejittered center sample

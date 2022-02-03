@@ -40,6 +40,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
+        static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, defaultResources.blackUIntTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, defaultResources.blackTextureXR);
+        }
+
         class BuildGPULightListPassData
         {
             // Common
@@ -51,8 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeMaterialVariants;
             public bool computeLightVariants;
             public bool skyEnabled;
-            public bool probeVolumeEnabled;
             public LightList lightList;
+            public bool canClearLightList;
+            public int directionalLightCount;
 
             // Clear Light lists
             public ComputeShader clearLightListCS;
@@ -159,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (data.runBigTilePrepass)
                     ClearLightList(data, cmd, data.output.bigTileLightList);
-                if (data.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
+                if (data.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
                     ClearLightList(data, cmd, data.output.lightList);
                 ClearLightList(data, cmd, data.output.perVoxelOffset);
             }
@@ -223,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.enableFeatureVariants)
                 {
                     uint baseFeatureFlags = 0;
-                    if (data.lightList.directionalLights.Count > 0)
+                    if (data.directionalLightCount > 0)
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                     }
@@ -234,16 +244,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!data.computeMaterialVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
-                    }
-
-                    if (data.probeVolumeEnabled)
-                    {
-                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
-                        // This is necessary because all tiles must sample ambient probe fallback.
-                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
-                        // one specifiying which tiles contain probe volumes,
-                        // and another triggered for all tiles to handle fallback.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
@@ -310,16 +310,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
                     }
-                    if (data.probeVolumeEnabled)
-                    {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
-                    }
 
                     // If we haven't run the light list building, we are missing some basic lighting flags.
                     if (!tileFlagsWritten)
                     {
-                        if (data.lightList.directionalLights.Count > 0)
+                        if (data.directionalLightCount > 0)
                         {
                             baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                         }
@@ -458,9 +453,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
-            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
-            cb._LocalVolumetricFogIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+            cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
+            cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
+            cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;
@@ -494,10 +489,10 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && tileAndClusterData.hasTileBuffers;
             passData.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             passData.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
-            passData.lightList = m_lightList;
+            passData.directionalLightCount = m_GpuLightsBuilder.directionalLightCount;
+            passData.canClearLightList = m_GpuLightsBuilder != null && m_lightList != null;
             passData.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             passData.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
-            passData.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
@@ -594,15 +589,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTiles = nrTilesX * nrTilesY * m_MaxViewCount;
-            const int capacityUShortsPerTile = 32;
-            const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
 
             if (tileAndClusterData.hasTileBuffers)
             {
                 // note that nrTiles include the viewCount in allocation below
                 // Tile buffers
                 passData.output.lightList = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * LightDefinitions.s_LightDwordPerFptlTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                 passData.output.tileList = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                 passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
@@ -620,7 +613,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrBigTilesX = (m_MaxCameraWidth + 63) / 64;
                 var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;
                 var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
-                // TODO: (Nick) In the case of Probe Volumes, this buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
                 passData.output.bigTileLightList = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
             }
@@ -1054,7 +1046,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssrCS;
             public int tracingKernel;
             public int reprojectionKernel;
-            public int accumulateKernel;
+            public int accumulateNoWorldSpeedRejectionBothKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceKernel;
+            public int accumulateNoWorldSpeedRejectionHitKernel;
+            public int accumulateHardThresholdSpeedRejectionBothKernel;
+            public int accumulateHardThresholdSpeedRejectionSurfaceKernel;
+            public int accumulateHardThresholdSpeedRejectionHitKernel;
+            public int accumulateSmoothSpeedRejectionBothKernel;
+            public int accumulateSmoothSpeedRejectionSurfaceKernel;
+            public int accumulateSmoothSpeedRejectionHitKernel;
+
+            public int accumulateNoWorldSpeedRejectionBothDebugKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+            public int accumulateNoWorldSpeedRejectionHitDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionBothDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionHitDebugKernel;
+            public int accumulateSmoothSpeedRejectionBothDebugKernel;
+            public int accumulateSmoothSpeedRejectionSurfaceDebugKernel;
+            public int accumulateSmoothSpeedRejectionHitDebugKernel;
+
             public bool transparentSSR;
             public bool usePBRAlgo;
             public bool accumNeedClear;
@@ -1081,9 +1092,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+            public float frameIndex;
+            public float roughnessBiasFactor;
+            public float speedRejection;
+            public float speedRejectionFactor;
+            public bool debugDisplaySpeed;
+            public bool enableWorldSmoothRejection;
+            public bool smoothSpeedRejection;
+            public bool motionVectorFromSurface;
+            public bool motionVectorFromHit;
         }
 
-        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
+        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, bool isTransparent, ref ShaderVariablesScreenSpaceReflection cb)
         {
             float n = hdCamera.camera.nearClipPlane;
             float f = hdCamera.camera.farClipPlane;
@@ -1092,7 +1112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrThicknessScale = 1.0f / (1.0f + thickness);
             cb._SsrThicknessBias = -n / (f - n) * (thickness * cb._SsrThicknessScale);
             cb._SsrIterLimit = settings.rayMaxIterations;
-            cb._SsrReflectsSky = settings.reflectSky.value ? 1 : 0;
+            cb._SsrReflectsSky = isTransparent ? 0 : (settings.reflectSky.value ? 1 : 0);
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
             float roughnessFadeStart = 1 - settings.smoothnessFadeStart;
             cb._SsrRoughnessFadeEnd = 1 - settings.minSmoothness;
@@ -1102,11 +1122,22 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrEdgeFadeRcpLength = Mathf.Min(1.0f / settings.screenFadeDistance.value, float.MaxValue);
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
-            cb._SsrDepthPyramidMaxMip = m_DepthBufferMipChainInfo.mipLevelCount - 1;
+            cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+            {
                 cb._SsrAccumulationAmount = 1.0f;
+            }
             else
+            {
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
+            }
+
+            if (settings.enableWorldSpeedRejection.value && !settings.speedSmoothReject.value)
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(1.0f - settings.speedRejectionParam.value);
+            else
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(settings.speedRejectionParam.value);
+            cb._SsrPBRBias = settings.biasFactor.value;
+            cb._SsrPRBSpeedRejectionScalerFactor = Mathf.Pow(settings.speedRejectionScalerFactor.value * 0.1f, 2.0f);
         }
 
         TextureHandle RenderSSR(RenderGraph renderGraph,
@@ -1122,9 +1153,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle result;
 
+            bool debugDisplaySpeed = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection;
+
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
+            // We can use the ray tracing version of the effect if:
+            // - It is enabled in the frame settings
+            // - It is enabled in the volume
+            // - The RTAS has been build validated
+            // - The RTLightCluster has been validated
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                                            && ScreenSpaceReflection.RayTracingActive(settings)
+                                            && GetRayTracingState() && GetRayTracingClusterState();
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
@@ -1141,6 +1181,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
                 }
 
+                // The first color pyramid of the frame is generated after the SSR transparent, so we have no choice but to use the previous
+                // frame color pyramid (that includes transparents from the previous frame).
+                RTHandle colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                if (colorPyramidRT == null)
+                    return renderGraph.defaultResources.blackTextureXR;
+
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
@@ -1148,23 +1194,42 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
                     bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-                    var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
+                    var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
+                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, transparent, ref passData.cb);
 
                     passData.hdCamera = hdCamera;
                     passData.blueNoise = GetBlueNoiseManager();
                     passData.ssrCS = m_ScreenSpaceReflectionsCS;
                     passData.tracingKernel = m_SsrTracingKernel;
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
-                    passData.accumulateKernel = m_SsrAccumulateKernel;
+                    passData.accumulateNoWorldSpeedRejectionBothKernel = m_SsrAccumulateNoWorldSpeedRejectionBothKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitKernel = m_SsrAccumulateNoWorldSpeedRejectionHitKernel;
+                    passData.accumulateHardThresholdSpeedRejectionBothKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothKernel;
+                    passData.accumulateHardThresholdSpeedRejectionSurfaceKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel;
+                    passData.accumulateHardThresholdSpeedRejectionHitKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitKernel;
+                    passData.accumulateSmoothSpeedRejectionBothKernel = m_SsrAccumulateSmoothSpeedRejectionBothKernel;
+                    passData.accumulateSmoothSpeedRejectionSurfaceKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel;
+                    passData.accumulateSmoothSpeedRejectionHitKernel = m_SsrAccumulateSmoothSpeedRejectionHitKernel;
+
+                    passData.accumulateNoWorldSpeedRejectionBothDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionBothDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionHitDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionBothDebugKernel = m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionHitDebugKernel = m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel;
+
                     passData.transparentSSR = transparent;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.viewCount = hdCamera.viewCount;
-                    passData.offsetBufferData = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                    passData.offsetBufferData = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                     passData.accumNeedClear = usePBRAlgo;
                     passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
@@ -1178,6 +1243,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+                    if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+                    {
+                        passData.frameIndex = 1.0f;
+                    }
+                    else
+                    {
+                        passData.frameIndex = ((float)hdCamera.cameraFrameCount);
+                    }
+                    passData.roughnessBiasFactor = volumeSettings.biasFactor.value;
+                    passData.debugDisplaySpeed = debugDisplaySpeed;
+                    passData.speedRejection = volumeSettings.speedRejectionParam.value;
+                    passData.speedRejectionFactor = volumeSettings.speedRejectionScalerFactor.value;
+                    passData.enableWorldSmoothRejection = volumeSettings.enableWorldSpeedRejection.value;
+                    passData.smoothSpeedRejection = volumeSettings.speedSmoothReject.value;
+                    passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
+                    passData.motionVectorFromHit = volumeSettings.speedTargetOnly.value;
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -1202,15 +1283,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var cs = data.ssrCS;
 
-                            if (data.accumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                            if (data.previousAccumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
-
                             if (!data.usePBRAlgo)
                                 ctx.cmd.EnableShaderKeyword("SSR_APPROX");
                             else
+                            {
+                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
+                            }
 
                             if (data.transparentSSR)
                                 ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
@@ -1235,6 +1318,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeBufferParam(cs, data.tracingKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
                                 ctx.cmd.SetComputeBufferParam(cs, data.tracingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBufferData);
+
+                                ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRBias, data.roughnessBiasFactor);
 
                                 data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
 
@@ -1270,20 +1355,91 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
                                     {
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                        int pass;
+                                        if (data.debugDisplaySpeed)
+                                        {
+                                            if (!data.enableWorldSmoothRejection)
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothDebugKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitDebugKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+                                            }
+                                            else
+                                            {
+                                                if (data.smoothSpeedRejection)
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionBothDebugKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionHitDebugKernel;
+                                                    else
+                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceDebugKernel;
+                                                }
+                                                else
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionBothDebugKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionHitDebugKernel;
+                                                    else
+                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (!data.enableWorldSmoothRejection)
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceKernel;
+                                            }
+                                            else
+                                            {
+                                                if (data.smoothSpeedRejection)
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionBothKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionHitKernel;
+                                                    else
+                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
+                                                }
+                                                else
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                                    else
+                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
+                                                }
+                                            }
+                                        }
+
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._DepthTexture, data.depthBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejection);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPRBSpeedRejectionScalerFactor, data.speedRejectionFactor);
 
                                         ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
-                                        ctx.cmd.DispatchCompute(cs, data.accumulateKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                        ctx.cmd.DispatchCompute(cs, pass, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                     }
                                 }
                             }
@@ -1295,10 +1451,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
                         PushFullScreenDebugTexture(renderGraph, passData.ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
+                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
                     }
                     else
                     {
                         result = passData.lightingTexture;
+                        PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
                     }
                 }
 
@@ -1360,11 +1518,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
                 }
 
-                passData.rayTracingEnabled = RayTracedContactShadowsRequired();
+                passData.rayTracingEnabled = RayTracedContactShadowsRequired() && GetRayTracingState();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     passData.contactShadowsRTS = m_GlobalSettings.renderPipelineRayTracingResources.contactShadowRayTracingRT;
-                    passData.accelerationStructure = RequestAccelerationStructure();
+                    passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
 
                     passData.actualWidth = hdCamera.actualWidth;
                     passData.actualHeight = hdCamera.actualHeight;

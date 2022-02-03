@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         GUIContent m_SkyIntensityModeLabel = new UnityEngine.GUIContent("Intensity Mode");
+        GUIContent m_ExposureCompensationLabel = new GUIContent("Exposure Compensation", "Sets the exposure compensation of the sky in EV.");
 
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
@@ -79,17 +80,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (scope.displayed)
                     {
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(rect, m_SkyIntensityModeLabel, m_IntensityMode.value);
                         if (m_EnableLuxIntensityMode)
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
                         else
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
+                        EditorGUI.EndProperty();
                     }
                 }
 
                 using (new IndentLevelScope())
                 {
                     if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
-                        PropertyField(m_SkyExposure);
+                        PropertyField(m_SkyExposure, m_ExposureCompensationLabel);
                     else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
                         PropertyField(m_SkyMultiplier);
                     else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)

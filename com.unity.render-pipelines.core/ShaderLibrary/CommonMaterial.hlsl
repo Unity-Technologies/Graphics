@@ -138,6 +138,11 @@ void ConvertRoughnessTAndAnisotropyToRoughness(real roughnessT, real anisotropy,
     roughness = roughnessT / (1 + anisotropy);
 }
 
+real ConvertRoughnessTAndBToRoughness(real roughnessT, real roughnessB)
+{
+    return 0.5 * (roughnessT + roughnessB);
+}
+
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)
 {
     anisotropy = ((roughnessT - roughnessB) / max(roughnessT + roughnessB, 0.0001));

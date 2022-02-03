@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 gradientPanel.Add(new Label(label));
 
-            var gradientField = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear };
+            var gradientField = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
             gradientField.RegisterValueChangedCallback(OnValueChanged);
             gradientPanel.Add(gradientField);
 

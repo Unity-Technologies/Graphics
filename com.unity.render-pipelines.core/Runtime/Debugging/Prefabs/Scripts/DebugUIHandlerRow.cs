@@ -17,6 +17,41 @@ namespace UnityEngine.Rendering.UI
             m_Timer = 0f;
         }
 
+        GameObject GetChild(int index)
+        {
+            if (index < 0)
+                return null;
+
+            if (gameObject.transform != null)
+            {
+                var firstChild = gameObject.transform.GetChild(1);
+                if (firstChild != null && firstChild.childCount > index)
+                {
+                    return firstChild.GetChild(index).gameObject;
+                }
+            }
+
+            return null;
+        }
+
+        bool TryGetChild(int index, out GameObject child)
+        {
+            child = GetChild(index);
+            return child != null;
+        }
+
+        bool IsActive(DebugUI.Table table, int index, GameObject child)
+        {
+            if (!table.GetColumnVisibility(index))
+                return false;
+
+            var valueChild = child.transform.Find("Value");
+            if (valueChild != null && valueChild.TryGetComponent<Text>(out var text))
+                return !string.IsNullOrEmpty(text.text);
+
+            return true;
+        }
+
         /// <summary>
         /// Update implementation.
         /// </summary>
@@ -33,37 +68,45 @@ namespace UnityEngine.Rendering.UI
 
             for (int i = 0; i < row.children.Count; i++)
             {
-                var child = gameObject.transform.GetChild(1).GetChild(i).gameObject;
-                var active = table.GetColumnVisibility(i);
-                child.SetActive(active);
+                if (!TryGetChild(i, out var child))
+                    continue;
+
+                bool active = IsActive(table, i, child);
+                if (child != null)
+                    child.SetActive(active);
                 if (active && refreshRow)
                 {
                     if (child.TryGetComponent<DebugUIHandlerColor>(out var color))
                         color.UpdateColor();
                     if (child.TryGetComponent<DebugUIHandlerToggle>(out var toggle))
                         toggle.UpdateValueLabel();
+                    if (child.TryGetComponent<DebugUIHandlerObjectList>(out var list))
+                        list.UpdateValueLabel();
                 }
             }
 
-            // Update previous and next ui handlers to pass over hidden volumes
-            var item = gameObject.transform.GetChild(1).GetChild(0).gameObject;
-            var itemWidget = item.GetComponent<DebugUIHandlerWidget>();
+            // Update previous and next ui handlers to skip hidden volumes
+            var itemWidget = GetChild(0).GetComponent<DebugUIHandlerWidget>();
             DebugUIHandlerWidget previous = null;
             for (int i = 0; i < row.children.Count; i++)
             {
                 itemWidget.previousUIHandler = previous;
-                if (table.GetColumnVisibility(i))
+                if (!TryGetChild(i, out var child))
+                    continue;
+
+                if (IsActive(table, i, child))
                     previous = itemWidget;
 
                 bool found = false;
                 for (int j = i + 1; j < row.children.Count; j++)
                 {
-                    if (table.GetColumnVisibility(j))
+                    if (!TryGetChild(j, out var innerChild))
+                        continue;
+
+                    if (IsActive(table, j, innerChild))
                     {
-                        var child = gameObject.transform.GetChild(1).GetChild(j).gameObject;
                         var childWidget = child.GetComponent<DebugUIHandlerWidget>();
                         itemWidget.nextUIHandler = childWidget;
-                        item = child;
                         itemWidget = childWidget;
                         i = j - 1;
                         found = true;

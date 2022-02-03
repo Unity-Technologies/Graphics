@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         GBuffer,
         Forward,
-        ForwardEmissiveForDeferred,
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,
@@ -31,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingGBuffer,
         RaytracingSubSurface,
         PathTracing,
+        RayTracingDebug,
         Constant,
         FullScreenDebug,
     }

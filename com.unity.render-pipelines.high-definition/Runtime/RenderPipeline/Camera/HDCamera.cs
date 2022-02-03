@@ -118,6 +118,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // State needed to handle TAAU.
         internal bool previousFrameWasTAAUpsampled = false;
 
+        /// <summary>Ray tracing acceleration structure that is used in case the user specified the build mode as manual for the RTAS.</summary>
+        public RayTracingAccelerationStructure rayTracingAccelerationStructure = null;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its transform changed.</summary>
+        public bool transformsDirty = false;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its material changed.</summary>
+        public bool materialsDirty = false;
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
@@ -250,6 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float verticalErosionOffset;
         }
 
+#if ENABLE_SENSOR_SDK
+        internal RayTracingShader pathTracingShaderOverride = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays = null;
+#endif
+
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
@@ -336,6 +348,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
         internal bool isPersistent = false;
 
+        internal HDUtils.PackedMipChainInfo m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
+
+        internal ref HDUtils.PackedMipChainInfo depthBufferMipChainInfo => ref m_DepthBufferMipChainInfo;
+
+        internal Vector2Int depthMipChainSize => m_DepthBufferMipChainInfo.textureSize;
+
         // VisualSky is the sky used for rendering in the main view.
         // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
         // It's usually the visual sky unless a sky lighting override is setup.
@@ -354,6 +372,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float globalMipBias { set; get; } = 0.0f;
 
         internal float deltaTime => time - lastTime;
+
+        // Useful for the deterministic testing of motion vectors.
+        // This is currently override only in com.unity.testing.hdrp/TestRunner/OverrideTime.cs
+        internal float animateMaterialsTime { get; set; } = -1;
+        internal float animateMaterialsTimeLast { get; set; } = -1;
 
         // Non oblique projection matrix (RHS)
         // TODO: this code is never used and not compatible with XR
@@ -689,6 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             volumeStack = VolumeManager.instance.CreateStack();
 
+            m_DepthBufferMipChainInfo.Allocate();
+
             Reset();
         }
 
@@ -713,6 +738,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool deepLearningSuperSamplingUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomAttributes;
         internal bool deepLearningSuperSamplingUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseOptimalSettings;
         internal float deepLearningSuperSamplingSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.deepLearningSuperSamplingSharpening;
+        internal bool fsrOverrideSharpness => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fsrOverrideSharpness;
+        internal float fsrSharpness => m_AdditionalCameraData == null ? FSRUtils.kDefaultSharpnessLinear : m_AdditionalCameraData.fsrSharpness;
 
         internal bool RequiresCameraJitter()
         {
@@ -725,7 +752,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!transparent)
                 return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects);
             else
-                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value;
         }
 
         internal bool IsSSGIEnabled()
@@ -816,8 +843,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The condition inside controls whether we perform init/deinit or not.
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion) || frameSettings.IsEnabled(FrameSettingsField.Water);
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSREnabled(true) || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
@@ -921,6 +948,8 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
+
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
             lowResScale = 0.5f;
             if (canDoDynamicResolution)
@@ -1125,6 +1154,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float ct = time;
             float pt = lastTime;
 #if UNITY_EDITOR
+            // Apply editor mode time override if any.
+            if (animateMaterials)
+            {
+                ct = animateMaterialsTime < 0 ? ct : animateMaterialsTime;
+                pt = animateMaterialsTimeLast < 0 ? pt : animateMaterialsTimeLast;
+            }
+
             float dt = time - lastTime;
             float sdt = dt;
 #else
@@ -1146,6 +1182,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._DeExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
+            // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
+            // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
@@ -1296,12 +1335,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                             // Resetting the visual sky hash will ensure that.
                             visualSky.skyParametersHash = -1;
-
-                            m_LightingOverrideSky.skySettings = newSkyOverride;
-                            m_LightingOverrideSky.cloudSettings = newCloudOverride;
-                            m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
-                            lightingSky = m_LightingOverrideSky;
                         }
+
+                        m_LightingOverrideSky.skySettings = newSkyOverride;
+                        m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                        m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
+                        lightingSky = m_LightingOverrideSky;
                     }
                 }
             }
@@ -1360,6 +1399,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect? m_OverridePixelRect = null;
+
+        internal bool hasCaptureActions => m_RecorderCaptureActions != null;
 
         // Keep track of the previous DLSS state
         private DynamicResolutionHandler.UpsamplerScheduleType m_PrevUpsamplerSchedule = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
@@ -1621,6 +1662,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal static int GetSceneViewLayerMaskFallback()
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+            // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+            if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                return -1;
+
+            // Remove lighting override mask and layer 31 which is used by preview/lookdev
+            return (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
+
+        }
+
         void UpdateVolumeAndPhysicalParameters()
         {
             volumeAnchor = null;
@@ -1655,15 +1709,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (needFallback)
                     {
-                        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                        if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                            volumeLayerMask = -1;
-                        else
-                            // Remove lighting override mask and layer 31 which is used by preview/lookdev
-                            volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
-
+                        volumeLayerMask = GetSceneViewLayerMaskFallback();
                         // Use the default physical camera values so the exposure will look reasonable
                         physicalParameters = SRPPhysicalCamera.GetDefaults();
                     }

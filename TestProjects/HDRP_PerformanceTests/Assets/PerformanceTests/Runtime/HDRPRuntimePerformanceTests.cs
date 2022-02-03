@@ -12,7 +12,7 @@ using Unity.PerformanceTesting;
 public class HDRPRuntimePerformanceTests : PerformanceTests
 {
     const int WarmupCount = 20;
-    const int GlobalTimeout = 120 * 1000;       // 2 min
+    const int GlobalTimeout = 600 * 1000;       // 10 min
 
     static IEnumerable<CounterTestDescription> GetCounterTests()
     {
