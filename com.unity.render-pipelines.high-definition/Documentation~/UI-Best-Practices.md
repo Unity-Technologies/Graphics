@@ -14,7 +14,7 @@ HDRP supports all the Canvas **Render Modes**, however, it only supports Unlit U
 HDRP Projects require you to work in linear [color space](https://docs.unity3d.com/Manual/LinearLighting.html). When you create UI in the Editor, ensure the sprite textures are in linear color space to make sure the UI renders correctly. This is especially important for transparent sprites. For more information, see [Linear or gamma workflow](https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html) and [Working with linear Textures](https://docs.unity3d.com/Manual/LinearRendering-LinearTextures.html).
 
 ## Multiple Camera setup
-HDRP only supports a single Camera setup by default. If you need to use more than one camera at the same time, you should use one the following alternatives:
+HDRP only supports a single Camera setup by default. If you need to use more than one camera at the same time, use one the following alternatives:
 
 
 * [Custom Passes](Custom-Pass.md): Allows you to inject shader code and C# at certain points inside the render loop. This gives you the ability to draw GameObjects and process full-screen passes.
