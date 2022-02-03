@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(position, label, property);
             toggle = shouldToggle(property);
             OnGUIHelper(ref position, property, label);
-            typeSizeMap[this.GetType()] = position.y + position.height - startHeight;
+            typeSizeMap[this.GetType()] = position.y - startHeight;
             EditorGUI.EndProperty();
         }
 
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.Universal
                 rendererFeatureName = attribute.Path[nameId];
             }
 
-            if (DrawHeaderToggleRect(position, new GUIContent(
+            if (DrawHeaderToggleRect(ref position, new GUIContent(
                 name.stringValue == rendererFeatureName ? name.stringValue : $"{name.stringValue} ({rendererFeatureName})",
                 type.GetCustomAttribute<TooltipAttribute>()?.tooltip),
                 property, isActiveState, attribute?.Documentation))
@@ -60,8 +60,6 @@ namespace UnityEditor.Rendering.Universal
                 using (new EditorGUI.DisabledScope(!isActiveState.boolValue))
                 {
                     EditorGUI.indentLevel = 1;
-                    position.height = EditorGUIUtility.singleLineHeight + 2;
-                    position.y += position.height;
                     if (!disallowMultipleRendererFeatures)
                     {
                         DrawProperty(ref position, name, Styles.Name);
@@ -86,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected abstract void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent label);
 
-        private bool DrawHeaderToggleRect(Rect rect, GUIContent title, SerializedProperty group, SerializedProperty activeField, string documentationURL)
+        private bool DrawHeaderToggleRect(ref Rect rect, GUIContent title, SerializedProperty group, SerializedProperty activeField, string documentationURL)
         {
             var labelRect = rect;
             labelRect.xMin += 32f;
@@ -122,6 +120,9 @@ namespace UnityEditor.Rendering.Universal
 
             // Documentation button
             CoreEditorUtils.ShowHelpButton(contextMenuRect, documentationURL, title);
+
+            rect.height = EditorGUIUtility.singleLineHeight + 2;
+            rect.y += rect.height;
             return group.isExpanded;
         }
     }
