@@ -173,7 +173,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 10
-  XRCompatible: 1
+  XRCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!81 &971756571
 AudioListener:
@@ -415,7 +415,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 2
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 7892866616399533766, guid: d6db0b4af8005fb47a5e0202ab1b4170,
@@ -480,4 +480,5 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6db0b4af8005fb47a5e0202ab1b4170, type: 3}
