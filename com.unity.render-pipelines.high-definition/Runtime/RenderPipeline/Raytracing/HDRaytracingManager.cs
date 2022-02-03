@@ -542,7 +542,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return;
             }
-            VFXManager.SetRayTracingEnabled(true);
+
+            if (m_VFXRayTracingSupported)
+                VFXManager.RequestRtasAabbConstruction();
+
             // Collect the lights
             CollectLightsForRayTracing(hdCamera, ref m_RTASManager.transformsDirty);
 

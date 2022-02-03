@@ -907,6 +907,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVFXRayTracing,
+                    Styles.supportVFXRayTracing);
 
                 // If ray tracing is enabled by the asset but the current system does not support it display a warning
                 if (!HDRenderPipeline.currentSystemSupportsRayTracing)

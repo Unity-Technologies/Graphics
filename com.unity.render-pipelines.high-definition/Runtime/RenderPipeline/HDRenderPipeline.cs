@@ -275,6 +275,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
 
+        // Flag that defines if VFX ray tracing is supported by the current asset and platform
+        bool m_VFXRayTracingSupported = false;
+
         /// <summary>
         ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
         /// </summary>
@@ -330,6 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
+            m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
+            VFXManager.SetRayTracingEnabled(m_VFXRayTracingSupported);
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
