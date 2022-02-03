@@ -35,6 +35,9 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_HalfCoCTexture;
         RTHandle m_PingTexture;
         RTHandle m_PongTexture;
+        RTHandle[] m_BloomMipDown;
+        RTHandle[] m_BloomMipUp;
+        RTHandle m_BlendTexture;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -197,6 +200,7 @@ namespace UnityEngine.Rendering.Universal
             m_HalfCoCTexture?.Release();
             m_PingTexture?.Release();
             m_PongTexture?.Release();
+            m_BlendTexture?.Release();
         }
 
         /// <summary>
@@ -768,7 +772,7 @@ namespace UnityEngine.Rendering.Universal
                 tempDepthBits = DepthBits.None;
             }
             cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
+            RenderingUtils.ReAllocateIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
             // Prepare for manual blit
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
@@ -783,10 +787,8 @@ namespace UnityEngine.Rendering.Universal
             DrawFullscreenMesh(cmd, material, 0);
 
             // Pass 2: Blend weights
-            cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._BlendTexture, 0, CubemapFace.Unknown, -1),
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
-                RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
-            cmd.ClearRenderTarget(false, true, Color.clear);
+            CoreUtils.SetRenderTarget(cmd, m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.clear);
+            cmd.SetViewport(pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
             DrawFullscreenMesh(cmd, material, 1);
 
@@ -795,12 +797,11 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
+            cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
             DrawFullscreenMesh(cmd, material, 2);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
