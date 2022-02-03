@@ -1154,7 +1154,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool PrepareAndCullCamera(Camera camera, XRPass xrPass, bool cameraRequestedDynamicRes,
             List<RenderRequest> renderRequests,
-            List<int> rootRenderRequestIndices,
             ScriptableRenderContext renderContext,
             out RenderRequest renderRequest,
             CubemapFace cubemapFace = CubemapFace.Unknown)
@@ -1242,7 +1241,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Render directly to XR render target if active
-            if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+            if (hdCamera.xr.enabled)
                 targetId = hdCamera.xr.renderTarget;
 
             hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, DynamicResolutionHandler.instance);
@@ -1265,8 +1264,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: store DecalCullResult
             };
             renderRequests.Add(renderRequest);
-            // This is a root render request
-            rootRenderRequestIndices.Add(renderRequest.index);
 
             return true;
         }
@@ -1311,7 +1308,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Notify that we render the probe at this frame
             // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
-            float visibility = ComputeVisibility(visibleInIndex, probe);
             if (visibility > 0.0f)
                 probe.SetIsRendered();
 
@@ -1597,6 +1593,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RenderRequest> renderRequests,
             List<CameraSettings> cameraSettings,
             List<CameraPositionSettings> cameraPositionSettings,
+            List<CubemapFace> cameraCubemapFaces,
             ScriptableRenderContext renderContext)
         {
             foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1637,7 +1634,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             hdParentCamera,
                             visibleInRenderRequest.hdCamera.camera.fieldOfView,
                             visibleInRenderRequest.hdCamera.camera.aspect,
-                            ref renderDatas, cameraSettings, cameraPositionSettings, renderRequests, renderContext
+                            ref renderDatas, cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderRequests, renderContext
                         );
 
                         foreach (var renderData in renderDatas)
@@ -1664,7 +1661,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var renderDatas = ListPool<HDProbe.RenderData>.Get();
                         AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
-                            cameraSettings, cameraPositionSettings, renderRequests, renderContext);
+                            cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderRequests, renderContext);
                         ListPool<HDProbe.RenderData>.Release(renderDatas);
                     }
                 }
@@ -1765,7 +1762,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GenerateRenderToCubemapRequests(
             List<RenderRequest> renderRequests,
-            List<int> rootRenderRequestIndices,
             Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible,
             ScriptableRenderContext renderContext)
         {
@@ -1824,7 +1820,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     //faceCamera.worldToCameraMatrix = m_CubemapFaceMatrices[i] * inverseTransform;
                     faceCamera.projectionMatrix = projMatrix;
 
-                    if (PrepareAndCullCamera(faceCamera, XRSystem.emptyPass, false, renderRequests, rootRenderRequestIndices, renderContext, out var request, cubemapFaces[i]))
+                    if (PrepareAndCullCamera(faceCamera, XRSystem.emptyPass, false, renderRequests, renderContext, out var request, cubemapFaces[i]))
                     {
                         DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
                     }
@@ -1994,7 +1990,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
                 RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
 
-                GenerateRenderToCubemapRequests(renderRequests, rootRenderRequestIndices, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
+                GenerateRenderToCubemapRequests(renderRequests, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
 
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
@@ -2066,14 +2062,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynResHandler.Update(drsSettings);
                     #endregion
                     // Start culling for all main cameras, setup RenderRequests for them and determine the list of visible realtime probes.
-                    if (PrepareAndCullCamera(camera, xrPass, cameraRequestedDynamicRes, renderRequests, rootRenderRequestIndices, renderContext, out var request))
+                    if (PrepareAndCullCamera(camera, xrPass, cameraRequestedDynamicRes, renderRequests, renderContext, out var request))
                     {
                         DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
                     }
                 }
 
                 // Generate RenderRequests for all visible probes
-                GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, renderContext);
+                GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderContext);
 
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
                     ListPool<(int index, float weight)>.Release(pair.Value);
