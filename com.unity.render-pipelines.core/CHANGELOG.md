@@ -4,8 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.3] - 2021-11-17
+## [12.1.5] - 2022-01-14
 
+### Fixed
+- Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+
+## [12.1.4] - 2021-12-07
+
+### Fixed
+- Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
+- Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+
+## [12.1.3] - 2021-11-17
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
@@ -22,6 +35,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
 
 ## [12.1.0] - 2021-09-23
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.0.0] - 2021-01-11
 

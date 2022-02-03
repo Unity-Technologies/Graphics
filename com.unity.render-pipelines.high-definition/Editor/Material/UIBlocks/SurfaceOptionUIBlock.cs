@@ -596,7 +596,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
+                if ((m_Features & Features.ShowPrePassAndPostPass) != 0 && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                 {
                     bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
                     if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
@@ -607,10 +607,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
 
-                if (transparentWritingMotionVec != null)
+                if (transparentWritingMotionVec != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
-                if (transparentZWrite != null)
+                if (transparentZWrite != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
@@ -809,7 +809,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
-            if (receivesSSR != null && receivesSSRTransparent != null)
+            if (receivesSSR != null && receivesSSRTransparent != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)

@@ -407,11 +407,11 @@ void StoreLightVolumeCache(int lightIndex, int coarseIndex, uint volumeType)
     s_lightVolumesCache[lightIndex] = (volumeType & 0x7) | (uint)(coarseIndex << 3);
 }
 
-void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out uint volumeType)
+void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out int volumeType)
 {
     int data = s_lightVolumesCache[lightIndex];
     coarseIndex = data >> 3;
-    volumeType = (uint)(data & 0x7);
+    volumeType = data & 0x7;
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.
@@ -434,7 +434,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     if (threadID < (uint)iNrCoarseLights)
     {
         int idxCoarse = GetCoarseLightIndex((int)threadID, iNrCoarseLights);
-        uint uLightVolume = _LightVolumeData[idxCoarse].lightVolume;
+        int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
         StoreLightVolumeCache(threadID, idxCoarse, uLightVolume);
     }
 
@@ -447,14 +447,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     for (; l < iNrCoarseLights; ++l)
     {
         int idxCoarse;
-        uint uLightVolume;
+        int uLightVolume;
         LoadLightVolumeCache(l, idxCoarse, uLightVolume);
         bool lightValid = false;
         if (uLightVolume == LIGHTVOLUMETYPE_CONE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
             const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -469,20 +469,22 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 float2 V = abs( float2( dot(fromLight, lightData.lightAxisX.xyz), dot(fromLight, lightData.lightAxisY.xyz) ) );
 
                 float fDist2D = bIsSpotDisc ? length(V) : max(V.x,V.y);
-                bool isValid = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) );
+                bool validInPixel = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) );
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 //a wave is on the same tile, and the loop is uniform for the wave.
                 // thus we early out if at least 1 thread in the wave passed this light, saving some ALU.
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
             }
         }
         else if (uLightVolume == LIGHTVOLUMETYPE_SPHERE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -494,18 +496,20 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 float3 toLight = vLp - vVPos;
                 float distSq = dot(toLight,toLight);
 
-                bool isValid = lightData.radiusSq>distSq;
+                bool validInPixel = lightData.radiusSq>distSq;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
            }
         }
         else if (uLightVolume ==  LIGHTVOLUMETYPE_BOX)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -517,12 +521,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
                 float3 dist = float3( dot(toLight, lightData.lightAxisX), dot(toLight, lightData.lightAxisY), dot(toLight, lightData.lightAxisZ) );
                 dist = (abs(dist) - lightData.boxInnerDist) * lightData.boxInvRange;        // not as efficient as it could be
-                bool isValid = max(max(dist.x, dist.y), dist.z)<1;                       // but allows us to not write out OuterDists
+                bool validInPixel = max(max(dist.x, dist.y), dist.z)<1;                       // but allows us to not write out OuterDists
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
             }
         }
         else

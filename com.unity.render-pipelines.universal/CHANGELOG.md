@@ -4,12 +4,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.3] - 2021-11-17
+## [12.1.5] - 2022-01-14
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Re-added the menu button to be able to convert selected materials.
 
 ### Fixed
+- Fixed incorrect blending of ParticleUnlit. [case 1373188](https://issuetracker.unity3d.com/product/unity/issues/guid/1373188/)
+- Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
+
+## [12.1.4] - 2021-12-07
+
+### Added
+- Added Adaptive Performance Decals scaler access.
+
+### Fixed
+- Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed Lens Flare not accounting Render Scale setting. [case 1376820](https://issuetracker.unity3d.com/issues/urp-lens-flare-do-not-account-for-render-scale-setting)
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed decal compilation issue on mac.
+- Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
+
+## [12.1.3] - 2021-11-17
+
+## Fixed
 - Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
 
 ## [12.1.2] - 2021-10-22
@@ -226,6 +247,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Added "Conservative Enclosing Sphere" setting to fix shadow frustum culling issue where shadows are erroneously culled in corners of cascades [case 1153151](https://issuetracker.unity3d.com/issues/lwrp-shadows-are-being-culled-incorrectly-in-the-corner-of-the-camera-viewport-when-the-far-clip-plane-is-small)
 - Fixed an issue where screen space shadows has flickering with deferred mode [case 1354681](https://issuetracker.unity3d.com/issues/screen-space-shadows-flicker-in-scene-view-when-using-deferred-rendering)
+- Fixed shadowCascadeBlendCullingFactor to be 1.0
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph

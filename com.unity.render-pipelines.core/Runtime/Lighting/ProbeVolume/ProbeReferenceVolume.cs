@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (requestID >= 0 && requestID < m_RequestPositions.Count)
             {
-                Debug.Assert(ComputeCapturePositionIsValid(m_RequestPositions[requestID]));
+                Debug.Assert(ComputeCapturePositionIsValid(newPosition));
                 m_RequestPositions[requestID] = newPosition;
                 m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
                 return requestID;

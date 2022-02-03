@@ -3,7 +3,7 @@ The Hair shader is your starting point for rendering hair and fur in the High De
 
 ![](Images/HDRPFeatures-HairShader.png)
 
-Under the hood, the Hair shader is a pre-configured Shader Graph. To learn more about the Hair shader implementation, or to create your own Hair shader variant, see the Shader Graph documentation about the [Hair Master Node](Master-Node-Hair.md).
+Under the hood, the Hair shader is a pre-configured Shader Graph. To learn more about the Hair shader implementation, or to create your own Hair shader variant, see the Shader Graph documentation about the [Hair Master Node](master-stack-hair.md).
 
 ## Importing the Hair Sample
 

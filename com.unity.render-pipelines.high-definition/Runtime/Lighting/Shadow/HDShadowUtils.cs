@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
     static class HDShadowUtils
     {
-        public static readonly float k_MinShadowNearPlane = 0.0001f;
+        public static readonly float k_MinShadowNearPlane = 0.01f;
         public static readonly float k_MaxShadowNearPlane = 10.0f;
 
         public static float Asfloat(uint val) { unsafe { return *((float*)&val); } }

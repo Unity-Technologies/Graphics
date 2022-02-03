@@ -163,7 +163,7 @@
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve.md)
   * [Propagating NaNs](Post-Processing-Propagating-NaNs.md)
 * UI
-  * [UI Best Pratices](UI-Best-Practices.md)
+  * [UI Best Practices](UI-Best-Practices.md)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started.md)
   * Effects and Volume Overrides

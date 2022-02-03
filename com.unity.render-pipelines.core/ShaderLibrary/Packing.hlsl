@@ -63,7 +63,7 @@ float2 PackNormalOctQuadEncode(float3 n)
     //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
 
     // Optimized version of above code:
-    n *= rcp(dot(abs(n), 1.0));
+    n *= rcp(max(dot(abs(n), 1.0), 1e-6));
     float t = saturate(-n.z);
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }

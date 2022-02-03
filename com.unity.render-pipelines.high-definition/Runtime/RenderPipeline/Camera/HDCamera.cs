@@ -1168,6 +1168,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._DeExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
+            // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
+            // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
@@ -1382,6 +1385,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect? m_OverridePixelRect = null;
+
+        internal bool hasCaptureActions => m_RecorderCaptureActions != null;
 
         // Keep track of the previous DLSS state
         private DynamicResolutionHandler.UpsamplerScheduleType m_PrevUpsamplerSchedule = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;

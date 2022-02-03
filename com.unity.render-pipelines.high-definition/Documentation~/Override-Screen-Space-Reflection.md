@@ -8,9 +8,16 @@ HDRP implements [ray-traced reflection](Ray-Traced-Reflections.md) on top of thi
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-For this feature:
-The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
-The property to enable in your Frame Settings is: **Lighting > Screen Space Reflection**.
+To enable Screen Space Reflection:
+
+1. In your HDRP Asset Inspector window, go to **Lighting** > **Reflections** and enable **Screen Space Reflection**
+
+2. Enable Screen Space Reflection in Frame Settings
+
+   * If you want to enable Screen Space Reflection for all cameras, go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**
+   * If you want to enable Screen Space Reflection for specific cameras, in the Inspector window of each camera:
+      1. Go to **Rendering** and enable **Custom Frame Settings**
+      2. Go to **Frame Settings Overrides** > **Lighting** and enable **Screen Space Reflection**
 
 ## Using Screen Space Reflection
 
@@ -61,7 +68,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Quality**                   | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Minimum Smoothness**        | See **Minimum Smoothness** in [Screen-space](#screen-space). |
 | **Smoothness Fade Start**     | See **Smoothness Fade Start** in [Screen-space](#screen-space). |
-| **Max Ray Length**            | Controls the maximum length of reflection rays. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection. |
+| **Max Ray Length**            | Controls the maximum length of reflection rays in meters. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection. |
 | **Clamp Value**               | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
 | **Full Resolution**           | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**              | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
@@ -79,7 +86,7 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 
-
+When a transparent material has rendering pass set to **Low Resolution**, then **Receive SSR Transparent** can't be selected.
 
 ### Ray-traced reflection
 

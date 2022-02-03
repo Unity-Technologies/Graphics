@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader materialError;
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
+            public ComputeShader clearDebugBufferCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]

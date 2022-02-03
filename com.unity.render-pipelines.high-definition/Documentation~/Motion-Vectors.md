@@ -28,7 +28,7 @@ The options are:
 * **Camera Motion Only**: HDRP only calculates camera motion vectors for the area of the screen this GameObject fills.
 * **Per Object Motion**: HDRP calculates motion vectors for this GameObject if:
   * The GameObject moves and the camera does not.
-  * The camera moves and the GamaObject does not.
+  * The camera moves and the GameObject does not.
   * Both the GameObject and the camera move.
 * **Force No Motion**: HDRP does not calculate any motion vectors for the area of the screen this GameObject fills.
 

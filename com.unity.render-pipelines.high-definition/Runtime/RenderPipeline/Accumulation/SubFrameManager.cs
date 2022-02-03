@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint height;
         public bool skyEnabled;
         public bool fogEnabled;
+        public ulong accelSize;
 
         public float accumulatedWeight;
         public uint currentIteration;

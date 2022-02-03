@@ -108,7 +108,7 @@ HDRP provides the following upscale filter methods:
 
 ## Overriding upscale options with code
 
-You can also override the upscale options in the HDRP Asset for each Camera in your scene using code. To do this, call DynamicResolutionHandler.SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter), to make HDRP ignore the value in the HDRP Asset for a given Camera.
+You can also override the upscale options in the HDRP Asset for each Camera in your scene using code. To do this, call `DynamicResolutionHandler.SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)`, to make HDRP ignore the value in the HDRP Asset for a given Camera.
 
 <a name="TAA_Notes"></a>
 

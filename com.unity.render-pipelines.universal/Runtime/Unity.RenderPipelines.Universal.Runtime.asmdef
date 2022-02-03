@@ -32,6 +32,11 @@
             "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
         },
         {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "4.0.0-pre.1",
+            "define": "ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.burst",
             "expression": "1.0.0",
             "define": "ENABLE_BURST_1_0_0_OR_NEWER"

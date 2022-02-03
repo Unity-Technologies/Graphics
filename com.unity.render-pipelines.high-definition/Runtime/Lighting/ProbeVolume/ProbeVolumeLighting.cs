@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var hdProbe in hdProbes)
             {
                 hdProbe.TryUpdateLuminanceSHL2ForNormalization();
+#if UNITY_EDITOR
+                // If we are treating probes inside a prefab, we need to explicitly record the mods
+                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(hdProbe);
+#endif
             }
         }
 

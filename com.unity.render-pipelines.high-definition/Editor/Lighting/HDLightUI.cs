@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.showMixedValue = false;
 
             // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
-            using (new EditorGUI.DisabledScope(serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc))
+            using (new EditorGUI.DisabledScope(updatedLightType == HDLightType.Area && (serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc)))
                 serialized.settings.DrawLightmapping();
 
             if (updatedLightType == HDLightType.Area)
@@ -1043,7 +1043,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         HDLightEditor editor = owner as HDLightEditor;
                         var additionalLightData = editor.GetAdditionalDataForTargetIndex(0);
-                        if (!HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(additionalLightData))
+                        // If the light was registered, but not placed it means it doesn't fit.
+                        if (additionalLightData.lightIdxForCachedShadows >= 0 && !HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(additionalLightData))
                         {
                             string warningMessage = "The shadow for this light doesn't fit the cached shadow atlas and therefore won't be rendered. Please ensure you have enough space in the cached shadow atlas. You can use the light explorer (Window->Rendering->Light Explorer) to see which lights fit and which don't.\nConsult HDRP Shadow documentation for more information about cached shadow management.";
                             // Loop backward in "tile" size to check

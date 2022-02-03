@@ -2,7 +2,7 @@
 
 Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a "path".
 
-It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
+It enables HDRP to compute many effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
 A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
@@ -54,13 +54,23 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Materials parameterization
 
-Some phenomena like refraction, absorption in transmissive objects, or subsurface scattering, can be expressed more naturally in a path tracing setting than in its rasterized counterpart, and as such require less material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+Some light phenomena can be expressed more naturally in path tracing than in rasterization, for instance:
+
+- Light refraction in transmissive objects.
+- Light absorption in transmissive objects.
+- Subsurface scattering.
+
+Rasterization uses various methods to approximate complex lighting effects, with each of those methods relying on dedicated Material parameters. Path tracing computes those same effects all at once, without the need for as many parameters.
+
+For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
 
 ### Refraction model
 
 In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
 
-For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+For path tracing, the distinction between *Box* or *Sphere* is irrelevant (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, simulating alpha blending.
+
+Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
 
 | Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
 |-------------------|---------------------------------------------------|---------------------------------------------------|
@@ -108,14 +118,23 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 
 - If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
 - Does not support 3D Text and TextMeshPro.
-- Does not support Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
-- Does not support Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
 - Does not support decals.
 - Does not support tessellation.
 - Does not support Tube and Disc-shaped Area Lights.
 - Does not support Translucent Opaque Materials.
-- Does not support several of HDRP's Materials. This includes Eye, Hair, and Decal.
+- Does not support several of HDRP's Materials. This includes Eye, non-physical Hair and Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Does not support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
+
+### Unsupported shader graph nodes for path tracing
+
+When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
+- DDX, DDY, DDXY, NormalFromHeight and HDSceneColor nodes.
+- All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
+Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) are not supported in ray/path tracing.
+
+### Unsupported features of ray tracing
+
+For information about unsupported features of ray tracing in general, see [Ray tracing limitations](Ray-Tracing-Getting-Started.md#limitations).

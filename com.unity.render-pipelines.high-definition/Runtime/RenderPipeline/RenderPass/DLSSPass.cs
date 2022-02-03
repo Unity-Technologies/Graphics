@@ -40,13 +40,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var resources = new ViewResources
             {
-                source = (RenderTexture)handles.source,
-                output = (RenderTexture)handles.output,
-                depth = (RenderTexture)handles.depth,
-                motionVectors = (RenderTexture)handles.motionVectors
+                source = (Texture)handles.source,
+                output = (Texture)handles.output,
+                depth = (Texture)handles.depth,
+                motionVectors = (Texture)handles.motionVectors
             };
 
-            resources.biasColorMask = (handles.biasColorMask.IsValid()) ? (RenderTexture)handles.biasColorMask : (RenderTexture)null;
+            resources.biasColorMask = (handles.biasColorMask.IsValid()) ? (Texture)handles.biasColorMask : (Texture)null;
 
             return resources;
         }
@@ -115,11 +115,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct ViewResources
         {
-            public RenderTexture source;
-            public RenderTexture output;
-            public RenderTexture depth;
-            public RenderTexture motionVectors;
-            public RenderTexture biasColorMask;
+            public Texture source;
+            public Texture output;
+            public Texture depth;
+            public Texture motionVectors;
+            public Texture biasColorMask;
         }
 
         public struct CameraResources
@@ -390,11 +390,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             public void SubmitDlssCommands(
-                RenderTexture source,
-                RenderTexture depth,
-                RenderTexture motionVectors,
-                RenderTexture biasColorMask,
-                RenderTexture output,
+                Texture source,
+                Texture depth,
+                Texture motionVectors,
+                Texture biasColorMask,
+                Texture output,
                 CommandBuffer cmdBuffer)
             {
                 if (m_DlssContext == null)
@@ -533,6 +533,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Cleanup(CommandBuffer cmdBuffer)
             {
+                if (m_Views == null)
+                    return;
+
                 foreach (var v in m_Views)
                     v.Cleanup(cmdBuffer);
 

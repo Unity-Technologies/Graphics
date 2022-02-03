@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class TonemappingModeParameter : VolumeParameter<TonemappingMode>
     {
         /// <summary>
-        /// Creates a new <see cref="VignetteModeParameter"/> instance.
+        /// Creates a new <see cref="TonemappingModeParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>

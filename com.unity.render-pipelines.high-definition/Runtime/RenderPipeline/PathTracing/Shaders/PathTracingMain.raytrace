@@ -45,8 +45,8 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
     }
 
     bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
-    float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
-    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+    pathIntersection.value = missColor.rgb;
     pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);
@@ -158,11 +158,11 @@ void RayGen()
     else // Orthographic projection
     {
         uint2 pixelResolution = DispatchRaysDimensions().xy;
-        float3 screenCoord = float3(2.0 * jitteredPixelCoord.x / pixelResolution.x - 1.0,
+        float4 screenCoord = float4(2.0 * jitteredPixelCoord.x / pixelResolution.x - 1.0,
                                     -2.0 * jitteredPixelCoord.y / pixelResolution.y + 1.0,
-                                    0.0);
+                                    0.0, 0.0);
 
-        ray.Origin = mul(_InvViewProjMatrix, screenCoord);
+        ray.Origin = mul(_InvViewProjMatrix, screenCoord).xyz;
         ray.Direction = cameraDirection;
     }
 

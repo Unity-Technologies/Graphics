@@ -153,12 +153,22 @@ namespace UnityEditor.Rendering.HighDefinition
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupLayeredLitKeywordsAndPass(Material material)
         {
+            MaterialId materialId = material.GetMaterialId();
+            if (material.HasProperty(kMaterialID))
+            {
+                if (materialId != MaterialId.LitStandard && materialId != MaterialId.LitSSS && materialId != MaterialId.LitTranslucent)
+                {
+                    materialId = MaterialId.LitStandard;
+                    material.SetFloat(kMaterialID, (float)materialId);
+                }
+            }
+
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitGUI.SetupStencil(material, receiveSSR, materialId == MaterialId.LitSSS);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -230,7 +240,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            MaterialId materialId = material.GetMaterialId();
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
         }

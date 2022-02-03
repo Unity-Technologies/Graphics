@@ -261,7 +261,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Features m_Features;
         int m_LayerCount;
         int m_LayerIndex;
-        bool m_UseHeightBasedBlend;
 
         bool isLayeredLit => m_LayerCount > 1;
 
@@ -670,7 +669,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.ShaderProperty(useMainLayerInfluence, Styles.useMainLayerInfluenceModeText);
             materialEditor.ShaderProperty(useHeightBasedBlend, Styles.useHeightBasedBlendText);
 
-            if (m_UseHeightBasedBlend)
+            if (useHeightBasedBlend.floatValue > 0.0f)
             {
                 EditorGUI.indentLevel++;
                 materialEditor.ShaderProperty(heightTransition, Styles.heightTransition);
