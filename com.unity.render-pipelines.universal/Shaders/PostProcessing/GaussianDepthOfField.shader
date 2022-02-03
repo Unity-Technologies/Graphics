@@ -107,7 +107,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             for (int i = 0; i < kCount; i++)
             {
                 float2 tapCoord = _SourceSize.zw * kTaps[i] + uv;
-                half3 tapColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, tapCoord).xyz;
+                half3 tapColor = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, tapCoord).xyz;
                 half coc = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, tapCoord).x;
 
                 // Pre-multiply CoC to reduce bleeding of background blur on focused areas
@@ -125,7 +125,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
             // Fast bilinear downscale of the source target and pre-multiply the CoC to reduce
             // bleeding of background blur on focused areas
-            half3 color = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
             color *= farCoC;
 
         #endif

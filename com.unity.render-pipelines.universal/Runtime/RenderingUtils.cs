@@ -168,6 +168,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static void Blit(CommandBuffer cmd,
+            RTHandle source,
+            RenderTargetIdentifier[] mrt,
+            Rect viewport,
+            Material material,
+            int passIndex = 0,
+            bool useDrawProcedural = false,
+            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
+            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            if (useDrawProcedural)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                CoreUtils.SetRenderTarget(cmd, mrt, mrt[0]);
+                cmd.SetViewport(viewport);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                CoreUtils.SetRenderTarget(cmd, mrt, mrt[0]);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+        }
+
         internal static void CoreBlit(CommandBuffer cmd,
             RTHandle source,
             RTHandle destination,
