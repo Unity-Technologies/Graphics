@@ -9,7 +9,7 @@ To add a Light Anchor component to a GameObject in your Scene:
 1. Select a Light GameObject in the hierarchy to open its Inspector window.
 2. Go to **Add Component** > **Rendering** > **Light Anchor**
 
-By default, the Anchor's position will be the same as the position of the GameObject the Light Anchor Component is attached to.
+By default, the Anchor's position is the same as the position of the GameObject the Light Anchor Component is attached to.
 
 **Note**: To use the Light Anchor, you must set the Tag of at least one Camera to "MainCamera".
 
