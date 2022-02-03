@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Internal
     public abstract class AbstractShaderProperty : ShaderInput
     {
         public abstract PropertyType propertyType { get; }
-        public int order { get; set; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 

@@ -235,27 +235,10 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
-                var needsSync = false;
-                var properties = ShaderUtil.GetMaterialProperties(new[] { material });
-                foreach (var property in shaderGraph.properties)
-                {
-                    var orderedProperty = properties.SingleOrDefault(x => x.name == property.referenceName);
-                    if (orderedProperty != null)
-                    {
-                        var order = Array.IndexOf(properties, orderedProperty);
-                        if (order != property.order)
-                        {
-                            property.order = order;
-                            needsSync = true;
-                        }
-                    }
-                }
-
-
                 // In certain scenarios the context might not be configured with any serialized material information
                 // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
                 // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
-                if (needsSync || materialSettings.NeedsSync())
+                if (materialSettings.NeedsSync())
                 {
                     materialSettings.SyncFromMaterial(material);
                     Invalidate(InvalidationCause.kSettingChanged);
@@ -490,8 +473,7 @@ namespace UnityEditor.VFX
                     foreach (var property in shaderGraph.properties
                              .Where(t => !t.hidden)
                              .Select(t => new { property = t, type = GetSGPropertyType(t) })
-                             .Where(t => t.type != null)
-                             .OrderBy(t => t.property.order))
+                             .Where(t => t.type != null))
                     {
                         if (property.property.propertyType == PropertyType.Float)
                         {

@@ -15,7 +15,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(128, Extension, -902)]
+    [ScriptedImporter(129, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -873,9 +873,10 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 
                 propertiesStages.Add(stageCapability);
-                inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentStringForVFX(property.concretePrecision.ToShaderString())}");
             }
+
+            inputProperties.AddRange(graph.categories.SelectMany(x => x.Children).OfType<AbstractShaderProperty>());
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
