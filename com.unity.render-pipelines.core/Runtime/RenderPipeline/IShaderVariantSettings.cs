@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
         [Tooltip("Logging of shader variants is disabled")]
         Disabled,
         /// <summary>Only logs Shaders with a Subshader containing the tag RenderPipeline</summary>
-        [Tooltip("Logging of shader variants is enabled and filtering them by the tag RenderPipeline")]
+        [Tooltip("Only Shaders with a non empty tag RenderPipeline, will be logged")]
         OnlySRPShaders,
         /// <summary>No filter is applied to the logging of shader variants</summary>
         [Tooltip("Logging of shader variants is enabled and without filters")]
