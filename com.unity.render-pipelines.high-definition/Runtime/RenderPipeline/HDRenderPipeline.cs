@@ -284,11 +284,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool reflectionProbeBaking { get; set; }
 
-        // List of camera schedules for a render to cubemap.
-        List<(Camera camera, RenderTexture output)> m_ScheduledRenderToCubemap = new List<(Camera camera, RenderTexture output)>();
-        CameraCache<(Camera, CubemapFace)> m_RenderToCubemapCameraPool = new CameraCache<(Camera, CubemapFace)>();
-        Matrix4x4[] m_CubemapFaceMatrices;
-
         /// <summary>
         /// HDRenderPipeline constructor.
         /// </summary>
@@ -870,8 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ProbeReferenceVolume.instance.Cleanup();
             }
-
-            m_RenderToCubemapCameraPool.Dispose();
 
             CleanupRenderGraph();
 
@@ -1760,76 +1753,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void GenerateRenderToCubemapRequests(
-            List<RenderRequest> renderRequests,
-            Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible,
-            ScriptableRenderContext renderContext)
-        {
-            CubemapFace[] cubemapFaces = { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ };
-            string[] cubemapFaceNames = { "CubemapPosX", "CubemapNegX", "CubemapPosY", "CubemapNegY", "CubemapPosZ", "CubemapNegZ" };
-
-            if (m_CubemapFaceMatrices == null)
-            {
-                m_CubemapFaceMatrices = new Matrix4x4[6];
-                for (int i = 0; i < 6; ++i)
-                {
-                    m_CubemapFaceMatrices[i] = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
-                }
-            }
-
-            foreach (var cubemapRequest in m_ScheduledRenderToCubemap)
-            {
-                var camera = cubemapRequest.camera;
-                var output = cubemapRequest.output;
-
-                HDAdditionalCameraData additionalCameraData = null;
-                camera.TryGetComponent(out additionalCameraData);
-
-                var projMatrix = Matrix4x4.Perspective(90.0f, 1.0f, camera.nearClipPlane, camera.farClipPlane);
-
-                Matrix4x4 inverseTransform = Matrix4x4.identity;
-                inverseTransform.SetTRS(-camera.transform.position, Quaternion.identity, Vector3.one);
-
-                for (int i = 0; i < 6; i++)
-                {
-                    var faceCamera = m_RenderToCubemapCameraPool.GetOrCreate((camera, cubemapFaces[i]), m_FrameCount, CameraType.Game, cubemapFaceNames[i]);
-
-                    // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
-                    faceCamera.targetTexture = output;
-                    faceCamera.gameObject.hideFlags = HideFlags.HideAndDontSave;
-                    faceCamera.gameObject.SetActive(false);
-                    faceCamera.cameraType = CameraType.Game;
-
-                    //// Warning: accessing Object.name generate 48B of garbage at each frame here
-                    //// camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
-                    //// Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
-                    //faceCamera.name = visibleProbe.probeName[j];
-
-                    HDAdditionalCameraData faceAdditionalData = null;
-                    if (!faceCamera.TryGetComponent(out faceAdditionalData))
-                        faceAdditionalData = faceCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-
-                    if (additionalCameraData != null)
-                        additionalCameraData.CopyTo(faceAdditionalData);
-
-                    faceAdditionalData.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
-
-                    faceCamera.transform.position = camera.transform.position;
-                    faceCamera.transform.rotation = Quaternion.LookRotation(CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
-
-                    //faceCamera.worldToCameraMatrix = m_CubemapFaceMatrices[i] * inverseTransform;
-                    faceCamera.projectionMatrix = projMatrix;
-
-                    if (PrepareAndCullCamera(faceCamera, XRSystem.emptyPass, false, renderRequests, renderContext, out var request, cubemapFaces[i]))
-                    {
-                        DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
-                    }
-                }
-            }
-
-            m_ScheduledRenderToCubemap.Clear();
-        }
-
 #if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -1959,8 +1882,6 @@ namespace UnityEngine.Rendering.HighDefinition
             XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
             var xrLayout = XRSystem.NewLayout();
 
-            m_RenderToCubemapCameraPool.ClearCamerasUnusedFor(5, m_FrameCount);
-
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
@@ -1989,8 +1910,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // of the RTHandle system. So we just obey directly what the render pipeline quality asset says. Cameras that have DRS disabled should still pass a res percentage of %100
                 // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
                 RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
-
-                GenerateRenderToCubemapRequests(renderRequests, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
 
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
@@ -2865,19 +2784,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleasePersistentShadowAtlases()
         {
             m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
-        }
-
-        /// <summary>
-        /// Schedule a render into a cubemap
-        /// </summary>
-        /// <param name="camera">CAmera used for rendering into the cubemap.</param>
-        /// <param name="output">Output render texture.</param>
-        public void ScheduleRenderToCubemap(Camera camera, RenderTexture output)
-        {
-            if (output.dimension != TextureDimension.Cube)
-                throw new ArgumentException("The output texture must be a cubemap.");
-
-            m_ScheduledRenderToCubemap.Add((camera, output));
         }
     }
 }
