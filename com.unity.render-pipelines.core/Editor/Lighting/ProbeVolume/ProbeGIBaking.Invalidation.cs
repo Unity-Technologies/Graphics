@@ -1,19 +1,10 @@
-#define USE_JOBS
-#if HAS_BURST
-#define USE_BURST
-#endif
-//#define VERBOSE
-
 using System.Collections.Generic;
 using UnityEditor;
-
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using System;
-#if USE_BURST
-using Unity.Burst;
-#endif
+
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -24,7 +15,6 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();
         static DynamicArray<int> s_ProbeIndices = new DynamicArray<int>();
 
-        // TODO_FCC: Can we do better?
         static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
 
         internal static Vector3Int GetSampleOffset(int i)
