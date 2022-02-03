@@ -39,7 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled volumetric clouds in lens flares sample indoor scene.
 - Make Vertical gate fit the default for physical camera.
 - Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
-- Changed the way normals are unpacked from AG channels, in detail maps for instance (case 1399548).
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -115,6 +114,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 - Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed issue with detail normals when scale is null (case 1399548).
+
 
 ## [14.0.0] - 2021-11-17
 
