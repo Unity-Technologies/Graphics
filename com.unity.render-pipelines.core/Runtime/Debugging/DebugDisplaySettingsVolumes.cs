@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
                         hdr = p.hdr,
                         showAlpha = p.showAlpha,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering
                     {
                         displayName = name,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
