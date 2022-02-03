@@ -403,6 +403,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public HDRPreprocessShaders()
         {
+            if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
+                return;
+
             shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
         }
 
@@ -497,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: Grab correct configuration/quality asset.
                 var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
 
-                if (hdPipelineAssets == null || hdPipelineAssets.Count == 0)
+                if (hdPipelineAssets.Count == 0)
                     return;
 
                 uint preStrippingCount = (uint)inputData.Count;
@@ -567,9 +570,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                // The list should always have been built before calling this (because we need the build target which we don't have here).
                 if (_hdrpAssets == null || _hdrpAssets.Count == 0)
-                    throw new System.InvalidOperationException();
+                    GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
                 return _hdrpAssets;
             }
         }
@@ -766,7 +768,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            GetAllValidHDRPAssets(report.summary.platform);
+            GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
         }
     }
 }
