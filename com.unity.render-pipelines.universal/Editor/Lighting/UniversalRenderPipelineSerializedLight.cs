@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty customShadowLayers { get; }
         public SerializedProperty shadowLayerMask { get; }
 
+        public SerializedProperty enableCapsuleShadows { get; }
         public SerializedProperty capsuleShadowAngle { get; }
         public SerializedProperty capsuleShadowRange { get; }
 
@@ -72,6 +73,7 @@ namespace UnityEditor.Rendering.Universal
             customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");
             shadowLayerMask = serializedAdditionalDataObject.FindProperty("m_ShadowLayerMask");
 
+            enableCapsuleShadows = serializedAdditionalDataObject.FindProperty("m_EnableCapsuleShadows");
             capsuleShadowAngle = serializedAdditionalDataObject.FindProperty("m_CapsuleShadowAngle");
             capsuleShadowRange = serializedAdditionalDataObject.FindProperty("m_CapsuleShadowRange");
 

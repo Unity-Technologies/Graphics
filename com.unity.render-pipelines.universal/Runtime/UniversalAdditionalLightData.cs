@@ -131,7 +131,15 @@ namespace UnityEngine.Rendering.Universal
             set => m_LightCookieOffset = value;
         }
 
-        [SerializeField] float m_CapsuleShadowAngle = 0.0f;
+        [SerializeField] bool m_EnableCapsuleShadows = false;
+
+        public bool enableCapsuleShadows
+        {
+            get { return m_EnableCapsuleShadows; }
+            set { m_EnableCapsuleShadows = value; }
+        }
+
+        [SerializeField] float m_CapsuleShadowAngle = 20.0f;
 
         public float capsuleShadowAngle
         {
