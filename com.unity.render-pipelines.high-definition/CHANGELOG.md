@@ -113,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
 - Fixed issue with shader graph custom velocity and VFX (case 1388149)
 - Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 

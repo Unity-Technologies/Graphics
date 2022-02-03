@@ -135,7 +135,7 @@ bool SampleDebugFontNumber2Digits(int2 pixCoord, uint number)
  */
 bool SampleDebugFontNumberAllDigits(int2 pixCoord, uint number)
 {
-    const uint digitCount = max(1, uint(log10(number)) + 1);
+    const int digitCount = (int)max(1u, uint(log10(number)) + 1u);
 
     pixCoord.y -= 4;
     int2 offset = int2(6 * digitCount, 0);
