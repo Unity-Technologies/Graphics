@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
     public abstract class ScriptableRendererDataEditor : PropertyDrawer
     {
         protected static List<CachedScriptableRendererDataEditor> s_CachedRendererEditors = new();
-
+        internal static int CurrentIndex = 0;
 
         public virtual void DrawHeader<TDataEditor>(
             TDataEditor cachedData,
@@ -58,22 +58,22 @@ namespace UnityEditor.Rendering.Universal
 
         public override sealed void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            int index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
+            CurrentIndex = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             int size = s_CachedRendererEditors.Count;
-            if (size <= index)
+            if (size <= CurrentIndex)
             {
-                for (int i = size; i <= index; i++)
+                for (int i = size; i <= CurrentIndex; i++)
                 {
                     s_CachedRendererEditors.Add(null);
                 }
             }
-            if (s_CachedRendererEditors[index] == null || s_CachedRendererEditors[index].serializedProperty != property)
+            if (s_CachedRendererEditors[CurrentIndex] == null || s_CachedRendererEditors[CurrentIndex].serializedProperty != property)
             {
-                s_CachedRendererEditors[index] = Init(property);
+                s_CachedRendererEditors[CurrentIndex] = Init(property);
             }
 
             EditorGUI.BeginProperty(position, label, property);
-            OnGUI(s_CachedRendererEditors[index], property);
+            OnGUI(s_CachedRendererEditors[CurrentIndex], property);
             EditorGUI.EndProperty();
         }
 

@@ -36,7 +36,12 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init(SerializedProperty property)
         {
-            isDeferredRenderingMode = property.serializedObject.FindProperty("m_RenderingMode").intValue == (int)RenderingMode.Deferred;
+            SerializedProperty rendererProp =
+                property.serializedObject
+                    .FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList))
+                    .GetArrayElementAtIndex(ScriptableRendererDataEditor.CurrentIndex);
+
+            isDeferredRenderingMode = rendererProp.FindPropertyRelative("m_RenderingMode").intValue == (int)RenderingMode.Deferred;
             if (this.property == property)
                 return;
             SerializedProperty settings = property.FindPropertyRelative("m_Settings");

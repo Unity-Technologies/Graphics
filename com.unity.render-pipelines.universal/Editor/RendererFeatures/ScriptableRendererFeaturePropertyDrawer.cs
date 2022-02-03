@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.Universal
     public abstract class ScriptableRendererFeaturePropertyDrawer : PropertyDrawer
     {
         private bool toggle = true;
+        private static Dictionary<Type, float> typeSizeMap = new Dictionary<Type, float>();
 
         private struct Styles
         {
@@ -27,8 +28,12 @@ namespace UnityEditor.Rendering.Universal
 
         public sealed override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            float startHeight = position.y;
+            EditorGUI.BeginProperty(position, label, property);
             toggle = shouldToggle(property);
             OnGUIHelper(ref position, property, label);
+            typeSizeMap[this.GetType()] = position.y + position.height - startHeight;
+            EditorGUI.EndProperty();
         }
 
         private void OnGUIHelper(ref Rect position, SerializedProperty property, GUIContent label)
@@ -69,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
 
         public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUI.GetPropertyHeight(property, label);
+            return typeSizeMap.TryGetValue(this.GetType(), out var value) ? value : EditorGUIUtility.singleLineHeight + 2;
         }
 
         protected static void DrawProperty(ref Rect position, SerializedProperty property, GUIContent content)
