@@ -1,3 +1,5 @@
+#define USE_INDIRECT_DRAWS
+
 using System;
 using System.Collections.Generic;
 using Unity.Burst;
@@ -15,8 +17,16 @@ namespace UnityEngine.Rendering
         BatchRendererGroup m_BatchRendererGroup;
         GeometryPool m_GeometryPool;
 
+#if USE_INDIRECT_DRAWS
+        GraphicsBuffer m_TileMeshIndices;
+        GraphicsBufferHandle m_TileMeshIndicesID;
+        GraphicsBuffer m_IndirectArguments;
+        GraphicsBufferHandle m_IndirectArgumentsID;
+#else
         Mesh m_TileMesh;
         BatchMeshID m_TileMeshID;
+#endif
+
         bool m_MaterialDrawListDirty;
         Dictionary<int, BRGMaterialInfo> m_MaterialsContainer;
         NativeList<BRGMaterialDrawInfo> m_MaterialDrawList;
@@ -114,7 +124,12 @@ namespace UnityEngine.Rendering
         [BurstCompile]
         private unsafe struct DrawCommandProducerJob : IJob
         {
+#if USE_INDIRECT_DRAWS
+            public GraphicsBufferHandle tileMeshIndicesID;
+            public GraphicsBufferHandle indirectArgumentsID;
+#else
             public BatchMeshID tileMeshID;
+#endif
 
             [ReadOnly] public NativeList<BRGMaterialDrawInfo> materialDrawInfos;
             [ReadOnly] public GraphicsBufferHandle visibleInstancesBufferHandle;
@@ -146,18 +161,30 @@ namespace UnityEngine.Rendering
                     BRGMaterialDrawInfo drawInfo = materialDrawInfos[drawIndex];
                     drawCommands[0].drawCommands[drawIndex] = new BatchDrawCommand
                     {
-                        flags = BatchDrawCommandFlags.None,
                         visibleOffset = (uint)drawIndex,
                         visibleCount = 1u,
                         batchID = drawInfo.BRGBatchID,
                         materialID = drawInfo.batchMaterialID,
                         splitVisibilityMask = (ushort)0xfful,
                         sortingPosition = 0,
+#if USE_INDIRECT_DRAWS
+                        flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indirect | BatchDrawCommandFlags.Indexed,
+                        proceduralIndirect = new BatchDrawCommandProceduralIndirect
+                        {
+                            indexBufferHandle = tileMeshIndicesID,
+                            indirectBufferHandle = indirectArgumentsID,
+                            indirectBufferOffset = GraphicsBuffer.IndirectDrawIndexedArgs.size * (uint)drawIndex,
+                            indirectCommandCount = 1,
+                            topology = MeshTopology.Triangles,
+                        },
+#else
+                        flags = BatchDrawCommandFlags.None,
                         regular = new BatchDrawCommandRegular
                         {
                             meshID = tileMeshID,
                             submeshIndex = 0,
                         },
+#endif
                     };
 
                     //drawCommands[0].visibleInstances[drawIndex] = (int)((uint)(drawInfo.materialGPUKey << 8) | ((uint)drawInfo.batchHandle.index & 0xFF));
@@ -196,14 +223,19 @@ namespace UnityEngine.Rendering
 
                 var drawCmdProducerJob = new DrawCommandProducerJob()
                 {
+#if USE_INDIRECT_DRAWS
+                    tileMeshIndicesID = m_TileMeshIndicesID,
+                    indirectArgumentsID = m_IndirectArgumentsID,
+#else
                     tileMeshID = m_TileMeshID,
+#endif
                     materialDrawInfos = m_MaterialDrawList,
                     drawCommands = cullingOutput.drawCommands,
                     visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
                     visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
                 };
 
-                //TODO: this can be nicely paralelized and we can write material info in batches
+                //TODO: this can be nicely parallelized and we can write material info in batches
                 jobHandle = drawCmdProducerJob.Schedule();
             }
 
@@ -233,13 +265,8 @@ namespace UnityEngine.Rendering
             int tilesY = ((3 * 2160) + MaterialTileSize - 1) / MaterialTileSize;
             m_MaxNumberOfTiles = tilesX * tilesY;
 
-            m_TileMesh = new Mesh();
-            m_TileMesh.vertices = new Vector3[m_MaxNumberOfTiles * 4];
-            m_TileMesh.vertexBufferTarget = GraphicsBuffer.Target.Raw;
-            m_TileMesh.indexBufferTarget = GraphicsBuffer.Target.Raw;
-            m_TileMesh.subMeshCount = 1;
-            m_TileMesh.SetIndexBufferParams(m_MaxNumberOfTiles * 6, IndexFormat.UInt32);
-            m_TileMesh.SetSubMesh(0, new SubMeshDescriptor(0, m_MaxNumberOfTiles * 6), MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers | MeshUpdateFlags.DontRecalculateBounds);
+            int indexCount = m_MaxNumberOfTiles * 6;
+
             var indices = new int[m_MaxNumberOfTiles * 6];
             for (int tileId = 0; tileId < m_MaxNumberOfTiles; ++tileId)
             {
@@ -250,9 +277,24 @@ namespace UnityEngine.Rendering
                 indices[tileId * 6 + 4] = 2 + tileId * 4;
                 indices[tileId * 6 + 5] = 0 + tileId * 4;
             }
+
+#if USE_INDIRECT_DRAWS
+            m_TileMeshIndices = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.None, indexCount, 4);
+            m_TileMeshIndices.SetData(indices);
+            m_TileMeshIndicesID = m_TileMeshIndices.bufferHandle;
+#else
+            m_TileMesh = new Mesh();
+            m_TileMesh.vertices = new Vector3[m_MaxNumberOfTiles * 4];
+            m_TileMesh.vertexBufferTarget = GraphicsBuffer.Target.Raw;
+            m_TileMesh.indexBufferTarget = GraphicsBuffer.Target.Raw;
+            m_TileMesh.subMeshCount = 1;
+            m_TileMesh.SetIndexBufferParams(m_MaxNumberOfTiles * 6, IndexFormat.UInt32);
+            m_TileMesh.SetSubMesh(0, new SubMeshDescriptor(0, m_MaxNumberOfTiles * 6), MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers | MeshUpdateFlags.DontRecalculateBounds);
+
             m_TileMesh.SetIndices(indices, MeshTopology.Triangles, 0);
             m_TileMesh.UploadMeshData(false);
             m_TileMeshID = m_BatchRendererGroup.RegisterMesh(m_TileMesh);
+#endif
 
             m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
         }
@@ -441,11 +483,36 @@ namespace UnityEngine.Rendering
                 }
             }
 
+#if USE_INDIRECT_DRAWS
+            if (m_IndirectArguments != null)
+            {
+                m_IndirectArguments.Dispose();
+            }
+            m_IndirectArguments = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, GraphicsBuffer.UsageFlags.None, m_MaterialDrawList.Length, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+            m_IndirectArgumentsID = m_IndirectArguments.bufferHandle;
+            
+            var args = new GraphicsBuffer.IndirectDrawIndexedArgs[m_MaterialDrawList.Length];
+            for (int i = 0; i < m_MaterialDrawList.Length; ++i)
+            {
+                args[i].indexCountPerInstance = (uint)m_MaxNumberOfTiles * 6;
+                args[i].instanceCount = 1;
+                args[i].startIndex = 0;
+                args[i].baseVertexIndex = 0;
+                args[i].startInstance = (uint)i;
+            }
+            m_IndirectArguments.SetData(args);
+#endif
+
             m_MaterialDrawListDirty = false;
         }
 
         public void Dispose()
         {
+#if USE_INDIRECT_DRAWS
+            m_TileMeshIndices.Dispose();
+            m_IndirectArguments.Dispose();
+#endif
+
             m_visibleInstancesBufferPool.Dispose();
 
             foreach (var b in m_Batches)
