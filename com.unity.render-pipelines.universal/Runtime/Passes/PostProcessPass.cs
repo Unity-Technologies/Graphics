@@ -38,6 +38,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
         RTHandle m_BlendTexture;
+        RTHandle m_EdgeColorTexture;
+        RTHandle m_EdgeStencilTexture;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -201,6 +203,8 @@ namespace UnityEngine.Rendering.Universal
             m_PingTexture?.Release();
             m_PongTexture?.Release();
             m_BlendTexture?.Release();
+            m_EdgeColorTexture?.Release();
+            m_EdgeStencilTexture?.Release();
         }
 
         /// <summary>
@@ -727,7 +731,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region Sub-pixel Morphological Anti-aliasing
 
-        void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
             var camera = cameraData.camera;
             var pixelRect = cameraData.pixelRect;
@@ -758,20 +762,18 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Intermediate targets
-            RenderTargetIdentifier stencil; // We would only need stencil, no depth. But Unity doesn't support that.
-            DepthBits tempDepthBits;
-            if (m_Depth == k_CameraTarget || m_Descriptor.msaaSamples > 1)
+            RTHandle stencil; // We would only need stencil, no depth. But Unity doesn't support that.
+            if (m_Depth.nameID == BuiltinRenderTextureType.CameraTarget || m_Descriptor.msaaSamples > 1)
             {
                 // In case m_Depth is CameraTarget it may refer to the backbuffer and we can't use that as an attachment on all platforms
-                stencil = ShaderConstants._EdgeTexture;
-                tempDepthBits = DepthBits.Depth24;
+                RenderingUtils.ReAllocateIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, DepthBits.Depth24), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
+                stencil = m_EdgeStencilTexture;
             }
             else
             {
-                stencil = m_Depth.nameID;
-                tempDepthBits = DepthBits.None;
+                stencil = m_Depth;
             }
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Bilinear);
+            RenderingUtils.ReAllocateIfNeeded(ref m_EdgeColorTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeColorTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
             // Prepare for manual blit
@@ -779,29 +781,28 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetViewport(pixelRect);
 
             // Pass 1: Edge detection
-            cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._EdgeTexture, 0, CubemapFace.Unknown, -1),
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source.nameID);
+            CoreUtils.SetRenderTarget(cmd,
+                m_EdgeColorTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                ClearFlag.ColorStencil, Color.clear); // implicit depth=1.0f stencil=0x0
+            cmd.SetViewport(pixelRect);
             DrawFullscreenMesh(cmd, material, 0);
 
             // Pass 2: Blend weights
+            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_EdgeColorTexture.nameID);
             CoreUtils.SetRenderTarget(cmd, m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.clear);
             cmd.SetViewport(pixelRect);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
             DrawFullscreenMesh(cmd, material, 1);
 
             // Pass 3: Neighborhood blending
-            cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
+            CoreUtils.SetRenderTarget(cmd, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+            cmd.SetViewport(pixelRect);
             DrawFullscreenMesh(cmd, material, 2);
 
             // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
