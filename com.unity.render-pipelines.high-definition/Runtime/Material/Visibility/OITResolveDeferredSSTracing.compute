@@ -352,326 +352,9 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 wo = normalize(_WorldSpaceCameraPos - posInputTransparent.positionWS);
 
-    //float pixelSizeRadiusProjected = maxPixelSize * (near + opaqueDepthLinear) / near;
-    //pixelSizeRadiusProjected = (pixelSizeRadiusProjected - near) / (far - near);
-    //_OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(pixelSizeRadiusProjected.xxx, 1.0);
-    //return;
+#define ENABLE_SS_TRACING 1
 
-    //_OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(listCount.xxx, 1.0);
-    //return;
-
-#if 0
-    uint2 positionSS = dispatchThreadId.xy;
-
-    //float4 oitDepthData = LOAD_TEXTURE2D_X(_OITTileHiZ, positionSS);
-    //float deviceDepth = oitDepthData.x;
-    float deviceDepth = firstDeviceDepth;
-
-    float3 positionWS;
-    float weight;
-    float3 wi;
-    //float3 wo;
-    float cos0i;
-    float cos0o;
-    float cos0h;
-    float cos0vh;
-    SampleVNDF(
-        // Inputs
-        positionSS, roughness, deviceDepth, normal, ior,
-        // Outputs
-        positionWS, weight, wi/*, wo*/, cos0i, cos0o, cos0h, cos0vh);
-
-    //if (cos0i < 0.001f || weight < 0.001f)
-    //{
-    //    //WriteDebugInfo(positionSS, -1);
-    //    return;
-    //}
-
-    float3 camPosWS = GetCurrentViewPosition();
-
-    // Apply normal bias with the magnitude dependent on the distance from the camera.
-    // Unfortunately, we only have access to the shading normal, which is less than ideal...
-    positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normal, wo), FLT_EPS)));
-    //positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(-dot(normal, wi), FLT_EPS)));
-    //positionWS = camPosWS - normal * 0.001f;
-    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
-    bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
-
-    // Ref. #1: Michal Drobot - Quadtree Displacement Mapping with Height Blending.
-    // Ref. #2: Yasin Uludag  - Hi-Z Screen-Space Cone-Traced Reflections.
-    // Ref. #3: Jean-Philippe Grenier - Notes On Screen Space HIZ Tracing.
-    // Warning: virtually all of the code below assumes reverse Z.
-
-    // We start tracing from the center of the current pixel, and do so up to the far plane.
-    float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
-
-    float3 reflPosWS = positionWS + wi;
-    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
-    float3 reflPosSS = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
-    float3 rayDir = reflPosSS - rayOrigin;
-    float3 rcpRayDir = rcp(rayDir);
-    int2   rayStep = int2(rcpRayDir.x >= 0 ? 1 : 0,
-                          rcpRayDir.y >= 0 ? 1 : 0);
-    float3 raySign = float3(rcpRayDir.x >= 0 ? 1 : -1,
-                            rcpRayDir.y >= 0 ? 1 : -1,
-                            rcpRayDir.z >= 0 ? 1 : -1);
-    bool   rayTowardsEye = rcpRayDir.z >= 0;
-
-    // Note that we don't need to store or read the perceptualRoughness value
-    // if we mark stencil during the G-Buffer pass with pixels which should receive SSR,
-    // and sample the color pyramid during the lighting pass.
-    //killRay = killRay || (reflPosSS.z <= 0);
-    //killRay = killRay || (reflPosSS.z < 0);
-    //killRay = killRay || (dot(normal, wo) <= 0);
-    //killRay = killRay || (perceptualRoughness > _SsrRoughnessFadeEnd);
-//#ifndef SSR_TRACE_TOWARDS_EYE
-//    killRay = killRay || rayTowardsEye;
-//#endif
-
-    if (killRay)
-    {
-        //WriteDebugInfo(positionSS, -1);
-        return;
-    }
-
-    // Extend and clip the end point to the frustum.
-    float tMax;
-    {
-        // Shrink the frustum by half a texel for efficiency reasons.
-        const float halfTexel = 0.5;
-
-        float3 bounds;
-        bounds.x = (rcpRayDir.x >= 0) ? _ScreenSize.x - halfTexel : halfTexel;
-        bounds.y = (rcpRayDir.y >= 0) ? _ScreenSize.y - halfTexel : halfTexel;
-        // If we do not want to intersect the skybox, it is more efficient to not trace too far.
-        //float maxDepth = (_SsrReflectsSky != 0) ? -0.00000024 : 0.00000024; // 2^-22
-        float maxDepth = 0.00000024; // 2^-22
-        bounds.z = (rcpRayDir.z >= 0) ? 1 : maxDepth;
-
-        float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
-        tMax = Min3(dist.x, dist.y, dist.z);
-    }
-
-    // Clamp the MIP level to give the compiler more information to optimize.
-    //const int maxMipLevel = min(_SsrDepthPyramidMaxMip, 14);
-    const int maxMipLevel = 7;
-
-    // Start ray marching from the next texel to avoid self-intersections.
-    float t;
-    {
-        // 'rayOrigin' is the exact texel center.
-        float2 dist = abs(0.5 * rcpRayDir.xy);
-        t = min(dist.x, dist.y);
-    }
-
-    float3 rayPos;
-
-    int  mipLevel = 0;
-    int  iterCount = 0;
-    bool hit = false;
-    bool miss = false;
-    bool belowMip0 = false; // This value is set prior to entering the cell
-
-    const float thickness = 0.001f;
-    float _SsrThicknessScale = 1.0f / (1.0f + thickness);
-    float _SsrThicknessBias = -near / (far - near) * (thickness * _SsrThicknessScale);
-
-    bool beforeTransparent = false;
-    //while (!(hit || miss) && (t <= tMax) && (iterCount < _SsrIterLimit))
-    //while (!(hit || miss) && (t <= tMax) && (iterCount < 256))
-    float3 rayPrevious;
-    bool hitOpaqueOrFar = false;
-    bool frontFace = true;
-    uint bounceCount = 0;
-    while ((t <= tMax) && (iterCount < 256) && !hitOpaqueOrFar)
-    {
-        rayPrevious = rayPos;
-        rayPos = rayOrigin + t * rayDir;
-
-        // Ray position often ends up on the edge. To determine (and look up) the right cell,
-        // we need to bias the position by a small epsilon in the direction of the ray.
-        float2 sgnEdgeDist = round(rayPos.xy) - rayPos.xy;
-        float2 satEdgeDist = clamp(raySign.xy * sgnEdgeDist + SSR_TRACE_EPS, 0, SSR_TRACE_EPS);
-        rayPos.xy += raySign.xy * satEdgeDist;
-
-        int2 mipCoord = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
-        // Bounds define 4 faces of a cube:
-        // 2 walls in front of the ray, and a floor and a base below it.
-        float4 bounds;
-
-        bounds.xy = (mipCoord + rayStep) << mipLevel;
-        //bounds.z = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
-        //bounds.z = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).z;
-        //float srcDeviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
-        //    //rayPos.z;// LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
-        ////bounds.z = GetBoundDeviceZ((uint2)rayPos.xy, srcDeviceDepth);
-        //bool beforeTransparent = GetBoundDeviceZ((uint2)rayPos.xy, srcDeviceDepth, bounds.z);
-        float opaqueDepthDevice_k = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
-        bounds.z = opaqueDepthDevice_k;
-
-#if 0
-        if (rayPos.z >= opaqueDepthDevice_k || rayPos.z <= 0.0f ||
-            any(rayPos.xy < 0.0f) || any((int2)rayPos.xy >= (int2)_ScreenSize.xy))
-        {
-            ++bounceCount;
-            hitOpaqueOrFar = true;
-            break;
-        }
-
-        uint pixelOffset_k = rayPos.y * _ScreenSize.x + rayPos.x;
-        uint listCount_k, listOffset_k;
-        VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
-
-        float hitDeviceDepth = opaqueDepthDevice_k;
-        if (listCount_k > 0)
-        {
-            bool hitTransparent = false;
-            for (uint q = 0; q < listCount_k; ++q)
-            {
-                uint sortedSampleIndex_q = listCount_k >= 2 ? Sorting::GetSortedSampleIndex(q, listCount_k, listOffset_k) : 0;
-                int globalOffset_q = sortedSampleIndex_q + listOffset_k;
-                uint2 offscreenCoord_q = uint2(globalOffset_q % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
-
-                uint4 packedOITGBuffer0_q = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord_q)].rgba;
-                uint2 packedOITGBuffer1_q = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord_q)].rg;
-                float3 normal_q;
-                float roughness_q;
-                float3 baseColor_q;
-                float metalness_q;
-                float3 absorptionCoefficient_q;
-                float ior_q;
-                VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0_q, packedOITGBuffer1_q, normal_q, roughness_q, baseColor_q, metalness_q, absorptionCoefficient_q, ior_q);
-
-                float cos0t = dot(rayDir, normal_q);
-
-                if (frontFace && cos0t < 0.0f ||
-                    !frontFace && cos0t > 0.0f)
-                {
-                    continue;
-                }
-
-                Visibility::VisibilityData unusedVisData_q;
-                uint2 unusedTexelCoord_q;
-                float deviceDepth_q;
-                float linearDepth_q;
-                VisibilityOIT::GetVisibilitySampleWithLinearDepth(sortedSampleIndex_q, listOffset_k, unusedVisData_q, unusedTexelCoord_q, deviceDepth_q, linearDepth_q);
-
-                if (linearDepth_q > rayPos.z)
-                {
-                    break;
-                }
-
-                // Approx
-                if (rayPrevious.z <= deviceDepth_q && deviceDepth_q <= rayPos.z)
-                {
-                    ++bounceCount;
-                    hitTransparent = true;
-                    rayDir = refract(rayDir, frontFace ? -normal_q : normal_q, frontFace ? 1.0f / ior_q : ior_q);
-                    hitDeviceDepth = deviceDepth_q;
-                    break;
-                }
-            }
-            if (hitTransparent)
-            {
-                frontFace = !frontFace;
-            }
-        }
-
-        bounds.z = hitDeviceDepth;
-#endif
-
-        // We define the depth of the base as the depth value as:
-        // b = DeviceDepth((1 + thickness) * LinearDepth(d))
-        // b = ((f - n) * d + n * (1 - (1 + thickness))) / ((f - n) * (1 + thickness))
-        // b = ((f - n) * d - n * thickness) / ((f - n) * (1 + thickness))
-        // b = d / (1 + thickness) - n / (f - n) * (thickness / (1 + thickness))
-        // b = d * k_s + k_b
-        bounds.w = bounds.z * _SsrThicknessScale + _SsrThicknessBias;
-
-        float4 dist = bounds * rcpRayDir.xyzz - (rayOrigin.xyzz * rcpRayDir.xyzz);
-        float  distWall = min(dist.x, dist.y);
-        float  distFloor = dist.z;
-        float  distBase = dist.w;
-
-        // Note: 'rayPos' given by 't' can correspond to one of several depth values:
-        // - above or exactly on the floor
-        // - inside the floor (between the floor and the base)
-        // - below the base
-#if 0
-        bool belowFloor = (raySign.z * (t - distFloor)) < 0;
-        bool aboveBase = (raySign.z * (t - distBase)) >= 0;
-#else
-        bool belowFloor = rayPos.z < bounds.z;
-        bool aboveBase = rayPos.z >= bounds.w;
-#endif
-        bool insideFloor = belowFloor && aboveBase;
-        bool hitFloor = (t <= distFloor) && (distFloor <= distWall);
-
-        // Game rules:
-        // * if the closest intersection is with the wall of the cell, switch to the coarser MIP, and advance the ray.
-        // * if the closest intersection is with the heightmap below,  switch to the finer   MIP, and advance the ray.
-        // * if the closest intersection is with the heightmap above,  switch to the finer   MIP, and do NOT advance the ray.
-        // Victory conditions:
-        // * See below. Do NOT reorder the statements!
-
-//#ifdef SSR_TRACE_BEHIND_OBJECTS
-//        miss = belowMip0 && insideFloor;
-//#else
-        miss = belowMip0;
-        //#endif
-
-        hit = (mipLevel == 0) && (hitFloor || insideFloor) && !beforeTransparent;
-        belowMip0 = (mipLevel == 0) && belowFloor;
-
-        // 'distFloor' can be smaller than the current distance 't'.
-        // We can also safely ignore 'distBase'.
-        // If we hit the floor, it's always safe to jump there.
-        // If we are at (mipLevel != 0) and we are below the floor, we should not move.
-        t = hitFloor ? distFloor : (((mipLevel != 0) && belowFloor) ? t : distWall);
-        rayPos.z = bounds.z; // Retain the depth of the potential intersection
-
-        // Warning: both rays towards the eye, and tracing behind objects has linear
-        // rather than logarithmic complexity! This is due to the fact that we only store
-        // the maximum value of depth, and not the min-max.
-        //mipLevel += (hitFloor || belowFloor || rayTowardsEye) ? -1 : 1;
-        //mipLevel = clamp(mipLevel, 0, maxMipLevel);
-
-        // mipLevel = 0;
-
-        iterCount++;
-
-        //if (bounceCount >= 1)
-        //    break;
-    }
-
-    // Treat intersections with the sky as misses.
-    //miss = miss || ((_SsrReflectsSky == 0) && (rayPos.z == 0));
-    hit = hit && !miss;
-
-    if (hit)
-    {
-        //float lastDeviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, (int2)rayPos.xy).r;
-        //if (rayPos.z >= lastDeviceDepth)
-        //{
-        //    float3 curTransparent = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-        //    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(curTransparent, 1.0);
-        //    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0, 1.0, 0.0, 1.0);
-        //}
-        //else
-        {
-            float3 curOpaqueColor = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, rayPos.xy).rgb;
-            _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(curOpaqueColor, 1.0);
-        }
-    }
-    else
-    {
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0, 0.0, 0.0, 1.0);
-    }
-
-    return;
-
-#elif 1
+#if ENABLE_SS_TRACING
 
     uint2 positionSS = dispatchThreadId.xy;
 
@@ -692,22 +375,16 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         // Outputs
         positionWS, weight, wt, cos0i, cos0o, cos0h, cos0vh);
 
-    //if (dot(wt, wt) < 0.5f)
-    //    wt = wr;
-
-    //wt = -wo;
-
     bool frontFace = dot(wo, normal) > 0.0f;
 
-    float3 startPosWS = posInputTransparent.positionWS + 0.125f * normal;
-    //float3 startPosWS = posInputTransparent.positionWS * (1 - 0.001 * rcp(max(dot(normal, wo), FLT_EPS)));
+    //float3 startPosWS = posInputTransparent.positionWS + 0.125f * normal;
+    float3 startPosWS = posInputTransparent.positionWS * (1 - 0.001 * rcp(max(dot(normal, wo), FLT_EPS)));
     //float3 startPosWS = posInputTransparent.positionWS;
 
-    //float3 camPosWS = GetCurrentViewPosition();
+    float3 camPosWS = GetCurrentViewPosition();
     //float3 dir = wt;
     //camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(N, V), FLT_EPS)));
-    float3 stepWS = startPosWS + 10.0f * wt;
-    //float3 stepWS = camPosWS + (posInputTransparent.positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normal, wt), FLT_EPS)));
+    float3 stepWS = startPosWS + 5.0f * wt;
     float3 stepNDC = ComputeNormalizedDeviceCoordinatesWithZ(stepWS, UNITY_MATRIX_VP);
     float stepDepthLinear = LinearEyeDepth(stepWS, GetWorldToViewMatrix());
     //stepDepthLinear = (stepDepthLinear - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
@@ -728,44 +405,39 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float curIOR = ior;
 
-    #define maxTransparentHit 32
-    float3 hits[maxTransparentHit] = { (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0,
-                                       (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0,
-                                       (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0,
-                                       (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0, (float3)0 };
-    float4 infos[maxTransparentHit] = { (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0,
-                                        (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0,
-                                        (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0,
-                                        (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0, (float4)0 };
+    #define maxTransparentHit 1
+    float3 hits[maxTransparentHit] = (float3[maxTransparentHit])0;
+    float4 infos[maxTransparentHit] = (float4[maxTransparentHit])0;
 
-    bool hitOpaqueOrFar = false;
+    bool hitOpaque = false;
+    bool hitFar = false;
     float3 previous;
     int k;
     bool hitTransparent = false;
     uint curTransparentHit = 1;
 
     float energy = 1.0f;
-    p.xy = round(p.xy);
 
     float distance = 0.0f;
 
+#define MAX_ITER 512
+
     UNITY_LOOP
-    for (k = 0; k < 512; ++k)
+    for (k = 0; k < MAX_ITER; ++k)
     {
         previous = p;
         previous.xy = (p.xy);
 
         // Paranoid loop
         UNITY_LOOP
-        for (int u = 0; u < 64; u++)
+        for (int u = 0; u < 128; u++)
         {
-            p += dir;
-            if (any((int2)round(p.xy) != (int2)round(previous.xy)))
+            p += 0.025f * dir;
+            if (any((int2)(p.xy) != (int2)(previous.xy)))
             {
                 break;
             }
         }
-        //p.xy = round(p.xy) + 0.5f;
 
         distance += length(previous - p);
 
@@ -781,25 +453,43 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         if (p.z >= opaqueDepthLinear_k)
         {
-            hitOpaqueOrFar = true;
-            break;
+            float curDeviceDepth = DeviceDepthFromLinearEye(p.z, _ZBufferParams);
+            float prevDeviceDepth = DeviceDepthFromLinearEye(previous.z, _ZBufferParams);
+            float2 prevXY = round(previous.xy) + 0.5f;
+            float3 previousWS = ComputeWorldSpacePosition(prevXY * _ScreenSize.zw, prevDeviceDepth, UNITY_MATRIX_I_VP);
+            float2 curXY = round(p.xy) + 0.5f;
+            float3 currentWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
+            float3 sampleWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, opaqueDeviceDepth_k, UNITY_MATRIX_I_VP);
+            float3 v0 = normalize(currentWS - previousWS);
+            float3 v1 = normalize(sampleWS - previousWS);
+            if (dot(v0, v1) > 0.1f)
+            {
+                hitOpaque = true;
+                break;
+            }
+            else
+            {
+                hitFar = true;
+                break;
+            }
         }
 
-        //uint pixelOffset_k = (uint)p.y * _ScreenSize.x + (uint)p.x;
+        uint pixelOffset_k = (uint)p.y * _ScreenSize.x + (uint)p.x;
         //uint pixelOffset_k = round(p.y) * _ScreenSize.x + round(p.x);
-        uint pixelOffset_k = round(p.y * _ScreenSize.x + p.x);
+        //uint pixelOffset_k = round(p.y * _ScreenSize.x + p.x);
         uint listCount_k, listOffset_k;
         VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
 
         //if (false && listCount_k > 0 && curTransparentHit < maxTransparentHit)
-        if (listCount_k > 0)// && curTransparentHit < maxTransparentHit)
+        if (listCount_k > 0 && curTransparentHit < maxTransparentHit)
         {
             hitTransparent = false;
             uint2 offscreenCoord_best;
             float roughness_best;
             float ior_best;
             float3 normal_best;
-            float measure_best = -1.0f;
+            //float measure_best = -1.0f;
+            float measure_best = 100.0f;
             for (uint q = 0; q < listCount_k; ++q)
             {
                 uint sortedSampleIndex_q = listCount_k >= 2 ? Sorting::GetSortedSampleIndex(q, listCount_k, listOffset_k) : 0;
@@ -830,34 +520,27 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 float linearDepth_q;
                 VisibilityOIT::GetVisibilitySampleWithLinearDepth(sortedSampleIndex_q, listOffset_k, unusedVisData_q, unusedTexelCoord_q, deviceDepth_q, linearDepth_q);
 
-                if (linearDepth_q + 0.5f > p.z)
-                {
-                    break;
-                }
+                //if (linearDepth_q + 0.5f > p.z)
+                //{
+                //    break;
+                //}
 
                 //if (listCount_k == 2)
                 //{
                 //    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(1.0, 0.0, 0.0, 1.0);
                 //    return;
                 //}
+
                 // Is Hit test
-        #if 0
-                //const float epsilon = 0.125f;
-                const float epsilon = //0.5f;
-                    //max(_ScreenSize.x, _ScreenSize.z);
-                    //max(_ScreenSize.x, _ScreenSize.z) * (near + p.z) / near;
-                    0.125f * (near + p.z) / near;
-                // Approx if previous "sandwiches" the transparent sample
-                //if (previous.z <= linearDepth_q + epsilon && linearDepth_q - epsilon <= p.z)
-                //if (linearDepth_q < p.z - epsilon)
-                if (abs(linearDepth_q - p.z) < epsilon)
+        #if 1
+                float measure_q = abs(linearDepth_q - p.z);
+                if (measure_q < measure_best)
                 {
-                    hitTransparent = true;
-                    dir = refract(dir,
-                        frontFace ? -normal_q : normal_q, frontFace ? 1.0f / ior_q : ior_q);
-                    hits[curTransparentHit] = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_q)].rgb;
-                    infos[curTransparentHit].x = roughness_q;
-                    break;
+                    ior_best = ior_q;
+                    measure_best = measure_q;
+                    offscreenCoord_best = offscreenCoord_q;
+                    roughness_best = roughness_q;
+                    normal_best = normal_q;
                 }
         #elif 0
                 const float epsilon = ((p.z - near) / (far - near)) / max(_ScreenSize.x, _ScreenSize.z);
@@ -880,9 +563,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         #else
                 float curDeviceDepth = DeviceDepthFromLinearEye(p.z, _ZBufferParams);
                 float prevDeviceDepth = DeviceDepthFromLinearEye(previous.z, _ZBufferParams);
-                float3 previousWS = ComputeWorldSpacePosition(previous.xy * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
-                float3 currentWS = ComputeWorldSpacePosition(p.xy * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
-                float3 sampleWS = ComputeWorldSpacePosition(p.xy * _ScreenSize.zw, deviceDepth_q, UNITY_MATRIX_I_VP);
+                float2 prevXY = round(previous.xy) + 0.5f;
+                float3 previousWS = ComputeWorldSpacePosition(prevXY * _ScreenSize.zw, prevDeviceDepth, UNITY_MATRIX_I_VP);
+                float2 curXY = round(p.xy) + 0.5f;
+                float3 currentWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
+                float3 sampleWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, deviceDepth_q, UNITY_MATRIX_I_VP);
                 float3 v0 = normalize(currentWS - previousWS);
                 float3 v1 = normalize(sampleWS - previousWS);
                 float measure_q = dot(v0, v1);
@@ -896,18 +581,43 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 }
         #endif
             }
-            if (measure_best > 0.9f)
+#if 1
+            if (measure_best < 0.025f)
             {
-                //dir = refract(dir,
-                //    frontFace ? -normal_best : normal_best, frontFace ? 1.0f / ior_best : ior_best);
+                float curIOR = frontFace ? 1.0f / ior_best : ior_best;
                 dir = refract(dir,
-                    frontFace ? -normal_best : normal_best, frontFace ? ior_best : 1.0f / ior_best);
+                    frontFace ? -normal_best : normal_best, curIOR);
+                //dir = refract(dir,
+                //    frontFace ? -normal_best : normal_best, frontFace ? ior_best : 1.0f / ior_best);
                 scale = 1.0f / length(dir.xy);
                 dir *= scale;
                 hits[curTransparentHit] = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_best)].rgb;
                 infos[curTransparentHit].w = roughness_best;
-                //p += dir;
-                float fresnel_q = F_FresnelDielectric(ior_best, abs(dot(normal_best, dir)));
+                previous += 2.0f * dir;
+                p += 2.0f * dir;
+                float fresnel_q = F_FresnelDielectric(curIOR, abs(dot(normal_best, dir)));
+                infos[curTransparentHit].xyz = fresnel_q;
+                energy *= fresnel_q;
+                frontFace = !frontFace;
+                hitTransparent = false;
+                ++curTransparentHit;
+            }
+#else
+            if (measure_best > 0.95f)
+            {
+                float curIOR = frontFace ? 1.0f / ior_best : ior_best;
+                //float curIOR = frontFace ? ior_best : 1.0f / ior_best;
+                dir = refract(dir,
+                    frontFace ? -normal_best : normal_best, curIOR);
+                //dir = refract(dir,
+                //    frontFace ? -normal_best : normal_best, frontFace ? ior_best : 1.0f / ior_best);
+                scale = 1.0f / length(dir.xy);
+                dir *= scale;
+                hits[curTransparentHit] = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_best)].rgb;
+                infos[curTransparentHit].w = roughness_best;
+                previous += 2.0f * dir;
+                p += 2.0f * dir;
+                float fresnel_q = F_FresnelDielectric(curIOR, abs(dot(normal_best, dir)));
                 infos[curTransparentHit].xyz = fresnel_q;
                 energy *= fresnel_q;
                 //hitTransparent = true;
@@ -918,43 +628,14 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 hitTransparent = false;
                 ++curTransparentHit;
             }
+#endif
         }
     }
 
-    if (k == 512)
+    if (k == MAX_ITER)
         return;
 
-    //if (curTransparentHit > 0)
-    //{
-    //    float3 rgbValue = viridis(
-    //        saturate(
-    //            ((float)curTransparentHit) / ((float)maxTransparentHit)
-    //        )
-    //    );
-    //    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(rgbValue, 1.0);
-    //    return;
-    //}
-    //return;
-
-    //if (curTransparentHit == 0 && hitOpaqueOrFar)
-    //{
-    //    //ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
-    //    //ComputeWorldSpacePosition(posInputTransparent.positionNDC, firstDeviceDepth, UNITY_MATRIX_I_VP);
-    //    //float finalDeviceDepth = DeviceDepthFromLinearEye(previous.z * (_ProjectionParams.z - _ProjectionParams.y) + _ProjectionParams.y, _ZBufferParams);
-    //    //float3 ended = 0.5f * (p + previous);
-    //    float3 ended = p;
-    //    float finalDeviceDepth = DeviceDepthFromLinearEye(ended.z, _ZBufferParams);
-    //    float3 finalPositionWS = ComputeWorldSpacePosition(ended.xy * _ScreenSize.zw, finalDeviceDepth, UNITY_MATRIX_I_VP);
-    //    //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb * exp( -absorptionCoefficient * length(posInputTransparent.positionWS - finalPositionWS) );
-    //    //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb;
-    //    //_SsrColorPyramidMaxMip
-    //    float perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
-    //    float3 opaqueHit = SAMPLE_TEXTURE2D_X_LOD(_VisOITOpaqueColorPyramid, s_trilinear_clamp_sampler, ended.xy * _ScreenSize.zw, perceptualRoughness * 8).rgb;
-    //    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(opaqueHit, 1.0);
-    //    return;
-    //}
-    //else
-    //if (curTransparentHit > 0)// && hitOpaqueOrFar)
+    if (hitOpaque)
     {
         float3 ended = p;
         float perceptualRoughness = RoughnessToPerceptualRoughness(infos[curTransparentHit - 1].w);
@@ -964,14 +645,21 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         {
             results += hits[i] * infos[i].rgb;
         }
-        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(results / ((float)(curTransparentHit + 1)), 1.0);
+        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.75f * results / ((float)(curTransparentHit + 0*1)), 1.0);
         return;
     }
-    //else
+#if 0
+    else if (hitFar)
+    {
+        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.0f, 0.0f, 1.0f, 1.0f);
+        return;
+    }
+    else
     {
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(1.0, 0, 0, 1.0);
         return;
     }
+#endif
     return;
 
 #endif

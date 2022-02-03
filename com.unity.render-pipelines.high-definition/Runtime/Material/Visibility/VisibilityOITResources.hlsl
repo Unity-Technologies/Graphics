@@ -142,13 +142,13 @@ void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float 
     float2 oct = saturate(PackNormalOctQuadEncode(normal) * 0.5f + 0.5f);
 
     packedData0.r = PackFloatToUInt(oct.x, 0, 31);// | PackFloatToUInt(oct.y, 16, 16);
-    packedData0.a = PackFloatToUInt(oct.y, 0, 31);
+    packedData0.g = PackFloatToUInt(oct.y, 0, 31);
     //
-    packedData0.g = PackFloatToUInt(absorptionCoefficient.r,  0, 8)
+    packedData0.b = PackFloatToUInt(absorptionCoefficient.r,  0, 8)
                   | PackFloatToUInt(absorptionCoefficient.g,  8, 8)
                   | PackFloatToUInt(absorptionCoefficient.b, 16, 8)
                   | PackFloatToUInt(metalness, 24, 7);
-    packedData0.b = PackFloatToUInt(baseColor.r, 0, 8)
+    packedData0.a = PackFloatToUInt(baseColor.r, 0, 8)
                   | PackFloatToUInt(baseColor.g, 8, 8)
                   | PackFloatToUInt(baseColor.b, 16, 8)
                   | PackFloatToUInt(roughness, 24, 7);
@@ -162,7 +162,7 @@ void UnpackOITNormalFromGBufferData0(uint4 packedData0, out float3 normal)
 {
     float2 oct;
     oct.x = UnpackUIntToFloat(packedData0.r, 0, 31);
-    oct.y = UnpackUIntToFloat(packedData0.a, 0, 31);
+    oct.y = UnpackUIntToFloat(packedData0.g, 0, 31);
 
     normal = normalize(UnpackNormalOctQuadEncode(oct * 2.0f - 1.0f));
 }
@@ -171,17 +171,17 @@ void UnpackOITGBufferData(uint4 packedData0, uint2 packedData1, out float3 norma
 {
     UnpackOITNormalFromGBufferData0(packedData0, normal);
 
-    absorptionCoefficient.r = UnpackUIntToFloat(packedData0.g, 0, 8);
-    absorptionCoefficient.g = UnpackUIntToFloat(packedData0.g, 8, 8);
-    absorptionCoefficient.b = UnpackUIntToFloat(packedData0.g, 16, 8);
+    absorptionCoefficient.r = UnpackUIntToFloat(packedData0.b, 0, 8);
+    absorptionCoefficient.g = UnpackUIntToFloat(packedData0.b, 8, 8);
+    absorptionCoefficient.b = UnpackUIntToFloat(packedData0.b, 16, 8);
     absorptionCoefficient = -log(absorptionCoefficient + REAL_EPS) / max(1.0f, REAL_EPS);
     //absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(absorptionCoefficient, 1.0f);
-    metalness = UnpackUIntToFloat(packedData0.g, 24, 7);
+    metalness = UnpackUIntToFloat(packedData0.b, 24, 7);
 
-    baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
-    baseColor.g = UnpackUIntToFloat(packedData0.b, 8, 8);
-    baseColor.b = UnpackUIntToFloat(packedData0.b, 16, 8);
-    roughness = UnpackUIntToFloat(packedData0.b, 24, 7);
+    baseColor.r = UnpackUIntToFloat(packedData0.a, 0, 8);
+    baseColor.g = UnpackUIntToFloat(packedData0.a, 8, 8);
+    baseColor.b = UnpackUIntToFloat(packedData0.a, 16, 8);
+    roughness = UnpackUIntToFloat(packedData0.a, 24, 7);
 
     ior = 4.0f * packedData1.r / 255.0f;
         //UnpackUIntToFloat(packedData1.r, 0, 8) * 4.0f;
