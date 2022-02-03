@@ -13,8 +13,8 @@ HDRP supports all the Canvas **Render Modes**, however, it only supports Unlit U
 ## Working in a linear color space
 HDRP Projects require you to work in linear [color space](https://docs.unity3d.com/Manual/LinearLighting.html). When you create UI in the Editor, ensure the sprite textures are in linear color space to make sure the UI renders correctly. This is especially important for transparent sprites. For more information, see [Linear or gamma workflow](https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html) and [Working with linear Textures](https://docs.unity3d.com/Manual/LinearRendering-LinearTextures.html).
 
-## Multiple camera setup
-HDRP only supports a single camera setup by default. If you need to use more than one camera at the same time, you should use one the following alternatives:
+## Multiple Camera setup
+HDRP only supports a single Camera setup by default. If you need to use more than one camera at the same time, you should use one the following alternatives:
 
 
 * [Custom Passes](Custom-Pass.md): Allows you to inject shader code and C# at certain points inside the render loop. This gives you the ability to draw GameObjects and process full-screen passes.
@@ -25,7 +25,7 @@ HDRP only supports a single camera setup by default. If you need to use more tha
 ## Post-processing effects on UI
 HDRP renders UI during the transparent pass, before post-processing. This means that you need to create Custom Passes and custom Post Processes to achieve typical visual effects for UI.
 
-For example, if you want to blur the scene background when a UI menu is active, you should:
+For example, if you want to blur the scene background when a UI menu is active:
 
 1. Render your menu in a Canvas with its **Render Mode** set to **Screen Space - Overlay**. Using this render mode means HDRP doesn't apply post-processing to the canvas.
 2. Add a [Custom Pass](Custom-Pass.md), injected **After Post Process**, to blur your scene. For examples on how to create custom passes, see [HDRP Custom Passes](https://github.com/alelievr/HDRP-Custom-Passes).
