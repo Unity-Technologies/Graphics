@@ -474,7 +474,7 @@ MonoBehaviour:
     TargetWidth: 1024
     TargetHeight: 1024
     PerPixelCorrectnessThreshold: 0
-    AverageCorrectnessThreshold: 0.005
+    AverageCorrectnessThreshold: 0
     UseHDR: 0
   captureFrameRate: 60
   simulateTime: 2.5
