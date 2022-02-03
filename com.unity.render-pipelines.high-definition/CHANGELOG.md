@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
 
 ## [12.1.4] - 2021-12-07
 
@@ -98,7 +106,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed Normal Map assiignation when importing FBX Materials.
-- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [12.1.3] - 2021-11-17
 
