@@ -3,15 +3,15 @@ namespace com.unity.shadergraph.defs {
     // ----------
     // Type
 
-    enum Primitive { Bool, Float, Int, Dynamic, }
+    enum Primitive { Bool, Float, Int, Any, }
 
-    enum Precision { Fixed, Half, Full, Dynamic, }
+    enum Precision { Fixed, Half, Full, Any, }
 
     enum Width { One, Two, Three, Four, Any, }
 
     enum Height { One, Two, Three, Four, Any, }
 
-    public readonly struct Type
+    public readonly struct TypeDescriptor
     {
         public Primitive Primitive { get; }
         public Precision Precision { get; }
@@ -22,26 +22,36 @@ namespace com.unity.shadergraph.defs {
     // ----------
     // Predefined Types
 
-    Type Vector = { Primitive.Float, Precision.Dynamic, Width.Any, Height.One}; // A completely dynamic vector
-    Type Vec2 = { Primitive.Float, Precision.Dynamic, Width.Two, Height.One };
-    Type Vec3 = { Primitive.Float, Precision.Dynamic, Width.Three, Height.One };
-    Type Vec4 = { Primitive.Float, Precision.Dynamic, Width.Four, Height.One };
+    // TODO most constrained, expand with identities
+
+    TypeDescriptor Any = { Primitive.Float, Precision.Any, Width.Any, Height.Any };
+    TypeDescriptor Bool = { Primitive.Bool, Precision.Any, Width.One, Height.One };
+    TypeDescriptor Int = { Primitive.Int, Precision.Any, Width.One, Height.One };
+    TypeDescriptor Float = { Primitive.Float, Precision.Any, Width.One, Height.One };
+
+    TypeDescriptor Vector = { Primitive.Float, Precision.Any, Width.Any, Height.One}; // A completely dynamic vector
+    TypeDescriptor Vec2 = { Primitive.Float, Precision.Any, Width.Two, Height.One };
+    TypeDescriptor Vec3 = { Primitive.Float, Precision.Any, Width.Three, Height.One };
+    TypeDescriptor Vec4 = { Primitive.Float, Precision.Any, Width.Four, Height.One };
+
+    TypeDescriptor Matrix = { Primitive.Float, Precision.Any, Width.Any, Height.Any };
+    TypeDescriptor Mat3 = { Primitive.Float, Precision.Any, Width.Three, Height.Three };
+    TypeDescriptor Mat4 = { Primitive.Float, Precision.Any, Width.Four, Height.Four };
 
     // ----------
     // Parameter
 
-    enum Use { In, Out, Static, } // required to be statically known
+    enum Usage { In, Out, Static, } // required to be statically known
 
     public readonly struct Parameter
     {
-        public string Key { get; }
         public string Name { get; }  // Must be a valid reference name
-        public Type Type { get; }
+        public TypeDescriptor TypeDescriptor { get; }
 
         public override string ToString()
         {
             // TODO Make this not a stub.
-            return $"({Key}, {Name}, {Type})";
+            return $"({Name}, {TypeDescriptor})";
         }
     }
 
@@ -50,7 +60,6 @@ namespace com.unity.shadergraph.defs {
 
     public readonly struct Function
     {
-        public string Key { get; }
         public string Name { get; } // Must be a valid reference name
         public Parameter<List> Parameters { get; }
         public string Body { get; }  // HLSL syntax. All out parameters should be assigned a value.
@@ -58,9 +67,8 @@ namespace com.unity.shadergraph.defs {
 
     // EXAMPLE Parameter
     Parameter myParameter = {
-        Key = "EXP",  // Must be a valid reference name
         Name = "Exp",
-        Type = Vec2,  // Can use a predefined Type here or specify one
+        TypeDescriptor = Vec2,  // Can use a predefined Type here or specify one
         // {
         //     Precision = Precision.Fixed,
         //     Height = Height.Four,
@@ -69,28 +77,50 @@ namespace com.unity.shadergraph.defs {
         // },
     };
 
+
+    //  "GTF_POW.Parameters.IN.tooltip" : "Input",
+    //  "CURRENT_POW.Parameters.IN.tooltip" : "Input"
+
     // EXAMPLE Function
     var pow = {
-        Key = "GTF_POW",
         Name = "pow",
         Parameters = new List<Parameter> {
             {
-                Key = "IN",
                 Name = "In",
-                Use = Use.In,
-                Type= Vec4
+                Usage = Use.In,
+                TypeDescriptor = Vec4
             },
             {
-                Key = "EXP",
                 Name = "Exp",
-                Use = Use.In,
-                Type = Vec4
+                Usage = Use.In,
+                TypeDescriptor = Vec4
             },
             {
-                Key = "OUT",
                 Name = "Out",
-                Use = Use.Out,
-                Type = Vec4
+                Usage = Use.Out,
+                TypeDescriptor = Vec4
+            }
+        },
+        Body = "Out = pow(In, Exp);",
+    };
+
+        var pow = {
+        Name = "pow",
+        Parameters = new List<Parameter> {
+            {
+                Name = "A",
+                Usage = Use.In,
+                TypeDescriptor = Vec4
+            },
+            {
+                Name = "B",
+                Usage = Use.In,
+                TypeDescriptor = Vec4
+            },
+            {
+                Name = "Out",
+                Usage = Use.Out,
+                TypeDescriptor = Vec4
             }
         },
         Body = "Out = pow(In, Exp);",
