@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
-- All builtin URP shaders as long as URP ShaderGraph shaders will support Mesh LOD CrossFade which type can be selected in UniversalRenderPipelineAsset.lodCrossFadeType property. 
+- All builtin URP shaders as long as URP ShaderGraph shaders will support Mesh LOD CrossFade which type can be selected in UniversalRenderPipelineAsset.lodCrossFadeType property.
 
 ## [14.0.1] - 2021-12-07
 

@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
         [SerializeField] bool m_SupportsLODCrossFade = true;
-        [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise; 
+        [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings

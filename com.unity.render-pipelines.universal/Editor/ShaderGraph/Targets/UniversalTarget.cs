@@ -727,7 +727,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 pass.includes.Add(CoreIncludes.LODCrossFade);
                 pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
-            }   
+            }
         }
 
         internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target, bool blendModePreserveSpecular = false)

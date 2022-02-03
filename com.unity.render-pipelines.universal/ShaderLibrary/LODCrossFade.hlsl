@@ -17,7 +17,7 @@ half CopySign(half x, half s)
 
 half GetBayerMatrixDithering(float2 seed)
 {
-    const half k_BayerMatrixTexSize = 4.0; 
+    const half k_BayerMatrixTexSize = 4.0;
 
     half2 uv = seed / k_BayerMatrixTexSize;
 
