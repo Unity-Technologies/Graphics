@@ -63,7 +63,7 @@ Path tracing in HDRP makes your scene appear more realistic. To do this, path tr
 - Light absorption in transmissive objects.
 - Subsurface scattering.
 
-Rasterization uses separate methods to approximate lighting effects, which require multiple Material parameters. Path tracing computes all lighting effects and how light interacts with Materials at the same time, which means Materials in your scene need fewer Material parameters.
+Rasterization uses separate methods to approximate lighting effects, which require multiple Material parameters. Path tracing computes all lighting effects and how light interacts with Materials at the same time.
 
 Some parameters have no effect when you use path tracing, and path tracing also changes how a Lit Material’s refraction model behaves. For more information, see [Refraction models](#refraction-models).
 
