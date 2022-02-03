@@ -1,0 +1,172 @@
+.ge-context-node  {
+    width: 320px;
+    overflow: visible;
+}
+
+.ge-context-node .ge-icon-title-progress {
+    background-color: rgba(0, 0, 0, 0);
+    justify-content: space-around;
+}
+
+.ge-context-node > .ge-icon-title-progress .ge-node__title {
+    font-size: 18px;
+}
+
+.ge-context-node__context-border-title {
+    position: absolute;
+    height : 54px;
+    left:0;
+    right:0;
+    top:0;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.ge-context-node--no-vertical-input .ge-context-node__context-border-title {
+    height : 44px;
+}
+
+.ge-context-node__context-border > .ge-node__selection-border {
+    position: absolute;
+    top : -4px;
+    bottom:-4px;
+    right: -4px;
+    left: -4px;
+    border-radius: 12px;
+    margin: 0;
+}
+
+
+.ge-context-node .ge-node__bottom-vertical-port-container .ge-port-container
+{
+    padding-top:  16px;
+    padding-bottom:  16px;
+}
+.ge-context-node__context-border {
+    position: absolute;
+    top : 12px;
+    bottom:28px;
+    right: 0;
+    left: 0;
+    border-top-color: #4cbc4c;
+    border-top-width: 2px;
+    border-bottom-color: darkorange;
+    border-bottom-width: 2px;
+    border-radius: 8px;
+    background-color: rgba(46,46,46,0.8);
+}
+.ge-context-node__context-border--accepted {
+    border-width: 2px;
+    border-color: #44C0FF;
+}
+.ge-context-node__context-border--refused {
+    border-width: 2px;
+    border-color: red;
+}
+
+.ge-context-node__blocks-container {
+    flex-direction: column-reverse;
+    padding: 4px 4px 4px 8px;
+    background-color: rgb(30,30,30);
+    border-radius: 8px;
+}
+
+.ge-context-node__etch {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    width: 45px;
+    height: 12px;
+    border-right-color: black;
+    border-left-color: black;
+    border-bottom-color: black;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: rgba(43,43,43,1);
+}
+
+.ge-context-node__add-block {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.ge-context-node__add-block-label {
+    color: #717171;
+    padding-top: 2px;
+ }
+.ge-context-node__add-block-plus {
+    font-size: 24px;
+    color: #717171;
+    height:16px;
+    margin-top: -14px;
+}
+
+.ge-context-node__drag-block {
+    border-color: rgb(0,255,0);
+    border-width: 2px;
+    border-radius: 8px ;
+}
+
+.ge-context-node .ge-node__bottom-vertical-port-container {
+    border-bottom-width: 0;
+    border-top-width: 0;
+    padding-top: 0;
+}
+
+.ge-context-node--no-vertical-input .ge-context-node__context-border {
+    top: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
+
+.ge-context-node--no-vertical-output .ge-context-node__context-border {
+    bottom: 0;
+}
+
+.ge-context-node > .ge-selection-border__content-container {
+    padding: 4px;
+    padding-bottom: 8px;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    border-top-width: 0;
+    border-bottom-width: 0;
+    overflow: visible;
+    border-left-width: 0;
+    border-right-width: 0;
+}
+
+.ge-context-node .ge-vertical-port-container-part {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+}
+
+.ge-context-node .ge-node__port-container {
+    background-color: rgba(46,46,46,0.8);
+    border-color: rgba(0,0,0,0);
+}
+
+.ge-context-node:hover .ge-context-node__context-border > .ge-selection-border {
+    border-color: rgba(68,192,255, 0.5);
+}
+
+.ge-context-node:checked .ge-context-node__context-border > .ge-selection-border {
+    border-color: #44C0FF;
+}
+
+.ge-context-node:checked:hover .ge-context-node__context-border > .ge-selection-border {
+    border-color: #44C0FF;
+    border-width: 2px;
+    padding: 0;
+}
+
+.ge-context-node.ge-node--disabled #disabled-overlay {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0);
+}
+.ge-context-node.ge-node--disabled > #disabled-overlay {
+    display: flex;
+    background-color: rgba(18, 18, 18, 0.52);
+}

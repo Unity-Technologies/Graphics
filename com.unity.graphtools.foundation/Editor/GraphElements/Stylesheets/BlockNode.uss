@@ -1,0 +1,98 @@
+.ge-block-node {
+    margin-bottom: 4px;
+    position: relative;
+    flex: 0 0 auto;
+    overflow: visible;
+}
+
+.ge-selection-border__content-container,
+.ge-block-node__etch,
+.ge-block-node__etch-over-border,
+.ge-block-node .ge-node__port-container {
+    background-color: rgba(63,63,63,1);
+}
+
+.ge-block-node--has-output .ge-block-node__etch,
+.ge-block-node--has-output .ge-block-node__etch-over-border
+{
+    background-color: rgba(49,49,49,1);
+}
+
+.ge-node.ge-block-node .ge-icon-title-progress {
+    background-color: rgba(0, 0, 0, 0);
+    justify-content: space-between;
+}
+
+.ge-block-node.ge-node--disabled #disabled-overlay {
+    display: flex;
+    background-color: rgba(18, 18, 18, 0.52);
+}
+
+.ge-context-node .ge-node__port-container {
+    border-color: rgb(40,40,40);
+}
+
+.ge-block-node__etch {
+    position: absolute;
+    top:auto;
+    bottom:-12px;
+    height: 10px;
+    margin-top: 1px;
+    right: 25px;
+    width: 45px;
+    border-right-color: black;
+    border-left-color: black;
+    border-bottom-color: black;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.ge-block-node__etch-over-border {
+    position: absolute;
+    bottom: -2px;
+    right: 25px;
+    width: 45px;
+    height: 3px;
+    border-right-color: black;
+    border-left-color: black;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
+
+.ge-block-node__etch-border-color {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    top: 0;
+    left: 0;
+}
+
+.ge-block-node__etch-color {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    top: 0;
+    left: 0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.ge-block-node:hover .ge-block-node__etch {
+    border-color: rgba(68,192,255, 0.5);
+}
+
+.ge-block-node:checked .ge-block-node__etch {
+    border-color: #44C0FF;
+}
+
+.ge-block-node:checked:hover .ge-block-node__etch {
+    border-color: #44C0FF;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    bottom: -13px;
+    height: 12px;
+}

@@ -1,0 +1,232 @@
+#windowContainer {
+    flex: 1;
+    flex-direction: column;
+    border-width: 1px;
+}
+
+#windowMainVisualContainer {
+    flex: 1;
+    flex-direction: row;
+}
+
+#windowHeaderContainer {
+    border-width: 1px;
+    padding: 6px;
+    padding-bottom: 10px;
+}
+
+#splitter
+{
+    flex-direction:row;
+    position: absolute;
+    right:0;
+    top:0;
+    left:0;
+    bottom:0;
+}
+
+#windowResizerIcon {
+    flex: 1;
+    cursor: resize-up-left;
+}
+
+#searcherVisualContainer {
+    flex: 1;
+}
+
+#windowTitleContainer {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#windowTitleLabel {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 5px;
+}
+
+#windowSearchBoxVisualContainer {
+    height: 21px;
+    border-radius: 6px;
+    border-width: 1px;
+}
+
+#searchIcon {
+    width: 10px;
+    height: 10px;
+    top: 4px;
+    left: 4px;
+    margin-right: 2px;
+}
+
+#autoCompleteLabel {
+    position: absolute;
+    background-image: none;
+    top: 3px;
+    left: 18px;
+    font-size: 12px;
+    -unity-text-align: middle-left;
+}
+
+#searchPlaceholderLabel {
+    position: absolute;
+    background-image: none;
+    top: 4px;
+    left: 23px;
+    font-size: 9px;
+    -unity-text-align: middle-left;
+}
+
+.searchPlaceholderLabel__hidden {
+    display: none;
+}
+
+#searchBox {
+    background-image: none;
+    position: absolute;
+    left: 13px;
+    right: 0;
+    bottom: 0;
+    margin-bottom: 2px;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+#searchBox .unity-base-field__input {
+    top: 2px;
+    font-size: 12px;
+    -unity-text-align: middle-left;
+    background-image: none;
+}
+
+#windowSelectionVisualContainer {
+    flex: 1;
+    padding: 4px;
+}
+
+.unity-list-view.focusableScrollView {
+    flex: 1;
+}
+
+.unity-list-view {
+    --unity-item-height: 18;
+}
+
+.unity-list-view > * #labelsContainer {
+    flex-direction: row;
+    flex: 1;
+    margin-left: 2px;
+}
+
+.unity-list-view > * #labelsContainer > .unity-label {
+    margin-left: 0px;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unity-list-view > * #itemIconVisualElement {
+    height: 16px;
+    width: 16px;
+    margin-left: 2px;
+    margin-right: 2px;
+    display: none;
+}
+
+#itemToggle {
+    margin-left: 2px;
+    margin-right: 2px;
+    display: none;
+}
+
+.searcher__multiselect #itemToggle {
+    display: flex;
+}
+
+.searcherMultiSelectConfirmButton {
+    display: none;
+    margin: 4px;
+}
+
+.searcher__multiselect .searcherMultiSelectConfirmButton {
+    display: flex;
+}
+
+.unity-list-view > * > .unity-label {
+    flex: 1;
+}
+
+.unity-list-view > * #itemChildExpander {
+    height: 18px;
+    padding-top: 3px;
+    margin-left: 3px;
+    margin-right: 0px;
+}
+
+.unity-list-view > * #itemChildExpander > #expanderIcon {
+    width: 13px;
+    height: 13px;
+}
+
+.unity-list-view > * #itemMainVisualContainer {
+    flex-direction: row;
+    flex: 1;
+}
+
+.unity-list-view > * #itemMainVisualContainer {
+    align-items: center;
+}
+
+.unity-list-view > *.Category #textLabel {
+    font-size: 12px;
+}
+
+#windowDetailsVisualContainer {
+    flex: 1;
+    border-left-width: 4px;
+    padding: 8px;
+}
+
+#windowDetailsVisualContainer.hidden {
+    display:none;
+}
+
+.unity-label__searcher-details-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unity-label__searcher-details-text {
+    font-size: 11px;
+    white-space: normal;
+    flex-direction: column;
+    margin-top: 2px;
+}
+
+#windowBottom {
+    border-top-width: 1px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#statusLabel {
+    padding-left: 5px;
+    padding-top: 6px;
+    height: 22px;
+    font-size: 9px;
+}
+
+#windowResizer {
+    margin-right: 1px;
+    margin-bottom: 1px;
+    margin-top: auto;
+    cursor: resize-up-left;
+    width: 12px;
+    height: 12px;
+}
