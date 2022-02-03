@@ -6,7 +6,7 @@ Almost every Project uses some form of user interface (UI). This could be:
 * To specify a point of interest in your application
 * To display valuable information to users. 
 
-This guide explains how to use [Unity UI](https://docs.unity3d.com/Packages/com.unity.ugui@latest) in your High Definition Render Pipeline (HDRP) Project and provide best practice information to keep in mind when working with it.
+This guide explains how to use [Unity UI](https://docs.unity3d.com/Packages/com.unity.ugui@latest) in your High Definition Render Pipeline (HDRP) Project and provide best practice information.
 
 HDRP supports all the Canvas **Render Modes**, however, it only supports Unlit UI shaders for Canvas UI.
 
