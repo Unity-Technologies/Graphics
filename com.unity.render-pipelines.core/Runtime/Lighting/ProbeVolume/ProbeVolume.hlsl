@@ -13,7 +13,9 @@
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-#define _Weight _Weight_Padding.x
+#define _Weight _Weight_MinLoadedCell.x
+#define _MinLoadedCell _Weight_MinLoadedCell.yzw
+#define _MaxLoadedCell _MaxLoadedCell_Padding.xyz
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -23,6 +25,10 @@
 SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_point_clamp_sampler);
 #endif
+
+// TODO: Remove define when we are sure about what to do with this.
+#define MANUAL_FILTERING 0
+
 
 struct APVResources
 {
@@ -36,6 +42,8 @@ struct APVResources
     Texture3D L2_1;
     Texture3D L2_2;
     Texture3D L2_3;
+
+    Texture3D Validity;
 };
 
 struct APVSample
@@ -90,6 +98,47 @@ TEXTURE3D(_APVResL2_0);
 TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
+TEXTURE3D(_APVResValidity);
+
+// -------------------------------------------------------------
+// Various weighting functions for occlusion or helper functions.
+// -------------------------------------------------------------
+
+
+uint3 GetSampleOffset(uint i)
+{
+    return uint3(i, i >> 1, i >> 2) & 1;
+}
+
+// The validity mask is sampled once and contains a binary info on whether a probe neighbour (relevant for trilinear) is to be used
+// or not. The entry in the mask uses the same mapping that GetSampleOffset above uses.
+float GetValidityWeight(int offset, uint validityMask)
+{
+    int mask = 1 << offset;
+    return (validityMask & mask) > 0 ? 1 : 0;
+}
+
+float ProbeDistance(uint subdiv)
+{
+    return pow(3, subdiv) * _MinBrickSize / 3.0f;
+}
+
+float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
+{
+    float distBetweenProbes = ProbeDistance(subdiv);
+    float3 dividedPos = posWS / distBetweenProbes;
+    return (dividedPos  - frac(dividedPos)) * distBetweenProbes;
+}
+
+float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, int subdiv)
+{
+    // TODO: This can be optimized.
+    float3 samplePos = sample0Pos + offset * ProbeDistance(subdiv);
+    float3 vecToProbe = normalize((samplePos)-posWS);
+    float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
+    return weight;
+
+}
 
 
 // -------------------------------------------------------------
@@ -131,6 +180,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int3 cellPos = floor(posWS / _CellInMeters);
     float3 topLeftCellWS = cellPos * _CellInMeters;
 
+    bool isALoadedCell = all(cellPos <= _MaxLoadedCell) && all(cellPos >= _MinLoadedCell);
+
     // Make sure we start from 0
     cellPos -= (int3)_MinCellPosition;
 
@@ -141,7 +192,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int chunkIdx = -1;
     bool isValidBrick = true;
     int locationInPhysicalBuffer = 0;
-    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+
+    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
         float3 residualPosWS = posWS - topLeftCellWS;
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
@@ -186,12 +238,14 @@ APVResources FillAPVResources()
     apvRes.L2_2 = _APVResL2_2;
     apvRes.L2_3 = _APVResL2_3;
 
+    apvRes.Validity = _APVResValidity;
+
     return apvRes;
 }
 
 
 
-bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -199,6 +253,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
     float4 posWSForSample = float4(posWS + normalWS * _NormalBias
         + viewDirWS * _ViewBias, 1.0);
+    biasedPosWS = posWSForSample.xyz;
 
     uint3 poolDim = (uint3)_PoolDim;
 
@@ -230,13 +285,15 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
+
     return hasValidUVW;
 }
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw)
 {
     uint unusedSubdiv;
-    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
+    float3 unusedPos;
+    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv, unusedPos);
 }
 
 
@@ -264,14 +321,167 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     return apvSample;
 }
 
+APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
+{
+    APVSample apvSample;
+
+    float4 L0_L1Rx = LOAD_TEXTURE3D(apvRes.L0_L1Rx, loc).rgba;
+    float4 L1G_L1Ry = LOAD_TEXTURE3D(apvRes.L1G_L1Ry, loc).rgba;
+    float4 L1B_L1Rz = LOAD_TEXTURE3D(apvRes.L1B_L1Rz, loc).rgba;
+
+    apvSample.L0 = L0_L1Rx.xyz;
+    apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_G = L1G_L1Ry.xyz;
+    apvSample.L1_B = L1B_L1Rz.xyz;
+
+#ifdef PROBE_VOLUMES_L2
+    apvSample.L2_R = LOAD_TEXTURE3D(apvRes.L2_0, loc).rgba;
+    apvSample.L2_G = LOAD_TEXTURE3D(apvRes.L2_1, loc).rgba;
+    apvSample.L2_B = LOAD_TEXTURE3D(apvRes.L2_2, loc).rgba;
+    apvSample.L2_C = LOAD_TEXTURE3D(apvRes.L2_3, loc).rgb;
+#endif
+
+    apvSample.status = APV_SAMPLE_STATUS_ENCODED;
+    apvSample.Decode();
+
+    return apvSample;
+}
+
+void WeightSample(inout APVSample apvSample, float weight)
+{
+    apvSample.L0 *= weight;
+    apvSample.L1_R *= weight;
+    apvSample.L1_G *= weight;
+    apvSample.L1_B *= weight;
+
+#ifdef PROBE_VOLUMES_L2
+    apvSample.L2_R *= weight;
+    apvSample.L2_G *= weight;
+    apvSample.L2_B *= weight;
+    apvSample.L2_C *= weight;
+#endif
+}
+
+void AccumulateSamples(inout APVSample dst, APVSample other, float weight)
+{
+    WeightSample(other, weight);
+    dst.L0   += other.L0;
+    dst.L1_R += other.L1_R;
+    dst.L1_G += other.L1_G;
+    dst.L1_B += other.L1_B;
+
+#ifdef PROBE_VOLUMES_L2
+    dst.L2_R += other.L2_R;
+    dst.L2_G += other.L2_G;
+    dst.L2_B += other.L2_B;
+    dst.L2_C += other.L2_C;
+#endif
+}
+
+APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, float3 uvw)
+{
+    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    int3 texCoordInt = texCoordFloat;
+    float3 texFrac = frac(texCoordFloat);
+    float3 oneMinTexFrac = 1.0f - texFrac;
+
+    bool sampled = false;
+    float totalW = 0.0f;
+
+    APVSample baseSample;
+
+    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
+
+    ZERO_INITIALIZE(APVSample, baseSample);
+
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
+    for (int i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        float trilinearW =
+            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
+            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
+            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+
+        float validityWeight = GetValidityWeight(i, validityMask);
+
+        if (validityWeight > 0)
+        {
+            APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
+            float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+
+            float finalW = geoW * trilinearW;
+            AccumulateSamples(baseSample, apvSample, finalW);
+            totalW += finalW;
+        }
+    }
+
+    WeightSample(baseSample, rcp(totalW));
+
+    return baseSample;
+}
+
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
+{
+    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    int3 texCoordInt = texCoordFloat;
+    float3 texFrac = frac(texCoordFloat);
+    float3 oneMinTexFrac = 1.0f - texFrac;
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
+
+    float3 newFrac = 0.0f;
+    float weights[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    float totalW = 0.0f;
+    int i = 0;
+    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
+
+    for (i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        float trilinearW =
+            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
+            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
+            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+
+        float validityWeight = GetValidityWeight(i, validityMask);
+
+        float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+
+        weights[i] = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
+        totalW += weights[i];
+    }
+
+    for (i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        newFrac += (float3)offset * weights[i] * rcp(totalW);
+    }
+
+    uvw = ((texCoordFloat - texFrac + newFrac + 0.5) * rcp(_PoolDim));
+
+}
+
 APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)
 {
     APVSample outSample;
 
     float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
+    uint subdiv;
+    float3 biasedPosWS;
+    if (TryToGetPoolUVWAndSubdiv(apvRes, posWS, biasNormalWS, viewDir, pool_uvw, subdiv, biasedPosWS))
     {
+#if MANUAL_FILTERING == 1
+        if (_LeakReductionParams.x != 0)
+            outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
+        else
+            outSample = SampleAPV(apvRes, pool_uvw);
+#else
+        if (_LeakReductionParams.x != 0)
+        {
+            WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
+        }
         outSample = SampleAPV(apvRes, pool_uvw);
+#endif
     }
     else
     {
@@ -360,7 +570,9 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
+#if MANUAL_FILTERING == 0
         apvSample.Decode();
+#endif
 
 #ifdef PROBE_VOLUMES_L1
         EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);

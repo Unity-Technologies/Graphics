@@ -17,26 +17,44 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Failing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Failing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
     BuildPlatform: 31
     GraphicsDevice: 13
     XrSdk: 
     StereoModes: 0
     Reason: Failing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 897c2870240f77a46a18884a0446b797, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 32f9dd5fabc57284bb43468761c84f36, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d02e9097c7ef6374e8b5888b1d8ac25c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 500813a390ad4074cba926bf26eef57a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon

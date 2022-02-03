@@ -86,6 +86,7 @@ TEXTURE2D_X(_VolumetricCloudsSourceDepth);
 TEXTURE2D_X(_MaxZMaskTexture);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float3> _CloudLutTexture;
+StructuredBuffer<float4> _VolumetricCloudsAmbientProbeBuffer;
 
 // Noise textures for adding details
 Texture3D<float> _Worley128RGBA;
@@ -113,6 +114,21 @@ float3 GetCloudViewDirWS(float2 positionCS)
 {
     float4 viewDirWS = mul(float4(positionCS.xy, 1.0f, 1.0f), _CloudsPixelCoordToViewDirWS);
     return -normalize(viewDirWS.xyz);
+}
+
+// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
+float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
+{
+    float4 SHCoefficients[7];
+    SHCoefficients[0] = _VolumetricCloudsAmbientProbeBuffer[0];
+    SHCoefficients[1] = _VolumetricCloudsAmbientProbeBuffer[1];
+    SHCoefficients[2] = _VolumetricCloudsAmbientProbeBuffer[2];
+    SHCoefficients[3] = _VolumetricCloudsAmbientProbeBuffer[3];
+    SHCoefficients[4] = _VolumetricCloudsAmbientProbeBuffer[4];
+    SHCoefficients[5] = _VolumetricCloudsAmbientProbeBuffer[5];
+    SHCoefficients[6] = _VolumetricCloudsAmbientProbeBuffer[6];
+
+    return SampleSH9(SHCoefficients, normalWS);
 }
 
 float ConvertObliqueDepthToNonOblique(int2 currentCoord, float obliqueDepth)
@@ -470,8 +486,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     environmentLight.sunDirection = _SunDirection.xyz;
     environmentLight.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     environmentLight.sunColor1 = environmentLight.sunColor0;
-    environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier();
-    environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
+    environmentLight.ambientTermTop = EvaluateVolumetricAmbientProbe(float3(0, -1, 0)) * GetCurrentExposureMultiplier();
+    environmentLight.ambientTermBottom = EvaluateVolumetricAmbientProbe(float3(0, 1, 0)) * GetCurrentExposureMultiplier();
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, environmentLight.sunDirection, environmentLight.sunColor0);

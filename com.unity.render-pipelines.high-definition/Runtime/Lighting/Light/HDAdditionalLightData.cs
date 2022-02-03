@@ -400,6 +400,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_NonLightmappedOnly = value;
                 legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                // We need to update the ray traced shadow flag as we don't want ray traced shadows with shadow mask.
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).useRayTracedShadows = m_UseRayTracedShadows && !m_NonLightmappedOnly;
+
             }
         }
 
@@ -1549,7 +1553,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
                 {
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                    // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                    if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                        HDShadowManager.cachedShadowManager.RegisterLight(this);
                 }
 
                 m_ShadowUpdateMode = value;
@@ -3239,7 +3245,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
         }
 
@@ -3623,7 +3631,17 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
-            lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
+
+            // If we are pure shadowmask, we disable raytraced shadows.
+#if UNITY_EDITOR
+            if (legacyLight.lightmapBakeType == LightmapBakeType.Mixed)
+#else
+            if (legacyLight.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+#endif
+                lightRenderData.useRayTracedShadows = !m_NonLightmappedOnly && m_UseRayTracedShadows;
+            else
+                lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
+
             lightRenderData.colorShadow = m_ColorShadow;
             lightRenderData.lightDimmer = m_LightDimmer;
             lightRenderData.volumetricDimmer = m_VolumetricDimmer;
@@ -3664,9 +3682,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             SetEmissiveMeshRendererEnabled(true);
