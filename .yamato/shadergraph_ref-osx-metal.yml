@@ -32,7 +32,6 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
-      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
@@ -167,7 +166,6 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
-      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-

@@ -9,7 +9,7 @@ test_platforms:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
-    - [OSX_OpenGLCore, OSX_Metal]: brew install python
+    - [OSX_OpenGLCore]: brew install python
     - [Linux_OpenGLCore, Linux_Vulkan]: sudo apt install python3.10
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
