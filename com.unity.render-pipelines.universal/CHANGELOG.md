@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material converter not being able to be called in batch mode. [case 1375962]
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
+- Fixed camera sorting layer render target not being allocated in the 2d renderer [case 1389780](https://issuetracker.unity3d.com/issues/urp-2d-renderer-setrendertarget-function-throws-exception-after-upgrading-project-from-2021-dot-1-to-2022-dot-1)
 
 ## [14.0.0] - 2021-11-17
 
