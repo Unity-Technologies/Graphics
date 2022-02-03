@@ -91,5 +91,16 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     int _CameraInUnderwaterRegion;
 CBUFFER_END
 
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesUnderWater
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesUnderWater)
+    float4 _WaterRefractionColor;
+    float4 _WaterScatteringColor;
+    float _MaxViewDistanceMultiplier;
+    float _OutScatteringCoeff;
+    float _WaterTransitionSize;
+    float _PaddingUW;
+CBUFFER_END
+
 
 #endif

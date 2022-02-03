@@ -87,9 +87,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public int findVerticalDisplKernel;
             public ComputeShader waterLightingCS;
             public int underWaterKernel;
+            public ShaderVariablesWaterRendering waterRenderingCB;
+            public ShaderVariablesUnderWater underWaterCB;
+            public ShaderVariablesWater waterCB;
 
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+            public TextureHandle causticsData;
             public ComputeBufferHandle cameraHeightBuffer;
 
             // Water rendered to this buffer
@@ -116,10 +120,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterLightingCS = m_WaterLightingCS;
                 passData.underWaterKernel = m_UnderWaterKernel;
 
+                // Fill the under water CB
+                passData.underWaterCB._MaxViewDistanceMultiplier = waterSurface.viewDistanceMultiplier;
+                passData.underWaterCB._WaterScatteringColor = waterSurface.scatteringColor;
+                passData.underWaterCB._WaterRefractionColor = waterSurface.refractionColor;
+                passData.underWaterCB._OutScatteringCoeff = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;
+                passData.underWaterCB._WaterTransitionSize = waterSurface.transitionSize;
+
                 // All the required textures
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.cameraHeightBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
+
+                // Bind the caustics buffer that may be required
+                bool simulationCaustics = waterSurface.caustics && waterSurface.causticsAlgorithm == WaterSurface.WaterCausticsType.Simulation;
+                passData.causticsData = simulationCaustics ? renderGraph.ImportTexture(waterSurface.simulation.causticsBuffer) : renderGraph.defaultResources.blackTexture;
+
+                // Fill the water rendering CB
+                passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;
+                passData.waterRenderingCB._CausticsTiling = waterSurface.causticsTiling;
+                passData.waterRenderingCB._CausticsPlaneOffset = waterSurface.causticsPlaneOffset;
+                passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
+                passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
+                passData.waterRenderingCB._WaterCausticsType = waterSurface.caustics ? (simulationCaustics ? 0 : 1) : 0;
+
+                // Fill the water CB
+                passData.waterCB._CausticsRegionSize = waterSurface.simulation.patchSizes[waterSurface.causticsBand];
 
                 // Request the output textures
                 passData.outputColorBuffer = builder.WriteTexture(CreateColorBuffer(m_RenderGraph, hdCamera, false));
@@ -133,11 +159,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         int tileY = (data.height + 7) / 8;
 
                         // Bind the input gbuffer data
-                        ctx.cmd.SetComputeFloatParam(data.waterLightingCS, "_MaxViewDistanceMultiplier", waterSurface.viewDistanceMultiplier);
-                        ctx.cmd.SetComputeVectorParam(data.waterLightingCS, "_WaterScatteringColor", waterSurface.scatteringColor);
-                        ctx.cmd.SetComputeVectorParam(data.waterLightingCS, "_WaterRefractionColor", waterSurface.refractionColor);
-                        ctx.cmd.SetComputeFloatParam(data.waterLightingCS, "_OutScatteringCoeff", -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance);
-                        ctx.cmd.SetComputeFloatParam(data.waterLightingCS, "_WaterTransitionSize", waterSurface.transitionSize);
+                        ConstantBuffer.Push(ctx.cmd, data.underWaterCB, data.waterLightingCS, HDShaderIDs._ShaderVariablesUnderWater);
+                        ConstantBuffer.Push(ctx.cmd, data.waterRenderingCB, data.waterLightingCS, HDShaderIDs._ShaderVariablesWaterRendering);
+                        ConstantBuffer.Push(ctx.cmd, data.waterCB, data.waterLightingCS, HDShaderIDs._ShaderVariablesWater);
+                        ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._WaterCausticsDataBuffer, data.causticsData);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._CameraColorTexture, data.colorBuffer);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);

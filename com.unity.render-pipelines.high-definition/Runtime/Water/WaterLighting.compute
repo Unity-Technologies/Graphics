@@ -69,7 +69,8 @@ void WaterPrepareSSR(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     DecodeWaterSurfaceIndexFromGBuffer(currentCoord, surfaceIndex);
 
     // Adjust the normal based on where we are w/r to the surface
-    if (CameraIsAboveWater(surfaceIndex))
+    bool cameraAboveWater = CameraIsAboveWater(surfaceIndex);
+    if (cameraAboveWater)
         normalData.normalWS.y = abs(normalData.normalWS.y);
 
     // Encode the normal data and output it
@@ -147,12 +148,6 @@ void WaterDeferredLighting(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 TEXTURE2D_X(_CameraColorTexture);
 
 // Need to be moved to a constant buffer
-float4 _WaterRefractionColor;
-float4 _WaterScatteringColor;
-float _OutScatteringCoeff;
-float _WaterTransitionSize;
-float _MaxViewDistanceMultiplier;
-
 [numthreads(8, 8, 1)]
 void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -179,6 +174,14 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the caustics for this position    
+    float caustics = 0;
+
+    // Read the stencil value
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & 16) ==  0)
+        caustics = EvaluateSimulationCaustics(posInput.positionWS, currentCoord * _ScreenSize.zw);
+
     // Evaluate the fog of the target surface
     float cameraDistance = depthValue == UNITY_RAW_FAR_CLIP_VALUE ? _ProjectionParams.z : length(posInput.positionWS);
 
@@ -187,7 +190,7 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
 
     // Evaluate the underwater color
     // TODO: Apply caustics if needed
-    float3 underWaterColor = lerp(_WaterScatteringColor.xyz * UNDER_WATER_SCATTERING_ATTENUATION, camColor.xyz * exp(-( 1.0- _WaterRefractionColor.xyz)), waterAbsorption);
+    float3 underWaterColor = lerp(_WaterScatteringColor.xyz * UNDER_WATER_SCATTERING_ATTENUATION, camColor.xyz * ( 1.0 + caustics) * exp(-( 1.0- _WaterRefractionColor.xyz)), waterAbsorption);
 
     // Evaluate the vertical distance to the water surface
     float underWaterBlend = saturate(distanceToSurface / _WaterTransitionSize);

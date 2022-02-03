@@ -157,11 +157,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Max tessellation factor
         public float _WaterMaxTessellationFactor;
-        // Distance at which the fade of the tesselation starts
+        // Distance at which the fade of the tessellation starts
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
         // Flag that defines if the camera is in the underwater volume of this surface
         public int _CameraInUnderwaterRegion;
+    }
+
+
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesUnderWater
+    {
+        // Refraction color of the water surface
+        public Vector4 _WaterRefractionColor;
+        // Scattering color of the water surface
+        public Vector4 _WaterScatteringColor;
+
+        // Multiplier of the view distance when under water
+        public float _MaxViewDistanceMultiplier;
+        // Scattering coefficent for the absorption
+        public float _OutScatteringCoeff;
+        // Vertical transition size of the water
+        public float _WaterTransitionSize;
+        // Padding
+        public float _PaddingUW;
     }
 }
