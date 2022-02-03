@@ -67,7 +67,7 @@ By changing the value provided to the T port on the Lerp node, you can change wh
 
 [!include[nodes-related](./snippets/nodes-related.md)]
 
-- [Sample Texture 2D node](Sample-Texture-2D-Node)
-- [Sample Texture 2D LOD node](Sample-Texture-2D-LOD-Node)
-- [Sampler State node](Sampler-State-Node)
-- [Texture 2D Asset node](Texture-2D-Asset-Node)
+- [Sample Texture 2D node](Sample-Texture-2D-Node.md)
+- [Sample Texture 2D LOD node](Sample-Texture-2D-LOD-Node.md)
+- [Sampler State node](Sampler-State-Node.md)
+- [Texture 2D Asset node](Texture-2D-Asset-Node.md)

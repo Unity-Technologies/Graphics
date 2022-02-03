@@ -62,4 +62,4 @@ In the following example, a Subgraph Dropdown node changes the UV channel it sen
 
 [!include[nodes-related](./snippets/nodes-related.md)]
 
-- [Subgraph node](Sub-graph-Node)
+- [Subgraph node](Sub-graph-Node.md)

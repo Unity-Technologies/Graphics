@@ -12,7 +12,7 @@ Shader Graph uses two ports when it determines the node's connection state:
 
 - The Subgraph node's matching Property port in the parent Shader Graph. For more information on Subgraph nodes, see [Subgraph node](Sub-graph-Node).
 
-The Branch On Input Connection node's functionality is based on the [Branch node](Branch-Node).
+The Branch On Input Connection node's functionality is based on the [Branch node](Branch-Node.md).
 
 > [!NOTE]
 > You can't use the Branch On Input Connection node with a Streaming Virtual Texture Property. For more information on Streaming Virtual Texturing, see [Using Streaming Virtual Texturing in Shader Graph](https://docs.unity3d.com/Documentation/Manual/svt-use-in-shader-graph.html).
@@ -88,5 +88,5 @@ In the following example, a Branch On Input Connection node specifies the defaul
 
 [!include[nodes-related](./snippets/nodes-related.md)]
 
-- [Branch node](Branch-Node)
-- [Subgraph node](Sub-graph-Node)
+- [Branch node](Branch-Node.md)
+- [Subgraph node](Sub-graph-Node.md)
