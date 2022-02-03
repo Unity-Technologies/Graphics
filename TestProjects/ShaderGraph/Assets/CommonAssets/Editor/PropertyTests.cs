@@ -107,18 +107,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 shaderInput.SetReferenceNameAndSanitizeForGraph(m_Graph, modifiedReferenceName);
 
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Wait a frame for the inspector updates to trigger
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
+
 
                 // Cannot actually spawn the right click menu for testing due to ContextMenuManipulators spawning
                 // an OS level menu that steals focus from Editor and preventing any future events from being processed
@@ -169,8 +164,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
                 yield return null;
 
@@ -185,8 +180,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
                 yield return null;
 
@@ -264,15 +259,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
                 yield return null;
 
                 ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
-
-                m_BlackboardTestController.ScrollView.verticalScroller.value = m_BlackboardTestController.ScrollView.scrollOffset.y + 57.5f;
                 yield return null;
             }
 
@@ -283,17 +275,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                m_BlackboardTestController.ScrollView.verticalScroller.value = m_BlackboardTestController.ScrollView.scrollOffset.y + 5;
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
                 yield return null;
 
                 ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
                 yield return null;
 
-                m_BlackboardTestController.ScrollView.verticalScroller.value = m_BlackboardTestController.ScrollView.scrollOffset.y + 57.5f;
-                yield return null;
             }
         }
 

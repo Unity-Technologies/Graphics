@@ -1088,6 +1088,11 @@ namespace UnityEditor.ShaderGraph
             return newEdge;
         }
 
+        internal void UnnotifyAddedEdge(IEdge edge)
+        {
+            m_AddedEdges.Remove(edge);
+        }
+
         public void RemoveEdge(IEdge e)
         {
             RemoveEdgeNoValidate(e);

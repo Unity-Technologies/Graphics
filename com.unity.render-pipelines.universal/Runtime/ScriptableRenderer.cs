@@ -105,7 +105,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
+                XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
+                XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, false);
                 return;
             }
 #endif
@@ -558,6 +559,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool stripAdditionalLightOffVariants { get; set; } = false;
 
+        /// <summary>
+        /// Creates a new <c>ScriptableRenderer</c> instance.
+        /// </summary>
+        /// <param name="data">The <c>ScriptableRendererData</c> data to initialize the renderer.</param>
+        /// <seealso cref="ScriptableRendererData"/>
         public ScriptableRenderer(ScriptableRendererData data)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -823,8 +829,9 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+                // Late latching is not supported after this point in the frame
                 if (cameraData.xr.enabled)
-                    cameraData.xr.canMarkLateLatch = false;
+                    cameraData.xrUniversal.canMarkLateLatch = false;
 #endif
 
                 // Draw Gizmos...
@@ -876,8 +883,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns a clear flag based on CameraClearFlags.
         /// </summary>
-        /// <param name="cameraClearFlags">Camera clear flags.</param>
+        /// <param name="cameraData">The Camera data.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
+        /// <seealso cref="CameraData"/>
         protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
@@ -1078,8 +1086,16 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.Execute(context, ref renderingData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
-                cameraData.xr.UnmarkLateLatchShaderProperties(cmd, ref cameraData);
+            // Inform the late latching system for XR once we're done with a render pass
+            if (cameraData.xr.enabled)
+            {
+                cmd = CommandBufferPool.Get();
+
+                XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
 #endif
         }
 
@@ -1223,8 +1239,9 @@ namespace UnityEngine.Rendering.Universal
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
-                            bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
-                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                            bool renderIntoTexture = xrTargetIndex == -1;
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
                     }
@@ -1331,8 +1348,9 @@ namespace UnityEngine.Rendering.Universal
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                            bool isRenderToBackBufferTarget = passColorAttachment.nameID == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
-                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                            bool renderIntoTexture = passColorAttachment.nameID != cameraData.xr.renderTarget;
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
                     }
@@ -1351,8 +1369,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                if (cameraData.xr.isLateLatchEnabled)
-                    cameraData.xr.canMarkLateLatch = true;
+                if (cameraData.xrUniversal.isLateLatchEnabled)
+                    cameraData.xrUniversal.canMarkLateLatch = true;
+
                 cameraData.xr.StartSinglePass(cmd);
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
