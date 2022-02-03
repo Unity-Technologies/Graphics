@@ -372,20 +372,6 @@ namespace UnityEngine.Rendering.Universal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex)
-        {
-            if (m_UseDrawProcedural)
-            {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
-            }
-        }
-
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -724,34 +710,19 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_EdgeColorTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeColorTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
-            // Prepare for manual blit
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.SetViewport(pixelRect);
-
             // Pass 1: Edge detection
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source.nameID);
-            CoreUtils.SetRenderTarget(cmd,
+            RenderingUtils.Blit(cmd, source, pixelRect,
                 m_EdgeColorTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                ClearFlag.ColorStencil, Color.clear); // implicit depth=1.0f stencil=0x0
-            cmd.SetViewport(pixelRect);
-            DrawFullscreenMesh(cmd, material, 0);
+                ClearFlag.ColorStencil, Color.clear,  // implicit depth=1.0f stencil=0x0
+                material, 0);
 
             // Pass 2: Blend weights
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_EdgeColorTexture.nameID);
-            CoreUtils.SetRenderTarget(cmd, m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.clear);
-            cmd.SetViewport(pixelRect);
-            DrawFullscreenMesh(cmd, material, 1);
+            RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect, m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.clear, material, 1);
 
             // Pass 3: Neighborhood blending
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
-            CoreUtils.SetRenderTarget(cmd, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-            cmd.SetViewport(pixelRect);
-            DrawFullscreenMesh(cmd, material, 2);
-
-            // Cleanup
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            RenderingUtils.Blit(cmd, source, pixelRect, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear, material, 2);
         }
 
         #endregion
