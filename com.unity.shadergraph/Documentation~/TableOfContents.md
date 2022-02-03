@@ -61,7 +61,6 @@
             * [Normal Unpack](Normal-Unpack-Node)
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
-            * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
