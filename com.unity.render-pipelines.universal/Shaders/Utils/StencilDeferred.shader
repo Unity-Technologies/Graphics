@@ -25,6 +25,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         _ClearStencilReadMask ("ClearStencilReadMask", Int) = 0
         _ClearStencilWriteMask ("ClearStencilWriteMask", Int) = 0
 
+        _CapsuleAmbientOcclusionStencilRef ("CapsuleAmbientOcclusionStencilRef", Int) = 0
+        _CapsuleAmbientOcclusionStencilReadMask ("CapsuleAmbientOcclusionStencilReadMask", Int) = 0
+        _CapsuleAmbientOcclusionStencilWriteMask ("CapsuleAmbientOcclusionStencilWriteMask", Int) = 0
+
         _DirCapsuleStencilRef ("DirCapsuleStencilRef", Int) = 0
         _DirCapsuleStencilReadMask ("DirCapsuleStencilReadMask", Int) = 0
         _DirCapsuleStencilWriteMask ("DirCapsuleStencilWriteMask", Int) = 0
@@ -336,6 +340,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
             color = diffuseColor * surfaceData.albedo + specularColor;
+        #elif defined(_CAPSULE_AMBIENT_OCCLUSION)
+            float capsuleRadius = _CapsuleParams.x;
+            float capsuleOffset = _CapsuleParams.y;
+            float shadowRange = _CapsuleParams.w;
+            float occlusion = EvaluateCapsuleAmbientOcclusion(
+                0,
+                _CapsuleCenterWS - inputData.positionWS,
+                _CapsuleAxisDirWS,
+                capsuleOffset,
+                capsuleRadius,
+                shadowRange,
+                inputData.normalWS);
+            alpha = 1.0 - occlusion;
         #elif defined(_CAPSULE_SHADOW)
             float capsuleRadius = _CapsuleParams.x;
             float capsuleOffset = _CapsuleParams.y;
@@ -352,7 +369,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 capsuleRadius,
                 shadowRange,
                 inputData.normalWS);
-            alpha = 1.f - occlusion;
+            alpha = 1.0 - occlusion;
         #endif
 
         return half4(color, alpha);
@@ -706,7 +723,42 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 8 - Directional Capsule Stencil Volume
+        // 8 - Capsule Ambient Occlusion
+        Pass
+        {
+            Name "Capsule Ambient Occlusion"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend Zero SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            Stencil {
+                Ref [_CapsuleAmbientOcclusionStencilRef]
+                ReadMask [_CapsuleAmbientOcclusionStencilReadMask]
+                WriteMask [_CapsuleAmbientOcclusionStencilWriteMask]
+                Comp NotEqual
+                Pass Keep
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma multi_compile _CAPSULE_AMBIENT_OCCLUSION
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 9 - Directional Capsule Stencil Volume
         Pass
         {
             Name "Directional Capsule Stencil Volume"
@@ -740,7 +792,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 9 - Directional Capsule Shadow
+        // 10 - Directional Capsule Shadow
         // This pass multiplies capsule shadow occlusion into the lighting alpha channel.
         Pass
         {

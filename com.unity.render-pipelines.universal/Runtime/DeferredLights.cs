@@ -61,6 +61,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ClearStencilRef = Shader.PropertyToID("_ClearStencilRef");
             public static readonly int _ClearStencilReadMask = Shader.PropertyToID("_ClearStencilReadMask");
             public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
+            public static readonly int _CapsuleAmbientOcclusionStencilRef = Shader.PropertyToID("_CapsuleAmbientOcclusionStencilRef");
+            public static readonly int _CapsuleAmbientOcclusionStencilReadMask = Shader.PropertyToID("_CapsuleAmbientOcclusionStencilReadMask");
+            public static readonly int _CapsuleAmbientOcclusionStencilWriteMask = Shader.PropertyToID("_CapsuleAmbientOcclusionStencilWriteMask");
             public static readonly int _DirCapsuleStencilRef = Shader.PropertyToID("_DirCapsuleStencilRef");
             public static readonly int _DirCapsuleStencilReadMask = Shader.PropertyToID("_DirCapsuleStencilReadMask");
             public static readonly int _DirCapsuleStencilWriteMask = Shader.PropertyToID("_DirCapsuleStencilWriteMask");
@@ -111,6 +114,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             "ClearStencilPartial",
             "Fog",
             "SSAOOnly",
+            "Capsule Ambient Occlusion",
             "Directional Capsule Stencil Volume",
             "Directional Capsule Shadow"
         };
@@ -125,6 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ClearStencilPartial,
             Fog,
             SSAOOnly,
+            CapsuleAmbientOcclusion,
             DirectionalCapsuleStencilVolume,
             DirectionalCapsuleShadow
         };
@@ -718,7 +723,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-
+                if (HasCapsuleAmbientOcclusion())
+                    RenderStencilCapsuleAmbientOcclusion(cmd);
                 if (HasStencilLightsOfType(LightType.Directional))
                     RenderStencilDirectionalLights(cmd, ref renderingData, visibleLights, renderingData.lightData.mainLightIndex);
                 if (HasStencilLightsOfType(LightType.Point))
@@ -728,6 +734,47 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             Profiler.EndSample();
+        }
+
+        bool HasCapsuleAmbientOcclusion()
+        {
+            // TODO: global setting
+            return CapsuleOccluderManager.instance.occluders.Count != 0;
+        }
+
+        void RenderStencilCapsuleAmbientOcclusion(CommandBuffer cmd)
+        {
+            if (m_SphereMesh == null)
+                m_SphereMesh = CreateSphereMesh();
+
+            foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
+            {
+                // extract capsule data into world space
+                Matrix4x4 localToWorld = occluder.capsuleToWorld;
+                Vector3 centerWS = localToWorld.MultiplyPoint3x4(Vector3.zero);
+                Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
+                float radius = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
+                float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
+
+                // cast up to 4 radii away from the surface
+                float shadowRange = 4.0f * radius;
+
+                // sphere from capsule surface to max range
+                float sphereRadius = offset + radius + shadowRange;
+
+                Matrix4x4 worldFromSphere = new Matrix4x4(
+                    Vector3.right * sphereRadius,
+                    Vector3.up * sphereRadius,
+                    Vector3.forward * sphereRadius,
+                    centerWS);
+
+                // multiply dest colour by capsule ambient occlusion
+                cmd.SetGlobalVector(ShaderConstants._CapsuleCenterWS, centerWS);
+                cmd.SetGlobalVector(ShaderConstants._CapsuleAxisDirWS, axisDirWS);
+                cmd.SetGlobalVector(ShaderConstants._CapsuleParams, new Vector4(radius, offset, 0.0f, shadowRange));
+
+                cmd.DrawMesh(m_SphereMesh, worldFromSphere, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.CapsuleAmbientOcclusion]);
+            }
         }
 
         void RenderStencilDirectionalLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
@@ -1031,6 +1078,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilRef, 0.0f);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilReadMask, (float)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._CapsuleAmbientOcclusionStencilRef, (float)StencilUsage.MaterialUnlit);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._CapsuleAmbientOcclusionStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._CapsuleAmbientOcclusionStencilWriteMask, 0.0f);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilRef, (float)StencilUsage.MaterialUnlit);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilReadMask, (float)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilWriteMask, (float)StencilUsage.StencilShadow);
