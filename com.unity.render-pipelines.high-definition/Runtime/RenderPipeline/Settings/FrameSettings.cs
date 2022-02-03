@@ -123,7 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "MSAA Within Forward", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
         MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAAMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [Obsolete]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
@@ -155,6 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP can use virtual texturing.</summary>
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "Virtual Texturing needs to be enabled first in Project Settings > Player > Other Settings > Virtual Texturing.")]
         VirtualTexturing = 68,
+        /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
+        [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
+        Water = 99,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
@@ -182,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
-        /// <summary>When enabled, HDRP render user written post processes.</summary>
+        /// <summary>When enabled, HDRP renders user written post processes.</summary>
         [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP render user written post processes.")]
         CustomPostProcess = 39,
         /// <summary>When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.</summary>
@@ -478,9 +482,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
-                (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
+                (uint)FrameSettingsField.Water,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
@@ -542,6 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 // (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FrameSettingsField.Water,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
@@ -600,6 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
+                (uint)FrameSettingsField.Water,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
@@ -825,14 +831,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // Screen space shadows are not compatible with MSAA
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] & !msaa;
 
             // No recursive reflections
             bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview && temporalAccumulationAllowed;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects] && renderPipelineSettings.supportTransparentDepthPrepass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
             // Because the camera is shared between the faces of the reflection probes, we cannot allow effects that rely on the accumulation process
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
@@ -840,6 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= renderPipelineSettings.supportWater && !preview;
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;

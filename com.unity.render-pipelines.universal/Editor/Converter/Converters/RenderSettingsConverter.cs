@@ -6,7 +6,7 @@ using UnityEngine.Rendering.Universal;
 using ShadowQuality = UnityEngine.ShadowQuality;
 using ShadowResolution = UnityEngine.ShadowResolution;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // Shadows
             asset.shadowDistance = settings.ShadowDistance;
-            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 0;
+            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 1;
             asset.cascade2Split = settings.CascadeSplit2;
             asset.cascade4Split = settings.CascadeSplit4;
             asset.supportsSoftShadows = settings.Shadows == ShadowQuality.All;
@@ -261,7 +261,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                 case RenderingPath.VertexLit:
                 case RenderingPath.Forward:
                     return RenderingMode.Forward;
-                case RenderingPath.DeferredLighting:
                 case RenderingPath.DeferredShading:
                     return RenderingMode.Deferred;
                 default:

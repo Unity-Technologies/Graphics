@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(VolumetricClouds))]
+    [CustomEditor(typeof(VolumetricClouds))]
     class VolumetricCloudsEditor : VolumeComponentEditor
     {
         // General
@@ -174,7 +174,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
                 return;
             }
 

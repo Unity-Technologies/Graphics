@@ -233,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 type = ProbeType.ReflectionProbe,
                 realtimeMode = RealtimeMode.EveryFrame,
+                timeSlicing = false,
                 mode = Mode.Baked,
                 cameraSettings = CameraSettings.NewDefault(),
                 influence = null,
@@ -257,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Mode mode;
         /// <summary>The mode of the probe.</summary>
         public RealtimeMode realtimeMode;
+        /// <summary>Whether a realtime probe uses time slicing.</summary>
+        public bool timeSlicing;
         /// <summary>The lighting of the probe.</summary>
         public Lighting lighting;
         /// <summary>The influence volume of the probe.</summary>

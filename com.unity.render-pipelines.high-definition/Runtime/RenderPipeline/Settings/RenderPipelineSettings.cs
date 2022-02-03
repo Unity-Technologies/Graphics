@@ -53,7 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum CustomBufferFormat
         {
             /// <summary>Regular R8G8B8A8 format.</summary>
-            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            [InspectorName("Signed R8G8B8A8")]
+            SignedR8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            /// <summary>Regular R8G8B8A8 format.</summary>
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_UNorm,
             /// <summary>R16G16B16A16 high quality HDR format.</summary>
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             /// <summary>R11G11B10 medium quality HDR format.</summary>
@@ -101,10 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
+                supportWater = false,
+                waterSimulationResolution = WaterSimulationResolution.Medium128,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
-                                                                                                        PlanarReflectionAtlasResolution.Resolution2048 },
-                    ScalableSettingSchemaId.With3Levels),
+                                                                                                        PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
                 lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
                 hdShadowInitParams = HDShadowInitParameters.NewDefault(),
                 decalSettings = GlobalDecalSettings.NewDefault(),
@@ -122,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -181,6 +186,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportVolumetricClouds;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
+        /// <summary>Support Water Surfaces.</summary>
+        public bool supportWater;
+        /// <summary>Water simulation resolution</summary>
+        public WaterSimulationResolution waterSimulationResolution;
+
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
         {
@@ -336,6 +346,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Support Streaming for Probe Volumes.</summary>
+        public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
 

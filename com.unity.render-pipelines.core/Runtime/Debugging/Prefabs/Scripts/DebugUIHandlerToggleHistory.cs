@@ -9,17 +9,18 @@ namespace UnityEngine.Rendering.UI
     public class DebugUIHandlerToggleHistory : DebugUIHandlerToggle
     {
         Toggle[] historyToggles;
-        const float xDecal = 60f;
+        const float k_XOffset = 230f;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
             int historyDepth = (widget as DebugUI.HistoryBoolField)?.historyDepth ?? 0;
             historyToggles = new Toggle[historyDepth];
+            float columnOffset = historyDepth > 0 ? k_XOffset / (float)historyDepth : 0f;
             for (int index = 0; index < historyDepth; ++index)
             {
                 var historyToggle = Instantiate(valueToggle, transform);
                 Vector3 pos = historyToggle.transform.position;
-                pos.x += (index + 1) * xDecal;
+                pos.x += (index + 1) * columnOffset;
                 historyToggle.transform.position = pos;
                 var background = historyToggle.transform.GetChild(0).GetComponent<Image>();
                 background.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(-1, -1, 2, 2), Vector2.zero);

@@ -110,27 +110,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum RenderQueueType
         {
             /// <summary>Opaque GameObjects without alpha test only.</summary>
-            OpaqueNoAlphaTest,
+            OpaqueNoAlphaTest = 0,
             /// <summary>Opaque GameObjects with alpha test only.</summary>
-            OpaqueAlphaTest,
+            OpaqueAlphaTest = 1,
             /// <summary>All opaque GameObjects.</summary>
-            AllOpaque,
+            AllOpaque = 2,
             /// <summary>Opaque GameObjects that use the after post process render pass.</summary>
-            AfterPostProcessOpaque,
+            AfterPostProcessOpaque = 3,
             /// <summary>Transparent GameObjects that use the the pre refraction render pass.</summary>
-            PreRefraction,
+            PreRefraction = 4,
             /// <summary>Transparent GameObjects that use the default render pass.</summary>
-            Transparent,
+            Transparent = 5,
             /// <summary>Transparent GameObjects that use the low resolution render pass.</summary>
-            LowTransparent,
+            LowTransparent = 6,
             /// <summary>All Transparent GameObjects.</summary>
-            AllTransparent,
+            AllTransparent = 7,
             /// <summary>Transparent GameObjects that use the Pre-refraction, Default, or Low resolution render pass.</summary>
-            AllTransparentWithLowRes,
+            AllTransparentWithLowRes = 8,
             /// <summary>Transparent GameObjects that use after post process render pass.</summary>
-            AfterPostProcessTransparent,
+            AfterPostProcessTransparent = 9,
+            /// <summary>All GameObjects that use the overlay render pass.</summary>
+            Overlay = 11,
             /// <summary>All GameObjects</summary>
-            All,
+            All = 10,
         }
 
         internal struct RenderTargets
@@ -228,11 +230,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
+                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
+
+                        if (customPass.currentRenderTarget.customColorBuffer.IsValueCreated)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, customPass.currentRenderTarget.customColorBuffer.Value);
+                        if (customPass.currentRenderTarget.customDepthBuffer.IsValueCreated)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
 
                         if (!customPass.isSetup)
                         {

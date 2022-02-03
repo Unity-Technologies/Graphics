@@ -41,7 +41,11 @@ namespace UnityEditor.Rendering
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
             RenameFloat("_WindQuality", "_WINDQUALITY");
-            RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph.
+            RenameFloat("_BillboardKwToggle", "EFFECT_BILLBOARD");
+            RenameKeywordToFloat("EFFECT_EXTRA_TEX", "EFFECT_EXTRA_TEX", 1, 0);
+            RenameKeywordToFloat("EFFECT_SUBSURFACE", "_SubsurfaceKwToggle", 1, 0);
+            RenameKeywordToFloat("EFFECT_BUMP", "_NormalMapKwToggle", 1, 0);
+            RenameKeywordToFloat("EFFECT_HUE_VARIATION", "_HueVariationKwToggle", 1, 0);
         }
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
@@ -56,8 +60,8 @@ namespace UnityEditor.Rendering
                 mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
                 cullmode = 2;
             }
-            if (mat.HasProperty("_CullMode"))
-                mat.SetFloat("_CullMode", cullmode);
+
+            mat.SetFloat("_TwoSided", cullmode); // Temporary; Finalizer should read from this and apply the value to a pipeline-specific cull property
 
             if (mat.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
                 mat.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
@@ -96,22 +100,12 @@ namespace UnityEditor.Rendering
 
         /// <summary>
         /// Preserves wind quality and billboard settings while you are upgrading a SpeedTree 8 material from previous versions of SpeedTree 8.
-        /// Wind priority order is enabled keyword > _WindQuality float value.
+        /// Wind priority order is _WindQuality float value > enabled keyword.
         /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
         /// </summary>
         /// <param name="material">SpeedTree 8 material to upgrade.</param>
         public static void SpeedTree8MaterialFinalizer(Material material)
         {
-            if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
-                material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
-
-            if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
-                material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
-
-            bool isBillboard = material.IsKeywordEnabled("EFFECT_BILLBOARD");
-            if (material.HasProperty("EFFECT_BILLBOARD"))
-                material.SetFloat("EFFECT_BILLBOARD", isBillboard ? 1.0f : 0.0f);
-
             UpgradeWindQuality(material);
         }
 
@@ -127,11 +121,10 @@ namespace UnityEditor.Rendering
             // input WindQuality > enabled keyword > _WindQuality float value
             if (!WindIntValid(windQuality))
             {
-                windQuality = GetWindQualityFromKeywords(material.shaderKeywords);
+                windQuality = material.HasProperty("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
                 if (!WindIntValid(windQuality))
                 {
-                    windQuality = material.HasProperty("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
-
+                    windQuality = GetWindQualityFromKeywords(material.shaderKeywords);
                     if (!WindIntValid(windQuality))
                         windQuality = 0;
                 }

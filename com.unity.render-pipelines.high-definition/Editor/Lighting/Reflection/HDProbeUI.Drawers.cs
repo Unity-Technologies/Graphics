@@ -195,6 +195,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     case ProbeSettings.Mode.Realtime:
                     {
                         EditorGUILayout.PropertyField(serialized.probeSettings.realtimeMode);
+                        if ((ProbeSettings.ProbeType)serialized.probeSettings.type.intValue == ProbeSettings.ProbeType.ReflectionProbe)
+                            EditorGUILayout.PropertyField(serialized.probeSettings.timeSlicing, k_TimeSlicingContent);
                         break;
                     }
                     case ProbeSettings.Mode.Custom:
@@ -370,6 +372,34 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                     default: throw new ArgumentOutOfRangeException();
                 }
+            }
+
+            public static void DrawSHNormalizationStatus(SerializedHDProbe serialized, Editor owner)
+            {
+                const string kResolution = " Please ensure that probe positions are valid (not inside static geometry) then bake lighting to regenerate data.";
+                const string kMixedMode = "Unable to show normalization data validity when selecting probes with different modes.";
+                const string kMixedValidity = "Baked reflection probe normalization data is partially invalid." + kResolution;
+                const string kValid = "Baked reflection probe normalization data is valid.";
+                const string kInvalid = "Baked reflection probe normalization data is invalid." + kResolution;
+
+                var globalSettings = HDRenderPipelineGlobalSettings.instance;
+                if (globalSettings == null || !globalSettings.supportProbeVolumes)
+                    return;
+
+                var spMode = serialized.serializedObject.FindProperty("m_ProbeSettings.mode");
+                var spValid = serialized.serializedObject.FindProperty("m_HasValidSHForNormalization");
+
+                if (spMode.intValue != (int)ProbeSettings.Mode.Baked)
+                    return;
+
+                EditorGUILayout.Space();
+
+                if (spMode.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(kMixedMode, MessageType.Info);
+                else if (spValid.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(kMixedValidity, MessageType.Warning);
+                else
+                    EditorGUILayout.HelpBox(spValid.boolValue ? kValid : kInvalid, spValid.boolValue ? MessageType.Info : MessageType.Warning);
             }
 
             static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);

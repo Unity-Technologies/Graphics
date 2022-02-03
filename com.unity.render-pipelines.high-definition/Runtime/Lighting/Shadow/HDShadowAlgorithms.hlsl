@@ -265,6 +265,7 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
         positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
+        float worldTexelSize = sd.worldTexelSize;
         float3 orig_pos = positionWS;
         float3 normalBias = EvalShadow_NormalBias(sd.worldTexelSize, sd.normalBias, normalWS);
         positionWS += normalBias;
@@ -283,6 +284,11 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+
+                // We need to modify the bias as the world texel size changes between splits and an update is needed.
+                float biasModifier = (sd.worldTexelSize / worldTexelSize);
+                normalBias *= biasModifier;
+
                 float3 evaluationPosWS = basePositionWS + sd.cacheTranslationDelta.xyz + normalBias;
                 float3 posNDC;
                 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, evaluationPosWS, posNDC, false);
@@ -310,6 +316,12 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
     int     cascadeCount;
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+
+    // Forcing the alpha to zero allows us to avoid the dithering as it requires the screen space position and an additional
+    // shadow read wich can be avoided in this case.
+#if defined(SHADER_STAGE_RAY_TRACING)
+    alpha = 0.0;
+#endif
 
     float3 basePositionWS = positionWS;
 

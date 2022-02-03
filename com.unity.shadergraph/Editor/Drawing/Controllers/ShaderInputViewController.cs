@@ -46,37 +46,48 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
+            var material = graphData.owner.materialArtifact;
             switch (shaderInputReference)
             {
                 case BooleanShaderProperty booleanProperty:
                     booleanProperty.value = ((ToggleData)newShaderInputValue).isOn;
+                    if (material) material.SetFloat(shaderInputReference.referenceName, booleanProperty.value ? 1.0f : 0.0f);
                     break;
                 case Vector1ShaderProperty vector1Property:
                     vector1Property.value = (float)newShaderInputValue;
+                    if (material) material.SetFloat(shaderInputReference.referenceName, vector1Property.value);
                     break;
                 case Vector2ShaderProperty vector2Property:
                     vector2Property.value = (Vector2)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector2Property.value);
                     break;
                 case Vector3ShaderProperty vector3Property:
                     vector3Property.value = (Vector3)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector3Property.value);
                     break;
                 case Vector4ShaderProperty vector4Property:
                     vector4Property.value = (Vector4)newShaderInputValue;
+                    if (material) material.SetVector(shaderInputReference.referenceName, vector4Property.value);
                     break;
                 case ColorShaderProperty colorProperty:
                     colorProperty.value = (Color)newShaderInputValue;
+                    if (material) material.SetColor(shaderInputReference.referenceName, colorProperty.value);
                     break;
                 case Texture2DShaderProperty texture2DProperty:
                     texture2DProperty.value.texture = (Texture)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture2DProperty.value.texture);
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
                     texture2DArrayProperty.value.textureArray = (Texture2DArray)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture2DArrayProperty.value.textureArray);
                     break;
                 case Texture3DShaderProperty texture3DProperty:
                     texture3DProperty.value.texture = (Texture3D)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, texture3DProperty.value.texture);
                     break;
                 case CubemapShaderProperty cubemapProperty:
                     cubemapProperty.value.cubemap = (Cubemap)newShaderInputValue;
+                    if (material) material.SetTexture(shaderInputReference.referenceName, cubemapProperty.value.cubemap);
                     break;
                 case Matrix2ShaderProperty matrix2Property:
                     matrix2Property.value = (Matrix4x4)newShaderInputValue;

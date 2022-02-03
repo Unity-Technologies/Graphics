@@ -49,6 +49,13 @@ namespace UnityEditor.Rendering
             /// <param name="serializedProperty">The SerializedProperty to draw</param>
             /// <param name="owner">The editor handling this draw call</param>
             void Draw(TData serializedProperty, Editor owner);
+
+            /// <summary>
+            /// Expands all children that use a given mask
+            /// </summary>
+            /// <param name="mask">The mask to expand</param>
+            /// <returns>If the drawer is expanded</returns>
+            bool Expand(int mask);
         }
 
         /// <summary>Delegate that must say if this is enabled for drawing</summary>
@@ -79,6 +86,24 @@ namespace UnityEditor.Rendering
 
         /// <summary> Use it when IDrawer required but no operation should be done </summary>
         public static readonly IDrawer noop = Group((data, owner) => { });
+
+        internal static bool DefaultExpand(ActionDrawer[] actionDrawers, int mask)
+        {
+            for (var i = 0; i < actionDrawers.Length; i++)
+            {
+                if (actionDrawers[i] == null)
+                    continue;
+                var targets = (actionDrawers[i].Target as IDrawer[]);
+                if (targets == null)
+                    continue;
+                foreach (var target in targets)
+                {
+                    if (target.Expand(mask))
+                        return true;
+                }
+            }
+            return false;
+        }
 
         /// <summary>
         /// Conditioned drawer that will only be drawn if its enabler function is null or return true
@@ -121,6 +146,8 @@ namespace UnityEditor.Rendering
                 for (var i = 0; i < actionDrawers.Length; i++)
                     actionDrawers[i](data, owner);
             }
+
+            bool IDrawer.Expand(int mask) => DefaultExpand(actionDrawers, mask);
         }
 
         internal static IDrawer ConditionalWithAdditionalProperties(Enabler enabler, AnimFloat animation, params IDrawer[] contentDrawers)
@@ -166,6 +193,8 @@ namespace UnityEditor.Rendering
                         owner.Repaint();
                 }
             }
+
+            bool IDrawer.Expand(int mask) => DefaultExpand(m_ActionDrawers, mask);
         }
 
         /// <summary>
@@ -208,6 +237,8 @@ namespace UnityEditor.Rendering
                 else
                     drawIfTrue?.Invoke(data, owner);
             }
+
+            bool IDrawer.Expand(int mask) => DefaultExpand(new ActionDrawer[] { drawIfTrue, drawIfFalse }, mask);
         }
 
         /// <summary>
@@ -369,6 +400,8 @@ namespace UnityEditor.Rendering
                 if (isIndented)
                     --EditorGUI.indentLevel;
             }
+
+            bool IDrawer.Expand(int mask) => DefaultExpand(actionDrawers, mask);
         }
 
         class FoldoutGroupDrawerInternal<TEnum, TState> : IDrawer
@@ -442,6 +475,17 @@ namespace UnityEditor.Rendering
                 if (!m_NoSpaceAtEnd)
                     EditorGUILayout.Space();
             }
+
+            bool IDrawer.Expand(int mask)
+            {
+                bool expand = (mask == (int)(m_Mask as object));
+                if (!expand)
+                    expand = DefaultExpand(m_ActionDrawers, mask);
+
+                if (expand)
+                    m_State[m_Mask] = true;
+                return expand;
+            }
         }
 
         /// <summary> Create an IDrawer based on an other data container </summary>
@@ -486,6 +530,8 @@ namespace UnityEditor.Rendering
                 for (var i = 0; i < m_SourceDrawers.Length; i++)
                     m_SourceDrawers[i](p2, o);
             }
+
+            bool IDrawer.Expand(int mask) => false;
         }
 
         /// <summary>
@@ -824,6 +870,16 @@ namespace UnityEditor.Rendering
             foreach (var drawer in drawers)
                 drawer.Draw(data, owner);
             EditorGUILayout.EndVertical();
+        }
+
+        internal static bool Expand<TData>(this IEnumerable<CoreEditorDrawer<TData>.IDrawer> drawers, int mask)
+        {
+            foreach (var drawer in drawers)
+            {
+                if (drawer.Expand(mask))
+                    return true;
+            }
+            return false;
         }
     }
 }

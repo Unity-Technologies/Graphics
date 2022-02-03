@@ -4,6 +4,14 @@
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    //Do not change these numbers!!
+    //Its not a full power of 2 because the last light slot is reserved.
+    internal enum FPTLMaxLightSizes
+    {
+        Low = 31,
+        High = 63
+    }
+
     /// <summary>
     /// Project-wide shader configuration options.
     /// </summary>
@@ -36,6 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support to apply a global mip bias on all texture samplers of HDRP.</summary>
         GlobalMipBias = 1,
+
+        /// <summary>
+        /// Maximum number of lights for a fine pruned light tile. This number can only be the prespecified possibilities in FPTLMaxLightSizes
+        /// Lower count will mean some memory savings.
+        /// Note: For any rendering bigger than 4k (in native) it is recommended to use Low count per tile, to avoid possible artifacts.
+        /// </summary>
+        FPTLMaxLightCount = FPTLMaxLightSizes.High
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -73,5 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether to support application of global mip bias on all texture samplers of hdrp.</summary>
         ///<seealso cref="ShaderOptions.GlobalMipBias"/>
         public static bool s_GlobalMipBias = (int)ShaderOptions.GlobalMipBias != 0;
+        /// <summary>Indicates the maximum number of lights available for Fine Prunning Tile Lighting.</summary>
+        /// <seealso cref="ShaderOptions.FPTLMaxLightCount"/>
+        public static int FPTLMaxLightCount = (int)ShaderOptions.FPTLMaxLightCount;
     }
 }

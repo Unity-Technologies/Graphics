@@ -9,7 +9,15 @@ namespace UnityEditor.VFX.URP
     [VFXInfo]
     class VFXURPLitMeshOutput : VFXAbstractParticleURPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle URP Lit Mesh"; } }
+        public override string name
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(shaderName)
+                    ? $"Output Particle {shaderName} Mesh"
+                    : "Output Particle URP Lit Mesh";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

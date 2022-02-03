@@ -195,6 +195,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
+    context.splineVisibility = -1;
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
@@ -227,9 +228,21 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
                     !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
                 {
+                    float3 positionWS = posInput.positionWS;
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+                    positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
+#endif
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                          posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                          posInput.positionSS, positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+                    // Tap the shadow a second time for strand visibility term.
+                    context.splineVisibility = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                               posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                               light.shadowIndex, L);
+#endif
                 }
             }
         }
@@ -444,7 +457,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             BuiltinData tempBuiltinData;
             ZERO_INITIALIZE(BuiltinData, tempBuiltinData);
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
+#if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(SCREEN_SPACE_INDIRECT_DIFFUSE_DISABLED)
             if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
             {
                 tempBuiltinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();

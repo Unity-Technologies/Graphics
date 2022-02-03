@@ -40,6 +40,9 @@
 // which might be lower than the max number of lights that might be in the big tile.
 #define PRE_FILTER_LIGHT_LIST   1 && defined(USE_BIG_TILE_LIGHTLIST)
 
+
+#define SHADOW_DATA_NOT_GUARANTEED_SCALAR // We are not looping over shadows in a scalarized fashion. If we will at some point, remove this define.
+
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
@@ -78,6 +81,7 @@ RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 TEXTURE2D_X(_MaxZMaskTexture);
+StructuredBuffer<float4> _VolumetricAmbientProbeBuffer;
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -94,6 +98,21 @@ TEXTURE2D_X(_MaxZMaskTexture);
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
+
+// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
+real3 EvaluateVolumetricAmbientProbe(real3 normalWS)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = _VolumetricAmbientProbeBuffer[0];
+    SHCoefficients[1] = _VolumetricAmbientProbeBuffer[1];
+    SHCoefficients[2] = _VolumetricAmbientProbeBuffer[2];
+    SHCoefficients[3] = _VolumetricAmbientProbeBuffer[3];
+    SHCoefficients[4] = _VolumetricAmbientProbeBuffer[4];
+    SHCoefficients[5] = _VolumetricAmbientProbeBuffer[5];
+    SHCoefficients[6] = _VolumetricAmbientProbeBuffer[6];
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
 
 // Jittered ray with screen-space derivatives.
 struct JitteredRay
@@ -480,6 +499,9 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     // for L0 term it'd just cancel out as both are just constant factors.
     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), posInput.positionSS, apvDiffuseGI);
 
+    const float cornetteShanksZonalHarmonicL0 = sqrt(4.0f * PI);
+    weight *= PI * cornetteShanksZonalHarmonicL0;
+
     // It is possible that some invalid probes are sampled due to how APV is laying the probes
     // For now the safest way is to ignore the NaN data when sampled.
     if (AnyIsNaN(apvDiffuseGI))
@@ -556,7 +578,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // SampleSH9() evaluates the 3-band SH in a given direction.
     // The probe is already pre-convolved with the phase function.
     // Note: anisotropic, no jittering.
-    float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
+    float3 probeInScatteredRadiance = EvaluateVolumetricAmbientProbe(ray.centerDirWS);
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;

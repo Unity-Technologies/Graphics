@@ -7,10 +7,11 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
-    [VolumeComponentEditor(typeof(Tonemapping))]
+    [CustomEditor(typeof(Tonemapping))]
     sealed class TonemappingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_UseFullACES;
         SerializedDataParameter m_ToeStrength;
         SerializedDataParameter m_ToeLength;
         SerializedDataParameter m_ShoulderStrength;
@@ -19,6 +20,19 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Gamma;
         SerializedDataParameter m_LutTexture;
         SerializedDataParameter m_LutContribution;
+
+        // HDR Mode.
+        SerializedDataParameter m_NeutralHDRRangeReductionMode;
+        SerializedDataParameter m_HueShiftAmount;
+        SerializedDataParameter m_HDRDetectPaperWhite;
+        SerializedDataParameter m_HDRPaperwhite;
+        SerializedDataParameter m_HDRDetectNitLimits;
+        SerializedDataParameter m_HDRMinNits;
+        SerializedDataParameter m_HDRMaxNits;
+        SerializedDataParameter m_HDRAcesPreset;
+        SerializedDataParameter m_HDRFallbackMode;
+
+        public override bool hasAdditionalProperties => true;
 
         // Curve drawing utilities
         readonly HableCurve m_HableCurve = new HableCurve();
@@ -31,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
 
             m_Mode = Unpack(o.Find(x => x.mode));
+            m_UseFullACES = Unpack(o.Find(x => x.useFullACES));
             m_ToeStrength = Unpack(o.Find(x => x.toeStrength));
             m_ToeLength = Unpack(o.Find(x => x.toeLength));
             m_ShoulderStrength = Unpack(o.Find(x => x.shoulderStrength));
@@ -39,6 +54,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Gamma = Unpack(o.Find(x => x.gamma));
             m_LutTexture = Unpack(o.Find(x => x.lutTexture));
             m_LutContribution = Unpack(o.Find(x => x.lutContribution));
+
+            m_NeutralHDRRangeReductionMode = Unpack(o.Find(x => x.neutralHDRRangeReductionMode));
+            m_HueShiftAmount = Unpack(o.Find(x => x.hueShiftAmount));
+            m_HDRDetectPaperWhite = Unpack(o.Find(x => x.detectPaperWhite));
+            m_HDRPaperwhite = Unpack(o.Find(x => x.paperWhite));
+            m_HDRDetectNitLimits = Unpack(o.Find(x => x.detectBrightnessLimits));
+            m_HDRMinNits = Unpack(o.Find(x => x.minNits));
+            m_HDRMaxNits = Unpack(o.Find(x => x.maxNits));
+            m_HDRAcesPreset = Unpack(o.Find(x => x.acesPreset));
+            m_HDRFallbackMode = Unpack(o.Find(x => x.fallbackMode));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -54,6 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+
             PropertyField(m_Mode);
 
             // Draw a curve for the custom tonemapping mode to make it easier to tweak visually
@@ -119,11 +146,62 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var lut = m_LutTexture.value.objectReferenceValue;
                 if (lut != null && !((Tonemapping)target).ValidateLUT())
-                    EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D texture or render texture with the same size as set in the HDRP settings.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D Texture or a Render Texture and have the same size as set in the HDRP settings.", MessageType.Warning);
 
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
                 EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+            }
+            else if (m_Mode.value.intValue == (int)TonemappingMode.ACES)
+            {
+                PropertyField(m_UseFullACES);
+            }
+
+            if (hdrInPlayerSettings && m_Mode.value.intValue != (int)TonemappingMode.None)
+            {
+                EditorGUILayout.LabelField("HDR Output");
+                int hdrTonemapMode = m_Mode.value.intValue;
+                if (m_Mode.value.intValue == (int)TonemappingMode.Custom || hdrTonemapMode == (int)TonemappingMode.External)
+                {
+                    EditorGUILayout.HelpBox("The selected tonemapping mode is not supported in HDR Output mode. Select a fallback mode.", MessageType.Warning);
+                    PropertyField(m_HDRFallbackMode);
+                    hdrTonemapMode = (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.ACES) ? (int)TonemappingMode.ACES :
+                                     (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.Neutral) ? (int)TonemappingMode.Neutral :
+                                     (int)TonemappingMode.None;
+                }
+
+                if (hdrTonemapMode == (int)TonemappingMode.Neutral)
+                {
+                    PropertyField(m_NeutralHDRRangeReductionMode);
+                    PropertyField(m_HueShiftAmount);
+
+                    PropertyField(m_HDRDetectPaperWhite);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectPaperWhite.value.boolValue))
+                    {
+                        PropertyField(m_HDRPaperwhite);
+                    }
+                    EditorGUI.indentLevel--;
+                    PropertyField(m_HDRDetectNitLimits);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectNitLimits.value.boolValue))
+                    {
+                        PropertyField(m_HDRMinNits);
+                        PropertyField(m_HDRMaxNits);
+                    }
+                    EditorGUI.indentLevel--;
+                }
+                if (hdrTonemapMode == (int)TonemappingMode.ACES)
+                {
+                    PropertyField(m_HDRAcesPreset);
+                    PropertyField(m_HDRDetectPaperWhite);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectPaperWhite.value.boolValue))
+                    {
+                        PropertyField(m_HDRPaperwhite);
+                    }
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 

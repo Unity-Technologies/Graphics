@@ -1,9 +1,9 @@
-using UnityEditor.UIElements;
+
 using System.Globalization;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class FloatField : DoubleField
+    class FloatField : UnityEngine.UIElements.DoubleField
     {
         protected override string ValueToString(double v)
         {

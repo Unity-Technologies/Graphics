@@ -65,6 +65,7 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
+  afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   lightLayerName0: 
@@ -85,6 +86,7 @@ MonoBehaviour:
   decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
@@ -92,7 +94,11 @@ MonoBehaviour:
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
-  apvScenesBounds:
+  supportRuntimeDebugDisplay: 1
+  apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
-  m_Version: 2
+    serializedProfiles: []
+    serializedBakeSettings: []
+    serializedBakingSets: []
+  m_Version: 3

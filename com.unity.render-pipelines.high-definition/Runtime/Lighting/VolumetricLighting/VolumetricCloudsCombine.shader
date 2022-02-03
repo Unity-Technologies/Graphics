@@ -62,7 +62,9 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Composite the result via hardware blending.
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                // If MSAA is enabled on the camera, due to internal limitations, a different blending profile is used that may result in darker cloud edges.
+                float4 cloudData = LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                return float4(cloudData.xyz, _CubicTransmittance ? cloudData.w * cloudData.w : cloudData.w);
             }
             ENDHLSL
         }
@@ -136,7 +138,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Points towards the camera
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS));
+                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
                 // Fetch the clouds
                 return SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
             }
@@ -155,7 +157,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Construct the view direction
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS));
+                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
                 // Fetch the clouds
                 float4 clouds = SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
                 // Inverse the exposure
@@ -181,7 +183,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Construct the view direction
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS));
+                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
                 // Fetch the clouds
                 float4 clouds = SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
                 // Inverse the exposure

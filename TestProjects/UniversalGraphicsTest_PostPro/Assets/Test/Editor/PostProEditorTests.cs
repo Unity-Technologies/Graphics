@@ -11,6 +11,10 @@ class FoundationEditorTests
         UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled: false);
     }
 
+    /// <summary>
+    /// The URP post processing tests expect all pipeline assets to explicitly disable mixed lighting support
+    /// since it significantly increases project build times.
+    /// </summary>
     [Test]
     public void CheckIfMixedLightingDisabled()
     {
@@ -33,5 +37,11 @@ class FoundationEditorTests
     public void CheckIfScenesDoNoHaveShader(ShaderPathID shaderPathID)
     {
         UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
+    }
+
+    [Test]
+    public void EnsureSingleQualityOption()
+    {
+        Assert.IsTrue(UnityEngine.QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
     }
 }

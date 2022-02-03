@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -21,8 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_EyeSG 4
-  m_Shader: {fileID: -6465566751694194690, guid: 144c83fb9066da94ca2be7e4cb41665f,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 144c83fb9066da94ca2be7e4cb41665f, type: 3}
   m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -31,12 +33,11 @@ Material:
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
-  - DistortionVectors
+  - RayTracingPrepass
   - MOTIONVECTORS
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - RayTracingPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -155,8 +156,8 @@ Material:
     m_Ints: []
     m_Floats:
     - Boolean_8D34052F: 0
-    - DiffusionProfile_261f48f1fbc94ccbafc421414859c159: 2.5057178
-    - DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c: 2.7440536
+    - DiffusionProfile_261f48f1fbc94ccbafc421414859c159: 3.8499463
+    - DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c: 3.1705887
     - Vector1_2D21A623: 0.05
     - Vector1_49C490F5: 0.758
     - Vector1_6A11346D: 0.5
@@ -175,7 +176,7 @@ Material:
     - Vector1_EF58F7DF: 0.0477
     - Vector1_F084AE9E: 0.88
     - Vector1_FC0895C8: 0.41
-    - Vector1_FEA38ABB: 0.564
+    - Vector1_FEA38ABB: 0.301
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -193,6 +194,7 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
+    - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
@@ -220,6 +222,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
@@ -243,6 +246,8 @@ Material:
     - _Ior: 1.5
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
+    - _Iris_Radius: 0.225
+    - _Iris_plane_offset: 0
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metallic: 0
@@ -304,16 +309,14 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - Color_83777D09: {r: 0.51886785, g: 0.51886785, b: 0.51886785, a: 0}
-    - DiffusionProfile_261f48f1fbc94ccbafc421414859c159_Asset: {r: -0.00086364895,
-        g: 3.6767212e-17, b: 0.0000000017571411, a: 1.6925856e-31}
-    - DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c_Asset: {r: -5.214433e+16,
-        g: 5.3160916e-17, b: -487.93198, a: 8.523088e-15}
+    - DiffusionProfile_261f48f1fbc94ccbafc421414859c159_Asset: {r: -4.488577e-35, g: 6.9840215e+31, b: 1.02828646e+30, a: -2.334568e+24}
+    - DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c_Asset: {r: 0.0000000016449565, g: -3.1211798e+12, b: -1.1298626e+24, a: 5.154206e-39}
+    - IrisClampColor: {r: 0.51886785, g: 0.51886785, b: 0.51886785, a: 0}
     - Vector2_96879BA: {r: 0.02, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DiffusionProfileAsset: {r: 0.000031162726, g: -4.8898664e-36, b: 4.1490134e+11,
-        a: -2.0871073e-25}
+    - _DiffusionProfileAsset: {r: 0.000031162726, g: -4.8898664e-36, b: 4.1490134e+11, a: -2.0871073e-25}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
@@ -340,5 +343,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_DiffusionProfileReferences:
-  - {fileID: 11400000, guid: 806662ba108f2924e87ff130ceb55b0c, type: 2}
+  - {fileID: 11400000, guid: 58a76e867a605c742aa94f71982ef7e7, type: 2}
   m_MaterialReferences: []

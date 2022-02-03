@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
             public int maxSubdivLevelInsideVolume;
-            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -377,7 +376,7 @@ namespace UnityEngine.Experimental.Rendering
             VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx);
 
             // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
-            int startSubdivisionLevel = ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier()));
+            int startSubdivisionLevel = Mathf.Max(0, ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier())));
             for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevelInSubCell; subdivisionLevel++)
             {
                 // Add the bricks from the probe volume min subdivision level:
@@ -416,6 +415,8 @@ namespace UnityEngine.Experimental.Rendering
 
             cmd.WaitAllAsyncReadbackRequests();
             Graphics.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            CommandBufferPool.Release(cmd);
         }
 
         static bool RastersizeGeometry(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, GPUSubdivisionContext ctx,
@@ -619,7 +620,6 @@ namespace UnityEngine.Experimental.Rendering
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         maxSubdivLevelInsideVolume = subdivLevel,
-                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

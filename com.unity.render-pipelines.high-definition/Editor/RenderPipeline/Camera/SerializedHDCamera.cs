@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing { get; }
 
         // HDRP specific properties
+        public SerializedProperty gateFit;
         public SerializedProperty focusDistance;
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
@@ -37,6 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty deepLearningSuperSamplingUseCustomAttributes;
         public SerializedProperty deepLearningSuperSamplingUseOptimalSettings;
         public SerializedProperty deepLearningSuperSamplingSharpening;
+
+        public SerializedProperty fsrOverrideSharpness;
+        public SerializedProperty fsrSharpness;
 
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
@@ -80,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
 
             // HDRP specific properties
+            gateFit = serializedAdditionalDataObject.FindProperty("physicalParameters.m_GateFit");
             focusDistance = serializedAdditionalDataObject.FindProperty("physicalParameters.m_FocusDistance");
             iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
             shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");
@@ -97,6 +102,9 @@ namespace UnityEditor.Rendering.HighDefinition
             deepLearningSuperSamplingUseCustomAttributes = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseCustomAttributes);
             deepLearningSuperSamplingUseOptimalSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseOptimalSettings);
             deepLearningSuperSamplingSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingSharpening);
+
+            fsrOverrideSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrOverrideSharpness);
+            fsrSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrSharpness);
 
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);

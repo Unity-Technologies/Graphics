@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -31,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
-        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => LightingShaderGraphGUI.SetupLightingKeywordsAndPass;
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateLightingMaterial;
 
         protected override string renderQueue
         {

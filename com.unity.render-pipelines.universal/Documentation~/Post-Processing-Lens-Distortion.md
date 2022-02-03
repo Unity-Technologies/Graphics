@@ -1,5 +1,11 @@
 # Lens Distortion
 
+![Lens Distortion off](Images/post-proc/lens-distortion-off.png)
+<br/>_Scene with Lens Distortion effect turned off._
+
+![Lens Distortion on](Images/post-proc/lens-distortion.png)
+<br/>_Scene with Lens Distortion effect turned on._
+
 The **Lens Distortion** effect distorts the final rendered picture to simulate the shape of a real-world camera lens.
 
 ## Using Lens Distortion

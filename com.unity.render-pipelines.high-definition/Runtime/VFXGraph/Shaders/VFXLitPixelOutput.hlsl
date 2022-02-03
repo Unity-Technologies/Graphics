@@ -1,5 +1,6 @@
 #if (SHADERPASS == SHADERPASS_FORWARD)
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
 
 float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinData builtinData, const PreLightData preLightData, BSDFData bsdfData, const PositionInputs posInput, float3 posRWS)
 {
@@ -36,41 +37,10 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
 
 #ifdef DEBUG_DISPLAY
-    // Same code in ShaderPassForward.shader
-    // Reminder: _DebugViewMaterialArray[i]
-    //   i==0 -> the size used in the buffer
-    //   i>0  -> the index used (0 value means nothing)
-    // The index stored in this buffer could either be
-    //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
-    //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    int bufferSize = _DebugViewMaterialArray[0].x;
-    if (bufferSize != 0)
+    float4 debugColor = 0;
+    if (GetMaterialDebugColor(debugColor, builtinData, posInput, surfaceData, bsdfData))
     {
-        float3 result = float3(1.0, 0.0, 1.0);
-        bool needLinearToSRGB = false;
-
-        // Loop through the whole buffer
-        // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
-        for (int index = 1; index <= bufferSize; index++)
-        {
-            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-            if (indexMaterialProperty != 0)
-            {
-                GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-                //GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-                GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-                GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-            }
-        }
-
-        // TEMP!
-        // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
-        if (!needLinearToSRGB && _DebugAOVOutput == 0)
-            result = SRGBToLinear(max(0, result));
-
-        outColor = float4(result, 1.0);
+        outColor = debugColor;
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)

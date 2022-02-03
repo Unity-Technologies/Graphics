@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("URP-Global-Settings")]
+    [URPHelpURL("urp-global-settings")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
@@ -115,7 +115,8 @@ namespace UnityEngine.Rendering.Universal
                         AssetDatabase.CreateFolder("Assets", folderPath);
                     assetCreated = Create(path);
 
-                    Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                    // TODO: Reenable after next urp template is published
+                    //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
                 }
                 else
                 {

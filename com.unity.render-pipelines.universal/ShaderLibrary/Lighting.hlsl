@@ -220,17 +220,20 @@ LightingData CreateLightingData(InputData inputData, SurfaceData surfaceData)
 half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-    half3 lightColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+    half3 lightDiffuseColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
 
-    lightColor *= surfaceData.albedo;
-
+    half3 lightSpecularColor = half3(0,0,0);
     #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     half smoothness = exp2(10 * surfaceData.smoothness + 1);
 
-    lightColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+    lightSpecularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
     #endif
 
-    return lightColor;
+#if _ALPHAPREMULTIPLY_ON
+    return lightDiffuseColor * surfaceData.albedo * surfaceData.alpha + lightSpecularColor;
+#else
+    return lightDiffuseColor * surfaceData.albedo + lightSpecularColor;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -425,10 +428,6 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 {
-    #ifdef _ALPHAPREMULTIPLY_ON
-    surfaceData.albedo *= surfaceData.alpha;
-    #endif
-
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 

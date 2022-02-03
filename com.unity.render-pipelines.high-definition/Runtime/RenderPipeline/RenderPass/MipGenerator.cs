@@ -212,8 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // So in the end we compute a specific scale for downscale and blur passes at each mip level.
 
                 // Scales for Blur
-                float blurSourceTextureWidth = (float)m_TempDownsamplePyramid[rtIndex].rt.width; // Same size as m_TempColorTargets which is the source for vertical blur
-                float blurSourceTextureHeight = (float)m_TempDownsamplePyramid[rtIndex].rt.height;
+                // Same size as m_TempColorTargets which is the source for vertical blur
+                var hardwareBlurSourceTextureSize = new Vector2Int(m_TempDownsamplePyramid[rtIndex].rt.width, m_TempDownsamplePyramid[rtIndex].rt.height);
+                if (isHardwareDrsOn)
+                    hardwareBlurSourceTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareBlurSourceTextureSize);
+
+                float blurSourceTextureWidth = (float)hardwareBlurSourceTextureSize.x;
+                float blurSourceTextureHeight = (float)hardwareBlurSourceTextureSize.y;
+
                 scaleX = ((float)dstMipWidth / blurSourceTextureWidth);
                 scaleY = ((float)dstMipHeight / blurSourceTextureHeight);
 

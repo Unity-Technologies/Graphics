@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 value[index] = newValue;
                 SetValue(value);
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
             {
                 if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     evt.StopPropagation();
                 }
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             Add(field);
         }
 

@@ -1,28 +1,34 @@
 # Custom Post Process
 
-The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.md). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
+The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volumes](Volumes.md). A custom effect needs two files:
+* A **C# Custom Post Process**(C# file)
+* An associated **FullScreen Shader** (HLSL file).
 
-* **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > HDRP C# Post Process Volume**.
+You can generate a template of each file:
 
-* **FullScreen Shader**: Right click in the Assets folder and select **Create > Shader > HDRP > Post Process**.
+* **C# Custom Post Process**: Right click in the Assets folder and select **Create** > **Rendering** > **HDRP C# Post Process Volume**.
 
-Note that by default, your custom effect does not run if you just add it to a Volume. You also need to add the effect to your Project's list of supported effects. (it's the same list used to order the effect, see the Effect Ordering section).
+* **FullScreen Shader**: Right click in the Assets folder and select **Create** > **Shader** > **HDRP** > **Post Process**.
+
+**Note**: By default, your custom effect doesn't run if you just add it to a Volume. You also need to add the effect to your Project's list of supported effects. (it's the same list used to order the effect, see the Effect Ordering section).
 
 ## Example
 
 This example shows you how to create a **grayscale** effect. To get started:
 
-1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create > Rendering > HDRP C# Post Process Volume**) and call it **GrayScale**. Note that, because of how serialization works in Unity, the file name and the class name must be identical or Unity does not serialize it properly.
+1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create** > **Rendering** > **HDRP C# Post Process Volume**) and call it **GrayScale**.
+
+**Note**: Because of how serialization works in Unity, the file name and the class name must be identical or Unity doesn't serialize it properly.
 
 2. Copy the example code from the [GrayScale C# script section](#CSharp) into your **C# Post Process Volume**.
 
-3. Create a full screen post-process Shader (right click in the Assets folder: **Create > Shader > HDRP > Post Process**) and call it **GrayScale**.
+3. Create a full screen post-process Shader (right click in the Assets folder: **Create** > **Shader** > **HDRP** > **Post Process**) and call it **GrayScale**.
 
 4. Copy the example code from the [GrayScale Shader section](#Shader) into your post-process Shader.
 
-5. Add the **GrayScale** effect to the list of custom post-processes that your Project executes. To do this, go to **Edit > Project Settings > HDRP Default Settings** and, at the bottom of the **After Post Process** list, click on the **+**  and select **GrayScale**.
+5. Add the **GrayScale** effect to the list of custom post-processes that your Project executes. To do this, go to **Edit** > **Project Settings** > **HDRP Default Settings** and, at the bottom of the **After Post Process** list, click on the **+**  and select **GrayScale**.
 
-6. Now you can add the **GrayScale** post-process override to a **Volumes** in the Scene. To change the effect settings, click the small `all` text just below the foldout arrow and adjust with the **Intensity** slider.
+6. Now you can add the **GrayScale** post-process override to **Volumes** in the Scene. To change the effect settings, click the small **all** text just below the foldout arrow and adjust with the **Intensity** slider.
 
 7. Optionally, you can create a custom editor for your post-processing effect. For information on how to do this, see [custom editor](#CustomEditor).
 
@@ -30,8 +36,9 @@ This example shows you how to create a **grayscale** effect. To get started:
 
 ### GrayScale C# script
 
-This is the C# Custom Post Process file. Custom post-process effects store both configuration data and logic in the same class. To create the settings for the effect, you can either use a pre-existing class that inherits from [VolumeParameter<T>](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeParameter-1.html), or, if you want to use a property that the pre-existing classes do not include, create a new class that inherits from VolumeParameter<T>.
-```CSharp
+This is the C# Custom Post Process file. Custom post-process effects store both configuration data and logic in the same class. To create the settings for the effect, you can either use a pre-existing class that inherits from [VolumeParameter<T>](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeParameter-1.html), or, if you want to use a property that the pre-existing classes don't include, create a new class that inherits from VolumeParameter<T>.
+
+```C#
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -76,7 +83,7 @@ This example code uses a `ClampedFloatParameter` that you can clamp to a range. 
 
 * The third parameter represents the maximum value to clamp the property to.
 
-HDRP calls the `IsActive()`function before the `Render` function to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
+HDRP calls the `IsActive()` function before the `Render` function to process the effect. If this function returns `false`, HDRP doesn't process the effect. It's good practice to check every property configuration where the effect either breaks or doesn'thing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
 The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently five injection points:
 
@@ -107,7 +114,10 @@ In the `Render` function, you have access to a [CommandBuffer](https://docs.unit
 
 ### GrayScale Shader
 
-HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs. Note that there are a number of utility functions in [Common.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the Luminance() function to convert a linear RGB value to its luminance equivalent.
+HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs.
+
+There are several utility functions in [Common.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the `Luminance()` function to convert a linear RGB value to its luminance equivalent.
+
 ```glsl
 Shader "Hidden/Shader/GrayScale"
 {
@@ -195,9 +205,12 @@ Shader "Hidden/Shader/GrayScale"
 }
 ```
 
-If none of your Scenes reference the Shader, Unity does not build the Shader and the effect does not work when you run your application outside of the Editor. To resolve this, either add the Shader to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html), or go to **Edit > Project Settings > Graphics** and add the Shader to the **Always Included Shaders** list.
+If none of your Scenes reference the Shader, Unity doesn't build the Shader and the effect doesn't work when you run your application outside of the Editor. To resolve this, do one of the following:
 
-:warning: Note that, when HDRP executes your post-process effect, it uses a render target pooling system. It means that you don't know what the current color buffer contains, which is why you should never use any instructions that could show this color buffer. Do not use transparency, blend modes, or the **clip()** instruction in your Shader, otherwise your effect breaks.
+* Add the Shader to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html)
+* Go to **Edit** > **Project Settings** > **Graphics** and add the Shader to the **Always Included Shaders** list.
+
+**Note**: When HDRP executes your post-process effect, it uses a render target pooling system. It means that you don't know what the current color buffer contains, which is why you should never use any instructions that could display this color buffer. don't use transparency, blend modes, or the **clip()** instruction in your Shader, otherwise your effect breaks.
 
 #### Shader inputs
 
@@ -218,7 +231,7 @@ By default, the Shader template provides you with the following inputs:
 
 HDRP allows you to customize the order of your custom post-processing effect at each injection point. To order your effects:
 
-1. Go to **Edit > Project Settings > Graphics** and select the [HDRP Global Settings](Default-Settings-Window.md) tab.
+1. Go to **Edit** > **Project Settings** > **Graphics** and select the [HDRP Global Settings](Default-Settings-Window.md) tab.
 
 2. Scroll down until you find the **Custom Post Process Orders** section. This section contains three lists, one for each injection point.
 
@@ -245,8 +258,8 @@ HDRP processes effects from the top of the list to the bottom and the order of e
 By default, Unity automatically creates an editor for classes but, if you want more control over how Unity displays certain properties, you can create a custom editor. If you do create a custom editor script, make sure to put it in a folder named **Editor**.
 
 The following is an example of a custom editor for the GrayScale effect:
-```
 
+```C#
 using UnityEditor.Rendering;
 
 using UnityEngine;
@@ -287,11 +300,12 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 
 }
 ```
-This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
+
+This custom editor isn't useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set the `hasAdvancedMode` override to true. Then, inside `OnInspectorGUI`, you can use the `isInAdvancedMode` Boolean to display more properties.
 
 ## Dynamic resolution and DLSS support
 
-If you want to use DLSS and/or dynamic resolution on your pass, and you need to interpolate or sample UVs from color / normal or velocity, you must use the following functions to calculate the correct UVs:
+If you want to use DLSS or dynamic resolution on your pass, and you need to interpolate or sample UVs from color, normal, or velocity, you must use the following functions to calculate the correct UVs:
 
 ```glsl
 #include "Packages/com.unity.render-pipelines.high-dynamic/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -303,20 +317,20 @@ float2 correctUvs = ClampAndScaleUVForBilinearPostProcessTexture(UV); // use the
 
 ```
 
-## TroubleShooting
+## Troubleshooting
 
-If your effect does not display correctly:
+If your effect doesn't display correctly:
 
 * In your Project Settings, make sure this effect is listed under one of the post process order lists (see [Effect Ordering](#EffectOrdering)).
 
-* Check that your effect's Shader compiles and that the reference to the Material in your post process Volume is not null.
+* Check that your effect's Shader compiles and that the reference to the Material in your post process Volume isn't null.
 
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
 * Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
 
-* If your effect does not work with dynamic resolution, use the _PostProcessScreenSize constant to make it fit the size of the screen correctly. You only need to do this when you use dynamic resolution scaling (DRS), and you need normal / velocity and color.
+* If your effect doesn't work with dynamic resolution, use the _PostProcessScreenSize constant to make it fit the size of the screen correctly. You only need to do this when you use dynamic resolution scaling (DRS), and you need normal / velocity and color.
 
-## Known issues and Limitations
+## Known issues and limitations
 
-* Renaming a custom post process class name and file will remove it from the list in HDRP Project Settings causing the effect to not be rendered anymore.
+* Renaming a custom post process class name and file will remove it from the list in HDRP Project Settings causing the effect not to be rendered anymore.

@@ -138,7 +138,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer);
+                if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
+                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer);
+                else
+                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer, builtinParams.depthBuffer);
                 CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, 1);
             }
         }

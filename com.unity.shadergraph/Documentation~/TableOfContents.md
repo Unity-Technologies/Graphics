@@ -102,6 +102,7 @@
         * Lighting
             * [Ambient](Ambient-Node)
             * [Baked GI](Baked-GI-Node)
+            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
             * [Reflection Probe](Reflection-Probe-Node)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)
@@ -114,6 +115,7 @@
         * PBR
             * [Dielectric Specular](Dielectric-Specular-Node)
             * [Metal Reflectance](Metal-Reflectance-Node)
+            * [Fresnel Equation](Fresnel-Equation-Node)
         * Scene
             * [Camera](Camera-Node)
             * [Eye Index](Eye-Index-Node)
@@ -121,6 +123,7 @@
             * [Object](Object-Node)
             * [Scene Color](Scene-Color-Node)
             * [Scene Depth](Scene-Depth-Node)
+            * [Scene Depth Difference](Scene-Depth-Difference-Node)
             * [Screen](Screen-Node)
         * Texture
             * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
@@ -135,10 +138,10 @@
             * [Sample Virtual Texture](Sample-Virtual-Texture-Node)
             * [Sampler State](Sampler-State-Node)
             * [Split Texture Transform](Split-Texture-Transform-Node)
-            * [Texel Size](Texel-Size-Node)
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)
             * [Texture 2D Asset](Texture-2D-Asset-Node)
             * [Texture 3D Asset](Texture-3D-Asset-Node)
+            * [Texture Size](Texture-Size-Node)
     * [Math](Math-Nodes)
         * Advanced
             * [Absolute](Absolute-Node)
@@ -207,6 +210,7 @@
             * [Fresnel Effect](Fresnel-Effect-Node)
             * [Projection](Projection-Node)
             * [Reflection](Reflection-Node)
+            * [Refract](Refract-Node)
             * [Rejection](Rejection-Node)
             * [Rotate About Axis](Rotate-About-Axis-Node)
             * [Sphere Mask](Sphere-Mask-Node)
@@ -255,6 +259,9 @@
               * [ScleraIrisBlend](Sclera-Iris-Blend-Node.md)
               * [ScleraLimbalRing](Sclera-Limbal-Ring-Node.md)
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
+            * Fabric
+                *[ThreadMapDetail](ThreadMapDetail-Node.md)
+            * [UVCombine](UVCombine-Node.md)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)

@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -36,14 +33,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/",
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/"
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override ShaderID shaderID => ShaderID.SG_Lit;
         protected override string raytracingInclude => CoreIncludes.kLitRaytracing;
         protected override string pathtracingInclude => CoreIncludes.kLitPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Lit Subshader", "");

@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -13,6 +15,9 @@ namespace UnityEditor.Rendering.HighDefinition
         RenderTexture m_PreviewTexture;
         Camera[] m_PreviewCameras;
         HDAdditionalCameraData[] m_PreviewAdditionalCameraDatas;
+
+        static readonly Type k_SceneViewCameraOverlay = Type.GetType("UnityEditor.SceneViewCameraOverlay,UnityEditor");
+        static readonly FieldInfo k_SceneViewCameraOverlay_ForceDisable = k_SceneViewCameraOverlay.GetField("forceDisable", BindingFlags.Static | BindingFlags.NonPublic);
 
         void OnEnable()
         {
@@ -30,6 +35,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Say that we are a camera editor preview and not just a regular preview
                 m_PreviewAdditionalCameraDatas[i].isEditorCameraPreview = true;
             }
+
+            // Disable builtin camera overlay
+            k_SceneViewCameraOverlay_ForceDisable.SetValue(null, true);
         }
 
         void OnDisable()
@@ -43,6 +51,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 DestroyImmediate(m_PreviewCameras[i].gameObject);
             m_PreviewCameras = null;
             m_PreviewAdditionalCameraDatas = null;
+
+            // Restore builtin camera overlay
+            k_SceneViewCameraOverlay_ForceDisable.SetValue(null, false);
         }
 
         public override void OnInspectorGUI()

@@ -1,10 +1,10 @@
 # Creating and editing lights at runtime
 
-The High Definition Render Pipeline (HDRP) extends Unity's [Light](https://docs.unity3d.com/Manual/class-Light.html) component with additional data and functionality. To do this, it adds the [HDAdditionalLightData](./api/UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.html) component to the GameObject that the Light component is attached to. Because of this, you cannot create and edit Lights at runtime in the usual way. This document explains how to create an HDRP [Light](Light-Component.md) at runtime and how to edit its properties.
+The High Definition Render Pipeline (HDRP) extends Unity's [Light](https://docs.unity3d.com/Manual/class-Light.html) component with additional data and functionality. To do this, it adds the [HDAdditionalLightData](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData) component to the GameObject that the Light component is attached to. Because of this, you cannot create and edit Lights at runtime in the usual way. This document explains how to create an HDRP [Light](Light-Component.md) at runtime and how to edit its properties.
 
 ## Creating a new light
 
-HDRP provides a utility function that adds a Light component to a GameObject, and sets up its dependencies. The function is `AddHDLight` and it takes an [HDLightTypeAndShape](./api/UnityEngine.Rendering.HighDefinition.HDLightTypeAndShape.html) as a parameter which sets the Light's type and shape.
+HDRP provides a utility function that adds a Light component to a GameObject, and sets up its dependencies. The function is `AddHDLight` and it takes an [HDLightTypeAndShape](xref:UnityEngine.Rendering.HighDefinition.GameObjectExtension.AddHDLight(UnityEngine.GameObject,UnityEngine.Rendering.HighDefinition.HDLightTypeAndShape)) as a parameter which sets the Light's type and shape.
 
 ```
 using UnityEngine;

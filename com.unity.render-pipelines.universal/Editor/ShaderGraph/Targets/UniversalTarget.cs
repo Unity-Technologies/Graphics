@@ -10,6 +10,9 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
+#if HAS_VFX_GRAPH
+using UnityEditor.VFX;
+#endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -69,6 +72,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 
     sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+#if HAS_VFX_GRAPH
+        , IMaySupportVFX, IRequireVFXContext
+#endif
     {
         public override int latestVersion => 1;
 
@@ -77,7 +83,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
-        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] { "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
+        {
+            "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates"
+#if HAS_VFX_GRAPH
+            , "Packages/com.unity.visualeffectgraph/Editor/ShaderGraph/Templates"
+#endif
+        }).ToArray();
         public const string kUberTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
@@ -88,6 +100,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+#if HAS_VFX_GRAPH
+        Toggle m_SupportVFXToggle;
+#endif
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -122,6 +137,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
@@ -289,6 +307,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+
+            // OnAfterMultiDeserialize order is not guaranteed to be hierarchical (target->subtarget).
+            // Update active subTarget (only, since the target is shared and non-active subTargets could override active settings)
+            // after Target has been deserialized and target <-> subtarget references are intact.
+            m_ActiveSubTarget.value.OnAfterParentTargetDeserialized();
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -367,6 +390,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
+
+#if HAS_VFX_GRAPH
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            {
+                // VFX Support
+                if (!(m_ActiveSubTarget.value is UniversalSubTarget))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else
+                {
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                    });
+                }
+            }
+#endif
         }
 
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
@@ -563,6 +603,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
 
+#if HAS_VFX_GRAPH
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
+        }
+
+#endif
+
+        public bool CanSupportVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalLitSubTarget)
+                return true;
+
+            //It excludes:
+            // - UniversalDecalSubTarget
+            // - UniversalSpriteLitSubTarget
+            // - UniversalSpriteUnlitSubTarget
+            // - UniversalSpriteCustomLitSubTarget
+            return false;
+        }
+
+        public bool SupportsVFX()
+        {
+#if HAS_VFX_GRAPH
+            if (!CanSupportVFX())
+                return false;
+
+            return m_SupportVFX;
+#else
+            return false;
+#endif
+        }
+
         [Serializable]
         class UniversalTargetLegacySerialization
         {
@@ -620,7 +702,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
         }
 
-        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target)
+        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             // the surface settings can either be material controlled or target controlled
             if (target.allowMaterialOverride)
@@ -628,15 +710,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // setup material control of via keyword
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
                 pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaModulateOn);
             }
             else
             {
                 // setup target control via define
                 if (target.surfaceType == SurfaceType.Transparent)
+                {
                     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
 
-                if (target.alphaMode == AlphaMode.Premultiply)
-                    pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    // alpha premultiply in shader only needed when alpha is different for diffuse & specular
+                    if ((target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive) && blendModePreserveSpecular)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    else if (target.alphaMode == AlphaMode.Multiply)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+                }
             }
 
             AddAlphaClipControlToPass(ref pass, target);
@@ -811,7 +899,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -849,7 +937,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -887,8 +975,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -925,8 +1013,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1006,7 +1094,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
-            StructFields.Attributes.normalOS,
+            StructFields.Varyings.normalWS,
         };
 
         public static readonly FieldCollection DepthNormals = new FieldCollection()
@@ -1081,7 +1169,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         // used by lit/unlit subtargets
-        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target)
+        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             if (target.allowMaterialOverride)
                 return MaterialControlledRenderState;
@@ -1110,21 +1198,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.Blend(Blend.One, Blend.Zero));
                 }
                 else
+                {
+                    // Lift alpha multiply from ROP to shader in preserve spec for different diffuse and specular blends.
+                    Blend blendSrcRGB = blendModePreserveSpecular ? Blend.One : Blend.SrcAlpha;
+
                     switch (target.alphaMode)
                     {
                         case AlphaMode.Alpha:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Premultiply:
                             result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Additive:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.One, Blend.One, Blend.One));
                             break;
                         case AlphaMode.Multiply:
-                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One)); // Multiply RGB only, keep A
                             break;
                     }
+                }
+
 
                 return result;
             }
@@ -1165,7 +1259,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.On) },
                 { UberSwitchedCullRenderState(target) },
-                { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.ColorMask("ColorMask R") },
             };
 
             return result;
@@ -1477,6 +1571,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
             referenceName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor AlphaModulateOn = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._ALPHAMODULATE_ON,
+            referenceName = ShaderKeywordStrings._ALPHAMODULATE_ON,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

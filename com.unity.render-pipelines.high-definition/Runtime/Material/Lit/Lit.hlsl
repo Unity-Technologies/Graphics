@@ -354,7 +354,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         normalData.normalWS = surfaceData.geomNormalWS;
-        normalData.perceptualRoughness = CLEAR_COAT_PERCEPTUAL_ROUGHNESS;
+        normalData.perceptualRoughness = CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS;
     }
     else
     #endif
@@ -1083,6 +1083,7 @@ struct PreLightData
     float    coatPartLambdaV;
     float3   coatIblR;
     float    coatIblF;               // Fresnel term for view vector
+    float    coatReflectionWeight;   // like reflectionHierarchyWeight but used to distinguish coat contribution between SSR/IBL lighting
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
 
 #if HAS_REFRACTION
@@ -1144,6 +1145,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, clampedNdotV) * bsdfData.coatMask;
+        preLightData.coatReflectionWeight = 0.0;
     }
 
     // Handle IBL + area light + multiscattering.
@@ -1803,7 +1805,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
-                                                    PreLightData   preLightData,
+                                                    // Note: We use inout here with PreLightData to track an extra reflectionHierarchyWeight for the coat, but it should be avoided otherwise
+                                                    inout PreLightData preLightData,
                                                     BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
@@ -1818,21 +1821,49 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ApplyScreenSpaceReflectionWeight(ssrLighting);
 
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    // In case this material has a clear coat, we shou not be using the specularFGD. The condition for it is a combination
-    // of a materia feature and the coat mask.
-    float clampedNdotV = ClampNdotV(preLightData.NdotV);
-    float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
-                                                    lerp(preLightData.specularFGD, F, bsdfData.coatMask)
-                                                    : preLightData.specularFGD);
-    // Set the default weight value
-    reflectionHierarchyWeight  = ssrLighting.a;
 
-    // In case this is a clear coat material, we only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
-    // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
-    // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+    // When this material has a clear coat, we should not be using specularFGD (used for bottom layer lobe) to modulate the coat traced light but coatIblF.
+    // The condition for it is a combination of a material feature and the coat mask.
+
+    // Without coat we use the SSR lighting (traced with coat parameters) and fallback on reflection probes (EvaluateBSDF_Env())
+    // if there's still room in reflectionHierarchyWeight (ie if reflectionHierarchyWeight < 1 in the light loop).
+    //
+    // With the clear coat, the coat-traced SSR light can't be used to contribute for the bottom lobe in general and we still want to use the probe lighting
+    // as a fallback. This requires us to return a reflectionHierarchyWeight < 1 (ie 0 if we didnt add any light for the bottom lobe yet) to the lightloop
+    // regardless of what we consumed for the coat. In turn, in EvaluateBSDF_Env(), we need to track what weight we already used up for the coat lobe via the
+    // current SSR callback to avoid double coat lighting contributions (which would otherwise come from both the SSR and from reflection probes called to
+    // contribute mainly to the bottom lobe). We use a separate coatReflectionWeight for that which we hold in preLightData
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask);
+    {
+        // We use the coat-traced light according to how similar the base lobe roughness is to the coat roughness
+        // (we can assume the coat is always smoother):
+        //
+        // - The smoothness is equal to CLEAR_COAT_PERCEPTUAL_SMOOTHNESS  = (1-CLEAR_COAT_PERCEPTUAL_ROUGHNESS) ie to 0.9,
+        //   We use the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
+        // - The smoothness is inferior to CLEAR_COAT_PERCEPTUAL_SMOOTHNESS - 0.2 (ie 0.7).
+        //   We cannot use the SSR for the base layer.
+        // - The smooothness is within <= 0.2 away (ie 0.7 to 0.9) of CLEAR_COAT_PERCEPTUAL_SMOOTHNESS, we lerp between the two behaviors.
+        float coatSSRLightOnBottomLayerBlendingFactor = lerp(1.0, 0.0, saturate( (bsdfData.perceptualRoughness - CLEAR_COAT_PERCEPTUAL_ROUGHNESS) / 0.2 ) );
+
+        // Use the coat-traced SSR lighting on the bottom layer lobe according to the above and also for the coat itself:
+        lighting.specularReflected = ssrLighting.rgb * (coatSSRLightOnBottomLayerBlendingFactor * preLightData.specularFGD * (1.0 - preLightData.coatIblF) + preLightData.coatIblF);
+        // Note: (1.0 - preLightData.coatIblF) is used like in EvaluateBSDF_ScreenspaceRefraction(), but IBL uses Sq().
+
+        // Important: EvaluateBSDF_SSLighting() assumes it is the first light loop callback that contributes lighting,
+        // we can thus directly set the reflectionHierarchyWeight instead of using UpdateLightingHierarchyWeights().
+
+        // We initialize and keep track of the separate light reflection hierarchy weights but since only reflectionHierarchyWeight is known to the light loop,
+        // normally a min() of both should be returned, but here, we know the coat "consumes" at least as much than the bottom lobe, so the coatReflectionWeight
+        // dont interfere with the reflectionHierarchyWeight value returned:
+        reflectionHierarchyWeight = ssrLighting.a * coatSSRLightOnBottomLayerBlendingFactor;
+        preLightData.coatReflectionWeight = ssrLighting.a;
+    }
+    else
+    {
+        // Set the default weight value
+        reflectionHierarchyWeight = ssrLighting.a;
+        lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
+    }
 
     return lighting;
 }
@@ -1920,7 +1951,8 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                    inout PreLightData preLightData, // inout, see preLightData.coatReflectionWeight
+                                    EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -1993,6 +2025,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         envLighting = F * preLD.rgb;
 
+        // Note: we have the same EnvIntersection weight used for the coat, but NOT the same headroom left to be used in the
+        // hierarchy, so we saved the intersection weight here:
+        float coatWeight = weight;
+
+        // Apply the main lobe weight and update main reflection hierarchyWeight:
+        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+        envLighting *= weight;
+
         // Evaluate the Clear Coat component if needed
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
@@ -2002,7 +2042,15 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
             // Evaluate the Clear Coat color
             float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
-            envLighting += preLightData.coatIblF * preLD.rgb;
+
+            // We adjust the EnvIntersection weight according to "headroom" left < 1 in the coatReflectionWeight and use that weight for the
+            // additionnal (to SSR) coat contribution, if any:
+            UpdateLightingHierarchyWeights(preLightData.coatReflectionWeight, coatWeight);
+            // Note: PreLightData is made inout because of this update to preLightData.coatReflectionWeight.
+            // This is because of an edge case when we mix eg two probes for the main hierarchyWeight, we will be called back again
+            // with another probe after the first one has contributed, and we must thus keep track of the updated coatReflectionWeight too.
+
+            envLighting += preLightData.coatIblF * preLD.rgb * coatWeight;
 
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }
@@ -2015,13 +2063,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // specular transmisted lighting is the remaining of the reflection (let's use this approx)
         // With refraction, we don't care about the clear coat value, only about the Fresnel, thus why we use 'envLighting ='
         envLighting = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance;
+
+        // Apply the main lobe weight and update reflection hierarchyWeight:
+        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+        envLighting *= weight;
     }
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
 
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight * lightData.multiplier;
+    envLighting *= lightData.multiplier;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;

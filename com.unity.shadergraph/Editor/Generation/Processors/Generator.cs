@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.IO;
 using UnityEngine;
@@ -13,56 +14,98 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
+    struct GeneratedShader
+    {
+        public string codeString;
+        public string shaderName;
+        public List<PropertyCollector.TextureInfo> assignedTextures;
+        public string errorMessage;
+    }
+
     class Generator
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
-        GraphData m_GraphData;
-        AbstractMaterialNode m_OutputNode;
-        Target[] m_Targets;
-        List<BlockNode> m_ActiveBlocks;
-        List<BlockNode> m_TemporaryBlocks;
-        GenerationMode m_Mode;
-        string m_Name;
+        // readonly data setup in constructor
+        readonly GraphData m_GraphData;
+        readonly AbstractMaterialNode m_OutputNode;
+        readonly GenerationMode m_Mode;
+        readonly string m_PrimaryShaderFullName;
+        readonly AssetCollection m_AssetCollection;
+        readonly bool m_HumanReadable;
+        readonly ReadOnlyCollection<BlockNode> m_ActiveBlocks;
+        readonly ReadOnlyCollection<Target> m_Targets;
+        readonly ReadOnlyCollection<TargetSetupContext> m_TargetContexts;
+        readonly ReadOnlyCollection<string> m_AdditionalShaderIDs;
 
-        ShaderStringBuilder m_Builder;
-        List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
-        AssetCollection m_assetCollection;
-        bool m_humanReadable;
+        readonly GeneratedShader m_PrimaryShader;
+        readonly List<BlockNode> m_PrimaryShaderTemporaryBlocks;
 
-        public string generatedShader => m_Builder.ToCodeBlock();
-        public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
-        public List<BlockNode> temporaryBlocks => m_TemporaryBlocks;
+        // direct accessors for primary shader results
+        public string generatedShader => m_PrimaryShader.codeString;
+        public List<PropertyCollector.TextureInfo> configuredTextures => m_PrimaryShader.assignedTextures;
+        public List<BlockNode> temporaryBlocks => m_PrimaryShaderTemporaryBlocks;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, bool humanReadable = false)
+        // accessor for all generated shaders
+        public IEnumerable<GeneratedShader> allGeneratedShaders
+        {
+            get
+            {
+                yield return m_PrimaryShader;
+                foreach (var additionalShaderID in m_AdditionalShaderIDs)
+                {
+                    yield return BuildShader(additionalShaderID);
+                }
+            }
+        }
+
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string primaryShaderName, Target[] targets = null, AssetCollection assetCollection = null, bool humanReadable = false)
         {
             m_GraphData = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, GetTargetImplementations(), humanReadable);
-        }
-
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false)
-        {
-            m_GraphData = graphData;
-            m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, targets, humanReadable);
-        }
-
-        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false)
-        {
             m_Mode = mode;
-            m_Name = name;
+            if (!string.IsNullOrEmpty(graphData.path))
+                m_PrimaryShaderFullName = graphData.path + "/" + primaryShaderName;
+            else
+                m_PrimaryShaderFullName = primaryShaderName;
+            m_AssetCollection = assetCollection;
+            m_HumanReadable = humanReadable;
+            m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList().AsReadOnly();
 
-            m_Builder = new ShaderStringBuilder(humanReadable: humanReadable);
-            m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
-            m_assetCollection = assetCollection;
-            m_humanReadable = humanReadable;
-            m_humanReadable = humanReadable;
+            // get list of targets, and gather data from each
+            if (targets == null)
+                targets = GetTargetImplementations();
+            m_Targets = Array.AsReadOnly(targets);
 
-            m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList();
-            m_TemporaryBlocks = new List<BlockNode>();
-            m_Targets = targets;
-            BuildShader();
+            var targetContexts = new TargetSetupContext[m_Targets.Count];
+            for (int i = 0; i < m_Targets.Count; i++)
+            {
+                targetContexts[i] = new TargetSetupContext(m_AssetCollection);
+                m_Targets[i].Setup(ref targetContexts[i]);
+                targetContexts[i].SetupFinalize();
+            }
+            m_TargetContexts = Array.AsReadOnly(targetContexts);
+
+            // build list of all the additional shader ids
+            var additionalShaderIDs = new List<string>();
+            for (int i = 0; i < m_TargetContexts.Count; i++)
+            {
+                foreach (var subShader in m_TargetContexts[i].subShaders)
+                {
+                    // ignore subshaders without an additionalShaderID -- those are for the primary shader
+                    if (string.IsNullOrEmpty(subShader.additionalShaderID))
+                        continue;
+
+                    if (!additionalShaderIDs.Contains(subShader.additionalShaderID))
+                        additionalShaderIDs.Add(subShader.additionalShaderID);
+                }
+            }
+            m_AdditionalShaderIDs = additionalShaderIDs.AsReadOnly();
+
+            m_PrimaryShaderTemporaryBlocks = new List<BlockNode>();
+
+            // build the primary shader immediately (and populate the temporary block list for it)
+            m_PrimaryShader = BuildShader(null, m_PrimaryShaderTemporaryBlocks);
         }
 
         Target[] GetTargetImplementations()
@@ -119,8 +162,31 @@ namespace UnityEditor.ShaderGraph
             return activeFields;
         }
 
-        void BuildShader()
+        GeneratedShader ErrorShader(string shaderName, string errorMessage)
         {
+            Debug.LogError(errorMessage);
+
+            var codeString = ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+
+            return new GeneratedShader()
+            {
+                codeString = codeString,
+                shaderName = shaderName,
+                assignedTextures = null,
+                errorMessage = errorMessage
+            };
+        }
+
+        // temporary used by BuildShader()
+        ShaderStringBuilder m_Builder;
+        GeneratedShader BuildShader(string additionalShaderID, List<BlockNode> outTemporaryBlocks = null)
+        {
+            bool isPrimaryShader = string.IsNullOrEmpty(additionalShaderID);
+            string shaderName =
+                isPrimaryShader ?
+                    m_PrimaryShaderFullName :
+                    additionalShaderID.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
+
             var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
             bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
             if (m_OutputNode == null)
@@ -157,21 +223,16 @@ namespace UnityEditor.ShaderGraph
                     });
                 }
             }
-            string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+
+            // Send an action about our current variant usage. This will either add or clear a warning if it exists
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            m_GraphData.owner?.graphDataStore?.Dispatch(action);
+
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
-                string graphName = "";
-                if (m_GraphData.owner != null)
-                {
-                    if (path != null)
-                    {
-                        graphName = Path.GetFileNameWithoutExtension(path);
-                    }
-                }
-                Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
-
-                m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
-                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                // ideally we would not rely on the graph having an asset guid / asset path here (to support compiling asset-less graph datas)
+                string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+                return ErrorShader(shaderName, $"Error in Shader Graph {path}: {ShaderKeyword.kVariantLimitWarning}");
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -183,11 +244,6 @@ namespace UnityEditor.ShaderGraph
             // Collect excess shader properties from the TargetImplementation
             foreach (var target in m_Targets)
             {
-                // TODO: Setup is required to ensure all Targets are initialized
-                // TODO: Find a way to only require this once
-                TargetSetupContext context = new TargetSetupContext();
-                target.Setup(ref context);
-
                 target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
@@ -195,41 +251,88 @@ namespace UnityEditor.ShaderGraph
             // (to ensure no rogue target or pass starts adding more properties later..)
             shaderProperties.SetReadOnly();
 
-            m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
+            // initialize builder
+            m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
+            m_Builder.AppendLine(@"Shader ""{0}""", shaderName);
             using (m_Builder.BlockScope())
             {
+                var shaderDependencies = new List<ShaderDependency>();
+                var shaderCustomEditors = new List<ShaderCustomEditor>();
+                string shaderCustomEditor = typeof(GenericShaderGraphMaterialGUI).FullName;
+                string shaderFallback = "Hidden/Shader Graph/FallbackError";
+
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
-                for (int i = 0; i < m_Targets.Length; i++)
+                for (int i = 0; i < m_Targets.Count; i++)
                 {
-                    TargetSetupContext context = new TargetSetupContext(m_assetCollection);
+                    var context = m_TargetContexts[i];
 
-                    // Instead of setup target, we can also just do get context
-                    m_Targets[i].Setup(ref context);
-
-                    var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, m_TemporaryBlocks);
-                    foreach (var subShader in context.subShaders)
+                    // process the subshaders
+                    var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, outTemporaryBlocks);
+                    foreach (SubShaderDescriptor subShader in context.subShaders)
                     {
+                        // only generate subshaders that belong to the current shader we are building
+                        if (subShader.additionalShaderID != additionalShaderID)
+                            continue;
+
                         GenerateSubShader(i, subShader, subShaderProperties);
-                    }
 
-                    var customEditor = context.defaultShaderGUI;
-                    if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
-                    {
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
-                    }
+                        // pull out shader data from the subshader
+                        if (subShader.shaderDependencies != null)
+                            shaderDependencies.AddRange(subShader.shaderDependencies);
 
-                    foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
-                    {
-                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
-                    }
+                        if (subShader.shaderCustomEditor != null)
+                            shaderCustomEditor = subShader.shaderCustomEditor;
 
-                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
+                        if (subShader.shaderCustomEditors != null)
+                            shaderCustomEditors.AddRange(subShader.shaderCustomEditors);
+
+                        if (subShader.shaderFallback != null)
+                            shaderFallback = subShader.shaderFallback;
+                    }
                 }
 
-                m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
+                // build shader level data
+                if (!string.IsNullOrEmpty(shaderCustomEditor))
+                    m_Builder.AppendLine($"CustomEditor \"{shaderCustomEditor}\"");
+
+                // output custom editors in deterministic order, and only use the first entry for each pipeline asset type
+                shaderCustomEditors.Sort();
+                string lastRenderPipelineAssetType = null;
+                foreach (var customEditor in shaderCustomEditors)
+                {
+                    if (customEditor.renderPipelineAssetType != lastRenderPipelineAssetType)
+                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{customEditor.shaderGUI}\" \"{customEditor.renderPipelineAssetType}\"");
+                    lastRenderPipelineAssetType = customEditor.renderPipelineAssetType;
+                }
+
+                // output shader dependencies in deterministic order, and only use the first entry for each dependency name
+                shaderDependencies.Sort();
+                string lastDependencyName = null;
+                foreach (var shaderDependency in shaderDependencies)
+                {
+                    if (shaderDependency.dependencyName != lastDependencyName)
+                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{shaderDependency.shaderName}\"");
+                    lastDependencyName = shaderDependency.dependencyName;
+                }
+
+                if (string.IsNullOrEmpty(shaderFallback))
+                    m_Builder.AppendLine("FallBack off");
+                else
+                    m_Builder.AppendLine($"FallBack \"{shaderFallback}\"");
             }
 
-            m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
+            var generatedShader = new GeneratedShader()
+            {
+                codeString = m_Builder.ToCodeBlock(),
+                shaderName = shaderName,
+                assignedTextures = shaderProperties.GetConfiguredTextures(),
+                errorMessage = null
+            };
+
+            // kill builder to ensure it doesn't get used outside of this function
+            m_Builder = null;
+
+            return generatedShader;
         }
 
         void GenerateSubShader(int targetIndex, SubShaderDescriptor descriptor, PropertyCollector subShaderProperties)
@@ -261,6 +364,12 @@ namespace UnityEditor.ShaderGraph
                     // Check masternode fields for valid passes
                     if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);
+                }
+
+                if (descriptor.usePassList != null)
+                {
+                    foreach (var usePass in descriptor.usePassList)
+                        m_Builder.AppendLine($"UsePass \"{usePass}\"");
                 }
             }
         }
@@ -310,7 +419,7 @@ namespace UnityEditor.ShaderGraph
 
                             // We need to make a list of all of the temporary blocks added
                             // (This is used by the PreviewManager to generate a PreviewProperty)
-                            outTemporaryBlockNodes.Add(block);
+                            outTemporaryBlockNodes?.Add(block);
                         }
                     }
                 }
@@ -500,7 +609,7 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
 
             // Function Registry
-            var functionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var functionBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
             var graphIncludes = new IncludeCollection();
             var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes, true);
 
@@ -554,7 +663,7 @@ namespace UnityEditor.ShaderGraph
 
             // Render State
             Profiler.BeginSample("RenderState");
-            using (var renderStateBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var renderStateBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 // Render states need to be separated by RenderState.Type
                 // The first passing ConditionalRenderState of each type is inserted
@@ -584,7 +693,7 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
             // Pragmas
             Profiler.BeginSample("Pragmas");
-            using (var passPragmaBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var passPragmaBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 if (pass.pragmas != null)
                 {
@@ -608,7 +717,7 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
             // Keywords
             Profiler.BeginSample("Keywords");
-            using (var passKeywordBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var passKeywordBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 if (pass.keywords != null)
                 {
@@ -629,7 +738,7 @@ namespace UnityEditor.ShaderGraph
             // -----------------------------
             // Generated structs and Packing code
             Profiler.BeginSample("StructsAndPacking");
-            var interpolatorBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var interpolatorBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
 
             if (passStructs != null)
             {
@@ -649,7 +758,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, m_humanReadable, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, m_HumanReadable, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -677,7 +786,7 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         ShaderStringBuilder localInterpolatorBuilder; // GenerateInterpolatorFunctions do the allocation
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, m_humanReadable, out localInterpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, m_HumanReadable, out localInterpolatorBuilder);
                         interpolatorBuilder.Concat(localInterpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
@@ -695,13 +804,13 @@ namespace UnityEditor.ShaderGraph
 
             // Generated String Builders for all struct types
             Profiler.BeginSample("StructTypes");
-            var passStructBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var passStructBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
             if (passStructs != null)
             {
-                var structBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+                var structBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
                 foreach (StructDescriptor shaderStruct in passStructs)
                 {
-                    GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, m_humanReadable, out structBuilder);
+                    GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, m_HumanReadable, out structBuilder);
                     structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
@@ -715,7 +824,7 @@ namespace UnityEditor.ShaderGraph
             // Graph Vertex
 
             Profiler.BeginSample("GraphVertex");
-            var vertexBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var vertexBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
 
             // If vertex modification enabled
             if (activeFields.baseInstance.Contains(Fields.GraphVertex) && vertexSlots != null)
@@ -724,8 +833,8 @@ namespace UnityEditor.ShaderGraph
                 string vertexGraphInputName = "VertexDescriptionInputs";
                 string vertexGraphOutputName = "VertexDescription";
                 string vertexGraphFunctionName = "VertexDescriptionFunction";
-                var vertexGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
-                var vertexGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+                var vertexGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
+                var vertexGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
 
                 // Build vertex graph outputs
                 // Add struct fields to active fields
@@ -752,7 +861,7 @@ namespace UnityEditor.ShaderGraph
                 Profiler.EndSample();
 
                 // Generate final shader strings
-                if (m_humanReadable)
+                if (m_HumanReadable)
                 {
                     vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
                     vertexBuilder.AppendNewLine();
@@ -779,8 +888,8 @@ namespace UnityEditor.ShaderGraph
             string pixelGraphInputName = "SurfaceDescriptionInputs";
             string pixelGraphOutputName = "SurfaceDescription";
             string pixelGraphFunctionName = "SurfaceDescriptionFunction";
-            var pixelGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
-            var pixelGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var pixelGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
+            var pixelGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
 
             // Build pixel graph outputs
             // Add struct fields to active fields
@@ -804,7 +913,7 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphInputName,
                 pass.virtualTextureFeedback);
 
-            using (var pixelBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var pixelBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 // Generate final shader strings
                 pixelBuilder.AppendLines(pixelGraphOutputBuilder.ToString());
@@ -828,7 +937,7 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Graph Keywords
             Profiler.BeginSample("GraphKeywords");
-            using (var keywordBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var keywordBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 keywordCollector.GetKeywordsDeclaration(keywordBuilder, m_Mode);
                 if (keywordBuilder.length == 0)
@@ -840,7 +949,7 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Graph Properties
             Profiler.BeginSample("GraphProperties");
-            using (var propertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var propertyBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 subShaderProperties.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision);
 
@@ -865,48 +974,9 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
 
             // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                // Hybrid Renderer V1 requires some magic defines to work, which we enable
-                // if the shader graph has a nonzero amount of DOTS instanced properties.
-                // This can be removed once Hybrid V1 is removed.
-#if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsProperties)
-                {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                }
-#endif
-
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
             // Graph Defines
             Profiler.BeginSample("GraphDefines");
-            using (var graphDefines = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var graphDefines = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
 
@@ -1010,7 +1080,7 @@ namespace UnityEditor.ShaderGraph
 
             // Debug output all active fields
 
-            using (var debugBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
+            using (var debugBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable))
             {
                 if (isDebug)
                 {
@@ -1057,7 +1127,7 @@ namespace UnityEditor.ShaderGraph
             // Process Template
             Profiler.BeginSample("ProcessTemplate");
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_assetCollection, m_humanReadable);
+                isDebug, sharedTemplateDirectories, m_AssetCollection, m_HumanReadable);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
 

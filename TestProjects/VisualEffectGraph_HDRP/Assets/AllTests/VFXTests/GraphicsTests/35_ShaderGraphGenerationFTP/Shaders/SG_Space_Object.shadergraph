@@ -20,7 +20,12 @@
         }
     ],
     "m_Keywords": [],
-    "m_CategoryData": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "696524b41c9c45dda2111626cacc7440"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "d413061f341c486dbc35a1b422318992"
@@ -371,7 +376,8 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "Shader Graphs",
     "m_GraphPrecision": 1,
@@ -382,6 +388,9 @@
     "m_ActiveTargets": [
         {
             "m_Id": "68788090772740d49e759c18331b54b2"
+        },
+        {
+            "m_Id": "cb3413e6c68149deb11e673457e2a58b"
         }
     ]
 }
@@ -548,6 +557,8 @@
     "m_DefaultReferenceName": "IntersectionThickness",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1079,6 +1090,8 @@
     "m_DefaultReferenceName": "_Color",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1089,7 +1102,32 @@
         "b": 1.0,
         "a": 1.0
     },
+    "isMainColor": false,
     "m_ColorMode": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "696524b41c9c45dda2111626cacc7440",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "68ac1a16b41641bebcd5be84c002f8d8"
+        },
+        {
+            "m_Id": "87361e8f0cdb472092bae672ce17b70a"
+        },
+        {
+            "m_Id": "aea369c4b3d349f98b512911e7d7dbac"
+        },
+        {
+            "m_Id": "15ce4215a73f4500bd1a8ed44a8787b6"
+        },
+        {
+            "m_Id": "e138cd564a8049bdb9d02264f0487a3f"
+        }
+    ]
 }
 
 {
@@ -1254,8 +1292,15 @@
     "m_SupportLodCrossFade": false,
     "m_DoubleSidedMode": 0,
     "m_DOTSInstancing": false,
-    "m_Version": 0,
-    "m_FirstTimeMigrationExecuted": true,
+    "m_Tessellation": false,
+    "m_TessellationMode": 0,
+    "m_TessellationFactorMinDistance": 20.0,
+    "m_TessellationFactorMaxDistance": 50.0,
+    "m_TessellationFactorTriangleSize": 100.0,
+    "m_TessellationShapeFactor": 0.75,
+    "m_TessellationBackFaceCullEpsilon": -0.25,
+    "m_TessellationMaxDisplacement": 0.009999999776482582,
+    "m_Version": 1,
     "inspectorFoldoutMask": 0
 }
 
@@ -1311,6 +1356,8 @@
     "m_DefaultReferenceName": "InnerSpherePosition",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1630,6 +1677,8 @@
     "m_DefaultReferenceName": "InnerSphereRadius",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1859,6 +1908,26 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
+    "m_ObjectId": "cb3413e6c68149deb11e673457e2a58b",
+    "m_ActiveSubTarget": {
+        "m_Id": "d7bd14cc6c154f53a33b4009c1d1e093"
+    },
+    "m_AllowMaterialOverride": false,
+    "m_SurfaceType": 0,
+    "m_ZTestMode": 4,
+    "m_ZWriteControl": 0,
+    "m_AlphaMode": 0,
+    "m_RenderFace": 2,
+    "m_AlphaClip": false,
+    "m_CastShadows": true,
+    "m_ReceiveShadows": true,
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": true
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "cbbcc4e3eb9e44c4846749c8e8091499",
@@ -2011,6 +2080,12 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget",
+    "m_ObjectId": "d7bd14cc6c154f53a33b4009c1d1e093"
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "d8382b4b47e648b5825b65016a9b66b5",
     "m_Id": 1,
@@ -2070,6 +2145,8 @@
     "m_DefaultReferenceName": "IntersectionColor",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2080,6 +2157,7 @@
         "b": 0.0,
         "a": 0.0
     },
+    "isMainColor": false,
     "m_ColorMode": 0
 }
 

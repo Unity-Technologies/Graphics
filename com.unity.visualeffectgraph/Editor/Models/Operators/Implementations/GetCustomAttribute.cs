@@ -28,23 +28,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXAttribute currentAttribute
-        {
-            get
-            {
-                return new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
-            }
-        }
+        private VFXAttribute currentAttribute => new(attribute, CustomAttributeUtility.GetValueType(AttributeType));
 
-        override public string libraryName { get { return "Get Custom Attribute"; } }
+        public override string libraryName { get; } = "Get Attribute: custom";
 
-        override public string name
-        {
-            get
-            {
-                return "Get " + attribute + " (" + AttributeType.ToString() + ")";
-            }
-        }
+        public override string name => $"Get {attribute} {AttributeType})";
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = currentAttribute;

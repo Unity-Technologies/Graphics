@@ -8,7 +8,7 @@ templates:
       - vfx
       - config
       - hdrp
-    include_prepack_step: True
+    include_prepack_step: False
   - name: Universal Template
     id: universal_template
     packagename: com.unity.template-universal
@@ -16,7 +16,7 @@ templates:
       - core
       - shadergraph
       - universal
-    include_prepack_step: True
+    include_prepack_step: False
 platforms:
   - name: Win
   - name: OSX

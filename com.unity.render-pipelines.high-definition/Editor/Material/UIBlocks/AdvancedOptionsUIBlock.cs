@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty specularOcclusionMode = null;
-        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         MaterialProperty addPrecomputedVelocity = null;
         const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
@@ -102,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if ((m_Features & Features.EmissionGI) != 0)
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                materialEditor.LightmapEmissionFlagsProperty(0, true);
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();

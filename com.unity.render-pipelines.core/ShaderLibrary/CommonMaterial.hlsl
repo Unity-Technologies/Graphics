@@ -18,6 +18,7 @@
 #define CLEAR_COAT_ROUGHNESS 0.01
 #define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
+#define CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS 0.0 // For screen space reflections and ray traced reflections, we want to have a purely smooth surface to map the envrionement light behavior
 
 //-----------------------------------------------------------------------------
 // Helper functions for roughness
@@ -136,6 +137,11 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
 void ConvertRoughnessTAndAnisotropyToRoughness(real roughnessT, real anisotropy, out real roughness)
 {
     roughness = roughnessT / (1 + anisotropy);
+}
+
+real ConvertRoughnessTAndBToRoughness(real roughnessT, real roughnessB)
+{
+    return 0.5 * (roughnessT + roughnessB);
 }
 
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)

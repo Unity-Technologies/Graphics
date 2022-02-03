@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("sampleCount")]
-        private NoInterpClampedIntParameter m_SampleCount = new NoInterpClampedIntParameter(8, 4, 64);
+        private NoInterpClampedIntParameter m_SampleCount = new NoInterpClampedIntParameter(10, 4, 64);
 
         ContactShadows()
         {

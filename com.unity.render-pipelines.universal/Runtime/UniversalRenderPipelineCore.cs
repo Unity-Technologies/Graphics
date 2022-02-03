@@ -15,6 +15,36 @@ namespace UnityEngine.Rendering.Universal
         Subtractive,
     };
 
+    /// <summary>
+    /// Enumeration that indicates what kind of image scaling is occurring if any
+    /// </summary>
+    internal enum ImageScalingMode
+    {
+        /// No scaling
+        None,
+
+        /// Upscaling to a larger image
+        Upscaling,
+
+        /// Downscaling to a smaller image
+        Downscaling
+    }
+
+    /// <summary>
+    /// Enumeration that indicates what kind of upscaling filter is being used
+    /// </summary>
+    internal enum ImageUpscalingFilter
+    {
+        /// Bilinear filtering
+        Linear,
+
+        /// Nearest-Neighbor filtering
+        Point,
+
+        /// FidelityFX Super Resolution
+        FSR
+    }
+
     public struct RenderingData
     {
         public CullingResults cullResults;
@@ -43,6 +73,11 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
         public bool supportsLightLayers;
+
+        /// <summary>
+        /// True if additional lights enabled.
+        /// </summary>
+        public bool supportsAdditionalLights;
     }
 
     public struct CameraData
@@ -105,6 +140,10 @@ namespace UnityEngine.Rendering.Universal
         internal int pixelHeight;
         internal float aspectRatio;
         public float renderScale;
+        internal ImageScalingMode imageScalingMode;
+        internal ImageUpscalingFilter upscalingFilter;
+        internal bool fsrOverrideSharpness;
+        internal float fsrSharpness;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;
@@ -117,9 +156,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
-#endif
         internal bool requireSrgbConversion
         {
             get
@@ -159,10 +196,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+#pragma warning restore 0618
+                bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -174,9 +214,7 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         internal XRPass xr;
-
-        [Obsolete("Please use xr.enabled instead.")]
-        public bool isStereoEnabled;
+        internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
@@ -207,6 +245,15 @@ namespace UnityEngine.Rendering.Universal
         /// Camera position in world space.
         /// </summary>
         public Vector3 worldSpaceCameraPos;
+
+        /// <summary>
+        /// Final background color in the active color space.
+        /// </summary>
+        public Color backgroundColor;
+
+        /// Camera at the top of the overlay camera stack
+        /// </summary>
+        public Camera baseCamera;
     }
 
     public struct ShadowData
@@ -293,6 +340,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
+        public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
 
@@ -323,10 +371,22 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
+    /// <summary>
+    /// Settings used for Post Processing.
+    /// </summary>
     public struct PostProcessingData
     {
+        /// <summary>
+        /// The <c>ColorGradingMode</c> to use.
+        /// </summary>
+        /// <seealso cref="ColorGradingMode"/>
         public ColorGradingMode gradingMode;
+
+        /// <summary>
+        /// The size of the Look Up Table (LUT)
+        /// </summary>
         public int lutSize;
+
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
@@ -388,6 +448,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+        public static readonly string PointSampling = "_POINT_SAMPLING";
+        public static readonly string Rcas = "_RCAS";
+        public static readonly string Gamma20 = "_GAMMA_20";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
@@ -456,40 +519,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Checks if a camera is rendering in stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.enabled instead.")]
-        public static bool IsStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-        }
-
-        /// <summary>
         /// Returns the current render pipeline asset for the current quality setting.
         /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
         /// </summary>
         public static UniversalRenderPipelineAsset asset
         {
             get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-        }
-
-        /// <summary>
-        /// Checks if a camera is rendering in MultiPass stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.singlePassEnabled instead.")]
-        static bool IsMultiPassStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return false;
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
@@ -526,13 +561,16 @@ namespace UnityEngine.Rendering.Universal
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
+            int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
+            int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
+
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
                 desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
@@ -541,8 +579,9 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
-                desc.width = camera.pixelWidth;
-                desc.height = camera.pixelHeight;
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
+
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
@@ -561,6 +600,19 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // The way RenderTextures handle MSAA fallback when an unsupported sample count of 2 is requested (falling back to numSamples = 1), differs fom the way
+            // the fallback is handled when setting up the Vulkan swapchain (rounding up numSamples to 4, if supported). This caused an issue on Mali GPUs which don't support
+            // 2x MSAA.
+            // The following code makes sure that on Vulkan the MSAA unsupported fallback behaviour is consistent between RenderTextures and Swapchain.
+            // TODO: we should review how all backends handle MSAA fallbacks and move these implementation details in engine code.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                // if the requested number of samples is 2, and the supported value is 1x, it means that 2x is unsupported on this GPU.
+                // Then we bump up the requested value to 4.
+                if (desc.msaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
+                    desc.msaaSamples = 4;
+            }
 
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to

@@ -25,7 +25,6 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
 
-
 ## Inputs
 
 [!include[nodes-inputs](./snippets/nodes-inputs.md)]

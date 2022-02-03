@@ -20,6 +20,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 parentElement, nodeBase, setNodesAsDirtyCallback, updateNodeViewsCallback,
                 "Use Global Mip Bias", "Change Enable Global Mip Bias",
                 () => node.enableGlobalMipBias, (val) => node.enableGlobalMipBias = val);
+            PropertyDrawerUtils.AddCustomEnumProperty<Texture2DMipSamplingMode>(
+                parentElement, nodeBase, setNodesAsDirtyCallback, updateNodeViewsCallback,
+                "Mip Sampling Mode", "Change Mip Sampling Mode",
+                () => node.mipSamplingMode, (val) => node.mipSamplingMode = val);
         }
     }
 }

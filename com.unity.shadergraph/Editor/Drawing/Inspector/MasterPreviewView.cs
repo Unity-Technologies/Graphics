@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 texture = m_PreviewRenderHandle.texture;
             }
 
-            var image = new Image { name = "preview", image = texture };
+            var image = new Image { name = "preview", image = texture, scaleMode = ScaleMode.ScaleAndCrop };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
             image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;

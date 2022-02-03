@@ -53,8 +53,6 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor viewDirectionWS = new FieldDescriptor(Varyings.name, "viewDirectionWS", "VARYINGS_NEED_VIEWDIRECTION_WS", ShaderValueType.Float3,
-                subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
@@ -63,6 +61,15 @@ namespace UnityEditor.ShaderGraph
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
             public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
                 "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
+
+            // VFX
+            public static FieldDescriptor worldToElement0 = new FieldDescriptor(Varyings.name, "worldToElement0", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement1 = new FieldDescriptor(Varyings.name, "worldToElement1", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement2 = new FieldDescriptor(Varyings.name, "worldToElement2", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+
+            public static FieldDescriptor elementToWorld0 = new FieldDescriptor(Varyings.name, "elementToWorld0", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld1 = new FieldDescriptor(Varyings.name, "elementToWorld1", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld2 = new FieldDescriptor(Varyings.name, "elementToWorld2", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
         }
 
         public struct VertexDescriptionInputs
@@ -128,6 +135,11 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(VertexDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor NDCPosition = new FieldDescriptor(VertexDescriptionInputs.name, "NDCPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor PixelPosition = new FieldDescriptor(VertexDescriptionInputs.name, "PixelPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor uv0 = new FieldDescriptor(VertexDescriptionInputs.name, "uv0", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv1 = new FieldDescriptor(VertexDescriptionInputs.name, "uv1", "", ShaderValueType.Float4,
@@ -213,6 +225,11 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor NDCPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "NDCPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor PixelPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "PixelPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor uv0 = new FieldDescriptor(SurfaceDescriptionInputs.name, "uv0", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv1 = new FieldDescriptor(SurfaceDescriptionInputs.name, "uv1", "", ShaderValueType.Float4,
@@ -235,6 +252,10 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
+
+            // VFX
+            public static FieldDescriptor worldToElement = new FieldDescriptor(SurfaceDescriptionInputs.name, "worldToElement", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor elementToWorld = new FieldDescriptor(SurfaceDescriptionInputs.name, "elementToWorld", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
         }
     }
 }
