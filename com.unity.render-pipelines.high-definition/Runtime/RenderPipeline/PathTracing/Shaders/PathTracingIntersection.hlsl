@@ -34,9 +34,7 @@ struct PathIntersection
     // Write Only
     float3 value;
     float t; // Can we remove it?
-    float3 rayOrigin; // NEW
-    float3 rayDirection; // NEW
-
+    RayDesc ray; // NEW
 };
 
 int GetCurrentDepth(PathIntersection pathIntersection)

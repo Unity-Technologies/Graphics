@@ -1,5 +1,5 @@
-// Set the max recursion depth to the desired user-facing value + 1
-#pragma max_recursion_depth 11
+// We do not rely on recursion, beyong shooting shadow and random walk rays from the intersected surface
+#pragma max_recursion_depth 2
 
 // HDRP include
 #define SHADER_TARGET 50
@@ -48,6 +48,8 @@ float3 GetMaterialMissValue()
 [shader("miss")]
 void MissCamera(inout PathIntersection payload : SV_RayPayload)
 {
+    payload.t = FLT_INF;
+
     // In indirect-only mode, it makes more sense to return a null value
     if (_RaytracingMinRecursion > 1)
     {
@@ -72,7 +74,6 @@ void MissCamera(inout PathIntersection payload : SV_RayPayload)
 
         // Compute volumetric scattering
         payload.value = 0.0;
-        payload.t = FLT_MAX;
         float pdf = 1.0;
         bool sampleLocalLights;
         if (SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.t, pdf, sampleLocalLights, lightPosition))
@@ -147,7 +148,7 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDesc ray)
+void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload)
 {
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
@@ -171,8 +172,8 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
     payload.cone.width = 0.0;
 
     // Generate the ray descriptor for this pixel
-    ray.TMin = _RaytracingCameraNearPlane;
-    ray.TMax = FLT_INF;
+    payload.ray.TMin = _RaytracingCameraNearPlane;
+    payload.ray.TMax = FLT_INF;
 
     // We need the camera forward direction in both types of projection
     float3 cameraDirection = GetViewForwardDir();
@@ -180,14 +181,14 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
     // Compute the ray's origin and direction, for either perspective or orthographic projection
     if (IsPerspectiveProjection())
     {
-        ray.Origin = GetPrimaryCameraPosition();
-        ray.Direction = -normalize(mul(jitteredPixelCoord, _PixelCoordToViewDirWS).xyz);
+        payload.ray.Origin = GetPrimaryCameraPosition();
+        payload.ray.Direction = -normalize(mul(jitteredPixelCoord, _PixelCoordToViewDirWS).xyz);
 
         // Use planar clipping, to match rasterization
-        float dotDirection = dot(cameraDirection, ray.Direction);
-        ray.TMin /= dotDirection;
+        float dotDirection = dot(cameraDirection, payload.ray.Direction);
+        payload.ray.TMin /= dotDirection;
 
-        ApplyDepthOfField(tiledPixelCoord, dotDirection, ray.Origin, ray.Direction);
+        ApplyDepthOfField(tiledPixelCoord, dotDirection, payload.ray.Origin, payload.ray.Direction);
     }
     else // Orthographic projection
     {
@@ -196,8 +197,8 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
                                     -2.0 * jitteredPixelCoord.y / pixelResolution.y + 1.0,
                                     0.0, 0.0);
 
-        ray.Origin = mul(_InvViewProjMatrix, screenCoord).xyz;
-        ray.Direction = cameraDirection;
+        payload.ray.Origin = mul(_InvViewProjMatrix, screenCoord).xyz;
+        payload.ray.Direction = cameraDirection;
     }
 }
 
@@ -208,41 +209,31 @@ void TracePath()
     uint2 pixelCoord = DispatchRaysIndex().xy;
 
     // Generate the camera segment of our path
-    RayDesc ray;
     PathIntersection payload;
-    GenerateCameraRay(pixelCoord, payload, ray);
+    GenerateCameraRay(pixelCoord, payload);
 
     // Trace our camera ray
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, payload);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, payload.ray, payload);
 
     // These are the quantities we want to compute for the path
     float3 value = payload.value;
     float alpha;
 
-    // Test if something was hit
+    // Test if something was hit from our camera ray
     if (payload.t < FLT_INF)
     {
         // If we hit something, always set alpha/presence to 1.0
         alpha = 1.0;
 
-        // Prepare ray decription for continuation rays
-        // FIXME Explain
-        ray.TMin = 0.0;
-        ray.TMax = 2.0 * _RaytracingRayBias;
-
         // Iterate over each path segments, up to a specified max recursion value
-        for (uint iter = 1; iter < _RaytracingMaxRecursion && any(payload.rayDirection); iter++)
+        for (uint iter = 1; iter < _RaytracingMaxRecursion && any(payload.ray.Direction); iter++)
         {
             // Update the payload
             //payload.pixelCoord = pixelCoord;
             payload.remainingDepth = _RaytracingMaxRecursion - iter;
 
-            // Update our continuation ray, from the payload
-            ray.Origin = payload.rayOrigin;
-            ray.Direction = payload.rayDirection;
-
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, payload.ray, payload);
 
             // Add the value for this path segment
             value += payload.value;

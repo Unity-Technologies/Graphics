@@ -82,11 +82,14 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Such an invalid remainingDepth value means we are called from a subsurface computation
-    if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
+    if (pathIntersection.remainingDepth > _RaytracingMaxRecursion) // FIXME SegmentID
     {
         pathIntersection.value = fragInput.tangentToWorld[2]; // Returns normal
         return;
     }
+
+    // FIXME explain
+    pathIntersection.ray.Direction = 0.0;
 
     // Grab depth information
     uint currentDepth = GetCurrentDepth(pathIntersection);
@@ -130,11 +133,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
 
-    // Get current path throughput
-    float3 pathThroughput = pathIntersection.value;
+    // // Get current path throughput
+    // float3 pathThroughput = pathIntersection.value;
 
     // And reset the ray intersection color, which will store our final result
-    pathIntersection.value = computeDirect ? builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? pathIntersection.throughput * builtinData.emissiveColor : 0.0;
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
@@ -178,7 +181,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                     float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
-                    pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity) * misWeight;
+                    pathIntersection.value += pathIntersection.throughput * value * GetLightTransmission(nextPathIntersection.value, shadowOpacity) * misWeight;
                 }
             }
         }
@@ -190,11 +193,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
             pdf = mtlResult.diffPdf + mtlResult.specPdf;
             value = (mtlResult.diffValue + mtlResult.specValue) / pdf;
 
-            pathThroughput *= value;
+            pathIntersection.throughput *= value;
 
             // Apply Russian roulette to our path
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
-            float rrFactor, rrValue = Luminance(pathThroughput);
+            float rrFactor, rrValue = Luminance(pathIntersection.throughput);
 
             if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !currentDepth))
             {
@@ -203,23 +206,27 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 rayDescriptor.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RaytracingRayBias, isSampleBelow);
                 rayDescriptor.TMax = FLT_INF;
 
-                // Copy path constants across
+                // Copy useful path constants across
                 nextPathIntersection.pixelCoord = pathIntersection.pixelCoord;
-                nextPathIntersection.cone.width = pathIntersection.cone.width;
+                //nextPathIntersection.cone.width = pathIntersection.cone.width;
 
                 // Complete PathIntersection structure for this sample
-                nextPathIntersection.value = pathThroughput * rrFactor;
-                nextPathIntersection.remainingDepth = pathIntersection.remainingDepth + 2;
+                nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 2;
                 nextPathIntersection.t = rayDescriptor.TMax;
 
+                pathIntersection.throughput *= rrFactor;
+
                 // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
-                nextPathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
+                pathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
 
                 // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-                nextPathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextPathIntersection.maxRoughness);
+                pathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(pathIntersection.maxRoughness);
 
                 // Pre=shoot ray for indirect lighting, that we also use to shadow lights
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
+
+                // Apply material absorption to our throughput
+                pathIntersection.throughput = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, pathIntersection.throughput);
 
                 if (computeDirect)
                 {
@@ -230,13 +237,17 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     EvaluateLights(lightList, rayDescriptor, lightValue, lightPdf);
 
                     float misWeight = PowerHeuristic(pdf, lightPdf);
-                    nextPathIntersection.value += lightValue * misWeight;
+                    pathIntersection.value += pathIntersection.throughput * lightValue * misWeight;
                 }
 
-                // Apply material absorption
-                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);
-
-                pathIntersection.value += value * rrFactor * nextPathIntersection.value;
+                if (nextPathIntersection.t < FLT_INF)
+                {
+                    // We hit a new surface, udpate our payload's origin and direction
+                    pathIntersection.ray.Origin = rayDescriptor.Origin;
+                    pathIntersection.ray.Direction = rayDescriptor.Direction;
+                    pathIntersection.ray.TMin = nextPathIntersection.t - _RaytracingRayBias;
+                    pathIntersection.ray.TMax = nextPathIntersection.t + _RaytracingRayBias;
+                }
             }
         }
     }
@@ -284,6 +295,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Always set the new t value
     pathIntersection.t = RayTCurrent();
 
+    if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2)
+        return;
+
     // FIXME: we should not need this test anymore, since we have removed recursion
     // // If the max depth has been reached, bail out
     // if (!pathIntersection.remainingDepth)
@@ -329,19 +343,19 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 #endif // HAS_LIGHTLOOP
 
     // Skip this code if getting out of a SSS random walk (currentDepth < 0)
-    if (currentDepth >= 0)
-    {
-        // FIXME : need to be added again, with separation between thoughput and value for this depth
-        // Apply volumetric attenuation
-        //ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+    // if (currentDepth >= 0)
+    // {
+    //     // FIXME : need to be added again, with separation between thoughput and value for this depth
+    //     // Apply volumetric attenuation
+    //     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
-        // Apply the volume/surface pdf
-        pathIntersection.value /= pdf;
+    //     // Apply the volume/surface pdf
+    //     pathIntersection.value /= pdf;
 
-        // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
-        if (currentDepth)
-            pathIntersection.value = ClampValue(pathIntersection.value);
-    }
+    //     // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
+    //     if (currentDepth)
+    //         pathIntersection.value = ClampValue(pathIntersection.value);
+    // }
 }
 
 [shader("anyhit")]
@@ -370,11 +384,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     {
         IgnoreHit();
     }
-    else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2) // FIXME
-    {
-        pathIntersection.t = min(pathIntersection.t, RayTCurrent());
-    }
-    else if (pathIntersection.remainingDepth > _RaytracingMaxRecursion) // FIXME
+    else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 1) // FIXME: SegmentID
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
     #if HAS_REFRACTION

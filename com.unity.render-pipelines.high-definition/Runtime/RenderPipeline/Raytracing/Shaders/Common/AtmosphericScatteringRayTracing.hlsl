@@ -45,7 +45,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value, in
 
 // FIXME: Do we refactor the other functions too?
 
-float GetHeightFogTransmittance(float3 origin, float3 direction, float t = _MipFogFar)
+float GetHeightFogTransmittance(float3 origin, float3 direction, float t)
 {
     return TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight, _HeightFogExponents, direction.y, origin.y, min(t, _MaxFogDistance));
 }
