@@ -352,7 +352,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 wo = normalize(_WorldSpaceCameraPos - posInputTransparent.positionWS);
 
-#define ENABLE_SS_TRACING 1
+#define ENABLE_SS_TRACING 0
 
 #if ENABLE_SS_TRACING
 
