@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>
         /// Obtains a <see cref="TimedScope"/>.
-        /// 
+        ///
         /// Safety: <paramref name="durationMsPtr"/> must be a non-null pointer to a valid memory location for a double.
         /// </summary>
         /// <param name="durationMsPtr">The location to write the duration in milliseconds to.</param>
