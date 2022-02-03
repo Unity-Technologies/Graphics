@@ -88,31 +88,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Vector2Int postProcessViewportSize { get { return resGroup == ResolutionGroup.AfterDynamicResUpscale ? m_AfterDynamicResUpscaleRes : m_BeforeDynamicResUpscaleRes; } }
 
-        private class PostProcessHistoryTextureAllocator
+        private struct PostProcessHistoryTextureAllocator
         {
             private String m_Name;
             private Vector2Int m_Size;
-            private bool m_EnableMips = false;
-            private bool m_UseDynamicScale = false;
-            GraphicsFormat m_Format = GraphicsFormat.R16_SFloat;
+            private bool m_EnableMips;
+            private bool m_UseDynamicScale;
+            GraphicsFormat m_Format;
 
-            public String name { set { m_Name = value; } }
-            public bool enableMips { set { m_EnableMips = value; } }
-            public bool useDynamicScale { set { m_UseDynamicScale = value; } }
-            public Vector2Int size { set { m_Size = value; } }
-            public GraphicsFormat format { set { m_Format = value; } }
-
-            public Func<string, int, RTHandleSystem, RTHandle> allocatorFunction;
-
-            public PostProcessHistoryTextureAllocator()
+            public PostProcessHistoryTextureAllocator(String newName, Vector2Int newSize, GraphicsFormat format = GraphicsFormat.R16_SFloat, bool enableMips = false, bool useDynamicScale = false)
             {
-                allocatorFunction = (string id, int frameIndex, RTHandleSystem rtHandleSystem) =>
-                {
-                    return rtHandleSystem.Alloc(
-                        m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, m_Format,
-                        dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name} {frameIndex}"
-                    );
-                };
+                m_Name = newName;
+                m_Size = newSize;
+                m_EnableMips = enableMips;
+                m_UseDynamicScale = useDynamicScale;
+                m_Format = format;
+            }
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, m_Format,
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name} {frameIndex}"
+                );
             }
         }
 
@@ -1482,27 +1480,18 @@ namespace UnityEngine.Rendering.HighDefinition
             int historyType = (int)(postDoF ?
                 HDCameraFrameHistoryType.TemporalAntialiasingPostDoF : HDCameraFrameHistoryType.TemporalAntialiasing);
 
-            var taaAllocator = new PostProcessHistoryTextureAllocator();
-            taaAllocator.name = "TAA History";
-            taaAllocator.format = GetPostprocessTextureFormat();
-            taaAllocator.size = viewportSize;
-            taaAllocator.useDynamicScale = false;
+            var taaAllocator = new PostProcessHistoryTextureAllocator("TAA History", viewportSize, GetPostprocessTextureFormat());
 
             next = camera.GetCurrentFrameRT(historyType)
-                ?? camera.AllocHistoryFrameRT(historyType, taaAllocator.allocatorFunction, 2);
+                ?? camera.AllocHistoryFrameRT(historyType, taaAllocator.Allocator, 2);
             previous = camera.GetPreviousFrameRT(historyType);
         }
 
         void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, Vector2Int viewportSize, out RTHandle previous, out RTHandle next)
         {
-            var taaAllocator = new PostProcessHistoryTextureAllocator();
-            taaAllocator.name = "Velocity magnitude";
-            taaAllocator.format = GraphicsFormat.R16_SFloat;
-            taaAllocator.size = viewportSize;
-            taaAllocator.useDynamicScale = false;
-
+            var taaAllocator = new PostProcessHistoryTextureAllocator("Velocity magnitude", viewportSize, GraphicsFormat.R16_SFloat);
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, taaAllocator.allocatorFunction, 2);
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, taaAllocator.Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
         }
 
@@ -2682,12 +2671,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
 
-                var cocAllocator = new PostProcessHistoryTextureAllocator();
-                cocAllocator.size = m_AfterDynamicResUpscaleRes;
-                cocAllocator.enableMips = useMips;
-                cocAllocator.useDynamicScale = false;
-                cocAllocator.name = $"CoC History";
-                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, cocAllocator.allocatorFunction, 2);
+                var cocAllocator = new PostProcessHistoryTextureAllocator($"CoC History", m_AfterDynamicResUpscaleRes, GraphicsFormat.R16_SFloat, useMips);
+                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, cocAllocator.Allocator, 2);
             }
 
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
