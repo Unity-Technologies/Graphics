@@ -7,19 +7,13 @@ namespace UnityEngine.Rendering
     {
         /// <summary>Disable all log for Shader Variant</summary>
         [Tooltip("Logging of shader variants is disabled")]
-        Disabled = 0,
-        /// <summary>No filter is applied to the logging of shader variants</summary>
-        [Tooltip("No filter is applied to the logging of shader variants")]
-        AllShaders = 2,
+        Disabled,
         /// <summary>Only logs Shaders with a Subshader containing the tag RenderPipeline</summary>
-        [Tooltip("Only logs Shaders of type Shader and with a Subshader containing the tag RenderPipeline")]
-        OnlySRPShaders = 1,
-        /// <summary>Only logs Shaders of type Shader</summary>
-        [Tooltip("Only logs Shaders of type Shader")]
-        OnlyShaders = 3,
-        /// <summary>Only logs Shaders of type ComputeShader</summary>
-        [Tooltip("Only logs Shaders of type ComputeShader")]
-        OnlyComputeShaders = 4,
+        [Tooltip("Logging of shader variants is enabled and filtering them by the tag RenderPipeline")]
+        OnlySRPShaders,
+        /// <summary>No filter is applied to the logging of shader variants</summary>
+        [Tooltip("Logging of shader variants is enabled and without filters")]
+        AllShaders,
     }
 
     /// <summary>
