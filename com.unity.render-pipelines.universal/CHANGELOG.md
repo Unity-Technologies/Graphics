@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [13.1.6] - 2022-01-14
 
 ### Fixed
+- Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 - Fixed some rendering inconsistencies when using Decals.
 
 ## [13.1.5] - 2021-12-17
@@ -27,8 +28,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
-
-### Changed
 - Re-added the menu button to be able to convert selected materials.
 
 ### Fixed
