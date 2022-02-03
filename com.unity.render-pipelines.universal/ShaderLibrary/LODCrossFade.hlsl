@@ -1,11 +1,11 @@
 #ifndef UNIVERSAL_PIPELINE_LODCROSSFADE_INCLUDED
 #define UNIVERSAL_PIPELINE_LODCROSSFADE_INCLUDED
 
-static const int k_LODCrossFadeTypeBayerMatrixDither = 0;
-static const int k_LODCrossFadeTypeBlueNoiseDither = 1;
-static const int k_LODCrossFadeTypeHashDither = 2;
+static const int k_LODCrossFadeDithereringTypeBayerMatrix = 0;
+static const int k_LODCrossFadeDithereringTypeBlueNoise = 1;
+static const int k_LODCrossFadeDithereringTypeHash = 2;
 
-int _LODCrossFadeType;
+int _LODCrossFadeDitheringType;
 
 TEXTURE2D(_DitheringTexture);
 SAMPLER(sampler_DitheringTexture);
@@ -37,15 +37,15 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
 {
     half d;
 
-    switch (_LODCrossFadeType)
+    switch (_LODCrossFadeDitheringType)
     {
-    case k_LODCrossFadeTypeHashDither:
+    case k_LODCrossFadeDithereringTypeHash:
         d = GenerateHashedRandomFloat(crossFadeSeed);
         break;
-    case k_LODCrossFadeTypeBlueNoiseDither:
+    case k_LODCrossFadeDithereringTypeBlueNoise:
         d = GetBlueNoiseDithering(crossFadeSeed);
         break;
-    case k_LODCrossFadeTypeBayerMatrixDither:
+    case k_LODCrossFadeDithereringTypeBayerMatrix:
     default:
         d = GetBayerMatrixDithering(crossFadeSeed);
         break;

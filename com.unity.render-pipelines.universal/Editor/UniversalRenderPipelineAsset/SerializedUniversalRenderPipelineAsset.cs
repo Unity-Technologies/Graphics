@@ -12,7 +12,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty requireOpaqueTextureProp { get; }
         public SerializedProperty opaqueDownsamplingProp { get; }
         public SerializedProperty supportsTerrainHolesProp { get; }
-        public SerializedProperty lodCrossFadeTypeProp { get; }
+        public SerializedProperty supportsLodCrossFadeProp { get; }
+        public SerializedProperty lodCrossFadeDitheringTypeProp { get; }
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
@@ -81,7 +82,8 @@ namespace UnityEditor.Rendering.Universal
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             opaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
-            lodCrossFadeTypeProp = serializedObject.FindProperty("m_LODCrossFadeType");
+            supportsLodCrossFadeProp = serializedObject.FindProperty("m_SupportsLODCrossFade");
+            lodCrossFadeDitheringTypeProp = serializedObject.FindProperty("m_LODCrossFadeDitheringType");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             msaa = serializedObject.FindProperty("m_MSAA");

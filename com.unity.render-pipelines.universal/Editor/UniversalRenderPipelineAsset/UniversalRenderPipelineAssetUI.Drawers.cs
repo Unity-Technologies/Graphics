@@ -167,10 +167,13 @@ namespace UnityEditor.Rendering.Universal
 
                 --EditorGUI.indentLevel;
             }
-            EditorGUILayout.PropertyField(serialized.lodCrossFadeTypeProp, Styles.lodCrossFadeTypeText);
-            if(!ValidateCrossFadeDitheringTextures(serialized.asset))
+            EditorGUILayout.PropertyField(serialized.supportsLodCrossFadeProp, Styles.supportsLodCrossFadeText);
+            EditorGUI.BeginDisabledGroup(!serialized.supportsLodCrossFadeProp.boolValue);
+            EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
+            if (!ValidateCrossFadeDitheringTextures(serialized.asset))
                 CoreEditorUtils.DrawFixMeBox("Asset doesn't hold references to dithering textures. LOD Cross Fade might not work correctly.",
                     () => ResourceReloader.ReloadAllNullIn(serialized.asset, UniversalRenderPipelineAsset.packagePath));
+            EditorGUI.EndDisabledGroup();
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

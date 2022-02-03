@@ -285,14 +285,14 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Type of the LOD CrossFade.
     /// </summary>
-    public enum LODCrossFadeType
+    public enum LODCrossFadeDitheringType
     {
         /// <summary>Unity uses Bayer Matrix Texture to compute LOD CrossFade dithering.</summary>
-        BayerMatrixDither,
+        BayerMatrix,
         /// <summary>Unity uses precomputed Blue Noise Texture to compute LOD CrossFade dithering.</summary>
-        BlueNoiseDither,
+        BlueNoise,
         /// <summary>Unity uses a Hash function to compute LOD CrossFade dithering.</summary>
-        HashDither
+        Hash
     }
 
     /// Defines the upscaling filter selected by the user the universal render pipeline asset.
@@ -353,7 +353,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
-        [SerializeField] LODCrossFadeType m_LODCrossFadeType = LODCrossFadeType.BlueNoiseDither; 
+        [SerializeField] bool m_SupportsLODCrossFade = true;
+        [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise; 
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -863,9 +864,14 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
-        public LODCrossFadeType lodCrossFadeType
+        public bool supportsLODCrossFade
         {
-            get { return m_LODCrossFadeType; }
+            get { return m_SupportsLODCrossFade; }
+        }
+
+        public LODCrossFadeDitheringType lodCrossFadeDitheringType
+        {
+            get { return m_LODCrossFadeDitheringType; }
         }
 
         /// <summary>

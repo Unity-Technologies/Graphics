@@ -1309,11 +1309,11 @@ namespace UnityEngine.Rendering.Universal
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
-            Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
+            Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeDitheringType, (int)asset.lodCrossFadeDitheringType);
 
-            if (asset.lodCrossFadeType == LODCrossFadeType.BayerMatrixDither)
+            if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BayerMatrix)
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.bayerMatrixTex);
-            else if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
+            else if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BlueNoise)
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
         }
 
