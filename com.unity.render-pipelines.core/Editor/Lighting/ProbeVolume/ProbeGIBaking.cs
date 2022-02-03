@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering
         // Can be probably done cleaner.
         public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
         // Mapping for explicit invalidation, whether it comes from the auto finding of occluders or from the touch up volumes
+        // TODO: This is not used yet. Will soon.
         public Dictionary<Vector3, bool> invalidatedPositions = new Dictionary<Vector3, bool>();
 
         private BakingBatch() { }
@@ -443,8 +444,8 @@ namespace UnityEngine.Experimental.Rendering
             using var pm = new ProfilerMarker("OnAdditionalProbesBakeCompleted").Auto();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-            s_PositionOfForceInvalidatedProbes.Clear();
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
+            s_CustomDilationThresh.Clear();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
@@ -485,12 +486,17 @@ namespace UnityEngine.Experimental.Rendering
 
             // This is slow, but we should have very little amount of touchup volumes.
             var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
-            var touchupVolumesBounds = new List<Bounds>(touchupVolumes.Length);
+            var touchupVolumesAndBounds = new List<(Bounds, ProbeTouchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {
-                if (touchup.isActiveAndEnabled && touchup.invalidateProbes)
-                    touchupVolumesBounds.Add(touchup.GetBounds());
+                if (touchup.isActiveAndEnabled)
+                    touchupVolumesAndBounds.Add((touchup.GetBounds(), touchup));
             }
+
+            // If we did not use virtual offset, we did not have occluders spawned.
+            if (!m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
+                AddOccluders();
+
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
@@ -523,19 +529,24 @@ namespace UnityEngine.Experimental.Rendering
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
                     bool invalidatedProbe = false;
-                    foreach (var touchupBound in touchupVolumesBounds)
+                    foreach (var touchup in touchupVolumesAndBounds)
                     {
+                        var touchupBound = touchup.Item1;
+                        var touchupVolume = touchup.Item2;
+
                         if (touchupBound.Contains(cell.probePositions[i]))
                         {
-                            invalidatedProbe = true;
-                            if (Vector3.Distance(cell.probePositions[i], new Vector3(-63.0f, 4.0f, -69.0f)) < 0.1f)
+                            if (touchupVolume.invalidateProbes)
                             {
-                                Debug.Log("Adding tester... ");
+                                invalidatedProbe = true;
+                                if (validity[j] < 0.05f) // We just want to add probes that were not already invalid or close to.
+                                {
+                                    s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
+                                }
                             }
-                            if (validity[j] < 0.05f) // We need to check if was already invalid.
+                            else if (touchupVolume.overrideDilationThreshold)
                             {
-                                s_PositionOfForceInvalidatedProbes.Add(cell.probePositions[i]);
-                                s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
+                                s_CustomDilationThresh.Add(i, touchupVolume.overriddenDilationThreshold);
                             }
                             break;
                         }
@@ -610,13 +621,12 @@ namespace UnityEngine.Experimental.Rendering
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
 
-                // TODO_FCC: Move somewhere else?
-                AddOccluders();
                 ComputeValidityMasks(cell);
-                CleanupOccluders();
 
                 m_BakedCells[cell.index] = cell;
             }
+
+            CleanupOccluders();
 
             m_BakingBatchIndex = 0;
 

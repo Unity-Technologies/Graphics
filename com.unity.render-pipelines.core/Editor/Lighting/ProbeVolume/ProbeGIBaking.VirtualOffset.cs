@@ -49,7 +49,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (!queriesHitBackBefore)
                     Physics.queriesHitBackfaces = false;
 
-                CleanupOccluders();
+                // We do not cleanup occluders here as it is done after the validity masks are processed.
+                //CleanupOccluders();
             }
         }
 

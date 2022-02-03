@@ -17,6 +17,8 @@ namespace UnityEditor.Experimental.Rendering
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
             internal static readonly GUIContent s_IntensityScale = new GUIContent("Probe Intensity Scale", "A scale to be applied to all probes that fall within this probe touchup volume.");
             internal static readonly GUIContent s_InvalidateProbes = new GUIContent("Invalidate Probes", "Set all probes falling within this probe touchup volume to invalid.");
+            internal static readonly GUIContent s_OverrideDilationThreshold = new GUIContent("Override Dilation Threshold", "Whether to override the dilation threshold used for probes falling within this probe touch-up volume.");
+            internal static readonly GUIContent s_OverriddenDilationThreshold = new GUIContent("Dilation Threshold", "The dilation threshold to use for this probe volume.");
 
             internal static readonly Color k_GizmoColorBase = new Color32(222, 132, 144, 255);
 
@@ -66,6 +68,13 @@ namespace UnityEditor.Experimental.Rendering
                     return;
                 }
                 EditorGUILayout.PropertyField(m_SerializedTouchupVolume.invalidateProbes, Styles.s_InvalidateProbes);
+
+                using (new EditorGUI.DisabledScope(m_SerializedTouchupVolume.invalidateProbes.boolValue))
+                {
+                    EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overrideDilationThreshold, Styles.s_OverrideDilationThreshold);
+                    using (new EditorGUI.DisabledScope(!m_SerializedTouchupVolume.overrideDilationThreshold.boolValue))
+                        EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overriddenDilationThreshold, Styles.s_OverriddenDilationThreshold);
+                }
                 // TODO: This is a very dangerous thing to expose, so for now we don't show. Keeping here in case we find it necessary.
                 //EditorGUI.BeginDisabledGroup(m_SerializedTouchupVolume.invalidateProbes.boolValue);
                 //EditorGUILayout.PropertyField(m_SerializedTouchupVolume.intensityScale, Styles.s_IntensityScale);

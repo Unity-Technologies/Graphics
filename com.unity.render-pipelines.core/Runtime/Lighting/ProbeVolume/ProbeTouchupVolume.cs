@@ -18,6 +18,10 @@ namespace UnityEngine.Experimental.Rendering
         internal float intensityScale = 1.0f;
         public bool invalidateProbes = false;
 
+        public bool overrideDilationThreshold = false;
+        [Range(0.0f, 1.0f)]
+        public float overriddenDilationThreshold = 0.75f;
+
         public Vector3 size = new Vector3(1, 1, 1);
 
 #if UNITY_EDITOR

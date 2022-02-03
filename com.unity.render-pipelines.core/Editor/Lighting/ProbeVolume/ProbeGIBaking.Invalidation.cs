@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering
 
         // TODO_FCC: Can we do better?
         static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
-        static HashSet<Vector3> s_PositionOfForceInvalidatedProbes = new HashSet<Vector3>();
+        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
 
         internal static Vector3Int GetSampleOffset(int i)
         {
@@ -69,16 +69,20 @@ namespace UnityEngine.Experimental.Rendering
         // TODO: This whole process will need optimization.
         static bool NeighbourhoodIsEmptySpace(Vector3 pos, float searchDistance, Bounds boundsToCheckAgainst)
         {
+
             Vector3 halfExtents = Vector3.one * searchDistance * 0.5f;
             Vector3 brickCenter = pos + halfExtents;
 
             Collider[] colliders = Physics.OverlapBox(brickCenter, halfExtents);
 
-            foreach (var collider in colliders)
-            {
-                if (collider.bounds.Intersects(boundsToCheckAgainst))
-                    return false;
-            }
+            if (colliders.Length > 0) return false;
+
+            // TO_VERIFY: Shall we do this check?
+            //foreach (var collider in colliders)
+            //{
+            //    if (collider.bounds.Intersects(boundsToCheckAgainst))
+            //        return false;
+            //}
 
             return true;
         }
@@ -111,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering
                 s_ProbeIndices.Resize(size);
 
                 Dictionary<Vector3Int, (float, Vector3, Bounds)> probesToRestoreInfo = new Dictionary<Vector3Int, (float, Vector3, Bounds)>();
+                HashSet<Vector3Int> probesToRestore = new HashSet<Vector3Int>();
 
                 for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += ProbeBrickPool.kBrickProbeCountTotal)
                 {
@@ -140,8 +145,7 @@ namespace UnityEngine.Experimental.Rendering
                                         int actualBrickIdx = brickIdx / ProbeBrickPool.kBrickProbeCountTotal;
                                         float brickSize = ProbeReferenceVolume.CellSize(cell.bricks[actualBrickIdx].subdivisionLevel);
                                         Vector3 position = cell.probePositions[shidx];
-                                        probesToRestoreInfo.Add(new Vector3Int(ix, iy, iz), (brickSize, position, invalidatingTouchupBound));
-
+                                        probesToRestore.Add(new Vector3Int(ix, iy, iz));
                                         var searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
                                         hasFreeNeighbourhood = NeighbourhoodIsEmptySpace(position, searchDistance, invalidatingTouchupBound);
                                     }
@@ -186,13 +190,9 @@ namespace UnityEngine.Experimental.Rendering
                                                                           Mathf.Clamp(y + off.y, 0, locSize.y - 1),
                                                                           Mathf.Clamp(z + off.z, 0, ProbeBrickPool.kBrickProbeCountPerDim - 1));
 
-                                    (float, Vector3, Bounds) invalidatedProbeInfo;
-                                    if (probesToRestoreInfo.TryGetValue(samplePos, out invalidatedProbeInfo))
+                                    if (probesToRestore.Contains(samplePos))
                                     {
-                                        float distBetweenProbes = invalidatedProbeInfo.Item1;
-                                        Vector3 positionToTest = invalidatedProbeInfo.Item2 - new Vector3(off.x, off.y, off.z) * distBetweenProbes;
-
-                                        if (NeighbourhoodIsEmptySpace(positionToTest, distBetweenProbes, invalidatedProbeInfo.Item3))
+                                        if (probeHasEmptySpaceInGrid[outIdx])
                                         {
                                             forceAllValid = true;
                                         }
@@ -212,6 +212,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 chunkIndex += ProbeReferenceVolume.kTemporaryDataLocChunkCount;
             }
+
+            probeHasEmptySpaceInGrid.Dispose();
         }
     }
 }
