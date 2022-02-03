@@ -259,6 +259,9 @@
               * [ScleraIrisBlend](Sclera-Iris-Blend-Node.md)
               * [ScleraLimbalRing](Sclera-Limbal-Ring-Node.md)
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
+            * Fabric
+                *[ThreadMapDetail](ThreadMapDetail-Node.md)
+            * [UVCombine](UVCombine-Node.md)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)
