@@ -142,7 +142,7 @@ namespace UnityEditor.VFX.UI
             foreach (var block in blocks)
             {
                 Node blk = block;
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(viewController, ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(viewController, Vector2.zero, Rect.zero, ref blk);
                 newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
 
                 if (targetModelContext.AcceptChild(newBlock, targetIndex))
@@ -182,7 +182,6 @@ namespace UnityEditor.VFX.UI
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
-            var graph = viewController.graph;
             pasteOffset = (serializableGraph.bounds.width > 0 && serializableGraph.bounds.height > 0) ? center - serializableGraph.bounds.center : Vector2.zero;
             MakePasteOffsetUnique(viewController, serializableGraph);
 
@@ -198,10 +197,10 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteContexts(viewController, ref serializableGraph);
+                PasteContexts(viewController, center, ref serializableGraph);
             }
 
-            PasteOperators(viewController, ref serializableGraph);
+            PasteOperators(viewController, center, ref serializableGraph);
             PasteParameters(viewController, ref serializableGraph);
 
             // Create controllers for all new nodes
@@ -289,9 +288,9 @@ namespace UnityEditor.VFX.UI
             output.InitSubOutputs(newSubOutputs);
         }
 
-        VFXContext PasteContext(VFXViewController controller, ref Context context)
+        VFXContext PasteContext(VFXViewController controller, Vector2 center, Rect bounds, ref Context context)
         {
-            VFXContext newContext = PasteAndInitializeNode<VFXContext>(controller, ref context.node);
+            VFXContext newContext = PasteAndInitializeNode<VFXContext>(controller, center, bounds, ref context.node);
 
             if (newContext == null)
             {
@@ -310,7 +309,7 @@ namespace UnityEditor.VFX.UI
             {
                 var blk = block;
 
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, center, bounds, ref blk);
 
                 newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
 
@@ -324,7 +323,7 @@ namespace UnityEditor.VFX.UI
             return newContext;
         }
 
-        T PasteAndInitializeNode<T>(VFXViewController controller, ref Node node) where T : VFXModel
+        T PasteAndInitializeNode<T>(VFXViewController controller, Vector2 center, Rect bounds, ref Node node) where T : VFXModel
         {
             Type type = node.type;
             if (type == null)
@@ -334,7 +333,7 @@ namespace UnityEditor.VFX.UI
                 return null;
 
             var ope = node;
-            PasteNode(newNode, ref ope);
+            PasteNode(newNode, center, bounds, ref ope);
 
             if (!(newNode is VFXBlock))
             {
@@ -360,9 +359,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void PasteNode(VFXModel model, ref Node node)
+        void PasteNode(VFXModel model, Vector2 center, Rect bounds, ref Node node)
         {
-            model.position = node.position + pasteOffset;
+            var offset = node.position - bounds.min;
+            model.position = center + offset;
 
             PasteModelSettings(model, node.settings, model.GetType());
 
@@ -725,7 +725,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteContexts(VFXViewController viewController, ref SerializableGraph serializableGraph)
+        private void PasteContexts(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph)
         {
             if (serializableGraph.contexts != null)
             {
@@ -733,12 +733,12 @@ namespace UnityEditor.VFX.UI
                 foreach (var context in serializableGraph.contexts)
                 {
                     var ctx = context;
-                    PasteContext(viewController, ref ctx);
+                    PasteContext(viewController, center, serializableGraph.bounds, ref ctx);
                 }
             }
         }
 
-        private void PasteOperators(VFXViewController viewController, ref SerializableGraph serializableGraph)
+        private void PasteOperators(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph)
         {
             newOperators.Clear();
             if (serializableGraph.operators != null)
@@ -746,7 +746,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var operat in serializableGraph.operators)
                 {
                     Node ope = operat;
-                    VFXOperator newOperator = PasteAndInitializeNode<VFXOperator>(viewController, ref ope);
+                    VFXOperator newOperator = PasteAndInitializeNode<VFXOperator>(viewController, center, serializableGraph.bounds, ref ope);
 
                     newOperators.Add(newOperator); // add even they are null so that the index is correct
                 }
