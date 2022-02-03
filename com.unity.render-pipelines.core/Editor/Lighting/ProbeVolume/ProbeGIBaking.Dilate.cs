@@ -112,15 +112,17 @@ namespace UnityEngine.Experimental.Rendering
                 // Init with pre-dilated SH so we don't need to re-fill from sampled data from texture (that might be less precise).
                 dilatedProbes = new DilatedProbe[probeCount];
                 float[] thresholds = new float[probeCount];
+                float[] validities = new float[probeCount];
 
                 for (int i = 0; i < probeCount; ++i)
                 {
                     dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
                     thresholds[i] = s_CustomDilationThresh.ContainsKey(i) ? s_CustomDilationThresh[i] : defaultThreshold;
+                    validities[i] = cell.GetValidity(i);
                 }
 
                 outputProbes.SetData(dilatedProbes);
-                validityBuffer.SetData(cell.validity);
+                validityBuffer.SetData(validities);
                 positionBuffer.SetData(cell.probePositions);
                 dilationThresholds.SetData(thresholds);
             }
