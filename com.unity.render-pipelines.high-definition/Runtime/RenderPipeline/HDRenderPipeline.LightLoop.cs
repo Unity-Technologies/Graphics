@@ -1190,17 +1190,78 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (colorPyramidRT == null)
                     return renderGraph.defaultResources.blackTextureXR;
 
+                bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
+                if (usePBRAlgo)
+                {
+                    using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Clear SSR Buffers", out var passData))
+                    {
+                        hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
+
+                        var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
+                        var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
+                        passData.usePBRAlgo = usePBRAlgo;
+                        passData.debugDisplaySpeed = debugDisplaySpeed;
+                        passData.width = hdCamera.actualWidth;
+                        passData.height = hdCamera.actualHeight;
+                        passData.viewCount = hdCamera.viewCount;
+                        passData.offsetBufferData = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                        passData.accumNeedClear = usePBRAlgo;
+                        passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
+                        hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
+                        passData.validColorPyramid = hdCamera.colorPyramidHistoryValidFrames > 1;
+
+                        passData.ssrAccum = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
+                        passData.ssrAccumPrev = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
+
+                        builder.SetRenderFunc(
+                            (RenderSSRPassData data, RenderGraphContext ctx) =>
+                            {
+                                var cs = data.ssrCS;
+                                passData.clearBuffer2DCS = m_ClearBuffer2DCS;
+                                passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
+
+#if true
+                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                {
+                                    ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                    ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                }
+                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                {
+                                    ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccumPrev);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                    ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                }
+#else
+                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                {
+                                    ctx.cmd.SetRenderTarget(data.ssrAccum);
+                                    ctx.cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear, 0.0f, 0);
+                                }
+                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                {
+                                    ctx.cmd.SetRenderTarget(data.ssrAccumPrev);
+                                    ctx.cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear, 0.0f, 0);
+                                }
+#endif
+                            });
+                    }
+                }
+
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
-                    builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
-
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
-                    bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
                     var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
                     UpdateSSRConstantBuffer(hdCamera, volumeSettings, transparent, ref passData.cb);
+
+                    builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
 
                     passData.hdCamera = hdCamera;
                     passData.blueNoise = GetBlueNoiseManager();
