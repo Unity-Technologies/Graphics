@@ -802,16 +802,14 @@ namespace UnityEngine.Rendering.Universal
             m_MRT2[1] = m_PingTexture.nameID;
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.SetViewport(pixelRect);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
-            cmd.SetRenderTarget(m_MRT2, m_HalfCoCTexture.nameID, 0, CubemapFace.Unknown, -1);
-            DrawFullscreenMesh(cmd, material, 1);
+            RenderingUtils.Blit(cmd, source, m_MRT2, pixelRect, material, 1, m_UseDrawProcedural);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTexture.nameID);
+            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             RenderingUtils.Blit(cmd, m_PingTexture, m_PongTexture, material, 2, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
             RenderingUtils.Blit(cmd, m_PongTexture, m_PingTexture, material, 3, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
 
