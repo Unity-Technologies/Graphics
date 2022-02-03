@@ -15,7 +15,7 @@
     #define SMAA_PRESET_HIGH
 #endif
 
-TEXTURE2D_X(_ColorTexture);
+TEXTURE2D_X(_SourceTex);
 TEXTURE2D_X(_BlendTexture);
 TEXTURE2D(_AreaTexture);
 TEXTURE2D(_SearchTexture);
@@ -65,7 +65,7 @@ VaryingsEdge VertEdge(Attributes input)
 float4 FragEdge(VaryingsEdge input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _ColorTexture), 0.0, 0.0);
+    return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _SourceTex), 0.0, 0.0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ VaryingsBlend VertBlend(Attributes input)
 float4 FragBlend(VaryingsBlend input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
+    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _SourceTex, _AreaTexture, _SearchTexture, 0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
 float4 FragNeighbor(VaryingsNeighbor input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _ColorTexture, _BlendTexture);
+    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _SourceTex, _BlendTexture);
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_SMAA_BRIDGE

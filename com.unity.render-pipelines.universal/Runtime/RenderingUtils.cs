@@ -170,6 +170,64 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void Blit(CommandBuffer cmd,
             RTHandle source,
+            Rect viewport,
+            RTHandle destination,
+            RenderBufferLoadAction loadAction,
+            RenderBufferStoreAction storeAction,
+            ClearFlag clearFlag,
+            Color clearColor,
+            Material material,
+            int passIndex = 0)
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
+            cmd.SetViewport(viewport);
+            if (SystemInfo.graphicsShaderLevel < 30)
+            {
+                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+            else
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, null);
+            }
+        }
+
+        internal static void Blit(CommandBuffer cmd,
+            RTHandle source,
+            Rect viewport,
+            RTHandle destinationColor,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            RTHandle destinationDepthStencil,
+            RenderBufferLoadAction depthStencilLoadAction,
+            RenderBufferStoreAction depthStencilStoreAction,
+            ClearFlag clearFlag,
+            Color clearColor,
+            Material material,
+            int passIndex = 0)
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            CoreUtils.SetRenderTarget(cmd,
+                destinationColor, colorLoadAction, colorStoreAction,
+                destinationDepthStencil, depthStencilLoadAction, depthStencilStoreAction,
+                clearFlag, clearColor); // implicit depth=1.0f stencil=0x0
+            cmd.SetViewport(viewport);
+            if (SystemInfo.graphicsShaderLevel < 30)
+            {
+                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+            else
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, null);
+            }
+        }
+
+        internal static void Blit(CommandBuffer cmd,
+            RTHandle source,
             RenderTargetIdentifier[] mrt,
             Rect viewport,
             Material material,
