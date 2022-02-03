@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
         /// <param name="snippetData"><see cref="ShaderSnippetData"/></param>
         /// <param name="renderPipelineTag"><see cref="string"/> containing the value of the tag "RenderPipeline"</param>
         /// <returns>true if the tag is found and has a value</returns>
-        public static bool TryGetRenderPipelineTag([DisallowNull] this Shader shader, ShaderSnippetData snippetData,  out string renderPipelineTag)
+        public static bool TryGetRenderPipelineTag([DisallowNull] this Shader shader, ShaderSnippetData snippetData, out string renderPipelineTag)
         {
             renderPipelineTag = string.Empty;
 

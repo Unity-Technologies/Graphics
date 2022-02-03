@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Primitives;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -132,7 +130,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Callback order
         /// </summary>
-        public int callbackOrder => -1;
+        public int callbackOrder => 0;
 
         /// <summary>
         /// Creates the Report
@@ -169,15 +167,13 @@ namespace UnityEditor.Rendering
     /// </summary>
     public class ShaderStrippingReport
     {
-        [CanBeNull] private ShaderStrippingInfo m_LastShaderStrippingInfo = null;
-
         // Shader
-        private readonly List<ShaderStrippingInfo> m_ShaderInfos = new ();
-        private readonly VariantCounter m_ShaderVariantCounter = new ();
+        private readonly List<ShaderStrippingInfo> m_ShaderInfos = new();
+        private readonly VariantCounter m_ShaderVariantCounter = new();
 
         // Compute Shader
-        private readonly List<ShaderStrippingInfo> m_ComputeShaderInfos = new ();
-        private readonly VariantCounter m_ComputeShaderVariantCounter = new ();
+        private readonly List<ShaderStrippingInfo> m_ComputeShaderInfos = new();
+        private readonly VariantCounter m_ComputeShaderVariantCounter = new();
 
         #region Public API
 
@@ -200,24 +196,27 @@ namespace UnityEditor.Rendering
         public void OnShaderProcessed<TShader, TShaderVariant>([DisallowNull] TShader shader, TShaderVariant shaderVariant, uint variantsIn, uint variantsOut, double stripTimeMs)
             where TShader : UnityEngine.Object
         {
-            string pipeline = string.Empty;
-            string variantName;
-            if (typeof(TShader) == typeof(Shader) && typeof(TShaderVariant) == typeof(ShaderSnippetData))
-            {
-                var inputShader = ((Shader)Convert.ChangeType(shader, typeof(Shader)));
-                var snippetData = (ShaderSnippetData)Convert.ChangeType(shaderVariant, typeof(ShaderSnippetData));
-                pipeline = inputShader.GetRenderPipelineTag(snippetData);
-                variantName = $"{snippetData.passName} ({snippetData.passType})";
-            }
-            else if(typeof(TShader) == typeof(ComputeShader) && typeof(TShaderVariant) == typeof(string))
-            {
-                variantName = $"{shaderVariant}";
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            if (!TryGetPipelineAndVariantName(shader, shaderVariant, out string pipeline, out string variantName))
+                throw new NotImplementedException($"Report is not enabled for {typeof(TShader)} and {typeof(TShaderVariant)}");
 
+            var lastShaderStrippingInfo = FindLastShaderStrippingInfo(shader);
+            lastShaderStrippingInfo.AddVariant(pipeline, new ShaderVariantInfo()
+            {
+                inputVariants = variantsIn,
+                outputVariants = variantsOut,
+                stripTimeMs = stripTimeMs,
+                variantName = variantName
+            });
+        }
+
+        [CanBeNull] private ShaderStrippingInfo m_LastShaderStrippingInfo = null;
+
+        private ShaderStrippingInfo FindLastShaderStrippingInfo<TShader>([DisallowNull] TShader shader)
+            where TShader : UnityEngine.Object
+        {
+            // As all the shaders are stripped by order, the variants that will be stripped will always belong to the previous stripped shader
+            // so we can move to another stripped shader once we check the name against the latest stripped shader
+            // Also, if it is null it means that it was the first shader to be stripped
             if (m_LastShaderStrippingInfo == null || !m_LastShaderStrippingInfo.name.Equals(shader.name))
             {
                 if (m_LastShaderStrippingInfo != null)
@@ -242,13 +241,32 @@ namespace UnityEditor.Rendering
                 };
             }
 
-            m_LastShaderStrippingInfo.AddVariant(pipeline, new ShaderVariantInfo()
+            return m_LastShaderStrippingInfo;
+        }
+
+        [MustUseReturnValue] private static bool TryGetPipelineAndVariantName<TShader, TShaderVariant>([DisallowNull] TShader shader, TShaderVariant shaderVariant, out string pipeline, out string variantName)
+            where TShader : UnityEngine.Object
+        {
+            pipeline = string.Empty;
+            variantName = string.Empty;
+
+            if (typeof(TShader) == typeof(Shader) && typeof(TShaderVariant) == typeof(ShaderSnippetData))
             {
-                inputVariants = variantsIn,
-                outputVariants = variantsOut,
-                stripTimeMs = stripTimeMs,
-                variantName = variantName
-            });
+                var inputShader = (Shader)Convert.ChangeType(shader, typeof(Shader));
+                var snippetData = (ShaderSnippetData)Convert.ChangeType(shaderVariant, typeof(ShaderSnippetData));
+                pipeline = inputShader.GetRenderPipelineTag(snippetData);
+                variantName = $"{snippetData.passName} ({snippetData.passType})";
+            }
+            else if (typeof(TShader) == typeof(ComputeShader) && typeof(TShaderVariant) == typeof(string))
+            {
+                variantName = $"{shaderVariant}";
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
 
         #endregion
