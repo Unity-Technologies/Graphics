@@ -50,8 +50,7 @@ namespace UnityEditor.Experimental.Rendering
 
         protected void OnEnable()
         {
-            if (serializedObject.targetObject != null)
-                m_SerializedTouchupVolume = new SerializedProbeTouchupVolume(serializedObject);
+            m_SerializedTouchupVolume = new SerializedProbeTouchupVolume(serializedObject);
         }
 
         public override void OnInspectorGUI()

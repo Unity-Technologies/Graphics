@@ -89,10 +89,9 @@ namespace UnityEngine.Experimental.Rendering
 
         struct DataForDilation
         {
-            public ComputeBuffer validityBuffer { get; }
             public ComputeBuffer positionBuffer { get; }
             public ComputeBuffer outputProbes { get; }
-            public ComputeBuffer dilationThresholds { get; }
+            public ComputeBuffer needDilatingBuffer { get; }
 
             DilatedProbe[] dilatedProbes;
 
@@ -104,27 +103,24 @@ namespace UnityEngine.Experimental.Rendering
 
                 int probeCount = cell.probePositions.Length;
 
-                validityBuffer = new ComputeBuffer(probeCount, sizeof(float));
                 positionBuffer = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
                 outputProbes = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<DilatedProbe>());
-                dilationThresholds = new ComputeBuffer(probeCount, sizeof(float));
+                needDilatingBuffer = new ComputeBuffer(probeCount, sizeof(int));
 
                 // Init with pre-dilated SH so we don't need to re-fill from sampled data from texture (that might be less precise).
                 dilatedProbes = new DilatedProbe[probeCount];
-                float[] thresholds = new float[probeCount];
-                float[] validities = new float[probeCount];
+                int[] needDilating = new int[probeCount];
 
                 for (int i = 0; i < probeCount; ++i)
                 {
                     dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
-                    thresholds[i] = s_CustomDilationThresh.ContainsKey(i) ? s_CustomDilationThresh[i] : defaultThreshold;
-                    validities[i] = cell.GetValidity(i);
+                    needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
+                        (cell.GetValidity(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidity(i) > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);
-                validityBuffer.SetData(validities);
                 positionBuffer.SetData(cell.probePositions);
-                dilationThresholds.SetData(thresholds);
+                needDilatingBuffer.SetData(needDilating);
             }
 
             public void ExtractDilatedProbes()
@@ -140,16 +136,15 @@ namespace UnityEngine.Experimental.Rendering
 
             public void Dispose()
             {
-                validityBuffer.Dispose();
                 positionBuffer.Dispose();
                 outputProbes.Dispose();
-                dilationThresholds.Dispose();
+                needDilatingBuffer.Dispose();
             }
         }
 
         static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
-        static readonly int _DilationThresholds = Shader.PropertyToID("_DilationThresholds");
+        static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
@@ -171,10 +166,9 @@ namespace UnityEngine.Experimental.Rendering
 
             var cmd = CommandBufferPool.Get("Cell Dilation");
 
-            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ValidityBuffer, data.validityBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ProbePositionsBuffer, data.positionBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
-            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _DilationThresholds, data.dilationThresholds);
+            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _NeedDilating, data.needDilatingBuffer);
 
 
             int probeCount = cell.probePositions.Length;
