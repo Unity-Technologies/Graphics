@@ -19,7 +19,7 @@ You can use the **Anchor Position Override** to provide a GameObject’s [Transf
 
 ![](Images/LightAnchorAnimation.gif)
 
-**Note**: The reference Camera that adjusts the light rotation in the above example is the Main Camera. This means that the Common presets can create a different result in the Scene View if your view isn't aligned with the Main Camera.
+**Note**: The above example uses the Main Camera as the reference Camera that adjusts the light rotation. The Common presets might create a different result in the Scene View if your view isn't aligned with the Main Camera.
 
 You can set a **Position Offset** for this custom Anchor. This is useful if the Transform position of the custom Anchor isn't centered appropriately for the light to orbit correctly around the custom Anchor.
 
