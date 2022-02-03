@@ -13,9 +13,11 @@ struct WaterSurfaceProfile
     float bodyScatteringHeight;
     float maxRefractionDistance;
     uint lightLayers;
-    float padding0;
+    int cameraUnderWater;
     float3 transparencyColor;
     float outScatteringCoefficient;
+    float3 scatteringColor;
+    float padding0;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
@@ -86,7 +88,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float _WaterMaxTessellationFactor;
     float _WaterTessellationFadeStart;
     float _WaterTessellationFadeRange;
-    int _PaddingWR1;
+    int _CameraInUnderwaterRegion;
 CBUFFER_END
 
 

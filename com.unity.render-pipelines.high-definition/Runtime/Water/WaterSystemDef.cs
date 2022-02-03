@@ -14,11 +14,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
         public uint lightLayers;
-        public float padding0;
+        public int cameraUnderWater;
 
         // Refraction data Data
         public Vector3 transparencyColor;
         public float outScatteringCoefficient;
+
+        // Scattering color
+        public Vector3 scatteringColor;
+        public float padding0;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -157,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
-        // Padding
-        public int _PaddingWR1;
+        // Flag that defines if the camera is in the underwater volume of this surface
+        public int _CameraInUnderwaterRegion;
     }
 }

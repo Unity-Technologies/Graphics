@@ -542,6 +542,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterPatchDataRW = Shader.PropertyToID("_WaterPatchDataRW");
         public static readonly int _WaterInstanceDataRW = Shader.PropertyToID("_WaterInstanceDataRW");
         public static readonly int _FrustumGPUBuffer = Shader.PropertyToID("_FrustumGPUBuffer");
+        public static readonly int _WaterCameraHeightBuffer = Shader.PropertyToID("_WaterCameraHeightBuffer");
+        public static readonly int _WaterCameraHeightBufferRW = Shader.PropertyToID("_WaterCameraHeightBufferRW");
 
         // Water caustics
         public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");

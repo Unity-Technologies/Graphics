@@ -74,6 +74,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DecalLayerMask;
         SerializedProperty m_LightLayerMask;
 
+        // Underwater
+        SerializedProperty m_UnderWater;
+        SerializedProperty m_VolumeBounds;
+        SerializedProperty m_VolumeDepth;
+        SerializedProperty m_VolumePriority;
+        SerializedProperty m_TransitionSize;
+        SerializedProperty m_ViewDistanceMultiplier;
+
         void OnEnable()
         {
             var o = new PropertyFetcher<WaterSurface>(serializedObject);
@@ -145,6 +153,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Rendering
             m_DecalLayerMask = o.Find(x => x.decalLayerMask);
             m_LightLayerMask = o.Find(x => x.lightLayerMask);
+
+            // Underwater
+            m_UnderWater = o.Find(x => x.underWater);
+            m_VolumeBounds = o.Find(x => x.volumeBounds);
+            m_VolumeDepth = o.Find(x => x.volumeDepth);
+            m_VolumePriority = o.Find(x => x.volumePrority);
+            m_TransitionSize = o.Find(x => x.transitionSize);
+            m_ViewDistanceMultiplier = o.Find(x => x.viewDistanceMultiplier);
         }
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
@@ -240,7 +256,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 3.0f);
+                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 0.0f, 1.0f);
                 m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
             }
 
@@ -389,6 +405,39 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
                         MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
                     EditorGUILayout.Space();
+                }
+            }
+
+            // Under Water Rendering
+            EditorGUILayout.LabelField("Underwater", EditorStyles.boldLabel);
+            using (new IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(m_UnderWater);
+                using (new IndentLevelScope())
+                {
+                    if (m_UnderWater.boolValue)
+                    {
+                        // Bounds data
+                        if (!m_Infinite.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(m_VolumeBounds);
+                            m_VolumeBounds.floatValue = Mathf.Max(m_VolumeBounds.floatValue, 0.0f);
+                        }
+                        else
+                            EditorGUILayout.PropertyField(m_VolumeDepth);
+
+                        // Priority
+                        EditorGUILayout.PropertyField(m_VolumePriority);
+                        m_VolumePriority.intValue = m_VolumePriority.intValue > 0 ? m_VolumePriority.intValue : 0;
+
+                        // Transition size
+                        EditorGUILayout.PropertyField(m_TransitionSize);
+                        m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
+
+                        // View distance 
+                        EditorGUILayout.PropertyField(m_ViewDistanceMultiplier);
+                        m_ViewDistanceMultiplier.floatValue = Mathf.Max(m_ViewDistanceMultiplier.floatValue, 0.0f);
+                    }
                 }
             }
             serializedObject.ApplyModifiedProperties();

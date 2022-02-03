@@ -9,11 +9,13 @@
 #define WATER_INV_IOR 1.0 / WATER_IOR
 #define SURFACE_FOAM_BRIGHTNESS 0.7
 #define SCATTERING_FOAM_BRIGHTNESS 1.5
+#define UNDER_WATER_SCATTERING_ATTENUATION 0.25
 
 // Water simulation data
 Texture2DArray<float4> _WaterDisplacementBuffer;
 Texture2DArray<float4> _WaterAdditionalDataBuffer;
 Texture2D<float4> _WaterCausticsDataBuffer;
+StructuredBuffer<float> _WaterCameraHeightBuffer;
 
 // Water mask
 Texture2D<float2> _WaterMask;
@@ -109,15 +111,15 @@ float3 ShuffleDisplacement(float3 displacement)
 float EvaluateDisplacementNormalization(uint bandIndex)
 {
     // Compute the displacement normalization factor
-    float patchSize = _BandPatchSize[bandIndex] / _BandPatchSize[0];
-    return _WaveAmplitude[bandIndex]  / patchSize * PHILLIPS_AMPLITUDE_SCALAR;
+    float patchSizeRatio = _BandPatchSize[bandIndex] / _BandPatchSize[0];
+    return _WaveAmplitude[bandIndex] * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
 }
 
 float4 EvaluateDisplacementNormalization()
 {
     // Compute the displacement normalization factor
-    float4 patchSize = _BandPatchSize / _BandPatchSize[0];
-    return _WaveAmplitude  / patchSize * PHILLIPS_AMPLITUDE_SCALAR;
+    float4 patchSizeRatio = _BandPatchSize / _BandPatchSize[0];
+    return _WaveAmplitude * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
 }
 
 void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
@@ -152,25 +154,10 @@ float EvaluateFoam(float jacobian, float foamAmount)
     return saturate(-jacobian + foamAmount);
 }
 
-#if !defined(WATER_SIMULATION)
 // Fast random hash function
 float2 SimpleHash2(float2 p)
 {
     return frac(sin(mul(float2x2(127.1, 311.7, 269.5, 183.3), p)) * 43758.5453);
-}
-
-float3 WaterSimulationPosition(float3 objectPosition)
-{
-    // Scale the position by the size of the grid
-    float3 simulationPos = objectPosition * float3(_GridSize.x, 1.0, _GridSize.y);
-
-    // Apply the rotation and the offset
-    simulationPos = float3(simulationPos.x * _WaterRotation.x - simulationPos.z * _WaterRotation.y, simulationPos.y, simulationPos.x * _WaterRotation.y + simulationPos.z * _WaterRotation.x);
-
-    // Offset the surface to where it should be
-    simulationPos += float3(_PatchOffset.x, _PatchOffset.y, _PatchOffset.z);
-
-    return simulationPos;
 }
 
 #if UNITY_ANY_INSTANCING_ENABLED
@@ -184,6 +171,21 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 
     // Offset the surface to where it should be
     simulationPos += float3(_PatchOffset.x + patchData.z, _PatchOffset.y, _PatchOffset.z + patchData.w);
+
+    // Return the simulation position
+    return simulationPos;
+}
+#else
+float3 WaterSimulationPosition(float3 objectPosition)
+{
+    // Scale the position by the size of the grid
+    float3 simulationPos = objectPosition * float3(_GridSize.x, 1.0, _GridSize.y);
+
+    // Apply the rotation and the offset
+    simulationPos = float3(simulationPos.x * _WaterRotation.x - simulationPos.z * _WaterRotation.y, simulationPos.y, simulationPos.x * _WaterRotation.y + simulationPos.z * _WaterRotation.x);
+
+    // Offset the surface to where it should be
+    simulationPos += float3(_PatchOffset.x, _PatchOffset.y, _PatchOffset.z);
 
     // Return the simulation position
     return simulationPos;
@@ -309,6 +311,7 @@ struct WaterAdditionalData
     float deepFoam;
 };
 
+#if !defined(WATER_SIMULATION)
 void EvaluateWaterAdditionalData(float3 positionAWS, float4 bandsMultiplier, out WaterAdditionalData waterAdditionalData)
 {
     // Compute the simulation coordinates
@@ -386,6 +389,7 @@ float3 ComputeDebugNormal(float3 worldPos)
     float3 worldPosDdy = normalize(ddy(worldPos));
     return normalize(-cross(worldPosDdx, worldPosDdy));
 }
+#endif
 
 float2 EvaluateFoamUV(float3 positionAWS)
 {
@@ -580,7 +584,7 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
 }
 
 void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
-    float2 screenUV, float3 viewWS,
+    float2 screenUV, float3 viewWS, bool aboveWater,
     float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
     out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float refractedWaterDistance, out float3 absorptionTint)
 {
@@ -594,10 +598,16 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     // Blend both normals to decide what normal will be used for the refraction
     float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / max(maxRefractionDistance, 0.00001f))));
 
-    // Compute the distorded water position and NDC
-    float edgeWeight = EdgeBlendingFactor(screenUV, length(waterPosRWS));
-    float3 distortionNormal = lerp(refractionNormal, float3(0, 1, 0), edgeWeight) * float3(1, 0, 1); // I guess this is a refract?
-    float3 distortedWaterWS = waterPosRWS + distortionNormal * min(underWaterDistance, maxRefractionDistance);
+    // We approach the refraction differently if we are under or above water for various reasons
+    float3 refractedView;
+    if (aboveWater)
+        refractedView = lerp(refractionNormal, float3(0, 1, 0), EdgeBlendingFactor(screenUV, length(waterPosRWS))) * float3(1, 0, 1);
+    else
+        refractedView = refract(-viewWS, refractionNormal, WATER_IOR);
+
+    // Evaluate the refracted point
+    float3 distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
+    // Project the point on screen
     distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
 
     // Compute the position of the surface behind the water surface
@@ -616,6 +626,16 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
 
     // Evaluate the absorption tint
     absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
+
+    // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
+    if (!aboveWater)
+    {
+        // Evaluate the absorption tint
+        bool invalidSamplePoint = dot(-viewWS, refractedView) <= 0.0
+                                || distortedWaterNDC.x < 0.0 || distortedWaterNDC.y < 0.0
+                                || distortedWaterNDC.x > 1.0 || distortedWaterNDC.y > 1.0;
+        absorptionTint = invalidSamplePoint ? 0.0 : 1;
+    }
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
@@ -641,5 +661,4 @@ float3 EvaluateScatteringColor(float sssMask, float lowFrequencyHeight, float ho
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
     return scatteringTint * (1.f - absorptionTint) * lambertCompensation * (1.0 + deepFoam);
 }
-#endif
 #endif // WATER_UTILITIES_H
