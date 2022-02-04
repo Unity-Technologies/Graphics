@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
@@ -17,13 +14,10 @@ namespace UnityEngine.Rendering
         int selectedComponent { get; set; }
 
         /// <summary>Current camera to debug.</summary>
-        Camera selectedCamera { get; }
+        Camera selectedCamera { get; set; }
 
         /// <summary>Returns the collection of registered cameras.</summary>
         IEnumerable<Camera> cameras { get; }
-
-        /// <summary>Selected camera index.</summary>
-        int selectedCameraIndex { get; set; }
 
         /// <summary>Selected camera volume stack.</summary>
         VolumeStack selectedCameraVolumeStack { get; }

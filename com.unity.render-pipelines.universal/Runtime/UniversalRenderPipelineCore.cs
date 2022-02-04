@@ -39,7 +39,10 @@ namespace UnityEngine.Rendering.Universal
         Linear,
 
         /// Nearest-Neighbor filtering
-        Point
+        Point,
+
+        /// FidelityFX Super Resolution
+        FSR
     }
 
     public struct RenderingData
@@ -139,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
+        internal bool fsrOverrideSharpness;
+        internal float fsrSharpness;
         internal HDRColorBufferPrecision hdrColorBufferPrecision;
         public CameraType cameraType;
         public bool clearDepth;
@@ -152,9 +157,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
-#endif
         internal bool requireSrgbConversion
         {
             get
@@ -200,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
                 bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -212,9 +215,7 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         internal XRPass xr;
-
-        [Obsolete("Please use xr.enabled instead.")]
-        public bool isStereoEnabled;
+        internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
@@ -371,10 +372,22 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
+    /// <summary>
+    /// Settings used for Post Processing.
+    /// </summary>
     public struct PostProcessingData
     {
+        /// <summary>
+        /// The <c>ColorGradingMode</c> to use.
+        /// </summary>
+        /// <seealso cref="ColorGradingMode"/>
         public ColorGradingMode gradingMode;
+
+        /// <summary>
+        /// The size of the Look Up Table (LUT)
+        /// </summary>
         public int lutSize;
+
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
@@ -437,6 +450,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
         public static readonly string PointSampling = "_POINT_SAMPLING";
+        public static readonly string Rcas = "_RCAS";
+        public static readonly string Gamma20 = "_GAMMA_20";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
@@ -505,40 +520,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Checks if a camera is rendering in stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.enabled instead.")]
-        public static bool IsStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-        }
-
-        /// <summary>
         /// Returns the current render pipeline asset for the current quality setting.
         /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
         /// </summary>
         public static UniversalRenderPipelineAsset asset
         {
             get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-        }
-
-        /// <summary>
-        /// Checks if a camera is rendering in MultiPass stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.singlePassEnabled instead.")]
-        static bool IsMultiPassStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return false;
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };

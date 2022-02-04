@@ -170,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering
                         m_RenameSelectedBakingSet = false;
 
                         // Rename profile asset to match name:
-                        set.profile.name = set.name;
                         AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(set.profile), set.name);
+                        set.profile.name = set.name;
                     }
                 }
                 else
@@ -203,6 +203,9 @@ namespace UnityEngine.Experimental.Rendering
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                     UpdateSceneData();
+                    // A new set will be selected automatically, so we perform the same operations as if we did the selection explicitly.
+                    OnBakingSetSelected(m_BakingSets);
+
                 }
             };
 
