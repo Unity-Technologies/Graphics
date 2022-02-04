@@ -17,17 +17,15 @@ SAMPLER(sampler_FlowmapB);
 
 float4 _FlowmapParam[2];
 float4 _Params1[2];
-float4 _Params2[2];
+float3 _SunDirection;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
 #define _UpperHemisphere    (_FlowmapParam[0].w != 0.0)
-#define _Coverage           _FlowmapParam[1].w
+#define _Opacity            _FlowmapParam[1].w
 
-#define _SunDirection       _Params1[0].xyz
-#define _Thickness(l)       _Params1[l].w
-#define _SunLightColor(l)   _Params2[l].xyz
-#define _Altitude(l)        _Params2[l].w
+#define _SunLightColor(l)   _Params1[l].xyz
+#define _Altitude(l)        _Params1[l].w
 
 
 struct CloudLayerData
@@ -45,14 +43,10 @@ float3 GetCloudVolumeIntersection(int index, float3 dir)
     return dir * -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
 }
 
-float2 SampleCloudMap(float3 dir, int layer, float coverage)
+float2 SampleCloudMap(float3 dir, int layer)
 {
     float2 coords = GetLatLongCoords(dir, _UpperHemisphere);
-    float2 cloud = SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
-
-    cloud.y = saturate((cloud.y - 1) / coverage + 1);
-
-    return cloud;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
 }
 
 float3 RotationUp(float3 p, float2 cos_sin)
@@ -141,16 +135,14 @@ float4 GetCloudLayerColor(float3 dir, int index)
             delta = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
 
         float coverage1 = abs(2.0 * alpha.x), coverage2 = 1 - coverage1;
-        float2 cloud1 = SampleCloudMap(normalize(position + alpha.x * delta * scrollDist), index, (1-coverage1*coverage1) * _Coverage);
-        float2 cloud2 = SampleCloudMap(normalize(position + alpha.y * delta * scrollDist), index, (1-coverage2*coverage2) * _Coverage);
-
-        cloud = cloud1 + cloud2 * (1-cloud1.y); // blend the two samples as if the second is behind the first one
-        cloud.x = lerp(cloud1, cloud2, abs(2.0 * alpha.x)).x;
+        float2 cloud1 = SampleCloudMap(normalize(position + alpha.x * delta * scrollDist), index);
+        float2 cloud2 = SampleCloudMap(normalize(position + alpha.y * delta * scrollDist), index);
+        cloud = lerp(cloud1, cloud2, abs(2.0 * alpha.x));
     }
     else
-        cloud = SampleCloudMap(dir, index, _Coverage);
+        cloud = SampleCloudMap(dir, index);
 
-    return float4(cloud.x * cloud.y * lightColor, cloud.y);
+    return float4(cloud.x * lightColor, cloud.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir)

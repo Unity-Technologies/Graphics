@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-            if (cloudLayer.coverage.value == 0.0f)
+            if (cloudLayer.opacity.value == 0.0f)
                 return;
 
             float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
@@ -106,18 +106,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var _FlowmapParamA = cloudLayer.layerA.GetRenderingParameters(hdCamera);
             var _FlowmapParamB = cloudLayer.layerB.GetRenderingParameters(hdCamera);
             _FlowmapParamA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
-            _FlowmapParamB.w = cloudLayer.coverage.value;
+            _FlowmapParamB.w = cloudLayer.opacity.value;
 
             s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
 
-
             Color lightColor = Color.black;
             if (builtinParams.sunLight != null)
             {
-                s_VectorArray[0] = -builtinParams.sunLight.transform.forward;
-                s_VectorArray[0].w = cloudLayer.layerA.thickness.value; s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
-                m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
+                m_CloudLayerMaterial.SetVector(HDShaderIDs._SunDirection, -builtinParams.sunLight.transform.forward);
 
                 var lightComponent = builtinParams.sunLight.GetComponent<Light>();
                 var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
@@ -131,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_VectorArray[0] = cloudLayer.layerA.tint.value * lightColor; s_VectorArray[1] = cloudLayer.layerB.tint.value * lightColor;
             s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
-            m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params2, s_VectorArray);
+            m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
 
             // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
@@ -278,8 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool InitIfNeeded(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
             {
-                if (initialized)
-                    return false;
+                if (initialized)  return false;
 
                 Vector4 params1 = sunLight == null ? Vector3.zero : -sunLight.transform.forward;
                 params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
@@ -337,18 +333,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 var _FlowmapParamA = cloudLayer.layerA.GetRenderingParameters(hdCamera);
                 var _FlowmapParamB = cloudLayer.layerB.GetRenderingParameters(hdCamera);
                 _FlowmapParamA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
-                _FlowmapParamB.w = cloudLayer.coverage.value;
+                _FlowmapParamB.w = cloudLayer.opacity.value;
 
                 s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
                 cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._FlowmapParam, s_VectorArray);
 
-                s_VectorArray[0] = -sunLight.transform.forward;
-                s_VectorArray[0].w = cloudLayer.layerA.thickness.value; s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
-                cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, s_VectorArray);
-
                 s_VectorArray[0] = sunLight.transform.right; s_VectorArray[1] = sunLight.transform.up;
                 s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
-                cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._Params2, s_VectorArray);
+                cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, s_VectorArray);
+
+                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._SunDirection, -sunLight.transform.forward);
 
                 // Keywords
                 bool useSecond = (cloudLayer.layers.value == CloudMapMode.Double) && cloudLayer.layerB.castShadows.value;

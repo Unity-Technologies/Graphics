@@ -24,7 +24,7 @@
 #define BACKWARD_ECCENTRICITY   0.7
 #define MULTI_SCATTERING        0.5
 #define EARTH_RADIUS            6378100.0
-#define _SigmaT (0.1 * 0.05f + 0.001f)
+#define _Thickness 800
 
 TEXTURE2D(_CloudMapA);
 SAMPLER(sampler_CloudMapA);
@@ -46,7 +46,7 @@ float _Resolution;
 #define _Opacities          _Params1[data.index]
 #define _Rotation           _Params2[LAYER].x
 #define _LightingSteps      _Params2[data.index].y
-#define _Thickness          _Params2[data.index].z
+#define _SigmaT             _Params2[data.index].z
 #define _Altitude           _Params2[data.index].w
 
 struct LayerSamplingData
@@ -71,7 +71,7 @@ float GetCloudVolumeIntersection_Light(LayerSamplingData data, float3 originWS, 
     float3 startPS = originWS + float3(0, EARTH_RADIUS, 0);
     float lenStartPS = length(startPS), rcpLenStartPS = rcp(lenStartPS);
     float cosChi = dot(-dir, startPS * rcpLenStartPS);
-   return -IntersectSphere(_Altitude + _Thickness + EARTH_RADIUS, cosChi, lenStartPS, rcpLenStartPS).x;
+    return -IntersectSphere(_Altitude + _Thickness + EARTH_RADIUS, cosChi, lenStartPS, rcpLenStartPS).x;
 }
 
 float3 InverseLatLong(float2 uv, float upperHemisphereOnly)
@@ -109,8 +109,7 @@ float GetDensity(LayerSamplingData data, float3 positionWS, float3 dir, float th
     GetCloudVolumeIntersection(data, dir, rangeStart, range);
 
     float distToCenter = length(dir * (rangeStart + 0.5 * range) - positionWS);
-    float density = 1 - saturate(distToCenter / (range * thickness));
-    return density * thickness;
+    return (distToCenter > range * thickness) ? 0 : 0.1 * thickness;
 }
 
 float GetDensity(LayerSamplingData data, float3 positionWS)
@@ -126,7 +125,7 @@ float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phas
 
     float luminance = 0.0, extinction = 0.0;
     float totalLightDistance = GetCloudVolumeIntersection_Light(data, positionWS, _SunDirection);
-    totalLightDistance = clamp(totalLightDistance, 0, 1000);
+    totalLightDistance = clamp(totalLightDistance, 0, 500);
 
     // Compute the size of the current step
     float stepSize = totalLightDistance / (float)_NumLightSteps;
@@ -176,17 +175,17 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
         GetCloudVolumeIntersection(data, dir, rangeStart, range);
 
         float3 currentPositionWS = dir * (rangeStart + 0.5 * (1 - opacity) * range);
-        range *= opacity;
 
         finalColor = 0;
-        float density = GetDensity(data, currentPositionWS, dir, opacity);
-        if (density != 0.0f)
+        if (opacity != 0.0f)
         {
-            const float currentStepExtinction = exp(-density * _SigmaT * range);
+            const float sigmaE = 0.1 * opacity * _SigmaT;
+            const float currentStepExtinction = exp(-sigmaE * range * opacity);
             const float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
 
-            finalColor.x = (luminance - luminance * currentStepExtinction);
-            finalColor.y = opacity;
+            // Output (scattering, 1 - transmittance)
+            finalColor.x = luminance - luminance * currentStepExtinction;
+            finalColor.y = 1 - currentStepExtinction;
         }
     }
 

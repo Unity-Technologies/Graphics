@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        SerializedDataParameter m_Coverage, m_UpperHemisphereOnly, m_LayerCount;
+        SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
         SerializedDataParameter m_Resolution, m_ShadowResolution;
         SerializedDataParameter m_ShadowMultiplier, m_ShadowTint, m_ShadowSize;
         CloudMapParameter[] m_Layers;
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<CloudLayer>(serializedObject);
 
-            m_Coverage = Unpack(o.Find(x => x.coverage));
+            m_Opacity = Unpack(o.Find(x => x.opacity));
             m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_LayerCount = Unpack(o.Find(x => x.layers));
             m_Resolution = Unpack(o.Find(x => x.resolution));
@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Coverage);
+            PropertyField(m_Opacity);
             if (showAdditionalProperties)
                 PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);

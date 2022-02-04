@@ -550,8 +550,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CausticsVirtualPlane = Shader.PropertyToID("_CausticsVirtualPlane");
         public static readonly int _CausticsBandIndex = Shader.PropertyToID("_CausticsBandIndex");
 
+        // Cloud Layer
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
+        public static readonly int _SunDirection = Shader.PropertyToID("_SunDirection");
         public static readonly int _Resolution = Shader.PropertyToID("_Resolution");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");

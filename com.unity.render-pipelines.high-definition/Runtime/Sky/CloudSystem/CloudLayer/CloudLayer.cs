@@ -89,8 +89,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
-        [Tooltip("Controls the global coverage of the cloud layer.")]
-        public ClampedFloatParameter coverage = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Controls the global opacity of the cloud layer.")]
+        public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [AdditionalProperty]
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
@@ -173,13 +173,14 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [InspectorName("Raymarching")]
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter lighting = new BoolParameter(false);
+            public BoolParameter lighting = new BoolParameter(true);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter steps = new ClampedIntParameter(10, 2, 32);
-            /// <summary>Thickness of the cloud layer in meters.</summary>
-            [Tooltip("Thickness of the cloud layer in meters.")]
-            public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 100);
+            public ClampedIntParameter steps = new ClampedIntParameter(6, 2, 32);
+            /// <summary>Density of the cloud layer.</summary>
+            [InspectorName("Density")]
+            [Tooltip("Density of the cloud layer.")]
+            public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -201,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 params2 = new Vector4(
                     -rotation.value / 360.0f,
                     NumSteps,
-                    thickness.value,
+                    thickness.value * (0.1f-0.005f) + 0.005f, // [0.005, 0.1]
                     altitude.value
                 );
                 return (Opacities, params2);
@@ -318,7 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + coverage.GetHashCode();
+                hash = hash * 23 + opacity.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + layers.GetHashCode();
                 hash = hash * 23 + resolution.GetHashCode();

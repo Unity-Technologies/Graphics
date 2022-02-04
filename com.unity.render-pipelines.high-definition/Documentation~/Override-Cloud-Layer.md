@@ -44,7 +44,7 @@ A flowmap only uses the red and green channels and they represent horizontal and
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
-| **Coverage**              | The global coverage of the cloud layer. A value of 0 removes all the clouds. |
+| **Opacity**               | The global opacity of the cloud layer. A value of 0 makes clouds completely transparent. |
 | **Upper Hemisphere Only** | Indicates whether the Cloud Layer exclusively renders above the horizon or not. When enabled, HDRP still uses the entire **Cloud Map** texture, but the clouds will be renderer above the horizon. |
 | **Layers**                | The number of cloud layers to render. Each layer has its own set of properties. The options are:<br/>&#8226; **1**: Renders a single cloud layer.<br/>&#8226; **2**: Renders two cloud layers. |
 | **Resolution**            | The resolution of the texture HDRP uses to bake the clouds.  |
@@ -70,7 +70,7 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | - **Flowmap**          | The flowmap HDRP uses to distort UVs when rendering the clouds. For more information about the flowmap, see [controlling cloud movement](#controlling-cloud-movement).<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
 | **Raymarching**        | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
-| - **Thickness**        | The thickness of the clouds. The larger the value, the darker the clouds appear. |
+| - **Density**          | The density of the clouds. The larger the value, the darker the clouds will appear. |
 | **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |
 
 | Shadows Property      | Description                                                  |
