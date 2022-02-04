@@ -38,7 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
                 passData.blitAndExposeKernel = passData.blitAndExposeCS.FindKernel("KMain");
                 passData.subFrameManager = m_SubFrameManager;
-                passData.useAOV = m_PathTracingSettings.useAOVs.value;
+                // Note: for now we enable AOVs when temporal is enabled, because this seems to work better with Optix.
+                passData.useAOV = m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value;
                 passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
                 passData.async = m_PathTracingSettings.asyncDenoising.value && hdCamera.camera.cameraType == CameraType.SceneView;
 
@@ -57,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputTexture = builder.WriteTexture(outputTexture);
                 passData.denoiseHistory = builder.ReadTexture(denoiseHistory);
 
-                if (m_PathTracingSettings.useAOVs.value)
+                if (passData.useAOV)
                 {
                     TextureHandle albedoHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV));
 
@@ -67,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.normalAOV = builder.ReadTexture(normalHistory);
                 }
 
-                if (m_PathTracingSettings.temporal.value)
+                if (passData.temporal)
                 {
                     TextureHandle motionVectorHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV));
                     passData.motionVectorAOV = builder.ReadTexture(motionVectorHistory);

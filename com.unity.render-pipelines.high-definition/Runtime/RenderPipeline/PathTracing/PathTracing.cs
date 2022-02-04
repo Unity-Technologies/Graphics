@@ -741,7 +741,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
                 bool denoise = m_PathTracingSettings.denoising.value != HDDenoiserType.None;
-                if (denoise && m_PathTracingSettings.useAOVs.value)
+                // Note: for now we enable AOVs when temporal is also enabled, because this seems to work better with Optix.
+                if (denoise && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value))
                 {
                     pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(albedo, HDCameraFrameHistoryType.AlbedoAOV));
                     pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(normal, HDCameraFrameHistoryType.NormalAOV));
