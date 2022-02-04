@@ -103,7 +103,6 @@ namespace UnityEngine.Experimental.Rendering
             var shL1GR1yDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
             var shL1B1zDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
 
-            var validityByteStart = AlignUp16(shL0L1DataByteCountOld + shL0R1xDataByteCount + shL1GR1yDataByteCount + shL1B1zDataByteCount);
             var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
 
             if ((shL0L1DataByteCountOld + shL0R1xDataByteCount + shL1GR1yDataByteCount + shL1B1zDataByteCount + validityByteCount) != cellData.Length)
@@ -117,8 +116,9 @@ namespace UnityEngine.Experimental.Rendering
             var shL1GL1RyData = cellData.GetSubArray(offset, shL1GR1yDataByteCount).Reinterpret<byte>(1);
             offset += shL1GR1yDataByteCount;
             var shL1BL1RzData = cellData.GetSubArray(offset, shL1B1zDataByteCount).Reinterpret<byte>(1);
+            offset += shL1B1zDataByteCount;
 
-            var validityData = cellData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
+            var validityData = cellData.GetSubArray(offset, validityByteCount).Reinterpret<float>(1);
 
 
             // Optional L2 data
