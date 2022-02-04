@@ -234,7 +234,7 @@ float EvaluateCapsuleIndirectShadow(
             float occlusion = EvaluateCapsuleOcclusion(
                 flags,
                 lightDir,
-                true,
+                false,
                 lightCosTheta,
                 s_capsuleData.centerRWS - posInput.positionWS,
                 s_capsuleData.axisDirWS,
