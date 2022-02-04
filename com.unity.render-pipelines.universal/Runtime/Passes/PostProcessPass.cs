@@ -1131,7 +1131,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.height = Mathf.Max(1, desc.height >> 1);
             }
 
-            RenderingUtils.Blit(cmd, source, m_BloomMipDown[0], bloomMaterial, 0, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+            Blitter.BlitCameraTexture(cmd, source, m_BloomMipDown[0], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, bloomMaterial, 0);
 
             // Downsample - gaussian pyramid
             var lastDown = m_BloomMipDown[0];
@@ -1140,8 +1140,8 @@ namespace UnityEngine.Rendering.Universal
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
                 //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
-                RenderingUtils.Blit(cmd, lastDown, m_BloomMipUp[i], bloomMaterial, 1, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
-                RenderingUtils.Blit(cmd, m_BloomMipUp[i], m_BloomMipDown[i], bloomMaterial, 2, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+                Blitter.BlitCameraTexture(cmd, lastDown, m_BloomMipUp[i], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, bloomMaterial, 1);
+                Blitter.BlitCameraTexture(cmd, m_BloomMipUp[i], m_BloomMipDown[i], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, bloomMaterial, 2);
 
                 lastDown = m_BloomMipDown[i];
             }
@@ -1154,7 +1154,7 @@ namespace UnityEngine.Rendering.Universal
                 var dst = m_BloomMipUp[i];
 
                 cmd.SetGlobalTexture(ShaderConstants._SourceTexLowMip, lowMip);
-                RenderingUtils.Blit(cmd, highMip, dst, bloomMaterial, 3, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+                Blitter.BlitCameraTexture(cmd, highMip, dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, bloomMaterial, 3);
             }
 
             // Setup bloom on uber
