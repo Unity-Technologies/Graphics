@@ -168,19 +168,14 @@ namespace UnityEngine.Rendering.Universal
             internal ScreenSpaceAmbientOcclusionPass()
             {
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
-
-                m_SSAOTexture1 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture1");
-                m_SSAOTexture2 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture2");
-                m_SSAOTexture3 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture3");
-                m_SSAOTextureFinal = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTextureFinalID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture");
             }
 
             public void Dispose()
             {
-                m_SSAOTexture1.Release();
-                m_SSAOTexture2.Release();
-                m_SSAOTexture3.Release();
-                m_SSAOTextureFinal.Release();
+                m_SSAOTexture1?.Release();
+                m_SSAOTexture2?.Release();
+                m_SSAOTexture3?.Release();
+                m_SSAOTextureFinal?.Release();
             }
 
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material)
@@ -331,10 +326,10 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
                 // Get temporary render textures
-                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor, FilterMode.Bilinear);
+                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTexture1, m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
+                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTexture2, m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
+                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTexture3, m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture3");
+                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextureFinal, m_FinalDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTexture2);
@@ -436,11 +431,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
                 }
-
-                cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTextureFinalID);
             }
         }
     }
