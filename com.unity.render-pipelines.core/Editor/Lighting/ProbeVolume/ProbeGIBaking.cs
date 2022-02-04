@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering
     class BakingBatch
     {
         public int index;
-        public Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
+        public Dictionary<int, HashSet<Scene>> cellIndex2SceneReferences = new Dictionary<int, HashSet<Scene>>();
         public List<BakingCell> cells = new List<BakingCell>();
         public Dictionary<Vector3, int> uniquePositions = new Dictionary<Vector3, int>();
         public Vector3[] virtualOffsets;
@@ -790,6 +790,118 @@ namespace UnityEngine.Experimental.Rendering
 
         }
 
+        static BakingCell ConvertCellToBakingCell(ProbeReferenceVolume.Cell cell)
+        {
+            BakingCell bc = new BakingCell
+            {
+                position = cell.position,
+                index = cell.index,
+                bricks = cell.bricks.ToArray(),
+                probePositions = cell.probePositions.ToArray(),
+                validity = cell.validity.ToArray(),
+                offsetVectors = cell.offsetVectors.ToArray(),
+                minSubdiv = cell.minSubdiv,
+                indexChunkCount = cell.indexChunkCount,
+                shChunkCount = cell.shChunkCount,
+                probeIndices = null, // Not needed for this conversion.
+            };
+
+            // Need to unpack the sh
+            int numberOfProbes = bc.probePositions.Length;
+            bc.sh = new SphericalHarmonicsL2[numberOfProbes];
+            for (int probe = 0; probe < numberOfProbes; ++probe)
+            {
+                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
+            }
+
+            return bc;
+        }
+
+        // This is slow, but artists wanted this... This can be optimized later.
+        static void MergeCells(ref BakingCell dst, BakingCell srcCell)
+        {
+            int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
+
+            List<(Brick, int, int)> consolidatedBricks = new List<(Brick, int, int)>();
+            HashSet<(Vector3Int, int)> addedBricks = new HashSet<(Vector3Int, int)>();
+
+            for (int b = 0; b < dst.bricks.Length; ++b)
+            {
+                var brick = dst.bricks[b];
+                addedBricks.Add((brick.position, brick.subdivisionLevel));
+                consolidatedBricks.Add((brick, b, 0));
+            }
+
+            // Now with lower priority we grab from src.
+            for (int b = 0; b < srcCell.bricks.Length; ++b)
+            {
+                var brick = srcCell.bricks[b];
+
+                if (!addedBricks.Contains((brick.position, brick.subdivisionLevel)))
+                {
+                    consolidatedBricks.Add((brick, b, 1));
+                }
+            }
+
+            // And finally we sort. We don't need to check for anything but brick as we don't have duplicates.
+            consolidatedBricks.Sort(((Brick, int, int) lhs, (Brick, int, int) rhs) =>
+            {
+                if (lhs.Item1.subdivisionLevel != rhs.Item1.subdivisionLevel)
+                    return lhs.Item1.subdivisionLevel > rhs.Item1.subdivisionLevel ? -1 : 1;
+                if (lhs.Item1.position.z != rhs.Item1.position.z)
+                    return lhs.Item1.position.z < rhs.Item1.position.z ? -1 : 1;
+                if (lhs.Item1.position.y != rhs.Item1.position.y)
+                    return lhs.Item1.position.y < rhs.Item1.position.y ? -1 : 1;
+                if (lhs.Item1.position.x != rhs.Item1.position.x)
+                    return lhs.Item1.position.x < rhs.Item1.position.x ? -1 : 1;
+
+                return 0;
+            });
+
+            BakingCell test = dst;
+
+            List<Brick> bricks = new List<Brick>();
+            foreach (var b in consolidatedBricks)
+            {
+                if (b.Item3 == 0)
+                {
+                    bricks.Add(b.Item1);
+                }
+                else
+                {
+                    bricks.Add(b.Item1);
+                }
+            }
+
+            int numberOfProbes = bricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
+            test.bricks = new Brick[bricks.Count];
+            test.probePositions = new Vector3[numberOfProbes];
+            test.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
+            test.sh = new SphericalHarmonicsL2[numberOfProbes];
+            test.validity = new float[numberOfProbes];
+
+
+            BakingCell[] consideredCells = { dst, srcCell };
+
+            for (int i = 0; i < consolidatedBricks.Count; ++i)
+            {
+                var b = consolidatedBricks[i];
+                int brickIndexInSource = b.Item2;
+
+                test.bricks[i] = consideredCells[b.Item3].bricks[brickIndexInSource];
+
+                for (int p = 0; p < ProbeBrickPool.kBrickProbeCountTotal; ++p)
+                {
+                    test.probePositions[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].probePositions[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    test.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    test.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                }
+            }
+
+            test.offsetVectors = new Vector3[0]; // kill debug view (TODO: fix)
+            dst = test;
+        }
+
         static void ExtractBakingCells()
         {
             // Keep list of the "new" one, we won't need to push them
@@ -801,40 +913,33 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 var asset = data.asset;
+                if (asset == null || asset.cells == null) continue;
+
                 var numberOfCells = asset.cells.Length;
 
                 for (int i = 0; i < numberOfCells; ++i)
                 {
                     var cell = asset.cells[i];
 
-                    if (m_NewlyBakedCells.Contains(cell.index)) continue; // we have a more up to data thing
+                    BakingCell bc = ConvertCellToBakingCell(cell);
 
-                    BakingCell bc = new BakingCell
+                    if (m_NewlyBakedCells.Contains(cell.index))
                     {
-                        position = cell.position,
-                        index = cell.index,
-                        bricks = cell.bricks.ToArray(),
-                        probePositions = cell.probePositions.ToArray(),
-                        validity = cell.validity.ToArray(),
-                        offsetVectors = cell.offsetVectors.ToArray(),
-                        minSubdiv = cell.minSubdiv,
-                        indexChunkCount = cell.indexChunkCount,
-                        shChunkCount = cell.shChunkCount,
-                        probeIndices = null, // Not needed for this conversion.
-                    };
-
-                    // Need to unpack the sh
-                    int numberOfProbes = bc.probePositions.Length;
-                    bc.sh = new SphericalHarmonicsL2[numberOfProbes];
-                    for (int probe = 0; probe < numberOfProbes; ++probe)
-                    {
-                        ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
+                        if (m_BakedCells.ContainsKey(cell.index))
+                        {
+                            var c = m_BakedCells[cell.index];
+                            MergeCells(ref c, bc);
+                            bc = c;
+                        }
                     }
+
+
 
                     if (!m_BakingBatch.cellIndex2SceneReferences.ContainsKey(cell.index))
                     {
-                        m_BakingBatch.cellIndex2SceneReferences.Add(cell.index, new List<Scene>());
+                        m_BakingBatch.cellIndex2SceneReferences.Add(cell.index, new HashSet<Scene>());
                     }
+
                     m_BakingBatch.cellIndex2SceneReferences[cell.index].Add(data.gameObject.scene);
                     m_BakedCells[cell.index] = bc;
                 }
@@ -1173,7 +1278,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS, int[] outBrickSubdiv)
+        internal static void ConvertBricksToPositions(ref BakingCell cell, List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS, int[] outBrickSubdiv)
         {
             Matrix4x4 m = refToWS;
             int posIdx = 0;
@@ -1253,7 +1358,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Convert bricks to positions
                 var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
                 var brickSubdivLevels = new int[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                ConvertBricksToPositions(bricks, probePositionsArr, refToWS, brickSubdivLevels);
+                ConvertBricksToPositions(ref cell, bricks, probePositionsArr, refToWS, brickSubdivLevels);
 
                 DeduplicateProbePositions(in probePositionsArr, in brickSubdivLevels, m_BakingBatch.uniquePositions, m_BakingBatch.uniqueBrickSubdiv, out var indices);
 
@@ -1263,7 +1368,7 @@ namespace UnityEngine.Experimental.Rendering
                 cell.probeIndices = indices;
 
                 m_BakingBatch.cells.Add(cell);
-                m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
+                m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<Scene>(results.scenesPerCells[cellPos]);
             }
 
             // Virtually offset positions before passing them to lightmapper
