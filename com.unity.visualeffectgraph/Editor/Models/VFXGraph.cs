@@ -254,7 +254,7 @@ namespace UnityEditor.VFX
     {
         public static bool HasVFXExtension(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (!System.IO.File.Exists(filePath))
                 return false;
             return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)

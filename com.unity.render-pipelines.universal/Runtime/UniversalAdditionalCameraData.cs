@@ -435,35 +435,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void OnEnable()
-        {
-            RegisterDebug();
-        }
-
-        void OnDisable()
-        {
-            UnRegisterDebug();
-        }
-
-        bool m_IsDebugRegistered = false;
-        void RegisterDebug()
-        {
-            if (!m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
-                m_IsDebugRegistered = true;
-            }
-        }
-
-        void UnRegisterDebug()
-        {
-            if (m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
-                m_IsDebugRegistered = false;
-            }
-        }
-
         /// <summary>
         /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
         /// </summary>

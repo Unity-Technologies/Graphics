@@ -13,7 +13,11 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEditor.VersionControl;
 using UnityEditor.VFX.UI;
+using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.VFX.Test
 {
@@ -28,7 +32,7 @@ namespace UnityEditor.VFX.Test
         {
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
-        
+
         [Test]
         public void Sanitize_GetSpawnCount()
         {
@@ -944,6 +948,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
             Assert.AreNotEqual(0u, recordedSize[0]);
         }
+
+        [Test]
+        public void Check_Directory_Not_Imported()
+        {
+            var folderEndingWithVFX = "FolderTest.vfx";
+            Assert.DoesNotThrow(() => AssetDatabase.CreateFolder("Assets", folderEndingWithVFX));
+            Task.Delay(100).ContinueWith(x =>
+            {
+                Assert.IsTrue(AssetDatabase.DeleteAsset($"Assets/{folderEndingWithVFX}"));
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        [Test]
+        public void Check_Null_Or_Empty_Path_Not_Imported()
+        {
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(null));
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
+        }
+
 
         //Cover regression test : 1315191
         [UnityTest]
