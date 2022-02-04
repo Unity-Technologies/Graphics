@@ -253,6 +253,8 @@ class VFXContextEditor : VFXSlotContainerEditor
                 GUIStyle style = null;
                 switch (context.contextType)
                 {
+                    case VFXContextType.Event:
+                    case VFXContextType.SpawnerGPU:
                     case VFXContextType.Spawner:
                     case VFXContextType.Init:
                         style = Styles.spawnStyle;
