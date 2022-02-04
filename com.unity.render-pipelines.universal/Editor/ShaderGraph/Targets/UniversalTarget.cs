@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_ReceiveShadows = true;
 
         [SerializeField]
-        bool m_SupportsLODCrossFade = true;
+        bool m_SupportsLODCrossFade = false;
 
         [SerializeField]
         string m_CustomEditorGUI;
