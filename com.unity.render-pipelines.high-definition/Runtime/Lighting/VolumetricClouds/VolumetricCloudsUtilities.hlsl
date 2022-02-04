@@ -657,7 +657,7 @@ void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLight
     // Note: This is an alterated version of the  "Energy-conserving analytical integration"
     // For some reason the divison by the clamped extinction just makes it all wrong.
     const float3 integScatt = (totalLuminance - totalLuminance * transmittance);
-    volumetricRay.inScattering += _ScatteringTint.xyz * integScatt * volumetricRay.transmittance;
+    volumetricRay.inScattering += integScatt * volumetricRay.transmittance;
     volumetricRay.transmittance *= transmittance;
 }
 
