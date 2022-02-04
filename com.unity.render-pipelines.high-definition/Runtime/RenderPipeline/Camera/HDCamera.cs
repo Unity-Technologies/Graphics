@@ -327,9 +327,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector4 m_PostProcessScreenSize = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
         private Vector4 m_PostProcessRTScales = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         private Vector4 m_PostProcessRTScalesHistory = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        private Vector2Int m_PostProcessRTHistoryReference = new Vector2Int(1, 1);
 
         internal Vector2 postProcessRTScales { get { return new Vector2(m_PostProcessRTScales.x, m_PostProcessRTScales.y); } }
         internal Vector4 postProcessRTScalesHistory { get { return m_PostProcessRTScalesHistory; } }
+        internal Vector2Int postProcessRTHistoryReference { get { return m_PostProcessRTHistoryReference; } }
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usage
@@ -1003,9 +1005,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessRTScales = new Vector4(scales.x, scales.y, m_PostProcessRTScales.x, m_PostProcessRTScales.y);
         }
 
-        internal void SetPostProcessHistoryScales(float xScale, float yScale)
+        internal void SetPostProcessHistorySizeAndReference(int width, int height, int referenceWidth, int referenceHeight)
         {
-            m_PostProcessRTScalesHistory = new Vector4(xScale, yScale, m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y);
+            m_PostProcessRTScalesHistory = new Vector4((float)width / (float)referenceWidth, (float)height / (float)referenceHeight, m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y);
+            m_PostProcessRTHistoryReference = new Vector2Int(referenceWidth, referenceHeight);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
