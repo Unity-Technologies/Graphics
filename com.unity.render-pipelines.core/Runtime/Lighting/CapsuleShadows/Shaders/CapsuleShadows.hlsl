@@ -216,7 +216,7 @@ float EvaluateCapsuleOcclusion(
             surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
             capOffsetVec -= zAxisDir*(edgeOffsetZ*zOffsetFactor);
             if (lightIsPunctual)
-                maxDistance -= maxDistance*shearAmount;
+                maxDistance *= (1.f - zOffsetFactor);
 
             // shear the light cone an equivalent amount
             float lightSinTheta2 = 1.f - lightCosTheta*lightCosTheta;
