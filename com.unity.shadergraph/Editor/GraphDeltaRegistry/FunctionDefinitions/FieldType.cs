@@ -7,7 +7,7 @@ namespace com.unity.shadergraph.defs {
 
     enum Precision { Fixed, Half, Full, Any, }
 
-    enum Width { One, Two, Three, Four, Any, }
+    enum Length { One, Two, Three, Four, Any, }
 
     enum Height { One, Two, Three, Four, Any, }
 
@@ -15,7 +15,7 @@ namespace com.unity.shadergraph.defs {
     {
         public Primitive Primitive { get; }
         public Precision Precision { get; }
-        public Width Width { get; }
+        public Length Length { get; }
         public Height Height { get; }
     }
 
@@ -24,26 +24,26 @@ namespace com.unity.shadergraph.defs {
 
     // TODO most constrained, expand with identities
 
-    TypeDescriptor Any = { Primitive.Float, Precision.Any, Width.Any, Height.Any };
-    TypeDescriptor Bool = { Primitive.Bool, Precision.Any, Width.One, Height.One };
-    TypeDescriptor Int = { Primitive.Int, Precision.Any, Width.One, Height.One };
-    TypeDescriptor Float = { Primitive.Float, Precision.Any, Width.One, Height.One };
+    TypeDescriptor Any = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Any, Height = Height.Any };
+    TypeDescriptor Bool = { Primitive = Primitive.Bool, Precision = Precision.Any, Length = Length.One, Height = Height.One };
+    TypeDescriptor Int = { Primitive = Primitive.Int, Precision = Precision.Any, Length = Length.One, Height = Height.One };
+    TypeDescriptor Float = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.One, Height = Height.One };
 
-    TypeDescriptor Vector = { Primitive.Float, Precision.Any, Width.Any, Height.One}; // A completely dynamic vector
-    TypeDescriptor Vec2 = { Primitive.Float, Precision.Any, Width.Two, Height.One };
-    TypeDescriptor Vec3 = { Primitive.Float, Precision.Any, Width.Three, Height.One };
-    TypeDescriptor Vec4 = { Primitive.Float, Precision.Any, Width.Four, Height.One };
+    TypeDescriptor Vector = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Any, Height = Height.One}; // A completely dynamic vector
+    TypeDescriptor Vec2 = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Two, Height = Height.One };
+    TypeDescriptor Vec3 = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Three, Height = Height.One };
+    TypeDescriptor Vec4 = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Four, Height = Height.One };
 
-    TypeDescriptor Matrix = { Primitive.Float, Precision.Any, Width.Any, Height.Any };
-    TypeDescriptor Mat3 = { Primitive.Float, Precision.Any, Width.Three, Height.Three };
-    TypeDescriptor Mat4 = { Primitive.Float, Precision.Any, Width.Four, Height.Four };
+    TypeDescriptor Matrix = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Any, Height = Height.Any };
+    TypeDescriptor Mat3 = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Three, Height = Height.Three };
+    TypeDescriptor Mat4 = { Primitive = Primitive.Float, Precision = Precision.Any, Length = Length.Four, Height = Height.Four };
 
     // ----------
-    // Parameter
+    // ParameterDescriptor
 
     enum Usage { In, Out, Static, } // required to be statically known
 
-    public readonly struct Parameter
+    public readonly struct ParameterDescriptor
     {
         public string Name { get; }  // Must be a valid reference name
         public TypeDescriptor TypeDescriptor { get; }
@@ -56,35 +56,31 @@ namespace com.unity.shadergraph.defs {
     }
 
     // ----------
-    // Function
+    // FunctionDescriptor
 
-    public readonly struct Function
+    public readonly struct FunctionDescriptor
     {
         public string Name { get; } // Must be a valid reference name
-        public Parameter<List> Parameters { get; }
+        public ParameterDescriptor<List> Parameters { get; }
         public string Body { get; }  // HLSL syntax. All out parameters should be assigned a value.
     }
 
-    // EXAMPLE Parameter
-    Parameter myParameter = {
+    // EXAMPLE ParameterDescriptor
+    ParameterDescriptor myParameter = {
         Name = "Exp",
         TypeDescriptor = Vec2,  // Can use a predefined Type here or specify one
         // {
         //     Precision = Precision.Fixed,
         //     Height = Height.Four,
-        //     Width = Width.Four,
+        //     Length = Length.Four,
         //     Primitive = Primitive.Float,
         // },
     };
 
-
-    //  "GTF_POW.Parameters.IN.tooltip" : "Input",
-    //  "CURRENT_POW.Parameters.IN.tooltip" : "Input"
-
-    // EXAMPLE Function
-    var pow = {
+    // EXAMPLE Function Descriptor
+    FunctionDescriptor pow = {
         Name = "pow",
-        Parameters = new List<Parameter> {
+        Parameters = new List<ParameterDescriptor> {
             {
                 Name = "In",
                 Usage = Use.In,
@@ -92,28 +88,6 @@ namespace com.unity.shadergraph.defs {
             },
             {
                 Name = "Exp",
-                Usage = Use.In,
-                TypeDescriptor = Vec4
-            },
-            {
-                Name = "Out",
-                Usage = Use.Out,
-                TypeDescriptor = Vec4
-            }
-        },
-        Body = "Out = pow(In, Exp);",
-    };
-
-        var pow = {
-        Name = "pow",
-        Parameters = new List<Parameter> {
-            {
-                Name = "A",
-                Usage = Use.In,
-                TypeDescriptor = Vec4
-            },
-            {
-                Name = "B",
                 Usage = Use.In,
                 TypeDescriptor = Vec4
             },
