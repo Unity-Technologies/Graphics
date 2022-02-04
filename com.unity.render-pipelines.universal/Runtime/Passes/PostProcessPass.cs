@@ -1032,8 +1032,7 @@ namespace UnityEngine.Rendering.Universal
                 1f - Mathf.Abs(paniniD) > float.Epsilon
                 ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
-
-            RenderingUtils.Blit(cmd, source, destination, material, 0, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
         }
 
         Vector2 CalcViewExtents(Camera camera)
