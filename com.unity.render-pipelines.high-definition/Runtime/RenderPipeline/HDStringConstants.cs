@@ -515,6 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RainMap = Shader.PropertyToID("_RainMap");
         public static readonly int _CloudMapResolution = Shader.PropertyToID("_CloudMapResolution");
         public static readonly int _CloudsPixelCoordToViewDirWS = Shader.PropertyToID("_CloudsPixelCoordToViewDirWS");
+        public static readonly int _VolumetricCloudsAmbientProbeBuffer = Shader.PropertyToID("_VolumetricCloudsAmbientProbeBuffer");
 
         // Water
         public static readonly int _H0Buffer = Shader.PropertyToID("_H0Buffer");
