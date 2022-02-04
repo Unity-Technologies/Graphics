@@ -34,7 +34,7 @@ If you disable bloom and the screen stops being black, the cause of the black sc
 
 The best way to stop bloom or other HDRP features from propagating Nan or Inf values is to fix the source of the Nan or Inf values. For information on how to do this, see [finding NaNs and Infs](#finding-nans-and-infs).
 
-If you are unable to fix the source of the Nan or Inf values, [HDRP Cameras](HDRP-Camera.md) include a feature which replaces NaN and Inf values with a black pixel. This stops effects like bloom from propagating Nan or Inf values, but is a fairly resource intensive process. To enable this feature, select a Camera and, in the Inspector, enable the **Stop NaNs** checkbox. 
+If you are unable to fix the source of the Nan or Inf values, [HDRP Cameras](HDRP-Camera.md) include a feature which replaces NaN and Inf values with a black pixel. This stops effects like bloom from propagating Nan or Inf values, but is a fairly resource intensive process. To enable this feature, select a Camera and, in the Inspector, enable the **Stop NaNs** checkbox.
 
 **Note**: Only enable this feature if you are unable to fix the root cause of the Nan or Inf values.
 
