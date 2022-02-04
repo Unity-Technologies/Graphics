@@ -122,7 +122,7 @@ MonoBehaviour:
       lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
-      enabled: 1
+      enabled: 0
       useMipBias: 0
       enableDLSS: 1
       DLSSPerfQualitySetting: 0
@@ -161,6 +161,7 @@ MonoBehaviour:
       DoFResolution: 040000000200000001000000
       DoFHighQualityFiltering: 000101
       DoFPhysicallyBased: 000000
+      LimitManualRangeNearBlur: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
       BloomHighQualityFiltering: 000101
