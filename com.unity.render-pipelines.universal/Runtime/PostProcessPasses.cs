@@ -9,7 +9,15 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal struct PostProcessParams
     {
+        /// <summary>
+        /// The blit <c>Material</c> to use.
+        /// </summary>
+        /// <seealso cref="Material"/>
         public Material blitMaterial;
+        /// <summary>
+        /// Requested <c>GraphicsFormat</c> for HDR postprocess rendering.
+        /// </summary>
+        /// <seealso cref="GraphicsFormat"/>
         public GraphicsFormat requestHDRFormat;
 
         /// <summary>

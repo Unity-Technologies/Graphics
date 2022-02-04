@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="postProcessParams">The <c>PostProcessParams</c> run-time params to use.</param>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="PostProcessData"/>
-        /// <seealso cref="Material"/>
+        /// <seealso cref="PostProcessParams"/>
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams)
         {
             base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
