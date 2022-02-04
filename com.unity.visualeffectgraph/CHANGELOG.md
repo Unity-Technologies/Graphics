@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
 - Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
 - Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
+- Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
 
 ## [14.0.0] - 2021-11-17
 
