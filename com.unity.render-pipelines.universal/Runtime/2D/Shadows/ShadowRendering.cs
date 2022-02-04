@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
                                 var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
                                 if (material != null)
                                 {
-                                    int numberOfMaterials = renderer.sharedMaterials.Length;
+                                    int numberOfMaterials = shadowCaster.spriteMaterialCount;
                                     if (shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed)
                                     {
                                         for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)

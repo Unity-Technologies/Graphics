@@ -97,12 +97,16 @@ namespace UnityEngine.Rendering.Universal
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
 
+        int m_SpriteMaterialCount;
+
         internal Vector3 m_CachedPosition;
         internal Vector3 m_CachedLossyScale;
         internal Quaternion m_CachedRotation;
         internal Matrix4x4 m_CachedShadowMatrix;
         internal Matrix4x4 m_CachedInverseShadowMatrix;
         internal Matrix4x4 m_CachedLocalToWorldMatrix;
+
+        internal int spriteMaterialCount => m_SpriteMaterialCount;
 
         internal override void CacheValues()
         {
@@ -244,7 +248,9 @@ namespace UnityEngine.Rendering.Universal
             if (renderer != null)
             {
                 bounds = renderer.bounds;
+                m_SpriteMaterialCount = renderer.sharedMaterials.Length;
             }
+
 #if USING_PHYSICS2D_MODULE
             else
             {
@@ -398,15 +404,34 @@ namespace UnityEngine.Rendering.Universal
 
         public void OnBeforeSerialize()
         {
-            //m_ComponentVersion = k_CurrentComponentVersion;
+            m_ComponentVersion = k_CurrentComponentVersion;
         }
+
+
+        
 
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version
             if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
+                // ----------------------------------------------------
+                // m_SelfShadows | m_CastsShadows | m_RendererSilhoutte 
+                // ----------------------------------------------------
+                //       0       |       0        |         X
+                //       0       |       1        |        Self
+                //       1       |       0        |        Casts
+                //       1       |       1        |        All
+
                 // Flag this for requiring an upgrade to run
+                //if (m_SelfShadows)
+                //    m_RendererSilhouette
+
+                //if(m_)
+
+
+
+                //m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
 
