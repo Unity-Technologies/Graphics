@@ -462,10 +462,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool validHistory = true;
             next = camera.GetCurrentFrameRT((int)historyType);
-            if (next == null || (useMips == true && next.rt.mipmapCount == 1) || next.rt.width != camera.postProcessRTHistoryReference.x || next.rt.height != camera.postProcessRTHistoryReference.y)
+            if (next == null || (useMips == true && next.rt.mipmapCount == 1) || next.rt.width != camera.postProcessRTHistoryMaxReference.x || next.rt.height != camera.postProcessRTHistoryMaxReference.y)
             {
                 validHistory = false;
-                var viewportSize = new Vector2Int(camera.postProcessRTHistoryReference.x, camera.postProcessRTHistoryReference.y);
+                var viewportSize = new Vector2Int(camera.postProcessRTHistoryMaxReference.x, camera.postProcessRTHistoryMaxReference.y);
                 var textureAllocator = new PostProcessHistoryTextureAllocator(name, viewportSize, format, useMips);
 
                 if (next != null)
