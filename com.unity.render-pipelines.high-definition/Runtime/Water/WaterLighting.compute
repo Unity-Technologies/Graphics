@@ -174,7 +174,7 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
-    // Evaluate the caustics for this position    
+    // Evaluate the caustics for this position
     float caustics = 0;
 
     // Read the stencil value

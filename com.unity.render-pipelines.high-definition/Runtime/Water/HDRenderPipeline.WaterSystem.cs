@@ -685,7 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gbuffer3;
             public ComputeBufferHandle heightBuffer;
             public ComputeBufferHandle waterSurfaceProfiles;
-            
+
             // Output texture
             public TextureHandle normalBuffer;
         }
@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.waterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
             profile.maxRefractionDistance = Mathf.Min(waterSurface.maxAbsorptionDistance, waterSurface.maxRefractionDistance);
             profile.lightLayers = (uint)waterSurface.lightLayerMask;
-            profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ?  1 : 0;
+            profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ? 1 : 0;
             profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.g, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.b, 0.99f));

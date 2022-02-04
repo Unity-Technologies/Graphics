@@ -429,7 +429,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(m_TransitionSize);
                         m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
 
-                        // View distance 
+                        // View distance
                         EditorGUILayout.PropertyField(m_ViewDistanceMultiplier);
                         m_ViewDistanceMultiplier.floatValue = Mathf.Max(m_ViewDistanceMultiplier.floatValue, 0.0f);
                     }

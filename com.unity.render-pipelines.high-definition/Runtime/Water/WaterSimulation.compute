@@ -138,7 +138,7 @@ RWStructuredBuffer<float> _WaterCameraHeightBufferRW;
 // We allow up to 10 steps to figure out the height of the point
 #define SEARCH_ITERATION_COUNT 16
 
-// We consider that we found the point if we were able to 
+// We consider that we found the point if we were able to
 #define SEARCH_DISTANCE_THRESHOLD 0.001
 
 struct TapData
@@ -153,7 +153,7 @@ struct TapData
 TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePosition)
 {
     TapData data;
-    
+
     // Evaluate the displacement at the current point
     WaterDisplacementData displacementData;
     EvaluateWaterDisplacement(currentLocation, float4(1, 1, 1, 1), displacementData);
@@ -204,7 +204,7 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
 
         // Keep track of the step size that will be use for the 4 samples
         float2 localSearchStepSize = stepSize;
-        
+
         float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, 0);
         TapData tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
         if (tapData.distance < currentError)
