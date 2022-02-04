@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4090_DRS-Hardware.unity
+    guid: 813bead26cd69ed4c9e9726f6670da5f
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity
     guid: 7fe3f9e94b4355641ba1534c54d5c356
   - enabled: 1
@@ -572,9 +575,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4083_DepthOfField-FP16AlphaPB.unity
     guid: a0fe0a96435b36649a501656437bfdeb
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4090_DRS-Hardware.unity
-    guid: 813bead26cd69ed4c9e9726f6670da5f
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4089_DRS-DLSS-Software.unity
     guid: eb89f789e3ce3db4d91641ad06d27151
