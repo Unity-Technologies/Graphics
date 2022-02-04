@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool InitIfNeeded(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
             {
-                if (initialized)  return false;
+                if (initialized) return false;
 
                 Vector4 params1 = sunLight == null ? Vector3.zero : -sunLight.transform.forward;
                 params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
