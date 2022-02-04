@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
+            public static readonly GUIContent sortingLayerDepthOverride = EditorGUIUtility.TrTextContent("Depth Override", "Sorting Layer to Depth Override");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
             public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
@@ -45,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_TransparencySortMode;
         SerializedProperty m_TransparencySortAxis;
+        SerializedProperty m_SortingLayerDepthOverride;
         SerializedProperty m_HDREmulationScale;
         SerializedProperty m_LightRenderTextureScale;
         SerializedProperty m_LightBlendStyles;
@@ -90,6 +92,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_TransparencySortMode = serializedObject.FindProperty("m_TransparencySortMode");
             m_TransparencySortAxis = serializedObject.FindProperty("m_TransparencySortAxis");
+            m_SortingLayerDepthOverride = serializedObject.FindProperty("m_SortingLayerDepthOverride");
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
@@ -199,6 +202,9 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.DisabledGroupScope(m_TransparencySortMode.intValue != (int)TransparencySortMode.CustomAxis))
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
+
+            if (m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomScripted)
+                EditorGUILayout.PropertyField(m_SortingLayerDepthOverride, Styles.sortingLayerDepthOverride);
 
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if (m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)

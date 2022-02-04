@@ -261,6 +261,10 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
+#if UNITY_EDITOR
+            if(m_Renderer2DData.transparencySortMode == TransparencySortMode.CustomScripted)
+                m_Renderer2DData.sortingLayerDepthOverride?.Sort();
+#endif
         }
 
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)

@@ -29,6 +29,9 @@ namespace UnityEngine.Rendering.Universal
         Vector3 m_TransparencySortAxis = Vector3.up;
 
         [SerializeField]
+        private SortingLayerDepthOverride m_SortingLayerDepthOverride;
+
+        [SerializeField]
         float m_HDREmulationScale = 1;
 
         [SerializeField, Range(0.01f, 1.0f)]
@@ -126,6 +129,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
+
+        internal SortingLayerDepthOverride sortingLayerDepthOverride => m_SortingLayerDepthOverride;
 
         protected override ScriptableRenderer Create()
         {
