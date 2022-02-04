@@ -269,6 +269,9 @@ MonoBehaviour:
   m_PhysicallyBased:
     m_OverrideState: 1
     m_Value: 0
+  m_LimitManualRangeNearBlur:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-4867132334801308280
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -327,7 +330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaa3b8214f75b354e9ba2caadd022259, type: 3}
   m_Name: DepthOfField
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   quality:
     m_OverrideState: 1
     m_Value: 3
@@ -372,6 +375,9 @@ MonoBehaviour:
     m_Value: 1
   m_PhysicallyBased:
     m_OverrideState: 1
+    m_Value: 0
+  m_LimitManualRangeNearBlur:
+    m_OverrideState: 0
     m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
