@@ -524,5 +524,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdLight.intensity = intensity;
         }
+
+        internal static Color EvaluateLightColor(Light light, HDAdditionalLightData hdLight)
+        {
+            Color finalColor = light.color.linear * light.intensity;
+            if (hdLight.useColorTemperature)
+                finalColor *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+            return finalColor;
+        }
     }
 }
