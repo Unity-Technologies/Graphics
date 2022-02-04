@@ -519,7 +519,7 @@ MonoBehaviour:
   captureFrameRate: 60
   fixedTimeStepScale: 1
   simulateTime: 2.5
-  xrCompatible: 1
+  xrCompatible: 0
 --- !u!1 &1208143528
 GameObject:
   m_ObjectHideFlags: 0
