@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
@@ -27,8 +28,11 @@ namespace com.unity.shadergraph.defs
                 param.Usage == Usage.In,
                 registry
             );
-            // TODO (Brett) This is incorrect
-            //portWriter.SetField<int>(GraphType.kLength, 1);
+
+            port.SetField(GraphType.kLength, param.TypeDescriptor.Length);
+            port.SetField(GraphType.kHeight, param.TypeDescriptor.Height);
+            port.SetField(GraphType.kPrecision, param.TypeDescriptor.Precision);
+            port.SetField(GraphType.kPrimitive, param.TypeDescriptor.Primitive);
 
             return port;
         }
@@ -43,33 +47,61 @@ namespace com.unity.shadergraph.defs
             INodeWriter generatedData,
             Registry registry)
         {
-
             foreach (var param in m_functionDescriptor.Parameters)
             {
                 ParameterDescriptorToField(param, userData, generatedData, registry);
             }
-
-            //port.SetField<GraphType.Primitive>(GraphType.kPrecision, m_functionDescriptor.param1.precision);
-            //port.SetField<GraphType.Precision>(GraphType.kPrimitive, m_functionDescriptor.param1.primitive);
-            //port.SetField(GraphType.kHeight, 1);
-            //port.SetField(GraphType.kLength, 1);
         }
-
-        //void INodeDefinitionBuilder.BuildNode(
-        //    INodeReader userData,
-        //    INodeWriter generatedData,
-        //    Registry registry)
-        //{
-        //    throw new System.NotImplementedException();
-        //}
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
             INodeReader data,
             ShaderContainer container,
             Registry registry)
         {
-            // TODO (Brett) Implement
-            throw new System.NotImplementedException();
+            // Get the ShaderType for the first output port we find.
+            string outPortName = null;
+            foreach (var param in m_functionDescriptor.Parameters)
+            {
+                if (param.Usage == Usage.Out)
+                {
+                    outPortName = param.Name;
+                    break;
+                }
+            }
+            if (outPortName == null)
+            {
+                // No out port was found.
+                throw new Exception("No output port found for ");
+            }
+
+            data.TryGetPort(outPortName, out var port);
+            var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
+            // Get a builder from ShaderFoundry
+            var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
+
+            // Set up the vars in the shader function.
+            foreach (var param in m_functionDescriptor.Parameters)
+            {
+                if (param.Usage == Usage.In || param.Usage == Usage.Static)
+                {
+                    shaderFunctionBuilder.AddInput(shaderType, param.Name);
+                }
+                else if (param.Usage == Usage.Out)
+                {
+                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                }
+                else
+                {
+                    throw new Exception($"No ShaderFunction parameter type for {param.Usage}");
+                }
+            }
+
+            // Add the shader function body.
+            shaderFunctionBuilder.AddLine(m_functionDescriptor.Body);
+
+            // Return the results of ShaderFoundry's build.
+            return shaderFunctionBuilder.Build();
         }
 
         RegistryKey IRegistryEntry.GetRegistryKey()

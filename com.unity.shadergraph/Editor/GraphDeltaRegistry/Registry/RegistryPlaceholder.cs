@@ -206,8 +206,8 @@ namespace UnityEditor.ShaderGraph.Registry
 
             public enum Precision { Fixed, Half, Full, Any }
             public enum Primitive { Bool, Int, Float, Any }
-            public enum Length { One, Two, Three, Four, Any, }
-            public enum Height { One, Two, Three, Four, Any, }
+            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1, }
+            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1, }
             public enum Usage { In, Out, Static, }
 
             public const string kPrimitive = "Primitive";

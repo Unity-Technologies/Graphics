@@ -3,9 +3,8 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs
 {
-    // ----------
-    // ParameterDescriptor
-
+    /// <summary>
+    /// </summary>
     internal readonly struct ParameterDescriptor
     {
         public string Name { get; }  // Must be a valid reference name

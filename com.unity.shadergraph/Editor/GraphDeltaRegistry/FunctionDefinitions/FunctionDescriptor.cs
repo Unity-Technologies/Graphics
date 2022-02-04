@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs {
-
     /// <summary>
     /// </summary>
     internal readonly struct FunctionDescriptor

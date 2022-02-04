@@ -2,6 +2,8 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs
 {
+    /// <summary>
+    /// </summary>
     internal class TYPE
     {
         public static readonly TypeDescriptor Any = new(

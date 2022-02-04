@@ -2,10 +2,8 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs
 {
-
-    // ----------
-    // TypeDescriptor
-
+    /// <summary>
+    /// </summary>
     internal readonly struct TypeDescriptor
     {
         public Primitive Primitive { get; }
