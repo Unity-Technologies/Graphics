@@ -3,13 +3,18 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEditor.ShaderGraph.Registry.Types;
+using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs
 {
-    public class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
+    /// <summary>
+    /// </summary>
+    internal class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
     {
         private readonly FunctionDescriptor m_functionDescriptor;
 
+        /// <summary>
+        /// </summary>
         public static IPortWriter ParameterDescriptorToField(
             ParameterDescriptor param,
             INodeReader nodeReader,

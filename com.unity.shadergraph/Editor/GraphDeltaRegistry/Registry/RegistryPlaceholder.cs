@@ -204,8 +204,11 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            public enum Precision {Fixed, Half, Full };
-            public enum Primitive { Bool, Int, Float };
+            public enum Precision { Fixed, Half, Full, Any }
+            public enum Primitive { Bool, Int, Float, Any }
+            public enum Length { One, Two, Three, Four, Any, }
+            public enum Height { One, Two, Three, Four, Any, }
+            public enum Usage { In, Out, Static, }
 
             public const string kPrimitive = "Primitive";
             public const string kPrecision = "Precision";
