@@ -259,6 +259,7 @@ VFXContextUI.graphElement #user-label
 {
     flex-direction:column;
     align-items:stretch;
+    min-height: 27px;
 }
 
 VFXContextUI.graphElement #user-label:hover
@@ -313,6 +314,11 @@ VFXContextUI.inputTypeparticle #user-label
 VFXContextUI.inputTypeparticlestrip #user-label
 {
     color: #FFAA6B;
+}
+
+VFXContextUI.inputTypemesh #user-label
+{
+    color: #3b5e92;
 }
 
 #user-label.empty
