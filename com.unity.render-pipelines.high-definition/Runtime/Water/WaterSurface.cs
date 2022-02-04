@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.
         /// </summary>
         [Tooltip("Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.")]
-        public float choppiness = 1.0f;
+        public float choppiness = 0.9f;
 
         /// <summary>
         /// Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
@@ -201,12 +201,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
-
-        /// <summary>
-        /// Sets the vertical plane offset in meters at which the caustics start.
-        /// </summary>
-        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
-        public float causticsPlaneOffset = 0.0f;
 
         /// <summary>
         /// Sets the vertical blending distance for the water caustics.
@@ -385,6 +379,44 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Specifies the light layers that affect the water surface.")]
         public LightLayerEnum lightLayerMask = LightLayerEnum.LightLayerDefault;
+        #endregion
+
+        #region Water Underwater
+        /// <summary>
+        /// When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.
+        /// </summary>
+        [Tooltip("When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.")]
+        public bool underWater = false;
+
+        /// <summary>
+        /// Sets a box collider that will be used to define the volume where the under water effect is applied for non infinite surfaces.
+        /// </summary>
+        [Tooltip("Sets a box collider that will be used to define the volume where the under water effect is applied for non infinite surfaces.")]
+        public BoxCollider volumeBounds = null;
+
+        /// <summary>
+        /// Sets maximum depth at which the under water effect is evaluated for infinite surfaces.
+        /// </summary>
+        [Tooltip("Sets maximum depth at which the under water effect is evaluated for infinite surfaces.")]
+        public float volumeDepth = 50.0f;
+
+        /// <summary>
+        /// Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.
+        /// </summary>
+        [Tooltip(" Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.")]
+        public int volumePrority = 0;
+
+        /// <summary>
+        /// Sets a vertical distance to the water surface at which the blending between above and under water starts.
+        /// </summary>
+        [Tooltip("Sets a vertical distance to the water surface at which the blending between above and under water starts.")]
+        public float transitionSize = 0.1f;
+
+        /// <summary>
+        /// Sets the relative view distance under water with respect to the above water one.
+        /// </summary>
+        [Tooltip("Sets the relative view distance under water with respect to the above water one.")]
+        public float viewDistanceMultiplier = 1.0f;
         #endregion
 
         // Internal simulation data

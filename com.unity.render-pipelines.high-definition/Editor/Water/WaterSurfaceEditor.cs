@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Procedural caustics
         SerializedProperty m_CausticsTiling;
         SerializedProperty m_CausticsSpeed;
-        SerializedProperty m_CausticsPlaneOffset;
         SerializedProperty m_CausticsPlaneBlendDistance;
 
         // Water masking
@@ -73,6 +72,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // Rendering
         SerializedProperty m_DecalLayerMask;
         SerializedProperty m_LightLayerMask;
+
+        // Underwater
+        SerializedProperty m_UnderWater;
+        SerializedProperty m_VolumeBounds;
+        SerializedProperty m_VolumeDepth;
+        SerializedProperty m_VolumePriority;
+        SerializedProperty m_TransitionSize;
+        SerializedProperty m_ViewDistanceMultiplier;
 
         void OnEnable()
         {
@@ -120,7 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Procedural caustics
             m_CausticsTiling = o.Find(x => x.causticsTiling);
             m_CausticsSpeed = o.Find(x => x.causticsSpeed);
-            m_CausticsPlaneOffset = o.Find(x => x.causticsPlaneOffset);
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
@@ -145,6 +151,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Rendering
             m_DecalLayerMask = o.Find(x => x.decalLayerMask);
             m_LightLayerMask = o.Find(x => x.lightLayerMask);
+
+            // Underwater
+            m_UnderWater = o.Find(x => x.underWater);
+            m_VolumeBounds = o.Find(x => x.volumeBounds);
+            m_VolumeDepth = o.Find(x => x.volumeDepth);
+            m_VolumePriority = o.Find(x => x.volumePrority);
+            m_TransitionSize = o.Find(x => x.transitionSize);
+            m_ViewDistanceMultiplier = o.Find(x => x.viewDistanceMultiplier);
         }
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
@@ -240,7 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 3.0f);
+                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 0.0f, 1.0f);
                 m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
             }
 
@@ -278,9 +292,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(m_CausticsIntensity);
                     m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
-
-                    EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
-                    m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
 
                     EditorGUILayout.PropertyField(m_CausticsPlaneBlendDistance);
                     m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(m_CausticsPlaneBlendDistance.floatValue, 0.0f);
@@ -389,6 +400,39 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
                         MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
                     EditorGUILayout.Space();
+                }
+            }
+
+            // Under Water Rendering
+            EditorGUILayout.LabelField("Underwater", EditorStyles.boldLabel);
+            using (new IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(m_UnderWater);
+                using (new IndentLevelScope())
+                {
+                    if (m_UnderWater.boolValue)
+                    {
+                        // Bounds data
+                        if (!m_Infinite.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(m_VolumeBounds);
+                            m_VolumeBounds.floatValue = Mathf.Max(m_VolumeBounds.floatValue, 0.0f);
+                        }
+                        else
+                            EditorGUILayout.PropertyField(m_VolumeDepth);
+
+                        // Priority
+                        EditorGUILayout.PropertyField(m_VolumePriority);
+                        m_VolumePriority.intValue = m_VolumePriority.intValue > 0 ? m_VolumePriority.intValue : 0;
+
+                        // Transition size
+                        EditorGUILayout.PropertyField(m_TransitionSize);
+                        m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
+
+                        // View distance 
+                        EditorGUILayout.PropertyField(m_ViewDistanceMultiplier);
+                        m_ViewDistanceMultiplier.floatValue = Mathf.Max(m_ViewDistanceMultiplier.floatValue, 0.0f);
+                    }
                 }
             }
             serializedObject.ApplyModifiedProperties();

@@ -95,7 +95,6 @@ namespace UnityEditor.Rendering
             waterSurface.causticsIntensity = 0.4f;
             waterSurface.causticsTiling = 1.5f;
             waterSurface.causticsSpeed = 0.0f;
-            waterSurface.causticsPlaneOffset = 0.5f;
         }
     }
 }

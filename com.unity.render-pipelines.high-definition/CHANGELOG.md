@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 - Added an option for culling objects out of the ray tracing acceleration structure.
 - Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added an initial version of under water rendering for the water system.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
