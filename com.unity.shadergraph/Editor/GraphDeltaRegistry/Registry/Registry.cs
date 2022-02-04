@@ -95,6 +95,16 @@ namespace UnityEditor.ShaderGraph.Registry
         public bool Register<T>() where T : Defs.IRegistryEntry
         {
             var builder = Activator.CreateInstance<T>();
+            return Register(builder);
+        }
+
+        public bool Register(FunctionDescriptor funcDesc)
+        {
+            var builder = new FunctionDescriptionNodeBuilder(funcDesc);
+            return Register(builder);
+        }
+
+        private bool Register(INodeDefinitionBuilder builder) {
             var key = builder.GetRegistryKey();
             if (builders.ContainsKey(key))
                 return false;
