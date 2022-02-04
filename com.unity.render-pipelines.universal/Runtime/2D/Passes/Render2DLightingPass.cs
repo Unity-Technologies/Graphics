@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Profiling;
 using UnityEngine.U2D;
 
@@ -333,40 +334,66 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
-        private void UpdateCorners(Transform transform, Vector3 localPoint, ref Vector3 minCorner, ref Vector3 maxCorner)
+
+        void CalculateFrustumCornersPerspective(Camera camera, float distance, NativeArray<Vector3> corners)
         {
-            Vector3 worldPoint = transform.TransformPoint(localPoint);
+            float verticalFieldOfView = camera.fieldOfView;  // This will need to be converted if user direction is allowed
 
-            if (worldPoint.x < minCorner.x)
-                minCorner.x = worldPoint.x;
-            if (worldPoint.y < minCorner.y)
-                minCorner.y = worldPoint.y;
-            if (worldPoint.z < minCorner.z)
-                minCorner.z = worldPoint.z;
+            float halfHeight = Mathf.Tan(0.5f * verticalFieldOfView * Mathf.Deg2Rad) * distance;
+            float halfWidth = halfHeight * camera.aspect;
 
-            if (worldPoint.x > maxCorner.x)
-                maxCorner.x = worldPoint.x;
-            if (worldPoint.y > maxCorner.y)
-                maxCorner.y = worldPoint.y;
-            if (worldPoint.z > maxCorner.z)
-                maxCorner.z = worldPoint.z;
+            corners[0] = new Vector3( halfWidth,  halfHeight, distance);
+            corners[1] = new Vector3( halfWidth, -halfHeight, distance);
+            corners[2] = new Vector3(-halfWidth,  halfHeight, distance);
+            corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
+
+            // Transform the relative corners to world space
+            for(int i=0;i<corners.Length;i++)
+                corners[i] = camera.transform.TransformPoint(corners[i]);
+        }
+
+        void CalculateFrustumCornersOrthographic(Camera camera, float distance, NativeArray<Vector3> corners )
+        {
+            float halfHeight = camera.orthographicSize;
+            float halfWidth = halfHeight * camera.aspect;
+
+            corners[0] = new Vector3(halfWidth, halfHeight, distance);
+            corners[1] = new Vector3(halfWidth, -halfHeight, distance);
+            corners[2] = new Vector3(-halfWidth, halfHeight, distance);
+            corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
         }
 
         private Bounds CalculateWorldSpaceBounds(Camera camera, ILight2DCullResult cullResult)
         {
+            // TODO: This will need to take into account on screen lights as shadows can be cast from offscreen.
+
             const int k_Corners = 4;
-            Vector3[] nearCorners = new Vector3[k_Corners];
-            Vector3[] farCorners = new Vector3[k_Corners];
-            camera.CalculateFrustumCorners(camera.rect, camera.nearClipPlane, camera.stereoActiveEye, nearCorners);
-            camera.CalculateFrustumCorners(camera.rect, camera.farClipPlane, camera.stereoActiveEye, farCorners);
+            NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            if (camera.orthographic)
+            {
+                CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
+            }
+            else
+            {
+                CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
+            }
 
             Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
             for (int i = 0; i < k_Corners; i++)
             {
-                UpdateCorners(camera.transform, nearCorners[i], ref minCorner, ref maxCorner);
-                UpdateCorners(camera.transform, farCorners[i], ref minCorner, ref maxCorner);
+                maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
+                maxCorner = Vector3.Max(maxCorner, farCorners[i]);
+                minCorner = Vector3.Max(minCorner, nearCorners[i]);
+                minCorner = Vector3.Max(minCorner, farCorners[i]);
             }
+
+            nearCorners.Dispose();
+            farCorners.Dispose();
 
             Vector3 center = 0.5f * (minCorner + maxCorner);
             Vector3 size = maxCorner - minCorner;
@@ -378,7 +405,6 @@ namespace UnityEngine.Rendering.Universal
         {
             if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
             {
-
                 Bounds bounds = CalculateWorldSpaceBounds(camera, cullResult);
 
                 List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
