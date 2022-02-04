@@ -3,8 +3,6 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_green_job_revisions_trunk.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -35,7 +33,7 @@ ShaderFoundry_Linux_OpenGLCore_editmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderFoundry/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderFoundry --zero-tests-are-ok=1
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderFoundry/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderFoundry
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -73,7 +71,7 @@ ShaderFoundry_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderFoundry/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderFoundry --zero-tests-are-ok=1
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderFoundry/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderFoundry
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
