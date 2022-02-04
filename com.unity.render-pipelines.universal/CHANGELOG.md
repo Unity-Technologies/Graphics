@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Downscale and Max Iterations options for Bloom
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
+- Added export of shader variants that are being stripped under `Temp/shader-stripping.json` if the `Export Shader Variants` option is enabled on the Global Settings.
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.

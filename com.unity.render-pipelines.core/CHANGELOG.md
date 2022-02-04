@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
 - Added support for multiple Baking States to Prove Volumes.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
+- New class to report shader variants stripping information for SRP's
 - Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
 - Added Screen Coordinates Override shader utilities.
 - Added API to blend between baking states for Probe Volumes.
