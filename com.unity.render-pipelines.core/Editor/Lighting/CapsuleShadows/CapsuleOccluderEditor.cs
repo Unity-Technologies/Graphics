@@ -99,71 +99,92 @@ namespace UnityEngine.Rendering
 
         public void OnSceneGUI()
         {
-            var t = target as CapsuleOccluder;
+            var occluder = target as CapsuleOccluder;
 
-            Handles.matrix = t.transform.localToWorldMatrix;
+            Handles.matrix = occluder.transform.localToWorldMatrix;
             Handles.zTest = CompareFunction.Always;
             if (EditMode.editMode == s_EditModes[0])
             {
                 EditorGUI.BeginChangeCheck();
-                Vector3 center = Handles.PositionHandle(t.center, Quaternion.identity);
+                Vector3 center = Handles.PositionHandle(occluder.center, Quaternion.identity);
                 if (EditorGUI.EndChangeCheck())
-                    m_Center.vector3Value = center;
+                {
+                    Undo.RecordObject(occluder, "Undo position change.");
+                    occluder.center = center;
+                }
             }
             if (EditMode.editMode == s_EditModes[1])
             {
                 EditorGUI.BeginChangeCheck();
-                Quaternion rotation = Handles.RotationHandle(t.rotation, t.center);
+                Quaternion rotation = Handles.RotationHandle(occluder.rotation, occluder.center);
                 if (EditorGUI.EndChangeCheck())
-                    m_Rotation.quaternionValue = rotation;
-
+                {
+                    Undo.RecordObject(occluder, "Undo rotation change.");
+                    occluder.rotation = rotation;
+                }
             }
             if (EditMode.editMode == s_EditModes[2])
             {
                 float handleScale = 0.025f;
                 Vector3 position = Vector3.zero;
 
-                Handles.matrix = t.capsuleToWorld;
+                Handles.matrix = occluder.capsuleToWorld;
                 Handles.color = Color.yellow;
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(t.radius, 0.0f, 0.0f);
+                position = new Vector3(occluder.radius, 0.0f, 0.0f);
                 position = Handles.Slider(position, Vector3.right, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Radius.floatValue = position.x;
+                {
+                    Undo.RecordObject(occluder, "Undo radius change.");
+                    occluder.radius = position.x;
+                }
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(-t.radius, 0.0f, 0.0f);
+                position = new Vector3(-occluder.radius, 0.0f, 0.0f);
                 position = Handles.Slider(position, -Vector3.right, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Radius.floatValue = -position.x;
+                {
+                    Undo.RecordObject(occluder, "Undo radius change.");
+                    occluder.radius = -position.x;
+                }
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(0.0f, t.radius, 0.0f);
+                position = new Vector3(0.0f, occluder.radius, 0.0f);
                 position = Handles.Slider(position, Vector3.up, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Radius.floatValue = position.y;
+                {
+                    Undo.RecordObject(occluder, "Undo radius change.");
+                    occluder.radius = position.y;
+                }
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(0.0f, -t.radius, 0.0f);
+                position = new Vector3(0.0f, -occluder.radius, 0.0f);
                 position = Handles.Slider(position, -Vector3.up, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Radius.floatValue = -position.y;
+                {
+                    Undo.RecordObject(occluder, "Undo radius change.");
+                    occluder.radius = -position.y;
+                }
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(0.0f, 0.0f, 0.5f * t.height);
+                position = new Vector3(0.0f, 0.0f, 0.5f * occluder.height);
                 position = Handles.Slider(position, Vector3.forward, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Height.floatValue = 2.0f * position.z;
+                {
+                    Undo.RecordObject(occluder, "Undo height change.");
+                    occluder.height = 2.0f * position.z;
+                }
 
                 EditorGUI.BeginChangeCheck();
-                position = new Vector3(0.0f, 0.0f, -0.5f * t.height);
+                position = new Vector3(0.0f, 0.0f, -0.5f * occluder.height);
                 position = Handles.Slider(position, -Vector3.forward, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
-                    m_Height.floatValue = -2.0f * position.z;
+                {
+                    Undo.RecordObject(occluder, "Undo height change.");
+                    occluder.height = -2.0f * position.z;
+                }
             }
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }
