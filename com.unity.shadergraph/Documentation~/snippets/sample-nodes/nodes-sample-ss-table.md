@@ -6,5 +6,5 @@ title: nodes-sample-ss-table
 <td><strong>Sampler</strong></td>
 <td>Sampler State</td>
 <td>Default Sampler State</td>
-<td>The Sampler State and corresponding settings that the node should use to sample the texture.</td>
+<td>The Sampler State and corresponding settings to use to sample the Texture.</td>
 </tr>

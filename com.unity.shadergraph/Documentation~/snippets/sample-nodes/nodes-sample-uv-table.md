@@ -6,5 +6,5 @@ title: nodes-sample-uv-table
 <td><strong>UV</strong></td>
 <td>Vector 2</td>
 <td>UV</td>
-<td>The UV coordinates that the node should use to sample the texture.</td>
+<td>The UV coordinates to use to sample the Texture.</td>
 </tr>

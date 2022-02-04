@@ -1,12 +1,12 @@
 # Sample Texture 2D Array node
 
-The Sample Texture 2D Array node samples a **Texture 2D Array** asset and returns a **Vector 4** color value. You can specify the **UV** coordinates for your texture sample and use a [Sampler State Node](Sampler-State-Node.md) to define a specific Sampler State. The node's **Index** input port specifies which index of your Texture 2D Array to sample.
+The Sample Texture 2D Array node samples a **Texture 2D Array** asset and returns a **Vector 4** color value. You can specify the **UV** coordinates for your Texture sample and use a [Sampler State node](Sampler-State-Node.md) to define a specific Sampler State. The node's **Index** input port specifies which index of your Texture 2D Array to sample.
 
 For more information about Texture 2D Arrays, see [Texture Arrays](https://docs.unity3d.com/Manual/class-Texture2DArray.html) in the Unity User manual.
 
 [!include[nodes-sample-errors](./snippets/sample-nodes/nodes-sample-errors.md)]
 
-![An image showing the Graph window with a Sample Texture 2D Array node.](images/sg-sample-texture-2d-array-node.png)
+![An image that displays the Graph window with a Sample Texture 2D Array node.](images/sg-sample-texture-2d-array-node.png)
 
 ## Create Node menu category
 
@@ -14,12 +14,9 @@ The Sample Texture 2D Array node is under the **Input** &gt; **Texture** categor
 
 ## Compatibility
 
-<ul>
-    [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
-    [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]
-</ul>
+[!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
 
-If you need to sample a texture for use in the Vertex Context of your Shader Graph, set the [Mip Sampling Mode](#additional-node-settings) to **LOD**.
+[!include[nodes-sample-fragment-lod](./snippets/sample-nodes/nodes-sample-fragment-lod.md)]
 
 ## Inputs
 
@@ -39,13 +36,13 @@ If you need to sample a texture for use in the Vertex Context of your Shader Gra
 <td><strong>Texture Array</strong></td>
 <td>Texture 2D Array</td>
 <td>None</td>
-<td>The Texture 2D Array asset that the node should sample.</td>
+<td>The Texture 2D Array asset to sample.</td>
 </tr>
 <tr>
 <td><strong>Index</strong></td>
 <td>Float</td>
 <td>None</td>
-<td>The index of the specific texture in the texture array that the node should sample. The index value is the texture's location in the texture array, starting at 0. An array with four textures would have locations 0, 1, 2, and 3.</td>
+<td>The index of the specific Texture in the Texture array to sample. The index value is the Texture's location in the Texture array, starting at 0. An array with four textures would have locations 0, 1, 2, and 3.</td>
 </tr>
 [!include[nodes-sample-uv-table](./snippets/sample-nodes/nodes-sample-uv-table.md)]
 [!include[nodes-sample-ss-table](./snippets/sample-nodes/nodes-sample-ss-table.md)]
@@ -70,11 +67,11 @@ If you need to sample a texture for use in the Vertex Context of your Shader Gra
 
 ## Example graph usage
 
-In the following example, the Sample Texture 2D Array node samples a texture array that contains 4 different cloth normal maps. By changing the number given to the **Index** port as an input, the Sample Texture 2D Array node can sample a specific normal map from the array, and change the output the node sends to the Base Color Block node:
+In the following example, the Sample Texture 2D Array node samples a Texture array that contains 4 different cloth normal maps. By changing the number given to the **Index** port as an input, the Sample Texture 2D Array node can sample a specific normal map from the array. This changes the output the node sends to the Normal Unpack node, and the Normal (Tangent Space) Block node in the Master Stack:
 
-![An image of the Graph window, showing a Sample Texture 2D Array node. The node has a Sampler State node attached as an input and is sending its RGBA output to the Base Color Block node in the Master Stack. The Index is set to 2, making the sphere in the Main Preview window render with a leather-like texture.](images/sg-sample-texture-2d-array-node-example.png)
+![An image of the Graph window, that displays a Sample Texture 2D Array node. The node has a Sampler State node attached as an input and is sending its RGBA output to the Normal Unpack node. The Normal Unpack node's Out output port connects to the Normal (Tangent Space) Block node in the Master Stack. The Index is set to 2, making the sphere in the Main Preview window render with a leather-like Texture.](images/sg-sample-texture-2d-array-node-example.png)
 
-![An image of the Graph window, showing a Sample Texture 2D Array node. The node has a Sampler State node attached as an input and is sending its RGBA output to the Base Color Block node in the Master Stack. The Index is set to 0, making the sphere in the Main Preview window render with a ridged fabric texture.](images/sg-sample-texture-2d-array-node-example-2.png)
+![An image of the Graph window, that displays a Sample Texture 2D Array node. The node has a Sampler State node attached as an input and is sending its RGBA output to the Normal Unpack node. The Normal Unpack node's Out output port connects to the Normal (Tangent Space) Block node in the Master Stack. The Index is set to 0, making the sphere in the Main Preview window render with a ridged fabric Texture.](images/sg-sample-texture-2d-array-node-example-2.png)
 
 
 ## Generated code example
