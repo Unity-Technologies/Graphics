@@ -766,7 +766,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
-            RenderingUtils.Blit(cmd, source, m_FullCoCTexture, material, 0, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+            Blitter.BlitCameraTexture(cmd, source, m_FullCoCTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
 
             // Downscale & prefilter color + coc
             m_MRT2[0] = m_HalfCoCTexture.nameID;
@@ -774,20 +774,22 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
-            RenderingUtils.Blit(cmd, source, m_MRT2, pixelRect, material, 1, m_UseDrawProcedural);
+            CoreUtils.SetRenderTarget(cmd, m_MRT2, m_MRT2[0]);
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            Blitter.BlitTexture(cmd, source, viewportScale, material, 1);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTexture.nameID);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            RenderingUtils.Blit(cmd, m_PingTexture, m_PongTexture, material, 2, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
-            RenderingUtils.Blit(cmd, m_PongTexture, m_PingTexture, material, 3, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+            Blitter.BlitCameraTexture(cmd, m_PingTexture, m_PongTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 2);
+            Blitter.BlitCameraTexture(cmd, m_PongTexture, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_PingTexture.nameID);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
-            RenderingUtils.Blit(cmd, source, destination, material, 4, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 4);
         }
 
         void PrepareBokehKernel(float maxRadius, float rcpAspect)
