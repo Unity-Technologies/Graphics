@@ -37,11 +37,11 @@ namespace UnityEngine.Rendering.Universal
             ShapeProvider
         }
 
-        public enum RendererSilhoutteOptions
+        public enum ShadowCastingOptions
         {
-            None,
-            Unshadowed,
-            SelfShadowed
+            Self,
+            Cast,
+            Both
         }
 
         public enum EdgeProcessing
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
 
         [SerializeField] internal ShadowMesh2D   m_ShadowMesh;
-        [SerializeField] RendererSilhoutteOptions m_RendererSilhouette = RendererSilhoutteOptions.Unshadowed;
+        [SerializeField] ShadowCastingOptions    m_CastingOption = ShadowCastingOptions.Cast;
 
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
@@ -120,12 +120,11 @@ namespace UnityEngine.Rendering.Universal
             m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
         }
 
-        public RendererSilhoutteOptions rendererSilhouette
+        public ShadowCastingOptions castingOption
         {
-            set { m_RendererSilhouette = value; }
-            get { return m_RendererSilhouette; }
+            set { m_CastingOption = value; }
+            get { return m_CastingOption; }
         }
-
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -346,10 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if (m_RendererSilhouette != RendererSilhoutteOptions.None)
-                    ShadowCasterGroup2DManager.AddGroup(this);
-                else
-                    ShadowCasterGroup2DManager.RemoveGroup(this);
+                ShadowCasterGroup2DManager.AddGroup(this);
             }
         }
 
@@ -407,31 +403,26 @@ namespace UnityEngine.Rendering.Universal
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
-
-        
-
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version
             if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
                 // ----------------------------------------------------
-                // m_SelfShadows | m_CastsShadows | m_RendererSilhoutte 
+                // m_SelfShadows | m_CastsShadows |    m_CastingOption
                 // ----------------------------------------------------
-                //       0       |       0        |         X
-                //       0       |       1        |        Self
-                //       1       |       0        |        Casts
-                //       1       |       1        |        All
+                //       0       |       0        |        X
+                //       0       |       1        |   Renderer Only
+                //       1       |       0        |     Cast Only
+                //       1       |       1        |       Both
 
                 // Flag this for requiring an upgrade to run
-                //if (m_SelfShadows)
-                //    m_RendererSilhouette
-
-                //if(m_)
-
-
-
-                //m_ComponentVersion = ComponentVersions.Version_1;
+                if (m_SelfShadows && m_CastsShadows)
+                    m_CastingOption = ShadowCastingOptions.Both;
+                else if (m_SelfShadows)
+                    m_CastingOption = ShadowCastingOptions.Self;
+                else
+                    m_CastingOption = ShadowCastingOptions.Cast;
             }
         }
 

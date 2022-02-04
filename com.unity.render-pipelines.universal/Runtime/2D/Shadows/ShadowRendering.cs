@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var shadowCaster = shadowCasters[i];
 
-                if (shadowCaster.IsLit(light))
+                if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Self && shadowCaster.IsLit(light))
                 {
                     if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
@@ -223,40 +223,31 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
-                        if (shadowCaster.rendererSilhouette != ShadowCaster2D.RendererSilhoutteOptions.None)
-                        {
-                            // Draw using the sprite renderer
-                            var renderer = (Renderer)null;
-                            shadowCaster.TryGetComponent<Renderer>(out renderer);
+                        var renderer = (Renderer)null;
+                        shadowCaster.TryGetComponent<Renderer>(out renderer);
 
-                            if (renderer != null)
+                        if (renderer != null)
+                        {
+                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Cast)
                             {
-                                var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
-                                if (material != null)
-                                {
-                                    int numberOfMaterials = shadowCaster.spriteMaterialCount;
-                                    if (shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed)
-                                    {
-                                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
-                                            cmdBuffer.DrawRenderer(renderer, material, materialIndex, pass);
-                                    }
-                                    // No self shadowing
-                                    else
-                                    {
-                                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
-                                            cmdBuffer.DrawRenderer(renderer, material, materialIndex, pass);   // Draw the shadowed portion of the sprite
-                                    }
-                                }
+                                int numberOfMaterials = shadowCaster.spriteMaterialCount;
+                                for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
+                                    cmdBuffer.DrawRenderer(renderer, selfShadowMaterial, materialIndex, pass);
+                            }
+                            else
+                            {
+                                int numberOfMaterials = shadowCaster.spriteMaterialCount;
+                                for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
+                                    cmdBuffer.DrawRenderer(renderer, unshadowMaterial, materialIndex, pass);
                             }
                         }
                         else
                         {
                             var meshMat = shadowCaster.transform.localToWorldMatrix;
-                            var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
-
-                            // Draw using the shadow mesh
-                            if (material != null)
-                                cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, material);
+                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Cast)
+                                cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, selfShadowMaterial);
+                            else
+                                cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, unshadowMaterial);
                         }
                     }
                 }

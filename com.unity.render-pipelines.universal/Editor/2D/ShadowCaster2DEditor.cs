@@ -54,12 +54,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
             public static GUIContent shadowShapeProvider = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
             public static GUIContent shadowShapeContract = EditorGUIUtility.TrTextContent("Contract Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
-            public static GUIContent rendererSilhouette = EditorGUIUtility.TrTextContent("Renderer Silhoutte", "Specifies how to draw the renderer used with the ShadowCaster2D");
+            public static GUIContent castingOption = EditorGUIUtility.TrTextContent("Casting Option", "Specifies how to draw the shadow used with the ShadowCaster2D");
             public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
             public static GUIContent edgeProcessing = EditorGUIUtility.TrTextContent("Edge Processing", "Specifies the edge processing used for contraction");
         }
 
-        SerializedProperty m_RendererSilhouette;
+        SerializedProperty m_CastingOption;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_ShadowShapeProvider;
         SerializedProperty m_CastingSource;
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnEnable()
         {
-            m_RendererSilhouette = serializedObject.FindProperty("m_RendererSilhouette");
+            m_CastingOption = serializedObject.FindProperty("m_CastingOption");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
             m_ShadowShapeProvider = serializedObject.FindProperty("m_ShadowShapeProvider");
             m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
@@ -148,11 +148,11 @@ namespace UnityEditor.Rendering.Universal
             if (!HasRenderer())
             {
                 using (new EditorGUI.DisabledScope(true))  // Done to support multiedit
-                    EditorGUILayout.EnumPopup(Styles.rendererSilhouette, ShadowCaster2D.RendererSilhoutteOptions.None);
+                    EditorGUILayout.EnumPopup(Styles.castingOption, ShadowCaster2D.ShadowCastingOptions.Cast);
             }
             else
             {
-                EditorGUILayout.PropertyField(m_RendererSilhouette, Styles.rendererSilhouette);
+                EditorGUILayout.PropertyField(m_CastingOption, Styles.castingOption);
             }
 
 
