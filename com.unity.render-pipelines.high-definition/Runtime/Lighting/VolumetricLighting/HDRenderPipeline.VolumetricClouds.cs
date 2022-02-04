@@ -389,7 +389,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!shadowPass)
                 {
-                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[0].color * settings.sunLightDimmer.value;
+                    // m_CurrentSunLightDataIndex is supposed to be guaranteed to be non -1 if the current sun is not null
+                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[m_CurrentSunLightDataIndex].color * settings.sunLightDimmer.value;
                 }
             }
             else
@@ -475,9 +476,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._CameraInverseViewProjection_NO = vpNonOblique.inverse;
                 cb._CameraPrevViewProjection_NO = prevVpNonOblique;
             }
-
-            // Evaluate the ambient probe data
-            SetPreconvolvedAmbientLightProbe(ref cb, settings);
 
             if (shadowPass)
             {
