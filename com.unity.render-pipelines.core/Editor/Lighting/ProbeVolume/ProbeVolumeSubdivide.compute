@@ -5,10 +5,11 @@
 #pragma kernel FinalPass
 #pragma kernel VoxelizeProbeVolumeData
 #pragma kernel Subdivide
+#pragma kernel GenerateMeshVertexBuffer
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbePlacement.cs.hlsl"
@@ -262,4 +263,100 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
         float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickSize.xyz) * _VolumeSizeInBricks.xyz;
         _Bricks.Append(positionInCell);
     }
+}
+
+ByteAddressBuffer           _MeshVertexBuffer;
+ByteAddressBuffer           _MeshIndexBuffer;
+int                         _MeshVertexStride;
+int                         _DispatchSizeX;
+int                         _MeshVertexCount;
+int                         _Use16BitIndexBuffer;
+
+// TODO: half3 position + original position output for vertex shader
+RWStructuredBuffer<MeshVoxelizationVertexData>  _OutputVertexPositions;
+
+float3x3 rotationMatrix(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float3x3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+}
+
+[numthreads(64, 1, 1)]
+void GenerateMeshVertexBuffer(uint2 id : SV_DispatchThreadID)
+{
+    int indexBufferIndex = (id.x + id.y * _DispatchSizeX) * 3;
+
+    uint i0, i1, i2;
+
+    // Fetch triangle indices
+    if (_Use16BitIndexBuffer != 0)
+    {
+        uint2 data = _MeshIndexBuffer.Load2((indexBufferIndex + 0) << 1);
+        i0 = data.x & 0xFFFF;
+        i1 = data.x >> 16;
+        i2 = data.y & 0xFFFF;
+    }
+    else
+    {
+        i0 = _MeshIndexBuffer.Load((indexBufferIndex + 0) << 2);
+        i1 = _MeshIndexBuffer.Load((indexBufferIndex + 1) << 2);
+        i2 = _MeshIndexBuffer.Load((indexBufferIndex + 2) << 2);
+    }
+
+    // Fetch vertices
+    float3 v0 = asfloat(_MeshVertexBuffer.Load3(i0 * _MeshVertexStride));
+    float3 v1 = asfloat(_MeshVertexBuffer.Load3(i1 * _MeshVertexStride));
+    float3 v2 = asfloat(_MeshVertexBuffer.Load3(i2 * _MeshVertexStride));
+    float3 o0 = v0;
+    float3 o1 = v1;
+    float3 o2 = v2;
+
+    // Calculate trangle centroid:
+    float3 c = (v0 + v1 + v2) / 3.0;
+
+    // Center triangle in the middle of the screen
+    v0 -= c;
+    v1 -= c;
+    v2 -= c;
+
+    // Compute normal after centering the triangle to avoid cross resulting in 0
+    // TODO: protection for completely flat triangle (will result in NaN in output)
+    float3 normal = normalize(cross(v0, v1));
+    float3 cameraForward = float3(0, 0, -1);
+
+    // TODO: transform the triangle vertices to face camera.
+    float3 d = cross(normal, cameraForward);
+    float cosAngle = dot(normal, cameraForward);
+    float a = acos(cosAngle);
+    float3x3 m = rotationMatrix(normalize(d), a);
+    if (abs(a) > 0.001)
+    {
+        v0 = mul(m, v0);
+        v1 = mul(m, v1);
+        v2 = mul(m, v2);
+    }
+
+    // Scale triangles to fit minimum size of 1 texel:
+    // TODO: send actual size of the texture or multiply in vertex
+    v0 += normalize(v0) * (1.0 / 128.0);
+    v1 += normalize(v1) * (1.0 / 128.0);
+    v2 += normalize(v2) * (1.0 / 128.0);
+
+    v0 += c;
+    v1 += c;
+    v2 += c;
+
+    // Output transformed vertices
+    _OutputVertexPositions[indexBufferIndex + 0].vertexPosition = v0;
+    _OutputVertexPositions[indexBufferIndex + 0].originalPosition = o0;
+    _OutputVertexPositions[indexBufferIndex + 1].vertexPosition = v1;
+    _OutputVertexPositions[indexBufferIndex + 1].originalPosition = o1;
+    _OutputVertexPositions[indexBufferIndex + 2].vertexPosition = v2;
+    _OutputVertexPositions[indexBufferIndex + 2].originalPosition = o2;
 }

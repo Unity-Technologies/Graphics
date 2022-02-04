@@ -17,5 +17,13 @@ struct GPUProbeVolumeOBB
     int maxSubdivLevelInsideVolume;
 };
 
+// Generated from UnityEngine.Experimental.Rendering.ProbePlacement+MeshVoxelizationVertexData
+// PackingRules = Exact
+struct MeshVoxelizationVertexData
+{
+    float3 vertexPosition;
+    float3 originalPosition;
+};
+
 
 #endif

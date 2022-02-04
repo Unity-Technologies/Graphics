@@ -9,6 +9,7 @@ using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
 using System;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -119,6 +120,29 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        [GenerateHLSL(needAccessors = false)]
+        struct MeshVoxelizationVertexData
+        {
+            public Vector3 vertexPosition;
+            public Vector3 originalPosition;
+        }
+
+        class MeshVoxelizationResources
+        {
+            public List<GraphicsBuffer> meshIndexBuffers = new List<GraphicsBuffer>();
+            public List<GraphicsBuffer> meshVertexBuffers = new List<GraphicsBuffer>();
+            public GraphicsBuffer meshTriangleBuffer;
+
+            public void Release()
+            {
+                meshTriangleBuffer?.Release();
+                foreach (var vertexBuffer in meshVertexBuffers)
+                    vertexBuffer?.Release();
+                foreach (var indexBuffer in meshIndexBuffers)
+                    indexBuffer?.Release();
+            }
+        }
+
         static readonly int _BricksToClear = Shader.PropertyToID("_BricksToClear");
         static readonly int _Output = Shader.PropertyToID("_Output");
         static readonly int _OutputSize = Shader.PropertyToID("_OutputSize");
@@ -148,6 +172,7 @@ namespace UnityEngine.Experimental.Rendering
         static int s_FinalPassKernel;
         static int s_VoxelizeProbeVolumesKernel;
         static int s_SubdivideKernel;
+        static int s_GenerateMeshVertexBufferKernel;
 
         static ComputeShader _subdivideSceneCS;
         static ComputeShader subdivideSceneCS
@@ -164,6 +189,7 @@ namespace UnityEngine.Experimental.Rendering
                     s_FinalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
                     s_VoxelizeProbeVolumesKernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
                     s_SubdivideKernel = subdivideSceneCS.FindKernel("Subdivide");
+                    s_GenerateMeshVertexBufferKernel = subdivideSceneCS.FindKernel("GenerateMeshVertexBuffer");
                 }
                 return _subdivideSceneCS;
             }
@@ -353,8 +379,9 @@ namespace UnityEngine.Experimental.Rendering
 
             cellVolume.CalculateCenterAndSize(out var center, out var _);
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {center}");
+            var allocatedResources = new MeshVoxelizationResources();
 
-            if (RastersizeGeometry(cmd, cellVolume, ctx, renderers, terrains))
+            if (RastersizeGeometry(cmd, cellVolume, ctx, renderers, terrains, ref allocatedResources))
             {
                 // Only generate the distance field if there was an object rasterized
                 GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
@@ -417,11 +444,13 @@ namespace UnityEngine.Experimental.Rendering
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+            allocatedResources.Release();
         }
 
         static bool RastersizeGeometry(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, GPUSubdivisionContext ctx,
             List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers,
-            List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains)
+            List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains,
+            ref MeshVoxelizationResources allocatedResources)
         {
             var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
             var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
@@ -456,6 +485,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 using (new ProfilingScope(cmd, new ProfilingSampler("Rasterize Meshes 3D")))
                 {
+                    GraphicsBuffer triangleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 300000, Marshal.SizeOf(typeof(MeshVoxelizationVertexData))); // The buffer is resized after we compute the max triangle count of the meshes
+                    int maxMeshIndicesCount = 0;
+
                     foreach (var kp in renderers)
                     {
                         // Only mesh renderers are supported for this voxelization pass.
@@ -468,18 +500,27 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             if (renderer.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
                             {
-                                for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
-                                {
-                                    props.SetInt(_AxisSwizzle, 0);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
-                                    props.SetInt(_AxisSwizzle, 1);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
-                                    props.SetInt(_AxisSwizzle, 2);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
-                                }
+                                int indexCount = SinglePassVoxelizeMesh(cmd, meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, triangleBuffer, ref allocatedResources);
+                                maxMeshIndicesCount = Mathf.Max(maxMeshIndicesCount, indexCount);
+
+                                // props.SetInt(_AxisSwizzle, 0);
+                                // cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                // props.SetInt(_AxisSwizzle, 1);
+                                // cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                // props.SetInt(_AxisSwizzle, 2);
+                                // cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
                             }
                         }
                     }
+
+                    // Allocate the tmp buffer to do the rasterization
+                    // if (maxMeshIndicesCount > 0)
+                    // {
+                    //     triangleBuffer.Release();
+                    //     triangleBuffer.
+                    //     triangleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxMeshIndicesCount, Marshal.SizeOf(typeof(MeshVoxelizationVertexData)));
+                        allocatedResources.meshTriangleBuffer = triangleBuffer;
+                    // }
                 }
             }
 
@@ -523,6 +564,53 @@ namespace UnityEngine.Experimental.Rendering
 
             return hasGeometry;
         }
+        
+        static int SinglePassVoxelizeMesh(CommandBuffer cmd, Mesh mesh, Matrix4x4 localToWorld, GraphicsBuffer trianglesBuffer, ref MeshVoxelizationResources allocatedResources)
+		{
+            // Fill the triangle buffer from the mesh data:
+			mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
+			mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+            var positionStreamIndex = mesh.GetVertexAttributeStream(VertexAttribute.Position);
+            var positionFormat = mesh.GetVertexAttributeFormat(VertexAttribute.Position);
+			var vertexBuffer = mesh.GetVertexBuffer(positionStreamIndex);
+			var indexBuffer = mesh.GetIndexBuffer();
+            allocatedResources.meshVertexBuffers.Add(vertexBuffer);
+            allocatedResources.meshIndexBuffers.Add(indexBuffer);
+
+            // TODO: handle VertexAttributeFormat for values other than f32
+
+			// Calculate dispatch size:
+			const int groupThreadCount = 64;
+			int dispatchCount = indexBuffer.count / 3; // one compute thread will process one triangle
+			int groupNeededCount = (dispatchCount + groupThreadCount - 1) / groupThreadCount;
+			int dispatchSizeY = 1 + (groupNeededCount / 0xffff); // 0xffff is the max thread group size
+			int dispatchSizeX = groupNeededCount / dispatchSizeY;
+
+			cmd.SetComputeBufferParam(subdivideSceneCS, s_GenerateMeshVertexBufferKernel, "_MeshVertexBuffer", vertexBuffer);
+			cmd.SetComputeBufferParam(subdivideSceneCS, s_GenerateMeshVertexBufferKernel, "_MeshIndexBuffer", indexBuffer);
+			cmd.SetComputeBufferParam(subdivideSceneCS, s_GenerateMeshVertexBufferKernel, "_OutputVertexPositions", trianglesBuffer);
+			cmd.SetComputeIntParam(subdivideSceneCS, "_MeshVertexStride", mesh.GetVertexBufferStride(positionStreamIndex));
+			cmd.SetComputeIntParam(subdivideSceneCS, "_DispatchSizeX", dispatchSizeX * 64);
+			cmd.SetComputeIntParam(subdivideSceneCS, "_MeshVertexCount", mesh.vertexCount);
+			cmd.SetComputeIntParam(subdivideSceneCS, "_Use16BitIndexBuffer", mesh.indexFormat == IndexFormat.UInt16 ? 1 : 0);
+            // TODO: output texture size in the subdiv
+
+			cmd.DispatchCompute(subdivideSceneCS, s_GenerateMeshVertexBufferKernel, dispatchSizeX, dispatchSizeY, 1);
+
+            // Dispatch the draw call to rasterize the triangle buffer
+            MaterialPropertyBlock props = new MaterialPropertyBlock();
+
+            // TODO: cleanup camera
+			var worldToCamera = Matrix4x4.Rotate(Quaternion.Euler(0, 0, 0));
+			var projection = Matrix4x4.Ortho(-1, 1, -1, 1, -1, 1);
+			var vp = projection * worldToCamera;
+			props.SetMatrix("_CameraMatrix", vp);
+			props.SetBuffer("_OutputVertexPositions", trianglesBuffer);
+
+			cmd.DrawProcedural(localToWorld, voxelizeMaterial, 0, MeshTopology.Triangles, indexBuffer.count, 1, props);
+
+            return indexBuffer.count;
+		}
 
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)
         {

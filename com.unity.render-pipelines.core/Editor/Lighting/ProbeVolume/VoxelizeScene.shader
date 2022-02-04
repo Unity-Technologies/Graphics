@@ -21,13 +21,14 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             HLSLPROGRAM
             #pragma vertex vert
-            #pragma geometry geom
             #pragma fragment frag
             #pragma target 4.5
             // #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbePlacement.cs.hlsl"
             float4x4 unity_ObjectToWorld;
+            float4x4 _CameraMatrix;
 
             RWTexture3D<float>  _Output : register(u4);
             float3              _OutputSize;
@@ -35,88 +36,40 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             float3              _VolumeSize;
             uint                _AxisSwizzle;
 
-            struct VertexToGeometry
+            StructuredBuffer<MeshVoxelizationVertexData>  _OutputVertexPositions;
+
+            struct VertexToFragment
             {
                 float4 vertex : SV_POSITION;
-                float3 cellPos01 : TEXCOORD0;
+                float3 worldPos : TEXCOORD0;
             };
 
-            struct GeometryToFragment
+            VertexToFragment vert(uint vertexId : SV_VERTEXID)
             {
-                float4 vertex : SV_POSITION;
-                float3 cellPos01 : TEXCOORD0;
-                nointerpolation float2 minMaxX : TEXCOORD1;
-                nointerpolation float2 minMaxY : TEXCOORD2;
-                nointerpolation float2 minMaxZ : TEXCOORD3;
-            };
+                VertexToFragment o;
 
-            VertexToGeometry vert(float4 vertex : POSITION)
-            {
-                VertexToGeometry o;
+                float3 texelSize = rcp(_OutputSize);
 
-                float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
-                cellPos -= _VolumeWorldOffset;
-                o.cellPos01 = (cellPos / _VolumeSize);
+                MeshVoxelizationVertexData v = _OutputVertexPositions.Load(vertexId);
 
-                float4 p = float4(cellPos, 1);
-
-                switch (_AxisSwizzle)
-                {
-                    default:
-                    case 0: // top
-                        p.xyz = p.zxy;
-                        break;
-                    case 1: // right
-                        p.xyz = p.yzx;
-                        break;
-                    case 2: // forward
-                        p.xyz = p.xyz;
-                        break;
-                }
-                o.vertex = float4(p.xyz / _VolumeSize, 1);
-
-                // trasnform pos from 0 1 to -1 1
-                o.vertex.xyz = o.vertex.xyz * 2 - 1;
+                o.vertex = mul(_CameraMatrix, float4(v.vertexPosition, 1.0));
+                o.worldPos = mul(unity_ObjectToWorld, v.originalPosition).xyz;
 
                 return o;
             }
 
-            [maxvertexcount(3)]
-            void geom(triangle VertexToGeometry inputVertex[3], inout TriangleStream<GeometryToFragment> triangleStream)
+            float4 frag(VertexToFragment i) : COLOR
             {
-                float3 minPos = min(min(inputVertex[0].cellPos01, inputVertex[1].cellPos01), inputVertex[2].cellPos01) - rcp(_OutputSize.x);
-                float3 maxPos = max(max(inputVertex[0].cellPos01, inputVertex[1].cellPos01), inputVertex[2].cellPos01) + rcp(_OutputSize.x);
+                float3 pos = (i.worldPos * 0.5 + 0.5) * _OutputSize.x;
 
-                for (int i = 0; i < 3; i++)
-                {
-                    GeometryToFragment o;
-                    o.vertex = inputVertex[i].vertex;
-                    o.cellPos01 = inputVertex[i].cellPos01;
-                    o.minMaxX = float2(minPos.x, maxPos.x);
-                    o.minMaxY = float2(minPos.y, maxPos.y);
-                    o.minMaxZ = float2(minPos.z, maxPos.z);
-                    triangleStream.Append(o);
-                }
+                if (any(pos < 0) || any(pos > _OutputSize.x))
+                    return 0;
+
+                _Output[uint3(pos)] = 1;
+
+                return 0;
             }
 
-            float4 frag(GeometryToFragment i) : COLOR
-            {
-                if (i.cellPos01.x < i.minMaxX.x || i.cellPos01.x > i.minMaxX.y)
-                    return 0;
-                if (i.cellPos01.y < i.minMaxY.x || i.cellPos01.y > i.minMaxY.y)
-                    return 0;
-                if (i.cellPos01.z < i.minMaxZ.x || i.cellPos01.z > i.minMaxZ.y)
-                    return 0;
-
-                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
-                    return 0;
-
-                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
-
-                _Output[pos] = 1;
-
-                return float4(i.cellPos01, 1);
-            }
             ENDHLSL
         }
 
@@ -211,7 +164,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                     return 0;
 
                 // Offset the cellposition with the heightmap
-                float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
+                float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0)).r;
                 clip(hole == 0.0f ? -1 : 1);
 
                 uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);

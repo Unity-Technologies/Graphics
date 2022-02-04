@@ -37,11 +37,11 @@ namespace UnityEngine.Experimental.Rendering
                     return;
 
                 // update is called 200 times per second so we bring down the update rate to 60hz to avoid overloading the GPU
-                if (Time.realtimeSinceStartupAsDouble - s_LastRefreshTime < 1.0f / 60.0f)
-                    return;
+                // if (Time.realtimeSinceStartupAsDouble - s_LastRefreshTime < 1.0f / 60.0f)
+                //     return;
                 s_LastRefreshTime = Time.realtimeSinceStartupAsDouble;
 
-                if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
+                // if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
                     var probeVolume = GameObject.FindObjectOfType<ProbeVolume>();
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled || ProbeReferenceVolume.instance.sceneData == null)
@@ -62,9 +62,9 @@ namespace UnityEngine.Experimental.Rendering
                     // From simplification level 5 and higher, the cost of calculating one cell is very high, so we adjust that number.
                     if (profile.simplificationLevels > 4)
                         updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, profile.simplificationLevels - 4));
-                    for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
+                    // for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
                     {
-                        if (!s_CurrentSubdivision.MoveNext())
+                        while (!s_CurrentSubdivision.MoveNext())
                         {
                             s_LastSubdivisionTime = Time.realtimeSinceStartupAsDouble;
                             s_CurrentSubdivision = null;
