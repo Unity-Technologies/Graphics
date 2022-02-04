@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingRayMissFallbackHierarchy;
         // Flag that defines if the sky should be used as an environment light.
         public int _RayTracingLastBounceFallbackHierarchy;
-        public int _Padding0;
+        // Flag that defines if the APV should be used in the case of a ray miss in performance mode
+        public int _RayTracingAPVRayMiss;
         public int _Padding1;
     }
 }

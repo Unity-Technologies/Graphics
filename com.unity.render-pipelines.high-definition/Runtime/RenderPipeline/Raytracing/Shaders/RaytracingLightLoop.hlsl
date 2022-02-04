@@ -102,6 +102,32 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    if (_EnableProbeVolumes)
+    {
+        // Reflect normal to get lighting for reflection probe tinting
+        float3 R = reflect(-V, bsdfData.normalWS);
+
+        // This variable is used with APV for reflection probe normalization - see code for LIGHTFEATUREFLAGS_ENV
+        float3 lightInReflDir = float3(-1, -1, -1);
+
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+            bsdfData.normalWS,
+            -bsdfData.normalWS,
+            R,
+            V,
+            posInput.positionSS,
+            builtinData.bakeDiffuseLighting,
+            builtinData.backBakeDiffuseLighting,
+            lightInReflDir);
+    }
+    else // If probe volume is disabled we fallback on the ambient probes
+    {
+        builtinData.bakeDiffuseLighting = EvaluateAmbientProbe(bsdfData.normalWS);
+        builtinData.backBakeDiffuseLighting = EvaluateAmbientProbe(-bsdfData.normalWS);
+    }
+#endif
+
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
