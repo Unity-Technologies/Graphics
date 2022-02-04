@@ -97,7 +97,11 @@ Shader "Hidden/HDRP/WaterCaustics"
                 Varyings output;
                 output.originalPos = gridPositionWS + incidentDir * t;
                 output.refractedPos = gridPositionWS + refractedDirection * tRef;
-                output.positionCS = float4(output.refractedPos.xz / (_CausticsRegionSize * 0.5f), UNITY_NEAR_CLIP_VALUE, 1.0);
+                float2 clipPos = output.refractedPos.xz / (_CausticsRegionSize * 0.5f);
+                #if UNITY_UV_STARTS_AT_TOP
+                    clipPos.y = -clipPos.y;
+                #endif
+                output.positionCS = float4(clipPos, UNITY_NEAR_CLIP_VALUE, 1.0);
                 return output;
             }
 

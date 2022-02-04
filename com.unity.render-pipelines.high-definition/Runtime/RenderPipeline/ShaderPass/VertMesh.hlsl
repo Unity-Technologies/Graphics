@@ -138,7 +138,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     ZERO_INITIALIZE(VaryingsMeshType, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
 #endif
 
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #ifdef HAVE_VFX_MODIFICATION
@@ -267,7 +269,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
 
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
