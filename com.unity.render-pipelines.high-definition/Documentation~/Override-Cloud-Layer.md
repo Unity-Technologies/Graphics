@@ -63,7 +63,7 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Altitude**           | The altitude of the Cloud Layer in meters, used to calculate the sun light attenuation. |
 | **Rotation**           | The angle to rotate the **Cloud Layer** texture by, in degrees. |
 | **Tint**               | The color HDRP uses to tint the clouds.                      |
-| **Exposure**           | The amount of light per unit area that HDRP applies to the cloud layer based on the main directional [Light](Light-Component.md) intensity. |
+| **Exposure Compensation** | The exposure compensation of the clouds in EV relative to the main directional [Light](Light-Component.md). |
 | **Wind**               | Specifies the method HDRP uses to simulate wind.<br />&#8226; **None**: No wind.<br />&#8226; **Horizontal**: HDRP distorts the clouds using a uniform horizontal wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
 | - **Orientation**      | The orientation of the wind relative to the X world vector (in degrees).<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
 | - **Speed**            | The wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |

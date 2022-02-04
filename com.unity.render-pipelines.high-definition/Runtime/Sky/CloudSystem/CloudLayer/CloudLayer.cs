@@ -153,6 +153,10 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
+            /// <summary>Relative exposure of the clouds.</summary>
+            [InspectorName("Exposure Compensation")]
+            [Tooltip("Sets the exposure compensation of the clouds in EV.")]
+            public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
             [InspectorName("Wind")]
@@ -190,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float scrollFactor = 0.0f;
             internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
+            internal Color Color => tint.value * ColorUtils.ConvertEV100ToExposure(-exposure.value);
 
             internal Vector4 GetRenderingParameters(HDCamera camera)
             {
@@ -254,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + altitude.GetHashCode();
                     hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + tint.GetHashCode();
+                    hash = hash * 23 + exposure.GetHashCode();
 
                     hash = hash * 23 + distortionMode.GetHashCode();
                     hash = hash * 23 + scrollOrientation.GetHashCode();

@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter altitude;
             public SerializedDataParameter rotation;
             public SerializedDataParameter tint;
+            public SerializedDataParameter exposure;
 
             public SerializedDataParameter distortion;
             public SerializedDataParameter scrollOrientation;
@@ -49,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 altitude = Unpack(p.Find(x => x.altitude)),
                 rotation = Unpack(p.Find(x => x.rotation)),
                 tint = Unpack(p.Find(x => x.tint)),
+                exposure = Unpack(p.Find(x => x.exposure)),
 
                 distortion = Unpack(p.Find(x => x.distortionMode)),
                 scrollOrientation = Unpack(p.Find(x => x.scrollOrientation)),
@@ -104,18 +106,21 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.altitude);
             PropertyField(map.rotation);
             PropertyField(map.tint);
+            PropertyField(map.exposure);
 
             PropertyField(map.distortion);
             if (map.distortion.value.intValue != (int)CloudDistortionMode.None)
             {
-                EditorGUI.indentLevel++;
-                PropertyField(map.scrollOrientation);
-                PropertyField(map.scrollSpeed);
-                if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
+                using (new IndentLevelScope())
                 {
-                    PropertyField(map.flowmap);
+                    PropertyField(map.scrollOrientation);
+                    PropertyField(map.scrollSpeed);
+                    if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
+                    {
+                        PropertyField(map.flowmap);
+                    }
+
                 }
-                EditorGUI.indentLevel--;
             }
 
             PropertyField(map.raymarching);

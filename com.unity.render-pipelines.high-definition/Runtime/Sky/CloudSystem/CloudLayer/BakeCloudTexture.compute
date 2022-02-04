@@ -21,8 +21,8 @@
 
 #define NUM_MULTI_SCATTERING_OCTAVES 2
 #define FORWARD_ECCENTRICITY    0.7
-#define BACKWARD_ECCENTRICITY   0.7
-#define MULTI_SCATTERING        0.5
+#define BACKWARD_ECCENTRICITY   0.3
+#define MULTI_SCATTERING        0.75
 #define EARTH_RADIUS            6378100.0
 #define _Thickness 800
 

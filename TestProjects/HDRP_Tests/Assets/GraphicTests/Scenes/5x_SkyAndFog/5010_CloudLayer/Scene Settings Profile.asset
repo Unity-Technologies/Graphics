@@ -368,7 +368,7 @@ MonoBehaviour:
   m_Name: CloudLayer
   m_EditorClassIdentifier: 
   active: 1
-  coverage:
+  opacity:
     m_OverrideState: 0
     m_Value: 1
   upperHemisphereOnly:
@@ -444,8 +444,8 @@ MonoBehaviour:
       m_OverrideState: 0
       m_Value: 6
     thickness:
-      m_OverrideState: 0
-      m_Value: 5000
+      m_OverrideState: 1
+      m_Value: 0.451
     castShadows:
       m_OverrideState: 1
       m_Value: 1
@@ -461,7 +461,7 @@ MonoBehaviour:
       m_Value: 0
     opacityB:
       m_OverrideState: 1
-      m_Value: 0.569
+      m_Value: 0.13
     opacityA:
       m_OverrideState: 0
       m_Value: 0
@@ -502,11 +502,10 @@ MonoBehaviour:
       m_Value: 4
     thickness:
       m_OverrideState: 0
-      m_Value: 4050
+      m_Value: 1
     castShadows:
       m_OverrideState: 0
       m_Value: 0
-  m_Version: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

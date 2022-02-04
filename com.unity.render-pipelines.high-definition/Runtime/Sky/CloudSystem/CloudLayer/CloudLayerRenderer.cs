@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_BakeCloudTextureCS, s_BakeCloudShadowsCS;
         static int s_BakeCloudTextureKernel, s_BakeCloudShadowsKernel;
         static readonly Vector4[] s_VectorArray = new Vector4[2];
-        static readonly float[] s_FloatArray = new float[2];
 
 
         public CloudLayerRenderer()
@@ -121,12 +120,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightColor = lightComponent.color.linear * lightComponent.intensity;
                 if (additionalLightData.useColorTemperature)
                     lightColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
-
-                s_VectorArray[0] = lightColor;
-                s_VectorArray[1] = lightColor;
             }
 
-            s_VectorArray[0] = cloudLayer.layerA.tint.value * lightColor; s_VectorArray[1] = cloudLayer.layerB.tint.value * lightColor;
+            s_VectorArray[0] = cloudLayer.layerA.Color * lightColor; s_VectorArray[1] = cloudLayer.layerB.Color * lightColor;
             s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
 
