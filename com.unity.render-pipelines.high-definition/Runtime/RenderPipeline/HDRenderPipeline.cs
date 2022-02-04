@@ -245,7 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool m_IsDepthBufferCopyValid;
-        RenderTexture m_TemporaryTargetForCubemaps;
 
         private CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)>();
@@ -1080,7 +1079,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 public RenderTargetIdentifier id;
                 public CubemapFace face;
-                public RTHandle copyToTarget;
                 public RTHandle targetDepth;
             }
             public HDCamera hdCamera;
@@ -1534,7 +1532,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         request.target = new RenderRequest.Target
                         {
-                            copyToTarget = visibleProbe.realtimeTextureRTH,
+                            id = visibleProbe.realtimeTextureRTH,
                             face = face
                         };
                     }
@@ -1661,51 +1659,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateTemporaryTargetForCubemap(List<RenderRequest> renderRequests)
-        {
-            var size = Vector2Int.zero;
-            for (int i = 0; i < renderRequests.Count; ++i)
-            {
-                var renderRequest = renderRequests[i];
-                var isCubemapFaceTarget = renderRequest.target.face != CubemapFace.Unknown;
-                if (!isCubemapFaceTarget)
-                    continue;
-
-                var width = renderRequest.hdCamera.actualWidth;
-                var height = renderRequest.hdCamera.actualHeight;
-                size.x = Mathf.Max(width, size.x);
-                size.y = Mathf.Max(height, size.y);
-            }
-
-            if (size != Vector2.zero)
-            {
-                var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-                if (m_TemporaryTargetForCubemaps != null)
-                {
-                    if (m_TemporaryTargetForCubemaps.width != size.x
-                        || m_TemporaryTargetForCubemaps.height != size.y
-                        || m_TemporaryTargetForCubemaps.graphicsFormat != probeFormat)
-                    {
-                        m_TemporaryTargetForCubemaps.Release();
-                        m_TemporaryTargetForCubemaps = null;
-                    }
-                }
-                if (m_TemporaryTargetForCubemaps == null)
-                {
-                    m_TemporaryTargetForCubemaps = new RenderTexture(
-                        size.x, size.y, 1, probeFormat
-                    )
-                    {
-                        autoGenerateMips = false,
-                        useMipMap = false,
-                        name = "Temporary Target For Cubemap Face",
-                        volumeDepth = 1,
-                        useDynamicScale = false
-                    };
-                }
-            }
-        }
-
         void ExecuteAOVRenderRequests(in RenderRequest renderRequest, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             // var aovRequestIndex = 0;
@@ -1728,16 +1681,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EndRenderRequest(in RenderRequest renderRequest, CommandBuffer cmd)
         {
-            var target = renderRequest.target;
-            // Handle the copy if requested
-            if (target.copyToTarget != null)
-            {
-                cmd.CopyTexture(
-                    target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
-                    target.copyToTarget, (int)target.face, 0, 0, 0
-                );
-            }
-
             // release reference because the RenderTexture might be destroyed before the camera
             if (renderRequest.clearCameraSettings)
                 renderRequest.hdCamera.camera.targetTexture = null;
@@ -1994,10 +1937,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
-                // TODO: If possible remove the intermediate target
-                // Find max size for Cubemap face targets and resize/allocate if required the intermediate render target
-                UpdateTemporaryTargetForCubemap(renderRequests);
-
                 using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
                 {
                     // Flatten the render requests graph in an array that guarantee dependency constraints
@@ -2035,21 +1974,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequest = renderRequests[renderRequestIndex];
 
                             var cmd = CommandBufferPool.Get("");
-
-                            // TODO: Avoid the intermediate target and render directly into final target
-                            //  CommandBuffer.Blit does not work on Cubemap faces
-                            //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
-                            if (renderRequest.target.face != CubemapFace.Unknown)
-                            {
-                                if (renderRequest.target.copyToTarget != null)
-                                {
-                                    if (!m_TemporaryTargetForCubemaps.IsCreated())
-                                        m_TemporaryTargetForCubemaps.Create();
-
-                                    ref var target = ref renderRequest.target;
-                                    target.id = m_TemporaryTargetForCubemaps;
-                                }
-                            }
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
