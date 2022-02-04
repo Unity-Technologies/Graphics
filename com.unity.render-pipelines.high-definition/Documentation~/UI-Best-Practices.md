@@ -1,10 +1,10 @@
 # Working with UI in the High Definition Render Pipeline
 
-Almost every Project uses some form of user interface (UI). This could be: 
+Almost every Project uses some form of user interface (UI). This could be:
 
 * In a menu system
 * To specify a point of interest in your application
-* To display valuable information to users. 
+* To display valuable information to users.
 
 This guide explains how to use [Unity UI](https://docs.unity3d.com/Packages/com.unity.ugui@latest) in your High Definition Render Pipeline (HDRP) Project and provide best practice information.
 
