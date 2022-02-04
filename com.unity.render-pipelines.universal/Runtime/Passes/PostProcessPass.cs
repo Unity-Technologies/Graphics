@@ -1414,7 +1414,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
-                    RenderingUtils.Blit(cmd, m_Source, m_ScalingSetupTarget, m_Materials.scalingSetup, 0, m_UseDrawProcedural, RenderBufferLoadAction.DontCare);
+                    Blitter.BlitCameraTexture(cmd, m_Source, m_ScalingSetupTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_Materials.scalingSetup, 0);
 
                     sourceTex = m_ScalingSetupTarget;
                 }
