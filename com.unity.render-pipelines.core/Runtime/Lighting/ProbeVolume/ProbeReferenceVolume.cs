@@ -327,6 +327,19 @@ namespace UnityEngine.Experimental.Rendering
         /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
         /// </summary>
         public float weight;
+        /// <summary>
+        /// Method used for leak reduction.
+        /// </summary>
+        public APVLeakReductionMode leakReductionMode;
+        /// <summary>
+        /// Contribution of leak reduction weights.
+        /// </summary>
+        public float occlusionWeightContribution;
+        /// <summary>
+        /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
+        /// </summary>
+        public float minValidNormalWeight;
+
     }
 
     /// <summary>
@@ -386,9 +399,9 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+            public NativeArray<float> validity { get; internal set; }
 
             public NativeArray<Vector3> probePositions { get; internal set; }
-            public NativeArray<float> validity { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
         }
 
@@ -575,6 +588,13 @@ namespace UnityEngine.Experimental.Rendering
             /// Texture containing the fourth coefficient of Spherical Harmonics L2 band data.
             /// </summary>
             public Texture3D L2_3;
+
+            /// <summary>
+            /// Texture containing packed validity binary data for the neighbourhood of each probe. Only used when L1. Otherwise this info is stored
+            /// in the alpha channel of L2_3.
+            /// </summary>
+            public Texture3D Validity;
+
         }
 
         bool m_IsInitialized = false;
@@ -598,6 +618,10 @@ namespace UnityEngine.Experimental.Rendering
         int m_CurrentProbeVolumeChunkSize = 0;
 
         internal ProbeVolumeSceneData sceneData;
+
+        // We need to keep track the area, in cells, that is currently loaded. The index buffer will cover even unloaded areas, but we want to avoid sampling outside those areas.
+        Vector3Int minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        Vector3Int maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
 
         /// <summary>
         ///  The input to the retrieveExtraDataAction action.
@@ -891,6 +915,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo, ignoreErrorLog)) // Allocate indices
             {
+                minLoadedCellPos = Vector3Int.Min(minLoadedCellPos, cellInfo.cell.position);
+                maxLoadedCellPos = Vector3Int.Max(maxLoadedCellPos, cellInfo.cell.position);
+
                 return AddBricks(cellInfo, cellUpdateInfo, ignoreErrorLog);
             }
             else
@@ -913,6 +940,21 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = loadedCellsCount; i < m_LoadedCells.size; ++i)
             {
                 m_ToBeLoadedCells.Remove(m_LoadedCells[i]);
+            }
+        }
+
+        void RecomputeMinMaxLoadedCellPos()
+        {
+            minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+            maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
+            foreach (var cellInfo in cells.Values)
+            {
+                if (cellInfo.loaded)
+                {
+                    minLoadedCellPos = Vector3Int.Min(cellInfo.cell.position, minLoadedCellPos);
+                    maxLoadedCellPos = Vector3Int.Max(cellInfo.cell.position, maxLoadedCellPos);
+                }
             }
         }
 
@@ -962,8 +1004,8 @@ namespace UnityEngine.Experimental.Rendering
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
-            Vector3Int minCellPosition = Vector3Int.zero;
-            Vector3Int maxCellPosition = Vector3Int.zero;
+            Vector3Int minCellPosition = Vector3Int.one * 10000;
+            Vector3Int maxCellPosition = Vector3Int.one * -10000;
 
             bool firstBound = true;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
@@ -1041,6 +1083,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             ClearDebugData();
+            RecomputeMinMaxLoadedCellPos();
         }
 
         void PerformPendingIndexChangeAndInit()
@@ -1349,7 +1392,7 @@ namespace UnityEngine.Experimental.Rendering
                 else
                 {
                     int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, cell.validity, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                     // copy chunks into pool
                     m_TmpSrcChunks.Clear();
@@ -1443,7 +1486,9 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
             shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
-            shaderVars._Weight_Padding = new Vector4(parameters.weight, 0.0f, 0.0f, 0.0f);
+            shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
+            shaderVars._MaxLoadedCell_Padding = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, 0.0f);
+            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

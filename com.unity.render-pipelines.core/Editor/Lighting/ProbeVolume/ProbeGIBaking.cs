@@ -757,6 +757,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // CellData
+            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
             var count = asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount() * 4; // 4 component per probe.
             using var probesL0L1Rx = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var probesL1GL1Ry = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -780,7 +782,6 @@ namespace UnityEngine.Experimental.Rendering
 
             // CellSupportData
             using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
@@ -894,7 +895,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
-                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
                 startCounts.Add(cellCounts);
@@ -913,6 +913,8 @@ namespace UnityEngine.Experimental.Rendering
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
                     fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
 
                     fs.Write(new ReadOnlySpan<byte>(probesL0L1Rx.GetUnsafeReadOnlyPtr(), probesL0L1Rx.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new ReadOnlySpan<byte>(probesL1GL1Ry.GetUnsafeReadOnlyPtr(), probesL1GL1Ry.Length * UnsafeUtility.SizeOf<byte>()));
@@ -935,8 +937,6 @@ namespace UnityEngine.Experimental.Rendering
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
                 }

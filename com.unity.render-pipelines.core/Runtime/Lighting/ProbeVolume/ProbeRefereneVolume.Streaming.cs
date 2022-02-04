@@ -129,7 +129,10 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     if (pendingUnloadCount > 0)
+                    {
                         m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
+                        RecomputeMinMaxLoadedCellPos();
+                    }
                 }
             }
             else
