@@ -18,6 +18,7 @@ namespace com.unity.shadergraph.defs
         /// </summary>
         public static IPortWriter ParameterDescriptorToField(
             ParameterDescriptor param,
+            TypeDescriptor resolveType,
             INodeReader nodeReader,
             INodeWriter nodeWriter,
             Registry registry)
@@ -28,12 +29,23 @@ namespace com.unity.shadergraph.defs
                 param.Usage == Usage.In,
                 registry
             );
-
-            port.SetField(GraphType.kLength, param.TypeDescriptor.Length);
-            port.SetField(GraphType.kHeight, param.TypeDescriptor.Height);
-            port.SetField(GraphType.kPrecision, param.TypeDescriptor.Precision);
-            port.SetField(GraphType.kPrimitive, param.TypeDescriptor.Primitive);
-
+            TypeDescriptor td = param.TypeDescriptor;
+            port.SetField(
+                GraphType.kLength,
+                td.Length == Length.Any ? resolveType.Length : td.Length
+            );
+            port.SetField(
+                GraphType.kHeight,
+                td.Height == Height.Any ? resolveType.Height : td.Height
+            );
+            port.SetField(
+                GraphType.kPrecision,
+                td.Precision == Precision.Any ? resolveType.Precision : td.Precision
+            );
+            port.SetField(
+                GraphType.kPrimitive,
+                td.Primitive == Primitive.Any ? resolveType.Primitive : td.Primitive
+            );
             return port;
         }
 
@@ -49,7 +61,12 @@ namespace com.unity.shadergraph.defs
         {
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                ParameterDescriptorToField(param, userData, generatedData, registry);
+                ParameterDescriptorToField(
+                    param,
+                    m_functionDescriptor.ResolvedTypeDescriptor(),
+                    userData,
+                    generatedData,
+                    registry);
             }
         }
 

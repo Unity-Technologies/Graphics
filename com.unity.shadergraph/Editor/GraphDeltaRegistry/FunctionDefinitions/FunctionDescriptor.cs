@@ -11,6 +11,12 @@ namespace com.unity.shadergraph.defs {
         public List<ParameterDescriptor> Parameters { get; }
         public string Body { get; }  // HLSL syntax. All out parameters should be assigned a value.
 
+        public readonly TypeDescriptor ResolvedTypeDescriptor()
+        {
+            // TODO (Brett) actually resolve
+            return TYPE.Vec4;
+        }
+
         public FunctionDescriptor(
             int version,
             string name,
