@@ -41,7 +41,7 @@ Shader "Universal Render Pipeline/Unlit"
             Name "Unlit"
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            // #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
@@ -74,7 +74,7 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask R
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            // #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -102,7 +102,7 @@ Shader "Universal Render Pipeline/Unlit"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            // #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -135,7 +135,7 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            // #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta

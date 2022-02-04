@@ -149,7 +149,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            // #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
