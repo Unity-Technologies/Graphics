@@ -151,9 +151,8 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-        // TODO: Replace that 
-        const bool kUseUBO = true;
-        const uint kUBOMaxWindowSize = kUseUBO ? 64 * 1024 : 128 * 1024 * 1024;
+        bool kUseUBO = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        uint kUBOMaxWindowSize = (uint)(kUseUBO ? 64 * 1024 : 128 * 1024 * 1024);
         const uint kUBOAlignment = 256;
         const int kFloat4Size = 16;
 
