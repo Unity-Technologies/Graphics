@@ -1,36 +1,37 @@
-namespace com.unity.shadergraph.defs {
-    public class FunctionDescriptorNodeBuilder : Defs.INodeDefinitionBuilder
+using UnityEditor.ShaderFoundry;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEditor.ShaderGraph.Registry.Types;
+
+namespace com.unity.shadergraph.defs
+{
+    public class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
     {
-        private FunctionDescriptor m_functionDescriptor;
+        private readonly FunctionDescriptor m_functionDescriptor;
 
         public static IPortWriter ParameterDescriptorToField(
             ParameterDescriptor param,
             INodeReader nodeReader,
-            INodeWriter nodeWriter
-            )
+            INodeWriter nodeWriter,
+            Registry registry)
         {
             IPortWriter port = nodeWriter.AddPort<GraphType>(
                 nodeReader,
                 param.Name,
-                param.Usage == Usage.Input,
-                Registry
+                param.Usage == Usage.In,
+                registry
             );
             // TODO (Brett) This is incorrect
-            portWriter.SetField<int>(GraphType.kLength, 1);
+            //portWriter.SetField<int>(GraphType.kLength, 1);
+
+            return port;
         }
 
         internal FunctionDescriptorNodeBuilder(FunctionDescriptor fd)
         {
-            funcDescription = fd; // copy
+            m_functionDescriptor = fd; // copy
         }
-
-        public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
-
-        public RegistryKey GetRegistryKey() => new RegistryKey
-        {
-            Name = funcDescription.Name,
-            Version = funcDescription.Version
-        };
 
         public void BuildNode(
             INodeReader userData,
@@ -38,28 +39,46 @@ namespace com.unity.shadergraph.defs {
             Registry registry)
         {
 
-            foreach (var param in funcDescription.Params)
+            foreach (var param in m_functionDescriptor.Parameters)
             {
-                var port = generatedData.AddPort<GraphType>(
-                    userData,
-                    funcDescription.param1.name,
-                    funcDescription.param1.Usage == Input,
-                    registry);
-                FunctionDescriptorNodeBuilder.ParameterToField(param, userData, generatedData);
+                ParameterDescriptorToField(param, userData, generatedData, registry);
             }
 
-            port.SetField<GraphType.Primitive>(GraphType.kPrecision, funcDescription.param1.precision);
-            port.SetField<GraphType.Precision>(GraphType.kPrimitive, funcDescription.param1.primitive);
-            port.SetField(GraphType.kHeight, 1);
-            port.SetField(GraphType.kLength, 1);
+            //port.SetField<GraphType.Primitive>(GraphType.kPrecision, m_functionDescriptor.param1.precision);
+            //port.SetField<GraphType.Precision>(GraphType.kPrimitive, m_functionDescriptor.param1.primitive);
+            //port.SetField(GraphType.kHeight, 1);
+            //port.SetField(GraphType.kLength, 1);
         }
 
-        public ShaderFoundry.ShaderFunction GetShaderFunction(
+        //void INodeDefinitionBuilder.BuildNode(
+        //    INodeReader userData,
+        //    INodeWriter generatedData,
+        //    Registry registry)
+        //{
+        //    throw new System.NotImplementedException();
+        //}
+
+        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
             INodeReader data,
-            ShaderFoundry.ShaderContainer container,
+            ShaderContainer container,
             Registry registry)
         {
             // TODO (Brett) Implement
+            throw new System.NotImplementedException();
+        }
+
+        RegistryKey IRegistryEntry.GetRegistryKey()
+        {
+            return new RegistryKey
+            {
+                Name = m_functionDescriptor.Name,
+                Version = m_functionDescriptor.Version
+            };
+        }
+
+        RegistryFlags IRegistryEntry.GetRegistryFlags()
+        {
+            return RegistryFlags.Func;
         }
     }
 }
