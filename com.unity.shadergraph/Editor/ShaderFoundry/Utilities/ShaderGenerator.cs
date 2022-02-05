@@ -6,6 +6,7 @@ namespace UnityEditor.ShaderFoundry
     internal struct GeneratedShader
     {
         public string shaderName;
+        public bool isPrimaryShader;
         public string codeString;
         // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
         public string errorMessage;
@@ -30,6 +31,7 @@ namespace UnityEditor.ShaderFoundry
             GeneratedShader result = new GeneratedShader()
             {
                 shaderName = shaderInst.Name,
+                isPrimaryShader = shaderInst.IsPrimaryShader,
                 codeString = builder.ToString(),
                 errorMessage = null
             };

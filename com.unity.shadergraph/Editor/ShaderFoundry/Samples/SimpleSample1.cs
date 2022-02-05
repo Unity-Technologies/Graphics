@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderFoundry
             var primaryShaderID = string.Empty;
             var generatedShader = SimpleSampleBuilder.Build(container, target, ShaderName, BuildSample, primaryShaderID);
 
-            DisplayTestResult(ShaderName, generatedShader.codeString);
+            DisplayTestResult(generatedShader.shaderName, generatedShader.codeString);
         }
 
         internal static void BuildSample(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst)
