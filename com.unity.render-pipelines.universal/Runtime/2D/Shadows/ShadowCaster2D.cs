@@ -415,8 +415,8 @@ namespace UnityEngine.Rendering.Universal
                 //       0       |       1        |   Renderer Only
                 //       1       |       0        |     Cast Only
                 //       1       |       1        |       Both
+                // ----------------------------------------------------
 
-                // Flag this for requiring an upgrade to run
                 if (m_SelfShadows && m_CastsShadows)
                     m_CastingOption = ShadowCastingOptions.Both;
                 else if (m_SelfShadows)
