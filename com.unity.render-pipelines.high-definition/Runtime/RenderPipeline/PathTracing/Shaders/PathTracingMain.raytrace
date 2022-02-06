@@ -108,6 +108,7 @@ void MissMaterial(inout PathIntersection payload : SV_RayPayload)
 
     payload.value = GetMaterialMissValue();
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
+    payload.value *= payload.throughput;
 }
 
 [shader("miss")]
