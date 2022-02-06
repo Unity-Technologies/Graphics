@@ -33,7 +33,7 @@ struct PathIntersection
 
     // Write Only
     float3 value;
-    float t; // Can we remove it?
+    float t; // to be renamed to tHit
     RayDesc ray; // NEW
 };
 

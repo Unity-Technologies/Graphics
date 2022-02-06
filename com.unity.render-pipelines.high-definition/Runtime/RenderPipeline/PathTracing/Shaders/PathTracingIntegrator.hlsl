@@ -206,23 +206,21 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 rayDescriptor.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RaytracingRayBias, isSampleBelow);
                 rayDescriptor.TMax = FLT_INF;
 
-                // Copy useful path constants across
+                // Prepare our shadow payload with all required information
                 nextPathIntersection.pixelCoord = pathIntersection.pixelCoord;
-                //nextPathIntersection.cone.width = pathIntersection.cone.width;
-
-                // Complete PathIntersection structure for this sample
                 nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 2;
                 nextPathIntersection.t = rayDescriptor.TMax;
 
+                // Adjust throughput by the Russian roulette factor
                 pathIntersection.throughput *= rrFactor;
 
                 // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
                 pathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
 
-                // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+                // To perform texture filtering, we maintain a footprint of the pixel
                 pathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(pathIntersection.maxRoughness);
 
-                // Pre=shoot ray for indirect lighting, that we also use to shadow lights
+                // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                 // Apply material absorption to our throughput
@@ -240,14 +238,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     pathIntersection.value += pathIntersection.throughput * lightValue * misWeight;
                 }
 
-                if (nextPathIntersection.t < FLT_INF)
-                {
-                    // We hit a new surface, udpate our payload's origin and direction
-                    pathIntersection.ray.Origin = rayDescriptor.Origin;
-                    pathIntersection.ray.Direction = rayDescriptor.Direction;
-                    pathIntersection.ray.TMin = nextPathIntersection.t - _RaytracingRayBias;
-                    pathIntersection.ray.TMax = nextPathIntersection.t + _RaytracingRayBias;
-                }
+                // Update our payload to fire the next continuation ray (we know tHit at that point)
+                pathIntersection.ray.Origin = rayDescriptor.Origin;
+                pathIntersection.ray.Direction = rayDescriptor.Direction;
+                pathIntersection.ray.TMin = nextPathIntersection.t - _RaytracingRayBias;
+                pathIntersection.ray.TMax = nextPathIntersection.t + _RaytracingRayBias;
             }
         }
     }
