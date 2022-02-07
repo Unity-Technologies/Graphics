@@ -185,7 +185,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range
             // (~58.85666) and is good enough to be stored in fp16 without losing precision in the
             // darks
-            float3 colorLutSpace = GetLutStripValue(input.uv, _Lut_Params);
+            float3 colorLutSpace = GetLutStripValue(input.texcoord, _Lut_Params);
 
             // Color grade & tonemap
             float3 gradedColor = ColorGrade(colorLutSpace);
@@ -207,7 +207,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             Name "LutBuilderHdr"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
         }

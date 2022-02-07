@@ -33,7 +33,7 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
-            cmd.Blit(renderingData.cameraData.renderer.cameraColorTarget, renderingData.cameraData.renderer.cameraColorTarget, m_Material);
+            Blitter.BlitCameraTexture(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle, renderingData.cameraData.renderer.cameraColorTargetHandle, m_Material, 0);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

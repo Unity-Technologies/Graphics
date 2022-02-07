@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         static Mesh s_FullscreenMesh = null;
 
         /// <summary>
@@ -142,34 +141,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void Blit(CommandBuffer cmd,
             RTHandle source,
-            RTHandle destination,
-            Material material,
-            int passIndex = 0,
-            bool useDrawProcedural = false,
-            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
-            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
-            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
-            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
-        {
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
-            if (useDrawProcedural)
-            {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
-                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
-            }
-        }
-
-        internal static void Blit(CommandBuffer cmd,
-            RTHandle source,
             Rect viewport,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
@@ -179,19 +150,10 @@ namespace UnityEngine.Rendering.Universal
             Material material,
             int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
             CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
             cmd.SetViewport(viewport);
-            if (SystemInfo.graphicsShaderLevel < 30)
-            {
-                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
-            }
-            else
-            {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, null);
-            }
+            Blitter.BlitTexture(cmd, source, viewportScale, material, passIndex);
         }
 
         internal static void Blit(CommandBuffer cmd,
@@ -208,22 +170,13 @@ namespace UnityEngine.Rendering.Universal
             Material material,
             int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
             CoreUtils.SetRenderTarget(cmd,
                 destinationColor, colorLoadAction, colorStoreAction,
                 destinationDepthStencil, depthStencilLoadAction, depthStencilStoreAction,
                 clearFlag, clearColor); // implicit depth=1.0f stencil=0x0
             cmd.SetViewport(viewport);
-            if (SystemInfo.graphicsShaderLevel < 30)
-            {
-                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
-            }
-            else
-            {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, null);
-            }
+            Blitter.BlitTexture(cmd, source, viewportScale, material, passIndex);
         }
 
         internal static void FinalBlit(
@@ -236,21 +189,17 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferStoreAction storeAction,
             Material material, int passIndex)
         {
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
             // We y-flip if
             // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
             // 2) renderTexture starts UV at top
             bool yflip = isRenderToBackBufferTarget && cameraData.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source.nameID);
-            cmd.SetGlobalTexture(ShaderPropertyId.blitTexture, source.nameID);
-            Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-            cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
+            Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, 1) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
             CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
-            if (SystemInfo.graphicsShaderLevel < 30)
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, passIndex);
-            else
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3);
+            Blitter.BlitTexture(cmd, source, scaleBias, material, passIndex);
         }
 
         // This is used to render materials that contain built-in shader passes not compatible with URP.

@@ -650,7 +650,10 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0)
         {
-            RenderingUtils.Blit(cmd, source, destination, material, passIndex, false);
+            if (material == null)
+                Blitter.BlitCameraTexture(cmd, source, destination);
+            else
+                Blitter.BlitCameraTexture(cmd, source, destination, material, passIndex);
         }
 
         /// <summary>
