@@ -5,9 +5,8 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     enum RefractMode
     {
@@ -15,8 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Safe
     };
 
-    [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Math", "Vector", "High Definition Render Pipeline", "Refract")]
+    [Title("Math", "Vector", "Refract")]
     class HDRefractNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
@@ -38,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kIntensityOutputSlotId = 5;
         const string kIntensityOutputSlotName = "Intensity";
 
-        public override string documentationURL => Documentation.GetPageLink("Refract-Node");
+        public override string documentationURL => UnityEngine.Rendering.DocumentationInfo.GetPageLink("com.unity.shadergraph", "Refract-Node");
 
         [EnumControl("Mode")]
         public RefractMode refractMode

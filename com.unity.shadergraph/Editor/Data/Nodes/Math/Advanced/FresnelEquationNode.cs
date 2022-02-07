@@ -5,9 +5,8 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     enum FresnelEquationMode
     {
@@ -16,8 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         DielectricGeneric
     };
 
-    [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Math", "Advanced", "High Definition Render Pipeline", "Fresnel Equation")]
+    [Title("Math", "Advanced", "Fresnel Equation")]
     class HDFresnelEquationNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
@@ -33,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kFresnelOutputSlotName = "Fresnel";
 
-        public override string documentationURL => Documentation.GetPageLink("Fresnel-Equation-Node");
+        public override string documentationURL => UnityEngine.Rendering.DocumentationInfo.GetPageLink("com.unity.shadergraph", "Fresnel-Equation-Node");
 
         private enum FresnelSlots
         {
