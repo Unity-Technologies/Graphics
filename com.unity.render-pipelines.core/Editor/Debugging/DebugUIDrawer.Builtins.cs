@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using Codice.Client.BaseCommands;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -384,7 +382,7 @@ namespace UnityEditor.Rendering
                     var selectedValue = w.GetValue();
                     var objectNames = elements.Select(n => n.name).ToArray();
 
-                    // Check if the cameras have changed
+                    // Check if the collection have changed
                     if (s.arrayNames == null || s.arrayNames.SequenceEqual(objectNames))
                     {
                         s.arrayNames = objectNames;
