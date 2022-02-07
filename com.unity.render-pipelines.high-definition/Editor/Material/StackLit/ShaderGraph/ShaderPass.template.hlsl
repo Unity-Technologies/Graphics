@@ -63,6 +63,8 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // Note: we don't know yet if we put 1.0 in surfaceData.hazyGlossMaxDielectricF0 or the graph provided value:
     //$SurfaceDescription.HazyGlossMaxDielectricF0:  surfaceData.hazyGlossMaxDielectricF0 = surfaceDescription.HazyGlossMaxDielectricF0;
 
+    $SurfaceDescription.DiffusePower:              surfaceData.diffusePower =             surfaceDescription.DiffusePower;
+
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_STACK_LIT_STANDARD;
     #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR

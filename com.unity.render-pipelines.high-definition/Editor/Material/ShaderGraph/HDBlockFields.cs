@@ -197,6 +197,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IridescenceCoatFixupTIRClamp = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceCoatFixupTIRClamp", "Iridescence Coat Fixup TIR Clamp", "SURFACEDESCRIPTION_IRIDESCENCECOATFIXUPTIRCLAMP",
                 new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor DiffusePower = new BlockFieldDescriptor(SurfaceDescription.name, "DiffusePower", "Diffuse Power", "SURFACEDESCRIPTION_DIFFUSEPOWER",
+                new FloatControl(1.0f), ShaderStage.Fragment);
         }
     }
 }

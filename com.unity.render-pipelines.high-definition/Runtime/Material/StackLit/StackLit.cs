@@ -186,6 +186,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float soFixupStrengthFactor;
             [SurfaceDataAttributes("Specular Occlusion Fixup Max Added Roughness")]
             public float soFixupMaxAddedRoughness;
+            [SurfaceDataAttributes("Diffuse Power")]
+            public float diffusePower;
         };
 
         //-----------------------------------------------------------------------------
@@ -267,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float soFixupVisibilityRatioThreshold;
             public float soFixupStrengthFactor;
             public float soFixupMaxAddedRoughness;
+            public float diffusePower;
         };
 
         //-----------------------------------------------------------------------------

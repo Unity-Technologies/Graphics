@@ -61,6 +61,7 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD (1137)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_STRENGTH (1138)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS (1139)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSE_POWER (1140)
 
 //
 // UnityEngine.Rendering.HighDefinition.StackLit+BSDFData:  static fields
@@ -108,6 +109,7 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD (1190)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_STRENGTH_FACTOR (1191)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS (1192)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSE_POWER (1193)
 
 // Generated from UnityEngine.Rendering.HighDefinition.StackLit+SurfaceData
 // PackingRules = Exact
@@ -149,6 +151,7 @@ struct SurfaceData
     float soFixupVisibilityRatioThreshold;
     float soFixupStrengthFactor;
     float soFixupMaxAddedRoughness;
+    float diffusePower;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.StackLit+BSDFData
@@ -194,6 +197,7 @@ struct BSDFData
     float soFixupVisibilityRatioThreshold;
     float soFixupStrengthFactor;
     float soFixupMaxAddedRoughness;
+    float diffusePower;
 };
 
 //
@@ -324,6 +328,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS:
             result = surfacedata.soFixupMaxAddedRoughness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSE_POWER:
+            result = surfacedata.diffusePower.xxx;
             break;
     }
 }
@@ -464,6 +471,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS:
             result = bsdfdata.soFixupMaxAddedRoughness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSE_POWER:
+            result = bsdfdata.diffusePower.xxx;
             break;
     }
 }

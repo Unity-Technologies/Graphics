@@ -10,6 +10,8 @@ $Material.SubsurfaceScattering:                      #define _MATERIAL_FEATURE_S
 $Material.Transmission:                              #define _MATERIAL_FEATURE_TRANSMISSION
 $AmbientOcclusion:                                   #define _AMBIENT_OCCLUSION 1
 $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // main enable
+$Specular.AllowDiffusionProfileReflectanceOverride:   #define _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
+$Material.EnableDiffuseToPower:                       #define _MATERIAL_FEATURE_DIFFUSE_TO_POWER
 // Performance vs appearance options
 $AnisotropyForAreaLights:                            #define _ANISOTROPY_FOR_AREA_LIGHTS
 $RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT

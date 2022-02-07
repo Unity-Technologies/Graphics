@@ -799,8 +799,15 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING))
     {
+        #ifdef _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
+        float f = bsdfData.fresnel0;
+        #endif
         // Assign profile id and overwrite fresnel0
         FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
+
+        #ifdef _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
+        bsdfData.fresnel0 = f;
+        #endif
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
@@ -880,7 +887,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.soFixupVisibilityRatioThreshold = surfaceData.soFixupVisibilityRatioThreshold;
     bsdfData.soFixupStrengthFactor = surfaceData.soFixupStrengthFactor;
     bsdfData.soFixupMaxAddedRoughness = surfaceData.soFixupMaxAddedRoughness;
-
+    #ifdef _MATERIAL_FEATURE_DIFFUSE_TO_POWER
+    bsdfData.diffusePower = surfaceData.diffusePower;
+    #endif
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
 }
@@ -3697,6 +3706,14 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
 #endif
 
     float diffuseNdotL = saturate(NdotL[DNLV_BASE_IDX]);
+
+    #ifdef _MATERIAL_FEATURE_DIFFUSE_TO_POWER
+    {
+        float diffusePow = bsdfData.diffusePower;
+        diffuseNdotL = (1 + diffusePow) * 0.5f * pow(diffuseNdotL, diffusePow);
+    }
+    #endif
+
     cbsdf.diffR = diffTerm * diffuseNdotL;
     // TODO: Note for Stephane: I use -inNdotL here as it match visually what was done before the refactor but I guess it should be -diffuseNdotL
     cbsdf.diffT = diffTerm * ComputeWrappedDiffuseLighting(-inNdotL, TRANSMISSION_WRAP_LIGHT);

@@ -28,6 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //context.AddLabel("Advanced Options", 0);
             AddProperty("Anisotropy For Area Lights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 0);
 
+            AddProperty("Allow overriding Reflectance From Diffusion Profile", () => stackLitData.allowDiffusionProfileReflectanceOverride, (newValue) => stackLitData.allowDiffusionProfileReflectanceOverride = newValue, 1);
+            AddProperty("Enable Diffuse To Power For Direct Lights", () => stackLitData.enableDiffusePower, (newValue) => stackLitData.enableDiffusePower = newValue, 1);
+
             // Per Punctual/Directional Lights
             context.AddLabel("Per Punctual/Directional Lights:", 0);
             if (stackLitData.coat)
@@ -35,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (stackLitData.coat || stackLitData.iridescence)
                 AddProperty("Recompute Stack & Iridescence", () => stackLitData.recomputeStackPerLight, (newValue) => stackLitData.recomputeStackPerLight = newValue, 1);
             AddProperty("Honor Per Light Max Smoothness", () => stackLitData.honorPerLightMinRoughness, (newValue) => stackLitData.honorPerLightMinRoughness = newValue, 1);
+
         }
     }
 }
