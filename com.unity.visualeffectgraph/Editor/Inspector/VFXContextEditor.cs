@@ -1,19 +1,9 @@
 using System;
 using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using UnityEditor;
-using UnityEditor.Experimental;
 using UnityEditor.VFX;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX.UI;
-
-using Object = UnityEngine.Object;
-using UnityEditorInternal;
-using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
