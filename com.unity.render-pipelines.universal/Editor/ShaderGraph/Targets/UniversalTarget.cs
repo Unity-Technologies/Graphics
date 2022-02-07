@@ -1307,7 +1307,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1315,7 +1315,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1324,7 +1324,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
@@ -1343,6 +1343,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES }) }, // TODO Exlude GLCore too when we're done with testing
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1350,6 +1351,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES }) }, // TODO Exlude GLCore too when we're done with testing
             { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
@@ -1359,6 +1361,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSForward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES }) }, // TODO Exlude GLCore too when we're done with testing
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
@@ -1370,6 +1373,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES }) }, // TODO Exlude GLCore too when we're done with testing
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
