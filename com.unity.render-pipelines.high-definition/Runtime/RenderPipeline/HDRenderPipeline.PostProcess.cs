@@ -88,33 +88,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Vector2Int postProcessViewportSize { get { return resGroup == ResolutionGroup.AfterDynamicResUpscale ? m_AfterDynamicResUpscaleRes : m_BeforeDynamicResUpscaleRes; } }
 
-        private class PostProcessTextureAllocator
+        private struct PostProcessHistoryTextureAllocator
         {
             private String m_Name;
-            private Vector2 m_Scale;
-            private bool m_EnableMips = false;
-            private bool m_UseDynamicScale = false;
+            private Vector2Int m_Size;
+            private bool m_EnableMips;
+            private bool m_UseDynamicScale;
+            GraphicsFormat m_Format;
 
-            public String name { set { m_Name = value; } }
-            public bool enableMips { set { m_EnableMips = value; } }
-            public bool useDynamicScale { set { m_UseDynamicScale = value; } }
-            public Vector2 scale { set { m_Scale = value; } }
-
-            public Func<string, int, RTHandleSystem, RTHandle> allocatorFunction;
-
-            public PostProcessTextureAllocator()
+            public PostProcessHistoryTextureAllocator(String newName, Vector2Int newSize, GraphicsFormat format = GraphicsFormat.R16_SFloat, bool enableMips = false, bool useDynamicScale = false)
             {
-                allocatorFunction = (string id, int frameIndex, RTHandleSystem rtHandleSystem) =>
-                {
-                    return rtHandleSystem.Alloc(
-                        m_Scale, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                        dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name}"
-                    );
-                };
+                m_Name = newName;
+                m_Size = newSize;
+                m_EnableMips = enableMips;
+                m_UseDynamicScale = useDynamicScale;
+                m_Format = format;
+            }
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, m_Format,
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name} {frameIndex}"
+                );
             }
         }
-
-        private PostProcessTextureAllocator m_PostProcessTextureAllocator = new PostProcessTextureAllocator();
 
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
@@ -459,6 +457,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false);
         }
 
+        bool GrabPostProcessHistoryTextures(
+            HDCamera camera, HDCameraFrameHistoryType historyType, String name, GraphicsFormat format, out RTHandle previous, out RTHandle next, bool useMips = false)
+        {
+            bool validHistory = true;
+            next = camera.GetCurrentFrameRT((int)historyType);
+            if (next == null || (useMips == true && next.rt.mipmapCount == 1) || next.rt.width != camera.postProcessRTHistoryMaxReference.x || next.rt.height != camera.postProcessRTHistoryMaxReference.y)
+            {
+                validHistory = false;
+                var viewportSize = new Vector2Int(camera.postProcessRTHistoryMaxReference.x, camera.postProcessRTHistoryMaxReference.y);
+                var textureAllocator = new PostProcessHistoryTextureAllocator(name, viewportSize, format, useMips);
+
+                if (next != null)
+                    camera.ReleaseHistoryFrameRT((int)historyType);
+                next = camera.AllocHistoryFrameRT((int)historyType, textureAllocator.Allocator, 2);
+            }
+            previous = camera.GetPreviousFrameRT((int)historyType);
+            return validHistory;
+        }
+
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
             in PrepassOutput prepassOutput,
             TextureHandle inputColor,
@@ -477,6 +494,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool flipYInPostProcess = postPRocessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
+
+            var postProcessHistorySizes = DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost ? m_BeforeDynamicResUpscaleRes : m_AfterDynamicResUpscaleRes;
+            hdCamera.SetPostProcessHistorySizeAndReference(postProcessHistorySizes.x, postProcessHistorySizes.y, m_AfterDynamicResUpscaleRes.x, m_AfterDynamicResUpscaleRes.y);
 
             var source = inputColor;
             var depthBuffer = prepassOutput.resolvedDepthBuffer;
@@ -1409,7 +1429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
-                                passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.x, hdCamera.postProcessRTScalesHistory.y);
+                                passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.z, hdCamera.postProcessRTScalesHistory.w);
                                 passData.postProcessViewportSize = postProcessViewportSize;
                                 builder.SetRenderFunc(
                                     (CustomPostProcessData data, RenderGraphContext ctx) =>
@@ -1468,25 +1488,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Temporal Anti-aliasing
 
-        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, Vector2 customScale, bool postDoF = false)
+        bool GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, bool postDoF = false)
         {
-            int historyType = (int)(postDoF ?
-                HDCameraFrameHistoryType.TemporalAntialiasingPostDoF : HDCameraFrameHistoryType.TemporalAntialiasing);
-
-            var taaAllocator = new HDCamera.CustomHistoryAllocator(customScale, GetPostprocessTextureFormat(), "TAA History");
-
-            next = camera.GetCurrentFrameRT(historyType)
-                ?? camera.AllocHistoryFrameRT(historyType, taaAllocator.Allocator, 2);
-            previous = camera.GetPreviousFrameRT(historyType);
+            var historyType = postDoF ? HDCameraFrameHistoryType.TemporalAntialiasingPostDoF : HDCameraFrameHistoryType.TemporalAntialiasing;
+            return GrabPostProcessHistoryTextures(camera, historyType, "TAA History", GetPostprocessTextureFormat(), out previous, out next);
         }
 
-        void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, Vector2 customScale, out RTHandle previous, out RTHandle next)
+        bool GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
-            var taaAllocator = new HDCamera.CustomHistoryAllocator(customScale, GraphicsFormat.R16_SFloat, "Velocity magnitude");
-
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, taaAllocator.Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16_SFloat, out previous, out next);
         }
 
         void ReleasePostDoFTAAHistoryTextures(HDCamera camera)
@@ -1513,6 +1523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect prevFinalViewport;
             public Vector4 taaScales;
             public bool runsTAAU;
+            public bool runsAfterUpscale;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -1552,6 +1563,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
             bool TAAU = camera.IsTAAUEnabled();
+            bool runsAfterUpscale = (resGroup == ResolutionGroup.AfterDynamicResUpscale);
 
             float antiFlickerLerpFactor = camera.taaAntiFlicker;
             float historySharpening = TAAU && postDoF ? 0.25f : camera.taaHistorySharpening;
@@ -1619,6 +1631,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             passData.runsTAAU = TAAU;
+            passData.runsAfterUpscale = runsAfterUpscale;
+
             if (TAAU && !postDoF)
             {
                 passData.temporalAAMaterial.EnableKeyword("TAA_UPSCALE");
@@ -1646,25 +1660,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (TAAU)
+            if (TAAU || runsAfterUpscale)
             {
                 passData.temporalAAMaterial.EnableKeyword("DIRECT_STENCIL_SAMPLE");
             }
 
+            Vector2Int currentViewPort = new Vector2Int((int)passData.finalViewport.width, (int)passData.finalViewport.height);
+
             RTHandle prevHistory, nextHistory;
-            Vector2 historyScale = Vector2.one;
-
-            if (TAAU)
-            {
-                historyScale = new Vector2((float)camera.finalViewport.width / camera.actualWidth, (float)camera.finalViewport.height / camera.actualHeight);
-            }
-
-            GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, historyScale, postDoF);
-
+            bool validHistory = GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, postDoF);
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
-            if (TAAU)
+            if (TAAU || runsAfterUpscale)
                 passData.previousScreenSize = new Vector4(camera.finalViewport.width, camera.finalViewport.height, 1.0f / camera.finalViewport.width, 1.0f / camera.finalViewport.height);
 
             passData.source = builder.ReadTexture(sourceTexture);
@@ -1672,6 +1680,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.motionVecTexture = builder.ReadTexture(motionVectors);
             passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
             passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
+            passData.resetPostProcessingHistory = passData.resetPostProcessingHistory || !validHistory;
             if (passData.resetPostProcessingHistory)
             {
                 passData.prevHistory = builder.WriteTexture(passData.prevHistory);
@@ -1680,7 +1689,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (and not write the output)
             RTHandle prevMVLen, nextMVLen;
-            GrabVelocityMagnitudeHistoryTextures(camera, historyScale, out prevMVLen, out nextMVLen);
+            GrabVelocityMagnitudeHistoryTextures(camera, out prevMVLen, out nextMVLen);
 
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
@@ -1697,13 +1706,14 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.destination = builder.WriteTexture(dest);
 
             bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || TAAU != camera.previousFrameWasTAAUpsampled;
-            bool runsAfterUpscale = (resGroup == ResolutionGroup.AfterDynamicResUpscale);
 
             passData.prevFinalViewport = (camera.prevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : camera.prevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
             var historyRenderingViewport = (TAAU || runsAfterUpscale) ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
                 (needToUseCurrFrameSizeForHistory ? RTHandles.rtHandleProperties.currentViewportSize : camera.historyRTHandleProperties.previousViewportSize);
+
+            passData.finalViewport = (TAAU || runsAfterUpscale) ? camera.finalViewport : new Rect(0, 0, RTHandles.rtHandleProperties.currentViewportSize.x, RTHandles.rtHandleProperties.currentViewportSize.y);
 
             if (runsAfterUpscale)
             {
@@ -1713,7 +1723,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 scales = new Vector4(historyRenderingViewport.x / prevHistory.rt.width, historyRenderingViewport.y / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
             passData.taaScales = scales;
 
-            passData.finalViewport = (TAAU || runsAfterUpscale) ? camera.finalViewport : new Rect(0, 0, RTHandles.rtHandleProperties.currentViewportSize.x, RTHandles.rtHandleProperties.currentViewportSize.y);
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
@@ -1746,7 +1755,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             var historyMpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                             historyMpb.SetTexture(HDShaderIDs._InputTexture, source);
                             historyMpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
-                            if (data.runsTAAU)
+                            if (data.runsTAAU || data.runsAfterUpscale)
                             {
                                 Rect r = data.finalViewport;
                                 HDUtils.DrawFullScreen(ctx.cmd, r, data.temporalAAMaterial, data.prevHistory, historyMpb, copyHistoryPass);
@@ -1782,7 +1791,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
                         mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
 
-                        if (data.runsTAAU)
+                        if (data.runsTAAU || data.runsAfterUpscale)
                         {
                             CoreUtils.SetRenderTarget(ctx.cmd, data.destination);
                         }
@@ -1798,7 +1807,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         Rect rect;
-                        if (data.runsTAAU)
+                        if (data.runsTAAU || data.runsAfterUpscale)
                         {
                             rect = data.finalViewport;
 
@@ -2260,7 +2269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
             // because these don't use the same RTHandleScale as the global one, we need to use
             // the RTHandleScale of the history RTHandles
-            var cocHistoryScale = taaEnabled ? dofParameters.camera.postProcessRTScalesHistory : dofParameters.camera.postProcessRTScales;
+            var cocHistoryScale = taaEnabled ? new Vector2(dofParameters.camera.postProcessRTScalesHistory.z, dofParameters.camera.postProcessRTScalesHistory.w) : dofParameters.camera.postProcessRTScales;
 
             ComputeShader cs;
             int kernel;
@@ -2654,22 +2663,9 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
-        void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool useMips = false)
+        bool GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool useMips = false)
         {
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-            if (next == null || (useMips == true && next.rt.mipmapCount == 1))
-            {
-                if (next != null)
-                    camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-
-                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
-                m_PostProcessTextureAllocator.enableMips = useMips;
-                m_PostProcessTextureAllocator.useDynamicScale = resGroup == ResolutionGroup.BeforeDynamicResUpscale;
-                m_PostProcessTextureAllocator.name = $"CoC History";
-                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, m_PostProcessTextureAllocator.allocatorFunction, 2);
-            }
-
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.DepthOfFieldCoC, "CoC History", GraphicsFormat.R16_SFloat, out previous, out next, useMips);
         }
 
         static void ReprojectCoCHistory(in DepthOfFieldParameters parameters, CommandBuffer cmd, HDCamera camera, RTHandle prevCoC, RTHandle nextCoC, RTHandle motionVecTexture, ref RTHandle fullresCoC)
@@ -2679,7 +2675,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA
             ComputeShader cs = parameters.dofCoCReprojectCS;
             int kernel = parameters.dofCoCReprojectKernel;
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.z, cocHistoryScale.w, 0f));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoC);
@@ -2720,10 +2716,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
+                    bool upsampleBeforePost = dofParameters.camera.UpsampleHappensBeforePost();
+
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.actualWidth;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * (float)dofParameters.viewportSize.x;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.actualHeight;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * (float)dofParameters.viewportSize.y;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -2916,7 +2914,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var dofParameters = PrepareDoFParameters(hdCamera);
 
                 bool useHistoryMips = m_DepthOfField.physicallyBased;
-                GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
+                bool cocHistoryValid = GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
                 var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
                 var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
 
@@ -2933,7 +2931,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     GetDoFResolutionScale(passData.parameters, out float scale, out float resolutionScale);
                     var screenScale = new Vector2(scale, scale);
-
+                    passData.parameters.resetPostProcessingHistory = passData.parameters.resetPostProcessingHistory || !cocHistoryValid;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);

@@ -38,7 +38,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Samples**   | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**     | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**     | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
-| **Maximum Intensity** | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property makes the final image dimmer, so if the result looks dark, increase the value of this property. |
+| **Maximum Intensity** | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can makes the final image dimmer, so if the result looks dark, increase the value of this property. |
 
 ![](Images/RayTracingPathTracing4.png)
 

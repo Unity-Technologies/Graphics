@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
 - Fixed public API for Diffusion Profile Override volume Component.
 - Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
+- Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
 
 ### Changed
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
