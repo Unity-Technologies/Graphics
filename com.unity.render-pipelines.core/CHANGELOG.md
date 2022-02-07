@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
 - Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
 
 ### Changed
 - Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
