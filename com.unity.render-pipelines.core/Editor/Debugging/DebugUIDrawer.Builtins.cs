@@ -383,12 +383,12 @@ namespace UnityEditor.Rendering
                     var objectNames = elements.Select(n => n.name).ToArray();
 
                     // Check if the collection have changed
-                    if (s.arrayNames == null || s.arrayNames.SequenceEqual(objectNames))
+                    if (s.arrayNames == null || !s.arrayNames.SequenceEqual(objectNames))
                     {
                         s.arrayNames = objectNames;
                         s.arrayGUIContents = objectNames.Select(n => EditorGUIUtility.TrTextContent(n)).ToArray();
                         s.arrayIndices = Enumerable.Range(0, elements.Count()).ToArray();
-                        s.selectedIndex = (state.GetValue() is Object unityObject) ? Array.IndexOf(s.arrayNames, unityObject.name) : 0;
+                        s.selectedIndex = selectedValue != null ? Array.IndexOf(s.arrayNames, selectedValue.name) : 0;
                     }
 
                     s.selectedIndex = EditorGUI.IntPopup(rect, s.selectedIndex, s.arrayGUIContents, s.arrayIndices);
