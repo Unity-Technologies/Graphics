@@ -352,7 +352,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 wo = normalize(_WorldSpaceCameraPos - posInputTransparent.positionWS);
 
-#define ENABLE_SS_TRACING 0
+#define ENABLE_SS_TRACING 1
 
 #if ENABLE_SS_TRACING
 
@@ -455,9 +455,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         {
             float curDeviceDepth = DeviceDepthFromLinearEye(p.z, _ZBufferParams);
             float prevDeviceDepth = DeviceDepthFromLinearEye(previous.z, _ZBufferParams);
-            float2 prevXY = round(previous.xy) + 0.5f;
+            //float2 prevXY = round(previous.xy) + 0.5f;
+            float2 prevXY = previous.xy;
             float3 previousWS = ComputeWorldSpacePosition(prevXY * _ScreenSize.zw, prevDeviceDepth, UNITY_MATRIX_I_VP);
-            float2 curXY = round(p.xy) + 0.5f;
+            //float2 curXY = round(p.xy) + 0.5f;
+            float2 curXY = p.xy;
             float3 currentWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
             float3 sampleWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, opaqueDeviceDepth_k, UNITY_MATRIX_I_VP);
             float3 v0 = normalize(currentWS - previousWS);
@@ -488,8 +490,8 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             float roughness_best;
             float ior_best;
             float3 normal_best;
-            //float measure_best = -1.0f;
-            float measure_best = 100.0f;
+            float measure_best = -1.0f;
+            //float measure_best = 100.0f;
             for (uint q = 0; q < listCount_k; ++q)
             {
                 uint sortedSampleIndex_q = listCount_k >= 2 ? Sorting::GetSortedSampleIndex(q, listCount_k, listOffset_k) : 0;
@@ -532,7 +534,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 //}
 
                 // Is Hit test
-        #if 1
+        #if 0
                 float measure_q = abs(linearDepth_q - p.z);
                 if (measure_q < measure_best)
                 {
@@ -581,7 +583,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 }
         #endif
             }
-#if 1
+#if 0
             if (measure_best < 0.025f)
             {
                 float curIOR = frontFace ? 1.0f / ior_best : ior_best;
@@ -635,17 +637,44 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     if (k == MAX_ITER)
         return;
 
+    UNITY_BRANCH
     if (hitOpaque)
     {
-        float3 ended = p;
-        float perceptualRoughness = RoughnessToPerceptualRoughness(infos[curTransparentHit - 1].w);
+        float3 ended = 0.5f * (p + previous);
+        //float curDeviceDepth = DeviceDepthFromLinearEye(p.z, _ZBufferParams);
+        //float prevDeviceDepth = DeviceDepthFromLinearEye(previous.z, _ZBufferParams);
+        //float2 prevXY = round(previous.xy) + 0.5f;
+        //float3 previousWS = ComputeWorldSpacePosition(prevXY * _ScreenSize.zw, prevDeviceDepth, UNITY_MATRIX_I_VP);
+        //float2 curXY = round(p.xy) + 0.5f;
+        //float3 currentWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
+        //float3 viewDir = normalize(currentWS - previousWS);
+        //float perceptualRoughness = RoughnessToPerceptualRoughness(infos[curTransparentHit - 1].w);
+        float perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
         float3 opaqueHit = SAMPLE_TEXTURE2D_X_LOD(_VisOITOpaqueColorPyramid, s_trilinear_clamp_sampler, ended.xy * _ScreenSize.zw, perceptualRoughness * 8).rgb;
         float3 results = opaqueHit;
         for (int i = curTransparentHit - 1; i >= 0; --i)
         {
             results += hits[i] * infos[i].rgb;
         }
+
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.75f * results / ((float)(curTransparentHit + 0*1)), 1.0);
+        return;
+    }
+    else
+    {
+        float curDeviceDepth = DeviceDepthFromLinearEye(p.z, _ZBufferParams);
+        float prevDeviceDepth = DeviceDepthFromLinearEye(previous.z, _ZBufferParams);
+        float2 prevXY = previous.xy;
+        float3 previousWS = ComputeWorldSpacePosition(prevXY * _ScreenSize.zw, prevDeviceDepth, UNITY_MATRIX_I_VP);
+        float2 curXY = p.xy;
+        float3 currentWS = ComputeWorldSpacePosition(curXY * _ScreenSize.zw, curDeviceDepth, UNITY_MATRIX_I_VP);
+        float3 viewDir = normalize(currentWS - previousWS);
+        //float3 viewDir = normalize(-dir);
+        float perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
+
+        float3 results = SampleSkyTexture(viewDir, 5 * perceptualRoughness, 0) * GetCurrentExposureMultiplier();
+
+        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(results, 1.0);
         return;
     }
 #if 0
