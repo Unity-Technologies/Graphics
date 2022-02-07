@@ -262,9 +262,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         #ifdef _LIGHT_LAYERS
         float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        //uint meshRenderingLayers = uint(renderingLayers.r * 65535.2) & 0x000000FF;
-        uint meshRenderingLayers = UnpackInt(renderingLayers.r, 16);
-
+        uint meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers.r);
         #else
         uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
         #endif
