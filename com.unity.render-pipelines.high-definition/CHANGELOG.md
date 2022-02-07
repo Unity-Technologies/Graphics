@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
 - Fixed one frame flicker on hardware DRS - (case 1398085)
 - Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
 
 ## [12.1.4] - 2021-12-07
 
