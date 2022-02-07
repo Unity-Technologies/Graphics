@@ -10,7 +10,6 @@ public class ExpectAPVError : MonoBehaviour
         try
         {
             LogAssert.Expect(LogType.Error, "Additional bake inputs will not be processed. Please make sure to enable Baked Global Illumination and select Progressive as the Lightmapper before generating lighting.");
-            LogAssert.Expect(LogType.Error, "AdditionalBakedProbes ID 912345678 does not exist/has no data.");
         }
         catch (System.InvalidOperationException) // thrown if there is no logscope
         { }
