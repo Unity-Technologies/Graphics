@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
             m_CopyDepthPass.Setup(m_CameraDepthTexture, m_CameraDepthAttachment);
-            m_CopyDepthPass.AllocateRT = false;
             renderer.EnqueuePass(m_CopyDepthPass);
         }
     }
