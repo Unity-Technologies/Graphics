@@ -625,21 +625,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
 
-                bool setViewProjectionMatrices = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    setViewProjectionMatrices = false;
-#endif
-
-                if (setViewProjectionMatrices)
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                 // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                 // in the pipeline to avoid this extra blit.
                 if (!m_ResolveToScreen && !m_UseSwapBuffer)
-                    RenderingUtils.Blit(cmd, cameraTargetHandle, m_Source, m_BlitMaterial, 0, SystemInfo.graphicsShaderLevel >= 30, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    Blitter.BlitCameraTexture(cmd, cameraTargetHandle, m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, m_Source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
 
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
@@ -647,9 +638,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Cleanup
-                if (setViewProjectionMatrices)
-                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
-
                 if (tempTargetUsed)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
 
@@ -768,13 +756,10 @@ namespace UnityEngine.Rendering.Universal
             m_MRT2[0] = m_HalfCoCTexture.nameID;
             m_MRT2[1] = m_PingTexture.nameID;
 
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
             CoreUtils.SetRenderTarget(cmd, m_MRT2, m_MRT2[0]);
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
             Blitter.BlitTexture(cmd, source, viewportScale, material, 1);
-
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTexture.nameID);
