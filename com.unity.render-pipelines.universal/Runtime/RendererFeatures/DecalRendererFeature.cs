@@ -203,6 +203,7 @@ namespace UnityEngine.Rendering.Universal
         private DeferredLights m_DeferredLights;
 
         internal bool intermediateRendering => m_Technique == DecalTechnique.DBuffer;
+        internal bool requiresDecalLayers => m_Settings.decalLayers;
 
         public override void Create()
         {

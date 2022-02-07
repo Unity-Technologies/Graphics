@@ -196,8 +196,8 @@ Varyings LitPassVertex(Attributes input)
 void LitPassFragment(
     Varyings input
     , out half4 outColor : SV_Target0
-#ifdef _DECAL_LAYERS
-    , out float4 outDecalLayer : SV_Target1
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
 #endif
 )
 {
@@ -231,9 +231,9 @@ void LitPassFragment(
 
     outColor = color;
 
-#ifdef _DECAL_LAYERS
+#ifdef _WRITE_RENDERING_LAYERS
     uint renderingLayers = GetMeshRenderingLayer();
-    outDecalLayer = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
 #endif
 }
 

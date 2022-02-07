@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                CoreUtils.SetKeyword(cmd, "_DECAL_LAYERS", this.enableRenderingLayers);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, this.enableRenderingLayers);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

@@ -58,8 +58,8 @@ Varyings DepthNormalsVertex(Attributes input)
 void DepthNormalsFragment(
     Varyings input
     , out half4 outNormalWS : SV_Target0
-#ifdef _DECAL_LAYERS
-    , out float4 outDecalLayer : SV_Target1
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
 #endif
 )
 {
@@ -87,9 +87,9 @@ void DepthNormalsFragment(
         outNormalWS = half4(normalWS, 0.0);
     #endif
 
-    #ifdef _DECAL_LAYERS
+    #ifdef _WRITE_RENDERING_LAYERS
         uint renderingLayers = GetMeshRenderingLayer();
-        outDecalLayer = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+        outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
     #endif
 }
 

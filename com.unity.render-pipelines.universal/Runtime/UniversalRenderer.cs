@@ -4,6 +4,90 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    internal static class RenderingLayers
+    {
+        public enum Event
+        {
+            DepthNormalPrePass,
+            ForwardOpaque,
+            GBuffer,
+            None,
+        }
+
+        public static Event GetEvent(UniversalRendererData universalRendererData)
+        {
+            var e = Event.None;
+            var requiresRenderingLayers = false;
+
+            bool isDeferred = universalRendererData.renderingMode == RenderingMode.Deferred;
+
+            foreach (var rendererFeature in universalRendererData.rendererFeatures)
+            {
+                var decalRendereFeature = rendererFeature as DecalRendererFeature;
+                if (decalRendereFeature != null && decalRendereFeature.isActive)
+                {
+                    var technique = decalRendereFeature.GetTechnique(universalRendererData);
+                    if (technique == DecalTechnique.DBuffer)
+                        e = CombineEvents(e, Event.DepthNormalPrePass);
+                    else
+                        e = CombineEvents(e, isDeferred ? Event.GBuffer : Event.ForwardOpaque);
+
+                    requiresRenderingLayers |= decalRendereFeature.requiresDecalLayers;
+                }
+
+                var ssaoRendererFeature = rendererFeature as ScreenSpaceAmbientOcclusion;
+                if (ssaoRendererFeature != null && ssaoRendererFeature.isActive)
+                {
+                    if (!!isDeferred && !ssaoRendererFeature.afterOpaque)
+                        e = CombineEvents(e, Event.DepthNormalPrePass);
+                    else
+                        e = CombineEvents(e, isDeferred ? Event.GBuffer : Event.ForwardOpaque);
+                }
+            }
+
+            return requiresRenderingLayers ? e : Event.None;
+        }
+
+        public static Event GetEvent(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures)
+        {
+            var e = Event.None;
+            var requiresRenderingLayers = false;
+
+            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+
+            foreach (var rendererFeature in rendererFeatures)
+            {
+                var decalRendereFeature = rendererFeature as DecalRendererFeature;
+                if (decalRendereFeature != null && decalRendereFeature.isActive)
+                {
+                    var technique = decalRendereFeature.GetTechnique(universalRenderer);
+                    if (technique == DecalTechnique.DBuffer)
+                        e = CombineEvents(e, Event.DepthNormalPrePass);
+                    else
+                        e = CombineEvents(e, isDeferred ? Event.GBuffer : Event.ForwardOpaque);
+
+                    requiresRenderingLayers |= decalRendereFeature.requiresDecalLayers;
+                }
+
+                /*var ssaoRendererFeature = rendererFeature as ScreenSpaceAmbientOcclusion;
+                if (ssaoRendererFeature != null && ssaoRendererFeature.isActive)
+                {
+                    if (!isDeferred && !ssaoRendererFeature.afterOpaque)
+                        e = CombineEvents(e, Event.DepthNormalPrePass);
+                    else
+                        e = CombineEvents(e, isDeferred ? Event.GBuffer : Event.ForwardOpaque);
+                }*/
+            }
+
+            return requiresRenderingLayers ? e : Event.None;
+        }
+
+        static Event CombineEvents(Event a, Event b)
+        {
+            return (Event)Mathf.Min((int)a, (int)b);
+        }
+    }
+
     /// <summary>
     /// Rendering modes for Universal renderer.
     /// </summary>
@@ -126,6 +210,8 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
+
+        RenderingLayers.Event m_RenderingLayersEvent;
 
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
@@ -412,6 +498,12 @@ namespace UnityEngine.Rendering.Universal
 
             bool renderingLayerProvidesGBufferPass = renderPassInputs.requiresRenderingLayer &&
                 !renderPassInputs.requiresNormalsTexture && m_RenderingMode == RenderingMode.Deferred;
+
+            m_RenderingLayersEvent = RenderingLayers.GetEvent(this, rendererFeatures);
+
+            renderingLayerProvidesByDepthNormalPass = m_RenderingLayersEvent == RenderingLayers.Event.DepthNormalPrePass;
+            renderingLayerProvidesRenderObjectPass = m_RenderingLayersEvent == RenderingLayers.Event.ForwardOpaque;
+            renderingLayerProvidesGBufferPass = m_RenderingLayersEvent == RenderingLayers.Event.GBuffer;
 
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)

@@ -120,6 +120,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
+                // TODO: Move from this pass
+                CoreUtils.SetKeyword(gbufferCommands, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
+
                 context.ExecuteCommandBuffer(gbufferCommands);
                 gbufferCommands.Clear();
 

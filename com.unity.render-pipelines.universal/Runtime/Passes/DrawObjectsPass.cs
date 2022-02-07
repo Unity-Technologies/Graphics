@@ -122,7 +122,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-                CoreUtils.SetKeyword(cmd, "_DECAL_LAYERS", this.m_ColorTargetIndentifiers != null);
+                // TODO: Move from this pass
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, this.m_ColorTargetIndentifiers != null);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

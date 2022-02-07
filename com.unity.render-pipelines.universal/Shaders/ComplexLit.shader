@@ -244,9 +244,9 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             // -------------------------------------
-            // Unity defined keywords
+            // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
-            #pragma multi_compile _ _DECAL_LAYERS
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             //--------------------------------------
             // GPU Instancing
