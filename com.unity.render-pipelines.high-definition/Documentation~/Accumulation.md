@@ -24,12 +24,12 @@ The only call that takes any parameters is **BeginRecording**. Here is an explan
 | **ShutterInterval** | The amount of time the shutter is open between two subsequent frames. A value of **0** results in an instant shutter (no motion blur). A value of **1** means there is no (time) gap between two subsequent frames. |
 | **ShutterProfile** | An animation curve that specifies the shutter position during the shutter interval. Alternatively, you can also provide the time the shutter was fully open; and when the shutter begins closing. |
 
-The example script below demonstrates how to use these API calls.
+Before calling the accumulation API, the application should also set the desired Time.captureDeltaTime. The example script below demonstrates how to use these API calls.
 
 ## Scripting API example
 The following example demonstrates how to use the multi-frame rendering API in your scripts to properly record converged animation sequences with path tracing and/or accumulation motion blur. To use it, attach the script to a Camera in your Scene and, in the component's context menu, click the “Start Recording” and “Stop Recording” actions.
 
-```
+```C#
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -49,13 +49,22 @@ public class FrameManager : MonoBehaviour
     [Range(0.0f, 1.0f)]
     public float shutterBeginsClosing = 0.75f;
 
+    // The desired frame rate when recording subframes.
+    [Min(1)]
+    public int captureFrameRate = 30;
+
     bool m_Recording = false;
     int m_Iteration = 0;
     int m_RecordedFrames = 0;
+    float m_OriginalDeltaTime = 0;
 
     [ContextMenu("Start Recording")]
     void BeginMultiframeRendering()
     {
+        // Set the desired capture delta time before using the accumulation API
+        m_OriginalDeltaTime = Time.captureDeltaTime;
+        Time.captureDeltaTime = 1.0f / captureFrameRate;
+
         RenderPipelineManager.beginFrameRendering += PrepareSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline.BeginRecording(samples, shutterInterval, shutterFullyOpen, shutterBeginsClosing);
@@ -67,6 +76,7 @@ public class FrameManager : MonoBehaviour
     [ContextMenu("Stop Recording")]
     void StopMultiframeRendering()
     {
+        Time.captureDeltaTime = m_OriginalDeltaTime;
         RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline?.EndRecording();
@@ -131,11 +141,15 @@ public class SuperSampling : MonoBehaviour
     bool m_Recording = false;
     int m_Iteration = 0;
     int m_RecordedFrames = 0;
+    float m_OriginalDeltaTime = 0;
     List<Matrix4x4> m_OriginalProectionMatrix = new List<Matrix4x4>();
 
     [ContextMenu("Start Accumulation")]
     void BeginAccumulation()
     {
+        m_OriginalDeltaTime = Time.captureDeltaTime;
+        Time.captureDeltaTime = 1.0f / 30;
+
         RenderPipelineManager.beginContextRendering += PrepareSubFrameCallBack;
         RenderPipelineManager.endContextRendering += EndSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -148,6 +162,7 @@ public class SuperSampling : MonoBehaviour
     [ContextMenu("Stop Accumulation")]
     void StopAccumulation()
     {
+        Time.captureDeltaTime = m_OriginalDeltaTime;
         RenderPipelineManager.beginContextRendering -= PrepareSubFrameCallBack;
         RenderPipelineManager.endContextRendering -= EndSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 - Added public API for Diffusion Profile Override volume Component.
 - Added time slicing support for realtime reflection probes.
+- Added denoising for the path tracer.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -113,6 +114,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed couple bugs in the volumetric clouds shader code.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [14.0.0] - 2021-11-17
 
