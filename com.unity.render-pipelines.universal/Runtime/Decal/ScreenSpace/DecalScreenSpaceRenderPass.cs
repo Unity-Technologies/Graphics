@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawScreenSpaceSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
         private bool m_DecalLayers;
-        //RenderTargetIdentifier m_ColorTargetIndentifiers;
 
         public DecalScreenSpaceRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem, bool decalLayers)
         {
@@ -41,19 +40,6 @@ namespace UnityEngine.Rendering.Universal
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
         }
-
-        /*public void Setup(RenderTargetIdentifier colorAttachments)
-        {
-            m_ColorTargetIndentifiers = colorAttachments;
-        }
-
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            // todo
-            // here to break pass in case of decal layers
-            ConfigureTarget(m_ColorTargetIndentifiers);
-            ConfigureClear(ClearFlag.None, Color.black);
-        }*/
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

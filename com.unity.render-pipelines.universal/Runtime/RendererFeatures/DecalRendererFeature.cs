@@ -457,7 +457,6 @@ namespace UnityEngine.Rendering.Universal
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
-                    //m_ScreenSpaceDecalRenderPass.Setup(renderer.cameraColorTarget); // todo throws warnining for depth
                     renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
                     break;
                 case DecalTechnique.GBuffer:

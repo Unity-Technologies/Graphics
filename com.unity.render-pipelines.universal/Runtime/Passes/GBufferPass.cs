@@ -88,10 +88,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (i == m_DeferredLights.GbufferDepthIndex && !allocateGbufferDepth)
                         continue;
 
-                    // todo
-                    if (i == m_DeferredLights.GBufferRenderingLayers && m_DeferredLights.HasRenderingLayerPrepass)
-                        continue;
-
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
                     if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
@@ -120,7 +116,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
-                // TODO: Move from this pass
                 CoreUtils.SetKeyword(gbufferCommands, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
 
                 context.ExecuteCommandBuffer(gbufferCommands);

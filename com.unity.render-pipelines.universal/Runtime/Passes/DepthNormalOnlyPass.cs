@@ -112,11 +112,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Camera camera = cameraData.camera;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-
-                // todo check if add normal here too
-                //if (this.enableRenderingLayers)
-                //    cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersHandle);
-
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
