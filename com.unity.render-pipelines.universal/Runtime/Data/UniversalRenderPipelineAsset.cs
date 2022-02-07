@@ -290,9 +290,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Unity uses Bayer Matrix Texture to compute LOD CrossFade dithering.</summary>
         BayerMatrix,
         /// <summary>Unity uses precomputed Blue Noise Texture to compute LOD CrossFade dithering.</summary>
-        BlueNoise,
-        /// <summary>Unity uses a Hash function to compute LOD CrossFade dithering.</summary>
-        Hash
+        BlueNoise
     }
 
     /// Defines the upscaling filter selected by the user the universal render pipeline asset.
@@ -353,7 +351,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
-        [SerializeField] bool m_SupportsLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
         // TODO: Shader Quality Tiers
 
@@ -862,11 +859,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
-        }
-
-        public bool supportsLODCrossFade
-        {
-            get { return m_SupportsLODCrossFade; }
         }
 
         public LODCrossFadeDitheringType lodCrossFadeDitheringType

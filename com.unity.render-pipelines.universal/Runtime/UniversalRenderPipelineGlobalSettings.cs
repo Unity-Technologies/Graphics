@@ -321,6 +321,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] bool m_StripUnusedVariants = true;
 
+        [SerializeField] bool m_StripUnusedLODCrossFadeVariants = true;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
@@ -342,6 +344,12 @@ namespace UnityEngine.Rendering.Universal
         /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
+
+        /// <summary>
+        /// Controls whether strip off variants if the LOD Cross Fade feature is disabled.
+        /// It strips based on QualitySettings.enableLODCrossFade in the project.
+        /// </summary>
+        public bool stripUnusedLODCrossFadeVariants { get => m_StripUnusedLODCrossFadeVariants; set { m_StripUnusedLODCrossFadeVariants = value; } }
 
         #endregion
     }

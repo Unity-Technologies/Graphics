@@ -506,6 +506,13 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
+            if(globalSettings && globalSettings.stripUnusedLODCrossFadeVariants)
+            {
+                if (compilerData.shaderKeywordSet.IsEnabled(m_LODFadeCrossFade) &&
+                    !IsFeatureEnabled(features, ShaderFeatures.LODCrossFade))
+                    return true;
+            }
+
             return false;
         }
 
@@ -649,10 +656,6 @@ namespace UnityEditor.Rendering.Universal
                 shader.name.Contains(kTerrainShaderName))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(m_LODFadeCrossFade) &&
-                !IsFeatureEnabled(features, ShaderFeatures.LODCrossFade))
-                return true;
-
             return false;
         }
 
@@ -780,6 +783,8 @@ namespace UnityEditor.Rendering.Universal
 
 #endif
 
+        private static bool s_LODCrossFadeSupported;
+
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
@@ -830,6 +835,42 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
+        static bool TryGetLODCrossFadeEnabledForBuildTarget(BuildTarget buildTarget)
+        {
+            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
+            if (qualitySettings == null)
+                return false;
+
+            var property = qualitySettings.FindProperty("m_QualitySettings");
+            if (property == null)
+                return false;
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                var qualitySettingsLevel = property.GetArrayElementAtIndex(i);
+
+                var excludedTargetPlatforms = qualitySettingsLevel.FindPropertyRelative("excludedTargetPlatforms");
+                if (excludedTargetPlatforms == null)
+                    continue;
+
+                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
+                {
+                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
+                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
+                        continue;
+                }
+
+                var enableLODCrossFade = qualitySettingsLevel.FindPropertyRelative("enableLODCrossFade");
+                if (enableLODCrossFade.boolValue)
+                    return true;
+            }
+
+            return false;
+        }
+
         private static void FetchAllSupportedFeatures()
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
@@ -845,6 +886,8 @@ namespace UnityEditor.Rendering.Universal
                     urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
                 }
             }
+
+            s_LODCrossFadeSupported = TryGetLODCrossFadeEnabledForBuildTarget(EditorUserBuildSettings.activeBuildTarget);
 
             s_SupportedFeaturesList.Clear();
 
@@ -930,14 +973,14 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
 
-            if (pipelineAsset.supportsLODCrossFade)
-                shaderFeatures |= ShaderFeatures.LODCrossFade;
-
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
 
             if (pipelineAsset.supportsLightLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
+
+            if (s_LODCrossFadeSupported)
+                shaderFeatures |= ShaderFeatures.LODCrossFade;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
