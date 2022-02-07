@@ -1,6 +1,6 @@
 # Graph Target
 
-A Target determines the end point compatibility of a shader you generate using Shader Graph. You can select Targets for each Shader Graph asset, and use the [Graph Settings Menu](Graph-Settings-Menu.md) to change the Targets.
+A Target determines the end point compatibility of a shader you generate using Shader Graph. You can select Targets for each Shader Graph asset, and use the [Graph Settings Menu](Graph-Settings-Tab.md) to change the Targets.
 
 ![image](images/GraphSettings_Menu.png)
 
