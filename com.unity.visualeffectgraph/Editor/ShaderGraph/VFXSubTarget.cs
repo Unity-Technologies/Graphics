@@ -263,9 +263,15 @@ namespace UnityEditor.VFX
                 foreach (var pragma in pragmas)
                 {
                     var currentPragma = pragma;
-                    var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
-                    if (!string.IsNullOrEmpty(replacement.newDesc.value))
+                    var replacements = shaderGraphSRPInfo.pragmasReplacement.Where(o => o.oldDesc.value == pragma.descriptor.value);
+                    if (replacements.Any())
+                    {
+                        var replacement = replacements.First();
+                        if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                            continue; //Skip this irrelevant pragmas
+
                         currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
+                    }
 
                     overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
                 }
@@ -273,18 +279,6 @@ namespace UnityEditor.VFX
             }
             return pragmas;
         }
-
-
-        private static IEnumerable<PragmaDescriptor> ComputeInvalidPassWithPragmas()
-        {
-            foreach (ShaderModel target in Enum.GetValues(typeof(ShaderModel)))
-            {
-                //The minimal target of VFX is 4.5
-                if (target < ShaderModel.Target45)
-                    yield return Pragma.Target(target);
-            }
-        }
-        private static readonly PragmaDescriptor[] kInvalidPassWithPragmas = ComputeInvalidPassWithPragmas().ToArray();
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
         {
@@ -328,9 +322,6 @@ namespace UnityEditor.VFX
 
             if (!outputContext.hasShadowCasting)
                 filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "ShadowCaster");
-
-            // Omit kInvalidPragma (target 2.0 passes)
-            filteredPasses = filteredPasses.Where(o => !o.descriptor.pragmas.Select(p => p.descriptor).Intersect(kInvalidPassWithPragmas).Any());
 
             var passes = filteredPasses.ToArray();
 
