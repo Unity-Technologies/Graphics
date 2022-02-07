@@ -228,7 +228,7 @@ namespace UnityEditor.VFX.HDRP
 
                 pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
                 {
-                    //Irrelevant multicompile from instancing in VFX context
+                    //Irrelevant general multicompile instancing (VFX will append them when needed)
                     ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
                     ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
                     ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),

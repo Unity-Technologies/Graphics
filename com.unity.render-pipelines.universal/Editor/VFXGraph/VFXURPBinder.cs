@@ -264,7 +264,7 @@ namespace UnityEditor.VFX.URP
                     ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
 
-                    //Irrelevant multicompile from instancing in VFX context
+                    //Irrelevant general multicompile instancing (VFX will append them when needed)
                     ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
                     ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
                     ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
