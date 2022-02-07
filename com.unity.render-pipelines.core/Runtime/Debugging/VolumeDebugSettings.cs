@@ -16,41 +16,46 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
-        private Camera m_SelectedCamera;
-
         /// <summary>Current camera to debug.</summary>
-        public Camera selectedCamera
-        {
-            get => m_SelectedCamera ?? cameras.FirstOrDefault();
-            set => m_SelectedCamera = value;
-        }
+        public Camera selectedCamera { get; set; }
+
+        private readonly List<Camera> m_Cameras = new List<Camera>();
+        private Camera[] m_CamerasArray;
 
         /// <summary>Returns the collection of registered cameras.</summary>
         public IEnumerable<Camera> cameras
         {
             get
             {
+                m_Cameras.Clear();
 
 #if UNITY_EDITOR
                 if (SceneView.lastActiveSceneView != null)
                 {
                     var sceneCamera = SceneView.lastActiveSceneView.camera;
                     if (sceneCamera != null)
-                        yield return sceneCamera;
+                    {
+                        m_Cameras.Add(sceneCamera);
+                    }
                 }
 #endif
+
+                if (m_CamerasArray == null || Camera.allCamerasCount != m_CamerasArray.Length)
+                {
+                    m_CamerasArray = new Camera[Camera.allCamerasCount];
+                    Camera.GetAllCameras(m_CamerasArray);
+                }
+
                 foreach (var camera in Camera.allCameras)
                 {
-                    if (camera == null)
+                    if (camera == null || camera.cameraType is CameraType.Preview or CameraType.Reflection)
                         continue;
 
-                    if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
-                    {
-                        if (camera.TryGetComponent<T>(out T additionalData))
-                            yield return camera;
-                    }
-
+                    if (camera.TryGetComponent<T>(out T additionalData))
+                        m_Cameras.Add(camera);
                 }
+
+                return m_Cameras;
             }
         }
 

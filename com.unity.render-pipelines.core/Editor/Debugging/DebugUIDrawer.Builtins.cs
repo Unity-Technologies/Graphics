@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Codice.Client.BaseCommands;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -365,19 +368,37 @@ namespace UnityEditor.Rendering
             rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip));
 
             var elements = w.getObjects();
-            if (elements?.Any() ?? false)
+            if (elements == null)
             {
-                var selectedValue = w.GetValue();
-                var elementsArrayNames = elements.Select(e => e.name).ToArray();
-                var elementsArrayIndices = Enumerable.Range(0, elementsArrayNames.Length).ToArray();
-                var selectedIndex = selectedValue != null ? Array.IndexOf(elementsArrayNames, selectedValue.name) : 0;
-                var newSelectedIndex = EditorGUI.IntPopup(rect, selectedIndex, elementsArrayNames, elementsArrayIndices);
-                if (selectedIndex != newSelectedIndex)
-                    Apply(w, s, elements.ElementAt(newSelectedIndex));
+                EditorGUI.LabelField(rect, "Can't draw a null enumeration.");
             }
             else
             {
-                EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
+                var enumerable = elements as Object[] ?? elements.ToArray();
+                if (!enumerable.Any())
+                {
+                    EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
+                }
+                else
+                {
+                    var selectedValue = w.GetValue();
+                    var objectNames = elements.Select(n => n.name).ToArray();
+
+                    // Check if the cameras have changed
+                    if (s.arrayNames == null || s.arrayNames.SequenceEqual(objectNames))
+                    {
+                        s.arrayNames = objectNames;
+                        s.arrayGUIContents = objectNames.Select(n => EditorGUIUtility.TrTextContent(n)).ToArray();
+                        s.arrayIndices = Enumerable.Range(0, elements.Count()).ToArray();
+                        s.selectedIndex = (state.GetValue() is Object unityObject) ? Array.IndexOf(s.arrayNames, unityObject.name) : 0;
+                    }
+
+                    s.selectedIndex = EditorGUI.IntPopup(rect, s.selectedIndex, s.arrayGUIContents, s.arrayIndices);
+
+                    var newSelectedObject = enumerable.ElementAt(s.selectedIndex);
+                    if (selectedValue != newSelectedObject)
+                        Apply(w, s, newSelectedObject);
+                }
             }
 
             return true;
