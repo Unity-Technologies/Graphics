@@ -25,7 +25,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #if 0
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
-    bsdfData.h = -1 + 2 * InterleavedGradientNoise(pathIntersection.pixelCoord, _RaytracingSampleIndex);
+    bsdfData.h = -1 + 2 * InterleavedGradientNoise(GetPixelCoordinates(pathIntersection), _RaytracingSampleIndex);
 #endif
 }
 

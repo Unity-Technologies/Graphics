@@ -120,7 +120,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 #else
         bool isThin = false;
 #endif
-        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, isThin))
+        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, GetPixelCoordinates(pathIntersection), subsurfaceResult, isThin))
             return false;
 
         shadingPosition = subsurfaceResult.exitPosition;

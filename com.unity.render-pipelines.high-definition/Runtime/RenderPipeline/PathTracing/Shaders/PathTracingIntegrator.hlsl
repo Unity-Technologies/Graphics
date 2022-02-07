@@ -48,7 +48,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
     {
         // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
         PathIntersection intersection;
-        intersection.remainingDepth = _RaytracingMaxRecursion + 1;
+        SetSegmentID(SEGMENT_ID_TRANSMISSION, intersection)
         rayDescriptor.TMax -= _RaytracingRayBias;
         intersection.value = 1.0;
 
@@ -81,31 +81,31 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, fragInput);
 
-    // Such an invalid remainingDepth value means we are called from a subsurface computation
-    if (pathIntersection.remainingDepth > _RaytracingMaxRecursion) // FIXME SegmentID
+    // Grab our path segment ID (depth of the main path, unless we are dealing with a special segment)
+    uint segmentID = GetSegmentID(pathIntersection);
+
+    // Check whether we are called from a subsurface scattering computation
+    if (segmentID == SEGMENT_ID_RANDOM_WALK)
     {
         pathIntersection.value = fragInput.tangentToWorld[2]; // Returns normal
         return;
     }
 
-    // FIXME explain
-    pathIntersection.ray.Direction = 0.0;
-
-    // Grab depth information
-    uint currentDepth = GetCurrentDepth(pathIntersection);
+    // A null direction equates to no further continuation ray
+    pathIntersection.rayDirection = 0.0;
 
     // Make sure to add the additional travel distance
-    pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
+    pathIntersection.cone.width += pathIntersection.rayTHit * abs(pathIntersection.cone.spreadAngle);
 
 #ifdef SHADER_UNLIT
     // This is quick and dirty way to avoid double contribution from light meshes
-    if (currentDepth)
+    if (segmentID)
         pathIntersection.cone.spreadAngle = -1.0;
 #endif
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = pathIntersection.pixelCoord;
+    posInput.positionSS = GetPixelCoordinates(pathIntersection);
 
     // For path tracing, we want the front-facing test to be performed on the actual geometric normal
     float3 geomNormal;
@@ -119,7 +119,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
     // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+    bool computeDirect = segmentID >= _RaytracingMinRecursion - 1;
 
 #ifndef SHADER_UNLIT
 
@@ -171,8 +171,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
                 if (Luminance(value) > 0.001)
                 {
-                    // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-                    nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 1;
+                    // Shoot a transmission ray
+                    SetSegmentID(SEGMENT_ID_TRANSMISSION, nextPathIntersection);
                     rayDescriptor.TMax -= _RaytracingRayBias;
                     nextPathIntersection.value = 1.0;
 
@@ -199,7 +199,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
             float rrFactor, rrValue = Luminance(pathIntersection.throughput);
 
-            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !currentDepth))
+            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !segmentID))
             {
                 bool isSampleBelow = IsBelow(mtlData, rayDescriptor.Direction);
 
@@ -207,12 +207,13 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 rayDescriptor.TMax = FLT_INF;
 
                 // Prepare our shadow payload with all required information
-                nextPathIntersection.pixelCoord = pathIntersection.pixelCoord;
-                nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 2;
-                nextPathIntersection.t = rayDescriptor.TMax;
+                SetSegmentID(SEGMENT_ID_TRANSMISSION, nextPathIntersection);
+                nextPathIntersection.rayTHit = FLT_INF;
 
-                // Adjust throughput by the Russian roulette factor
-                pathIntersection.throughput *= rrFactor;
+                // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
+                // TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                //          RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                 // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
                 pathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
@@ -220,19 +221,13 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // To perform texture filtering, we maintain a footprint of the pixel
                 pathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(pathIntersection.maxRoughness);
 
-                // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
-                // TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                //          RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
-
-
                 // Apply material absorption to our throughput
-                pathIntersection.throughput = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, pathIntersection.throughput);
+                pathIntersection.throughput = rrFactor * ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.rayTHit, isSampleBelow, pathIntersection.throughput);
 
                 if (computeDirect)
                 {
                     // Use same ray for direct lighting (use indirect result for occlusion)
-                    rayDescriptor.TMax = nextPathIntersection.t + _RaytracingRayBias;
+                    rayDescriptor.TMax = nextPathIntersection.rayTHit + _RaytracingRayBias;
                     float3 lightValue;
                     float lightPdf;
                     EvaluateLights(lightList, rayDescriptor, lightValue, lightPdf);
@@ -241,11 +236,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     pathIntersection.value += pathIntersection.throughput * lightValue * misWeight;
                 }
 
-                // Update our payload to fire the next continuation ray (we know tHit already)
-                pathIntersection.ray.Origin = rayDescriptor.Origin;
-                pathIntersection.ray.Direction = rayDescriptor.Direction;
-                pathIntersection.ray.TMin = nextPathIntersection.t - _RaytracingRayBias;
-                pathIntersection.ray.TMax = nextPathIntersection.t + _RaytracingRayBias;
+                // Update our payload to fire the next continuation ray
+                pathIntersection.rayOrigin = rayDescriptor.Origin;
+                pathIntersection.rayDirection = rayDescriptor.Direction;
+                pathIntersection.rayTHit = nextPathIntersection.rayTHit;
             }
         }
     }
@@ -261,25 +255,27 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
     #endif
 
-    // Simulate opacity blending by simply continuing along the current ray
-    #ifdef _SURFACE_TYPE_TRANSPARENT
-    if (builtinData.opacity < 1.0)
-    {
-        RayDesc rayDescriptor;
-        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
-        rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
-        rayDescriptor.Direction = WorldRayDirection();
-        rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = FLT_INF;
+// FIXME!! Reactivate
 
-        PathIntersection nextPathIntersection = pathIntersection;
-        nextPathIntersection.remainingDepth--;
+    // // Simulate opacity blending by simply continuing along the current ray
+    // #ifdef _SURFACE_TYPE_TRANSPARENT
+    // if (builtinData.opacity < 1.0)
+    // {
+    //     RayDesc rayDescriptor;
+    //     float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+    //     rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
+    //     rayDescriptor.Direction = WorldRayDirection();
+    //     rayDescriptor.TMin = 0.0;
+    //     rayDescriptor.TMax = FLT_INF;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
+    //     PathIntersection nextPathIntersection = pathIntersection;
+    //     nextPathIntersection.remainingDepth--;
 
-        pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
-    }
-    #endif
+    //     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
+
+    //     pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
+    // }
+    // #endif
 
 #endif // SHADER_UNLIT
 }
@@ -291,9 +287,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // Always set the new t value
-    pathIntersection.t = RayTCurrent();
+    pathIntersection.rayTHit = RayTCurrent();
 
-    if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2)
+    uint segmentID = GetSegmentID(pathIntersection);
+    if (segmentID == SEGMENT_ID_TRANSMISSION)
         return;
 
     // FIXME: we should not need this test anymore, since we have removed recursion
@@ -304,9 +301,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     //     return;
     // }
 
-    // Grab depth information
-    int currentDepth = GetCurrentDepth(pathIntersection);
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+    bool computeDirect = segmentID >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
     float pdf = 1.0;
@@ -316,15 +311,15 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float3 lightPosition;
     bool sampleLocalLights, sampleVolume = false;
 
-    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
-    if (currentDepth >= 0)
+    // Skip this code if getting out of a SSS random walk
+    if (segmentID != SEGMENT_ID_RANDOM_WALK)
     {
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
-        inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth);
+        inputSample = GetSample4D(GetPixelCoordinates(pathIntersection), _RaytracingSampleIndex, 4 * segmentID);
 
         // For the time being, we test for volumetric scattering only on camera rays
-        if (!currentDepth && computeDirect)
-            sampleVolume = SampleVolumeScatteringPosition(pathIntersection.pixelCoord, inputSample.w, pathIntersection.t, pdf, sampleLocalLights, lightPosition);
+        if (!segmentID && computeDirect)
+            sampleVolume = SampleVolumeScatteringPosition(GetPixelCoordinates(pathIntersection), inputSample.w, pathIntersection.rayTHit, pdf, sampleLocalLights, lightPosition);
     }
 
     if (sampleVolume)
@@ -369,7 +364,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = pathIntersection.pixelCoord;
+    posInput.positionSS = GetPixelCoordinates(pathIntersection);
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
@@ -386,7 +381,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     // {
     //     pathIntersection.t = min(RayTCurrent(), pathIntersection.t);
     // }
-    else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 1) // FIXME: SegmentID
+    else if (GetSegmentID(pathIntersection) == SEGMENT_ID_TRANSMISSION)
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
     #if HAS_REFRACTION
