@@ -342,32 +342,6 @@ namespace UnityEngine.Experimental.Rendering
             };
         }
 
-#if USE_BURST
-        [BurstCompile]
-#endif
-        struct RestoreValidityJob
-        {
-            [ReadOnly] public VirtualOffsetSettings voSettings;
-
-            [NativeDisableContainerSafetyRestriction]
-            [ReadOnly] public NativeArray<bool> positionHasColliders;
-
-            [ReadOnly] public int startIdx;
-            [ReadOnly] public int endIdx;
-
-            [ReadOnly] public NativeArray<RaycastCommand> raycastCommands;
-            [ReadOnly] public NativeArray<RaycastHit> raycastHits;
-
-            [NativeDisableContainerSafetyRestriction]
-            public NativeArray<bool> needRestoring;
-
-            public void Execute()
-            {
-
-            }
-        }
-
-
         // A job that pushes probe positions out of geometry based on raycast results.
 #if USE_BURST
         [BurstCompile]
