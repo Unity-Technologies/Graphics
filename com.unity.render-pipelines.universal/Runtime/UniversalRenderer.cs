@@ -769,6 +769,8 @@ namespace UnityEngine.Rendering.Universal
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
+                if (this.actualRenderingMode == RenderingMode.Deferred) // TODO: Clean this up
+                    cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

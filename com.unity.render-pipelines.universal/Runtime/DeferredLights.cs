@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This may return different values depending on what lights are rendered for a given frame.
         internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
         //
-        internal bool UseRenderingLayers { get { return UseLightLayers || (UseDecalLayers && !HasNormalPrepass); } }
+        internal bool UseRenderingLayers { get { return UseLightLayers || UseDecalLayers; } }
         //
         internal bool UseDecalLayers { get; set; }
         //

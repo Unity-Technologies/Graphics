@@ -114,8 +114,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // todo check if add normal here too
-                if (this.enableRenderingLayers)
-                    cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersHandle);
+                //if (this.enableRenderingLayers)
+                //    cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersHandle);
 
             }
             context.ExecuteCommandBuffer(cmd);
