@@ -818,7 +818,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // This is slow, but artists wanted this... This can be optimized later.
-        static void MergeCells(ref BakingCell dst, BakingCell srcCell)
+        static BakingCell MergeCells(BakingCell dst, BakingCell srcCell)
         {
             int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
 
@@ -858,28 +858,18 @@ namespace UnityEngine.Experimental.Rendering
                 return 0;
             });
 
-            BakingCell test = dst;
+            BakingCell outCell = new BakingCell();
 
-            List<Brick> bricks = new List<Brick>();
-            foreach (var b in consolidatedBricks)
-            {
-                if (b.Item3 == 0)
-                {
-                    bricks.Add(b.Item1);
-                }
-                else
-                {
-                    bricks.Add(b.Item1);
-                }
-            }
-
-            int numberOfProbes = bricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
-            test.bricks = new Brick[bricks.Count];
-            test.probePositions = new Vector3[numberOfProbes];
-            test.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
-            test.sh = new SphericalHarmonicsL2[numberOfProbes];
-            test.validity = new float[numberOfProbes];
-
+            int numberOfProbes = consolidatedBricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
+            outCell.index = dst.index;
+            outCell.position = dst.position;
+            outCell.bricks = new Brick[consolidatedBricks.Count];
+            outCell.probePositions = new Vector3[numberOfProbes];
+            outCell.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
+            outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
+            outCell.validity = new float[numberOfProbes];
+            outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
+            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
 
             BakingCell[] consideredCells = { dst, srcCell };
 
@@ -888,23 +878,22 @@ namespace UnityEngine.Experimental.Rendering
                 var b = consolidatedBricks[i];
                 int brickIndexInSource = b.Item2;
 
-                test.bricks[i] = consideredCells[b.Item3].bricks[brickIndexInSource];
+                outCell.bricks[i] = consideredCells[b.Item3].bricks[brickIndexInSource];
 
                 for (int p = 0; p < ProbeBrickPool.kBrickProbeCountTotal; ++p)
                 {
-                    test.probePositions[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].probePositions[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
-                    test.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
-                    test.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.probePositions[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].probePositions[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                 }
             }
 
-            test.offsetVectors = new Vector3[0]; // kill debug view (TODO: fix)
-            dst = test;
+            outCell.offsetVectors = new Vector3[0]; // kill debug view (TODO: fix)
+            return outCell;
         }
 
         static void ExtractBakingCells()
         {
-            // Keep list of the "new" one, we won't need to push them
             foreach (var cellIndex in m_BakedCells.Keys)
             {
                 m_NewlyBakedCells.Add(cellIndex);
@@ -923,17 +912,10 @@ namespace UnityEngine.Experimental.Rendering
 
                     BakingCell bc = ConvertCellToBakingCell(cell);
 
-                    if (m_NewlyBakedCells.Contains(cell.index))
+                    if (m_NewlyBakedCells.Contains(cell.index) && m_BakedCells.ContainsKey(cell.index))
                     {
-                        if (m_BakedCells.ContainsKey(cell.index))
-                        {
-                            var c = m_BakedCells[cell.index];
-                            MergeCells(ref c, bc);
-                            bc = c;
-                        }
+                        bc = MergeCells(m_BakedCells[cell.index], bc);
                     }
-
-
 
                     if (!m_BakingBatch.cellIndex2SceneReferences.ContainsKey(cell.index))
                     {
