@@ -5,7 +5,6 @@ project:
 test_platforms:
   - type: editmode
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Linux_OpenGlCore, Linux_Vulkan]:
@@ -13,14 +12,12 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
   - type: Standalone
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [Linux_OpenGlCore, Linux_Vulkan]:
             - command: sudo apt-get install -y ocl-icd-opencl-dev
       - [all]: <shared.platform.commands.call_utr>
     commands_build:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Linux_OpenGlCore, Linux_Vulkan]:

@@ -20,7 +20,6 @@ test_platforms:
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]:
@@ -38,7 +37,6 @@ test_platforms:
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan]:
@@ -59,7 +57,6 @@ test_platforms:
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]:

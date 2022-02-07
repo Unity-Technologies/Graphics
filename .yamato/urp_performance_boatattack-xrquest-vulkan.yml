@@ -106,7 +106,6 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
       -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
       -  unity-config project add dependency com.unity.xr.management@4.0.1
       -  unity-config project add dependency com.unity.xr.oculus@1.8.1
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
@@ -335,7 +334,6 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
       -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
       -  unity-config project add dependency com.unity.xr.management@4.0.1
       -  unity-config project add dependency com.unity.xr.oculus@1.8.1
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
