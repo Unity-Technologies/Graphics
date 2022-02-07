@@ -125,6 +125,9 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
+            // This method is called every time a value change in the expression which is way to often
+            // Currently we only want to refresh the gizmo when the expression change (especially when space or "can evaluate" change)
+            // That's why we cache the expression hash code
             if (m_GizmoContext != null)
             {
                 HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
@@ -137,6 +140,7 @@ namespace UnityEditor.VFX.UI
                     m_expressionHashCode = currentExpressionHashCode;
                 }
             }
+
             sourceNode.DataEdgesMightHaveChanged();
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
