@@ -7,10 +7,10 @@
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "Unity.ShaderFoundry.Editor"
     ],
-    "includePlatforms": [
+    "includePlatforms": [],
+    "excludePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [

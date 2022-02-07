@@ -1,0 +1,138 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace UnityEditor.ContextLayeredDataStorage
+{
+    public class Element
+    {
+        public ElementID ID { get; internal set; }
+        public IDataHeader Header { get; internal set; }
+        public List<Element> Children { get; internal set; }
+        public Element Parent { get; internal set; }
+        internal ContextLayeredDataStorage owner;
+        internal string serializedData;
+
+        public Element(ContextLayeredDataStorage owner)
+        {
+            ID = new ElementID("");
+            Header = new DefaultHeader();
+            Parent = null;
+            Children = new List<Element>();
+            this.owner = owner;
+        }
+
+        public Element(ContextLayeredDataStorage owner, IDataHeader header)
+        {
+            ID = new ElementID("");
+            this.Header = header;
+            Parent = null;
+            Children = new List<Element>();
+            this.owner = owner;
+        }
+
+        public Element(ElementID id, ContextLayeredDataStorage owner) : this(owner)
+        {
+            this.ID = id;
+        }
+
+        public Element(ElementID id, ContextLayeredDataStorage owner, IDataHeader header) : this(owner, header)
+        {
+            this.ID = id;
+        }
+
+        public bool TryGetData<T>(out T data)
+        {
+            var isDataHolder = this as Element<T>;
+            if (isDataHolder != null)
+            {
+                data = isDataHolder.Data;
+                return true;
+            }
+            else
+            {
+                data = default(T);
+                return false;
+            }
+        }
+
+        public IDataReader GetReader()
+        {
+            return Header.GetReader(this);
+        }
+
+        public IDataWriter GetWriter()
+        {
+            return Header.GetWriter(this);
+        }
+
+        internal virtual SerializedElementData ToSerializedFormat()
+        {
+            return new SerializedElementData(ID, Header.GetType().AssemblyQualifiedName, Header.ToJson(), null, null);
+        }
+
+    }
+
+    public class Element<T> : Element
+    {
+        public T Data { get; private set; }
+
+        [Serializable]
+        internal struct DataBox
+        {
+            public T m_data;
+        }
+
+
+        public Element(ElementID id, T data, ContextLayeredDataStorage owner) : base(id, owner)
+        {
+            this.Data = data;
+        }
+
+
+        internal override SerializedElementData ToSerializedFormat()
+        {
+            try
+            {
+                return new SerializedElementData(ID, Header.GetType().AssemblyQualifiedName, Header.ToJson(), typeof(T).AssemblyQualifiedName, JsonUtility.ToJson(new DataBox() { m_data = Data }, true));
+            }
+            catch
+            {
+                Debug.LogError($"Could not serialize data associated with {ID.FullPath}: {Data}");
+                return new SerializedElementData(ID, Header.GetType().AssemblyQualifiedName, Header.ToJson(), typeof(T).AssemblyQualifiedName, null);
+            }
+        }
+    }
+
+    //Used to organize elements when serialized to try and keep a consistent ordering
+    internal class SerializedDataComparer : IComparer<SerializedElementData>
+    {
+        public int Compare(SerializedElementData x, SerializedElementData y)
+        {
+            return x.id.CompareTo(y.id);
+        }
+    }
+
+    //Stores a single Element's data 
+    [Serializable]
+    internal struct SerializedElementData
+    {
+        public string id;
+        public string headerType;
+        public string headerData;
+        public string valueType;
+        public string valueData;
+
+        public SerializedElementData(ElementID id, string headerType, string headerData, string valueType, string valueData)
+        {
+            this.id = id.FullPath;
+            this.headerType = headerType;
+            this.headerData = headerData;
+            this.valueType = valueType;
+            this.valueData = valueData;
+        }
+    }
+
+
+
+}
