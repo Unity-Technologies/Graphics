@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
 
 ## [12.1.4] - 2021-12-07
 
