@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
  - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
 
+### Changed
+- Move Scene-Depth-Difference node from HDRP to ShaderGraph package
+
 ### Fixed
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
  - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]

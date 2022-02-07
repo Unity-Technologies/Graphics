@@ -5,13 +5,11 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering.HighDefinition;
 using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Input", "Scene", "High Definition Render Pipeline", "Scene Depth Difference")]
+    [Title("Input", "Scene", "Scene Depth Difference")]
     sealed class HDSceneDepthDifferenceNode : CodeFunctionNode, IMayRequireDepthTexture, IMayRequireScreenPosition, IMayRequirePosition
     {
         [SerializeField]
