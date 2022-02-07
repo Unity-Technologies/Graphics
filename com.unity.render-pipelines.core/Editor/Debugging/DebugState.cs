@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -186,7 +187,17 @@ namespace UnityEditor.Rendering
     /// Object Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
-    public sealed class DebugStateObject : DebugState<UnityEngine.Object> { }
+    public sealed class DebugStateObject : DebugState<UnityEngine.Object>
+    {
+        [NonSerialized]
+        public string[] arrayNames;
+        [NonSerialized]
+        public GUIContent[] arrayGUIContents;
+        [NonSerialized]
+        public int[] arrayIndices;
+        [NonSerialized]
+        public int selectedIndex;
+    }
 
     /// <summary>
     /// Flags Debug State.

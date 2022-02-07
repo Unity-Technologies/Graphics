@@ -86,13 +86,20 @@ namespace UnityEngine.Rendering
             public void SetValue(T value)
             {
                 Assert.IsNotNull(setter);
-                var v = ValidateValue(value);
+                Assert.IsNotNull(getter);
 
-                if (!v.Equals(getter()))
-                {
-                    setter(v);
-                    onValueChanged?.Invoke(this, v);
-                }
+                var v = ValidateValue(value);
+                var currentV = getter();
+
+                // If we are storing a reference type and both of them are null, do not need to change anything
+                if (!typeof(T).IsValueType && v == null && currentV == null)
+                    return;
+
+                if (v.Equals(currentV))
+                    return;
+
+                setter(v);
+                onValueChanged?.Invoke(this, v);
             }
         }
 
@@ -363,7 +370,7 @@ namespace UnityEngine.Rendering
         public class ObjectPopupField : Field<Object>
         {
             /// <summary>
-            /// Callback to obtain the elemtents of the pop up
+            /// Callback to obtain the elements of the pop up
             /// </summary>
             public Func<IEnumerable<Object>> getObjects { get; set; }
         }
