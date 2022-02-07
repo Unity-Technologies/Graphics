@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var shL0L1DataByteCountOld = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
             /// 3 4 component textures, 1 float and 2 bytes. Aligned on the size of a chunk.
-            var shL0R1xDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<float>();
+            var shL0R1xDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<ushort>();
             var shL1GR1yDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
             var shL1B1zDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
 
@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering
             var offset = 0;
             var shL0L1DataOld = cellData.GetSubArray(0, shL0L1DataByteCountOld).Reinterpret<float>(1);
             offset += shL0L1DataByteCountOld;
-            var shL0L1RxData = cellData.GetSubArray(offset, shL0R1xDataByteCount).Reinterpret<float>(1);
+            var shL0L1RxData = cellData.GetSubArray(offset, shL0R1xDataByteCount).Reinterpret<ushort>(1);
             offset += shL0R1xDataByteCount;
             var shL1GL1RyData = cellData.GetSubArray(offset, shL1GR1yDataByteCount).Reinterpret<byte>(1);
             offset += shL1GR1yDataByteCount;

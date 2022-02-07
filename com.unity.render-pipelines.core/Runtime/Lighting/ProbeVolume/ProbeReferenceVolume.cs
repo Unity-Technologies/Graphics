@@ -388,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<Brick> bricks { get; internal set; }
 
-            public NativeArray<float> shL0L1RxData { get; internal set; }
+            public NativeArray<ushort> shL0L1RxData { get; internal set; }
             public NativeArray<byte> shL1GL1RyData { get; internal set; }
             public NativeArray<byte> shL1BL1RzData { get; internal set; }
 
