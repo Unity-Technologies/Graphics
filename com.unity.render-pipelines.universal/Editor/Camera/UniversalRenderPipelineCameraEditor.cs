@@ -98,9 +98,10 @@ namespace UnityEditor.Rendering.Universal
 
             (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[index];
             Camera cam = overlayCamera.camera;
-            var baseAdditionalData = camera.GetUniversalAdditionalCameraData();
+
             if (cam != null)
             {
+                var baseAdditionalData = camera.GetUniversalAdditionalCameraData();
                 bool outputWarning = false;
 
                 // Checking if the Base Camera and the overlay cameras are of the same type.

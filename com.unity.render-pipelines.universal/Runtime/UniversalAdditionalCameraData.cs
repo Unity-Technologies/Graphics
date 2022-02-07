@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
-        /// None Base cameras, does not have a stack and will return null.
+        /// Will return null if it is not a Base camera.
         /// <seealso cref="CameraRenderType"/>.
         /// </summary>
         public List<Camera> cameraStack
