@@ -49,13 +49,24 @@ This section contains properties that define which layers the renderer draws.
 | **Opaque Layer Mask** | Select which opaque layers this Renderer draws |
 | **Transparent Layer Mask** | Select which transparent layers this Renderer draws |
 
-### Lighting
+### Rendering
 
-This section contains properties related to lighting.
+This section contains properties related to rendering.
 
 | Property | Description |
 |:-|:-|
 | **Rendering&#160;Path** | Select the Rendering Path.<br/>Options:<ul><li>**Forward**: The Forward Rendering Path.</li><li>**Deferred**: The Deferred Rendering Path. For more information, see [Deferred Rendering Path](rendering/deferred-rendering-path.md).</li></ul> |
+| &#160;&#160;**Depth&#160;Priming&#160;Mode** | This property determines when Unity performs depth priming.<br/>Depth Priming can improve GPU frame timings by reducing the number of pixel shader executions. The performance improvement depends on the amount of overlapping pixels in the opaque pass and the complexity of the pixel shaders that Unity can skip by using depth priming.<br/>The feature has an upfront memory and performance cost. The feature uses a depth prepass to determine which pixel shader invocations Unity can skip, and the feature adds the depth prepass if it's not available yet.<br/>The options are:<br />&#8226; **Disabled**: Unity does not perform depth priming.<br />&#8226; **Auto**: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming.<br />&#8226; **Forced**: Unity always performs depth priming. To do this, Unity also performs a depth prepass for every render pass. **NOTE**: depth priming is disabled at runtime on certain hardware (Tile Based Deferred Rendering) regardless of this setting.<br /><br />On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.<br/><br/>This property is available only if **Rendering Path** is set to **Forward** |
+| &#160;&#160;**Accurate G-buffer normals** | Indicates whether to use a more resource-intensive normal encoding/decoding method to improve visual quality.<br /><br />This property is available only if **Rendering Path** is set to **Deferred**. |
+| **Copy&#160;Depth&#160;Mode** | Specifies the stage in the render pipeline at which to copy the scene depth to a depth texture. The options are:<br/>&#8226; **After Opaques**: URP copies the scene depth after the opaques render pass.<br/>&#8226; **After Transparents**: URP copies the scene depth after the transparents render pass.<br/><br/>**Note**: On mobile devices, the **After Transparents** option can lead to a significant improvement in memory bandwidth. |
+
+### Native RenderPass
+
+This section contains properties related to URP's Native RenderPass API.
+
+| Property | Description |
+|:-|:-|
+| **Native RenderPass** | Indicates whether to use URP's Native RenderPass API. When enabled, URP uses this API to structure render passes. As a result, you can use [programmable blending](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html#using-shader-framebuffer-fetch) in custom URP shaders. For more information about the RenderPass API, see [ScriptableRenderContext.BeginRenderPass](https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.BeginRenderPass.html).<br/><br/>**Note**: Enabling this property has no effect on OpenGL ES. |
 
 ### Shadows
 

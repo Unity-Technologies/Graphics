@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a Texture which HDRP uses to shift the hue of chromatic aberrations.
         /// </summary>
         [Tooltip("Specifies a Texture which HDRP uses to shift the hue of chromatic aberrations.")]
-        public TextureParameter spectralLut = new TextureParameter(null);
+        public Texture2DParameter spectralLut = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the strength of the chromatic aberration effect.

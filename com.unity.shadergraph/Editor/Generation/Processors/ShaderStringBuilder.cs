@@ -89,6 +89,15 @@ namespace UnityEditor.ShaderGraph
             AppendNewLine();
         }
 
+        public void AddLine(string v0) { TryAppendIndentation(); Append(v0); AppendNewLine(); }
+        public void AddLine(string v0, string v1) { TryAppendIndentation(); Append(v0); Append(v1); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5, string v6) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); Append(v6); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5, string v6, string v7) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); Append(v6); Append(v7); AppendNewLine(); }
+
         [StringFormatMethod("formatString")]
         public void AppendLine(string formatString, params object[] args)
         {

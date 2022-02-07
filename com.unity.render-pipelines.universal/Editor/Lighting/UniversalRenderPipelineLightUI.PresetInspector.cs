@@ -13,21 +13,18 @@ namespace UnityEditor.Rendering.Universal
 
         public static readonly CED.IDrawer PresetInspector = CED.Group(
             CED.Group((serialized, owner) =>
-                EditorGUILayout.HelpBox(Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
+                EditorGUILayout.HelpBox(LightUI.Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.FoldoutGroup(Styles.generalHeader,
+            CED.FoldoutGroup(LightUI.Styles.generalHeader,
                 Expandable.General,
                 k_ExpandedStatePreset,
                 DrawGeneralContentPreset),
-            CED.FoldoutGroup(Styles.emissionHeader,
+            CED.FoldoutGroup(LightUI.Styles.emissionHeader,
                 Expandable.Emission,
                 k_ExpandedStatePreset,
-                CED.Group(DrawerColor,
-                    DrawEmissionContent)),
-            CED.FoldoutGroup(Styles.lightCookieHeader,
-                Expandable.LightCookie,
-                k_ExpandedState,
-                DrawLightCookieContent)
+                CED.Group(
+                    LightUI.DrawColor,
+                    DrawEmissionContent))
         );
     }
 }

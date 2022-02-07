@@ -51,6 +51,7 @@ Shader "Hidden/DebugVTBlit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         // No culling or depth
         Cull Off
         ZWrite Off
@@ -61,6 +62,7 @@ Shader "Hidden/DebugVTBlit"
             HLSLPROGRAM
                 #pragma vertex vert
                 #pragma fragment frag
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             ENDHLSL
         }
 
@@ -69,6 +71,7 @@ Shader "Hidden/DebugVTBlit"
             HLSLPROGRAM
                 #pragma vertex vert
                 #pragma fragment fragMSAA
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             ENDHLSL
         }
     }

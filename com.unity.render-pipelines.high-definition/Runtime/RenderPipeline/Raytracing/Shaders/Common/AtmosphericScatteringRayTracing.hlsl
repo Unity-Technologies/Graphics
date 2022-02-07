@@ -11,10 +11,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
         float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
 
-        // This is designed to match the raster volumes... even though I'm not sure why it's working that way
-        float3 fogColor = useFogColor && !_EnableVolumetricFog ?
-            GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction :
-            0.0;
+        float3 fogColor = useFogColor? GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction : 0.0;
         value = lerp(fogColor, value, fogTransmittance);
     }
 }
@@ -27,10 +24,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value)
         float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
 
-        // This is designed to match the raster volumes... even though I'm not sure why it's working that way
-        float3 fogColor = !_EnableVolumetricFog ?
-            GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction :
-            0.0;
+        float3 fogColor = GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
         value = lerp(fogColor, value, fogTransmittance);
     }
 }
@@ -43,10 +37,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value, in
         float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
 
-        // This is designed to match the raster volumes... even though I'm not sure why it's working that way
-        float3 fogColor = !_EnableVolumetricFog ?
-            GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction :
-            0.0;
+        float3 fogColor = GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
         value = lerp(fogColor, value, fogTransmittance);
         alpha = saturate(1.0 - fogTransmittance);
     }

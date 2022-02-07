@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(HDShadowSettings))]
+    [CustomEditor(typeof(HDShadowSettings))]
     class HDShadowSettingsEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_MaxShadowDistance;
@@ -190,7 +190,11 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = o.normalized ? 100f : o.representationDistance;
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
-            modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
+
+            var lineRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(lineRect, title, value);
+            modifiableValue = EditorGUI.Slider(lineRect, title, modifiableValue, 0f, max);
+            EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
             {
                 modifiableValue /= max;
@@ -214,7 +218,10 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = o.normalized ? 100f : o.representationDistance;
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
-            modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
+            var lineRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(lineRect, title, value);
+            modifiableValue = EditorGUI.Slider(lineRect, title, modifiableValue, 0f, max);
+            EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
                 value.floatValue = Mathf.Clamp01(modifiableValue / max);
             return true;

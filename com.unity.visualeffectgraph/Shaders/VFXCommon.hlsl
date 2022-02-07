@@ -38,6 +38,14 @@
 #define UNITY_INV_HALF_PI   0.636619772367f
 #endif
 
+// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
+// So we define it manually for compute atm.
+// It won't compile for devices that don't have cubemap array support but this is acceptable by now
+// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
+#ifdef SHADER_STAGE_COMPUTE
+#define SHADER_AVAILABLE_CUBEARRAY 1
+#endif
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -474,6 +482,11 @@ float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
                     i.y, j.y, k.y, o.y,
                     i.z, j.z, k.z, o.z,
                     i.w, j.w, k.w, o.w);
+}
+
+float4 VFXGetColumnFromMatrix(float4x4 mat, int column)
+{
+    return transpose(mat)[column];
 }
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.

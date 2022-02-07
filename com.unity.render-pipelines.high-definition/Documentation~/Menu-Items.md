@@ -27,9 +27,6 @@ This section includes all the menu items under the **Edit > Rendering > Material
 | **Convert All Built-in Materials to HDRP**      | Converts every compatible Material in your project to an HDRP Material. |
 | **Convert Selected Built-in Materials to HDRP** | Converts every compatible Material currently selected in the project window to an HDRP Material. |
 | **Convert Scene Terrains to HDRP Terrains**     | Replaces the built-in default standard terrain Material in every [Terrain](https://docs.unity3d.com/Manual/script-Terrain.html) in the scene with the HDRP default Terrain Material. |
-| **Enable HDRP Force Forward Emissive on Selected Materials** | Checks every Material in the current selection and Enable the Force Emissive Forward property if it exist. |
-| **Enable HDRP Force Forward Emissive on Scene Materials**    | Checks every Material in the current scene and Enable the Force Emissive Forward property if it exist. |
-| **Disable HDRP Force Forward Emissive on Scene Materials**   | Checks every Material and Material in the current scene and Enable the Force Emissive Forward property if it exist. |
 
 ### Other
 

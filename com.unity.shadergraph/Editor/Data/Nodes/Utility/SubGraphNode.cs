@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -380,6 +382,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var props = asset.inputs;
+            var toFix = new HashSet<(SlotReference from, SlotReference to)>();
             foreach (var prop in props)
             {
                 SlotValueType valueType = prop.concreteShaderValueType.ToSlotValueType();
@@ -392,6 +395,21 @@ namespace UnityEditor.ShaderGraph
                     m_PropertyIds.Add(prop.guid.GetHashCode());
                 }
                 var id = m_PropertyIds[propertyIndex];
+
+                //for whatever reason, it seems like shader property ids changed between 21.2a17 and 21.2b1
+                //tried tracking it down, couldnt find any reason for it, so we gotta fix it in post (after we deserialize)
+                List<MaterialSlot> inputs = new List<MaterialSlot>();
+                MaterialSlot found = null;
+                GetInputSlots(inputs);
+                foreach (var input in inputs)
+                {
+                    if (input.shaderOutputName == prop.referenceName && input.id != id)
+                    {
+                        found = input;
+                        break;
+                    }
+                }
+
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
 
                 // Copy defaults
@@ -434,6 +452,7 @@ namespace UnityEditor.ShaderGraph
                         var tSlot = slot as Texture2DInputMaterialSlot;
                         var tProp = prop as Texture2DShaderProperty;
                         if (tSlot != null && tProp != null)
+
                             tSlot.texture = tProp.value.texture;
                     }
                     break;
@@ -516,6 +535,16 @@ namespace UnityEditor.ShaderGraph
 
                 AddSlot(slot);
                 validNames.Add(id);
+
+                if (found != null)
+                {
+                    List<IEdge> edges = new List<IEdge>();
+                    owner.GetEdges(found.slotReference, edges);
+                    foreach (var edge in edges)
+                    {
+                        toFix.Add((edge.outputSlot, slot.slotReference));
+                    }
+                }
             }
 
             foreach (var slot in asset.outputs)
@@ -531,6 +560,13 @@ namespace UnityEditor.ShaderGraph
 
             // sort slot order to match subgraph property order
             SetSlotOrder(validNames);
+
+            foreach (var (from, to) in toFix)
+            {
+                //for whatever reason, in this particular error fix, GraphView will incorrectly either add two edgeViews or none
+                //but it does work correctly if we dont notify GraphView of this added edge. Gross.
+                owner.UnnotifyAddedEdge(owner.Connect(from, to));
+            }
         }
 
         void ValidateShaderStage()
@@ -728,6 +764,22 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresPixelPosition;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)

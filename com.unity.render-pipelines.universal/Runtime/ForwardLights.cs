@@ -88,6 +88,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Creates a new <c>ForwardLights</c> instance.
+        /// </summary>
         public ForwardLights() : this(InitParams.GetDefault()) { }
 
         internal ForwardLights(InitParams initParams)
@@ -323,6 +326,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Sets up the keywords and data for forward lighting.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
@@ -353,10 +361,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
+                bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    additionalLightsCount > 0 && additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    additionalLightsCount > 0 && !additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && !additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
                     useClusteredRendering);
 

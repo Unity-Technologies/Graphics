@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
         bool hasShadowCasting { get; }
         bool hasMotionVector { get; }
         // TODO Add other per output rendering settings here
-        int sortPriority { get; set; }
+        int vfxSystemSortPriority { get; set; }
 
         // Allow to setup material generated during import
         void SetupMaterial(Material material);
@@ -27,6 +27,8 @@ namespace UnityEditor.VFX
             return settings;
         }
 
+        //The status on needs sync relies on empty condition of the propertyMap.
+        //Example: In case of URP, we are always expecting QueueOffset/QueueControl in every material.
         public bool NeedsSync() => m_PropertyMap.Count == 0;
 
         public void SyncFromMaterial(Material material)

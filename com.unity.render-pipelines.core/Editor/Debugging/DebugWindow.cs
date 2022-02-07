@@ -130,11 +130,6 @@ namespace UnityEditor.Rendering
         {
             var window = GetWindow<DebugWindow>();
             window.titleContent = Styles.windowTitle;
-
-            if (OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-
-            open = true;
         }
 
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
@@ -145,6 +140,11 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
+            if (OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+
+            open = true;
+
             DebugManager.instance.refreshEditorRequested = false;
 
             hideFlags = HideFlags.HideAndDontSave;
@@ -378,6 +378,8 @@ namespace UnityEditor.Rendering
             if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
             {
                 DebugManager.instance.Reset();
+                DestroyWidgetStates();
+                UpdateWidgetStates();
                 InternalEditorUtility.RepaintAllViews();
             }
 
@@ -420,7 +422,7 @@ namespace UnityEditor.Rendering
                         GUI.Toggle(elementRect, m_Settings.selectedPanel == i, panel.displayName, s_Styles.sectionElement);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RegisterCompleteObjectUndo(m_Settings, "Debug Panel Selection");
+                            Undo.RegisterCompleteObjectUndo(m_Settings, $"Debug Panel '{panel.displayName}' Selection");
                             var previousPanel = m_Settings.selectedPanel >= 0 && m_Settings.selectedPanel < panels.Count
                                 ? panels[m_Settings.selectedPanel]
                                 : null;
@@ -561,6 +563,11 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle selected = "OL SelectedRow";
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
+
+            public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+            public static int foldoutColumnWidth = 70;
 
             public Styles()
             {

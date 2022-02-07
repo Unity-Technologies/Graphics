@@ -1,10 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -13,65 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class HDShaderUtils
     {
-        //enum representing all shader and shadergraph that we expose to user
-        internal enum ShaderID
-        {
-            Lit,
-            LitTesselation,
-            LayeredLit,
-            LayeredLitTesselation,
-            Unlit,
-            Decal,
-            TerrainLit,
-            AxF,
-            Count_Standard,
-            SG_Unlit = Count_Standard,
-            SG_Lit,
-            SG_Hair,
-            SG_Fabric,
-            SG_StackLit,
-            SG_Decal,
-            SG_Eye,
-            Count_All,
-            Count_ShaderGraph = Count_All - Count_Standard,
-            SG_External = -1, // material packaged outside of HDRP
-        }
-
-        // exposed shader, for reference while searching the ShaderID
-        static readonly string[] s_ShaderPaths =
-        {
-            "HDRP/Lit",
-            "HDRP/LitTessellation",
-            "HDRP/LayeredLit",
-            "HDRP/LayeredLitTessellation",
-            "HDRP/Unlit",
-            "HDRP/Decal",
-            "HDRP/TerrainLit",
-            "HDRP/AxF",
-        };
-
-        // list of methods for resetting keywords
-        internal delegate void MaterialResetter(Material material);
-        static Dictionary<ShaderID, MaterialResetter> k_PlainShadersMaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
-        {
-            { ShaderID.Lit, LitGUI.SetupLitKeywordsAndPass },
-            { ShaderID.LitTesselation, LitGUI.SetupLitKeywordsAndPass },
-            { ShaderID.LayeredLit,  LayeredLitGUI.SetupLayeredLitKeywordsAndPass },
-            { ShaderID.LayeredLitTesselation, LayeredLitGUI.SetupLayeredLitKeywordsAndPass },
-            { ShaderID.Unlit, UnlitGUI.SetupUnlitKeywordsAndPass },
-            { ShaderID.Decal, DecalUI.SetupDecalKeywordsAndPass },
-            { ShaderID.TerrainLit, TerrainLitGUI.SetupTerrainLitKeywordsAndPass },
-            { ShaderID.AxF, AxFGUI.SetupAxFKeywordsAndPass },
-            // TODO: These need to stay until all SG materials are reimported and resaved (so that HDMetaData contains the m_SubTargetGuidString)
-            { ShaderID.SG_Unlit, UnlitShaderGraphGUI.SetupUnlitKeywordsAndPass },
-            { ShaderID.SG_Lit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
-            { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
-            { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
-            { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
-            { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
-            { ShaderID.SG_Eye, LightingShaderGraphGUI.SetupLightingKeywordsAndPass }
-        };
-
         // List of all discovered HDSubTargets
         // Should be refreshed on assembly reload so no need to poll (cf MaterialPostProcessor's polling)
         static List<HDSubTarget> k_HDSubTargets = new List<HDSubTarget>(

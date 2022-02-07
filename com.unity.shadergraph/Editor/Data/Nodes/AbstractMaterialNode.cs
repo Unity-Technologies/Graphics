@@ -149,6 +149,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        protected int m_DismissedVersion = 0;
+        public int dismissedUpdateVersion { get => m_DismissedVersion; set => m_DismissedVersion = value; }
+
         // by default, if this returns null, the system will allow creation of any previous version
         public virtual IEnumerable<int> allowedNodeVersions => null;
 
@@ -498,17 +502,25 @@ namespace UnityEditor.ShaderGraph
             switch (inputTypesDistinct.Count)
             {
                 case 0:
+                    // nothing connected -- use Vec1 by default
                     return ConcreteSlotValueType.Vector1;
                 case 1:
                     if (SlotValueHelper.AreCompatible(SlotValueType.DynamicVector, inputTypesDistinct.First()))
+                    {
+                        if (inputTypesDistinct.First() == ConcreteSlotValueType.Boolean)
+                            return ConcreteSlotValueType.Vector1;
                         return inputTypesDistinct.First();
+                    }
                     break;
                 default:
                     // find the 'minumum' channel width excluding 1 as it can promote
-                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
+                    inputTypesDistinct.RemoveAll(x => (x == ConcreteSlotValueType.Vector1) || (x == ConcreteSlotValueType.Boolean));
                     var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())
-                        return ordered.FirstOrDefault();
+                    {
+                        var first = ordered.FirstOrDefault();
+                        return first;
+                    }
                     break;
             }
             return ConcreteSlotValueType.Vector1;
@@ -718,6 +730,8 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void ValidateNode()
         {
+            if ((sgVersion < latestVersion) && (dismissedUpdateVersion < latestVersion))
+                owner.messageManager?.AddOrAppendError(owner, objectId, new ShaderMessage("There is a newer version of this node available. Inspect node for details.", Rendering.ShaderCompilerMessageSeverity.Warning));
         }
 
         public virtual bool canCutNode => true;
@@ -741,6 +755,11 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
+
+        protected string GetRayTracingError() => $@"
+            #if defined(SHADER_STAGE_RAY_TRACING)
+            #error '{name}' node is not supported in ray tracing, please provide an alternate implementation, relying for instance on the 'Raytracing Quality' keyword
+            #endif";
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {

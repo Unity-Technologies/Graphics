@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Configure render state
-            BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
+            BaseLitAPI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode,
+            bool transparentZWrite, TransparentCullMode transparentCullMode,
             OpaqueCullMode opaqueCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
@@ -156,8 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
-            collector.AddToggleProperty("_AlphaToMask", alphaToMask);
-            collector.AddToggleProperty("_AlphaToMaskInspectorValue", alphaToMask);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? transparentZWrite : true);
             collector.AddToggleProperty(kTransparentZWrite, transparentZWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);

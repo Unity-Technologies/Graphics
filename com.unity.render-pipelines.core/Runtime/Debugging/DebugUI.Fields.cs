@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -357,6 +358,17 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Object PopupField
+        /// </summary>
+        public class ObjectPopupField : Field<Object>
+        {
+            /// <summary>
+            /// Callback to obtain the elemtents of the pop up
+            /// </summary>
+            public Func<IEnumerable<Object>> getObjects { get; set; }
+        }
+
+        /// <summary>
         /// Enumerator field with history.
         /// </summary>
         public class HistoryEnumField : EnumField
@@ -525,6 +537,58 @@ namespace UnityEngine.Rendering
             /// Number of decimals.
             /// </summary>
             public int decimals = 3;
+        }
+
+        /// <summary>
+        /// Object field.
+        /// </summary>
+        public class ObjectField : Field<Object>
+        {
+            /// <summary>
+            /// Object type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Object list field.
+        /// </summary>
+        public class ObjectListField : Field<Object[]>
+        {
+            /// <summary>
+            /// Objects type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Simple message box widget, providing a couple of different styles.
+        /// </summary>
+        public class MessageBox : Widget
+        {
+            /// <summary>
+            /// Label style defines text color and background.
+            /// </summary>
+            public enum Style
+            {
+                /// <summary>
+                /// Info category
+                /// </summary>
+                Info,
+                /// <summary>
+                /// Warning category
+                /// </summary>
+                Warning,
+                /// <summary>
+                /// Error category
+                /// </summary>
+                Error
+            }
+
+            /// <summary>
+            /// Style used to render displayName.
+            /// </summary>
+            public Style style = Style.Info;
         }
     }
 }

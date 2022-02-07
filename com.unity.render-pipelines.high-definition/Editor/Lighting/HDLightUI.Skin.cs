@@ -9,12 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
         sealed class Styles
         {
             // Headers
-            public readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
-            public readonly GUIContent shapeHeader = EditorGUIUtility.TrTextContent("Shape");
             public readonly GUIContent celestialBodyHeader = EditorGUIUtility.TrTextContent("Celestial Body");
-            public readonly GUIContent emissionHeader = EditorGUIUtility.TrTextContent("Emission");
             public readonly GUIContent volumetricHeader = EditorGUIUtility.TrTextContent("Volumetrics");
-            public readonly GUIContent shadowHeader = EditorGUIUtility.TrTextContent("Shadows");
             public readonly GUIContent shadowMapSubHeader = EditorGUIUtility.TrTextContent("Shadow Map");
             public readonly GUIContent contactShadowsSubHeader = EditorGUIUtility.TrTextContent("Contact Shadows");
             public readonly GUIContent bakedShadowsSubHeader = EditorGUIUtility.TrTextContent("Baked Shadows");
@@ -32,10 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent bakedShadowRadius = EditorGUIUtility.TrTextContent("Radius", "Sets the amount of artificial softening the baking process applies to the edges of shadows cast by this Point or Spot Light.");
             public readonly GUIContent bakedShadowAngle = EditorGUIUtility.TrTextContent("Angle", "Controls the amount of artificial softening the baking process applies to the edges of shadows cast by Directional Lights.");
             public readonly GUIContent lightBounceIntensity = EditorGUIUtility.TrTextContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
-            public readonly GUIContent color = EditorGUIUtility.TrTextContent("Color", "Specifies the color this Light emits.");
-            public readonly GUIContent lightAppearance = EditorGUIUtility.TrTextContent("Light Appearance", "Specifies the mode for how HDRP calculates this Light's color.");
-            public readonly GUIContent colorFilter = EditorGUIUtility.TrTextContent("Filter", "Specifies a color which tints the Light source.");
-            public readonly GUIContent colorTemperature = EditorGUIUtility.TrTextContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = EditorGUIUtility.TrTextContent("Cookie", "Cookie mask currently assigned to the area light.");
             public readonly GUIContent iesTexture = EditorGUIUtility.TrTextContent("IES Profile", "IES Profile (Support: Point, Spot, Rectangular-Area Lights).");
             public readonly GUIContent cookieTextureTypeError = EditorGUIUtility.TrTextContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
@@ -50,13 +42,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaIntensity = EditorGUIUtility.TrTextContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
             public readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
 
-            // in case that you want to keep the indentation but have nothing to write
-            public readonly GUIContent empty = EditorGUIUtility.TrTextContent(" ");
-
             public readonly GUIContent lightRadius = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highlight, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = EditorGUIUtility.TrTextContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
-            public readonly GUIContent nonLightmappedOnly = EditorGUIUtility.TrTextContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
+            public readonly GUIContent nonLightmappedOnly = EditorGUIUtility.TrTextContent("Shadowmask Mode", "Determines Shadowmask functionality when using Mixed lighting. Distance Shadowmask casts real-time shadows within the Shadow Distance, and baked shadows beyond. In Shadowmask mode, static GI contributors always cast baked shadows.\nEnable Shadowmask support in the HDRP asset to make use of this feature. Only available when Lighting Mode is set to Shadowmask in the Lighting window.");
             public readonly GUIContent lightDimmer = EditorGUIUtility.TrTextContent("Intensity Multiplier", "Multiplies the intensity of the Light by the given number. This is useful for modifying the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
             public readonly GUIContent fadeDistance = EditorGUIUtility.TrTextContent("Fade Distance", "Sets the distance from the camera at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = EditorGUIUtility.TrTextContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
@@ -83,7 +72,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaLightEmissiveMeshMotionVector = EditorGUIUtility.TrTextContent("Motion Vectors", "Specify wether the generated Mesh renders 'Per Object Motion', 'Camera Motion' or 'No Motion' vectors to the Camera Motion Vector Texture.");
             public readonly GUIContent areaLightEmissiveMeshSameLayer = EditorGUIUtility.TrTextContent("Same Layer", "If checked, use the same Layer than the Light one.");
             public readonly GUIContent areaLightEmissiveMeshCustomLayer = EditorGUIUtility.TrTextContent("Custom Layer", "Specify on which layer the generated Mesh live.");
-            public readonly GUIContent lightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
             public readonly GUIContent interactsWithSky = EditorGUIUtility.TrTextContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
@@ -159,7 +147,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Warnings
             public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.");
-            public readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.");
         }
 
         static Styles s_Styles = new Styles();

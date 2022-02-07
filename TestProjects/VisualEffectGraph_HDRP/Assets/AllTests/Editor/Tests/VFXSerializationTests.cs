@@ -13,7 +13,11 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEditor.VersionControl;
 using UnityEditor.VFX.UI;
+using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.VFX.Test
 {
@@ -28,7 +32,7 @@ namespace UnityEditor.VFX.Test
         {
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
-        
+
         [Test]
         public void Sanitize_GetSpawnCount()
         {
@@ -886,8 +890,8 @@ namespace UnityEditor.VFX.Test
         }
 
         //Cover unexpected behavior : 1307562
-        [UnityTest]
-        public IEnumerable Verify_Orphan_Dependencies_Are_Correctly_Cleared()
+        [Test]
+        public void Verify_Orphan_Dependencies_Are_Correctly_Cleared()
         {
             string path = null;
             {
@@ -943,8 +947,26 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
             Assert.AreNotEqual(0u, recordedSize[0]);
-            yield return null;
         }
+
+        [Test]
+        public void Check_Directory_Not_Imported()
+        {
+            var folderEndingWithVFX = "FolderTest.vfx";
+            Assert.DoesNotThrow(() => AssetDatabase.CreateFolder("Assets", folderEndingWithVFX));
+            Task.Delay(100).ContinueWith(x =>
+            {
+                Assert.IsTrue(AssetDatabase.DeleteAsset($"Assets/{folderEndingWithVFX}"));
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        [Test]
+        public void Check_Null_Or_Empty_Path_Not_Imported()
+        {
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(null));
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
+        }
+
 
         //Cover regression test : 1315191
         [UnityTest]
@@ -979,9 +1001,59 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        private static readonly string s_Modify_SG_Property_VFX = "Assets/AllTests/Editor/Tests/Modify_SG_Property.vfx";
+        private static readonly string s_Modify_SG_Property_SG_A = "Assets/AllTests/Editor/Tests/Modify_SG_Property_A.shadergraph";
+        private static readonly string s_Modify_SG_Property_SG_B = "Assets/AllTests/Editor/Tests/Modify_SG_Property_B.shadergraph";
+        private string m_Modify_SG_Property_VFX;
+        private string m_Modify_SG_Property_SG_A;
+        private string m_Modify_SG_Property_SG_B;
+
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            m_Modify_SG_Property_VFX = File.ReadAllText(s_Modify_SG_Property_VFX);
+            m_Modify_SG_Property_SG_A = File.ReadAllText(s_Modify_SG_Property_SG_A);
+            m_Modify_SG_Property_SG_B = File.ReadAllText(s_Modify_SG_Property_SG_B);
+        }
+
+        //Cover regression 1361601
+        [UnityTest]
+        public IEnumerator Modify_ShaderGraph_Property_Check_VFX_Compilation_Doesnt_Fail()
+        {
+            Assert.IsTrue(m_Modify_SG_Property_SG_A.Contains("Name_A"));
+            Assert.IsFalse(m_Modify_SG_Property_SG_A.Contains("Name_B"));
+            Assert.IsTrue(m_Modify_SG_Property_SG_B.Contains("Name_B"));
+            Assert.IsFalse(m_Modify_SG_Property_SG_B.Contains("Name_A"));
+            Assert.IsTrue(m_Modify_SG_Property_VFX.Contains("Name_A"));
+            Assert.IsFalse(m_Modify_SG_Property_VFX.Contains("Name_B"));
+
+            AssetDatabase.ImportAsset(s_Modify_SG_Property_VFX);
+
+            //Actually, rename the exposed property "Name_A" into "Name_B"
+            File.WriteAllText(s_Modify_SG_Property_SG_A, m_Modify_SG_Property_SG_B);
+            yield return null;
+
+            //These import aren't suppose to trigger an exception
+            AssetDatabase.ImportAsset(s_Modify_SG_Property_SG_A);
+            AssetDatabase.ImportAsset(s_Modify_SG_Property_VFX);
+
+            yield return null;
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(s_Modify_SG_Property_VFX);
+            var graph = asset.GetResource().GetOrCreateGraph();
+            graph.GetResource().WriteAsset();
+
+            var newVFXContent = File.ReadAllText(s_Modify_SG_Property_VFX);
+            Assert.IsTrue(newVFXContent.Contains("Name_B"));
+        }
+
         [OneTimeTearDown]
         public void CleanUp()
         {
+            File.WriteAllText(s_Modify_SG_Property_VFX, m_Modify_SG_Property_VFX);
+            File.WriteAllText(s_Modify_SG_Property_SG_A, m_Modify_SG_Property_SG_A);
+            File.WriteAllText(s_Modify_SG_Property_SG_B, m_Modify_SG_Property_SG_B);
+
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
     }

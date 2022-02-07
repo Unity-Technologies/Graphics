@@ -57,8 +57,11 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXDataType.Particle:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
+                    break;
                 case VFXDataType.ParticleStrip:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
+                    newVFXData.SetSettingValue("dataType", VFXDataParticle.DataType.ParticleStrip);
                     break;
                 case VFXDataType.Mesh:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();

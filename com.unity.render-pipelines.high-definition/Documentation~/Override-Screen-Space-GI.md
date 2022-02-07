@@ -61,7 +61,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
 | **Quality**                    | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears if you set **Mode** to **Performance**. |
-| **Max Ray Length**             | Controls the maximal length of rays. The higher this value is, the more resource-intensive ray traced global illumination is. |
+| **Max Ray Length**             | Controls the maximal length of rays in meters. The higher this value is, the more resource-intensive ray traced global illumination is. |
 | **Clamp Value**                | Set a value to control the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the global illumination more stable to denoise, but reduces quality. |
 | **Full Resolution**            | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**               | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
@@ -72,16 +72,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 
-## Limitations
-
-### Screen-space global illumination
+### Screen-space global illumination Limitation
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
-
-### Ray-traced global illumination
-
-* Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.
-
-  ### Mixed global illumination
-
-* In Mixed tracing mode, emissive decals do not contribute to global illumination because HDRP renders them later in the render pipeline. For the same reason, emissive Materials that use Force Forward Emissive also do not contribute to global illumination.
+* When lit shader mode is setup to deferred the Ambient Occlusion from Lit shader will be combine with Screen space Ambient Occlusion (if it is enabled) and apply on the indirect lighting result where there is no Emissive contribution. This is similar behavior than rendering with lit shader mode setup to forward. If the Material have an emissive contribution then Ambient Occlusion is setup to one.

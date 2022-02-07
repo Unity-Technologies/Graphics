@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
+  m_Name: TestCaseFilters
+  m_EditorClassIdentifier: 
+  filters:
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 897c2870240f77a46a18884a0446b797, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 32f9dd5fabc57284bb43468761c84f36, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d02e9097c7ef6374e8b5888b1d8ac25c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 500813a390ad4074cba926bf26eef57a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on Apple Silicon

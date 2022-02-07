@@ -19,11 +19,9 @@ using System.Reflection;
 class VFXParameterEditor : VFXSlotContainerEditor
 {
     VFXViewController controller;
-    protected new void OnEnable()
+    protected void OnEnable()
     {
-        base.OnEnable();
-
-        VFXViewWindow current = VFXViewWindow.currentWindow;
+        VFXViewWindow current = VFXViewWindow.GetWindow(target as VFXParameter);
         if (current != null)
         {
             controller = current.graphView.controller;
@@ -32,14 +30,13 @@ class VFXParameterEditor : VFXSlotContainerEditor
         }
     }
 
-    protected new void OnDisable()
+    protected void OnDisable()
     {
         if (controller != null)
         {
             controller.useCount--;
             controller = null;
         }
-        base.OnDisable();
     }
 
     public override SerializedProperty DoInspectorGUI()

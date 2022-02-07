@@ -9,16 +9,10 @@ namespace UnityEditor.VFX
 {
     class InitializeVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray()}
+        };
     }
 
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
@@ -62,7 +56,8 @@ namespace UnityEditor.VFX
 
         public class InputPropertiesPadding
         {
-            [Tooltip(
+            [Range(Single.MinValue * 0.5f, Single.MaxValue * 0.5f), /*Avoids overflow when converting from size to extents*/
+             Tooltip(
                 "Some additional padding to add the culling bounds set above. It can be helpful when using recorded bounds.")]
             public Vector3 boundsPadding = Vector3.zero;
         }
@@ -90,26 +85,30 @@ namespace UnityEditor.VFX
             if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
-            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded
-                && CanBeCompiled())
+            if (data != null && CanBeCompiled())
             {
-                if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
-                    !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
+                if (data.boundsMode == BoundsSettingMode.Recorded)
                 {
-                    manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
-                        "In order to record the bounds, the current graph needs to be attached to a scene instance via the Target Game Object panel");
-                }
-
-                try
-                {
-                    var boundsSlot = inputSlots.First(s => s.name == "bounds");
-                    if (boundsSlot.AllChildrenWithLink().Any())
+                    if (VFXViewWindow.GetWindow(GetGraph(), false, false)?.graphView?.attachedComponent == null ||
+                        !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
+                    {
+                        manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
+                            "In order to record the bounds, the current graph needs to be attached to a scene instance via the Target Game Object panel");
+                    }
+                    var boundsSlot = inputSlots.FirstOrDefault(s => s.name == "bounds");
+                    if (boundsSlot != null && boundsSlot.HasLink(true))
                     {
                         manager.RegisterError("OverriddenRecording", VFXErrorType.Warning,
                             "This system bounds will not be recorded because they are set from operators.");
                     }
                 }
-                catch { /* do nothing*/ }
+
+                if (data.boundsMode == BoundsSettingMode.Automatic)
+                {
+                    manager.RegisterError("CullingFlagAlwaysSimulate", VFXErrorType.Warning,
+                        "Setting the system Bounds Mode to Automatic will switch the culling flags of the Visual Effect asset" +
+                        " to 'Always recompute bounds and simulate'.");
+                }
             }
         }
 
@@ -122,16 +121,16 @@ namespace UnityEditor.VFX
                 var prop = Enumerable.Empty<VFXPropertyWithValue>();
                 if (particleData)
                 {
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Manual)
+                    if (particleData.boundsMode == BoundsSettingMode.Manual)
                     {
                         prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
                     }
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Recorded)
+                    if (particleData.boundsMode == BoundsSettingMode.Recorded)
                     {
                         prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
                         prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
                     }
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Automatic)
+                    if (particleData.boundsMode == BoundsSettingMode.Automatic)
                     {
                         prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
                     }
@@ -162,7 +161,7 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var particleData = GetData() as VFXDataParticle;
-            bool isRecordedBounds = particleData && particleData.boundsSettingMode == BoundsSettingMode.Recorded;
+            bool isRecordedBounds = particleData && particleData.boundsMode == BoundsSettingMode.Recorded;
             // GPU
             if (target == VFXDeviceTarget.GPU)
             {
@@ -176,7 +175,7 @@ namespace UnityEditor.VFX
             var cpuMapper = new VFXExpressionMapper();
             if (particleData)
             {
-                switch (particleData.boundsSettingMode)
+                switch (particleData.boundsMode)
                 {
                     case BoundsSettingMode.Manual:
                         cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
@@ -202,6 +201,21 @@ namespace UnityEditor.VFX
         public override IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags)
         {
             return GetData().GetSettings(listHidden, flags); // Just a bridge on data
+        }
+
+        protected override IEnumerable<VFXBlock> implicitPreBlock
+        {
+            get
+            {
+                var data = GetData();
+                if (hasGPUSpawner)
+                {
+                    // Force "alive" attribute when a system can spawn particles from GPU, because we are updating the entire capacity
+                    var block = VFXBlock.CreateImplicitBlock<Block.SetAttribute>(data);
+                    block.SetSettingValue(nameof(Block.SetAttribute.attribute), VFXAttribute.Alive.name);
+                    yield return block;
+                }
+            }
         }
     }
 }

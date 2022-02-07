@@ -54,19 +54,6 @@ test_platforms:
 
 {{ name }}_test_trigger:
   name: {{ name }} - Tests Trigger
-  agent:
-    type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.large
-  commands:
-    - dir
-  artifacts:
-    logs:
-      paths:
-        - "upm-ci~/test-results/**/*"
-    packages:
-      paths:
-        - "upm-ci~/packages/**/*"
   dependencies:
     - .yamato/postprocessing_publish.yml#{{ name }}_pack
     {% for editor in test_editors %}
@@ -81,6 +68,8 @@ test_platforms:
     type: Unity::VM
     image: package-ci/win10:stable
     flavor: b1.large
+  variables:
+    UPMCI_ENABLE_PACKAGE_SIGNING: 1
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --package-path com.unity.postprocessing
@@ -103,6 +92,8 @@ test_platforms:
     type: Unity::VM
     image: package-ci/win10:stable
     flavor: b1.large
+  variables:
+    UPMCI_ENABLE_PACKAGE_SIGNING: 1
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --dry-run --package-path com.unity.postprocessing

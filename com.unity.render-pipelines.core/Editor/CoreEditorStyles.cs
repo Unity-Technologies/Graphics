@@ -28,10 +28,6 @@ namespace UnityEditor.Rendering
         /// <summary>Style for a small checkbox in mixed state</summary>
         public static GUIStyle smallMixedTickbox => m_SmallMixedTickbox.Value;
 
-        static System.Lazy<GUIStyle> m_HelpBoxLabelStyle = new(() => new GUIStyle(EditorStyles.miniLabel) { wordWrap = true });
-        /// <summary>Style for a small checkbox in mixed state</summary>
-        internal static GUIStyle helpBoxLabelStyle => m_HelpBoxLabelStyle.Value;
-
         static GUIStyle m_MiniLabelButton;
         /// <summary>Style for a minilabel button</summary>
         public static GUIStyle miniLabelButton
@@ -83,6 +79,15 @@ namespace UnityEditor.Rendering
         static System.Lazy<GUIStyle> m_SubSectionHeaderStyle = new(() => new GUIStyle(EditorStyles.boldLabel));
         /// <summary>Style of Sub-Section Headers.</summary>
         public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
+
+
+        static System.Lazy<GUIStyle> m_HelpBox = new(() =>
+        {
+            var style = new GUIStyle() { imagePosition = ImagePosition.ImageLeft, fontSize = 10, wordWrap = true };
+            style.normal.textColor = EditorStyles.helpBox.normal.textColor;
+            return style;
+        });
+        internal static GUIStyle helpBox => m_HelpBox.Value;
 
         #endregion
 
@@ -168,6 +173,11 @@ namespace UnityEditor.Rendering
 
         /// <summary>Reset All content</summary>
         public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
+
+        /// <summary>
+        /// Empty space content in case that you want to keep the indentation but have nothing to write
+        /// </summary>
+        public static readonly GUIContent empty = EditorGUIUtility.TrTextContent(" ");
 
         #endregion
 

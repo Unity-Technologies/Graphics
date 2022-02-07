@@ -2,7 +2,6 @@
 #pragma kernel RaytracingIndirectDiffuseFullRes
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes
-#pragma kernel AdjustIndirectDiffuseWeight
 
 #pragma only_renderers d3d11 ps5
 
@@ -32,10 +31,6 @@
 
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
-
-// Flag value that defines if a given pixel recieves reflections or not
-TEXTURE2D_X_UINT2(_StencilTexture);
-int _SsrStencilBit;
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -186,6 +181,15 @@ groupshared uint gs_cacheNormal_HR[HALF_RES_REGION_SIZE_2];
 // |---|---|---|---|---|---|---|---|
 // O being Width-2, Height-2
 
+// This function evaluates the max pixel coordinate that can be used to read the half res data from the full res buffer
+// The important part is that it takes into account if the original screen size is odd or even. If not set properly, we may end up reading
+// from outside the buffer
+uint2 GetClampSreenSizeHalf()
+{
+    uint2 readOffset = uint2(_ScreenSize.xy) % 2;
+    return uint2(_ScreenSize.x - 2 + readOffset.x, _ScreenSize.y - 2 + readOffset.y);
+}
+
 void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 {
     // The initial position of the access
@@ -199,7 +203,8 @@ void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 
         // Compute the full res sampling coordinate
         int2 halfResCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
-        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, _ScreenSize.x - 2), clamp(halfResCoord.y * 2, 0, _ScreenSize.y - 2));
+        uint2 maxScreenSize = GetClampSreenSizeHalf();
+        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, maxScreenSize.x), clamp(halfResCoord.y * 2, 0, maxScreenSize.y));
 
         // Read all the values for tap
         float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord).xyz;
@@ -242,6 +247,9 @@ NeighborTapData GetNeighborTapDataSample_HR(uint2 groupThreadId, int2 offset)
 NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 fulLResCoord, int2 offset)
 {
     int2 tapCoord = (fulLResCoord / 2 + offset) * 2;
+    uint2 maxScreenSize = GetClampSreenSizeHalf();
+    tapCoord = int2(clamp(tapCoord.x, 0, maxScreenSize.x), clamp(tapCoord.y, 0, maxScreenSize.y));
+
     NeighborTapData outVal;
     outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord).xyz;
     outVal.linearDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).x, _ZBufferParams);
@@ -449,30 +457,4 @@ void IndirectDiffuseIntegrationUpscaleFullRes(uint3 dispatchThreadId : SV_Dispat
     }
 
     _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(lightingSum / weightSum, 1.0);
-}
-
-RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
-
-[numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void AdjustIndirectDiffuseWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    uint2 sourceCoord = dispatchThreadId.xy;
-
-    // Fetch the depth
-    float depth = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).x;
-    // If this is a background pixel, there is nothing to do
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
-        return;
-
-    float4 previousGIValue = _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)];
-
-    // Nullify the weight if the surface is not supposed to recieve SSGI
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sourceCoord));
-    if ((stencilValue & _SsrStencilBit) == 0)
-        previousGIValue.w = 0.0f;
-    else
-        previousGIValue.w = 1.0f;
-
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)] = previousGIValue;
 }

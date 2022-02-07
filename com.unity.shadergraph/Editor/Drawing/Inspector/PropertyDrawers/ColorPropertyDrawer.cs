@@ -44,5 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

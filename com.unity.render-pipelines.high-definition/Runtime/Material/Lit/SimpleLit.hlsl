@@ -42,12 +42,6 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return 1.0; // Don't do microshadowing for simpleLit
 }
 
-#define HAS_PAYLOAD_WITH_UNINIT_GI
-float GetUninitializedGIPayload(SurfaceData surfaceData)
-{
-    return surfaceData.ambientOcclusion;
-}
-
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
@@ -239,6 +233,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 #endif
 
     return preLightData;
+}
+
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+    normalData.normalWS = surfaceData.normalWS;
+    normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    return normalData;
 }
 
 #ifdef HAS_LIGHTLOOP

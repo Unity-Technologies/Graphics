@@ -4,6 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Assertions;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering
 {
     using UnityObject = UnityEngine.Object;
@@ -37,6 +41,74 @@ namespace UnityEngine.Rendering
             private set => baseComponentTypeArray = value.ToArray();
         }
 
+        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
+
+        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
+        {
+            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
+                out var supportedVolumeComponents))
+                return supportedVolumeComponents;
+
+            supportedVolumeComponents = FilterVolumeComponentTypes(
+                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
+
+            return supportedVolumeComponents;
+        }
+
+        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
+        {
+            var volumes = new List<(string, Type)>();
+            foreach (var t in types)
+            {
+                string path = string.Empty;
+
+                var attrs = t.GetCustomAttributes(false);
+
+                bool skipComponent = false;
+
+                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+                foreach (var attr in attrs)
+                {
+                    switch (attr)
+                    {
+                        case VolumeComponentMenu attrMenu:
+                        {
+                            path = attrMenu.menu;
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                            break;
+                        }
+                        case HideInInspector attrHide:
+                        case ObsoleteAttribute attrDeprecated:
+                            skipComponent = true;
+                            break;
+                    }
+                }
+
+                if (skipComponent)
+                    continue;
+
+                // If no attribute or in case something went wrong when grabbing it, fallback to a
+                // beautified class name
+                if (string.IsNullOrEmpty(path))
+                {
+#if UNITY_EDITOR
+                    path = ObjectNames.NicifyVariableName(t.Name);
+#else
+                    path = t.Name;
+#endif
+                }
+
+
+                volumes.Add((path, t));
+            }
+
+            return volumes
+                .OrderBy(i => i.Item1)
+                .ToList();
+        }
+
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
@@ -58,6 +130,17 @@ namespace UnityEngine.Rendering
         // states on update instead of having to implement a Reset method on all components (which
         // would be error-prone)
         readonly List<VolumeComponent> m_ComponentsDefaultState;
+
+        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
+        {
+            foreach (VolumeComponent component in m_ComponentsDefaultState)
+            {
+                if (component.GetType() == volumeComponentType)
+                    return component;
+            }
+
+            return null;
+        }
 
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;

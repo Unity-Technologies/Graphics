@@ -12,6 +12,9 @@ namespace UnityEditor.ShaderGraph.UnitTests.Controllers
         internal VisualElement m_AddButton;
 
         GenericMenu m_AddBlackboardItemsMenu;
+        internal ScrollView ScrollView => m_Blackboard.scrollView;
+
+        internal SGBlackboard sgBlackboard => m_Blackboard;
 
         internal GenericMenu addBlackboardItemsMenu => m_AddBlackboardItemsMenu;
 

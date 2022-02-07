@@ -23,14 +23,18 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Normal));
+            // HACK: we don't define AbsoluteWorldSpaceNormal, but it is the same as WorldSpaceNormal
+            var coordSpace = (space == CoordinateSpace.AbsoluteWorld) ? CoordinateSpace.World : space;
+            return string.Format("IN.{0}", coordSpace.ToVariableName(InterpolatorType.Normal));
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             if (isConnected)
                 return NeededCoordinateSpace.None;
-            return space.ToNeededCoordinateSpace();
+            // HACK: we don't define AbsoluteWorldSpaceNormal, but it is the same as WorldSpaceNormal
+            var coordSpace = (space == CoordinateSpace.AbsoluteWorld) ? CoordinateSpace.World : space;
+            return coordSpace.ToNeededCoordinateSpace();
         }
     }
 }

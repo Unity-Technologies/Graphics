@@ -10,17 +10,16 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    enum ShaderVariantLogLevel
-    {
-        Disabled,
-        OnlyHDRPShaders,
-        AllShaders,
-    }
-
     enum LensAttenuationMode
     {
         ImperfectLens,
         PerfectLens
+    }
+
+    enum ColorGradingSpace
+    {
+        AcesCg = 0,
+        sRGB        // Legacy.
     }
 
     /// <summary>
@@ -769,12 +768,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Misc.
-
-        [SerializeField]
-        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
         [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
+
+        [SerializeField]
+        internal ColorGradingSpace colorGradingSpace;
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
@@ -821,16 +819,16 @@ namespace UnityEngine.Rendering.HighDefinition
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
-        internal ProbeVolumeSceneBounds apvScenesBounds;
+        internal ProbeVolumeSceneData apvScenesData;
 
-        internal ProbeVolumeSceneBounds GetOrCreateAPVSceneBounds()
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
-            if (apvScenesBounds == null)
-                apvScenesBounds = new ProbeVolumeSceneBounds((Object)this);
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesBounds.SetParentObject((Object)this);
-            return apvScenesBounds;
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            return apvScenesData;
         }
 
         #endregion

@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
 
     SubShader
     {
-        Tags { "SplatCount" = "8" }
+        Tags { "RenderPipeline" = "HDRenderPipeline" "SplatCount" = "8" }
 
         HLSLINCLUDE
 

@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
-                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
         }
 
         public struct FragInputs
@@ -97,6 +97,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor positionRWS = new FieldDescriptor(FragInputs.name, "positionRWS", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor positionPredisplacementRWS = new FieldDescriptor(FragInputs.name, "positionPredisplacementRWS", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPixel = new FieldDescriptor(FragInputs.name, "positionPixel", "", ShaderValueType.Float2,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor tangentToWorld = new FieldDescriptor(FragInputs.name, "tangentToWorld", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);

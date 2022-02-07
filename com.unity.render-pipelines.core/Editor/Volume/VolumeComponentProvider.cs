@@ -48,65 +48,6 @@ namespace UnityEditor.Rendering
             m_TargetEditor = targetEditor;
         }
 
-        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
-
-        static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
-        {
-            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
-                out var supportedVolumeComponents))
-                return supportedVolumeComponents;
-
-            supportedVolumeComponents = FilterVolumeComponentTypes(
-                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
-            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
-
-            return supportedVolumeComponents;
-        }
-
-        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
-        {
-            var volumes = new List<(string, Type)>();
-            foreach (var t in types)
-            {
-                string path = string.Empty;
-
-                var attrs = t.GetCustomAttributes(false);
-
-                bool skipComponent = false;
-
-                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
-                foreach (var attr in attrs)
-                {
-                    switch (attr)
-                    {
-                        case VolumeComponentMenu attrMenu:
-                        {
-                            path = attrMenu.menu;
-                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
-                            break;
-                        }
-                        case HideInInspector attrHide:
-                        case ObsoleteAttribute attrDeprecated:
-                            skipComponent = true;
-                            break;
-                    }
-                }
-
-                if (skipComponent)
-                    continue;
-
-                // If no attribute or in case something went wrong when grabbing it, fallback to a
-                // beautified class name
-                if (string.IsNullOrEmpty(path))
-                    path = ObjectNames.NicifyVariableName(t.Name);
-
-                volumes.Add((path, t));
-            }
-
-            return volumes;
-        }
-
         public void CreateComponentTree(List<Element> tree)
         {
             var currentPipeline = RenderPipelineManager.currentPipeline;
@@ -119,7 +60,7 @@ namespace UnityEditor.Rendering
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var volumeComponentTypesFiltered =
-                GetSupportedVolumeComponents(currentPipeline.GetType());
+                VolumeManager.GetSupportedVolumeComponents(currentPipeline.GetType());
 
             if (volumeComponentTypesFiltered.Any())
             {

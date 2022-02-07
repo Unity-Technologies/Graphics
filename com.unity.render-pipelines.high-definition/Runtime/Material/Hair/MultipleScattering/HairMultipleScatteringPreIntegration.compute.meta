@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/Material/Hair/MultipleScattering/HairMultipleScatteringPreIntegration.compute.meta
+guid: 4a087c9d074552c48aeb85184d56312e
+ComputeShaderImporter:
+=======
+guid: 6bc6063bc09c00f4fa52ef16c2861d4c
+ShaderImporter:
+>>>>>>> master:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/4x_PostProcessing/4060_CustomPostProcess/AfterPPBlurs.shader.meta
+  externalObjects: {}
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

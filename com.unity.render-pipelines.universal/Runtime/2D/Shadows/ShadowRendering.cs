@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
@@ -26,7 +27,8 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerShadowsG = new ProfilingSampler("Draw 2D Shadows (G)");
         private static readonly ProfilingSampler m_ProfilingSamplerShadowsB = new ProfilingSampler("Draw 2D Shadows (B)");
 
-        private static RenderTargetHandle[] m_RenderTargets = null;
+        private static RTHandle[] m_RenderTargets = null;
+        private static int[] m_RenderTargetIds = null;
         private static RenderTargetIdentifier[] m_LightInputTextures = null;
 
         private static readonly Color[] k_ColorLookup = new Color[4] { new Color(0, 0, 0, 1), new Color(0, 0, 1, 0), new Color(0, 1, 0, 0), new Color(1, 0, 0, 0) };
@@ -38,15 +40,14 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_RenderTargets == null || m_RenderTargets.Length != maxTextureCount)
             {
-                m_RenderTargets = new RenderTargetHandle[maxTextureCount];
+                m_RenderTargets = new RTHandle[maxTextureCount];
+                m_RenderTargetIds = new int[maxTextureCount];
                 ShadowRendering.maxTextureCount = maxTextureCount;
 
                 for (int i = 0; i < maxTextureCount; i++)
                 {
-                    unsafe
-                    {
-                        m_RenderTargets[i].id = Shader.PropertyToID($"ShadowTex_{i}");
-                    }
+                    m_RenderTargetIds[i] = Shader.PropertyToID($"ShadowTex_{i}");
+                    m_RenderTargets[i] = RTHandles.Alloc(m_RenderTargetIds[i], $"ShadowTex_{i}");
                 }
             }
 
@@ -117,10 +118,10 @@ namespace UnityEngine.Rendering.Universal
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
-            CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
+            CreateShadowRenderTexture(pass, m_RenderTargetIds[shadowIndex], renderingData, cmdBuffer);
         }
 
-        public static void PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
+        public static bool PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
         {
             var colorChannel = shadowIndex % 4;
             var textureIndex = shadowIndex / 4;
@@ -128,12 +129,11 @@ namespace UnityEngine.Rendering.Universal
             if (colorChannel == 0)
                 ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
+            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
 
-            // Render the shadows for this light
-            if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel))
-                m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].Identifier();
-            else
-                m_LightInputTextures[textureIndex] = Texture2D.blackTexture;
+            m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
+
+            return hadShadowsToRender;
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1);
         }
 
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderTargetHandle rtHandle, RenderingData renderingData, CommandBuffer cmdBuffer)
+        private static void CreateShadowRenderTexture(IRenderPass2D pass, int handleId, RenderingData renderingData, CommandBuffer cmdBuffer)
         {
             var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmdBuffer.GetTemporaryRT(rtHandle.id, descriptor, FilterMode.Bilinear);
+            cmdBuffer.GetTemporaryRT(handleId, descriptor, FilterMode.Bilinear);
         }
 
         public static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
             var textureIndex = shadowIndex / 4;
 
             if (colorChannel == 0)
-                cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
+                cmdBuffer.ReleaseTemporaryRT(m_RenderTargetIds[textureIndex]);
         }
 
         public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)

@@ -1,5 +1,7 @@
 # Using the Universal Render Pipeline in a new Project
 
+![URP Template](Images/AssetShots/Beauty/Template.png)
+
 If you want to use the Universal Render Pipeline (URP) in a new Project, you can create a new Project using a [Template](https://docs.unity3d.com/Manual/ProjectTemplates.html).
 
 To create a URP Project using a Template:

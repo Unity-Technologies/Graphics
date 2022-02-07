@@ -43,7 +43,8 @@ namespace UnityEditor.Rendering.Universal
             if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
                 return;
 
-            Light light = target as Light;
+            if (!(target is Light light) || light == null)
+                return;
 
             switch (light.type)
             {

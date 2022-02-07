@@ -116,6 +116,7 @@ void EvaluateAnisoGGX(MaterialData mtlData,
     {
         value = 0.0;
         pdf = 0.0;
+        fresnel = 0.0;
         return;
     }
 
@@ -404,7 +405,7 @@ bool SampleGGX(MaterialData mtlData,
     pdf = D * NdotH * jacobian;
     value = abs(4.0 * (1.0 - F) * D * Vg * NdotL * VdotH * jacobian);
 
-    return (pdf > 0.001);
+    return pdf > 0.001;
 }
 
 bool SampleAnisoGGX(MaterialData mtlData,
@@ -449,7 +450,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     pdf = pdfNoGV / lambdaVPlusOne;
     value = abs((1.0 - F) * pdfNoGV / (lambdaVPlusOne + lambdaL));
 
-    return (pdf > 0.001);
+    return pdf > 0.001;
 }
 
 bool SampleDelta(MaterialData mtlData,
@@ -506,6 +507,7 @@ namespace SSS
 
 #define MAX_WALK_STEPS 16
 #define DIM_OFFSET 42
+#define DIM_THIN_NORMAL_FLIP 108 // First fully available dimension
 
 struct Result
 {
@@ -514,7 +516,7 @@ struct Result
     float3 exitNormal;
 };
 
-bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 meanFreePath, uint2 pixelCoord, out Result result)
+bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 meanFreePath, uint2 pixelCoord, out Result result, bool isThin = false)
 {
     // Remap from our user-friendly parameters to and sigmaS and sigmaT
     float3 sigmaS, sigmaT;
@@ -531,16 +533,14 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
 
     bool hit;
     uint walkIdx = 0;
+    float4 walkSample;
 
     result.throughput = 1.0;
 
     do // Start our random walk
     {
         // Samples for direction, distance and channel selection
-        float dirSample0 = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 0);
-        float dirSample1 = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 1);
-        float distSample = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 2);
-        float channelSample = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 3);
+        walkSample = GetSample4D(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx);
 
         // Compute the per-channel weight
         float3 weights = result.throughput * SafeDivide(sigmaS, sigmaT);
@@ -550,14 +550,14 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         float3 channelWeights = SafeDivide(weights, wSum);
 
         // Evaluate what channel we should be using for this sample
-        uint channelIdx = GetChannel(channelSample, channelWeights);
+        uint channelIdx = GetChannel(walkSample[3], channelWeights);
 
         // Evaluate the length of our steps
-        rayDesc.TMax = -log(1.0 - distSample) / sigmaT[channelIdx];
+        rayDesc.TMax = -log(1.0 - walkSample[2]) / sigmaT[channelIdx];
 
         // Sample our next path segment direction
         rayDesc.Direction = walkIdx ?
-            SampleSphereUniform(dirSample0, dirSample1) : SampleHemisphereCosine(dirSample0, dirSample1, -normal);
+            SampleSphereUniform(walkSample[0], walkSample[1]) : SampleHemisphereCosine(walkSample[0], walkSample[1], -normal);
 
         // Initialize the intersection data
         intersection.t = -1.0;
@@ -606,6 +606,19 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         result.exitPosition = rayDesc.Origin;
         result.exitNormal = intersection.value;
     }
+
+#ifdef _DOUBLESIDED_ON
+
+    // If we are dealing with a thin (double-sided) surface, we randomly flip the output normal half the time
+    if (isThin)
+    {
+        if (GetSample(pixelCoord, _RaytracingSampleIndex, DIM_THIN_NORMAL_FLIP) < 0.5)
+            result.exitNormal = -result.exitNormal;
+
+        result.throughput *= 2.0;
+    }
+
+#endif
 
     return true;
 }

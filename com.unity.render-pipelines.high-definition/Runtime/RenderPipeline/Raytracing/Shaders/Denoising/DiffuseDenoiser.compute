@@ -1,3 +1,5 @@
+#pragma kernel GeneratePointDistribution
+
 #pragma kernel BilateralFilterSingle        BILATERAL_FILTER=BilateralFilterSingle     SINGLE_CHANNEL
 #pragma kernel BilateralFilterColor         BILATERAL_FILTER=BilateralFilterColor
 
@@ -5,6 +7,8 @@
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
 #pragma multi_compile _ FULL_RESOLUTION_INPUT
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -30,7 +34,9 @@
 
 // Noisy Input Buffer
 TEXTURE2D_X(_DenoiseInputTexture);
-
+// Buffer used for point sampling
+RWStructuredBuffer<float2> _PointDistributionRW;
+StructuredBuffer<float2> _PointDistribution;
 // Filtered Output buffer (depends on the singel or color variant of the denoiser)
 #if SINGLE_CHANNEL
 RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
@@ -47,6 +53,12 @@ int _JitterFramePeriod;
 
 // Flag used to do a half resolution filter
 int _HalfResolutionFilter;
+
+[numthreads(64, 1, 1)]
+void GeneratePointDistribution(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    _PointDistributionRW[dispatchThreadId.x] = SampleDiskCubic(GetLDSequenceSampleFloat(dispatchThreadId.x, 0), GetLDSequenceSampleFloat(dispatchThreadId.x, 1));
+}
 
 float ComputeMaxDenoisingRadius(float3 positionRWS)
 {
@@ -117,15 +129,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
         // Fetch the noise value for the current sample
-        float2 newSample;
-        newSample.x = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 0);
-        newSample.y = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 1);
-
-        // Convert the sample to a local unit disk
-        newSample = SampleDiskCubic(newSample.x, newSample.y);
-
-        // Distribute them according a square profile
-        newSample *= denoisingRadius;
+        float2 newSample = _PointDistribution[sampleIndex + sampleOffset] * denoisingRadius;
 
         // Convert the point to hemogenous clip space
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
@@ -133,7 +137,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         hClip.xyz /= hClip.w;
 
         // Is the target pixel in the screen?
-        if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0 )
+        if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0)
             continue;
 
         // Convert it to screen sample space

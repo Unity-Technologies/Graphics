@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(VolumetricClouds))]
+    [CustomEditor(typeof(VolumetricClouds))]
     class VolumetricCloudsEditor : VolumeComponentEditor
     {
         // General
@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+        SerializedDataParameter m_SunLightDimmer;
         SerializedDataParameter m_ErosionOcclusion;
 
         // Wind
@@ -134,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+            m_SunLightDimmer = Unpack(o.Find(x => x.sunLightDimmer));
             m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
 
             // Wind
@@ -172,7 +174,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
                 return;
             }
 
@@ -273,6 +276,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+                PropertyField(m_SunLightDimmer);
                 PropertyField(m_ErosionOcclusion);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);

@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class LitDetailGUI
     {
-        public static class Styles
+        internal static class Styles
         {
             public static readonly GUIContent detailInputs = EditorGUIUtility.TrTextContent("Detail Inputs",
                 "These settings define the surface details by tiling and overlaying additional maps on the surface.");
@@ -20,6 +21,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Designates a Normal Map to create the illusion of bumps and dents in the details of this Material's surface.");
 
             public static readonly GUIContent detailAlbedoMapScaleInfo = EditorGUIUtility.TrTextContent("Setting the scaling factor to a value other than 1 results in a less performant shader variant.");
+            public static readonly GUIContent detailAlbedoMapFormatError = EditorGUIUtility.TrTextContent("This texture is not in linear space.");
         }
 
         public struct LitProperties
@@ -48,6 +50,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (properties.detailAlbedoMapScale.floatValue != 1.0f)
             {
                 EditorGUILayout.HelpBox(Styles.detailAlbedoMapScaleInfo.text, MessageType.Info, true);
+            }
+            var detailAlbedoTexture = properties.detailAlbedoMap.textureValue as Texture2D;
+            if (detailAlbedoTexture != null && GraphicsFormatUtility.IsSRGBFormat(detailAlbedoTexture.graphicsFormat))
+            {
+                EditorGUILayout.HelpBox(Styles.detailAlbedoMapFormatError.text, MessageType.Warning, true);
             }
             materialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, properties.detailNormalMap,
                 properties.detailNormalMap.textureValue != null ? properties.detailNormalMapScale : null);

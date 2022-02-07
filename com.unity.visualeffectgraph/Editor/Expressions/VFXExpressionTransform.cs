@@ -177,7 +177,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[3].xyz", parents[0]);
+            return string.Format("{0}._14_24_34", parents[0]);
         }
     }
 
@@ -562,7 +562,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[{1}].xyz", parents[0], parents[1]);
+            return string.Format("VFXGetColumnFromMatrix({0}, {1}).xyz", parents[0], parents[1]);
         }
     }
 
@@ -598,7 +598,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[{1}]", parents[0], parents[1]);
+            return string.Format("VFXGetColumnFromMatrix({0}, {1})", parents[0], parents[1]);
         }
     }
 }

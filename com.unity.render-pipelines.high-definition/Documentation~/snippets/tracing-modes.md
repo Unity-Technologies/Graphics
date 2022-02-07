@@ -8,7 +8,7 @@ The properties visible in the Inspector change depending on the option you selec
 
 ### Mixed tracing
 
-This option uses ray marching to intersect on-screen geometry and uses ray tracing to intersect off-screen geometry. This enables HDRP to include on-screen opaque particles, vertex animations, and decals when it processes the effect. This option only works in [Performance mode](../Ray-Tracing-Getting-Started.md#ray-tracing-mode).
+This option uses ray marching to intersect on-screen geometry and uses ray tracing to intersect off-screen geometry. This enables HDRP to include on-screen opaque particles, vertex animations, and decals when it processes the effect. This option only works in [Performance mode](../Ray-Tracing-Getting-Started.md#ray-tracing-mode) and with Lit Shader Mode setup to Deferred.
 
 In mixed tracing mode, HDRP processes screen-space ray marching in the GBuffer. This means that it can only use GameObjects rendered using the [deferred](../Forward-And-Deferred-Rendering.md) rendering path. For example, HDRP renders transparent GameObjects in the forward rendering path which means they do not appear in the GBuffer and thus not in effects that use mixed tracing.
 
@@ -25,3 +25,18 @@ In mixed tracing mode, HDRP still uses ray tracing for any geometry inside the r
 ![](../Images/mixed-tracing-ray-traced-no-deform.png)
 
 *This is the Scene from the perspective of the ray tracing mode. See how the original, non-deformed, cliff face geometry hides the rock and bush that were on the right-hand side of the Scene.*
+
+### Tracing Modes Limitation
+
+#### Ray Marching
+
+* Transparent Emissive Material are taken into account only when Rendering Pass is set to "Before Refraction".
+
+#### Ray Tracing
+
+* Transparent Emissive Material are not taken into account.
+* No [decals](../decal.md) are supported including Emissive Decals.
+
+#### Mixed Tracing
+
+* The Mixed tracing mode is only useful if Lit shader mode is Deferred and have the same limitation than Ray Tracing mode.

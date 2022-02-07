@@ -1,4 +1,5 @@
 using System;
+using Unity.Burst.CompilerServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -105,11 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
     static class DebugLightHierarchyExtensions
     {
+
+        [IgnoreWarning(1370)] //Ignore throwing exception warning on burst..
         public static bool IsEnabledFor(
-            this DebugLightFilterMode mode,
-            GPULightType gpuLightType,
-            SpotLightShape spotLightShape
-        )
+             this DebugLightFilterMode mode,
+             GPULightType gpuLightType,
+             SpotLightShape spotLightShape
+         )
         {
             switch (gpuLightType)
             {
@@ -189,6 +192,21 @@ namespace UnityEngine.Rendering.HighDefinition
         MeteringWeighted,
     }
 
+    /// <summary>
+    /// HDR debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum HDRDebugMode
+    {
+        /// <summary>No hdr debug.</summary>
+        None,
+        /// <summary>Gamut view - show the gamuts and what part of the gamut are represented in the image.</summary>
+        GamutView,
+        /// <summary>Gamut clip - show what part of the scene are covered by the Rec709 gamut and what parts are in the Rec2020 gamut.</summary>
+        GamutClip,
+        /// <summary>Show in colors between yellow and red any value that is above the paper white value. Luminance otherwise.</summary>
+        ValuesAbovePaperWhite,
+    }
 
     /// <summary>
     /// Probe Volume Debug Modes.
@@ -324,6 +342,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool displayFinalImageHistogramAsRGB = false;
         /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
         public bool displayMaskOnly = false;
+
+        /// <summary>HDR debug mode.</summary>
+        public HDRDebugMode hdrDebugMode = HDRDebugMode.None;
+
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool displayCookieAtlas = false;

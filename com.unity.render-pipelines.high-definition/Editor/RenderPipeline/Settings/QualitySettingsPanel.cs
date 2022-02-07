@@ -73,6 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_HDRPAssets.Clear();
                 PopulateHDRPAssetsFromQualitySettings(m_HDRPAssets);
+
+                m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == HDRenderPipeline.currentAsset);
+                m_HDRPAssetsUIList.index = m_SelectedHDRPAssetIndex;
             }
 
             /// <summary>

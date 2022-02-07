@@ -668,16 +668,17 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public VFXExpression GetPerspectiveMatrix(VFXExpression fov, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
+        static public VFXExpression GetPerspectiveMatrix(VFXExpression fov, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar, VFXExpression lensShift)
         {
             var fovHalf = fov / TwoExpression[VFXValueType.Float];
             var cotangent = new VFXExpressionCos(fovHalf) / new VFXExpressionSin(fovHalf);
             var deltaZ = zNear - zFar;
+            var minusTwoExp = MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float];
 
             var zero = ZeroExpression[VFXValueType.Float];
             var m0 = new VFXExpressionCombine(cotangent / aspect, zero, zero, zero);
             var m1 = new VFXExpressionCombine(zero, cotangent, zero, zero);
-            var m2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+            var m2 = new VFXExpressionCombine(minusTwoExp * lensShift.x, minusTwoExp * lensShift.y, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
             var m3 = new VFXExpressionCombine(zero, zero, TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ, zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
@@ -695,6 +696,26 @@ namespace UnityEditor.VFX
             var m3 = new VFXExpressionCombine(zero, zero, (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        static public VFXExpression IsTRSMatrixZeroScaled(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            var sqrLengthI = Dot(i, i);
+            var sqrLengthJ = Dot(j, j);
+            var sqrLengthK = Dot(k, k);
+
+            var epsilon = EpsilonSqrExpression[VFXValueType.Float];
+
+            var compareI = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthI, epsilon);
+            var compareJ = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthJ, epsilon);
+            var compareK = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthK, epsilon);
+
+            var condition = new VFXExpressionLogicalOr(compareI, new VFXExpressionLogicalOr(compareJ, compareK));
+            return condition;
         }
 
         static public VFXExpression Atan2(VFXExpression coord)

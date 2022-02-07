@@ -1,0 +1,115 @@
+.dropdown-button, .dropdown-arrow
+{
+    margin: 0 0 0 0;
+    border-width: 0 0 0 1px;
+    border-radius: 0;
+}
+
+.dropdown-button
+{
+    margin-right: 1px;
+    flex-direction: row !important;
+}
+
+.dropdown-arrow
+{
+    width: 16px;
+    border-width: 0 1px 0 0;
+}
+
+.dropdown-separator
+{
+    height: 10px;
+    width: 2px;
+    border-left-width: 1px;
+    border-color: var(--unity-colors-default-border);
+    opacity: 0.5;
+    align-self: center;
+}
+
+.dropdown-arrow > VisualElement
+{
+    width: 15px;
+    height: 16px;
+    align-self: center;
+    background-image: var(--unity-icons-dropdown);
+}
+
+.separator
+{
+    width: 6px;
+}
+
+.popup
+{
+    padding-top: 0px;
+    border-width: 1px;
+    border-color: var(--unity-colors-dropdown-border);
+}
+
+.indented
+{
+    padding-left: 16px;
+}
+
+.category
+{
+    margin-left: 4px;
+    margin-top: 0px;
+}
+
+.link
+{
+    align-self: Flex-Start;
+    color: var(--unity-colors-link-text);
+    border-width: 0;
+    background-color: transparent;
+    cursor: Link;
+    padding-right: 0;
+}
+
+.link:focus
+{
+    -unity-font-style: bold;
+    border-bottom-width: 1px;
+    border-radius: 0px;
+    border-color: var(--unity-colors-link-text);
+}
+
+Box.section
+{
+    padding: 8px 0px 8px 0px;
+}
+
+Box.alternate
+{
+    background-color: var(--unity-colors-alternated_rows-background);
+}
+
+Button
+{
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    -unity-text-align: middle-left;
+}
+
+Button:hover, Toggle:hover
+{
+    background-color: var(--unity-colors-highlight-background);
+}
+
+Button:disabled
+{
+    opacity: 0.5;
+}
+
+Toggle Label
+{
+    margin-left: 4px;
+}
+
+#resyncMaterial
+{
+    display: none;
+}

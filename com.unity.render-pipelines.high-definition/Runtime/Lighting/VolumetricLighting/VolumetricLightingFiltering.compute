@@ -7,6 +7,7 @@
 
 #pragma kernel FilterVolumetricLighting
 
+#pragma multi_compile _ NEED_SEPARATE_OUTPUT
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -21,8 +22,12 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
+#if NEED_SEPARATE_OUTPUT
+TEXTURE3D(_VBufferLighting);
+RW_TEXTURE3D(float4, _VBufferLightingFiltered);
+#else
 RW_TEXTURE3D(float4, _VBufferLighting);
-
+#endif
 
 #define GAUSSIAN_SIGMA 1.0
 #define GROUP_SIZE_1D_XY 8
@@ -70,6 +75,15 @@ void PrefetchData(uint groupIndex, uint2 groupOrigin, uint sliceIndex)
         gs_cacheB[LDSIndex] = sampleVal.b;
         gs_cacheA[LDSIndex] = sampleVal.a;
     }
+}
+
+void WriteOutput(uint3 voxelCoord, float4 value)
+{
+#if NEED_SEPARATE_OUTPUT
+    _VBufferLightingFiltered[voxelCoord] = value;
+#else
+    _VBufferLighting[voxelCoord] = value;
+#endif
 }
 
 float Gaussian(float radius, float sigma)
@@ -128,5 +142,5 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     }
 
-    _VBufferLighting[voxelCoord] = value / sumW;
+    WriteOutput(voxelCoord, value / sumW);
 }

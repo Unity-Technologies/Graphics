@@ -4,10 +4,83 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+
+### Added
+- Linear version of function that sets FSR RCAS shader constants
+- `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
+- Add probe volume influence weight parameter
+- Added support for multiple Baking States to Prove Volumes.
+- Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
+
+### Changed
+- Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
+
+### Fixed
+- The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
+- Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+- Fixed `DebugUI.Enum` fields collapsing their parent `DebugUI.Foldout`
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+- Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+
+## [14.0.0] - 2021-11-17
+
+### Added
+- Context menu on Volume Parameters to restore them to their default values.
+
+### Fixed
+- Fixed XR support in CoreUtils.DrawFullscreen function.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
+
+## [13.1.2] - 2021-11-05
+
+### Added
+- Added function to allocate RTHandles using `RenderTextureDescriptor`.
+- Added `vrUsage` support for RTHandles allocation.
+
+### Fixed
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
+- Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
+
+## [13.1.1] - 2021-10-04
+
+### Added
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+- Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
+- Added new DebugUI widget types: ProgressBarValue and ValueTuple
+- Added common support code for FSR.
+- Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
+- Added blending for curves in post processing volumes.
+- New extension for Render Pipeline Global Settings for shader variants settings -> `IShaderVariantsSettings`.
+
+## [13.1.0] - 2021-09-24
+
+### Added
+- Debug Panels Framework See `IDebugDisplaySettingsQuery`.
+
+### Fixed
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
+
 ## [13.0.0] - 2021-09-01
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+- Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
 
 ## [12.0.0] - 2021-01-11
 
@@ -49,6 +122,9 @@ The version number for this package has increased due to a version update of a r
 - Added an option to change the visibilty of the Volumes Gizmos (Solid, Wireframe, Everything), available at Preferences > Core Render Pipeline
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
+- Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
@@ -82,6 +158,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 - Fixed Lens Flare rotation for Curve Distribution
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
+- Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.
@@ -106,6 +184,7 @@ The version number for this package has increased due to a version update of a r
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 - DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
 - Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
+- Made occlusion Radius for lens flares in directional lights, be independant of the camera's far plane.
 
 ## [11.0.0] - 2020-10-21
 

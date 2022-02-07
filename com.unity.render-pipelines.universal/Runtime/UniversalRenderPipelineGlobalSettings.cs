@@ -1,4 +1,6 @@
+using System;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,20 +9,23 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("URP-Global-Settings")]
-    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    [URPHelpURL("urp-global-settings")]
+    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
 
 #pragma warning disable CS0414
-        [SerializeField] int k_AssetVersion = 1;
-        [SerializeField] int k_AssetPreviousVersion = 1;
+        [SerializeField] int k_AssetVersion = 2;
 #pragma warning restore CS0414
+
+        public void OnBeforeSerialize()
+        {
+        }
 
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            if (k_AssetPreviousVersion != k_AssetVersion)
+            if (k_AssetVersion != 2)
             {
                 EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
@@ -30,7 +35,21 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
         {
-            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+            UniversalRenderPipelineGlobalSettings asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineGlobalSettings;
+
+            if (asset.k_AssetVersion < 2)
+            {
+#pragma warning disable 618 // Obsolete warning
+                // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
+                asset.m_StripDebugVariants = !asset.supportRuntimeDebugDisplay;
+                asset.k_AssetVersion = 2;
+#pragma warning restore 618 // Obsolete warning
+
+                // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
+#if UNITY_INCLUDE_TESTS
+                asset.m_StripUnusedPostProcessingVariants = true;
+#endif
+            }
 
             EditorUtility.SetDirty(asset);
         }
@@ -96,7 +115,8 @@ namespace UnityEngine.Rendering.Universal
                         AssetDatabase.CreateFolder("Assets", folderPath);
                     assetCreated = Create(path);
 
-                    Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                    // TODO: Reenable after next urp template is published
+                    //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
                 }
                 else
                 {
@@ -296,10 +316,33 @@ namespace UnityEngine.Rendering.Universal
 
         #region Misc Settings
 
+        [SerializeField] bool m_StripDebugVariants = true;
+
+        [SerializeField] bool m_StripUnusedPostProcessingVariants = false;
+
+        [SerializeField] bool m_StripUnusedVariants = true;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
+        [Obsolete("Please use stripRuntimeDebugShaders instead.", false)]
         public bool supportRuntimeDebugDisplay = false;
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool stripDebugVariants { get => m_StripDebugVariants; set { m_StripDebugVariants = value; } }
+
+        /// <summary>
+        /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
+        /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
+        /// </summary>
+        public bool stripUnusedPostProcessingVariants { get => m_StripUnusedPostProcessingVariants; set { m_StripUnusedPostProcessingVariants = value; } }
+
+        /// <summary>
+        /// Controls whether strip off variants if the feature is enabled.
+        /// </summary>
+        public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
 
         #endregion
     }

@@ -50,5 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 (Enum)attribute.defaultValue,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

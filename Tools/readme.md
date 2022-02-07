@@ -27,13 +27,15 @@ Follow these steps to install the git hooks before working on the Graphics repos
 
 1. Install [Python >= 3.6](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
 2. Install [pip3](https://pip.pypa.io/en/stable/installing/).
-3. Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. _Sidenote: it is the same tool used to format C++/trunk code._
+3. Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. 
+  - _Sidenote: it is the same tool used to format C++/trunk code._ 
+  - _Sidenote 2: Nowadays unity-meta can be installed using git only, no need to use the mercurial clone anymore. The git repository can be found [here](https://github.cds.internal.unity3d.com/unity/unity-meta)._
 4. Make sure you have access to the cds.github.com repositories. Usually this means following [these steps](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh) to create and upload an ssh key to [cds.github.com](https://github.cds.internal.unity3d.com/settings/keys).
 5. From the root of the repository, run `cd Tools` and `python3 ./hooks_setup.py`.
 
 ### Available hooks
 
-A description of the hooks we currently have is available in the [hooks library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
+A description of the hooks we currently have is available in the [hooks library repository](https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools/blob/master/hooks/readme.md).
 
 For this repository we have enabled:
 
@@ -68,8 +70,6 @@ git commit -m "test"
 // Do a reset to undo our test: git reset --soft HEAD~1 (This "undoes" the last commit and keep the committed files in your staging area so delete test.txt after)
 ``` 
 
-
-
 **Permission denied (SSH) when installing the git hooks**
 
 Please, follow these steps: https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh. Do not forget the ssh agent step.
@@ -81,8 +81,6 @@ ssh -vT git@github.cds.internal.unity3d.com
 Look for a line starting by “Offering public key...”. It will tell you which ssh key is being used by shh. This key must be the one you uploaded to [github.cds](https://github.cds.internal.unity3d.com/settings/keys).
 
 Last resort: [Troubleshooting SSH section in Github docs](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/troubleshooting-ssh).
-
-
 
 
 **Python or pre-commit not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
@@ -99,7 +97,6 @@ If python can't find the `pre-commit` package, make sure the Scripts folder outp
 A clean reinstall of Python solves most issues. Make sure to rerun the `hooks_setup.py` script after you reinstall Python.
 
 
-
 **Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases.**
 
 Run `python` instead of `python3`.
@@ -114,20 +111,22 @@ Follow the suggestions of [this StackOverflow answer](https://stackoverflow.com/
 
 On Windows, Active perl is not supported by the formatting tool. Use Strawberry perl. 
 
+**ValueError: '.git' is not in list when running python .\hooks_setup.py**
+Your git version is probably outdated. You can check that `git --version` returns a fairly recent version of it. You may have several versions of git on your machine, and the default one is outdated, in which case you'll need to add the path to the most recent one to your PATH variable (add it at the top or beginning of the list so that it takes precedence over any other git version installed on your system).
+
 ## Formatting
 
 Provided you installed [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/), you can manually run the formatting tool with the following command:
 ```
-perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --dry-run <folder to format>
+perl ~/unity-meta/Tools/Format/format.pl --dry-run <folder to format>
 ```
 **Notes for Windows users:**
-- Use Powershell (not the CMD), or the command substitution syntax `$(pwd)` won't be recognized. Alternatively, you can replace `$(pwd)` by the full path to your repository root (ie. where you are in the file system now).
 - Uou may have to manually "expand" the tilde (`~`) sign, meaning replacing it by your $HOME path. In powershell, hit `TAB` with the cursor on the tilde sign to automatically expand it to the $HOME path.
 - You may have to run `perl.exe` instead of `perl`.
 
 
 To actually apply the changes:
 ```
-perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --nobackups <folder to format>
+perl ~/unity-meta/Tools/Format/format.pl --nobackups <folder to format>
 ```
 Use `--help` to discover more useful options (`--preview` will generate a diff file for instance)

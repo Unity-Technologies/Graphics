@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Material property names
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -75,13 +76,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int materialIdx = 0;
             int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
+
+            try
             {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
+                AssetDatabase.StartAssetEditing();
+
+                foreach (var asset in distinctGuids)
+                {
+                    materialIdx++;
+                    var path = AssetDatabase.GUIDToAssetPath(asset);
+                    EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
+                    AssetDatabase.ImportAsset(path);
+                }
             }
+            finally
+            {
+                // Ensure the AssetDatabase knows we're finished editing
+                AssetDatabase.StopAssetEditing();
+            }
+
             UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
@@ -95,17 +108,29 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int shaderIdx = 0;
             int totalShaders = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
-            {
-                shaderIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("HD ShaderGraph Upgrader re-import", string.Format("({0} of {1}) {2}", shaderIdx, totalShaders, path), (float)shaderIdx / (float)totalShaders);
 
-                if (CheckHDShaderGraphVersionsForUpgrade(path))
+            try
+            {
+                AssetDatabase.StartAssetEditing();
+
+                foreach (var asset in distinctGuids)
                 {
-                    AssetDatabase.ImportAsset(path);
+                    shaderIdx++;
+                    var path = AssetDatabase.GUIDToAssetPath(asset);
+                    EditorUtility.DisplayProgressBar("HD ShaderGraph Upgrader re-import", string.Format("({0} of {1}) {2}", shaderIdx, totalShaders, path), (float)shaderIdx / (float)totalShaders);
+
+                    if (CheckHDShaderGraphVersionsForUpgrade(path))
+                    {
+                        AssetDatabase.ImportAsset(path);
+                    }
                 }
             }
+            finally
+            {
+                // Ensure the AssetDatabase knows we're finished editing
+                AssetDatabase.StopAssetEditing();
+            }
+
             UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
@@ -261,6 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static List<string> s_CreatedAssets = new List<string>();
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
+        internal static Dictionary<string, int> s_ImportedMaterialCounter = new Dictionary<string, int>();
         internal static bool s_NeedsSavingAssets = false;
 
         // Important: This should only be called by the RegisterUpgraderReimport(), ie the shadegraph/material version
@@ -299,9 +325,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
-
-            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }
@@ -349,6 +372,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     // we would miss re-importing that dependency.
                     if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
                     {
+                        s_ImportedMaterialCounter.TryGetValue(asset, out var importCounter);
+                        s_ImportedMaterialCounter[asset] = ++importCounter;
+
+                        // CheckHDShaderGraphVersionsForUpgrade always return true if a ShaderGraph don't have an HDMetaData attached
+                        // we need a check to avoid importing the same assets over and over again.
+                        if (importCounter > 2)
+                            continue;
+
                         var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                         AssetDatabase.ImportAsset(shaderPath);
 
@@ -363,7 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
 
 
-                (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
+                (ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
 
                 bool isMaterialUsingPlugin = HDShaderUtils.GetMaterialPluginSubTarget(subTargetGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils);
@@ -454,12 +485,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public void OnPostprocessSpeedTree(GameObject speedTree)
-        {
-            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
-        }
-
         // Note: It is not possible to separate migration step by kind of shader
         // used. This is due that user can change shader that material reflect.
         // And when user do this, the material is not reimported and we have no
@@ -467,7 +492,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // So we must have migration step that work on every materials at once.
         // Which also means that if we want to update only one shader, we need
         // to bump all materials version...
-        static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
+        static internal Action<Material, ShaderID>[] k_Migrations = new Action<Material, ShaderID>[]
         {
             StencilRefactor,
             ZWriteForTransparent,
@@ -507,12 +532,12 @@ namespace UnityEditor.Rendering.HighDefinition
         //}
         //}
 
-        static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
+        static void StencilRefactor(Material material, ShaderID id)
         {
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void ZWriteForTransparent(Material material, HDShaderUtils.ShaderID id)
+        static void ZWriteForTransparent(Material material, ShaderID id)
         {
             // For transparent materials, the ZWrite property that is now used is _TransparentZWrite.
             if (material.GetSurfaceType() == SurfaceType.Transparent)
@@ -522,7 +547,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
-        static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
+        static void RenderQueueUpgrade(Material material, ShaderID id)
         {
             // Replace previous ray tracing render queue for opaque to regular opaque with raytracing
             if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
@@ -604,7 +629,7 @@ namespace UnityEditor.Rendering.HighDefinition
             "_RenderQueueType"  // Needed as seems to not reset correctly
         };
 
-        static void ShaderGraphStack(Material material, HDShaderUtils.ShaderID id)
+        static void ShaderGraphStack(Material material, ShaderID id)
         {
             Shader shader = material.shader;
 
@@ -639,7 +664,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, ShaderID id)
         {
             if (material.IsShaderGraph())
             {
@@ -665,16 +690,12 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void AlphaToMaskUIFix(Material material, HDShaderUtils.ShaderID id)
+        static void AlphaToMaskUIFix(Material material, ShaderID id)
         {
-            if (material.HasProperty(kAlphaToMask) && material.HasProperty(kAlphaToMaskInspector))
-            {
-                material.SetFloat(kAlphaToMaskInspector, material.GetFloat(kAlphaToMask));
-                HDShaderUtils.ResetMaterialKeywords(material);
-            }
+            // Not used anymore, alpha to mask option is removed
         }
 
-        static void MigrateDecalRenderQueue(Material material, HDShaderUtils.ShaderID id)
+        static void MigrateDecalRenderQueue(Material material, ShaderID id)
         {
             const string kSupportDecals = "_SupportDecals";
 
@@ -710,9 +731,9 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void ExposedDecalInputsFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        static void ExposedDecalInputsFromShaderGraph(Material material, ShaderID id)
         {
-            if (id == HDShaderUtils.ShaderID.Decal)
+            if (id == ShaderID.Decal)
             {
                 // In order for the new properties (kAffectsAlbedo...) to be taken into account, we need to make it dirty so that the parameter is created first
                 HDShaderUtils.ResetMaterialKeywords(material);
@@ -826,7 +847,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(s_MeshDecalsForwardEmissive, true);
             }
 
-            if (id == HDShaderUtils.ShaderID.SG_Decal)
+            if (id == ShaderID.SG_Decal)
             {
                 // We can't erase obsolete disabled pass from already existing Material, so we need to re-enable all of them
                 const string s_ShaderGraphMeshDecals4RT = "ShaderGraph_DBufferMesh4RT";
@@ -838,13 +859,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(s_ShaderGraphMeshDecalForwardEmissive, true);
             }
 
-            if (id == HDShaderUtils.ShaderID.Decal || id == HDShaderUtils.ShaderID.SG_Decal)
+            if (id == ShaderID.Decal || id == ShaderID.SG_Decal)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
         }
 
-        static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
+        static void FixIncorrectEmissiveColorSpace(Material material, ShaderID id)
         {
             // kEmissiveColorLDR wasn't correctly converted to linear color space.
             // so here we adjust the value of kEmissiveColorLDR to compensate. But only if not using a HDR Color
@@ -870,10 +891,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ExposeRefraction(Material material, HDShaderUtils.ShaderID id)
+        static void ExposeRefraction(Material material, ShaderID id)
         {
             // Lit SG now have a shader feature for refraction instead of an hardcoded material
-            if (id == HDShaderUtils.ShaderID.SG_Lit)
+            if (id == ShaderID.SG_Lit)
             {
                 // Sync the default refraction model from the shader graph to the shader
                 // We need to do this because the material may already have a refraction model information (from the Lit)
@@ -887,13 +908,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void MetallicRemapping(Material material, HDShaderUtils.ShaderID id)
+        static void MetallicRemapping(Material material, ShaderID id)
         {
             const string kMetallicRemapMax = "_MetallicRemapMax";
 
             // Lit shaders now have metallic remapping for the mask map
-            if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
-                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            if (id == ShaderID.Lit || id == ShaderID.LitTesselation
+                || id == ShaderID.LayeredLit || id == ShaderID.LayeredLitTesselation)
             {
                 const string kMetallic = "_Metallic";
                 if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))
@@ -902,7 +923,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     material.SetFloat(kMetallicRemapMax, metallic);
                 }
             }
-            else if (id == HDShaderUtils.ShaderID.Decal)
+            else if (id == ShaderID.Decal)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
                 var serializedMaterial = new SerializedObject(material);
@@ -921,11 +942,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
+        // This function below is not used anymore - the code have been removed - however we must maintain the function to keep already converted Material coherent
+        // As it doesn't do anything special, there is no problem to let it
+        static void ForceForwardEmissiveForDeferred(Material material, ShaderID id)
         {
             // Force Forward emissive for deferred pass is only setup for Lit shader
-            if (id == HDShaderUtils.ShaderID.SG_Lit || id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
-                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            if (id == ShaderID.SG_Lit || id == ShaderID.Lit || id == ShaderID.LitTesselation
+                || id == ShaderID.LayeredLit || id == ShaderID.LayeredLitTesselation)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
