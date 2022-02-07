@@ -204,10 +204,11 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            public enum Precision { Fixed = 0, Half = 1, Full = 2, Any = -1 }
-            public enum Primitive { Bool = 0, Int = 1, Float = 2, Any = -1 }
-            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1, }
-            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1, }
+            // 16 is a large number here to leave space
+            public enum Precision { Fixed = 0, Half = 1, Full = 2, Any = 16 }
+            public enum Primitive { Bool = 0, Int = 1, Float = 2, Any = 16 }
+            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = 16 }
+            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = 16 }
             public enum Usage { In, Out, Static, }
 
             public const string kPrimitive = "Primitive";

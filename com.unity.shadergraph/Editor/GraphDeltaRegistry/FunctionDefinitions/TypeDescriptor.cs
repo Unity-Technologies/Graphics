@@ -12,8 +12,8 @@ namespace com.unity.shadergraph.defs
         public Height Height { get; }
 
         public TypeDescriptor(
-            Primitive primitive,
             Precision precision,
+            Primitive primitive,
             Length length,
             Height height)
         {
