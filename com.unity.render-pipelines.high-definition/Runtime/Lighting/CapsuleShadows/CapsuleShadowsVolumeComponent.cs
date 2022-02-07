@@ -30,6 +30,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enableIndirectShadows = new BoolParameter(false);
 
         /// <summary>
+        /// The minimium amount of visibility that must remain after indirect shadows.
+        /// </summary>
+        public FloatParameter indirectMinVisibility = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
+
+        /// <summary>
         /// The range of indirect shadows from capsules, in multiples of the capsule radius.
         /// </summary>
         public FloatParameter indirectRangeFactor = new MinFloatParameter(4.0f, 0.0f);
@@ -42,8 +47,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The method used for ambient occlusion, if selected as the indirect shadowing method.
         /// </summary>
-        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.LineAndClosestSphere);
+        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.ClosestSphere);
 
+        /// <summary>
+        /// The angular diameter of the virtual light source when using directional indirect shadows.
+        /// </summary>
+        public ClampedFloatParameter indirectAngularDiameter = new ClampedFloatParameter(45.0f, 1.0f, 90.0f);
 
         CapsuleShadowsVolumeComponent()
         {

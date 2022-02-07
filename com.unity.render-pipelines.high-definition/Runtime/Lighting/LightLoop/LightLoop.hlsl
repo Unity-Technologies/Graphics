@@ -685,11 +685,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
         else
         {
-            aggregateLighting.indirect.shadow = 1.f - EvaluateCapsuleIndirectShadow(
-                _CapsuleIndirectDirection,
-                _CapsuleIndirectCosAngle,
-                posInput,
-                bsdfData.normalWS);
+            float3 indirectDir = float3(0.f, 1.f, 0.f);
+            float indirectCosAngle = _CapsuleIndirectCosAngle;
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+            APVResources apvRes = FillAPVResources();
+            float3 posWS = GetAbsolutePositionWS(posInput.positionWS);
+            APVSample apvSample = SampleAPV(posWS, bsdfData.normalWS, V);
+            if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+            {
+#if MANUAL_FILTERING == 0
+                apvSample.Decode();
+#endif
+                // use the "optimal linear" direction as the indirect direction
+                // ref: stupid SH tricks
+                float3 luma = float3(0.2126729, 0.7151522, 0.0721750);
+                indirectDir = normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
+            }
+#endif
+            float visibility = EvaluateCapsuleIndirectShadow(indirectDir, indirectCosAngle, posInput, bsdfData.normalWS);
+            aggregateLighting.indirect.shadow = lerp(1.f - _CapsuleIndirectMinimumVisibility, 0.f, visibility);
         }
     }
 

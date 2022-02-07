@@ -209,18 +209,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CapsuleDirectShadowCount = (uint)m_CapsuleOccluders.directCount;
             cb._CapsuleIndirectShadowCountAndFlags = indirectCountAndFlags;
             cb._CapsuleIndirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
-
-            var indirectShadowSettings = CapsuleIndirectShadowSettings.instance;
-            if (indirectShadowSettings != null)
-            {
-                cb._CapsuleIndirectDirection = indirectShadowSettings.transform.up;
-                cb._CapsuleIndirectCosAngle = Mathf.Cos(Mathf.Deg2Rad * indirectShadowSettings.angle);
-            }
-            else
-            {
-                cb._CapsuleIndirectDirection = Vector3.up;
-                cb._CapsuleIndirectCosAngle = Mathf.Cos(Mathf.Deg2Rad * 45.0f);
-            }
+            cb._CapsuleIndirectMinimumVisibility = capsuleShadows.indirectMinVisibility.value;
+            cb._CapsuleIndirectCosAngle = Mathf.Cos(Mathf.Deg2Rad * 0.5f * capsuleShadows.indirectAngularDiameter.value);
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)

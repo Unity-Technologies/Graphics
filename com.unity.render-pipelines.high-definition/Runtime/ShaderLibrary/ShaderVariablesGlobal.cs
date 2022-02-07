@@ -248,10 +248,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _CapsuleDirectShadowCount;
         public uint _CapsuleIndirectShadowCountAndFlags;
         public float _CapsuleIndirectRangeFactor;
-        public uint _CapsuleShadowPad0;
+        public float _CapsuleIndirectMinimumVisibility;
 
-        public Vector3 _CapsuleIndirectDirection;
         public float _CapsuleIndirectCosAngle;
+        public uint _CapsulePad0;
+        public uint _CapsulePad1;
+        public uint _CapsulePad2;
 
         public float _OffScreenDownsampleFactor;
         public uint _OffScreenRendering;

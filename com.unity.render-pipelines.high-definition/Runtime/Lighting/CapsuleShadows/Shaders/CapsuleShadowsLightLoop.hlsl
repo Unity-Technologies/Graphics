@@ -184,7 +184,7 @@ float EvaluateCapsuleIndirectShadow(
     float3 normalWS)
 {
     // hardcoded (probably cheapest) shadow function
-    uint flags = CAPSULESHADOWMETHOD_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+    uint flags = CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
