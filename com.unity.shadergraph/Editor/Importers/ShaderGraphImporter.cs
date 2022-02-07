@@ -876,7 +876,7 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentStringForVFX(property.concretePrecision.ToShaderString())}");
             }
 
-            inputProperties.AddRange(graph.categories.SelectMany(x => x.Children).OfType<AbstractShaderProperty>());
+            inputProperties.AddRange(graph.categories.SelectMany(x => x.Children).OfType<AbstractShaderProperty>().Where(x => x.isExposed));
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
