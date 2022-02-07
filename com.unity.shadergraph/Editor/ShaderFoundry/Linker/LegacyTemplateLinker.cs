@@ -567,11 +567,11 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (!string.IsNullOrEmpty(pass.lightMode))
                 {
-                    tagBuilder.AddLine("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
+                    tagBuilder.AddLine($"\"LightMode\" = \"{pass.lightMode}\"");
                 }
                 else
                 {
-                    tagBuilder.AddLine("LightMode", "// LightMode: <None>");
+                    tagBuilder.AddLine("// LightMode: <None>");
                 }
 
                 // Currently there is no location to insert pass tags. For now, insert all of the pass tags into the "LightMode" splice point.
