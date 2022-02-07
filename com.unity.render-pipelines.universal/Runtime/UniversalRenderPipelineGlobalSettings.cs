@@ -344,6 +344,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
 
+        [SerializeField] bool m_EnableRenderGraph = false;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public bool enableRenderGraph { get => m_EnableRenderGraph; set { m_EnableRenderGraph = value; } }
+
         #endregion
     }
 }

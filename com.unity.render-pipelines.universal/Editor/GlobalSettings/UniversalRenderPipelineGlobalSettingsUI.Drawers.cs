@@ -45,6 +45,15 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        static void DrawRenderGraphCheckBox(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                if (serialized is SerializedUniversalRenderPipelineGlobalSettings universalRenderPipelineGlobalSettings)
+                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.enableRenderGraph, Styles.enableRenderGraphLabel);
+            }
+        }
+
         static void OnContextClickLightLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
         {
             var menu = new GenericMenu();
@@ -73,11 +82,20 @@ namespace UnityEditor.Rendering.Universal
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
+        static readonly CED.IDrawer RenderGraphSection = CED.Group(
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawRenderGraphCheckBox),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
         #endregion
 
         public static readonly CED.IDrawer Inspector = CED.Group(
                 LightLayerNamesSection,
-                MiscSection
+                MiscSection,
+                RenderGraphSection
             );
     }
 }
