@@ -154,7 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: test/implement for other platforms.
             return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5NGGC &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
