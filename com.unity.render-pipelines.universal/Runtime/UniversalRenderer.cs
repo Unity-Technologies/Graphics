@@ -744,7 +744,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderPassInputs.requiresRenderingLayer)
             {
                 ref var renderingLayersTexture = ref m_DecalLayersTexture;
-                string renderingLayersTextureName = "_CameraDecalLayersTexture";
+                string renderingLayersTextureName = "_CameraRenderingLayersTexture";
 
                 if (this.actualRenderingMode == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                 {

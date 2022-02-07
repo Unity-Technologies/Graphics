@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // todo check if add normal here too
                 if (this.enableRenderingLayers)
-                    cmd.SetGlobalTexture("_CameraDecalLayersTexture", renderingLayersHandle);
+                    cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersHandle);
 
             }
             context.ExecuteCommandBuffer(cmd);
