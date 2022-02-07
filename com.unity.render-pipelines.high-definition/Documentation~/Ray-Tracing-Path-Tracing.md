@@ -25,9 +25,9 @@ Path tracing shares the general requirements and setup as other ray tracing effe
 Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature, and modify its properties, you must add a Path Tracing override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, select Add Override > Ray Tracing > Path Tracing.
-3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you do not see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
-4. If the image does not converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
+2. In the Inspector, select **Add Override** > **Ray Tracing** > **Path Tracing**.
+3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
+4. If the image doesn't converge over time, in the Scene view toolbar, select the drop-down next to the effect toggle and enable Always Refresh.
 
 ![](Images/RayTracingPathTracing3.png)
 
@@ -38,8 +38,8 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
-| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
-| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and very intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It is active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
+| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
+| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -67,23 +67,23 @@ For that reason, some parameters have no effect in path tracing, while others be
 
 ### Refraction model
 
-In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
+In the Lit family of materials, when the surface type is set to *Transparent*, you can select between None, Box, Sphere or Thin refraction models.
 
-For path tracing, the distinction between *Box* or *Sphere* is irrelevant (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, simulating alpha blending.
+For path tracing, the distinction between Box or Sphere is irrelevant (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, Thin conveys the same idea as its rasterized version, and None is a special case of thin refractive surface, simulating alpha blending.
 
 Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
 
 | Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
 |-------------------|---------------------------------------------------|---------------------------------------------------|
-| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode             |
-| *Thin*            | *Thin* object (e.g soap bubble or window)         | Double sided, with *Flip* or *Mirror* normal mode |
-| *None*            | *Thin* object, with smoothness = 1 and no Fresnel | Double sided, with *Flip* or *Mirror* normal mode |
+| Box or Sphere | Thick object (e.g magnifying paperweight)       | Double sided, with None normal mode             |
+| Thin            | Thin object (e.g soap bubble or window)         | Double sided, with Flip or Mirror normal mode |
+| None            | Thin object, with smoothness = 1 and no Fresnel | Double sided, with Flip or Mirror normal mode |
 
-The reason why normal mode should be set to *None* for *thick* objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
+The reason why normal mode should be set to None for thick objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
 
 ### Subsurface scattering
 
-In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be *Double-Sided* (any normal mode will do), in which case it will receive light from both sides.
+In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be Double-Sided (any normal mode will do), in which case it will receive light from both sides.
 
 Here is an example of a sheet of fabric, lit from below by a point light:
 
@@ -99,9 +99,9 @@ Double-sided + Transmission
 
 Path tracing can easily compute the complex multiple scattering events that occur within a head of hair, crucial for producing the volumetric look of lighter colored hair.
 
-The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it is required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
+The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it's required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
 
-Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure is not equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
+Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure isn't equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
 
 The path traced **Physical** hair mode shares the exact same meaning for its parameters as its rasterized counterpart. However, the underlying model for path tracing differs: it performs a much more rigorous evaluation of the scattering within the fiber, while the rasterized version is only an approximated version of this result. Additionally, path tracing a volume of densely packed hair fibers allows you to compute the complex multiple scattering "for free", whereas in rasterizing we again must approximate this.
 
@@ -117,24 +117,24 @@ There is no support for path tracing on platforms other than DX12 for now.
 
 HDRP path tracing in Unity 2020.2 has the following limitations:
 
-- If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
-- Does not support 3D Text and TextMeshPro.
-- Does not support decals.
-- Does not support tessellation.
-- Does not support Tube and Disc-shaped Area Lights.
-- Does not support Translucent Opaque Materials.
-- Does not support several of HDRP's Materials. This includes Eye, non-physical Hair and Decal.
-- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Does not support MSAA.
-- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
-- Does not support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
+- If a Mesh in your scene has a Material assigned that doesn't have the `HDRenderPipeline` tag, the mesh won't appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
+- Doesn't support 3D Text and TextMeshPro.
+- Doesn't support decals.
+- Doesn't support tessellation.
+- Doesn't support Tube and Disc-shaped Area Lights.
+- Doesn't support Translucent Opaque Materials.
+- Doesn't support several of HDRP's Materials. This includes Eye, non-physical Hair and Decal.
+- Doesn't support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
+- Doesn't support MSAA.
+- Doesn't support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+- Doesn't support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 ### Unsupported shader graph nodes for path tracing
 
 When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
 - DDX, DDY, DDXY, NormalFromHeight and HDSceneColor nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
-Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) are not supported in ray/path tracing.
+Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) aren't supported in ray/path tracing.
 
 ### Unsupported features of ray tracing
 
