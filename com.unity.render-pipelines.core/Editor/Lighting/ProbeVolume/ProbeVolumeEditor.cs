@@ -48,16 +48,24 @@ namespace UnityEditor.Experimental.Rendering
 
             probeVolume.mightNeedRebaking = hasChanges;
 
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
-            {
-                serializedObject.Update();
 
-                ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
+            if (ProbeReferenceVolume._GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+            {
+                EditorGUILayout.HelpBox("The Probe Volume feature is not supported when using Enlighten.", MessageType.Warning, wide: true);
             }
             else
             {
-                EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+                {
+                    serializedObject.Update();
+
+                    ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                }
             }
 
             m_SerializedProbeVolume.Apply();
