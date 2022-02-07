@@ -261,7 +261,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                 case RenderingPath.VertexLit:
                 case RenderingPath.Forward:
                     return RenderingMode.Forward;
-                case RenderingPath.DeferredLighting:
                 case RenderingPath.DeferredShading:
                     return RenderingMode.Deferred;
                 default:
