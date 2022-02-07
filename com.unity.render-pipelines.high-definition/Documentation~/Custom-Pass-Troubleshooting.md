@@ -6,10 +6,10 @@ This section provides examples of common issues you might encounter when using a
 
 ![](images/Custom_Pass_Troubleshooting_01.png)
 
-A scaling issue can appear in your built scene when you have two cameras that do not use the same resolution. This is most common between in-game and scene views. This can happen when:
+A scaling issue can appear in your built scene when you have two cameras that don't use the same resolution. This is most common between Game and Scene views. This can happen when:
 
 - Your code calls [CommandBuffer.SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html), and `CoreUtilsSetRenderTarget` sets the viewport.
-- You have not multiplied by `_RTHandleScale.xy` in your shader code for UVs when sampling an `RTHandle` buffer.
+- You haven't multiplied by `_RTHandleScale.xy` in your shader code for UVs when sampling an `RTHandle` buffer.
 
 To fix the causes in these cases:
 
@@ -34,7 +34,7 @@ To fix this:
 
 ## Jittering GameObjects
 
-In some cases when [Temporal anti-aliasing (TAA)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/Anti-Aliasing.html?q=anti#TAA) is enabled, some GameObjects appear to jitter.
+Sometimes when you enable [Temporal antialiasing (TAA)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/Anti-Aliasing.html?q=anti#TAA), some GameObjects appear to jitter.
 
 ![](images/Custom_Pass_Troubleshooting_02.gif)
 
@@ -50,13 +50,13 @@ The following conditions can cause particles in the scene to face the wrong dire
 - The particle system is only visible in a Custom Pass.
 - There is no override implemented for`AggregateCullingParameters`.
 
-Unity calculates the orientation of the particles in the Built-in Particle System when it executes `AggregateCullingParameters`  during the culling step. Therefore, if there is no override, HRDP does not render it properly.
+Unity calculates the orientation of the particles in the Built-in Particle System when it executes `AggregateCullingParameters`  during the culling step. This means if there is no override, HRDP doesn't render it properly.
 
-## Decals are not visible
+## Decals aren't visible
 
 The following conditions can make a decal in your scene invisible:
 
-- The decal is applied to a GameObject that Unity renders in a Custom Pass
+- You applied the decal to a GameObject that Unity renders in a Custom Pass
 - The decal is on a transparent object that Unity renders before the **AfterOpaqueDepthAndNormal** [Injection point](Custom-Pass-Injection-Points.md)
 
 To fix this issue, change the Injection point of the GameObject to any Injection Point after **AfterOpaqueDepthAndNormal**
@@ -77,11 +77,11 @@ You can then add more layers or custom culling options to the `cullingResult` yo
 
 ## Screen turns black when Unity loads shaders
 
-If your screen turns black when Unity loads shaders, this could be because Unity is trying to render a shader that is not referenced in the scene. This can happen when:
+If your screen turns black when Unity loads shaders, this could be because Unity is trying to render a shader that's not referenced in the scene. This can happen when:
 
 - The Custom Pass only uses `Shader.Find` to look for your shader.
-- Your shader is not in your project’s Resources folder.
-- Your shader is not referenced in the Custom Pass.
+- Your shader isn't in your project’s Resources folder.
+- Your shader isn't referenced in the Custom Pass.
 
 To fix this, you can add the following lines of code to reference your shader in the Custom Pass:
 

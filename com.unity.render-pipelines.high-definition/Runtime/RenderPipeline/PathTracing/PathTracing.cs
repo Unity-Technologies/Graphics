@@ -581,27 +581,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky Background for Path Tracing", out var passData))
-            {
-                passData.sunLight = GetMainLight();
-                passData.hdCamera = hdCamera;
-                passData.colorBuffer = builder.WriteTexture(skyBuffer);
-                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
-                passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
-                passData.skyManager = m_SkyManager;
+            // Override the exposure texture, as we need a neutral value for this render
+            SetGlobalTexture(renderGraph, HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
 
-                builder.SetRenderFunc(
-                    (RenderSkyPassData data, RenderGraphContext ctx) =>
-                    {
-                        // Override the exposure texture, as we need a neutral value for this render
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
+            m_SkyManager.RenderSky(renderGraph, hdCamera, skyBuffer, CreateDepthBuffer(renderGraph, true, MSAASamples.None), "Render Sky Background for Path Tracing");
 
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, ctx.cmd);
-
-                        // Restore the regular exposure texture
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(hdCamera));
-                    });
-            }
+            // Restore the regular exposure texture
+            SetGlobalTexture(renderGraph, HDShaderIDs._ExposureTexture, GetExposureTexture(hdCamera));
         }
 
         class RenderSkySamplingPassData

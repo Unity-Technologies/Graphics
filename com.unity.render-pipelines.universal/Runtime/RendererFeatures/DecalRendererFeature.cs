@@ -326,6 +326,8 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.WSA)
                 return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Switch)
+                return true;
             return false;
 #else
             return SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console;

@@ -186,6 +186,11 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
                 }
+
+                if (GetData().IsAttributeUsed(VFXAttribute.Alive))
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                }
             }
         }
 
