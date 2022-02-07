@@ -103,9 +103,10 @@ namespace UnityEngine.Experimental.Rendering
             var shL1GR1yDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
             var shL1B1zDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
 
-            var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var validityByteCountOld = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var validityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<byte>();
 
-            if ((shL0L1DataByteCountOld + shL0R1xDataByteCount + shL1GR1yDataByteCount + shL1B1zDataByteCount + validityByteCount) != cellData.Length)
+            if ((shL0L1DataByteCountOld + shL0R1xDataByteCount + shL1GR1yDataByteCount + shL1B1zDataByteCount + validityByteCountOld + validityByteCount) != cellData.Length)
                 return false;
 
             var offset = 0;
@@ -118,7 +119,10 @@ namespace UnityEngine.Experimental.Rendering
             var shL1BL1RzData = cellData.GetSubArray(offset, shL1B1zDataByteCount).Reinterpret<byte>(1);
             offset += shL1B1zDataByteCount;
 
-            var validityData = cellData.GetSubArray(offset, validityByteCount).Reinterpret<float>(1);
+            var validityDataOld = cellData.GetSubArray(offset, validityByteCountOld).Reinterpret<float>(1);
+            offset += validityByteCountOld;
+
+            var validityData = cellData.GetSubArray(offset, validityByteCount).Reinterpret<byte>(1);
 
 
             // Optional L2 data
@@ -171,7 +175,9 @@ namespace UnityEngine.Experimental.Rendering
                 cell.shL1GL1RyData = shL1GL1RyData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
                 cell.shL1BL1RzData = shL1BL1RzData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
 
-                cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                cell.validity = validityDataOld.GetSubArray(startCounts.probesCount, counts.probesCount);
+
+                cell.packedValidityData = validityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
 
                 if (hasOptionalData)
                 {

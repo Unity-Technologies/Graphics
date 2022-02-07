@@ -391,6 +391,7 @@ namespace UnityEngine.Experimental.Rendering
             public NativeArray<ushort> shL0L1RxData { get; internal set; }
             public NativeArray<byte> shL1GL1RyData { get; internal set; }
             public NativeArray<byte> shL1BL1RzData { get; internal set; }
+            public NativeArray<byte> packedValidityData { get; internal set; }
 
             public NativeArray<byte> shL2Data_0 { get; internal set; }
             public NativeArray<byte> shL2Data_1 { get; internal set; }
@@ -1363,6 +1364,9 @@ namespace UnityEngine.Experimental.Rendering
                     m_TemporaryDataLocation.TexL1_G_ry.Apply(false);
                     m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(chunkOffset, nativeArraySize), 0);
                     m_TemporaryDataLocation.TexL1_B_rz.Apply(false);
+
+                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.packedValidityData, 0);
+                    m_TemporaryDataLocation.TexValidity.Apply(false);
 
                     if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {

@@ -718,6 +718,22 @@ namespace UnityEngine.Experimental.Rendering
             sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
         }
 
+        unsafe static int PackValidity(float* validity)
+        {
+            int outputByte = 0;
+            for (int i = 0; i < 8; ++i)
+            {
+                int val = (validity[i] > 0.05f) ? 0 : 1;
+                outputByte |= (val << i);
+            }
+            return outputByte;
+        }
+
+        static Vector3Int GetSampleOffset(int i)
+        {
+            return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
+        }
+
         /// <summary>
         /// This method converts a list of baking cells into 5 separate assets:
         ///  2 assets per baking state:
@@ -728,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
+        unsafe static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
         {
             var asset = data.asset;
             asset.cells = new Cell[bakingCells.Count];
@@ -768,7 +784,9 @@ namespace UnityEngine.Experimental.Rendering
             using var probesL1GL1Ry = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var probesL1BL1Rz = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validityOld = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            using var packedValidity = new NativeArray<byte>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellOptionalData
             count = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? count : 0;
@@ -795,6 +813,10 @@ namespace UnityEngine.Experimental.Rendering
 
             int chunkOffset = 0;
             var chunkSize = ProbeBrickPool.GetChunkSizeInProbeCount() * 4;
+
+            int validityChunkOffset = 0;
+            var validityChunkSize = ProbeBrickPool.GetChunkSizeInProbeCount();
+            var tempValidityArray = new DynamicArray<float>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount());
 
             for (var i = 0; i < bakingCells.Count; ++i)
             {
@@ -827,6 +849,7 @@ namespace UnityEngine.Experimental.Rendering
                     var probesTargetL0L1Rx = probesL0L1Rx.GetSubArray(chunkOffset, chunkSize);
                     var probesTargetL1GL1Ry = probesL1GL1Ry.GetSubArray(chunkOffset, chunkSize);
                     var probesTargetL1BL1Rz = probesL1BL1Rz.GetSubArray(chunkOffset, chunkSize);
+                    var packedValidityChunkTarget = packedValidity.GetSubArray(validityChunkOffset, validityChunkSize);
 
                     NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
                     NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
@@ -864,6 +887,9 @@ namespace UnityEngine.Experimental.Rendering
                                     {
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
 
+                                        tempValidityArray[index] = 1.0f;
+                                        packedValidityChunkTarget[index] = 0;
+
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                             WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
                                     }
@@ -873,6 +899,8 @@ namespace UnityEngine.Experimental.Rendering
 
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
+
+                                        tempValidityArray[index] = bakingCell.validity[shidx];
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                         {
@@ -886,6 +914,7 @@ namespace UnityEngine.Experimental.Rendering
                                 }
                             }
                         }
+
                         // update the pool index
                         bx += ProbeBrickPool.kBrickProbeCountPerDim;
                         if (bx >= locSize.x)
@@ -899,11 +928,39 @@ namespace UnityEngine.Experimental.Rendering
                             }
                         }
                     }
+
+                    float* validities = stackalloc float[8];
+
+                    // This can be optimized later.
+                    for (int x = 0; x < locSize.x; ++x)
+                    {
+                        for (int y = 0; y < locSize.y; ++y)
+                        {
+                            for (int z = 0; z < locSize.z; ++z)
+                            {
+                                int index = x + locSize.x * (y + locSize.y * z);
+
+                                for (int o = 0; o < 8; ++o)
+                                {
+                                    Vector3Int off = GetSampleOffset(o);
+                                    Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, locSize.x - 1),
+                                                                          Mathf.Clamp(y + off.y, 0, locSize.y - 1),
+                                                                          Mathf.Clamp(z + off.z, 0, ProbeBrickPool.kBrickProbeCountPerDim - 1));
+                                    int validityIndex = samplePos.x + locSize.x * (samplePos.y + locSize.y * samplePos.z);
+                                    validities[o] = tempValidityArray[validityIndex];
+                                }
+
+                                packedValidityChunkTarget[index] = Convert.ToByte(PackValidity(validities));
+                            }
+                        }
+                    }
+
                     chunkOffset += chunkSize;
+                    validityChunkOffset += validityChunkSize;
                 }
 
+                validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
-                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
                 startCounts.Add(cellCounts);
@@ -928,7 +985,10 @@ namespace UnityEngine.Experimental.Rendering
                     fs.Write(new ReadOnlySpan<byte>(probesL1BL1Rz.GetUnsafeReadOnlyPtr(), probesL1BL1Rz.Length * UnsafeUtility.SizeOf<byte>()));
 
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new ReadOnlySpan<byte>(validityOld.GetUnsafeReadOnlyPtr(), validityOld.Length * UnsafeUtility.SizeOf<float>()));
+
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<byte>()));
                 }
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
