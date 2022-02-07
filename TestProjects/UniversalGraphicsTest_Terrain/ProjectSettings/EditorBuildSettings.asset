@@ -65,4 +65,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/230_Decal.unity
     guid: e04a7c287e4c08242a5511645a045ed4
+  - enabled: 1
+    path: Assets/Scenes/235_Tree_Billboard_Lighting.unity
+    guid: 69d6b5c3b9c5af642b9202a97b4e42e5
   m_configObjects: {}
