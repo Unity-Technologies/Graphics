@@ -45,7 +45,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2020.3
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -57,30 +57,33 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
@@ -117,28 +120,29 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
@@ -200,7 +204,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -212,30 +216,33 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
@@ -272,28 +279,29 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-         retries: 2
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr

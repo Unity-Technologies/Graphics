@@ -54,31 +54,32 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -124,31 +125,32 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -190,31 +192,32 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_20
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -287,31 +290,32 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -357,31 +361,32 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -423,31 +428,32 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
         TEST_FILTER: .*
     commands:
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-         retries: 2
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
