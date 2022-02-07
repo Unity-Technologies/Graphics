@@ -123,6 +123,12 @@ float4 _ShadowBias; // x: depth bias, y: normal bias
 
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
+// Should match: UnityEngine.Rendering.Universal + 1
+#define SOFT_SHADOW_QUALITY_OFF    half(0.0)
+#define SOFT_SHADOW_QUALITY_LOW    half(1.0)
+#define SOFT_SHADOW_QUALITY_MEDIUM half(2.0)
+#define SOFT_SHADOW_QUALITY_HIGH   half(3.0)
+
 struct ShadowSamplingData
 {
     half4 shadowOffset0;
@@ -209,7 +215,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
 {
     real attenuation = real(1.0);
 
-    if (samplingData.softShadowQuality == half(1.0)) // Low
+    if (samplingData.softShadowQuality == SOFT_SHADOW_QUALITY_LOW)
     {
         // 4-tap hardware comparison
         real4 attenuation4;
@@ -219,7 +225,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
         attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.zw, 0)));
         attenuation = dot(attenuation4, real(0.25));
     }
-    else if(samplingData.softShadowQuality == half(2.0)) // Medium
+    else if(samplingData.softShadowQuality == SOFT_SHADOW_QUALITY_MEDIUM)
     {
         real fetchesWeights[9];
         real2 fetchesUV[9];
@@ -235,7 +241,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
                     + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
                     + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
     }
-    else // High
+    else // SOFT_SHADOW_QUALITY_HIGH
     {
         real fetchesWeights[16];
         real2 fetchesUV[16];
@@ -272,7 +278,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real shadowStrength = shadowParams.x;
 
 #if (_SHADOWS_SOFT)
-    if(shadowParams.y > 0)
+    if(shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
     {
         attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
     }
