@@ -237,7 +237,7 @@ void TracePath()
             payload.remainingDepth = _RaytracingMaxRecursion - iter;
 
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, payload.ray, payload);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, payload.ray, payload);
 
             // Add the value for this path segment
             value += payload.value;

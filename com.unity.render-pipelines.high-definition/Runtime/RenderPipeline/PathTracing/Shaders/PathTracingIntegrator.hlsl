@@ -222,6 +222,9 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
                 // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
+                // TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                //          RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
+
 
                 // Apply material absorption to our throughput
                 pathIntersection.throughput = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, pathIntersection.throughput);
@@ -238,7 +241,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     pathIntersection.value += pathIntersection.throughput * lightValue * misWeight;
                 }
 
-                // Update our payload to fire the next continuation ray (we know tHit at that point)
+                // Update our payload to fire the next continuation ray (we know tHit already)
                 pathIntersection.ray.Origin = rayDescriptor.Origin;
                 pathIntersection.ray.Direction = rayDescriptor.Direction;
                 pathIntersection.ray.TMin = nextPathIntersection.t - _RaytracingRayBias;
@@ -379,6 +382,10 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     {
         IgnoreHit();
     }
+    // else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2) // FIXME: SegmentID
+    // {
+    //     pathIntersection.t = min(RayTCurrent(), pathIntersection.t);
+    // }
     else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 1) // FIXME: SegmentID
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT

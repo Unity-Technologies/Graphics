@@ -50,7 +50,7 @@ float GetHeightFogTransmittance(float3 origin, float3 direction, float t)
     return TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight, _HeightFogExponents, direction.y, origin.y, min(t, _MaxFogDistance));
 }
 
-float GetHeightFogColor(float3 direction, float t)
+float3 GetHeightFogColor(float3 direction, float t)
 {
     return GetFogColor(-direction, min(t, _MaxFogDistance)) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
 }
