@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader materialError;
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
+            public Shader probeVolumeOffsetDebugShader;
             [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
             public ComputeShader clearDebugBufferCS;
 
@@ -170,6 +172,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
+
+            // Water
+            [Reload("Runtime/Water/WaterSimulation.compute")]
+            public ComputeShader waterSimulationCS;
+            [Reload("Runtime/Water/FourierTransform.compute")]
+            public ComputeShader fourierTransformCS;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
+            public Shader waterPS;
+            [Reload("Runtime/Water/WaterLighting.compute")]
+            public ComputeShader waterLightingCS;
+            [Reload("Runtime/Water/WaterCaustics.shader")]
+            public Shader waterCausticsPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -440,6 +454,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
             public Texture3D perlinNoise32RGB;
 
+            // Water textures
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
+            public Texture2D foamSurface;
+
             // Post-processing
             [Reload(new[]
             {
@@ -489,6 +507,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh sphereMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
             public Mesh probeDebugSphere;
+            [Reload("pyramid.fbx", ReloadAttribute.Package.Builtin)]
+            public Mesh pyramidMesh;
         }
 
         public ShaderResources shaders;

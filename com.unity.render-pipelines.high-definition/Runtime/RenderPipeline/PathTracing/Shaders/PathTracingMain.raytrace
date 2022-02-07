@@ -1,4 +1,4 @@
-// We need N bounces given that we want to support complex light paths
+// Set the max recursion depth to the desired user-facing value + 1
 #pragma max_recursion_depth 11
 
 // HDRP include
@@ -20,18 +20,30 @@
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 
 // Input(s)
-float4x4 _PixelCoordToViewDirWS;
-int      _RaytracingCameraSkyEnabled;
-float4   _RaytracingCameraClearColor;
 TEXTURE2D_X(_SkyCameraTexture);
-float4   _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
-float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
+float4x4    _PixelCoordToViewDirWS;
+int         _PathTracingCameraSkyEnabled;
+float4      _PathTracingCameraClearColor;
+float4      _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
+float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+
+float4 GetCameraMissValue(uint2 xy)
+{
+    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
+        _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+}
+
+float3 GetMaterialMissValue()
+{
+    return IsSkyEnabled() ? GetSkyValue(WorldRayDirection()) : 0.0;
+}
 
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
@@ -44,9 +56,9 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
-    float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
-    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    float4 missColor = GetCameraMissValue(pathIntersection.pixelCoord);
+
+    pathIntersection.value = missColor.rgb;
     pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);
@@ -87,13 +99,29 @@ void MissLight(inout PathIntersection pathIntersection : SV_RayPayload)
 [shader("miss")]
 void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
 {
-    if ((_RaytracingMaxRecursion - pathIntersection.remainingDepth) < _RaytracingMinRecursion)
+    if (IsSkySamplingEnabled() || GetCurrentDepth(pathIntersection) < _RaytracingMinRecursion)
     {
         pathIntersection.value = 0.0;
         return;
     }
 
-    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb : 0.0;
+    pathIntersection.value = GetMaterialMissValue();
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
+}
+
+[shader("miss")]
+void MissTransparentUnlitMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
+{
+    int currentDepth = GetCurrentDepth(pathIntersection);
+
+    if (currentDepth < _RaytracingMinRecursion)
+    {
+        pathIntersection.value = 0.0;
+        return;
+    }
+
+    // Misses from Transparent Unlit are special in that they always are straight up continuation rays
+    pathIntersection.value = currentDepth > 1 ? GetMaterialMissValue() : GetCameraMissValue(pathIntersection.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 

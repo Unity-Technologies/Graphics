@@ -30,7 +30,9 @@ Varyings ProjectShadow(Attributes v)
     // Start of code to see if this point should be extruded
     float3 lightDirection = normalize(lightDir);
 
-    float3 endpoint = vertexWS + (_ShadowRadius * -lightDirection);
+
+    float  adjShadowRadius = 1.4143 * _ShadowRadius;  // Needed as our shadow fits like a circumscribed box around our light radius
+    float3 endpoint = vertexWS + (adjShadowRadius * -lightDirection);
 
     float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
     float sharedShadowTest = saturate(ceil(dot(lightDirection, worldTangent)));
@@ -49,7 +51,7 @@ Varyings ProjectShadow(Attributes v)
     float3 shadowDir = normalize(shadowDir0 + shadowDir1);
 
 
-    float3 sharedShadowOffset = sharedShadowTest * _ShadowRadius * shadowDir;
+    float3 sharedShadowOffset = sharedShadowTest * adjShadowRadius * shadowDir;
 
     float3 position;
     position = vertexWS + sharedShadowOffset;

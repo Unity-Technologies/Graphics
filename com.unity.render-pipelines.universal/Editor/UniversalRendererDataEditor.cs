@@ -4,8 +4,11 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>UniversalRendererData</c> class.
+    /// </summary>
     [CustomEditor(typeof(UniversalRendererData), true)]
-    public class UniversalRendererDataEditor : ScriptableRendererDataEditor
+    internal class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {
         private static class Styles
         {
@@ -34,7 +37,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
             public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
-            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -50,7 +52,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
-        SerializedProperty m_IntermediateTextureMode;
 
 #if URP_ENABLE_CLUSTERED_UI
         static bool s_EnableClusteredUI => true;
@@ -73,7 +74,6 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
         }
 
         public override void OnInspectorGUI()
@@ -168,14 +168,6 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.invalidStencilOverride.text, MessageType.Error, true);
             }
 
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            {
-                EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
-            }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

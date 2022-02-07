@@ -61,21 +61,17 @@ namespace UnityEditor.Rendering.Universal
         #region Misc Settings
 
         static readonly CED.IDrawer MiscSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.miscSettingsLabel)),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawMiscSettings),
+            CED.Group((serialized, owner) => RenderPipelineGlobalSettingsUI.DrawShaderStrippingSettings(serialized, owner, CoreEditorDrawer<ISerializedRenderPipelineGlobalSettings>.Group((s, e) =>
+            {
+                if (s is SerializedUniversalRenderPipelineGlobalSettings universalRenderPipelineGlobalSettings)
+                {
+                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripDebugVariants, Styles.stripDebugVariantsLabel);
+                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
+                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
+                }
+            }))),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
-
-        static void DrawMiscSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
-                EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
-                EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
-            }
-        }
 
         #endregion
 

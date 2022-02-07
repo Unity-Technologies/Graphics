@@ -30,7 +30,7 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.ObjectSpaceBiTangent:                     output.ObjectSpaceBiTangent = TransformWorldToObjectDir(output.WorldSpaceBiTangent);
     $SurfaceDescriptionInputs.ViewSpaceBiTangent:                       output.ViewSpaceBiTangent = TransformWorldToViewDir(output.WorldSpaceBiTangent);
     $SurfaceDescriptionInputs.TangentSpaceBiTangent:                    output.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);
-    $SurfaceDescriptionInputs.WorldSpaceViewDirection:                  output.WorldSpaceViewDirection = normalize(input.viewDirectionWS);
+    $SurfaceDescriptionInputs.WorldSpaceViewDirection:                  output.WorldSpaceViewDirection = GetWorldSpaceNormalizeViewDir(input.positionWS);
     $SurfaceDescriptionInputs.ObjectSpaceViewDirection:                 output.ObjectSpaceViewDirection = TransformWorldToObjectDir(output.WorldSpaceViewDirection);
     $SurfaceDescriptionInputs.ViewSpaceViewDirection:                   output.ViewSpaceViewDirection = TransformWorldToViewDir(output.WorldSpaceViewDirection);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection:                float3x3 tangentSpaceTransform = float3x3(output.WorldSpaceTangent, output.WorldSpaceBiTangent, output.WorldSpaceNormal);
@@ -96,7 +96,6 @@ void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
     result.pos = varyings.positionCS;
     $Varyings.positionWS:       result.worldPos = varyings.positionWS;
     $Varyings.normalWS:         result.worldNormal = varyings.normalWS;
-    $Varyings.viewDirectionWS:  result.viewDir = varyings.viewDirectionWS;
     // World Tangent isn't an available input on v2f_surf
 
     $Varyings.shadowCoord:      result._ShadowCoord = varyings.shadowCoord;

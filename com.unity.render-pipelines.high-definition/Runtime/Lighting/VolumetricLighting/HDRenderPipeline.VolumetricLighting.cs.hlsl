@@ -39,7 +39,6 @@ CBUFFER_START(ShaderVariablesVolumetric)
     uint _VBufferHistoryIsValid;
     float4 _VBufferSampleOffset;
     float4 _VolumeMaskDimensions;
-    float4 _AmbientProbeCoeffs[7];
     float _VBufferVoxelSize;
     float _HaveToPad;
     float _OtherwiseTheBuffer;

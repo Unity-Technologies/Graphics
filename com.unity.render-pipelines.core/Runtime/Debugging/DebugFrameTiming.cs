@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Debug frame timings class
+    /// </summary>
     public class DebugFrameTiming
     {
         const string k_FpsFormatString = "{0:F1}";
@@ -29,6 +32,9 @@ namespace UnityEngine.Rendering
         FrameTiming[] m_Timing = new FrameTiming[1];
         FrameTimeSample m_Sample = new FrameTimeSample();
 
+        /// <summary>
+        /// Constructs the debug frame timing
+        /// </summary>
         public DebugFrameTiming()
         {
             m_FrameHistory = new FrameTimeSampleHistory(sampleHistorySize);

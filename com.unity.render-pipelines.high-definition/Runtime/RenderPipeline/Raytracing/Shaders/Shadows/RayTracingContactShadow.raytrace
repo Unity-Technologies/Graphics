@@ -30,7 +30,7 @@
 TEXTURE2D_X(_DepthTexture);
 
 [shader("miss")]
-void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadows(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     rayIntersection.color = float3(1.0, 1.0, 1.0);
 }
@@ -52,8 +52,8 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
         // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
         ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-        // Create and init the RayIntersection structure for this
-        RayIntersection rayIntersection;
+        // Create and init the RayIntersectionVisibility structure for this
+        RayIntersectionVisibility rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         rayIntersection.pixelCoord = posInput.positionSS;
 

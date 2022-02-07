@@ -10,12 +10,10 @@
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
 // Define the correct matrices
+#ifndef UNITY_DOTS_INSTANCING_ENABLED
+
 #undef unity_ObjectToWorld
 #undef unity_MatrixPreviousM
-#undef unity_MatrixVP
-float4x4 unity_MatrixV;
-float4x4 unity_MatrixVP;
-float4x4 glstate_matrix_projection;
 
 #undef UNITY_MATRIX_M
 #define UNITY_MATRIX_M unity_ObjectToWorld
@@ -28,6 +26,13 @@ float4x4 glstate_matrix_projection;
 
 #undef UNITY_PREV_MATRIX_I_M
 #define UNITY_PREV_MATRIX_I_M Inverse(unity_MatrixPreviousM)
+
+#endif
+
+#undef unity_MatrixVP
+float4x4 unity_MatrixV;
+float4x4 unity_MatrixVP;
+float4x4 glstate_matrix_projection;
 
 #undef UNITY_MATRIX_V
 #define UNITY_MATRIX_V unity_MatrixV

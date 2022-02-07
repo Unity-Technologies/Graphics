@@ -1,4 +1,5 @@
 // using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -49,6 +50,9 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresPosition =>
             ((type == ConversionType.Position) && ((from == CoordinateSpace.Tangent) || (to == CoordinateSpace.Tangent)) && (from != to)) ?
                 NeededCoordinateSpace.World : NeededCoordinateSpace.None;
+
+        public IEnumerable<NeededTransform> RequiresTransform =>
+            SpaceTransformUtil.ComputeTransformRequirement(this);
     };
 
     static class SpaceTransformUtil
@@ -370,6 +374,20 @@ namespace UnityEditor.ShaderGraph
                 Identity,               // to CoordinateSpace.AbsoluteWorld
             }
         };
+
+        internal static IEnumerable<NeededTransform> ComputeTransformRequirement(SpaceTransform xform)
+        {
+            var func = k_TransformFunctions[(int)xform.from, (int)xform.to];
+            if (func == ViaWorld || func == ObjectToAbsoluteWorld)
+            {
+                yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), NeededCoordinateSpace.World);
+                yield return new NeededTransform(NeededCoordinateSpace.World, xform.to.ToNeededCoordinateSpace());
+            }
+            else
+            {
+                yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), xform.to.ToNeededCoordinateSpace());
+            }
+        }
 
         public static void GenerateTransformCodeStatement(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
         {

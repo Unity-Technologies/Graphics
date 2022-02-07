@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(ChromaticAberration))]
+    [CustomEditor(typeof(ChromaticAberration))]
     sealed class ChromaticAberrationEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_SpectralLUT;

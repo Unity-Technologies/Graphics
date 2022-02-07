@@ -105,14 +105,15 @@ namespace UnityEditor.VFX.UI
                 float radius = resolvedStyle.borderTopLeftRadius;
 
                 float realBorder = style.borderLeftWidth.value * view.scale;
+                float opacity = resolvedStyle.opacity;
 
                 Vector4 size = new Vector4(layout.width * .5f, layout.height * 0.5f, 0, 0);
                 m_Mat.SetVector("_Size", size);
                 m_Mat.SetFloat("_Border", realBorder < 1.75f ? 1.75f / view.scale : style.borderLeftWidth.value);
                 m_Mat.SetFloat("_Radius", radius);
 
-                m_Mat.SetColor("_ColorStart", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor);
-                m_Mat.SetColor("_ColorEnd", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? endColor.gamma : endColor);
+                m_Mat.SetColor("_ColorStart", ((QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor) * opacity);
+                m_Mat.SetColor("_ColorEnd", ((QualitySettings.activeColorSpace == ColorSpace.Linear) ? endColor.gamma : endColor) * opacity);
 
                 m_Mat.SetPass(0);
 

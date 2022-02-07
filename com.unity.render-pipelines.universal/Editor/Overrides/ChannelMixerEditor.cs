@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(ChannelMixer))]
+    [CustomEditor(typeof(ChannelMixer))]
     sealed class ChannelMixerEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RedOutRedIn;

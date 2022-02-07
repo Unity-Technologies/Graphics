@@ -1,6 +1,6 @@
 # What's new in HDRP version 13 / Unity 2022.1
 
-This page contains an overview of new features, improvements, and issues resolved in version 12 of the High Definition Render Pipeline (HDRP), embedded in Unity 2021.2.
+This page contains an overview of new features, improvements, and issues resolved in version 13 of the High Definition Render Pipeline (HDRP), embedded in Unity 2022.1.
 
 ## Added
 
@@ -20,6 +20,16 @@ For more information, see the [Material Scripting API documentation](Material-AP
 
 From HDRP version 13.0, [ShaderGraph](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/index.html) includes a new node called *Main Light Direction* that you can use to control the direction of the main light.
 For more information, see the [Main Light Direction Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html).
+
+### HDR Output Support
+
+HDRP 13.0 introduces support for HDR display output, including both the HDR10 and scRGB standards.
+
+As a result, HDRP is now able to take advantage of the higher brightness contrast and wider color gamut capabilities of HDR displays.
+
+This functionality includes a variety of customization options for adapting content for a variety of displays based on device metadata or user preferences.
+
+For more information consult the [HDR Output](HDR-Output.md) documentation
 
 ## Updated
 

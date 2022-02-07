@@ -649,20 +649,27 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, int prevVariantsCount, int currVariantsCount, double stripTimeMs)
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount, double stripTimeMs)
         {
-            if (logLevel == ShaderVariantLogLevel.AllShaders || shader.name.Contains("Universal Render Pipeline"))
-            {
-                float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
-                float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
+            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.Disabled)
+                return;
 
-                string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                    " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
-                    shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                    prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                    percentageTotal, stripTimeMs);
-                Debug.Log(result);
-            }
+            m_TotalVariantsInputCount += prevVariantsCount;
+            m_TotalVariantsOutputCount += currVariantsCount;
+
+            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.OnlySRPShaders &&
+                !shader.name.Contains("Universal Render Pipeline"))
+                return;
+
+            float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
+            float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
+
+            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
+                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
+                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                percentageTotal, stripTimeMs);
+            Debug.Log(result);
         }
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
@@ -721,12 +728,7 @@ namespace UnityEditor.Rendering.Universal
             double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
             m_stripTimer.Reset();
 
-            if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
-            {
-                m_TotalVariantsInputCount += prevVariantCount;
-                m_TotalVariantsOutputCount += compilerDataList.Count;
-                LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count, stripTimeMs);
-            }
+            LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count, stripTimeMs);
 
 #if PROFILE_BUILD
             Profiler.EndSample();
@@ -940,7 +942,7 @@ namespace UnityEditor.Rendering.Universal
                 if (renderer is UniversalRenderer)
                 {
                     UniversalRenderer universalRenderer = (UniversalRenderer)renderer;
-                    if (universalRenderer.renderingMode == RenderingMode.Deferred)
+                    if (universalRenderer.renderingModeRequested == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
                         accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;

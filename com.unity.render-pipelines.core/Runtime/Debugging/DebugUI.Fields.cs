@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -357,6 +358,17 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Object PopupField
+        /// </summary>
+        public class ObjectPopupField : Field<Object>
+        {
+            /// <summary>
+            /// Callback to obtain the elemtents of the pop up
+            /// </summary>
+            public Func<IEnumerable<Object>> getObjects { get; set; }
+        }
+
+        /// <summary>
         /// Enumerator field with history.
         /// </summary>
         public class HistoryEnumField : EnumField
@@ -559,8 +571,17 @@ namespace UnityEngine.Rendering
             /// </summary>
             public enum Style
             {
+                /// <summary>
+                /// Info category
+                /// </summary>
                 Info,
+                /// <summary>
+                /// Warning category
+                /// </summary>
                 Warning,
+                /// <summary>
+                /// Error category
+                /// </summary>
                 Error
             }
 
