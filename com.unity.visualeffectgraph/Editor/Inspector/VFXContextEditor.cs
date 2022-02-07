@@ -249,7 +249,7 @@ class VFXContextEditor : VFXSlotContainerEditor
         {
             if (target is VFXContext context)
             {
-                var label = string.IsNullOrEmpty(context.label) ?  context.letter.ToString() : context.label;
+                var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
                 GUIStyle style = null;
                 switch (context.contextType)
                 {
