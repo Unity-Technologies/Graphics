@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.UI
     /// <summary>
     /// Base class for handling UI actions for widgets.
     /// </summary>
+    /// <typeparam name="T">Base type for the field</typeparam>
     public abstract class DebugUIHandlerField<T> : DebugUIHandlerWidget
         where T : DebugUI.Widget
     {
