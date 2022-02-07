@@ -8,7 +8,7 @@ To configure HDRP to output an alpha channel:
 2. Go to **Rendering** > **Color Buffer Format**.
 3. Select **R16G16B16A16**.
 
-**Note**: Enabling this option incurs a performance overhead. 
+**Note**: Enabling this option incurs a performance overhead.
 
 In HDRP, opaque materials always output 1 in the alpha channel, unless you enable [Alpha Clipping](Alpha-Clipping.md). If you want to export the alpha of an opaque material, one solution is to enable **Alpha Clipping** and set the Threshold to 0.
 
