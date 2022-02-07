@@ -62,14 +62,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_ColorTargetIndentifiers == null)
-            {
-                // Todo configure reset function here
-                ConfigureTarget(-1, -1);
-                overrideCameraTarget = false;
-                return;
-            }
-            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
-            //ConfigureClear(ClearFlag.None, Color.black); // todo?
+                ResetTarget();
+            else
+                ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
         }
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)

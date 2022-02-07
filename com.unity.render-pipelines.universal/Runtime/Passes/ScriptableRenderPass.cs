@@ -413,6 +413,30 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Resets render targets to default.
+        /// This method effectively reset changes done by ConfigureTarget.
+        /// </summary>
+        /// <seealso cref="ConfigureTarget"/>
+        public void ResetTarget()
+        {
+            overrideCameraTarget = false;
+            m_UsesRTHandles = true;
+
+            // Reset depth
+            m_DepthAttachmentId = -1;
+            m_DepthAttachment = null;
+
+            // Reset colors
+            m_ColorAttachments[0] = null;
+            m_ColorAttachmentIds[0] = -1;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = null;
+                m_ColorAttachmentIds[i] = 0;
+            }
+        }
+
+        /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
