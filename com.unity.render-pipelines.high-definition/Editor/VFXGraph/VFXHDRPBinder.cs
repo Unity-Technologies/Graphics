@@ -226,6 +226,16 @@ namespace UnityEditor.VFX.HDRP
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                 },
 
+                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
+                {
+                    //Irrelevant multicompile from instancing in VFX context
+                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
+                },
+
                 fieldDependencies = ElementSpaceDependencies,
                 useFragInputs = true
             };
