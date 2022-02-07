@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
-            public static GUIContent hdrColorBufferPrecisionText = EditorGUIUtility.TrTextContent("HDR Precision", "Controls the camera render target (total) bitdepth in HDR rendering. 32-bits is the default. 64-bits can reduce banding artifacts at the cost of memory and performance.");
+            public static GUIContent hdrColorBufferPrecisionText = EditorGUIUtility.TrTextContent("HDR Precision", "Controls the precision of the camera color buffer in HDR rendering. 32-bits is the default. 64-bits can reduce banding artifacts at the cost of memory and performance.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
             public static GUIContent upscalingFilterText = EditorGUIUtility.TrTextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.");
