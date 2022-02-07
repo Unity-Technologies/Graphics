@@ -818,6 +818,15 @@ namespace UnityEngine.Experimental.Rendering
             var validityChunkSize = ProbeBrickPool.GetChunkSizeInProbeCount();
             var tempValidityArray = new DynamicArray<float>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount());
 
+            // Init SH with values that will resolve to black
+            var blackSH = new SphericalHarmonicsL2();
+            for (int channel = 0; channel < 3; ++channel)
+            {
+                blackSH[channel, 0] = 0.0f;
+                for (int coeff = 1; coeff < 9; ++coeff)
+                    blackSH[channel, coeff] = 0.5f;
+            }
+
             for (var i = 0; i < bakingCells.Count; ++i)
             {
                 var bakingCell = bakingCells[i];
@@ -830,8 +839,6 @@ namespace UnityEngine.Experimental.Rendering
                 var inputProbesCount = cellCounts.probesCount;
                 // Size of the DataLocation used to do the copy texture at runtime. Used to generate the right layout for the 3D texture.
                 Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
-
-                var blackSH = new SphericalHarmonicsL2();
 
                 int shidx = 0;
 
