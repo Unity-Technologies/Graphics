@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 // AxF Material Data:
 //
@@ -111,4 +112,10 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
 float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
 {
     return value;
+}
+
+void GetAOVData(MaterialData mtlData, out AOVData aovData)
+{
+    aovData.albedo = mtlData.bsdfData.diffuseColor;
+    aovData.normal = mtlData.bsdfData.normalWS;
 }
