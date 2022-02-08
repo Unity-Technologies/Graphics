@@ -18,18 +18,18 @@ float2 DemuxFloat(float x)
 
 // --------------------------------------------------------------------------------------
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
 #if 0
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
-    bsdfData.h = -1 + 2 * InterleavedGradientNoise(pathIntersection.pixelCoord, _RaytracingSampleIndex);
+    bsdfData.h = -1 + 2 * InterleavedGradientNoise(payload.pixelCoord, _RaytracingSampleIndex);
 #endif
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Kajiya not supported.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
@@ -37,7 +37,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
+    ProcessBSDFData(payload, builtinData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
     mtlData.V = -WorldRayDirection();

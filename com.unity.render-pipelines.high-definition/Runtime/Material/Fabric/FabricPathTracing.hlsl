@@ -14,11 +14,11 @@
 // bsdfWeight1  Spec GGX BRDF
 // bsdfWeight2  Diffuse BTDF
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
-    bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
+    bsdfData.roughnessT = max(payload.maxRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB = max(payload.maxRoughness, bsdfData.roughnessB);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
@@ -27,11 +27,11 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     }
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
+    ProcessBSDFData(payload, builtinData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
     mtlData.V = -WorldRayDirection();
@@ -66,7 +66,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
     if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
-        float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - pathIntersection.maxRoughness);
+        float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - payload.maxRoughness);
 
         mtlData.isSubsurface = theSample < subsurfaceWeight;
         if (mtlData.isSubsurface)
@@ -78,7 +78,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
             SSS::Result subsurfaceResult;
             float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, hasTransmission))
+            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, payload.pixelCoord, subsurfaceResult, hasTransmission))
                 return false;
 
             shadingPosition = subsurfaceResult.exitPosition;

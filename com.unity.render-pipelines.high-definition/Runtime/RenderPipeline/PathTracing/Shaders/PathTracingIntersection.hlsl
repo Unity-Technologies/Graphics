@@ -16,7 +16,7 @@
 #define SEGMENT_ID_TRANSMISSION (~0 - 0)
 #define SEGMENT_ID_RANDOM_WALK  (~0 - 1)
 
-// Structure that defines the current state of the intersection, for path tracing
+// Path Tracing Payload
 struct PathIntersection
 {
     //
@@ -40,35 +40,35 @@ struct PathIntersection
     float   rayTHit;      // Ray parameter, used either for current or next hit
 };
 
-void SetContinuationRayOrigin(float3 origin, out PathIntersection pathIntersection)
+void SetContinuationRayOrigin(float3 origin, out PathIntersection payload)
 {
     // Alias inputs we don't need at that stage
-    pathIntersection.pixelCoord = asuint(origin.xy);
-    pathIntersection.segmentID = asuint(origin.z);
+    payload.pixelCoord = asuint(origin.xy);
+    payload.segmentID = asuint(origin.z);
 }
 
-float3 GetContinuationRayOrigin(PathIntersection pathIntersection)
+float3 GetContinuationRayOrigin(PathIntersection payload)
 {
     // Alias inputs we don't need at that stage
-    return float3(asfloat(pathIntersection.pixelCoord),
-                  asfloat(pathIntersection.segmentID));
+    return float3(asfloat(payload.pixelCoord),
+                  asfloat(payload.segmentID));
 }
 
-void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathIntersection pathIntersection)
+void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathIntersection payload)
 {
-    SetContinuationRayOrigin(origin, pathIntersection);
-    pathIntersection.rayDirection = direction;
-    pathIntersection.rayTHit = tHit;
+    SetContinuationRayOrigin(origin, payload);
+    payload.rayDirection = direction;
+    payload.rayTHit = tHit;
 }
 
-void GetContinuationRay(PathIntersection pathIntersection, out RayDesc ray)
+void GetContinuationRay(PathIntersection payload, out RayDesc ray)
 {
-    ray.Origin = GetContinuationRayOrigin(pathIntersection);
-    ray.Direction = pathIntersection.rayDirection;
-    if (pathIntersection.rayTHit > 0.0)
+    ray.Origin = GetContinuationRayOrigin(payload);
+    ray.Direction = payload.rayDirection;
+    if (payload.rayTHit > 0.0)
     {
-        ray.TMin = pathIntersection.rayTHit - _RaytracingRayBias;
-        ray.TMax = pathIntersection.rayTHit + _RaytracingRayBias;
+        ray.TMin = payload.rayTHit - _RaytracingRayBias;
+        ray.TMax = payload.rayTHit + _RaytracingRayBias;
     }
     else // Use default values
     {

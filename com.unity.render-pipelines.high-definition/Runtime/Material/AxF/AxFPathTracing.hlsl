@@ -20,13 +20,13 @@ float GetSpecularCoeffSum(MaterialData mtlData)
 }
 #endif
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
-    bsdfData.roughness.x = max(pathIntersection.maxRoughness, bsdfData.roughness.x);
-    bsdfData.roughness.y = max(pathIntersection.maxRoughness, bsdfData.roughness.y);
+    bsdfData.roughness.x = max(payload.maxRoughness, bsdfData.roughness.x);
+    bsdfData.roughness.y = max(payload.maxRoughness, bsdfData.roughness.y);
 #ifdef _AXF_BRDF_TYPE_CAR_PAINT
-    bsdfData.roughness.z = max(pathIntersection.maxRoughness, bsdfData.roughness.z);
+    bsdfData.roughness.z = max(payload.maxRoughness, bsdfData.roughness.z);
 #endif
 
     // One of the killer features of AxF, optional specular Fresnel...
@@ -46,13 +46,13 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #endif
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.V = -WorldRayDirection();
     mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData, mtlData.bsdfData);
+    ProcessBSDFData(payload, builtinData, mtlData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
 

@@ -82,16 +82,16 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 }
 
 // Function responsible for volume scattering
-void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
+void ComputeVolumeScattering(inout PathIntersection payload : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
 {
-    // Reset the ray intersection color, which will store our final result
-    pathIntersection.value = 0.0;
+    // Reset the payload color, which will store our final result
+    payload.value = 0.0;
 
     // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = pathIntersection.segmentID >= _RaytracingMinRecursion - 1;
+    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
 
     // Compute the scattering position
-    float3 scatteringPosition = WorldRayOrigin() + pathIntersection.rayTHit * WorldRayDirection();
+    float3 scatteringPosition = WorldRayOrigin() + payload.rayTHit * WorldRayDirection();
 
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
@@ -103,7 +103,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     ray.Origin = scatteringPosition;
     ray.TMin = 0.0;
 
-    PathIntersection nextPathIntersection;
+    PathIntersection shadowPayload;
 
     // Light sampling
     if (computeDirect)
@@ -116,15 +116,15 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
             if (Luminance(value) > 0.001)
             {
                 // Shoot a transmission ray
-                pathIntersection.segmentID = SEGMENT_ID_TRANSMISSION;
+                payload.segmentID = SEGMENT_ID_TRANSMISSION;
                 ray.TMax -= _RaytracingRayBias;
-                nextPathIntersection.value = 1.0;
+                shadowPayload.value = 1.0;
 
                 // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, nextPathIntersection);
+                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
-                pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity);
+                payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity);
             }
         }
     }
