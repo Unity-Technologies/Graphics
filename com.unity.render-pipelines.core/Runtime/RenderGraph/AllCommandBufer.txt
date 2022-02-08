@@ -1,0 +1,200 @@
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
+
+namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+{
+    class BaseCommandBuffer
+    {
+        protected CommandBuffer m_wrapped;
+
+        public BaseCommandBuffer(CommandBuffer wrapped)
+        {
+            m_wrapped = wrapped;
+        }
+
+        // Global shader variable setup
+        public void SetGlobalFloat(string name, float value) => m_wrapped.SetGlobalFloat(name, value);
+        public void SetGlobalInt(string name, int value) => m_wrapped.SetGlobalInt(name, value);
+        public void SetGlobalInteger(string name, int value) => m_wrapped.SetGlobalInteger(name, value);
+        public void SetGlobalVector(string name, Vector4 value) => m_wrapped.SetGlobalVector(name, value);
+        public void SetGlobalColor(string name, Color value) => m_wrapped.SetGlobalColor(name, value);
+        public void SetGlobalMatrix(string name, Matrix4x4 value) => m_wrapped.SetGlobalMatrix(name, value);
+        public void SetGlobalFloatArray(string propertyName, List<float> values) => m_wrapped.SetGlobalFloatArray(propertyName, values);
+        public void SetGlobalFloatArray(int nameID, List<float> values) => m_wrapped.SetGlobalFloatArray(nameID, values);
+        public void SetGlobalFloatArray(string propertyName, float[] values) => m_wrapped.SetGlobalFloatArray(propertyName, values);
+        public void SetGlobalVectorArray(string propertyName, List<Vector4> values) => m_wrapped.SetGlobalVectorArray(propertyName, values);
+        public void SetGlobalVectorArray(int nameID, List<Vector4> values) => m_wrapped.SetGlobalVectorArray(nameID, values);
+        public void SetGlobalVectorArray(string propertyName, Vector4[] values) => m_wrapped.SetGlobalVectorArray(propertyName, values);
+        public void SetGlobalMatrixArray(string propertyName, List<Matrix4x4> values) => m_wrapped.SetGlobalMatrixArray(propertyName, values);
+        public void SetGlobalMatrixArray(int nameID, List<Matrix4x4> values) => m_wrapped.SetGlobalMatrixArray(nameID, values);
+        public void SetGlobalMatrixArray(string propertyName, Matrix4x4[] values) => m_wrapped.SetGlobalMatrixArray(propertyName, values);
+        public void SetGlobalTexture(string name, RenderTargetIdentifier value) => m_wrapped.SetGlobalTexture(name, value);
+        public void SetGlobalTexture(int nameID, RenderTargetIdentifier value) => m_wrapped.SetGlobalTexture(nameID, value);
+        public void SetGlobalTexture(string name, RenderTargetIdentifier value, RenderTextureSubElement element) => m_wrapped.SetGlobalTexture(name, value, element);
+        public void SetGlobalTexture(int nameID, RenderTargetIdentifier value, RenderTextureSubElement element) => m_wrapped.SetGlobalTexture(nameID, value, element);
+        public void SetGlobalBuffer(string name, ComputeBuffer value) => m_wrapped.SetGlobalBuffer(name, value);
+        public void SetGlobalBuffer(int nameID, ComputeBuffer value) => m_wrapped.SetGlobalBuffer(nameID, value);
+        public void SetGlobalBuffer(string name, GraphicsBuffer value) => m_wrapped.SetGlobalBuffer(name, value);
+        public void SetGlobalBuffer(int nameID, GraphicsBuffer value) => m_wrapped.SetGlobalBuffer(nameID, value);
+        public void SetGlobalConstantBuffer(ComputeBuffer buffer, int nameID, int offset, int size) => m_wrapped.SetGlobalConstantBuffer(buffer, nameID, offset, size);
+        public void SetGlobalConstantBuffer(ComputeBuffer buffer, string name, int offset, int size) => m_wrapped.SetGlobalConstantBuffer(buffer, name, offset, size);
+        public void SetGlobalConstantBuffer(GraphicsBuffer buffer, int nameID, int offset, int size) => m_wrapped.SetGlobalConstantBuffer(buffer, nameID, offset, size);
+        public void SetGlobalConstantBuffer(GraphicsBuffer buffer, string name, int offset, int size) => m_wrapped.SetGlobalConstantBuffer(buffer, name, offset, size);
+
+        // Compute parameter setup
+        public void SetComputeFloatParam(ComputeShader computeShader, string name, float val) => m_wrapped.SetComputeFloatParam(computeShader, name, val);
+        public void SetComputeIntParam(ComputeShader computeShader, string name, int val) => m_wrapped.SetComputeFloatParam(computeShader, name, val);
+        public void SetComputeVectorArrayParam(ComputeShader computeShader, string name, Vector4[] values) => m_wrapped.SetComputeVectorArrayParam(computeShader, name, values);
+        public void SetComputeMatrixParam(ComputeShader computeShader, string name, Matrix4x4 val) => m_wrapped.SetComputeMatrixParam(computeShader, name, val);
+        public void SetComputeMatrixArrayParam(ComputeShader computeShader, string name, Matrix4x4[] values) => m_wrapped.SetComputeMatrixArrayParam(computeShader, name, values);
+        public void SetComputeFloatParams(ComputeShader computeShader, string name, params float[] values) => m_wrapped.SetComputeFloatParams(computeShader, name, values);
+        public void SetComputeFloatParams(ComputeShader computeShader, int nameID, params float[] values) => m_wrapped.SetComputeFloatParams(computeShader, nameID, values);
+        public void SetComputeIntParams(ComputeShader computeShader, string name, params int[] values) => m_wrapped.SetComputeIntParams(computeShader, name, values);
+        public void SetComputeIntParams(ComputeShader computeShader, int nameID, params int[] values) => m_wrapped.SetComputeIntParams(computeShader, nameID, values);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, string name, RenderTargetIdentifier rt) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, name, rt);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, int nameID, RenderTargetIdentifier rt) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, nameID, rt);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, string name, RenderTargetIdentifier rt, int mipLevel) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, name, rt, mipLevel);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, int nameID, RenderTargetIdentifier rt, int mipLevel) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, nameID, rt, mipLevel);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, string name, RenderTargetIdentifier rt, int mipLevel, RenderTextureSubElement element) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, name, rt, mipLevel, element);
+        public void SetComputeTextureParam(ComputeShader computeShader, int kernelIndex, int nameID, RenderTargetIdentifier rt, int mipLevel, RenderTextureSubElement element) => m_wrapped.SetComputeTextureParam(computeShader, kernelIndex, nameID, rt, mipLevel, element);
+        public void SetComputeBufferParam(ComputeShader computeShader, int kernelIndex, int nameID, ComputeBuffer buffer) => m_wrapped.SetComputeBufferParam(computeShader, kernelIndex, nameID, buffer);
+        public void SetComputeBufferParam(ComputeShader computeShader, int kernelIndex, string name, ComputeBuffer buffer) => m_wrapped.SetComputeBufferParam(computeShader, kernelIndex, name, buffer);
+        public void SetComputeBufferParam(ComputeShader computeShader, int kernelIndex, int nameID, GraphicsBuffer buffer) => m_wrapped.SetComputeBufferParam(computeShader, kernelIndex, nameID, buffer);
+        public void SetComputeBufferParam(ComputeShader computeShader, int kernelIndex, string name, GraphicsBuffer buffer) => m_wrapped.SetComputeBufferParam(computeShader, kernelIndex, name, buffer);
+        public void SetComputeConstantBufferParam(ComputeShader computeShader, int nameID, ComputeBuffer buffer, int offset, int size) => m_wrapped.SetComputeConstantBufferParam(computeShader, nameID, buffer, offset, size);
+        public void SetComputeConstantBufferParam(ComputeShader computeShader, string name, ComputeBuffer buffer, int offset, int size) => m_wrapped.SetComputeConstantBufferParam(computeShader, name, buffer, offset, size);
+        public void SetComputeConstantBufferParam(ComputeShader computeShader, int nameID, GraphicsBuffer buffer, int offset, int size) => m_wrapped.SetComputeConstantBufferParam(computeShader, nameID, buffer, offset, size);
+        public void SetComputeConstantBufferParam(ComputeShader computeShader, string name, GraphicsBuffer buffer, int offset, int size) => m_wrapped.SetComputeConstantBufferParam(computeShader, name, buffer, offset, size);
+
+        // Execute a compute shader.
+        public void DispatchCompute(ComputeShader computeShader, int kernelIndex, int threadGroupsX, int threadGroupsY, int threadGroupsZ) => m_wrapped.DispatchCompute(computeShader, kernelIndex, threadGroupsX, threadGroupsY, threadGroupsZ);
+        public void DispatchCompute(ComputeShader computeShader, int kernelIndex, ComputeBuffer indirectBuffer, uint argsOffset) => m_wrapped.DispatchCompute(computeShader, kernelIndex, indirectBuffer, argsOffset);
+        public void DispatchCompute(ComputeShader computeShader, int kernelIndex, GraphicsBuffer indirectBuffer, uint argsOffset) => m_wrapped.DispatchCompute(computeShader, kernelIndex, indirectBuffer, argsOffset);
+
+        // Raytracing functions
+        public void BuildRayTracingAccelerationStructure(RayTracingAccelerationStructure accelerationStructure) => m_wrapped.BuildRayTracingAccelerationStructure(accelerationStructure);
+        public void BuildRayTracingAccelerationStructure(RayTracingAccelerationStructure accelerationStructure, Vector3 relativeOrigin) => m_wrapped.BuildRayTracingAccelerationStructure(accelerationStructure, relativeOrigin);
+        public void SetRayTracingAccelerationStructure(RayTracingShader rayTracingShader, string name, RayTracingAccelerationStructure rayTracingAccelerationStructure) => m_wrapped.SetRayTracingAccelerationStructure(rayTracingShader, name, rayTracingAccelerationStructure);
+        public void SetRayTracingAccelerationStructure(RayTracingShader rayTracingShader, int nameID, RayTracingAccelerationStructure rayTracingAccelerationStructure) => m_wrapped.SetRayTracingAccelerationStructure(rayTracingShader, nameID, rayTracingAccelerationStructure);
+        public void SetRayTracingBufferParam(RayTracingShader rayTracingShader, string name, ComputeBuffer buffer) => m_wrapped.SetRayTracingBufferParam(rayTracingShader, name, buffer);
+        public void SetRayTracingBufferParam(RayTracingShader rayTracingShader, int nameID, ComputeBuffer buffer) => m_wrapped.SetRayTracingBufferParam(rayTracingShader, nameID, buffer);
+        public void SetRayTracingConstantBufferParam(RayTracingShader rayTracingShader, int nameID, ComputeBuffer buffer, int offset, int size) => m_wrapped.SetRayTracingConstantBufferParam(rayTracingShader, nameID, buffer, offset, size);
+        public void SetRayTracingConstantBufferParam(RayTracingShader rayTracingShader, string name, ComputeBuffer buffer, int offset, int size) => m_wrapped.SetRayTracingConstantBufferParam(rayTracingShader, name, buffer, offset, size);
+        public void SetRayTracingConstantBufferParam(RayTracingShader rayTracingShader, int nameID, GraphicsBuffer buffer, int offset, int size) => m_wrapped.SetRayTracingConstantBufferParam(rayTracingShader, nameID, buffer, offset, size);
+        public void SetRayTracingConstantBufferParam(RayTracingShader rayTracingShader, string name, GraphicsBuffer buffer, int offset, int size) => m_wrapped.SetRayTracingConstantBufferParam(rayTracingShader, name, buffer, offset, size);
+        public void SetRayTracingTextureParam(RayTracingShader rayTracingShader, string name, RenderTargetIdentifier rt) => m_wrapped.SetRayTracingTextureParam(rayTracingShader, name, rt);
+        public void SetRayTracingTextureParam(RayTracingShader rayTracingShader, int nameID, RenderTargetIdentifier rt) => m_wrapped.SetRayTracingTextureParam(rayTracingShader, nameID, rt);
+        public void SetRayTracingFloatParam(RayTracingShader rayTracingShader, string name, float val) => m_wrapped.SetRayTracingFloatParam(rayTracingShader, name, val);
+        public void SetRayTracingFloatParam(RayTracingShader rayTracingShader, int nameID, float val) => m_wrapped.SetRayTracingFloatParam(rayTracingShader, nameID, val);
+        public void SetRayTracingFloatParams(RayTracingShader rayTracingShader, string name, params float[] values) => m_wrapped.SetRayTracingFloatParams(rayTracingShader, name, values);
+        public void SetRayTracingFloatParams(RayTracingShader rayTracingShader, int nameID, params float[] values) => m_wrapped.SetRayTracingFloatParams(rayTracingShader, nameID, values);
+        public void SetRayTracingIntParam(RayTracingShader rayTracingShader, string name, int val) => m_wrapped.SetRayTracingIntParam(rayTracingShader, name, val);
+        public void SetRayTracingIntParam(RayTracingShader rayTracingShader, int nameID, int val) => m_wrapped.SetRayTracingIntParam(rayTracingShader, nameID, val);
+        public void SetRayTracingIntParams(RayTracingShader rayTracingShader, string name, params int[] values) => m_wrapped.SetRayTracingIntParams(rayTracingShader, name, values);
+        public void SetRayTracingIntParams(RayTracingShader rayTracingShader, int nameID, params int[] values) => m_wrapped.SetRayTracingIntParams(rayTracingShader, nameID, values);
+        public void SetRayTracingVectorParam(RayTracingShader rayTracingShader, string name, Vector4 val) => m_wrapped.SetRayTracingVectorParam(rayTracingShader, name, val);
+        public void SetRayTracingVectorParam(RayTracingShader rayTracingShader, int nameID, Vector4 val) => m_wrapped.SetRayTracingVectorParam(rayTracingShader, nameID, val);
+        public void SetRayTracingVectorArrayParam(RayTracingShader rayTracingShader, string name, params Vector4[] values) => m_wrapped.SetRayTracingVectorArrayParam(rayTracingShader, name, values);
+        public void SetRayTracingVectorArrayParam(RayTracingShader rayTracingShader, int nameID, params Vector4[] values) => m_wrapped.SetRayTracingVectorArrayParam(rayTracingShader, nameID, values);
+        public void SetRayTracingMatrixParam(RayTracingShader rayTracingShader, string name, Matrix4x4 val) => m_wrapped.SetRayTracingMatrixParam(rayTracingShader, name, val);
+        public void SetRayTracingMatrixParam(RayTracingShader rayTracingShader, int nameID, Matrix4x4 val) => m_wrapped.SetRayTracingMatrixParam(rayTracingShader, nameID, val);
+        public void SetRayTracingMatrixArrayParam(RayTracingShader rayTracingShader, string name, params Matrix4x4[] values) => m_wrapped.SetRayTracingMatrixArrayParam(rayTracingShader, name, values);
+        public void SetRayTracingMatrixArrayParam(RayTracingShader rayTracingShader, int nameID, params Matrix4x4[] values) => m_wrapped.SetRayTracingMatrixArrayParam(rayTracingShader, nameID, values);
+        public void DispatchRays(RayTracingShader rayTracingShader, string rayGenName, UInt32 width, UInt32 height, UInt32 depth, Camera camera = null) => m_wrapped.DispatchRays(rayTracingShader, rayGenName, width, height, depth, camera = null);
+
+        // Copies and compute like things
+        public void GenerateMips(RenderTargetIdentifier rt) => m_wrapped.GenerateMips(rt);
+        public void GenerateMips(RenderTexture rt) => m_wrapped.GenerateMips(rt);
+        public void ResolveAntiAliasedSurface(RenderTexture rt, RenderTexture target = null) => m_wrapped.ResolveAntiAliasedSurface(rt, target = null);
+
+        public void CopyTexture(RenderTargetIdentifier src, RenderTargetIdentifier dst) => m_wrapped.CopyTexture(src, dst);
+        public void CopyTexture(RenderTargetIdentifier src, int srcElement, RenderTargetIdentifier dst, int dstElement) => m_wrapped.CopyTexture(src, srcElement, dst, dstElement);
+        public void CopyTexture(RenderTargetIdentifier src, int srcElement, int srcMip, RenderTargetIdentifier dst, int dstElement, int dstMip) => m_wrapped.CopyTexture(src, srcElement, srcMip, dst, dstElement, dstMip);
+        public void CopyTexture(RenderTargetIdentifier src, int srcElement, int srcMip, int srcX, int srcY, int srcWidth, int srcHeight, RenderTargetIdentifier dst, int dstElement, int dstMip, int dstX, int dstY) => m_wrapped.CopyTexture(src, srcElement, srcMip, srcX, srcY, srcWidth, srcHeight, dst, dstElement, dstMip, dstX, dstY);
+
+        public void CopyBuffer(GraphicsBuffer source, GraphicsBuffer dest) => m_wrapped.CopyBuffer(source, dest);
+
+        public void Blit(Texture source, RenderTargetIdentifier dest) => m_wrapped.Blit(source, dest);
+        public void Blit(Texture source, RenderTargetIdentifier dest, Vector2 scale, Vector2 offset) => m_wrapped.Blit(source, dest, scale, offset);
+        public void Blit(Texture source, RenderTargetIdentifier dest, Material mat) => m_wrapped.Blit(source, dest, mat);
+        public void Blit(Texture source, RenderTargetIdentifier dest, Material mat, int pass) => m_wrapped.Blit(source, dest, mat, pass);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest) => m_wrapped.Blit(source, dest);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, Vector2 scale, Vector2 offset) => m_wrapped.Blit(source, dest, scale, offset);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, Material mat) => m_wrapped.Blit(source, dest, mat);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, Material mat, int pass) => m_wrapped.Blit(source, dest, mat, pass);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, int sourceDepthSlice, int destDepthSlice) => m_wrapped.Blit(source, dest, sourceDepthSlice, destDepthSlice);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, Vector2 scale, Vector2 offset, int sourceDepthSlice, int destDepthSlice) => m_wrapped.Blit(source, dest, scale, offset, sourceDepthSlice, destDepthSlice);
+        public void Blit(RenderTargetIdentifier source, RenderTargetIdentifier dest, Material mat, int pass, int destDepthSlice) => m_wrapped.Blit(source, dest, mat, pass, destDepthSlice);
+
+        // Rasterization commands
+        public void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, [DefaultValue("0")] int submeshIndex, [DefaultValue("-1")] int shaderPass, [DefaultValue("null")] MaterialPropertyBlock properties) => m_wrapped.DrawMesh(mesh, matrix, material, submeshIndex, shaderPass, properties);
+        [ExcludeFromDocs]
+        public void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex, int shaderPass) => m_wrapped.DrawMesh(mesh, matrix, material, submeshIndex, shaderPass);
+        [ExcludeFromDocs]
+        public void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex) => m_wrapped.DrawMesh(mesh, matrix, material, submeshIndex);
+        [ExcludeFromDocs]
+        public void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material) => m_wrapped.DrawMesh(mesh, matrix, material)
+        public void DrawRenderer(Renderer renderer, Material material, [DefaultValue("0")] int submeshIndex, [DefaultValue("-1")] int shaderPass) => m_wrapped.DrawRenderer(renderer, material, submeshIndex, shaderPass);
+        [ExcludeFromDocs]
+        public void DrawRenderer(Renderer renderer, Material material, int submeshIndex) => m_wrapped.DrawRenderer(renderer, material, submeshIndex);
+        [ExcludeFromDocs]
+        public void DrawRenderer(Renderer renderer, Material material) => m_wrapped.DrawRenderer(renderer, material);
+        public void DrawRendererList(RendererUtils.RendererList rendererList) => m_wrapped.DrawRendererList(rendererList);
+        public void DrawProcedural(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int vertexCount, [DefaultValue("1")] int instanceCount, [DefaultValue("null")] MaterialPropertyBlock properties) => m_wrapped.DrawProcedural(matrix, material, shaderPass, topology, vertexCount, instanceCount, properties);
+        [ExcludeFromDocs]
+        public void DrawProcedural(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int vertexCount, int instanceCount) => m_wrapped.DrawProcedural(matrix, material, shaderPass, topology, vertexCount, instanceCount);
+        [ExcludeFromDocs]
+        public void DrawProcedural(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int vertexCount) => m_wrapped.DrawProcedural(matrix, material, shaderPass, topology, vertexCount);
+        public void DrawProcedural(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int indexCount, int instanceCount, MaterialPropertyBlock properties) => m_wrapped.DrawProcedural(indexBuffer, matrix, material, shaderPass, topology, indexCount, instanceCount, properties);
+        public void DrawProcedural(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int indexCount, int instanceCount) => m_wrapped.DrawProcedural(indexBuffer, matrix, material, shaderPass, topology, indexCount, instanceCount);
+        public void DrawProcedural(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int indexCount) => m_wrapped.DrawProcedural(indexBuffer, matrix, material, shaderPass, topology, indexCount);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs, argsOffset, properties);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs, argsOffset);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs, argsOffset, properties);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs, argsOffset);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, ComputeBuffer bufferWithArgs) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs, argsOffset, properties);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs, argsOffset);
+        public void DrawProceduralIndirect(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs) => m_wrapped.DrawProceduralIndirect(matrix, material, shaderPass, topology, bufferWithArgs);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs, argsOffset, properties);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs, argsOffset);
+        public void DrawProceduralIndirect(GraphicsBuffer indexBuffer, Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, GraphicsBuffer bufferWithArgs) => m_wrapped.DrawProceduralIndirect(indexBuffer, matrix, material, shaderPass, topology, bufferWithArgs);
+        public void DrawMeshInstanced(Mesh mesh, int submeshIndex, Material material, int shaderPass, Matrix4x4[] matrices, int count, MaterialPropertyBlock properties) => m_wrapped.DrawMeshInstanced(mesh, submeshIndex, material, shaderPass, matrices, count, properties);
+        public void DrawMeshInstanced(Mesh mesh, int submeshIndex, Material material, int shaderPass, Matrix4x4[] matrices, int count) => m_wrapped.DrawMeshInstanced(mesh, submeshIndex, material, shaderPass, matrices, count);
+        public void DrawMeshInstanced(Mesh mesh, int submeshIndex, Material material, int shaderPass, Matrix4x4[] matrices) => m_wrapped.DrawMeshInstanced(mesh, submeshIndex, material, shaderPass, matrices);
+        public void DrawMeshInstancedProcedural(Mesh mesh, int submeshIndex, Material material, int shaderPass, int count, MaterialPropertyBlock properties = null) => m_wrapped.DrawMeshInstancedProcedural(mesh, submeshIndex, material, shaderPass, count, properties = null);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, ComputeBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs, argsOffset, properties);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, ComputeBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs, argsOffset);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, ComputeBuffer bufferWithArgs) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, GraphicsBuffer bufferWithArgs, int argsOffset, MaterialPropertyBlock properties) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs, argsOffset, properties);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, GraphicsBuffer bufferWithArgs, int argsOffset) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs, argsOffset);
+        public void DrawMeshInstancedIndirect(Mesh mesh, int submeshIndex, Material material, int shaderPass, GraphicsBuffer bufferWithArgs) => m_wrapped.DrawMeshInstancedIndirect(mesh, submeshIndex, material, shaderPass, bufferWithArgs);
+        public void DrawOcclusionMesh(RectInt normalizedCamViewport) => m_wrapped.DrawOcclusionMesh(normalizedCamViewport);
+
+        // UAV binding
+        public void SetRandomWriteTarget(int index, RenderTargetIdentifier rt) => m_wrapped.SetRandomWriteTarget(index, rt);
+        public void SetRandomWriteTarget(int index, ComputeBuffer buffer, bool preserveCounterValue) => m_wrapped.SetRandomWriteTarget(index, buffer, preserveCounterValue);
+        public void SetRandomWriteTarget(int index, ComputeBuffer buffer) => m_wrapped.SetRandomWriteTarget(index, buffer);
+        public void SetRandomWriteTarget(int index, GraphicsBuffer buffer, bool preserveCounterValue) => m_wrapped.SetRandomWriteTarget(index, buffer, preserveCounterValue);
+        public void SetRandomWriteTarget(int index, GraphicsBuffer buffer) => m_wrapped.SetRandomWriteTarget(index, buffer);
+
+        // Counters
+        public void CopyCounterValue(ComputeBuffer src, ComputeBuffer dst, uint dstOffsetBytes) => m_wrapped.CopyCounterValue(src, dst, dstOffsetBytes);
+        public void CopyCounterValue(GraphicsBuffer src, ComputeBuffer dst, uint dstOffsetBytes) => m_wrapped.CopyCounterValue(src, dst, dstOffsetBytes);
+        public void CopyCounterValue(ComputeBuffer src, GraphicsBuffer dst, uint dstOffsetBytes) => m_wrapped.CopyCounterValue(src, dst, dstOffsetBytes);
+        public void CopyCounterValue(GraphicsBuffer src, GraphicsBuffer dst, uint dstOffsetBytes) => m_wrapped.CopyCounterValue(src, dst, dstOffsetBytes);
+
+        // Misc bits
+        public void SetShadowSamplingMode(UnityEngine.Rendering.RenderTargetIdentifier shadowmap, ShadowSamplingMode mode) => m_wrapped.SetShadowSamplingMode(shadowmap, mode);
+        public void SetSinglePassStereo(SinglePassStereoMode mode) => m_wrapped.SetSinglePassStereo(mode);
+        public void IssuePluginEvent(IntPtr callback, int eventID) => m_wrapped.IssuePluginEvent(callback, eventID);
+        public void IssuePluginEventAndData(IntPtr callback, int eventID, IntPtr data) => m_wrapped.IssuePluginEventAndData(callback, eventID, data);
+        public void IssuePluginCustomBlit(IntPtr callback, uint command, UnityEngine.Rendering.RenderTargetIdentifier source, UnityEngine.Rendering.RenderTargetIdentifier dest, uint commandParam, uint commandFlags) => m_wrapped.IssuePluginCustomBlit(callback, command, source, dest, commandParam, commandFlags);
+        public void IssuePluginCustomTextureUpdateV2(IntPtr callback, Texture targetTexture, uint userData) => m_wrapped.IssuePluginCustomTextureUpdateV2(callback, targetTexture, userData);
+        public void ProcessVTFeedback(RenderTargetIdentifier rt, IntPtr resolver, int slice, int x, int width, int y, int height, int mip) => m_wrapped.ProcessVTFeedback(rt, resolver, slice, x, width, y, height, mip);
+    }
+}

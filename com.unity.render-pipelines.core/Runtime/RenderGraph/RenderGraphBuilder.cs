@@ -4,12 +4,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    using RenderGraphBuilder = BaseRenderGraphBuilder<RenderGraphContext>;
+
     /// <summary>
     /// Use this struct to set up a new Render Pass.
     /// </summary>
-    public struct RenderGraphBuilder : IDisposable
+    public struct BaseRenderGraphBuilder<ContextType> : IDisposable where ContextType : IRenderGraphContext
     {
-        RenderGraphPass m_RenderPass;
+        RenderGraphPass<ContextType> m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
         RenderGraph m_RenderGraph;
         bool m_Disposed;
@@ -200,9 +202,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
         /// <param name="renderFunc">Render function for the pass.</param>
-        public void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new()
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ContextType> renderFunc) where PassData : class, new()
         {
-            ((RenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
+            ((RenderGraphPass<PassData, ContextType>)m_RenderPass).renderFunc = renderFunc;
         }
 
         /// <summary>
@@ -260,7 +262,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
-        internal RenderGraphBuilder(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
+        internal BaseRenderGraphBuilder(RenderGraphPass<ContextType> renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
         {
             m_RenderPass = renderPass;
             m_Resources = resources;

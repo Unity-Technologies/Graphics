@@ -24,19 +24,54 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ReadWrite = Read | Write,
     }
 
+    public interface IRenderGraphContext
+    {
+
+    }
+
     /// <summary>
-    /// This class specifies the context given to every render pass.
+    /// Generic base class for different command buffer types.
     /// </summary>
-    public class RenderGraphContext
+    public class BaseRenderGraphContext<T> : IRenderGraphContext where T : class
     {
         ///<summary>Scriptable Render Context used for rendering.</summary>
         public ScriptableRenderContext renderContext;
         ///<summary>Command Buffer used for rendering.</summary>
-        public CommandBuffer cmd;
+        public T cmd;
         ///<summary>Render Graph pool used for temporary data.</summary>
         public RenderGraphObjectPool renderGraphPool;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources defaultResources;
+    }
+
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class RasterGraphContext : BaseRenderGraphContext<RasterCommandBuffer>
+    {
+    }
+
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class ComputeGraphContext : BaseRenderGraphContext<ComputeCommandBuffer>
+    {
+    }
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class GraphicsGraphContext : BaseRenderGraphContext<GraphicsCommandBuffer>
+    {
+    }
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class RenderGraphContext : BaseRenderGraphContext<CommandBuffer>
+    {
     }
 
     /// <summary>
@@ -158,6 +193,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
     }
 
+    public delegate void BaseRenderFunc<PassData, ContextType>(PassData data, ContextType renderGraphContext) where PassData : class, new() where ContextType : IRenderGraphContext;
+
     /// <summary>
     /// The Render Pass rendering delegate.
     /// </summary>
@@ -165,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <param name="data">Render Pass specific data.</param>
     /// <param name="renderGraphContext">Global Render Graph context.</param>
     public delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
+
+
 
     internal class RenderGraphDebugData
     {
@@ -240,9 +279,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
-        internal struct CompiledPassInfo
+        internal struct CompiledPassInfo<ContextType> where ContextType : IRenderGraphContext
         {
-            public RenderGraphPass pass;
+            public RenderGraphPass<ContextType> pass;
             public List<int>[] resourceCreateList;
             public List<int>[] resourceReleaseList;
             public int refCount;
@@ -262,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<string>[]   debugResourceWrites;
 #endif
 
-            public void Reset(RenderGraphPass pass)
+            public void Reset(RenderGraphPass<ContextType> pass)
             {
                 this.pass = pass;
                 enableAsyncCompute = pass.enableAsyncCompute;

@@ -6,12 +6,12 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    abstract class RenderGraphPass
+    abstract class RenderGraphPass<ContextType> where ContextType : IRenderGraphContext
     {
-        public RenderFunc<PassData> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
+        public BaseRenderFunc<PassData, ContextType> GetExecuteDelegate<PassData>()
+            where PassData : class, new() => ((RenderGraphPass<PassData, ContextType>)this).renderFunc;
 
-        public abstract void Execute(RenderGraphContext renderGraphContext);
+        public abstract void Execute(ContextType renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
@@ -140,13 +140,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class RenderGraphPass<PassData> : RenderGraphPass
+    internal sealed class RenderGraphPass<PassData, ContextType> : RenderGraphPass<ContextType>
         where PassData : class, new()
+        where ContextType : class
     {
         internal PassData data;
-        internal RenderFunc<PassData> renderFunc;
+        internal BaseRenderFunc<PassData, ContextType> renderFunc;
 
-        public override void Execute(RenderGraphContext renderGraphContext)
+        public override void Execute(ContextType renderGraphContext)
         {
             GetExecuteDelegate<PassData>()(data, renderGraphContext);
         }
