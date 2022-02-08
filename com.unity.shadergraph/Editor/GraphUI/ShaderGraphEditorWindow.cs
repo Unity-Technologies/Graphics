@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
@@ -9,6 +10,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
         ShaderGraphGraphTool m_GraphTool;
+
+        PreviewManager m_PreviewManager;
+
+        GraphViewStateObserver m_GraphViewStateObserver;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -36,7 +41,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override BaseGraphTool CreateGraphTool()
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
-            m_GraphTool.shaderGraphView = GraphView as ShaderGraphView;
             return m_GraphTool;
         }
 
@@ -44,11 +48,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 100), 2.0f);
 
+            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
+            m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewState);
+            m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewState, m_PreviewManager);
+
+            GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
+
             // TODO (Brett) Command registration or state handler creation belongs here.
             // Example: graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
-            // Other Example: new ShaderGraphState(GUID, prefs);
 
-            return new ShaderGraphView(this, GraphTool, GraphTool.Name);
+            return shaderGraphView;
         }
 
         protected override BlankPage CreateBlankPage()
@@ -63,6 +72,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return asset is ShaderGraphAssetModel;
         }
 
+        protected void OnBecameVisible()
+        {
+            m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel);
+
+            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, GraphTool.Dispatcher);
+        }
+
         protected override MainToolbar CreateMainToolbar()
         {
             return new ShaderGraphMainToolbar(GraphTool, GraphView);
@@ -72,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.Update();
 
-            m_GraphTool.previewManager.Update();
+            m_PreviewManager.Update();
         }
 
         // ----------

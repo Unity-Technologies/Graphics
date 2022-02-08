@@ -248,11 +248,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void HandleUpdatePortValue(
             GraphViewStateComponent graphViewState,
             PreviewManager previewManager,
-            ShaderGraphModel shaderGraphModel,
+            IGraphModel graphModel,
             UpdatePortConstantCommand updatePortConstantCommand)
         {
+            var shaderGraphModel = graphModel as ShaderGraphModel;
             var portModel = updatePortConstantCommand.PortModel;
-            if (portModel.NodeModel is GraphDataNodeModel nodeModel)
+            if (portModel.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
             {
                 var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
                 if (nodeWriter != null)

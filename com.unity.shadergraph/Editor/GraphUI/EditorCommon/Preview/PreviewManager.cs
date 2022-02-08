@@ -21,22 +21,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
-        public PreviewManager(ShaderGraphModel graphModel, GraphViewStateComponent graphViewStateComponent)
+        public PreviewManager(GraphViewStateComponent graphViewStateComponent)
         {
-            m_GraphModel = graphModel;
-
             m_GraphViewStateComponent = graphViewStateComponent;
 
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
 
+            m_DirtyNodes = new HashSet<string>();
+            m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
+        }
+
+        public void Initialize(ShaderGraphModel graphModel)
+        {
+            m_GraphModel = graphModel;
+
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance);
 
-            m_DirtyNodes = new HashSet<string>();
-            m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
-
             // Initialize preview data for any nodes that exist on graph load
-            foreach (var nodeModel in graphModel.NodeModels)
+            foreach (var nodeModel in m_GraphModel.NodeModels)
             {
                 if(nodeModel is GraphDataNodeModel graphDataNodeModel)
                     OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
