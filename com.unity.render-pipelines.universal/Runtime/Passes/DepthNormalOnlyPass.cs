@@ -79,7 +79,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 colorHandles = k_ColorAttachment1;
             }
 
-
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                 ConfigureTarget(colorHandles, renderingData.cameraData.renderer.cameraDepthTargetHandle);
             else

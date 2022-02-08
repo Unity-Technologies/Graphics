@@ -43,6 +43,16 @@ namespace UnityEngine.Rendering.Universal
             return e;
         }
 
+        public static uint ToRenderingLayers(LightLayerEnum lightLayers)
+        {
+            return (uint)lightLayers;
+        }
+
+        public static uint ToRenderingLayers(DecalLayerEnum decalLayers)
+        {
+            return (uint)decalLayers << 8;
+        }
+
         static Event CombineEvents(Event a, Event b)
         {
             return (Event)Mathf.Min((int)a, (int)b);

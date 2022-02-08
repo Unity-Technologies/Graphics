@@ -422,4 +422,16 @@ uint GetMeshRenderingLayer()
     return asuint(unity_RenderingLayer.x);
 }
 
+float EncodeMeshRenderingLayer(uint renderingLayer)
+{
+    //return (renderingLayer & 0x0000FFFF) / (255.0 * 255.0); // todo expose as property
+    return PackInt(renderingLayer, 16);
+}
+
+uint DecodeMeshRenderingLayer(float renderingLayer)
+{
+    //return (renderingLayer & 0x0000FFFF) / (255.0 * 255.0); // todo expose as property
+    return UnpackInt(renderingLayer, 16);
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

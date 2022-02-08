@@ -185,12 +185,12 @@ void Frag(PackedVaryings packedInput,
 
 #ifdef _DECAL_LAYERS
 #ifdef _RENDER_PASS_ENABLED
-    uint meshRenderingLayers = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy).r);
+    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy).r);
 #else
-    uint meshRenderingLayers = LoadSceneRenderingLayer(input.positionCS.xy);
+    uint surfaceRenderingLayer = LoadSceneRenderingLayer(input.positionCS.xy);
 #endif
-    uint decalRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal)) << 8;
-    clip((meshRenderingLayers & decalRenderingLayer) != 0 ? 1 : -1);
+    uint projectorRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
+    clip((surfaceRenderingLayer & projectorRenderingLayer) != 0 ? 1 : -1);
 #endif
 
 #if defined(DECAL_PROJECTOR)
