@@ -74,7 +74,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool IsSubpathOf(ElementID other)
         {
-            if (m_path.Count > other.m_path.Count)
+            if (m_path.Count >= other.m_path.Count)
             {
                 return false;
             }
@@ -88,6 +88,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
 
             return true;
+        }
+
+        public bool IsImmediateSubpathOf(ElementID other)
+        {
+            return m_path.Count == other.m_path.Count + 1 && IsSubpathOf(other);
         }
 
         public static ElementID FromString(string path)

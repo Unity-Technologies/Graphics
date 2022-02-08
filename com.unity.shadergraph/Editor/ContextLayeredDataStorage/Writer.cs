@@ -2,22 +2,14 @@ using System;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
-    public interface IDataWriter
+    public class DataWriter
     {
-        public IDataWriter AddChild(string localID);
-        public IDataWriter AddChild<T>(string localID, T data);
-        public void RemoveChild(string localID);
-        public void SetData<T>(T value);
-    }
-
-    internal class ElementWriter : IDataWriter
-    {
-        private WeakReference<Element> m_elem;
-        public Element Element
+        private WeakReference<Element> m_element;
+        protected Element Element
         {
             get
             {
-                if (m_elem.TryGetTarget(out Element element))
+                if (m_element.TryGetTarget(out Element element))
                 {
                     return element;
                 }
@@ -28,41 +20,33 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public ElementWriter(Element element)
+        public DataWriter(Element element)
         {
-            m_elem = new WeakReference<Element>(element);
+            m_element = new WeakReference<Element>(element);
         }
 
-        public IDataWriter AddChild(string localID)
+        public virtual DataWriter AddChild(string localID)
         {
             Element e = Element;
             e.owner.AddData(ElementID.FromString(e.ID.FullPath + $".{localID}"), out Element element);
-            return new ElementWriter(element);
+            return new DataWriter(element);
         }
 
-        public IDataWriter AddChild<T>(string localID, T data)
+        public virtual DataWriter AddChild<T>(string localID, T data)
         {
             Element e = Element;
             e.owner.AddData(ElementID.FromString(e.ID.FullPath + $".{localID}"), data, out Element<T> element);
-            return new ElementWriter(element);
+            return new DataWriter(element);
         }
 
-        public void RemoveChild(ElementID childID)
-        {
-            Element.owner.RemoveData(childID);
-        }
-
-        public void RemoveChild(string localID)
+        public virtual void RemoveChild(string localID)
         {
             Element e = Element;
             e.owner.RemoveData(ElementID.FromString(e.ID.FullPath + $".{localID}"));
         }
-
-        public void SetData<T>(T value)
+        public virtual void SetData<T>(T value)
         {
             //(Element as Element<T>).Data = value;
         }
     }
-
-
 }

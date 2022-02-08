@@ -7,7 +7,7 @@ namespace UnityEditor.ContextLayeredDataStorage
     public class Element
     {
         public ElementID ID { get; internal set; }
-        public IDataHeader Header { get; internal set; }
+        public DataHeader Header { get; internal set; }
         public List<Element> Children { get; internal set; }
         public Element Parent { get; internal set; }
         internal ContextLayeredDataStorage owner;
@@ -16,13 +16,13 @@ namespace UnityEditor.ContextLayeredDataStorage
         public Element(ContextLayeredDataStorage owner)
         {
             ID = new ElementID("");
-            Header = new DefaultHeader();
+            Header = new DataHeader();
             Parent = null;
             Children = new List<Element>();
             this.owner = owner;
         }
 
-        public Element(ContextLayeredDataStorage owner, IDataHeader header)
+        public Element(ContextLayeredDataStorage owner, DataHeader header)
         {
             ID = new ElementID("");
             this.Header = header;
@@ -36,7 +36,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             this.ID = id;
         }
 
-        public Element(ElementID id, ContextLayeredDataStorage owner, IDataHeader header) : this(owner, header)
+        public Element(ElementID id, ContextLayeredDataStorage owner, DataHeader header) : this(owner, header)
         {
             this.ID = id;
         }
@@ -56,12 +56,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public IDataReader GetReader()
+        public DataReader GetReader()
         {
             return Header.GetReader(this);
         }
 
-        public IDataWriter GetWriter()
+        public DataWriter GetWriter()
         {
             return Header.GetWriter(this);
         }

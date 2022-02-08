@@ -15,6 +15,16 @@ namespace UnityEditor.ContextLayeredDataStorage
         internal readonly LayerList m_layerList;
         [NonSerialized]
         protected Dictionary<string, Element> m_flatStructureLookup;
+        public IEnumerable<(string, Element)> FlatStructureLookup
+        {
+            get
+            {
+                foreach(var (key, value) in m_flatStructureLookup)
+                {
+                    yield return (key, value);
+                }
+            }
+        }
 
         public ContextLayeredDataStorage()
         {
@@ -29,6 +39,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             m_layerList.AddLayer(-1, "Root");
         }
 
+        protected void AddLayer(int priority, string layerName, bool isSerialized = false)
+        {
+            m_layerList.AddLayer(priority, layerName, isSerialized);
+        }
+
         public void AddNewTopLayer(string layerName)
         {
             if (string.IsNullOrEmpty(layerName))
@@ -38,13 +53,23 @@ namespace UnityEditor.ContextLayeredDataStorage
             m_layerList.AddNewTopLayer(layerName);
         }
 
+        protected void SetHeader(ElementID id, DataHeader header)
+        {
+            Search(id).Element.Header = header;
+        }
+
+        protected void SetHeader(Element element, DataHeader header)
+        {
+            element.Header = header;
+        }
+
         //AddData with no specified layer gets added to the topmost layer
         internal void AddData<T>(ElementID id, T data, out Element<T> elem)
         {
             AddData(m_layerList.GetTopLayerRoot(), id, data, out elem);
         }
 
-        public IDataWriter AddData<T>(ElementID id, T data)
+        public DataWriter AddData<T>(ElementID id, T data)
         {
             AddData(id, data, out Element<T> element);
             return element.GetWriter();
@@ -55,7 +80,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             AddData(m_layerList.GetTopLayerRoot(), id, out elem);
         }
 
-        public IDataWriter AddData(ElementID id)
+        public DataWriter AddData(ElementID id)
         {
             AddData(id, out Element element);
             return element.GetWriter();
@@ -71,7 +96,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public IDataWriter AddData<T>(string layer, ElementID id, T data)
+        public DataWriter AddData<T>(string layer, ElementID id, T data)
         {
             AddData(new LayerDescriptor() { layerName = layer }, id, data, out Element<T> element);
             return element.GetWriter();
@@ -87,7 +112,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        internal IDataWriter AddData(LayerDescriptor layer, ElementID id)
+        internal DataWriter AddData(LayerDescriptor layer, ElementID id)
         {
             AddData(layer, id, out Element element);
             return element.GetWriter();
@@ -192,7 +217,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             RemoveData(root);
         }
 
-        public IDataReader Search(ElementID lookup)
+        public DataReader Search(ElementID lookup)
         {
             if(m_flatStructureLookup.TryGetValue(lookup.FullPath, out Element reference))
             {
@@ -435,14 +460,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 Type headerType = Type.GetType(data.headerType);
                 object obj = Activator.CreateInstance(headerType);
-                IDataHeader header = obj as IDataHeader;
+                DataHeader header = obj as DataHeader;
                 header.FromJson(data.headerData);
                 output.Header = header;
             }
             catch
             {
                 Debug.LogError($"Could not deserialize the header on element {data.id} of type {data.headerType}");
-                output.Header = new DefaultHeader();
+                output.Header = new DataHeader();
             }
             return output;
         }
