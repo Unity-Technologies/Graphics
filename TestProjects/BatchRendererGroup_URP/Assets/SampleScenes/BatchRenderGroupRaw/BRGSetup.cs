@@ -152,22 +152,28 @@ public unsafe class BRGSetup : MonoBehaviour
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
         bool kUseUBO = true; // SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-        uint kUBOMaxWindowSize = (uint)(kUseUBO ? 64 * 1024 : 128 * 1024 * 1024);
-        const uint kUBOAlignment = 4;
         const int kFloat4Size = 16;
+
+        uint kBRGBufferMaxWindowSize = 128 * 1024 * 1024;
+        uint kBRGBufferAlignment = 16;
+        if ( kUseUBO )
+        {
+            kBRGBufferMaxWindowSize = (uint)(SystemInfo.maxConstantBufferSize);
+            kBRGBufferAlignment = (uint)SystemInfo.constantBufferOffsetAlignment;
+        }
 
         // create one or several batches (regarding UBO size limit on UBO only platform such as GLES3.1)
         uint itemCount = (uint)(itemGridSize * itemGridSize);
         m_itemCount = itemCount;
 
         const uint kItemSize = (3 * 3 + 1);  //  size in "float4" ( 3 * 4x3 matrices plus 1 color per item )
-        m_maxItemPerBatch = ((kUBOMaxWindowSize / kFloat4Size) - 4) / kItemSize;  // -4 "float4" for 64 first 0 bytes ( BRG contrainst )
+        m_maxItemPerBatch = ((kBRGBufferMaxWindowSize / kFloat4Size) - 4) / kItemSize;  // -4 "float4" for 64 first 0 bytes ( BRG contrainst )
         if (m_maxItemPerBatch > m_itemCount)
             m_maxItemPerBatch = m_itemCount;
 
         m_batchCount = (m_itemCount + m_maxItemPerBatch - 1) / m_maxItemPerBatch;
 
-        uint batchAlignedSizeInBytes = (((4 + m_maxItemPerBatch * kItemSize)* kFloat4Size) + kUBOAlignment - 1) & (~(kUBOAlignment - 1));
+        uint batchAlignedSizeInBytes = (((4 + m_maxItemPerBatch * kItemSize)* kFloat4Size) + kBRGBufferAlignment - 1) & (~(kBRGBufferAlignment - 1));
         uint totalRawBufferSizeInBytes = m_batchCount * batchAlignedSizeInBytes;
 
         // compute offsets of each item ( according to several batches & alignment per batch )
