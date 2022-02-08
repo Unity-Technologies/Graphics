@@ -23,18 +23,17 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            // #pragma enable_d3d11_debug_symbols
+            #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbePlacement.cs.hlsl"
-            float4x4 unity_ObjectToWorld;
+            float4x4 _LocalToWorld;
             float4x4 _CameraMatrix;
 
             RWTexture3D<float>  _Output : register(u4);
             float3              _OutputSize;
             float3              _VolumeWorldOffset;
             float3              _VolumeSize;
-            uint                _AxisSwizzle;
 
             StructuredBuffer<MeshVoxelizationVertexData>  _OutputVertexPositions;
 
@@ -48,24 +47,26 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             {
                 VertexToFragment o;
 
-                float3 texelSize = rcp(_OutputSize);
-
                 MeshVoxelizationVertexData v = _OutputVertexPositions.Load(vertexId);
 
-                o.vertex = mul(_CameraMatrix, float4(v.vertexPosition, 1.0));
-                o.worldPos = mul(unity_ObjectToWorld, v.originalPosition).xyz;
+                // float3 localScale = float3(_LocalToWorld[0][0], _LocalToWorld[1][1], _LocalToWorld[2][2]);
+
+                float3 position = v.vertexPosition - _VolumeWorldOffset;
+                position /= _VolumeSize;
+                o.vertex = mul(_CameraMatrix, float4(position * 2 - 1, 1.0));
+                o.worldPos = position;
 
                 return o;
             }
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                float3 pos = (i.worldPos * 0.5 + 0.5) * _OutputSize.x;
+                float3 pos = i.worldPos * _OutputSize.x;
 
                 if (any(pos < 0) || any(pos > _OutputSize.x))
                     return 0;
 
-                _Output[uint3(pos)] = 1;
+                _Output[uint3(round(pos))] = 1;
 
                 return 0;
             }

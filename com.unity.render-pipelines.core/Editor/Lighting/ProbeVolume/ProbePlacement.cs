@@ -500,7 +500,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             if (renderer.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
                             {
-                                int indexCount = SinglePassVoxelizeMesh(cmd, meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, triangleBuffer, ref allocatedResources);
+                                int indexCount = SinglePassVoxelizeMesh(cmd, ctx, meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, triangleBuffer, ref allocatedResources);
                                 maxMeshIndicesCount = Mathf.Max(maxMeshIndicesCount, indexCount);
 
                                 // props.SetInt(_AxisSwizzle, 0);
@@ -565,7 +565,7 @@ namespace UnityEngine.Experimental.Rendering
             return hasGeometry;
         }
         
-        static int SinglePassVoxelizeMesh(CommandBuffer cmd, Mesh mesh, Matrix4x4 localToWorld, GraphicsBuffer trianglesBuffer, ref MeshVoxelizationResources allocatedResources)
+        static int SinglePassVoxelizeMesh(CommandBuffer cmd, GPUSubdivisionContext ctx, Mesh mesh, Matrix4x4 localToWorld, GraphicsBuffer trianglesBuffer, ref MeshVoxelizationResources allocatedResources)
 		{
             // Fill the triangle buffer from the mesh data:
 			mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
@@ -593,6 +593,9 @@ namespace UnityEngine.Experimental.Rendering
 			cmd.SetComputeIntParam(subdivideSceneCS, "_DispatchSizeX", dispatchSizeX * 64);
 			cmd.SetComputeIntParam(subdivideSceneCS, "_MeshVertexCount", mesh.vertexCount);
 			cmd.SetComputeIntParam(subdivideSceneCS, "_Use16BitIndexBuffer", mesh.indexFormat == IndexFormat.UInt16 ? 1 : 0);
+            cmd.SetComputeIntParam(subdivideSceneCS, "_MaxIndexLength", indexBuffer.count);
+            cmd.SetComputeVectorParam(subdivideSceneCS, _OutputSize, new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth));
+            cmd.SetComputeMatrixParam(subdivideSceneCS, "_LocalToWorld", localToWorld);
             // TODO: output texture size in the subdiv
 
 			cmd.DispatchCompute(subdivideSceneCS, s_GenerateMeshVertexBufferKernel, dispatchSizeX, dispatchSizeY, 1);
@@ -606,6 +609,7 @@ namespace UnityEngine.Experimental.Rendering
 			var vp = projection * worldToCamera;
 			props.SetMatrix("_CameraMatrix", vp);
 			props.SetBuffer("_OutputVertexPositions", trianglesBuffer);
+            props.SetMatrix("_LocalToWorld", localToWorld);
 
 			cmd.DrawProcedural(localToWorld, voxelizeMaterial, 0, MeshTopology.Triangles, indexBuffer.count, 1, props);
 

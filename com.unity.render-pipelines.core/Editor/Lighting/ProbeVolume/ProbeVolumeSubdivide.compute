@@ -267,10 +267,13 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
 
 ByteAddressBuffer           _MeshVertexBuffer;
 ByteAddressBuffer           _MeshIndexBuffer;
+float3                      _OutputSize;
+float4x4                    _LocalToWorld;
 int                         _MeshVertexStride;
 int                         _DispatchSizeX;
 int                         _MeshVertexCount;
 int                         _Use16BitIndexBuffer;
+int                         _MaxIndexLength;
 
 // TODO: half3 position + original position output for vertex shader
 RWStructuredBuffer<MeshVoxelizationVertexData>  _OutputVertexPositions;
@@ -282,9 +285,24 @@ float3x3 rotationMatrix(float3 axis, float angle)
     float c = cos(angle);
     float oc = 1.0 - c;
     
-    return float3x3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+    return float3x3(
+        oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
+        oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
+        oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c
+    );
+}
+
+uint LoadVertexIndex(uint index)
+{
+    uint i = 0;
+
+    uint entryIndex = index >> 1u;
+    uint entryOffset = index & 1u;
+
+    uint read = _MeshIndexBuffer.Load(entryIndex << 2);
+    i = entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
+
+    return i;
 }
 
 [numthreads(64, 1, 1)]
@@ -292,15 +310,17 @@ void GenerateMeshVertexBuffer(uint2 id : SV_DispatchThreadID)
 {
     int indexBufferIndex = (id.x + id.y * _DispatchSizeX) * 3;
 
+    if (indexBufferIndex >= _MaxIndexLength)
+        return;
+
     uint i0, i1, i2;
 
     // Fetch triangle indices
     if (_Use16BitIndexBuffer != 0)
     {
-        uint2 data = _MeshIndexBuffer.Load2((indexBufferIndex + 0) << 1);
-        i0 = data.x & 0xFFFF;
-        i1 = data.x >> 16;
-        i2 = data.y & 0xFFFF;
+        i0 = LoadVertexIndex(indexBufferIndex + 0);
+        i1 = LoadVertexIndex(indexBufferIndex + 1);
+        i2 = LoadVertexIndex(indexBufferIndex + 2);
     }
     else
     {
@@ -313,6 +333,12 @@ void GenerateMeshVertexBuffer(uint2 id : SV_DispatchThreadID)
     float3 v0 = asfloat(_MeshVertexBuffer.Load3(i0 * _MeshVertexStride));
     float3 v1 = asfloat(_MeshVertexBuffer.Load3(i1 * _MeshVertexStride));
     float3 v2 = asfloat(_MeshVertexBuffer.Load3(i2 * _MeshVertexStride));
+
+    // Apply mesh transformation
+    v0 = mul(_LocalToWorld, float4(v0, 1.0)).xyz;
+    v1 = mul(_LocalToWorld, float4(v1, 1.0)).xyz;
+    v2 = mul(_LocalToWorld, float4(v2, 1.0)).xyz;
+
     float3 o0 = v0;
     float3 o1 = v1;
     float3 o2 = v2;
@@ -330,12 +356,11 @@ void GenerateMeshVertexBuffer(uint2 id : SV_DispatchThreadID)
     float3 normal = normalize(cross(v0, v1));
     float3 cameraForward = float3(0, 0, -1);
 
-    // TODO: transform the triangle vertices to face camera.
     float3 d = cross(normal, cameraForward);
     float cosAngle = dot(normal, cameraForward);
     float a = acos(cosAngle);
     float3x3 m = rotationMatrix(normalize(d), a);
-    if (abs(a) > 0.001)
+    if (any(abs(d) > 0.001))
     {
         v0 = mul(m, v0);
         v1 = mul(m, v1);
@@ -344,13 +369,15 @@ void GenerateMeshVertexBuffer(uint2 id : SV_DispatchThreadID)
 
     // Scale triangles to fit minimum size of 1 texel:
     // TODO: send actual size of the texture or multiply in vertex
-    v0 += normalize(v0) * (1.0 / 128.0);
-    v1 += normalize(v1) * (1.0 / 128.0);
-    v2 += normalize(v2) * (1.0 / 128.0);
+    v0 += normalize(v0) * (0.5 / _OutputSize);
+    v1 += normalize(v1) * (0.5 / _OutputSize);
+    v2 += normalize(v2) * (0.5 / _OutputSize);
 
     v0 += c;
     v1 += c;
     v2 += c;
+
+    // TODO: round vertex position to avoid precision errors
 
     // Output transformed vertices
     _OutputVertexPositions[indexBufferIndex + 0].vertexPosition = v0;
