@@ -1,6 +1,6 @@
 # Create a new Shader Graph node
 
-You can add nodes from the Create Node menu to a Shader Graph to start designing the look of your final shader output.
+You can add nodes from the Create Node menu to a Shader Graph to create your final shader output.
 
 ## From a blank space in your Shader Graph
 

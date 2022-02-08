@@ -15,4 +15,4 @@ To start creating a new Shader Graph, you need to create a new Shader Graph asse
 
 ## Next steps
 
-After creating your Shader Graph Asset, [create a new node](Create-New-Node.md) to start creating your new Shader Graph.
+After creating your Shader Graph Asset, [open your graph asset for editing](Open-Graph-Edit.md) and [create a new node](Create-New-Node.md) to make your new Shader Graph.

@@ -1,4 +1,4 @@
-# Block Node
+# Block node
 
 ## Description
 

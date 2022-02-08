@@ -6,7 +6,7 @@ To create a new Edge:
 
 1. [!include[with-graph-open](./snippets/sg-with-graph-open.md)] select a port on an existing node, or [create a new node](Create-New-Node.md) in your graph.
 
-2. Click and drag from the port on the node where you want to create a new Edge.
+2. On the port where you want to create a new Edge, click and drag away from the node.
 
 3. Do one of the following:
 

@@ -6,13 +6,13 @@ Each render pipeline has its own Shader Graph Asset types. You can use some Shad
 
 ## High Definition Render Pipeline (HDRP) Shader Graphs
 
-If you have the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/) installed in your project with Shader Graph, you can create the Shader Graph Assets described in the following table.
+The [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/) is one of Unity's Scriptable Render Pipelines. It allows you to create cutting-edge, high-fidelity graphics on high-end platforms.
 
-The following Shader Graphs have the HDRP configured as an Active Target in the Graph Inspector.
+If you have the HDRP installed in your project with Shader Graph, you can create the Shader Graph Assets described in the following table. They have the HDRP configured as an Active Target in the Graph Inspector:
 
 | **Asset Type**            | **Description** |
 | :-----------------------  | :-------------  |
-| **Lit Shader Graph**      | The Lit Shader Graph is optimized for creating physically-based materials and supports various effects. For more information on the changes that the Lit Shader Graph makes to your Shader Graph Asset's Master Stack, see [Lit Master Stack](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-lit.html) in the HDRP documentation. |
+| **Lit Shader Graph**      | The Lit Shader Graph is optimized for creating physically-based materials and supports various effects. You can use it for any material that interacts with the lighting in your scene. For more information on the changes that the Lit Shader Graph makes to your Shader Graph Asset's Master Stack, see [Lit Master Stack](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-lit.html) in the HDRP documentation. |
 | **Decal Shader Graph**    | The Decal Shader Graph is optimized for creating decals that you can project or place in your Scene. For more information on the changes that the Decal Shader Graph types makes to your Shader Graph Asset's Master Stack, see [Decal Master Stack](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-decal.html) in the HDRP documentation.|
 | **Fabric Shader Graph**   | The Fabric Shader Graph is optimized for creating fabric materials, using either cotton wool or anisotropic silk as its base. For more information on the changes that the Fabric Shader Graph makes to your Shader Graph Asset's Master Stack, see [Fabric Master Stack](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-fabric.html) in the HDRP documentation.  |
 | **Eye Shader Graph**      | The Eye Shader Graph is optimized for creating physically-based eye materials, using two different layers. For more information on the changes that the Eye Shader Graph makes to your Shader Graph Asset's Master Stack, see [Eye Master Stack](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-eye.html) in the HDRP documentation.  |
@@ -23,9 +23,9 @@ The following Shader Graphs have the HDRP configured as an Active Target in the 
 
 ## Universal Render Pipeline (URP) Shader Graphs
 
-If you have the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/) installed in your project with Shader Graph, you can create the Shader Graph Assets described in the following table.
+The [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/) is one of Unity's Scriptable Render Pipeline. It's quick and easy to customize, and lets you create optimized graphics across a wide range of platforms.
 
-The following Shader Graphs have the URP configured as an Active Target in the Graph Inspector.
+If you have URP installed in your project with Shader Graph, you can create the Shader Graph Assets described in the following table. They have URP configured as an Active Target in the Graph Inspector:
 
 <table>
 <thead>
@@ -37,7 +37,7 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 <tbody>
 <tr>
 <td><strong>Lit Shader Graph</strong></td>
-<td>The Lit Shader Graph lets you create real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. It adds the following Block nodes to your Master Stack by default:
+<td>The URP's Lit Shader Graph lets you create real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. You can use the Lit Shader Graph for any material that interacts with the lighting in your scene. If you select the URP Lit Shader Graph, it adds the following Block nodes to your Master Stack by default:
 <ul>
 <li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
 <li><strong>Fragment</strong>: Base Color, Normal, Metallic, Smoothness, Emission, and Ambient Occlusion nodes.</li>
@@ -45,7 +45,7 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 </tr>
 <tr>
 <td><strong>Decal Shader Graph</strong></td>
-<td>The Decal Shader Graph works with the URP's Decal Renderer Feature to project specific Materials onto other objects in a Scene. For more information on the Decal Renderer Feature, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/renderer-feature-decal.html">the URP's documentation on the Decal Renderer Feature</a>. <br/> The Decal Shader Graph adds the following Block nodes to your Master Stack by default:
+<td>The Decal Shader Graph works with the URP's Decal Renderer Feature to project a material onto other objects in a Scene. You can use a Decal Shader Graph for any dynamic effect you want to project onto another surface in your scene. For more information on the Decal Renderer Feature, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/renderer-feature-decal.html">the URP's documentation on the Decal Renderer Feature</a>. <br/> The Decal Shader Graph adds the following Block nodes to your Master Stack by default:
 <ul>
 <li><strong>Vertex</strong>: No nodes are added by default.</li>
 <li><strong>Fragment</strong>: Base Color, Alpha, Normal, and Normal Alpha nodes.</li>
@@ -63,7 +63,7 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 </tr>
 <tr>
 <td><strong>Sprite Custom Lit Shader Graph</strong></td>
-<td> It adds the following Block nodes to your Master Stack by default:
+<td>The Sprite Custom List Shader Graph is specific to URP's 2D graphics features. Instead of using Unity's lighting system, you can add your own custom lighting calculations to the Sprite Custom Lit Shader Graph. It adds the following Block nodes to your Master Stack by default:
 <ul>
 <li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
 <li><strong>Fragment</strong>: Base Color, Sprite Mask, Normal, and Alpha nodes.</li>
@@ -72,7 +72,7 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 </tr>
 <tr>
 <td><strong>Sprite Unlit Shader Graph</strong></td>
-<td>It adds the following Block nodes to your Master Stack by default:
+<td>The Sprite Unlit Shader Graph is specific to URP's 2D graphics features and is for effects or unique objects that don't require lighting. It adds the following Block nodes to your Master Stack by default:
 <ul>
 <li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
 <li><strong>Fragment</strong>: Base Color and Alpha nodes.</li>
@@ -81,7 +81,7 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 </tr>
 <tr>
 <td><strong>Sprite Lit Shader Graph</strong></td>
-<td>It adds the following Block nodes to your Master Stack by default:
+<td>The Sprite Lit Shader Graph is specific to URP's 2D graphics features and is for any 2D material that needs to interact with the lighting in your scene. It adds the following Block nodes to your Master Stack by default:
 <ul>
 <li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
 <li><strong>Fragment</strong>: Base Color, Sprite Mask, Normal, and Alpha nodes.</li>
@@ -91,11 +91,11 @@ The following Shader Graphs have the URP configured as an Active Target in the G
 </table>
 
 
-## Built-in Render Pipeline Shader Graphs
+## Built-In Render Pipeline Shader Graphs
 
-The Built-in Render Pipeline is the default render pipeline in the Unity Editor.
+The Built-In Render Pipeline is the default render pipeline in the Unity Editor. It's a general-purpose renderer that has limited options for customization. For more information about using the Built-In Render Pipeline, see [Using the Built-In Render Pipeline](https://docs.unity3d.com/Manual/built-in-render-pipeline.html) in the Unity User Manual.
 
-The following Shader Graphs have the Built-in Render Pipeline configured as an Active Target in the Graph Inspector.
+The following Shader Graphs have the Built-In Render Pipeline configured as an Active Target in the Graph Inspector:
 
 <table>
 <thead>
@@ -107,19 +107,30 @@ The following Shader Graphs have the Built-in Render Pipeline configured as an A
 <tbody>
 <tr>
 <td><strong>Lit Shader Graph</strong></td>
-<td></td>
+<td>The Lit Shader Graph is for any material that needs to interact with lighting in your scene. It adds the following Block nodes to your Master Stack by default:
+<ul>
+<li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
+<li><strong>Fragment</strong>: Base Color, Normal, Metallic, Smoothness, Emission, and Ambient Occlusion nodes.</li>
+</ul></td>
 </tr>
 <tr>
 <td><strong>Unlit Shader Graph</strong></td>
-<td></td>
+<td>The Unlit Shader Graph is for any material that doesn't need lighting. It adds the following Block nodes to your Master Stack by default:
+<ul>
+<li><strong>Vertex</strong>: Position, Normal, and Tangent nodes.</li>
+<li><strong>Fragment</strong>: Base Color node.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 
 ## Other Shader Graphs
 
+The following Shader Graphs are available for every render pipeline:
+
 | **Asset Type**         | **Description** |
 | :--------------------- | :-------------  |
-| **Blank Shader Graph** | The Blank Shader Graph contains no default Block nodes in its Master Stack, and has no Targets preconfigured. It can be configured to work with any render pipeline. |
-| **Sub Graph**          | The Sub Graph is a special Shader Graph type that can be referenced from inside other Shader Graph Assets. For more information about Sub Graphs, see [Sub Graph](Sub-graph.md). |
-| **VFX Shader Graph**   | The VFX Shader Graph is deprecated. Use a Universal Render Pipeline (URP) or High Definition Render Pipeline (HDRP)  graph instead, and enable **Support VFX Graph** in the Graph Inspector. |
+| **Blank Shader Graph** | The Blank Shader Graph contains no default Block nodes in its Master Stack, and has no Targets pre-configured. You can configure the graph to work with any render pipeline. |
+| **Sub Graph**          | The Subgraph is a special Shader Graph type that can be referenced from inside other Shader Graph Assets. It doesn't require a Target configuration. For more information about Subgraphs, see [Subgraph](Sub-graph.md). |
+| **VFX Shader Graph**   | The VFX Shader Graph is deprecated, but is designed to work with Unity's VFX system. Use a Universal Render Pipeline (URP) or High Definition Render Pipeline (HDRP) graph instead, and enable **Support VFX Graph** in the Graph Inspector. |

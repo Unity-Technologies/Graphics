@@ -2,7 +2,7 @@
 
 After you [create a Shader Graph Asset](Create-Shader-Graph.md), you can assign your Shader Graph to a material to start using it in your project.
 
-For more information about materials, see [the Materials section in the Unity User Manual](https://docs.unity3d.com/Documentation/Manual/Materials.html).
+For more information about materials, see [the Materials section](https://docs.unity3d.com/Documentation/Manual/Materials.html) in the Unity User Manual.
 
 To add a Shader Graph to a material:
 
@@ -24,4 +24,4 @@ To add a Shader Graph to a material:
 
 ## Next steps
 
-After you've added a Shader Graph to a material, you can apply your material to a GameObject in a scene. For more information on how to assign a material to a GameObject, see [Materials introduction in the Unity User Manual](https://docs.unity3d.com/Documentation/Manual/materials-introduction.html).
+After you've added a Shader Graph to a material, you can apply your material to a GameObject in a scene. For more information on how to assign a material to a GameObject, see the [Materials introduction](https://docs.unity3d.com/Documentation/Manual/materials-introduction.html) in the Unity User Manual.
