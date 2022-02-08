@@ -4,10 +4,29 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Added
 
-### Material Runtime API
+### New Runtime APIs
+
+#### Materials
 
 From this HDRP version, you can use new APIs to run shader validation steps from script at runtime, both in the editor and in standalone builds. You can use this to change the keyword state or one or more properties in order to enable or disable HDRP shader features on a Material.
 For more information, see the [Material Scripting API documentation](Material-API.md).
+
+#### Diffusion Profiles
+
+All properties of diffusion profile are now public and can be modified during runtime or in the editor.
+See all the available properties in the [scripting documentation](../api/UnityEngine.Rendering.HighDefinition.DiffusionProfileSettings.html).
+
+#### Lights
+
+Access to a light IES profile is now available in the editor through the [HDLightUtils](../api/UnityEditor.Rendering.HighDefinition.HDLightUtils.html), as well as manually setting the [IES texture](../api/UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalLightData_IESTexture) during runtime or in the editor.
+
+### Material Variants
+
+![](Images/material-variants.png)
+
+HDRP 13.0 comes with the support of Material Variants for all Shaders and Shader Graphs.
+Material Variants allow you to have a set of predefined variations of a Material, in which you can override specific properties.
+Additionally, Materials can put a lock on a property to prevent children from modifying the value.
 
 ### Access main directional light from ShaderGraph
 
