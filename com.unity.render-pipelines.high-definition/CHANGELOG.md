@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
 - Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 
 ## [10.8.0] - 2021-09-20
 
