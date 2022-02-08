@@ -20,6 +20,12 @@
 struct PathIntersection
 {
     //
+    // Input
+    //
+    uint2   pixelCoord;   // Pixel coordinates from which the path emanates
+    uint    segmentID;    // Identifier for path segment (see above)
+
+    //
     // Input/output
     //
     float3  throughput;   // Current path throughput
@@ -30,37 +36,37 @@ struct PathIntersection
     // Output
     //
     float3  value;        // Main value (radiance, or normal for random walk)
-    float3  rayOrigin;    // Continuation ray origin (aliased with couple inputs)
     float3  rayDirection; // Continuation ray direction, null means no continuation
     float   rayTHit;      // Ray parameter, used either for current or next hit
 };
 
+void SetContinuationRayOrigin(float3 origin, out PathIntersection pathIntersection)
+{
+    // Alias inputs we don't need at that stage
+    pathIntersection.pixelCoord = asuint(origin.xy);
+    pathIntersection.segmentID = asuint(origin.z);
+}
+
+float3 GetContinuationRayOrigin(PathIntersection pathIntersection)
+{
+    // Alias inputs we don't need at that stage
+    return float3(asfloat(pathIntersection.pixelCoord),
+                  asfloat(pathIntersection.segmentID));
+}
+
+void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathIntersection pathIntersection)
+{
+    SetContinuationRayOrigin(origin, pathIntersection);
+    pathIntersection.rayDirection = direction;
+    pathIntersection.rayTHit = tHit;
+}
+
 void GetContinuationRay(PathIntersection pathIntersection, out RayDesc ray)
 {
-    ray.Origin = pathIntersection.rayOrigin;
+    ray.Origin = GetContinuationRayOrigin(pathIntersection);
     ray.Direction = pathIntersection.rayDirection;
     ray.TMin = pathIntersection.rayTHit - _RaytracingRayBias;
     ray.TMax = pathIntersection.rayTHit + _RaytracingRayBias;
-}
-
-void SetPixelCoordinates(uint2 pixelCoord, inout PathIntersection pathIntersection)
-{
-    pathIntersection.rayOrigin.xy = asfloat(pixelCoord);
-}
-
-uint2 GetPixelCoordinates(PathIntersection pathIntersection)
-{
-    return asuint(pathIntersection.rayOrigin.xy);
-}
-
-void SetSegmentID(uint segmentID, inout PathIntersection pathIntersection)
-{
-    pathIntersection.rayOrigin.z = asfloat(segmentID);
-}
-
-uint GetSegmentID(PathIntersection pathIntersection)
-{
-    return asuint(pathIntersection.rayOrigin.z);
 }
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

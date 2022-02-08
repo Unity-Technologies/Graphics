@@ -522,9 +522,9 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     float3 sigmaS, sigmaT;
     RemapSubSurfaceScatteringParameters(diffuseColor, meanFreePath, sigmaS, sigmaT);
 
-    // Initialize the intersection structure
+    // Initialize the path payload
     PathIntersection intersection;
-    SetSegmentID(SEGMENT_ID_RANDOM_WALK, intersection);
+    intersection.segmentID = SEGMENT_ID_RANDOM_WALK;
 
     // Initialize the walk parameters
     RayDesc rayDesc;

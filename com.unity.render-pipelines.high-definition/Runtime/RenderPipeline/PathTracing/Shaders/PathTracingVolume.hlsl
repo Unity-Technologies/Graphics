@@ -87,11 +87,8 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Reset the ray intersection color, which will store our final result
     pathIntersection.value = 0.0;
 
-    // Grab depth information
-    uint currentDepth = GetSegmentID(pathIntersection);
-
     // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+    bool computeDirect = pathIntersection.segmentID >= _RaytracingMinRecursion - 1;
 
     // Compute the scattering position
     float3 scatteringPosition = WorldRayOrigin() + pathIntersection.rayTHit * WorldRayDirection();
@@ -119,7 +116,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
             if (Luminance(value) > 0.001)
             {
                 // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-                SetSegmentID(SEGMENT_ID_TRANSMISSION, nextPathIntersection);
+                pathIntersection.segmentID = SEGMENT_ID_TRANSMISSION;
                 ray.TMax -= _RaytracingRayBias;
                 nextPathIntersection.value = 1.0;
 

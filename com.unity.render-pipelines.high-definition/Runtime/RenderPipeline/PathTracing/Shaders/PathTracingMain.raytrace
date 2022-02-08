@@ -59,7 +59,7 @@ void MissCamera(inout PathIntersection payload : SV_RayPayload)
         return;
     }
 
-    float4 missColor = GetCameraMissValue(GetPixelCoordinates(payload));
+    float4 missColor = GetCameraMissValue(payload.pixelCoord);
 
     payload.value = missColor.rgb;
     payload.throughput.x = missColor.a;
@@ -71,13 +71,13 @@ void MissCamera(inout PathIntersection payload : SV_RayPayload)
         float3 lightPosition, envValue = payload.value;
 
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
-        float4 inputSample = GetSample4D(GetPixelCoordinates(payload), _RaytracingSampleIndex, 0);
+        float4 inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 0);
 
         // Compute volumetric scattering
         payload.value = 0.0;
         float pdf = 1.0;
         bool sampleLocalLights;
-        if (SampleVolumeScatteringPosition(GetPixelCoordinates(payload), inputSample.w, payload.rayTHit, pdf, sampleLocalLights, lightPosition))
+        if (SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, pdf, sampleLocalLights, lightPosition))
         {
             ComputeVolumeScattering(payload, inputSample.xyz, sampleLocalLights, lightPosition);
 
@@ -101,7 +101,7 @@ void MissLight(inout PathIntersection payload : SV_RayPayload)
 [shader("miss")]
 void MissMaterial(inout PathIntersection payload : SV_RayPayload)
 {
-    if (IsSkySamplingEnabled() || GetSegmentID(payload) < _RaytracingMinRecursion)
+    if (IsSkySamplingEnabled() || payload.segmentID < _RaytracingMinRecursion)
     {
         payload.value = 0.0;
         return;
@@ -117,16 +117,14 @@ void MissMaterial(inout PathIntersection payload : SV_RayPayload)
 [shader("miss")]
 void MissTransparentUnlitMaterial(inout PathIntersection payload : SV_RayPayload)
 {
-    int currentDepth = GetSegmentID(payload);
-
-    if (currentDepth < _RaytracingMinRecursion)
+    if (payload.segmentID < _RaytracingMinRecursion)
     {
         payload.value = 0.0;
         return;
     }
 
     // Misses from Transparent Unlit are special in that they always are straight up continuation rays
-    payload.value = currentDepth > 1 ? GetMaterialMissValue() : GetCameraMissValue(GetPixelCoordinates(payload)).rgb;
+    payload.value = payload.segmentID > 1 ? GetMaterialMissValue() : GetCameraMissValue(payload.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
 }
 
@@ -168,9 +166,8 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
     payload.throughput = 1.0;
     payload.value = 0.0;
     payload.maxRoughness = 0.0;
-
-    SetPixelCoordinates(tiledPixelCoord, payload);
-    SetSegmentID(0, payload);
+    payload.pixelCoord = tiledPixelCoord;
+    payload.segmentID = 0;
 
     // In order to achieve texture filtering, we need to compute the spread angle of the subpixel
     payload.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
@@ -253,9 +250,9 @@ void TracePath()
             // Update our continuation ray
             GetContinuationRay(payload, ray);
 
-            // Update the payload
-            SetPixelCoordinates(pixelCoord, payload);
-            SetSegmentID(segmentID, payload);
+            // Update the payload (must be done after fetching continuation ray, because of data aliasing)
+            payload.pixelCoord = pixelCoord;
+            payload.segmentID = segmentID;
 
             // Trace our continuation ray
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
