@@ -24,7 +24,21 @@ This functionality includes a variety of customization options for adapting cont
 
 For more information consult the [HDR Output](HDR-Output.md) documentation
 
+### Path Tracing
+
+First, a public API to check the accumulation progress and reset it, has been added.
+
+Also of note, the [SensorSDK package](https://docs.unity3d.com/Packages/com.unity.sensorsdk@1.0/manual/index.html) leverages the path tracer for its computations, in particular in Lidar mode, or to render images with specific camera lenses.
+
+Speaking of cameras, orthographic views are fully supported by the path tracer.
+
+Last but not least, volumetric scattering now takes the fog color into account, adding scattered contribution on top of the non-scattered result. In addition, the sampling quality has been improved when dealing with multiple light sources.
+
 ## Updated
 
 ### Depth Of Field
-HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
+
+HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions
+that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
+
+### Path Tracing
