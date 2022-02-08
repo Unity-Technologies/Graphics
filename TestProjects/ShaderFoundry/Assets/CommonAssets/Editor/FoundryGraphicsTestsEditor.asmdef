@@ -1,5 +1,5 @@
 {
-    "name": "Unity.Foundry.Editor.GraphicsTests",
+    "name": "Unity.ShaderFoundry.Editor.GraphicsTests",
     "rootNamespace": "",
     "references": [
         "UnityEditor.TestTools.Graphics",
