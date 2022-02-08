@@ -50,7 +50,6 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
         public DrawRenderingLayersPrePass(RenderPassEvent renderPassEvent)
         {
-            ConfigureInput(ScriptableRenderPassInput.RenderingLayer);
             m_ProfilingSampler = new ProfilingSampler("Rendering Layers PrePass");
             this.renderPassEvent = renderPassEvent;
         }
@@ -121,6 +120,16 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
     private DrawRenderingLayersPass m_RequestRenderingLayerPass;
 
     private RTHandle m_ColoredRenderingLayersTextureHandle;
+
+    internal override RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+    {
+        if (m_Event < RenderPassEvent.AfterRenderingGbuffer)
+            return RenderingLayerUtils.Event.DepthNormalPrePass;
+        else if (m_Event < RenderPassEvent.AfterRenderingOpaques)
+            return RenderingLayerUtils.Event.GBuffer;
+        else
+            return RenderingLayerUtils.Event.ForwardOpaque;
+    }
 
     /// <inheritdoc/>
     public override void Create()
