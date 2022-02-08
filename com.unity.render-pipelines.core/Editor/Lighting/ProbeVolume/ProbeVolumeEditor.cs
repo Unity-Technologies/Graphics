@@ -57,10 +57,19 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
+                {
+                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
+                }
+
                 drawInspector = false;
+
             }
 
             if (drawInspector)
