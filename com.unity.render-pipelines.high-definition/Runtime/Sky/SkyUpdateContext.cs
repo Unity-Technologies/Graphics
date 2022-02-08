@@ -88,13 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_VolumetricClouds = value;
-
-                if (m_CloudSettings != null && cloudRenderer == null)
-                {
-                    var rendererType = m_CloudSettings.GetCloudRendererType();
-                    cloudRenderer = (CloudRenderer)Activator.CreateInstance(rendererType);
-                    cloudRenderer.Build();
-                }
             }
         }
 

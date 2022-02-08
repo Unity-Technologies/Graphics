@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 - Added an option for culling objects out of the ray tracing acceleration structure.
+- Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added public API for Diffusion Profile Override volume Component.
+- Added time slicing support for realtime reflection probes.
+- Added denoising for the path tracer.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -29,6 +33,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Moved more internals of the sky manager to proper Render Graph passes.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+- Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
+- Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
+- Disallow "Gradient Diffusion" parameter to be negative for the "Gradient Sky".
+- Disabled volumetric clouds in lens flares sample indoor scene.
+- Make Vertical gate fit the default for physical camera.
+- Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
+- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -67,6 +79,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed warning upon deleting APV data assets.
+- Fixed an issue in the instance ID management for tesselation shaders.
+- Fixed warning when an APV baking set is renamed.
+- Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed a null ref exception in Volume Explorer
+- Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
+- Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed sky jittering when TAA is enabled.
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed reflection probe rendering order when visible in multiple cameras.
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed Show/Hide all Additional Properties
+- Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
+- Fixed APV loading data outside of the relevant area containing probes.
+- Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed editor issue with the LiftGammaGain and ShadowsMidtonesHighlights volume components.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed couple bugs in the volumetric clouds shader code.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [14.0.0] - 2021-11-17
 
