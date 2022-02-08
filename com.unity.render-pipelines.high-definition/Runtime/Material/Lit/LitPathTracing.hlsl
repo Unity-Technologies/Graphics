@@ -352,20 +352,20 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
     return adjustedPathRoughness;
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
+float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
     // Apply absorption on rays below the interface, using Beer-Lambert's law
     if (isSampleBelow)
     {
     #ifdef _REFRACTION_THIN
-        value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
+        return exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
     #else
         // We allow a reasonable max distance of 10 times the "atDistance" (so that objects do not end up appearing black)
-        value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, surfaceData.atDistance * 10.0));
+        return exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, surfaceData.atDistance * 10.0));
     #endif
     }
 #endif
 
-    return value;
+    return 1.0;
 }

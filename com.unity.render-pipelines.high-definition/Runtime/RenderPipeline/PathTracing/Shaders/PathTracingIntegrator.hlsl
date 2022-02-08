@@ -64,12 +64,6 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 
 #endif // _ENABLE_SHADOW_MATTE
 
-float3 ClampValue(float3 value)
-{
-    float intensity = Luminance(value) * GetCurrentExposureMultiplier();
-    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
-}
-
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -133,11 +127,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
 
-    // // Get current path throughput
-    // float3 pathThroughput = pathIntersection.value;
-
-    // And reset the ray intersection color, which will store our final result
-    pathIntersection.value = computeDirect ? pathIntersection.throughput * builtinData.emissiveColor : 0.0;
+    // And reset the payload value, which will store our final radiance result for this path depth
+    pathIntersection.value = computeDirect ? builtinData.emissiveColor : 0.0;
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
@@ -181,7 +172,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                     float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
-                    pathIntersection.value += pathIntersection.throughput * value * GetLightTransmission(nextPathIntersection.value, shadowOpacity) * misWeight;
+                    pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity) * misWeight;
                 }
             }
         }
@@ -212,8 +203,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
                 // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
-                // TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                //          RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                 // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
                 pathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
@@ -221,8 +210,9 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // To perform texture filtering, we maintain a footprint of the pixel
                 pathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(pathIntersection.maxRoughness);
 
-                // Apply material absorption to our throughput
-                pathIntersection.throughput = rrFactor * ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.rayTHit, isSampleBelow, pathIntersection.throughput);
+                // Compute material absorption and apply it to our throughput
+                float3 absorption = rrFactor * GetMaterialAbsorption(mtlData, surfaceData, nextPathIntersection.rayTHit, isSampleBelow);
+                pathIntersection.throughput *= absorption;
 
                 if (computeDirect)
                 {
@@ -233,7 +223,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     EvaluateLights(lightList, rayDescriptor, lightValue, lightPdf);
 
                     float misWeight = PowerHeuristic(pdf, lightPdf);
-                    pathIntersection.value += pathIntersection.throughput * lightValue * misWeight;
+                    pathIntersection.value += value * absorption * lightValue * misWeight;
                 }
 
                 // Update our payload to fire the next continuation ray
@@ -304,7 +294,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     bool computeDirect = segmentID >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
-    float pdf = 1.0;
+    float volSurfPdf = 1.0;
 
 #ifdef HAS_LIGHTLOOP
 
@@ -319,7 +309,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         // For the time being, we test for volumetric scattering only on camera rays
         if (!segmentID && computeDirect)
-            sampleVolume = SampleVolumeScatteringPosition(GetPixelCoordinates(pathIntersection), inputSample.w, pathIntersection.rayTHit, pdf, sampleLocalLights, lightPosition);
+            sampleVolume = SampleVolumeScatteringPosition(GetPixelCoordinates(pathIntersection), inputSample.w, pathIntersection.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
     }
 
     if (sampleVolume)
@@ -335,20 +325,16 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
-    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
-    // if (currentDepth >= 0)
-    // {
-    //     // FIXME : need to be added again, with separation between thoughput and value for this depth
-    //     // Apply volumetric attenuation
-    //     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+    // Skip this code if getting out of a SSS random walk
+    if (segmentID != SEGMENT_ID_RANDOM_WALK)
+    {
+        // FIXME : need to be added again, with separation between thoughput and value for this depth
+        // Apply volumetric attenuation
+        //ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
-    //     // Apply the volume/surface pdf
-    //     pathIntersection.value /= pdf;
-
-    //     // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
-    //     if (currentDepth)
-    //         pathIntersection.value = ClampValue(pathIntersection.value);
-    // }
+        // Apply the volume/surface PDF
+        //pathIntersection.value /= volSurfPdf;
+    }
 }
 
 [shader("anyhit")]
@@ -377,10 +363,6 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     {
         IgnoreHit();
     }
-    // else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2) // FIXME: SegmentID
-    // {
-    //     pathIntersection.t = min(RayTCurrent(), pathIntersection.t);
-    // }
     else if (GetSegmentID(pathIntersection) == SEGMENT_ID_TRANSMISSION)
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT

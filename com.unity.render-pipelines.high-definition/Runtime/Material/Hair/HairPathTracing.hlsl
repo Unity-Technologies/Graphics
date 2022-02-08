@@ -103,13 +103,11 @@ float3 GetLightNormal(MaterialData mtlData)
 float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool isSampleBelow, float pathRoughness)
 {
     // TODO
-
     return pathRoughness;
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
+float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow)
 {
     // TODO
-
-    return value;
+    return 1.0;
 }

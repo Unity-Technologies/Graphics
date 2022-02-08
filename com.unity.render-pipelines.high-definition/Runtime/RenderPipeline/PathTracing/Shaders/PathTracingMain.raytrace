@@ -109,7 +109,6 @@ void MissMaterial(inout PathIntersection payload : SV_RayPayload)
 
     payload.value = GetMaterialMissValue();
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
-    payload.value *= payload.throughput;
 
     // Make sure we don't shoot a continuation ray after this
     payload.rayDirection = 0.0;
@@ -208,6 +207,12 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
     }
 }
 
+float3 ClampValue(float3 value)
+{
+    float intensity = Luminance(value) * GetCurrentExposureMultiplier();
+    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
+}
+
 [shader("raygeneration")]
 void TracePath()
 {
@@ -232,8 +237,15 @@ void TracePath()
         // If we hit something, always set alpha/presence to 1.0
         alpha = 1.0;
 
+        float3 valueArray[12];
+        float3 throughputArray[12];
+
+        valueArray[0] = value;
+        throughputArray[0] = 1.0;
+
         // Iterate over each path segments, up to a specified max recursion value
-        for (uint iter = 1; iter < _RaytracingMaxRecursion && any(payload.rayDirection); iter++)
+        int iter;
+        for (iter = 1; iter < _RaytracingMaxRecursion && any(payload.rayDirection); iter++)
         {
             // Update our continuation ray
             GetContinuationRay(payload, ray);
@@ -242,12 +254,21 @@ void TracePath()
             SetPixelCoordinates(pixelCoord, payload);
             SetSegmentID(iter, payload);
 
+            throughputArray[iter] = payload.throughput / throughputArray[iter-1];
+
             // Trace our continuation ray
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
 
             // Add the value for this path segment
-            value += payload.value;
+            //value += payload.value;
+
+            valueArray[iter] = payload.value;
         }
+        for (iter--; iter > 0; iter--)
+        {
+            valueArray[iter-1] += ClampValue(throughputArray[iter] * valueArray[iter]);
+        }
+        value = valueArray[0];
     }
     else
     {

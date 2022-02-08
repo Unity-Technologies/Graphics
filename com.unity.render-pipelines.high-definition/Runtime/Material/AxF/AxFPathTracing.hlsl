@@ -108,7 +108,8 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
     return adjustedPathRoughness;
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
+float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow)
 {
-    return value;
+    // No absorption here
+    return 1.0;
 }
