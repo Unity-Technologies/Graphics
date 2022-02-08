@@ -19,8 +19,6 @@ PR_URP_2020.3:
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_2020.3
          rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.3
-         rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2020.3
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2020.3
@@ -40,8 +38,6 @@ Extra_URP_2020.3:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_2020.3
-         rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_2020.3
          rerun: on_new_revision
 URP_2020.3:
     name: URP on 2020.3
@@ -65,8 +61,6 @@ Nightly_URP_2020.3:
     dependencies:
       -  path: .yamato/all-urp.yml#URP_2020.3
          rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Universal_Hybrid_2020.3
-         rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_2020.3
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#URPUpdate_2020.3
@@ -84,8 +78,6 @@ PR_URP_CUSTOM-REVISION:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision
@@ -106,8 +98,6 @@ Extra_URP_CUSTOM-REVISION:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
 URP_CUSTOM-REVISION:
     name: URP on CUSTOM-REVISION
@@ -130,8 +120,6 @@ Nightly_URP_CUSTOM-REVISION:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp.yml#URP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision

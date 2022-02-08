@@ -37,8 +37,6 @@ PR_HDRP_2020.3:
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_2020.3
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_2020.3
-         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2020.3
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2020.3
@@ -83,8 +81,6 @@ Nightly_HDRP_2020.3:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_2020.3
-         rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_2020.3
          rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#HDRP_2020.3
@@ -116,8 +112,6 @@ PR_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -163,8 +157,6 @@ Nightly_HDRP_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#HDRP_CUSTOM-REVISION
