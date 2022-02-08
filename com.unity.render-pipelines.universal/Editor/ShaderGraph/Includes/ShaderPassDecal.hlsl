@@ -77,8 +77,8 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
-    inputData.fogCoord = half(input.fogFactorAndVertexLight.x);
-    inputData.vertexLighting = half3(input.fogFactorAndVertexLight.yzw);
+    inputData.fogCoord = InitializeInputDataFog(float4(positionWS, 1.0), input.fogFactorAndVertexLight.x);
+    inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 #endif
 
 #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
