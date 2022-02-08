@@ -109,10 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if the we should enable integration, checkerboard rendering, etc.
         public int _EnableIntegration;
 
-        // Current ambient probe evaluated for both directions of the vertical axis
-        public Vector4 _AmbientProbeTop;
-        public Vector4 _AmbientProbeBottom;
-
         // Right direction of the sun
         public Vector4 _SunRight;
 

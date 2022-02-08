@@ -328,7 +328,7 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                index = w.currentIndex;
+                index = value;
                 index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
                 value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
@@ -338,6 +338,46 @@ namespace UnityEditor.Rendering
                 Apply(w, s, value);
                 if (index > -1)
                     w.currentIndex = index;
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for Object Popup Fields Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ObjectPopupField))]
+    public sealed class DebugUIDrawerObjectPopupField : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ObjectPopup DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>If the UI can be drawn</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ObjectPopupField>(widget);
+            var s = Cast<DebugStateObject>(state);
+
+            var rect = PrepareControlRect();
+            rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip));
+
+            var elements = w.getObjects();
+            if (elements?.Any() ?? false)
+            {
+                var selectedValue = w.GetValue();
+                var elementsArrayNames = elements.Select(e => e.name).ToArray();
+                var elementsArrayIndices = Enumerable.Range(0, elementsArrayNames.Length).ToArray();
+                var selectedIndex = selectedValue != null ? Array.IndexOf(elementsArrayNames, selectedValue.name) : 0;
+                var newSelectedIndex = EditorGUI.IntPopup(rect, selectedIndex, elementsArrayNames, elementsArrayIndices);
+                if (selectedIndex != newSelectedIndex)
+                    Apply(w, s, elements.ElementAt(newSelectedIndex));
+            }
+            else
+            {
+                EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
             }
 
             return true;

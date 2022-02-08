@@ -265,8 +265,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         int texHeight = data.parameters.height;
                         if (data.parameters.halfResolution)
                         {
-                            texWidth /= 2;
-                            texHeight /= 2;
+                            // Given that the up-sampling if half resolution potentially needs the last/extra pixel (if the resolution is odd), we need to make sure
+                            // that the ray tracing and lighting is evaluated with that in mind.
+                            texWidth = (texWidth + 1) / 2;
+                            texHeight = (texHeight + 1) / 2;
                         }
 
                         // Inject the global parameters
