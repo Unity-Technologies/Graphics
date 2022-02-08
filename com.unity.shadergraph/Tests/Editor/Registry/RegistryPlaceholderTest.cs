@@ -1,8 +1,9 @@
-
 using NUnit.Framework;
-using UnityEngine;
-using System.Collections;
 using System.Linq;
+using com.unity.shadergraph.defs;
+using System.Collections.Generic;
+using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+
 namespace UnityEditor.ShaderGraph.Registry.UnitTests
 {
     [TestFixture]
@@ -61,6 +62,46 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             Assert.AreEqual(2, len);
             reader.GetField("Out.Length", out len);
             Assert.AreEqual(2, len);
+        }
+        [Test]
+        public void RegisterFunctionDescriptorTest()
+        {
+            var graph = GraphDelta.GraphUtil.CreateGraph();
+            var registry = new Registry();
+            registry.Register<Types.GraphType>();
+
+            var parameters = new LinkedList<ParameterDescriptor>();
+            parameters.AddFirst(new ParameterDescriptor("In", TYPE.Vector, Usage.In));
+            parameters.AddFirst(new ParameterDescriptor("Out", TYPE.Vector, Usage.Out));
+            FunctionDescriptor fd = new FunctionDescriptor(1, "Test", parameters, "Out = In;");
+            RegistryKey registryKey = registry.Register(fd);
+            GraphDelta.INodeWriter nodeWriter = graph.AddNode(registryKey, $"{fd.Name}-01", registry);
+            var nodeReader = graph.GetNodeReader($"{fd.Name}-01");
+            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Four, len);
+            didRead = nodeReader.GetField("Out.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Four, len);
+
+            nodeWriter.SetPortField("In", kLength, Length.Three);
+            nodeReader = graph.GetNodeReader($"{fd.Name}-01");
+            didRead = nodeReader.GetField("In.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Three, len);
+            didRead = nodeReader.GetField("Out.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Four, len);
+
+            bool didReconcretize = graph.ReconcretizeNode($"{fd.Name}-01", registry);
+            Assert.IsTrue(didReconcretize);
+            nodeReader = graph.GetNodeReader($"{fd.Name}-01");
+            didRead = nodeReader.GetField("In.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Three, len);
+            didRead = nodeReader.GetField("Out.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(Length.Three, len);
         }
     }
 }

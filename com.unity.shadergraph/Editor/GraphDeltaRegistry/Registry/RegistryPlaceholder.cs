@@ -1,6 +1,8 @@
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEngine;
+using com.unity.shadergraph.defs;
+using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -204,11 +206,12 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            // 16 is a large number here to leave space
-            public enum Precision { Fixed = 0, Half = 1, Full = 2, Any = 16 }
-            public enum Primitive { Bool = 0, Int = 1, Float = 2, Any = 16 }
-            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = 16 }
-            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = 16 }
+            // Numeric values for enum members here represent a resolving priority
+            // The highest numeric value has the highest priority.
+            public enum Precision { Fixed = 2, Half = 1, Full = 0, Any = -1 }
+            public enum Primitive { Bool = 2, Int = 1, Float = 0, Any = -1 }
+            public enum Length { One = 1, Two = 4, Three = 3, Four = 2, Any = -1 }
+            public enum Height { One = 1, Two = 4, Three = 3, Four = 2, Any = -1 }
             public enum Usage { In, Out, Static, }
 
             public const string kPrimitive = "Primitive";
@@ -222,33 +225,33 @@ namespace UnityEditor.ShaderGraph.Registry
                 // default initialize to a float4.
                 typeWriter.SetField(kPrecision, Precision.Full);
                 typeWriter.SetField(kPrimitive, Primitive.Float);
-                typeWriter.SetField(kLength, 4);
-                typeWriter.SetField(kHeight, 1);
+                typeWriter.SetField(kLength, Length.Four);
+                typeWriter.SetField(kHeight, Height.One);
 
                 // read userdata and make sure we have enough fields.
-                if (!userData.GetField(kLength, out int length))
-                    length = 4;
-                if (!userData.GetField(kHeight, out int height))
-                    height = 1;
+                if (!userData.GetField(kLength, out Length length))
+                    length = Length.Four;
+                if (!userData.GetField(kHeight, out Height height))
+                    height = Height.One;
 
                 // ensure that enough subfield values exist to represent userdata's current data.
-                for (int i = 0; i < length * height; ++i)
+                for (int i = 0; i < (int)length * (int)height; ++i)
                     typeWriter.SetField<float>($"c{i}", 0);
             }
 
             string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
-                length = Mathf.Clamp(length, 1, 4);
-                height = Mathf.Clamp(height, 1, 4);
+                data.GetField(kLength, out Length length);
+                data.GetField(kHeight, out Height height);
+                var l = Mathf.Clamp((int)length, 1, 4);
+                var h = Mathf.Clamp((int)height, 1, 4);
 
                 string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
-                for(int i = 0; i < length*height; ++i)
+                for(int i = 0; i < l * h; ++i)
                 {
                     data.GetField($"c{i}", out float componentValue);
                     result += $"{componentValue}";
-                    if (i != length * height - 1)
+                    if (i != l * h - 1)
                         result += ", ";
                 }
                 result += ")";

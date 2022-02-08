@@ -95,17 +95,22 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public bool Register<T>() where T : IRegistryEntry
         {
-            var builder = (INodeDefinitionBuilder)Activator.CreateInstance<T>();
-            return Register(builder);
+            var registryEntry = Activator.CreateInstance<T>();
+            return Register(registryEntry);
         }
 
-        internal bool Register(FunctionDescriptor funcDesc)
+        internal RegistryKey Register(FunctionDescriptor funcDesc)
         {
             var builder = new FunctionDescriptorNodeBuilder(funcDesc);
-            return Register(builder);
+            bool wasSuccess = Register(builder);
+            if (!wasSuccess)
+            {
+                throw new Exception($"Unsuccessful registration for FunctionDescriptor : {funcDesc.Name}");
+            }
+            return ((IRegistryEntry)builder).GetRegistryKey();
         }
 
-        private bool Register(INodeDefinitionBuilder builder) {
+        private bool Register(IRegistryEntry builder) {
             var key = builder.GetRegistryKey();
             if (builders.ContainsKey(key))
                 return false;
