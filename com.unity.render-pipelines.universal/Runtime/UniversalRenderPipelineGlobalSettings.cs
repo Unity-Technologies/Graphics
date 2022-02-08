@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Controls whether strip off variants if the LOD Cross Fade feature is disabled.
-        /// It strips based on QualitySettings.enableLODCrossFade in the project.
+        /// It strips based on UniversalRenderingPipelineAsset.enableLODCrossFade property.
         /// </summary>
         public bool stripUnusedLODCrossFadeVariants { get => m_StripUnusedLODCrossFadeVariants; set { m_StripUnusedLODCrossFadeVariants = value; } }
 
