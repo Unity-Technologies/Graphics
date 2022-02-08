@@ -155,9 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera copy
-        SRPPhysicalCamera m_PhysicalCamera;
-
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
         // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
@@ -324,9 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AnimatedMaterialsEnabled = camera.animateMaterials;
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
-
-            // Grab a copy of the physical camera settings
-            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
@@ -961,7 +955,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else // ExposureMode.UsePhysicalCamera
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
+                exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, hdCamera.camera.aperture, hdCamera.camera.shutterSpeed, hdCamera.camera.iso);
             }
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParams);
@@ -2065,11 +2059,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.threadGroup8 = new Vector2Int(threadGroup8X, threadGroup8Y);
 
-            parameters.physicalCameraCurvature = m_PhysicalCamera.curvature;
-            parameters.physicalCameraAnamorphism = m_PhysicalCamera.anamorphism;
-            parameters.physicalCameraAperture = m_PhysicalCamera.aperture;
-            parameters.physicalCameraBarrelClipping = m_PhysicalCamera.barrelClipping;
-            parameters.physicalCameraBladeCount = m_PhysicalCamera.bladeCount;
+            parameters.physicalCameraCurvature = camera.camera.curvature;
+            parameters.physicalCameraAnamorphism = camera.camera.anamorphism;
+            parameters.physicalCameraAperture = camera.camera.aperture;
+            parameters.physicalCameraBarrelClipping = camera.camera.barrelClipping;
+            parameters.physicalCameraBladeCount = camera.camera.bladeCount;
 
             parameters.nearFocusStart = m_DepthOfField.nearFocusStart.value;
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
@@ -2079,7 +2073,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
                 parameters.focusDistance = m_DepthOfField.focusDistance.value;
             else
-                parameters.focusDistance = m_PhysicalCamera.focusDistance;
+                parameters.focusDistance = camera.camera.focalDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
@@ -2236,7 +2230,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int bladeCount = dofParameters.physicalCameraBladeCount;
 
-            float rotation = (dofParameters.physicalCameraAperture - SRPPhysicalCamera.kMinAperture) / (SRPPhysicalCamera.kMaxAperture - SRPPhysicalCamera.kMinAperture);
+            float rotation = (dofParameters.physicalCameraAperture - Camera.kMinAperture) / (Camera.kMaxAperture - Camera.kMinAperture);
             rotation *= (360f / bladeCount) * Mathf.Deg2Rad; // TODO: Crude approximation, make it correct
 
             float ngonFactor = 1f;
@@ -3862,7 +3856,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Bloom.anamorphic.value)
             {
                 // Positive anamorphic ratio values distort vertically - negative is horizontal
-                float anamorphism = m_PhysicalCamera.anamorphism * 0.5f;
+                float anamorphism = camera.camera.anamorphism * 0.5f;
                 scaleW *= anamorphism < 0 ? 1f + anamorphism : 1f;
                 scaleH *= anamorphism > 0 ? 1f - anamorphism : 1f;
             }

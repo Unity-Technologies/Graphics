@@ -842,7 +842,6 @@ namespace UnityEngine.Rendering.Universal
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             var stack = VolumeManager.instance.stack;
-            cameraData.physicalParameters = baseAdditionalCameraData ? baseAdditionalCameraData.physicalParameters : SRPPhysicalCamera.GetDefaults();
             cameraData.exposure = stack.GetComponent<Exposure>();
 
             ///////////////////////////////////////////////////////////////////

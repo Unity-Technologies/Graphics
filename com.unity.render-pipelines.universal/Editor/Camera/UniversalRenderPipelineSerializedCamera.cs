@@ -36,17 +36,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty allowXRRendering { get; }
 #endif
 
-        // HDRP specific properties
-        public SerializedProperty focusDistance;
-        public SerializedProperty iso;
-        public SerializedProperty shutterSpeed;
-        public SerializedProperty aperture;
-        public SerializedProperty bladeCount;
-        public SerializedProperty curvature;
-        public SerializedProperty barrelClipping;
-        public SerializedProperty anamorphism;
-        public SerializedProperty exposureTarget;
-
         public (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) this[int index]
         {
             get
@@ -104,16 +93,6 @@ namespace UnityEditor.Rendering.Universal
             renderPostProcessing = serializedAdditionalDataObject.FindProperty("m_RenderPostProcessing");
             antialiasingQuality = serializedAdditionalDataObject.FindProperty("m_AntialiasingQuality");
             cameraType = serializedAdditionalDataObject.FindProperty("m_CameraType");
-
-            // HDRP specific properties
-            focusDistance = serializedAdditionalDataObject.FindProperty("physicalParameters.m_FocusDistance");
-            iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
-            shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");
-            aperture = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Aperture");
-            bladeCount = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BladeCount");
-            curvature = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Curvature");
-            barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
-            anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             allowXRRendering = serializedAdditionalDataObject.FindProperty("m_AllowXRRendering");

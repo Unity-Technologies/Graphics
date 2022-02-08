@@ -8,10 +8,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    [Obsolete("Use SRPPhysicalCamera instead", false)]
-    public class HDPhysicalCamera : SRPPhysicalCamera
+    [Obsolete("Properties have been migrated to Camera class")]
+    public struct HDPhysicalCamera
     {
-       /* /// <summary>
+        /// <summary>
         /// The minimum allowed aperture.
         /// </summary>
         public const float kMinAperture = 0.7f;
@@ -37,12 +37,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField] [Range(Camera.kMinAperture, Camera.kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
-        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+        [SerializeField] internal Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
 
         // Aperture shape
-        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] [Range(Camera.kMinBladeCount, Camera.kMaxBladeCount)] int m_BladeCount;
         [SerializeField] Vector2 m_Curvature;
         [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
         [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float aperture
         {
             get => m_Aperture;
-            set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
+            set => m_Aperture = Mathf.Clamp(value, Camera.kMinAperture, Camera.kMaxAperture);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int bladeCount
         {
             get => m_BladeCount;
-            set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
+            set => m_BladeCount = Mathf.Clamp(value, Camera.kMinBladeCount, Camera.kMaxBladeCount);
         }
 
         /// <summary>
@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_Curvature;
             set
             {
-                m_Curvature.x = Mathf.Max(value.x, kMinAperture);
-                m_Curvature.y = Mathf.Min(value.y, kMaxAperture);
+                m_Curvature.x = Mathf.Max(value.x, Camera.kMinAperture);
+                m_Curvature.y = Mathf.Min(value.y, Camera.kMaxAperture);
             }
         }
 
@@ -151,24 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             val.m_GateFit = Camera.GateFitMode.Vertical;
 
             return val;
-        }*/
-
-        public static HDPhysicalCamera GetDefaults()
-        {
-            HDPhysicalCamera val = new HDPhysicalCamera
-            {
-                iso = 200,
-                shutterSpeed = 1f / 200f,
-                aperture = 16,
-                focusDistance = 10,
-                bladeCount = 5,
-                curvature = new Vector2(2f, 11f),
-                barrelClipping = 0.25f,
-                anamorphism = 0
-            };
-            return val;
         }
-
     }
 
     /// <summary>
@@ -351,6 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
+        [Obsolete("Physical camera properties have been migrated to Camera.")]
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 
         /// <summary>Vertical flip mode.</summary>
@@ -632,7 +616,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.probeLayerMask = probeLayerMask;
             data.hasPersistentHistory = hasPersistentHistory;
             data.exposureTarget = exposureTarget;
-            physicalParameters = data.physicalParameters;
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
@@ -727,7 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RegisterDebug();
 
-#if UNITY_EDITOR
+#if UNITY_EDITORw
             UpdateDebugCameraName();
             UnityEditor.EditorApplication.hierarchyChanged += UpdateDebugCameraName;
 #endif

@@ -151,7 +151,6 @@ namespace UnityEngine.Rendering.Universal
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
         public Exposure exposure;
-        public SRPPhysicalCamera physicalParameters;
 
         public bool shouldOverrideExposure;
         public float overrideExposureValue;

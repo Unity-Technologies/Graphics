@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
             private ComputeShader m_ExposureComputeShader;
 
             private static void GenerateSimpleExposureTexture(ExposureMode mode, float compensation, float exposure,
-                SRPPhysicalCamera camera, CommandBuffer cmd, ComputeShader exposureShader, RenderTexture rth)
+                Camera camera, CommandBuffer cmd, ComputeShader exposureShader, RenderTexture rth)
             {
                 if (exposureShader == null)
                     return;
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                         ExposureMode.Fixed,
                         0,
                         renderingData.cameraData.overrideExposureValue,
-                        renderingData.cameraData.physicalParameters,
+                        renderingData.cameraData.camera,
                         cmd,
                         m_ExposureComputeShader,
                         renderingData.cameraData.frameCache.m_ExposureTexture);
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.Universal
                                 renderingData.cameraData.exposure.mode.value,
                                 renderingData.cameraData.exposure.compensation.value,
                                 renderingData.cameraData.exposure.fixedExposure.value,
-                                renderingData.cameraData.physicalParameters,
+                                renderingData.cameraData.camera,
                                 cmd,
                                 m_ExposureComputeShader,
                                 renderingData.cameraData.frameCache.m_ExposureTexture);

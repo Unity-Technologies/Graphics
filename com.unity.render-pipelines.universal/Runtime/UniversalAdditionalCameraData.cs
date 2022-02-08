@@ -339,9 +339,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         private bool m_UsePhysicalCamera = false;
 
-        [SerializeField]
-        SRPPhysicalCamera m_PhysicalParameters = SRPPhysicalCamera.GetDefaults();
-
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -413,18 +410,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_RequiresOpaqueTextureOption;
             set => m_RequiresOpaqueTextureOption = value;
-        }
-
-        public bool usePhysicalCamera
-        {
-            get => m_UsePhysicalCamera;
-            set => m_UsePhysicalCamera = value;
-        }
-
-        public SRPPhysicalCamera physicalParameters
-        {
-            get => m_PhysicalParameters;
-            set => m_PhysicalParameters = value;
         }
 
         /// <summary>
