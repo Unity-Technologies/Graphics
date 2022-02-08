@@ -23,7 +23,7 @@ Firstly, it needs to be enabled at a project-level in the **HDRP Global Settings
 
 As a first step you need to add a Probe Volume to the scene (**Light > Probe Volume  (Experimental)**).  This will add a volume to your scene. The area covered by this volume is the area that will be filled with probes, this volume it is just a marker to inform the baker where to put the probes and does not hold any data.
 
-![Probe-Volume](Images\Probe-Volume.png)
+![Probe-Volume](Images/Probe-Volume.png)
 
 
 
@@ -43,7 +43,7 @@ As a first step you need to add a Probe Volume to the scene (**Light > Probe Vol
 
 To define the characteristics of the baking of the probe volumes system the Probe Volume Settings window needs to be used (**Window > Rendering > Probe Volume Settings (Experimental)**).
 
-![Probe-Volumes-Baking-Window](Images\Probe-Volumes-Baking-Window.png)
+![Probe-Volumes-Baking-Window](Images/Probe-Volumes-Baking-Window.png)
 
 Note that the baking still happens via the lightmapper and it must configured as the lightmapper is usally configured.
 
@@ -104,7 +104,7 @@ Virtual offset is a complimentary solution to the same problem of probes ending 
 
 It is possible to tweak the sampling of light probe data with a Volume component called **Probe Volumes Options**.
 
-![Probe-Volumes-Options](Images\Probe-Volumes-Options.png)
+![Probe-Volumes-Options](Images/Probe-Volumes-Options.png)
 
 | **Field Name**                     | Description                                                  |
 | ---------------------------------- | ------------------------------------------------------------ |
@@ -119,7 +119,7 @@ These options can help for leaking situations.
 
 The probe volume systems comes with several debug views that can be found in the Rendering Debugger (**Window > Analysis > Rendering Debugger > Probe Volume**)
 
-![Probe-Volumes-Debug](Images\Probe-Volumes-Debug.png)
+![Probe-Volumes-Debug](Images/Probe-Volumes-Debug.png)
 
 ###### Subdivision Visualization
 
@@ -129,13 +129,13 @@ The probe volume systems comes with several debug views that can be found in the
 | Display Bricks  | Display the hierarchical structure with each brick of a given hierarchy level is color coded differently. |
 | Realtime Update | Runs the placement algorithm at real time, it can be useful to visualize the structure before the baking happens. **This only refers to the placement and not the content of lighting.** |
 
-![Probe-Volumes-Brick-Debug.png](Images\Probe-Volumes-Brick-Debug.png.jpg)
+![Probe-Volumes-Brick-Debug.png](Images/Probe-Volumes-Brick-Debug.png.jpg)
 
 ​                                                                                                             *Display Bricks visualization*
 
 ###### Probe Visualization
 
-![Probe-Volumes-Probe-Debug-Panel](Images\Probe-Volumes-Probe-Debug-Panel.png)
+![Probe-Volumes-Probe-Debug-Panel](Images/Probe-Volumes-Probe-Debug-Panel.png)
 
 ######
 
@@ -148,6 +148,6 @@ The probe volume systems comes with several debug views that can be found in the
 | Culling Distance            | Define a culling distance for the debug spheres defined from camera position. |
 | Max subdivision displayed   | Cull probes based on their subdivision levels.               |
 
-![Probe-Volumes-Probes-Debug](Images\Probe-Volumes-Probes-Debug.jpg)
+![Probe-Volumes-Probes-Debug](Images/Probe-Volumes-Probes-Debug.jpg)
 
 ​                                                                                                             *Display Probes visualization*
