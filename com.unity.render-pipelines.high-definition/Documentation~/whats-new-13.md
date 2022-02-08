@@ -24,6 +24,21 @@ This functionality includes a variety of customization options for adapting cont
 
 For more information consult the [HDR Output](HDR-Output.md) documentation
 
+### Mixed Cached Shadows for Directional Lights
+
+HDRP 13.0 introduces the option to use the [Always Draw Dynamic](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Shadows-in-HDRP.html#mixed-cached-shadow-maps) option for directional light shadow maps.
+
+This effectively allow to have cached shadow maps for static objects, while allowing the shadow update for dynamic objects.
+Because this feature will require additional memory cost, it needs to be enabled in the HDRP Asset of your project.
+
+### Support for full ACES tone mapper
+
+HDRP 13.0 introduces an option to enable the usage of full ACES tonemapper rather than the default approximation.
+
+This will help projects that want to have a matching reference with other projects and that are not comfortable with the shortcomings of the approximation.
+
+
+
 ## Updated
 
 ### Depth Of Field
