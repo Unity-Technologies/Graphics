@@ -8,29 +8,21 @@ using static UnityEditor.Rendering.HighDefinition.LitSurfaceInputsUIBlock.Styles
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    enum TerrainSurfaceType
-    {
-        Opaque = SurfaceType.Opaque,
-    }
-
     class TerrainLitSurfaceOptionPropertyBlock : SurfaceOptionPropertyBlock
     {
+        private readonly LightingData lightingData;
         readonly TerrainLitData terrainLitData;
 
-        public TerrainLitSurfaceOptionPropertyBlock(Features features, TerrainLitData terrainLitData) : base(features)
-            => this.terrainLitData = terrainLitData;
+        public TerrainLitSurfaceOptionPropertyBlock(Features features, LightingData lightingData, TerrainLitData terrainLitData) : base(features)
+        {
+            this.lightingData = lightingData;
+            this.terrainLitData = terrainLitData;
+        }
 
         protected override void CreatePropertyGUI()
         {
             // TODO : support for raytracing later
             //AddProperty(rayTracingText, () => terrainLitData.rayTracing, (newValue) => terrainLitData.rayTracing = newValue);
-
-            // Surface type
-            AddProperty(surfaceTypeText, () => terrainLitData.terrainSurfaceType, (newValue) =>
-            {
-                // force to set terrain as opaque, just show it in the inspector
-                systemData.surfaceType = SurfaceType.Opaque;
-            });
 
             // properties of opaque type
             context.globalIndentLevel++;
@@ -47,11 +39,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.globalIndentLevel--;
 
             // Misc
-            AddProperty(Styles.fragmentNormalSpace, () => terrainLitData.normalDropOffSpace, (newValue) => terrainLitData.normalDropOffSpace = newValue);
+            AddProperty(Styles.fragmentNormalSpace, () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
 
             // Misc Cont.
-            AddProperty(supportDecalsText, () => terrainLitData.receiveDecals, (newValue) => terrainLitData.receiveDecals = newValue);
-            AddProperty(receivesSSRText, () => terrainLitData.receiveSSR, (newValue) => terrainLitData.receiveSSR = newValue);
+            AddProperty(supportDecalsText, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
+            AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
         }
     }
 }

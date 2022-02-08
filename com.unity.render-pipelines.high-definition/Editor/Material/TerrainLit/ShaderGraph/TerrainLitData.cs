@@ -1,4 +1,5 @@
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -6,35 +7,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class TerrainLitData : HDTargetData
     {
         [SerializeField]
-        TerrainSurfaceType m_TerrainSurfaceType;
-        public TerrainSurfaceType terrainSurfaceType
+        private bool m_EnableHeightBlened;
+        public bool enableHeightBlend
         {
-            get => m_TerrainSurfaceType;
-            set => m_TerrainSurfaceType = value;
+            get => m_EnableHeightBlened;
+            set => m_EnableHeightBlened = value;
         }
 
         [SerializeField]
-        NormalDropOffSpace m_NormalDropOffSpace;
-        public NormalDropOffSpace normalDropOffSpace
+        private float m_HeightTransition;
+        public float heightTransition
         {
-            get => m_NormalDropOffSpace;
-            set => m_NormalDropOffSpace = value;
+            get => m_HeightTransition;
+            set => m_HeightTransition = value;
         }
 
         [SerializeField]
-        bool m_ReceiveDecals = true;
-        public bool receiveDecals
+        private bool m_EnableInstancedPerPixelNormal;
+        public bool enableInstancedPerPixelNormal
         {
-            get => m_ReceiveDecals;
-            set => m_ReceiveDecals = value;
+            get => m_EnableInstancedPerPixelNormal;
+            set => m_EnableInstancedPerPixelNormal = value;
         }
 
-        [SerializeField]
-        bool m_ReceiveSSR = true;
-        public bool receiveSSR
+        private SerializableTexture m_AlbedoTex;
+        public SerializableTexture albedoTex
         {
-            get => m_ReceiveSSR;
-            set => m_ReceiveSSR = value;
+            get => m_AlbedoTex;
+            set => m_AlbedoTex = value;
         }
 
         [SerializeField]
@@ -43,14 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_RayTracing;
             set => m_RayTracing = value;
-        }
-
-        [SerializeField]
-        SpecularOcclusionMode m_SpecularOcclusionMode = SpecularOcclusionMode.FromAO;
-        public SpecularOcclusionMode specularOcclusionMode
-        {
-            get => m_SpecularOcclusionMode;
-            set => m_SpecularOcclusionMode = value;
         }
     }
 }

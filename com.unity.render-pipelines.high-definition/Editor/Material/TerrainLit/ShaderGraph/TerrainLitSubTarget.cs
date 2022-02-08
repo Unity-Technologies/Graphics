@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
@@ -11,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed partial class TerrainLitSubTarget : SurfaceSubTarget, IRequiresData<TerrainLitData>
+    sealed partial class TerrainLitSubTarget : LightingSubTarget, IRequiresData<TerrainLitData>
     {
         public TerrainLitSubTarget() => displayName = "TerrainLit";
 
@@ -21,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/TerrainLit/ShaderGraph/ShaderPass.template";
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override ShaderID shaderID => ShaderID.SG_Terrain;
-        protected override string customInspector => "Rendering.HighDefinition.TerrainLitGUI";
+        protected override string customInspector => "Rendering.HighDefinition.TerrainLitShaderGraphGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateTerrain;
@@ -30,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override string raytracingInclude => CoreIncludes.kTerrainRaytracing;
 
+        protected override bool requireSplitLighting => false;
         protected override bool supportForward => true;
         protected override bool supportLighting => true;
         protected override bool supportDistortion => false;
@@ -38,19 +41,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static readonly GUID kSourceCodeGuid = new GUID("be136c27a7154cd99820c558d8feedb2"); // TerrainLitSubTarget.cs
 
-        private LightingData m_LightingData;
         private TerrainLitData m_TerrainLitData;
 
         TerrainLitData IRequiresData<TerrainLitData>.data
         {
             get => m_TerrainLitData;
             set => m_TerrainLitData = value;
-        }
-
-        public LightingData lightingData
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
         }
 
         public TerrainLitData terrainLitData
@@ -116,77 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             pass.defines.Add(TerrainKeywordDescriptors.TerrainEnabled, 1);
             pass.keywords.Add(TerrainKeywordDescriptors.Terrain8Layers);
-#if false
-            pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
-            if (pass.IsDepthOrMV())
-                pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
-
-            pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
-            pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
-            pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
-            pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
-
-            pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
-            pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
-            pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
-
-            if (pass.NeedsDebugDisplay())
-                pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
-
-            if (!pass.IsRelatedToRaytracing())
-                pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
-
-            if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
-            {
-                if (supportForward)
-                    pass.defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDFields.Unlit, false));
-                else
-                    pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
-            }
-
-            if (pass.IsTessellation())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
-            }
-
-            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
-            // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
-
-            if (pass.IsDepthOrMV())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
-            }
-
-            if (pass.IsLightingOrMaterial())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
-                pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
-                pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
-                pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
-
-                if (!pass.IsRelatedToRaytracing())
-                {
-                    pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
-                    pass.keywords.Add(CoreKeywordDescriptors.Decals);
-                    pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
-                }
-            }
-
-            if (pass.IsForward())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.Shadow);
-                pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
-
-                if (pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr)
-                    pass.defines.Add(CoreKeywordDescriptors.LightList, 1);
-                else
-                    pass.keywords.Add(CoreKeywordDescriptors.LightList);
-            }
-#else
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
 
@@ -227,12 +153,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                     pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
             }
-#endif
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            base.GetFields(ref context);
+            //systemData.doubleSidedMode = DoubleSidedMode.Disabled;
+
+            //base.GetFields(ref context);
 
             // Common properties to all Lit master nodes
             var descs = context.blocks.Select(x => x.descriptor);
@@ -244,34 +171,201 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(LightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(BackLightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
             context.AddField(HDFields.AmbientOcclusion, context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
-            //context.AddField(RayTracing, terrainLitData.rayTracing); // TODO : raytracing later
+            context.AddField(RayTracing, terrainLitData.rayTracing); // TODO : raytracing later
 
             // Specular Occlusion Fields
-            context.AddField(SpecularOcclusionFromAO, terrainLitData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
-            context.AddField(SpecularOcclusionFromAOBentNormal, terrainLitData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
-            context.AddField(SpecularOcclusionCustom, terrainLitData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            context.AddField(SpecularOcclusionFromAO, lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
+            context.AddField(SpecularOcclusionFromAOBentNormal, lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
+            context.AddField(SpecularOcclusionCustom, lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            base.GetActiveBlocks(ref context);
+            // Common block between all "surface" master nodes
+            // Vertex
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+
+            // Surface
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
+
+            // Alpha Test
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && builtinData.transparentDepthPrepass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && builtinData.transparentDepthPostpass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
+
+            // Misc
+            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
+
+            context.AddBlock(HDBlockFields.VertexDescription.CustomVelocity, systemData.customVelocity);
+
+            context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
+            context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
 
             context.AddBlock(BlockFields.SurfaceDescription.Metallic);
 
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion, terrainLitData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion, lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
 
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, terrainLitData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, terrainLitData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, terrainLitData.normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, lightingData.normalDropOffSpace == NormalDropOffSpace.World);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            base.CollectShaderProperties(collector, generationMode);
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = "_EnableHeightBlend",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = terrainLitData.enableHeightBlend,
+                displayName = "EnableHeightBlend",
+            });
 
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_HeightTransition",
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = terrainLitData.heightTransition,
+                displayName = "Height Transition",
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = terrainLitData.enableInstancedPerPixelNormal,
+                displayName = "Instanced per pixel normal",
+            });
+
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                overrideReferenceName = "_TerrainHolesTexture",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                displayName = "Holes Map (RGB)",
+                useTilingAndOffset = true,
+            });
+
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                overrideReferenceName = "_MainTex",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                displayName = "Albedo",
+                useTilingAndOffset = true,
+            });
+
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                overrideReferenceName = "_EmissionColor",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
+            });
+
+            // ShaderGraph only property used to send the RenderQueueType to the material
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_RenderQueueType",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = (int)systemData.renderQueueType,
+            });
+
+            //See SG-ADDITIONALVELOCITY-NOTE
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.addPrecomputedVelocity,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kAddPrecomputedVelocity,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.depthOffset,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kDepthOffsetEnable
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.conservativeDepthOffset,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kConservativeDepthOffsetEnable
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.transparentWritesMotionVec,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kTransparentWritingMotionVec
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = true,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kZWrite,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = systemData.transparentZWrite,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kTransparentZWrite,
+            });
+
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_CullMode",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = (int)CullMode.Back,
+            });
+
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Integer,
+                value = (int)CompareFunction.LessEqual,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_ZTestDepthEqualForOpaque",
+            });
+
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);
             HDSubShaderUtilities.AddRayTracingProperty(collector, terrainLitData.rayTracing);
         }
 
@@ -279,25 +373,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.ProcessPreviewMaterial(material);
 
-            material.SetFloat(kReceivesSSR, terrainLitData.receiveSSR ? 1 : 0);
+            material.SetFloat(kReceivesSSR, lightingData.receiveSSR ? 1 : 0);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, null, lightingData);
+            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, builtinData, lightingData);
             AddInspectorPropertyBlocks(gui);
             context.Add(gui);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            blockList.AddPropertyBlock(new TerrainLitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, terrainLitData));
+            blockList.AddPropertyBlock(new TerrainLitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, lightingData, terrainLitData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
         {
-            return base.ComputeMaterialNeedsUpdateHash() * 23 + terrainLitData.terrainSurfaceType.GetHashCode();
+            return base.ComputeMaterialNeedsUpdateHash() * 23 + terrainLitData.rayTracing.GetHashCode();
         }
 
         #region KeywordDescriptors
