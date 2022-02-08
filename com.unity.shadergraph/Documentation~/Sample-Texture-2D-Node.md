@@ -65,7 +65,7 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 <td><strong>Type</strong></td>
 <td>Dropdown</td>
 <td>Default, Normal</td>
-<td>Select whether the Texture is a regular Texture or a normal map. </td>
+<td>Select whether the Texture is a Texture asset or a normal map. </td>
 </tr>
 <tr>
 <td><strong>Space</strong></td>
@@ -73,8 +73,8 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 <td>Tangent, Object</td>
 <td>If <strong>Type</strong> is <strong>Normal</strong> and you're using your Texture as a normal map, choose the Space for your normal map: <br/><br/>
 <ul>
-<li><strong>Tangent:</strong> The normals in the normal map are relative to the existing vertex normals on the geometry. The vertex normals on the geometry are only adjusted instead of overridden. Use a Tangent normal map whenever the mesh for your geometry needs to deform or change, such as when animating a character.</li>
-<li><strong>Object</strong>: The normals in the normal map are explicit and override the normals from any vertices on the geometry's mesh. Because the normals never change on the mesh, an <strong>Object</strong> normal map also maintains consistent lighting across different levels of detail (LOD). Use an Object normal map whenever the mesh for your geometry is static and doesn't need to deform.</li>
+<li><strong>Tangent</strong>: Use a Tangent normal map whenever the mesh for your geometry needs to deform or change, like when you're animating a character. When you select <strong>Tangent</strong> Space, the normal map's normals are relative to the existing vertex normals of any geometry rendered with your Shader Graph. Your Shader Graph only adjusts the vertex normals instead of overriding them. </li>
+<li><strong>Object</strong>: Use an Object normal map whenever the mesh for your geometry is static and doesn't need to deform. When you select <strong>Object</strong> Space, the normal map's normals are explicit and override the normals of any geometry rendered with your Shader Graph. Because a static mesh's normals never change, an <strong>Object</strong> normal map also maintains consistent lighting across different levels of detail (LODs). </li>
 </ul> <br/> For more information about normal maps, see <a href="https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html">Normal map (Bump mapping)</a> in the Unity User manual.</td>
 </tr>
 </tbody>
@@ -94,11 +94,11 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Example graph usage
 
-In the following example, the Sample Texture 2D node uses a Subgraph node that generates UV coordinates in latitude and longitude format to correctly render a latitude and longitude formatted Texture. If the Sample Texture 2D node uses the **Standard** Mip Sampling Mode, the Texture displays with a seam running down the side of the sphere, where the left and right sides of the Texture meet:
+In the following example, the Sample Texture 2D node uses a [Subgraph node](Sub-graph-Node.md) that generates UV coordinates in latitude and longitude format to render a Texture formatted using latitude and longitude coordinates. If the Sample Texture 2D node uses the **Standard** Mip Sampling Mode, the Texture displays with a seam running down the side of the sphere where the left and right sides of the Texture meet.
+
+The UV coordinates for sampling the Texture jump from `0` to `1` at this point on the model, which causes a problem with the mip level calculation in the sample. The error in the mip level calculation causes the seam. The Texture requires a different mip sampling mode to remove the seam:
 
 ![An image of the Graph window, that displays a UV Lat Long Subgraph node connected to the UV input port on a Sample Texture 2D node. The Sample Texture 2D is providing its RGBA output to the Base Color Block node in the Master Stack. The Main Preview of the sampled Texture has a noticeable seam running down the middle of the sphere.](images/sg-sample-texture-2d-node-example.png)
-
-The UV coordinates for sampling the Texture jump from `0` to `1` at this point on the model, which causes a problem with the mip level calculation in the sample. The error in the mip level calculation causes the seam. The Texture requires a different mip sampling mode to remove the seam.
 
 By setting the Mip Sampling Mode to **Gradient**, the Sample Texture 2D node can use the standard set of UVs for the model in the mip level calculation, instead of the latitude and longitude UVs needed for sampling the Texture. The new UV coordinates passed into the **DDX** and **DDY** input ports result in a continuous mip level, and remove the seam:
 
@@ -106,7 +106,7 @@ By setting the Mip Sampling Mode to **Gradient**, the Sample Texture 2D node can
 
 ## Generated code example
 
-[!include[nodes-generated-code](./snippets/nodes-generated-code.md)], according to the selected [**Type**](#controls) on the node:
+[!include[nodes-generated-code](./snippets/nodes-generated-code.md)], depending on the selected [**Type**](#controls) on the node:
 
 ### Default
 

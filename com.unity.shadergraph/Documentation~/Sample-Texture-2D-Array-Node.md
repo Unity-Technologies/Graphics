@@ -67,7 +67,7 @@ The Sample Texture 2D Array node is under the **Input** &gt; **Texture** categor
 
 ## Example graph usage
 
-In the following example, the Sample Texture 2D Array node samples a Texture array that contains 4 different cloth normal maps. By changing the number given to the **Index** port as an input, the Sample Texture 2D Array node can sample a specific normal map from the array. This changes the output the node sends to the Normal Unpack node, and the Normal (Tangent Space) Block node in the Master Stack:
+In the following example, the Sample Texture 2D Array node samples a Texture array that contains 4 different cloth normal maps. By changing the number given to the **Index** port as an input, the Sample Texture 2D Array node can sample a specific normal map from the array. The **Index** value changes the output the node sends to the Normal Unpack node, and the Normal (Tangent Space) Block node in the Master Stack:
 
 ![An image of the Graph window, that displays a Sample Texture 2D Array node. The node has a Sampler State node attached as an input and is sending its RGBA output to the Normal Unpack node. The Normal Unpack node's Out output port connects to the Normal (Tangent Space) Block node in the Master Stack. The Index is set to 2, making the sphere in the Main Preview window render with a leather-like Texture.](images/sg-sample-texture-2d-array-node-example.png)
 

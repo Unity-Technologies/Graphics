@@ -89,7 +89,7 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 In the following example, the Sample Texture 3D node samples a 3D fractal noise Texture asset. It takes its input UV coordinates from a Position node, set to **Object** Space.
 
-The Sample Texture 3D node needs a Vector 3 for its UV coordinate input, rather than a Vector 2, because the Texture asset exists as a volume in imaginary 3D space. The node uses the default Sampler State, because there is no Sampler State node connected.
+The Sample Texture 3D node needs a Vector 3 for its UV coordinate input, rather than a Vector 2, because the Texture asset exists as a volume in imaginary 3D space. The node uses the default Sampler State because there is no Sampler State node connected.
 
 This specific Texture 3D asset stores its Texture data in the Alpha channel, so the Sample Texture 3D node uses its **A** output port as an input for the Base Color Block node in the **Fragment** Context of the Master Stack:
 
@@ -97,7 +97,7 @@ This specific Texture 3D asset stores its Texture data in the Alpha channel, so 
 
 ## Generated code example
 
-[!include[nodes-generated-code](./snippets/nodes-generated-code.md)]
+[!include[nodes-generated-code](./snippets/nodes-generated-code.md)]:
 
 ```
 float4 _SampleTexture3D_Out = SAMPLE_TEXTURE3D(Texture, Sampler, UV);
