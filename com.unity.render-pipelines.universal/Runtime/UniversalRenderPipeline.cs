@@ -224,6 +224,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
+#if UNITY_EDITOR
         void ReloadResourcesIfNeeded()
         {
             var (hasChange, isNotReady) = ResourceReloader.TryReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.Universal
                 EditorApplication.delayCall += () => ReloadResourcesIfNeeded();
             }
         }
+#endif
 
 #if UNITY_2021_1_OR_NEWER
         /// <inheritdoc/>
