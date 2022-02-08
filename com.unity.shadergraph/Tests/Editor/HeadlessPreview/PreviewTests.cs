@@ -1,16 +1,11 @@
 ﻿using System;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ContextLayeredDataStorage;
-using UnityEditor.ShaderGraph.Generation;
+using System.IO;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
-using UnityEngine.Windows;
 using Types = UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
@@ -51,11 +46,13 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     // https://forum.unity.com/threads/support-for-async-await-in-tests.787853/#post-6838493
 
     [TestFixture]
-    class HeadlessPreviewTestFixture
+    class PreviewTestFixture
     {
         HeadlessPreviewManager m_PreviewManager = new ();
 
         Registry.Registry m_RegistryInstance = new ();
+
+        IGraphHandler m_InterpreterTestsGraph;
 
         [OneTimeSetUp]
         public void Setup()
@@ -64,6 +61,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_RegistryInstance.Register<Types.GraphType>();
             m_RegistryInstance.Register<Types.AddNode>();
             m_RegistryInstance.Register<Types.GraphTypeAssignment>();
+
+            // Setup a separate graph for the interpreter tests
+            m_InterpreterTestsGraph = GraphUtil.CreateGraph();
+            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add1", m_RegistryInstance).SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add2", m_RegistryInstance).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add3", m_RegistryInstance);
+            m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
+            m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)
         }
 
         [TearDown]
@@ -343,7 +348,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, Color.black));
         }
 
-        // TODO: Same tests as above but testing the output texture/image instead of the material
         [Test]
         public void NodePreview_ValidShaderCode()
         {
@@ -484,6 +488,29 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             //      6) Testing if the material render output (graph & node) matches the desired state after making some property changes
             //      7) Testing if a given property exists in the material property block?
             //      8) Testing if a property is at a given value in the MPB after setting the property
+        }
+
+        static object[] interpreterTestCases = new object[]
+        {
+            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
+            ("Add2", new Color(0,1,0,1)),
+            ("Add3", new Color(1,1,0,1)),
+        };
+
+        [Test]
+        [TestCaseSource("interpreterTestCases")]
+        public void InterpreterTests((string nodeToCompile, Color expectedColor) input)
+        {
+            m_PreviewManager.SetActiveGraph(m_InterpreterTestsGraph);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            var shaderString = m_PreviewManager.RequestNodePreviewShaderCode(m_InterpreterTestsGraph.GetNodeReader(input.nodeToCompile).GetName(), out var shaderMessages);
+            bool tmp = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
+            Shader shaderObject = ShaderUtil.CreateShaderAsset(shaderString, true);
+            ShaderUtil.allowAsyncCompilation = tmp;
+            var rt = DrawShaderToTexture(shaderObject);
+            Assert.AreEqual(input.expectedColor, rt.GetPixel(0, 0));
         }
     }
 }

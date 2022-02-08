@@ -1,9 +1,8 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class AddRedirectNodeCommand : UndoableCommand
     {

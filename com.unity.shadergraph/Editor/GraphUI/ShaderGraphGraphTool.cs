@@ -1,18 +1,36 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     class ShaderGraphGraphTool: BaseGraphTool
     {
+        GraphViewStateObserver m_GraphViewStateObserver;
+        PreviewManager m_PreviewManager;
+
         public static readonly string toolName = "Shader Graph";
 
-        public PreviewManager previewManager { get; set; }
+        public ShaderGraphView shaderGraphView { get; set; }
+
+        public PreviewManager previewManager => m_PreviewManager;
 
         public ShaderGraphGraphTool()
         {
             Name = toolName;
+        }
+
+        protected override void InitState()
+        {
+            base.InitState();
+
+            var shaderGraphModel = ToolState.GraphModel as ShaderGraphModel;
+
+            m_PreviewManager = new PreviewManager(shaderGraphModel, shaderGraphView.GraphViewState);
+            m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewState, m_PreviewManager);
+
+            ObserverManager.RegisterObserver(m_GraphViewStateObserver);
+
+            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(this, shaderGraphView, shaderGraphModel, m_PreviewManager, Dispatcher);
+
         }
     }
 

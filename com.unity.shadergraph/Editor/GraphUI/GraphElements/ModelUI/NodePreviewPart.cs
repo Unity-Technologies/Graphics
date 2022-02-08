@@ -1,11 +1,8 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class NodePreviewPart : BaseModelUIPart
     {
@@ -20,7 +17,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
         const string ussRootName = "ge-node-preview-part";
 
         public override VisualElement Root => m_Root;
-
 
         public NodePreviewPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
@@ -58,6 +54,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
         protected override void UpdatePartFromModel()
         {
+            // Don't need to do this for node previews in Searcher
+            if (!m_GraphDataNodeModel.existsInGraphData)
+                return;
+
             HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 
             // TODO: When shader compilation is complete and we have updated texture, need to notify NodePreviewPart so image tint can be changed

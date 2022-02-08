@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var globalPropertyNode = m_GraphHandle.GetNodeReader(propertyName);
 
             var impactedNodes = new List<string>();
-            foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(globalPropertyNode))
+            foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(globalPropertyNode))
             {
                 var downStreamNodeName = downStreamNode.GetName();
                 var nodePreviewData = m_CachedPreviewData[downStreamNodeName];
@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
                 var impactedNodes = new List<string>();
-                foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
+                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                 {
                     var downStreamNodeName = downStreamNode.GetName();
                     impactedNodes.Add(downStreamNodeName);
@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return impactedNodes;
             }
 
-            Debug.Log("HeadlessPreviewManager: Node not recognized!");
+            Debug.Log("HeadlessPreviewManager: SetLocalProperty called on a node that hasn't been registered!");
 
             // Currently any change to any node needs to also dirty the master node as we don't actually have ability to traverse to master node, though in future it will and this can be removed
             m_MasterPreviewData.isShaderOutOfDate = true;
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     var previewData = m_CachedPreviewData[nodeName];
                     previewData.isShaderOutOfDate = true;
 
-                    foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
+                    foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                     {
                         if (m_CachedPreviewData.TryGetValue(downStreamNode.GetName(), out var downStreamNodeData))
                         {
@@ -281,9 +281,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         impactedNodes.Add(downStreamNode.GetName());
                     }
                 }
+
+                return impactedNodes;
             }
 
-            Debug.Log("HeadlessPreviewManager: Node not recognized!");
+            Debug.Log("HeadlessPreviewManager: NotifyNodeFlowChanged called on a node that hasn't been registered!");
 
             return impactedNodes;
         }

@@ -1,27 +1,16 @@
-using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
+namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class ShaderGraphState
+    public static class ShaderGraphCommandsRegistrar
     {
-        public static Hash128 m_previewStateWindowGUID = Hash128.Compute(GUID.Generate().ToString());
-
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, ShaderGraphModel graphModel, Dispatcher dispatcher)
+        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, ShaderGraphModel graphModel, PreviewManager previewManager, Dispatcher dispatcher)
         {
-            ShaderGraphGraphTool sgGraphTool = graphTool as ShaderGraphGraphTool;
-            PreviewManager previewManagerInstance = sgGraphTool?.previewManager;
-
             if (dispatcher is not CommandDispatcher commandDispatcher)
                 return;
 
-            // TODO: Instead of having this be a monolithic list of commands all gathered here, can we can break them up into being registered by individual controllers?
             // Demo commands (TODO: Remove)
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, AddPortCommand>(
                 AddPortCommand.DefaultCommandHandler,
@@ -45,14 +34,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 ChangePreviewExpandedCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                previewManagerInstance
+                previewManager
             );
 
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewModeCommand>(
                 ChangePreviewModeCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                previewManagerInstance
+                previewManager
             );
 
             // Overrides for default GTF commands
@@ -61,44 +50,45 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 ShaderGraphCommandOverrides.HandleCreateEdge,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                previewManagerInstance,
+                previewManager,
                 graphTool.Preferences
             );
 
+            // Unregister the base GraphView command handling for this as we want to insert our own
+            graphView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
                 ShaderGraphCommandOverrides.HandleDeleteElements,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
                 graphView.SelectionState,
-                previewManagerInstance
+                previewManager
             );
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, BypassNodesCommand>(
                 ShaderGraphCommandOverrides.HandleBypassNodes,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                previewManagerInstance
+                previewManager
             );
 
             dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, RenameElementCommand>(
                 ShaderGraphCommandOverrides.HandleGraphElementRenamed,
                 graphView.GraphViewState,
-                previewManagerInstance
+                previewManager
             );
 
             dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, UpdateConstantValueCommand>(
                 ShaderGraphCommandOverrides.HandleUpdateConstantValue,
                 graphView.GraphViewState,
-                previewManagerInstance
+                previewManager
             );
 
             dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, ShaderGraphModel, UpdatePortConstantCommand>(
                 ShaderGraphCommandOverrides.HandleUpdatePortValue,
                 graphView.GraphViewState,
-                previewManagerInstance,
+                previewManager,
                 graphModel
             );
-
         }
     }
 }

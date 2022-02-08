@@ -1,8 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
