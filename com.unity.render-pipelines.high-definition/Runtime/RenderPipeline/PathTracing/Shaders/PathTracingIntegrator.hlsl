@@ -272,7 +272,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     bool computeDirect = pathIntersection.segmentID >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
-    float volSurfPdf = 1.0;
+    float volSurfPdf = 1.0, volSurfTHit = pathIntersection.rayTHit;
 
 #ifdef HAS_LIGHTLOOP
 
@@ -287,7 +287,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         // For the time being, we test for volumetric scattering only on camera rays
         if (!pathIntersection.segmentID && computeDirect)
-            sampleVolume = SampleVolumeScatteringPosition(pathIntersection.pixelCoord, inputSample.w, pathIntersection.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
+            sampleVolume = SampleVolumeScatteringPosition(pathIntersection.pixelCoord, inputSample.w, volSurfTHit, volSurfPdf, sampleLocalLights, lightPosition);
     }
 
     if (sampleVolume)
@@ -307,7 +307,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     if (pathIntersection.segmentID != SEGMENT_ID_RANDOM_WALK)
     {
         // Apply volumetric attenuation
-        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.rayTHit, pathIntersection.value, pathIntersection.throughput, computeDirect);
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), volSurfTHit, pathIntersection.value, pathIntersection.throughput, computeDirect);
 
         // Apply the volume/surface PDF
         pathIntersection.value /= volSurfPdf;
