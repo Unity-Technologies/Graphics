@@ -1,5 +1,5 @@
-#ifndef UNITY_PATH_TRACING_INTERSECTION_INCLUDED
-#define UNITY_PATH_TRACING_INTERSECTION_INCLUDED
+#ifndef UNITY_PATH_TRACING_PAYLOAD_INCLUDED
+#define UNITY_PATH_TRACING_PAYLOAD_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
@@ -17,7 +17,7 @@
 #define SEGMENT_ID_RANDOM_WALK  (~0 - 1)
 
 // Path Tracing Payload
-struct PathIntersection
+struct PathPayload
 {
     //
     // Input
@@ -40,28 +40,28 @@ struct PathIntersection
     float   rayTHit;      // Ray parameter, used either for current or next hit
 };
 
-void SetContinuationRayOrigin(float3 origin, out PathIntersection payload)
+void SetContinuationRayOrigin(float3 origin, out PathPayload payload)
 {
     // Alias inputs we don't need at that stage
     payload.pixelCoord = asuint(origin.xy);
     payload.segmentID = asuint(origin.z);
 }
 
-float3 GetContinuationRayOrigin(PathIntersection payload)
+float3 GetContinuationRayOrigin(PathPayload payload)
 {
     // Alias inputs we don't need at that stage
     return float3(asfloat(payload.pixelCoord),
                   asfloat(payload.segmentID));
 }
 
-void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathIntersection payload)
+void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathPayload payload)
 {
     SetContinuationRayOrigin(origin, payload);
     payload.rayDirection = direction;
     payload.rayTHit = tHit;
 }
 
-void GetContinuationRay(PathIntersection payload, out RayDesc ray)
+void GetContinuationRay(PathPayload payload, out RayDesc ray)
 {
     ray.Origin = GetContinuationRayOrigin(payload);
     ray.Direction = payload.rayDirection;
@@ -77,4 +77,4 @@ void GetContinuationRay(PathIntersection payload, out RayDesc ray)
     }
 }
 
-#endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED
+#endif // UNITY_PATH_TRACING_PAYLOAD_INCLUDED

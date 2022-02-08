@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 
@@ -20,7 +20,7 @@ float GetSpecularCoeffSum(MaterialData mtlData)
 }
 #endif
 
-void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathPayload payload, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
     bsdfData.roughness.x = max(payload.maxRoughness, bsdfData.roughness.x);
@@ -46,7 +46,7 @@ void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, Material
 #endif
 }
 
-bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathPayload payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.V = -WorldRayDirection();

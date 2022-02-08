@@ -523,7 +523,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     RemapSubSurfaceScatteringParameters(diffuseColor, meanFreePath, sigmaS, sigmaT);
 
     // Initialize the path payload
-    PathIntersection intersection;
+    PathPayload intersection;
     intersection.segmentID = SEGMENT_ID_RANDOM_WALK;
 
     // Initialize the walk parameters

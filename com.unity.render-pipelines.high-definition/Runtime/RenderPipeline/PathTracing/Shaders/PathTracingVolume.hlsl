@@ -82,7 +82,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 }
 
 // Function responsible for volume scattering
-void ComputeVolumeScattering(inout PathIntersection payload : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
+void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
 {
     // Reset the payload color, which will store our final result
     payload.value = 0.0;
@@ -103,7 +103,7 @@ void ComputeVolumeScattering(inout PathIntersection payload : SV_RayPayload, flo
     ray.Origin = scatteringPosition;
     ray.TMin = 0.0;
 
-    PathIntersection shadowPayload;
+    PathPayload shadowPayload;
 
     // Light sampling
     if (computeDirect)

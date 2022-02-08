@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 
@@ -18,7 +18,7 @@ float2 DemuxFloat(float x)
 
 // --------------------------------------------------------------------------------------
 
-void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathPayload payload, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
@@ -29,7 +29,7 @@ void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BS
 #endif
 }
 
-bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathPayload payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Kajiya not supported.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))

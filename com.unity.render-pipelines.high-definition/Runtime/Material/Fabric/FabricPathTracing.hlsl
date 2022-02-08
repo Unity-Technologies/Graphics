@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 
@@ -14,7 +14,7 @@
 // bsdfWeight1  Spec GGX BRDF
 // bsdfWeight2  Diffuse BTDF
 
-void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathPayload payload, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
     bsdfData.roughnessT = max(payload.maxRoughness, bsdfData.roughnessT);
@@ -27,7 +27,7 @@ void ProcessBSDFData(PathIntersection payload, BuiltinData builtinData, inout BS
     }
 }
 
-bool CreateMaterialData(PathIntersection payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathPayload payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;

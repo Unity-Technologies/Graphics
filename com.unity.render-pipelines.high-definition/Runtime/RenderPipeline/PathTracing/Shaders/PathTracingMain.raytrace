@@ -18,7 +18,7 @@
 #define HAS_LIGHTLOOP
 
 // Path tracing includes
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
@@ -46,7 +46,7 @@ float3 GetMaterialMissValue()
 }
 
 [shader("miss")]
-void MissCamera(inout PathIntersection payload : SV_RayPayload)
+void MissCamera(inout PathPayload payload : SV_RayPayload)
 {
     // Set initial "hit" to infinity (before potential volumetric scattering)
     payload.rayTHit = FLT_INF;
@@ -94,12 +94,12 @@ void MissCamera(inout PathIntersection payload : SV_RayPayload)
 }
 
 [shader("miss")]
-void MissLight(inout PathIntersection payload : SV_RayPayload)
+void MissLight(inout PathPayload payload : SV_RayPayload)
 {
 }
 
 [shader("miss")]
-void MissMaterial(inout PathIntersection payload : SV_RayPayload)
+void MissMaterial(inout PathPayload payload : SV_RayPayload)
 {
     if (IsSkySamplingEnabled() || payload.segmentID < _RaytracingMinRecursion)
     {
@@ -115,7 +115,7 @@ void MissMaterial(inout PathIntersection payload : SV_RayPayload)
 }
 
 [shader("miss")]
-void MissTransparentUnlitMaterial(inout PathIntersection payload : SV_RayPayload)
+void MissTransparentUnlitMaterial(inout PathPayload payload : SV_RayPayload)
 {
     if (payload.segmentID < _RaytracingMinRecursion)
     {
@@ -159,7 +159,7 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDesc ray)
+void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ray)
 {
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
@@ -226,7 +226,7 @@ void TracePath()
     uint2 pixelCoord = DispatchRaysIndex().xy;
 
     // Generate the camera segment of our path
-    PathIntersection payload;
+    PathPayload payload;
     RayDesc ray;
     GenerateCameraRay(pixelCoord, payload, ray);
 

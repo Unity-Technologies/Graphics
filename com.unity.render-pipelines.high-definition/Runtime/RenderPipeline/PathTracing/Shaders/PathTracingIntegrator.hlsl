@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Path tracing includes
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #endif
@@ -47,7 +47,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
     if (SampleLights(lightList, inputSample, ray.Origin, normal, false, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
     {
         // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-        PathIntersection payload;
+        PathPayload payload;
         payload.segmentID = SEGMENT_ID_TRANSMISSION;
         ray.TMax -= _RaytracingRayBias;
         payload.value = 1.0;
@@ -65,7 +65,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 #endif // _ENABLE_SHADOW_MATTE
 
 // Function responsible for surface scattering
-void ComputeSurfaceScattering(inout PathIntersection payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
+void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
     // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
@@ -147,7 +147,7 @@ void ComputeSurfaceScattering(inout PathIntersection payload : SV_RayPayload, At
         ray.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RaytracingRayBias;
         ray.TMin = 0.0;
 
-        PathIntersection shadowPayload;
+        PathPayload shadowPayload;
 
         // Light sampling
         if (computeDirect)
@@ -261,7 +261,7 @@ void ComputeSurfaceScattering(inout PathIntersection payload : SV_RayPayload, At
 // - Surface scattering
 // - Volume scattering
 [shader("closesthit")]
-void ClosestHit(inout PathIntersection payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // Always set the new t value
     payload.rayTHit = RayTCurrent();
@@ -317,7 +317,7 @@ void ClosestHit(inout PathIntersection payload : SV_RayPayload, AttributeData at
 }
 
 [shader("anyhit")]
-void AnyHit(inout PathIntersection payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
