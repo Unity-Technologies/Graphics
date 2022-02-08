@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 using UnityEditor.ShaderGraph;
