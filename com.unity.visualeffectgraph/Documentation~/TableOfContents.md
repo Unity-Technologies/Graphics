@@ -53,7 +53,7 @@
     * [Output Decal](Context-OutputForwardDecal.md)
     * [Output Line](Context-OutputLine.md)
     * [Output Particle Mesh](Context-OutputParticleMesh.md)
-    * [Outpit Particle HDRP Lit Decal](Context-OutputParticleHDRPLitDecal.md)
+    * [Output Particle HDRP Lit Decal](Context-OutputParticleHDRPLitDecal.md)
     * [Output Point](Context-OutputPoint.md)
     * [Output Primitive](Context-OutputPrimitive.md)
     * Shared Output Settings
