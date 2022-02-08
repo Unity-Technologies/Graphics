@@ -24,12 +24,7 @@ This functionality includes a variety of customization options for adapting cont
 
 For more information consult the [HDR Output](HDR-Output.md) documentation
 
-### Mixed Cached Shadows for Directional Lights
-
-HDRP 13.0 introduces the option to use the [Always Draw Dynamic](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Shadows-in-HDRP.html#mixed-cached-shadow-maps) option for directional light shadow maps.
-
-This effectively allow to have cached shadow maps for static objects, while allowing the shadow update for dynamic objects.
-Because this feature will require additional memory cost, it needs to be enabled in the HDRP Asset of your project.
+## Updated
 
 ### Support for full ACES tone mapper
 
@@ -37,9 +32,22 @@ HDRP 13.0 introduces an option to enable the usage of full ACES tonemapper rathe
 
 This will help projects that want to have a matching reference with other projects and that are not comfortable with the shortcomings of the approximation.
 
-
-
-## Updated
-
 ### Depth Of Field
 HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
+
+### Mixed Cached Shadows for Directional Lights
+
+HDRP 13.0 introduces the option to use the [Always Draw Dynamic](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Shadows-in-HDRP.html#mixed-cached-shadow-maps) option for directional light shadow maps.
+
+This effectively allow to have cached shadow maps for static objects, while allowing the shadow update for dynamic objects.
+Because this feature will require additional memory cost, it needs to be enabled in the HDRP Asset of your project.
+
+### Path Tracing
+
+HDRP 13.0 you can use new APIs to check the accumulation progress and reset it.
+
+The [SensorSDK package](https://docs.unity3d.com/Packages/com.unity.sensorsdk@1.0/manual/index.html) leverages the path tracer for its computations, in particular in Lidar mode, or to render images with specific camera lenses.
+
+Orthographic views are now fully supported by the path tracer.
+
+Last but not least, volumetric scattering now takes the fog color into account, adding scattered contribution on top of the non-scattered result. In addition, the sampling quality has been improved when dealing with multiple light sources.
