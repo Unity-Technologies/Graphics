@@ -151,9 +151,9 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-        bool kUseUBO = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        bool kUseUBO = true; // SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         uint kUBOMaxWindowSize = (uint)(kUseUBO ? 64 * 1024 : 128 * 1024 * 1024);
-        const uint kUBOAlignment = 256;
+        const uint kUBOAlignment = 4;
         const int kFloat4Size = 16;
 
         // create one or several batches (regarding UBO size limit on UBO only platform such as GLES3.1)
@@ -172,8 +172,24 @@ public unsafe class BRGSetup : MonoBehaviour
 
         // compute offsets of each item ( according to several batches & alignment per batch )
         // also clear the first 64bytes of each batch
+        var batchMetadata = new NativeArray<MetadataValue>(4, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+        // Create the large GPU raw buffer
+        if (!kUseUBO)
+            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)totalRawBufferSizeInBytes / 4, 4);
+        else
+            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes / kFloat4Size, kFloat4Size);
+
+        // Batch metadata buffer
+        int objectToWorldID = Shader.PropertyToID("unity_ObjectToWorld");
+        int matrixPreviousMID = Shader.PropertyToID("unity_MatrixPreviousM");
+        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
+        int colorID = Shader.PropertyToID("_BaseColor");
+
+        // Create sysmem copy of big GUP raw buffer
         m_sysmemBuffer = new NativeArray<Vector4>((int)(totalRawBufferSizeInBytes/16), Allocator.Persistent, NativeArrayOptions.ClearMemory);
         m_srpBatches = new SRPBatch[m_batchCount];
+        m_batchIDs = new BatchID[m_batchCount];
         uint left = m_itemCount;
         for (uint b=0;b< m_batchCount;b++)
         {
@@ -184,6 +200,18 @@ public unsafe class BRGSetup : MonoBehaviour
             m_sysmemBuffer[(int)offset+1] = new Vector4(0, 0, 0, 0);
             m_sysmemBuffer[(int)offset+2] = new Vector4(0, 0, 0, 0);
             m_sysmemBuffer[(int)offset+3] = new Vector4(0, 0, 0, 0);
+
+            batchMetadata[0] = CreateMetadataValue(objectToWorldID, 64, true);       // matrices
+            batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3, true); // previous matrices
+            batchMetadata[2] = CreateMetadataValue(worldToObjectID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3 * 2, true); // inverse matrices
+            batchMetadata[3] = CreateMetadataValue(colorID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3 * 3, true); // colors
+
+            uint batchWindowSize = 0;
+            if (kUseUBO)
+                batchWindowSize = (m_srpBatches[b].itemCount * kItemSize + 4) * kFloat4Size;   // +4 float4 because of the first 64bytes at 0
+
+            m_batchIDs[b] = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle, m_srpBatches[b].rawBufferOffsetInFloat4 * kFloat4Size, batchWindowSize);
+
             left -= m_srpBatches[b].itemCount;
         }
 
@@ -195,19 +223,6 @@ public unsafe class BRGSetup : MonoBehaviour
         if (m_mesh) m_meshID = m_BatchRendererGroup.RegisterMesh(m_mesh);
         if (m_material) m_materialID = m_BatchRendererGroup.RegisterMaterial(m_material);
 
-        // Batch metadata buffer
-        int objectToWorldID = Shader.PropertyToID("unity_ObjectToWorld");
-        int matrixPreviousMID = Shader.PropertyToID("unity_MatrixPreviousM");
-        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
-        int colorID = Shader.PropertyToID("_BaseColor");
-
-        // Generate a grid of objects...
-
-        if ( !kUseUBO )
-            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)totalRawBufferSizeInBytes / 4, 4);
-        else
-            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes, kFloat4Size);
-
         // Matrices
         UpdatePositions(m_center);
 
@@ -215,7 +230,7 @@ public unsafe class BRGSetup : MonoBehaviour
         int id = 0;
         for (uint b = 0; b < m_batchCount; b++)
         {
-            uint batchOffset = m_srpBatches[b].rawBufferOffsetInFloat4 + 4 + m_maxItemPerBatch * 3 * 3;
+            uint batchOffset = m_srpBatches[b].rawBufferOffsetInFloat4 + 4 + m_srpBatches[b].itemCount * 3 * 3;
             for (uint i = 0; i < m_srpBatches[b].itemCount; i++)
             {
                 Color col = Color.HSVToRGB(((float)(id) / (float)itemCount) % 1.0f, 1.0f, 1.0f);
@@ -228,19 +243,6 @@ public unsafe class BRGSetup : MonoBehaviour
 
         m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
 
-        var batchMetadata = new NativeArray<MetadataValue>(4, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 64, true);       // matrices
-        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, 64 + (int)m_maxItemPerBatch * kFloat4Size * 3, true); // previous matrices
-        batchMetadata[2] = CreateMetadataValue(worldToObjectID, 64 + (int)m_maxItemPerBatch * kFloat4Size * 3 * 2, true); // inverse matrices
-        batchMetadata[3] = CreateMetadataValue(colorID, 64 + (int)m_maxItemPerBatch * kFloat4Size * 3 * 3, true); // colors
-
-        // Register batch
-        m_batchIDs = new BatchID[m_batchCount];
-        for (uint b=0;b<m_batchCount;b++)
-        {
-            m_batchIDs[b] = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle, m_srpBatches[b].rawBufferOffsetInFloat4 * kFloat4Size);
-        }
-
         m_initialized = true;
     }
 
@@ -249,6 +251,7 @@ public unsafe class BRGSetup : MonoBehaviour
 
         for (uint b = 0; b < m_batchCount; b++)
         {
+            uint strideInFloat4 = m_srpBatches[b].itemCount * 3;
             uint batchOffset = m_srpBatches[b].rawBufferOffsetInFloat4 + 4;
             for (uint i = 0; i < m_srpBatches[b].itemCount; i++)
             {
@@ -259,19 +262,19 @@ public unsafe class BRGSetup : MonoBehaviour
                 float pz = (z - itemGridSize / 2) * m_spacingFactor;
 
                 // copy old current matrice in previous matrix
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch*3*1 + i*3 + 0)] = m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 0)];
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch*3*1 + i*3 + 1)] = m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 1)];
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch*3*1 + i*3 + 2)] = m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 2)];
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4*1 + i*3 + 0)] = m_sysmemBuffer[(int)(batchOffset +   strideInFloat4 * 0 + i * 3 + 0)];
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4*1 + i*3 + 1)] = m_sysmemBuffer[(int)(batchOffset +   strideInFloat4 * 0 + i * 3 + 1)];
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 1 + i*3 + 2)] = m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 0 + i * 3 + 2)];
 
                 // compute the new current frame matrix
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 0)] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 1)] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 0 + i * 3 + 2)] = new Vector4(1, px + pos.x, pos.y, pz + pos.z);
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 0 + i * 3 + 0)] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 0 + i * 3 + 1)] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 0 + i * 3 + 2)] = new Vector4(1, px + pos.x, pos.y, pz + pos.z);
 
                 // compute the new inverse matrix
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 2 + i * 3 + 0)] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 2 + i * 3 + 1)] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[(int)(batchOffset + m_maxItemPerBatch * 3 * 2 + i * 3 + 2)] = new Vector4(1, -(px + pos.x), -pos.y, -(pz + pos.z));
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 2 + i * 3 + 0)] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 2 + i * 3 + 1)] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[(int)(batchOffset + strideInFloat4 * 2 + i * 3 + 2)] = new Vector4(1, -(px + pos.x), -pos.y, -(pz + pos.z));
 
             }
         }
