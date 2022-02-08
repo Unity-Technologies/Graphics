@@ -45,6 +45,20 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value, in
 
 // FIXME: Do we refactor the other functions too?
 
+void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float3 throughput, bool useFogColor = true)
+{
+    if (_FogEnabled)
+    {
+        float dist = min(t, _MaxFogDistance);
+        float absFogBaseHeight = _HeightFogBaseHeight;
+        float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
+
+        float3 fogColor = useFogColor? GetFogColor(-direction, dist) * _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction : 0.0;
+        value = lerp(fogColor, value, fogTransmittance);
+        throughput *= fogTransmittance;
+    }
+}
+
 float GetHeightFogTransmittance(float3 origin, float3 direction, float t)
 {
     return TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight, _HeightFogExponents, direction.y, origin.y, min(t, _MaxFogDistance));

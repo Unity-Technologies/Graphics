@@ -115,7 +115,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
 
             if (Luminance(value) > 0.001)
             {
-                // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
+                // Shoot a transmission ray
                 pathIntersection.segmentID = SEGMENT_ID_TRANSMISSION;
                 ray.TMax -= _RaytracingRayBias;
                 nextPathIntersection.value = 1.0;

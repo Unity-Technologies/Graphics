@@ -243,6 +243,7 @@ void TracePath()
         // If we hit something, always set alpha/presence to 1.0
         alpha = 1.0;
 
+        // To apply our battle-tested, recursive clamping strategy, we will store results at each depth
         uint segmentID, segmentIDMaxDepth = min(_RaytracingMaxRecursion, SEGMENT_ID_MAX_DEPTH);
         float3 segmentValue[SEGMENT_ID_MAX_DEPTH];
         float3 segmentThroughput[SEGMENT_ID_MAX_DEPTH];
@@ -259,19 +260,19 @@ void TracePath()
             // Update our continuation ray
             GetContinuationRay(payload, ray);
 
-            // Update the payload (must be done after fetching continuation ray, because of data aliasing)
+            // Refresh the payload (done after extracting continuation ray, because of data aliasing)
             payload.pixelCoord = pixelCoord;
             payload.segmentID = segmentID;
 
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, GetMissIndex(ray), ray, payload);
 
             // Store segment radiance value
             segmentValue[segmentID] = payload.value;
         }
 
-        // Then iterate backwards, to apply proper intensity clamping
+        // Then iterate backwards, to apply our recursive intensity clamping
         for (segmentID--; segmentID > 0; segmentID--)
         {
             segmentThroughput[segmentID] /= segmentThroughput[segmentID - 1];

@@ -306,12 +306,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Skip this code if getting out of a SSS random walk
     if (pathIntersection.segmentID != SEGMENT_ID_RANDOM_WALK)
     {
-        // FIXME : need to be added again, with separation between thoughput and value for this depth
         // Apply volumetric attenuation
-        //ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.rayTHit, pathIntersection.value, pathIntersection.throughput, computeDirect);
 
         // Apply the volume/surface PDF
-        //pathIntersection.value /= volSurfPdf;
+        pathIntersection.value /= volSurfPdf;
     }
 }
 
