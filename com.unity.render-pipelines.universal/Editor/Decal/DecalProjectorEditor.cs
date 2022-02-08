@@ -607,15 +607,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
 
-                bool decalLayerEnabled = false;
-                // TODO: Add check if decal layers enabled in any renderer for current urp
-                {
-                    decalLayerEnabled = true;
-                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
-                    {
-                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
-                    }
-                }
+                EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
 
                 foreach (var target in targets)
                 {

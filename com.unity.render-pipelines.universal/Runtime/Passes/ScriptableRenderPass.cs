@@ -20,9 +20,6 @@ namespace UnityEngine.Rendering.Universal
         Normal = 1 << 1,
         Color = 1 << 2,
         Motion = 1 << 3,
-        RenderingLayer = 1 << 4,
-        DecalLayers = 1 << 5,
-        LightLayers = 1 << 6,
     }
 
     // Note: Spaced built-in events so we can add events in between them

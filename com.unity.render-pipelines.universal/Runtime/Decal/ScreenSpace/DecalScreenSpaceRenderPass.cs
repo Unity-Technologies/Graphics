@@ -23,8 +23,6 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
 
             var scriptableRenderPassInput = ScriptableRenderPassInput.Depth; // Require depth
-            if (decalLayers)
-                scriptableRenderPassInput |= ScriptableRenderPassInput.RenderingLayer;
             ConfigureInput(scriptableRenderPassInput);
 
             m_DrawSystem = drawSystem;

@@ -23,8 +23,6 @@ namespace UnityEngine.Rendering.Universal
         public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
-            if (decalLayers)
-                ConfigureInput(ScriptableRenderPassInput.RenderingLayer);
 
             m_DrawSystem = drawSystem;
             m_Settings = settings;

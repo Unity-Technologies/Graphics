@@ -411,6 +411,9 @@ namespace UnityEngine.Rendering.Universal
             bool renderingLayerProvidesRenderObjectPass = renderingLayersEvent == RenderingLayerUtils.Event.ForwardOpaque;
             bool renderingLayerProvidesGBufferPass = renderingLayersEvent == RenderingLayerUtils.Event.GBuffer;
 
+            if (renderingLayerProvidesByDepthNormalPass)
+                renderPassInputs.requiresNormalsTexture = true;
+
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
             {

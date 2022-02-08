@@ -37,8 +37,6 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
 
             var scriptableRenderPassInput = ScriptableRenderPassInput.Normal;
-            if (decalLayers)
-                scriptableRenderPassInput |= ScriptableRenderPassInput.RenderingLayer;
             ConfigureInput(scriptableRenderPassInput);
 
             m_DrawSystem = drawSystem;

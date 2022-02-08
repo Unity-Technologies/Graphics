@@ -214,6 +214,15 @@ namespace UnityEngine.Rendering.Universal
             m_RecreateSystems = true;
         }
 
+        internal override RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+        {
+            var technique = GetTechnique(isDeferred);
+            if (technique == DecalTechnique.DBuffer)
+                return RenderingLayerUtils.Event.DepthNormalPrePass;
+            else
+                return isDeferred ? RenderingLayerUtils.Event.GBuffer : RenderingLayerUtils.Event.ForwardOpaque;
+        }
+
         internal DBufferSettings GetDBufferSettings()
         {
             if (m_Settings.technique == DecalTechniqueOption.Automatic)

@@ -62,6 +62,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Override this method and return event in order URP to produce rendering layers texture at specified event.
+        /// </summary>
+        /// <param name="isDeferred">The true value if Renderer is using deffered rendering path.</param>
+        /// <returns></returns>
+        internal virtual RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+        {
+            return RenderingLayerUtils.Event.None;
+        }
+
+        /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
         /// If the feature is active, it is added to the renderer it is attached to, otherwise the feature is skipped while rendering.
         /// </summary>
