@@ -31,6 +31,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public int[] probeIndices;
 
+        public Bounds bounds;
+
         internal int GetBakingHashCode()
         {
             int hash = position.GetHashCode();
@@ -516,6 +518,15 @@ namespace UnityEngine.Experimental.Rendering
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
+                // Find the subset of touchup volumes that will be considered for this cell.
+                // Capacity of the list to cover the worst case.
+                var localTouchupVolumes = new List<(Bounds, ProbeTouchupVolume)>(touchupVolumes.Length);
+                foreach (var touchup in touchupVolumesAndBounds)
+                {
+                    if (touchup.Item1.Intersects(cell.bounds))
+                        localTouchupVolumes.Add(touchup);
+                }
+
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = cell.probeIndices[i];
@@ -529,7 +540,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
                     bool invalidatedProbe = false;
-                    foreach (var touchup in touchupVolumesAndBounds)
+                    foreach (var touchup in localTouchupVolumes)
                     {
                         var touchupBound = touchup.Item1;
                         var touchupVolume = touchup.Item2;
@@ -1071,7 +1082,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     var bricks = ProbePlacement.SubdivideCell(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
 
-                    result.cellPositions.Add(cell.position);
+                    result.cellPositionsAndBounds.Add((cell.position, cell.volume.CalculateAABB()));
                     result.bricksPerCells[cell.position] = bricks;
                     result.scenesPerCells[cell.position] = scenesInCell;
                 }
@@ -1138,15 +1149,15 @@ namespace UnityEngine.Experimental.Rendering
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
             m_BakingBatch = new BakingBatch(m_BakingBatchIndex++);
 
-            foreach (var cellPos in results.cellPositions)
+            foreach (var cellPosAndBounds in results.cellPositionsAndBounds)
             {
-                var bricks = results.bricksPerCells[cellPos];
+                var bricks = results.bricksPerCells[cellPosAndBounds.position];
 
                 if (bricks.Count == 0)
                     continue;
 
                 BakingCell cell = new BakingCell();
-                cell.position = cellPos;
+                cell.position = cellPosAndBounds.position;
                 cell.index = index++;
 
                 // Convert bricks to positions
@@ -1161,8 +1172,10 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.probeIndices = indices;
 
+                cell.bounds = cellPosAndBounds.bounds;
+
                 m_BakingBatch.cells.Add(cell);
-                m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
+                m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPosAndBounds.position].ToList();
             }
 
             // Virtually offset positions before passing them to lightmapper
