@@ -10,11 +10,13 @@
 //   0:                        Camera ray
 //   1 - SEGMENT_ID_MAX_DEPTH: Continuation ray (ID == depth)
 //   SEGMENT_ID_TRANSMISSION:  Transmission (or Shadow) ray
+//   SEGMENT_ID_NEAREST_HIT:   Nearest surface hit query ray
 //   SEGMENT_ID_RANDOM_WALK:   Random walk ray (used in SSS)
 //
 #define SEGMENT_ID_MAX_DEPTH    10
 #define SEGMENT_ID_TRANSMISSION (~0 - 0)
-#define SEGMENT_ID_RANDOM_WALK  (~0 - 1)
+#define SEGMENT_ID_NEAREST_HIT  (~0 - 1)
+#define SEGMENT_ID_RANDOM_WALK  (~0 - 2)
 
 // Path Tracing Payload
 struct PathPayload

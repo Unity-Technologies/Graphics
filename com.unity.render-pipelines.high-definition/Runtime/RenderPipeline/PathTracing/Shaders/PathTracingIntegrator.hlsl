@@ -195,7 +195,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 ray.TMax = FLT_INF;
 
                 // Prepare our shadow payload with all required information
-                shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
+                shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
                 shadowPayload.rayTHit = FLT_INF;
 
                 // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
@@ -266,7 +266,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     // Always set the new t value
     payload.rayTHit = RayTCurrent();
 
-    if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
+    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT)
         return;
 
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
