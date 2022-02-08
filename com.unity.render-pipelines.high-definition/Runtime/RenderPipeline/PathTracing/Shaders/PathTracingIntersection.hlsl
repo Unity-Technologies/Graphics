@@ -3,10 +3,18 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
-// Special segment ID values
+//
+// Segment ID
+//
+// Identifies segments (or rays) along our path:
+//   0:                        Camera ray
+//   1 - SEGMENT_ID_MAX_DEPTH: Continuation ray (ID == depth)
+//   SEGMENT_ID_TRANSMISSION:  Transmission (or Shadow) ray
+//   SEGMENT_ID_RANDOM_WALK:   Random walk ray (used in SSS)
+//
+#define SEGMENT_ID_MAX_DEPTH    10
 #define SEGMENT_ID_TRANSMISSION (~0 - 0)
 #define SEGMENT_ID_RANDOM_WALK  (~0 - 1)
-#define SEGMENT_ID_MAX_DEPTH    16
 
 // Structure that defines the current state of the intersection, for path tracing
 struct PathIntersection
