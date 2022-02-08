@@ -16,6 +16,8 @@ Decals in HDRP have changed in the following ways:
 
 * When you write a shader for a surface that recieves decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
 
+An optimization performed on decals modified the rendering order between of decals that shares the same **Draw Order** value. If some of the decals in your scene overlaps, check the draw order in their material to ensure that they use different numbers.
+
 ### Tessellation
 HDRP 2021.2 has various tessellation shader code to enable tessellation support in [Master Stacks](master-stack-hdrp.md).  has changed the tessellation shader code in the following ways:
 
