@@ -29,3 +29,4 @@ Objects with Transparent Materials and with a Refraction Model enabled will now 
 Before, there was no refraction result in the Material unless a Reflection Probe was configured and the object was within the probe's extents.
 
 Now, the bounding box of an object will be used as a fallback approximation to compute the Refraction. For upgrading, be aware that refractive objects that are not within the extents of a Reflection Probe will now demonstrate this improved behavior.
+

@@ -408,6 +408,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2320_Mixed_Cached_ShadowMap_Directional.unity
     guid: c1fbd001447cf044f9deade52e5e8f45
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2321_Shadow_Cascades_CustomProj.unity
+    guid: 879e29801a2c8a445a211d17ece0764a
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
   - enabled: 1
