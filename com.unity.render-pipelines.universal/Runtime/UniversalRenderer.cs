@@ -46,13 +46,13 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 
-        // Rendering mode setup from UI.
-        internal RenderingMode renderingMode => m_RenderingMode;
+        // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
+        internal RenderingMode renderingModeRequested => m_RenderingMode;
 
-        // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
-        internal RenderingMode actualRenderingMode => (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
+        // Actual rendering mode, which may be different (ex: wireframe rendering, hardware not capable of deferred rendering).
+        internal RenderingMode renderingModeActual => (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
         ? RenderingMode.Forward
-        : this.renderingMode;
+        : this.renderingModeRequested;
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
@@ -198,12 +198,12 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_MotionVectorPass = new MotionVectorRenderPass(m_CameraMotionVecMaterial, m_ObjectMotionVecMaterial);
 
-            if (this.renderingMode == RenderingMode.Forward)
+            if (this.renderingModeRequested == RenderingMode.Forward)
             {
                 m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
             }
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.renderingModeRequested == RenderingMode.Deferred)
             {
                 var deferredInitParams = new DeferredLights.InitParams();
                 deferredInitParams.stencilDeferredMaterial = m_StencilDeferredMaterial;
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraStacking = true,
             };
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.renderingModeRequested == RenderingMode.Deferred)
             {
                 // Deferred rendering does not support MSAA.
                 this.supportedRenderingFeatures.msaa = false;
@@ -450,7 +450,7 @@ namespace UnityEngine.Rendering.Universal
             // DepthNormal prepass will render:
             // - forward-only geometry when deferred renderer is enabled
             // - all geometry when forward renderer is enabled
-            if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
+            if (requiresDepthPrepass && this.renderingModeActual == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
                 requiresDepthPrepass = false;
 
             requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             bool createDepthTexture = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !requiresDepthPrepass;
             createDepthTexture |= !cameraData.resolveFinalTarget;
             // Deferred renderer always need to access depth buffer.
-            createDepthTexture |= (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled);
+            createDepthTexture |= (this.renderingModeActual == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
             createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
@@ -598,14 +598,14 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderPassEnabled)
                     useRenderPassEnabled = DebugHandler.IsRenderPassSupported;
             }
-            if (this.actualRenderingMode == RenderingMode.Deferred)
+            if (this.renderingModeActual == RenderingMode.Deferred)
             {
                 if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
                     m_DeferredLights.DisableFramebufferFetchInput();
             }
 
             // Allocate m_DepthTexture if used
-            if ((this.actualRenderingMode == RenderingMode.Deferred && !this.useRenderPassEnabled) || requiresDepthPrepass || requiresDepthCopyPass)
+            if ((this.renderingModeActual == RenderingMode.Deferred && !this.useRenderPassEnabled) || requiresDepthPrepass || requiresDepthCopyPass)
             {
                 var depthDescriptor = cameraTargetDescriptor;
                 if (requiresDepthPrepass)
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var normalsTexture = ref m_NormalsTexture;
                 string normalsTextureName = "_CameraNormalsTexture";
 
-                if (this.actualRenderingMode == RenderingMode.Deferred)
+                if (this.renderingModeActual == RenderingMode.Deferred)
                 {
                     normalsTexture = ref m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex];
                     normalsTextureName = normalsTexture.name;
@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.Universal
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
-                if (this.actualRenderingMode == RenderingMode.Deferred)
+                if (this.renderingModeActual == RenderingMode.Deferred)
                     normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferNormalSmoothnessIndex); // the one used by the gbuffer.
                 else
                     normalDescriptor.graphicsFormat = DepthNormalOnlyPass.GetGraphicsFormat();
@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (renderPassInputs.requiresNormalsTexture)
                 {
-                    if (this.actualRenderingMode == RenderingMode.Deferred)
+                    if (this.renderingModeActual == RenderingMode.Deferred)
                     {
                         // In deferred mode, depth-normal prepass does really primes the depth and normal buffers, instead of creating a copy.
                         // It is necessary because we need to render depth&normal for forward-only geometry and it is the only way
@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
-                    if (this.actualRenderingMode != RenderingMode.Deferred)
+                    if (this.renderingModeActual != RenderingMode.Deferred)
                     {
                         m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                         EnqueuePass(m_DepthPrepass);
@@ -718,7 +718,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_XROcclusionMeshPass);
 #endif
 
-            if (this.actualRenderingMode == RenderingMode.Deferred)
+            if (this.renderingModeActual == RenderingMode.Deferred)
             {
                 if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
                     m_DeferredLights.DisableFramebufferFetchInput();
@@ -774,7 +774,7 @@ namespace UnityEngine.Rendering.Universal
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
             // however we might need the depth texture with Forward-only pass rendered to it, so enable the copy depth in that case
-            if (requiresDepthCopyPass && !(this.actualRenderingMode == RenderingMode.Deferred && useRenderPassEnabled && !renderPassInputs.requiresDepthTexture))
+            if (requiresDepthCopyPass && !(this.renderingModeActual == RenderingMode.Deferred && useRenderPassEnabled && !renderPassInputs.requiresDepthTexture))
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
@@ -946,7 +946,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ForwardLights.Setup(context, ref renderingData);
 
-            if (this.actualRenderingMode == RenderingMode.Deferred)
+            if (this.renderingModeActual == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
@@ -970,7 +970,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
-            if (this.actualRenderingMode == RenderingMode.Deferred)
+            if (this.renderingModeActual == RenderingMode.Deferred)
                 cullingParameters.maximumVisibleLights = 0xFFFF;
             else
             {
@@ -1143,7 +1143,7 @@ namespace UnityEngine.Rendering.Universal
             // Gbuffer pass will not be y-flipped because it is MRT (see ScriptableRenderContext implementation),
             // while deferred pass will be y-flipped, which breaks rendering.
             // This incurs an extra blit into at the end of rendering.
-            if (this.actualRenderingMode == RenderingMode.Deferred)
+            if (this.renderingModeActual == RenderingMode.Deferred)
                 return true;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;

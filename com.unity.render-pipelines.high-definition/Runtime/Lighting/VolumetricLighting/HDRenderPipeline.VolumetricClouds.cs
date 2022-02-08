@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CombineCloudsKernelColorCopy;
         int m_CombineCloudsKernelColorRW;
         int m_CombineCloudsSkyKernel;
+        bool m_ActiveVolumetricClouds;
 
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
@@ -53,7 +54,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeVolumetricClouds()
         {
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+            // Keep track of the state for the release
+            m_ActiveVolumetricClouds = m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds;
+            if (!m_ActiveVolumetricClouds)
                 return;
 
             // Allocate the buffers for ambient probe evaluation
@@ -92,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReleaseVolumetricClouds()
         {
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+            if (!m_ActiveVolumetricClouds)
                 return;
 
             // Destroy the material
@@ -390,7 +393,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!shadowPass)
                 {
-                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[0].color * settings.sunLightDimmer.value;
+                    // m_CurrentSunLightDataIndex is supposed to be guaranteed to be non -1 if the current sun is not null
+                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[m_CurrentSunLightDataIndex].color * settings.sunLightDimmer.value;
                 }
             }
             else
@@ -492,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float groundShadowSize = settings.shadowDistance.value;
 
                 // The world space camera will be required but the global constant buffer will not be injected yet.
-                cb._WorldSpaceShadowCenter = new Vector2(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.z);
+                cb._WorldSpaceShadowCenter = new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0.0f);
 
                 if (HasVolumetricCloudsShadows(hdCamera, settings))
                 {

@@ -4,10 +4,68 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.6] - 2022-01-14
+
+### Fixed
+- Fixed sky jittering when TAA is enabled.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed warning when an APV baking set is renamed.
+- Fixed the Exposure field name to Exposure Compensation name in sky volume overrides (case 1392530).
+- Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed Post Process not editable in the default frame settings.
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
+- Fixed a null ref exception in Volume Explorer
+- Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
+- Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
+- Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
+- Fixed public API for Diffusion Profile Override volume Component.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
+- Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+
+### Changed
+- Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+
 ## [13.1.5] - 2021-12-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [13.1.4] - 2021-12-04
 

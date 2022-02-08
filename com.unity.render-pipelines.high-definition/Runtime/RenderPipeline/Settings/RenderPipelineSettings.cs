@@ -53,7 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum CustomBufferFormat
         {
             /// <summary>Regular R8G8B8A8 format.</summary>
-            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            [InspectorName("Signed R8G8B8A8")]
+            SignedR8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            /// <summary>Regular R8G8B8A8 format.</summary>
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_UNorm,
             /// <summary>R16G16B16A16 high quality HDR format.</summary>
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             /// <summary>R11G11B10 medium quality HDR format.</summary>

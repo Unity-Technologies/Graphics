@@ -9,7 +9,7 @@ The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's
 
 The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Settings**.
 
-## Volume Profiles
+## <a name="volume-profiles"></a> Volume Profiles
 
 You can use the **Volume Profiles** section to assign and edit a [Volume Profile](Volume-Profile.md) that [Volumes](Volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
 
