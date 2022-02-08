@@ -250,10 +250,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CapsuleIndirectRangeFactor;
         public float _CapsuleIndirectMinimumVisibility;
 
+        public Vector3 _CapsuleIndirectDirectionBias;
         public float _CapsuleIndirectCosAngle;
-        public uint _CapsulePad0;
-        public uint _CapsulePad1;
-        public uint _CapsulePad2;
 
         public float _OffScreenDownsampleFactor;
         public uint _OffScreenRendering;

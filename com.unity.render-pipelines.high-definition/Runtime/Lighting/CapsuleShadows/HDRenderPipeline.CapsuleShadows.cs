@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3 luma = new Vector3(0.2126729f, 0.7151522f, 0.0721750f);
                         const int R = 0, G = 1, B = 2;
                         const int X = 3, Y = 1, Z = 2;
+                        Vector3 directionBias = capsuleShadows.indirectDirectionBias.value;
                         for (int i = 0; i < count; ++i)
                         {
                             SphericalHarmonicsL2 probe = lighting[i];
@@ -204,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             Vector3 L1_Vec = new Vector3(Vector3.Dot(L1_X, luma), Vector3.Dot(L1_Y, luma), Vector3.Dot(L1_Z, luma));
 
                             CapsuleOccluderData data = indirectOccluders[i];
-                            data.indirectDirWS = L1_Vec.normalized;
+                            data.indirectDirWS = (L1_Vec.normalized + directionBias).normalized;
                             indirectOccluders[i] = data;
                         }
                     }
@@ -239,6 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CapsuleIndirectShadowCountAndFlags = indirectCountAndFlags;
             cb._CapsuleIndirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
             cb._CapsuleIndirectMinimumVisibility = capsuleShadows.indirectMinVisibility.value;
+            cb._CapsuleIndirectDirectionBias = capsuleShadows.indirectDirectionBias.value;
             cb._CapsuleIndirectCosAngle = Mathf.Cos(Mathf.Deg2Rad * 0.5f * capsuleShadows.indirectAngularDiameter.value);
         }
 

@@ -102,11 +102,15 @@ float ApproximateCapsuleOcclusion(
     is likely to be approximated by *this* capsule.  Uses a heuristic
     based on how close the surface is to the capsule surface and
     capsule surface normal.
+
+    * HORIZON_FADE: fades out the occlusion effect as the occluder goes
+    under the horizon of the surface.
 */
 #define CAPSULE_SHADOW_FLAG_ELLIPSOID           0x1
 #define CAPSULE_SHADOW_FLAG_FLATTEN             0x2
 #define CAPSULE_SHADOW_FLAG_CLIP_TO_PLANE       0x4
 #define CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW    0x8
+#define CAPSULE_SHADOW_FLAG_HORIZON_FADE        0x10
 
 float EvaluateCapsuleOcclusion(
     uint flags,
@@ -136,6 +140,12 @@ float EvaluateCapsuleOcclusion(
             float interiorTerm = sphereDistance/capsuleRadius;                      // 0 in interior, 1 on surface
             float facingTerm = dot(normalWS, surfaceToSphereVec)/sphereDistance;    // -1 facing out of capsule, +1 facing into capsule
             occlusion *= smoothstep(0.6f, 0.8f, interiorTerm + 0.5f*facingTerm);
+        }
+
+        // apply falloff under the horizong
+        if (flags & CAPSULE_SHADOW_FLAG_HORIZON_FADE) {
+            float heightAboveSurface = dot(surfaceToSphereVec, normalWS) + capsuleOffset*abs(dot(capsuleAxisDirWS, normalWS)) + capsuleRadius;
+            occlusion *= smoothstep(0.f, 0.25f*capsuleRadius, heightAboveSurface);
         }
     }
     // early out before more intersection tests

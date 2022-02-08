@@ -54,6 +54,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ClampedFloatParameter indirectAngularDiameter = new ClampedFloatParameter(45.0f, 1.0f, 90.0f);
 
+        /// <summary>
+        /// A world space bias to add to the indirect light direction when using directional indirect shadows.
+        /// </summary>
+        public Vector3Parameter indirectDirectionBias = new Vector3Parameter(new Vector3(0.0f, 0.5f, 0.0f));
+
         CapsuleShadowsVolumeComponent()
         {
             displayName = "Capsule Shadows";

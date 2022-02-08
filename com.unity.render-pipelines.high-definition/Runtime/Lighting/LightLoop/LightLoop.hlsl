@@ -686,7 +686,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
         else if (method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_SURFACE)
         {
-            float3 indirectDir = float3(0.f, 1.f, 0.f);
+            float3 indirectVec = _CapsuleIndirectDirectionBias;
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
             APVResources apvRes = FillAPVResources();
             float3 posWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -699,10 +699,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // use the "optimal linear" direction as the indirect direction
                 // ref: stupid SH tricks
                 float3 luma = float3(0.2126729f, 0.7151522f, 0.0721750f);
-                indirectDir = normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
+                indirectVec += normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
             }
 #endif
-            visibility = EvaluateCapsuleIndirectShadow(indirectDir, true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+            visibility = EvaluateCapsuleIndirectShadow(normalize(indirectVec), true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
         }
         else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
         {

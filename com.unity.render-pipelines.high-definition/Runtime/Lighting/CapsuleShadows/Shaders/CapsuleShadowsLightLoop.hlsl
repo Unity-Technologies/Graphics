@@ -90,13 +90,12 @@ float EvaluateCapsuleDirectShadow(
 
             if (IsMatchingLightLayer(s_capsuleData.lightLayers, renderLayer))
             {
-                float3 surfaceToCapsuleVec = s_capsuleData.centerRWS - posInput.positionWS;
                 float occlusion = EvaluateCapsuleOcclusion(
                     flags,
                     surfaceToLightVec,
                     lightIsPunctual,
                     lightCosTheta,
-                    surfaceToCapsuleVec,
+                    s_capsuleData.centerRWS - posInput.positionWS,
                     s_capsuleData.axisDirWS,
                     s_capsuleData.offset,
                     s_capsuleData.radius,
@@ -185,7 +184,7 @@ float EvaluateCapsuleIndirectShadow(
     float3 normalWS)
 {
     // hardcoded (probably cheapest) shadow function
-    uint flags = CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+    uint flags = CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
