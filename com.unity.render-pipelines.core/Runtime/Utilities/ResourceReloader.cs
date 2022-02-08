@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
                     System.Collections.IList arr = (System.Collections.IList)fieldInfo.GetValue(container);
                     foreach (var item in arr)
                     {
-                        if (item != null)
+                        if (item != null && item.GetType().GetCustomAttribute<ReloadGroupAttribute>() != null)
                             changed |= ReloadAllNullIn(item, basePath);
                     }
                 }
