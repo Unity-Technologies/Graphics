@@ -5,6 +5,38 @@ using UnityEngine.Profiling;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
+    /// Extension of DrawObjectPass that also output Rendering Layers Texture as second render target.
+    /// </summary>
+    internal class DrawObjectsAndRenderingLayersPass : DrawObjectsPass
+    {
+        RTHandle[] m_ColorTargetIndentifiers;
+        RTHandle m_DepthTargetIndentifiers;
+
+        public DrawObjectsAndRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
+            base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
+        {
+            m_ColorTargetIndentifiers = new RTHandle[2];
+        }
+
+        public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
+        {
+            m_ColorTargetIndentifiers[0] = colorAttachment;
+            m_ColorTargetIndentifiers[1] = renderingLayersTexture;
+            m_DepthTargetIndentifiers = depthAttachment;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
+        }
+
+        protected override void OnExecute(CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+        }
+    }
+
+    /// <summary>
     /// Draw  objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
@@ -20,9 +52,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsOpaque;
 
         bool m_UseDepthPriming;
-
-        RTHandle[] m_ColorTargetIndentifiers;
-        RTHandle m_DepthTargetIndentifiers;
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -45,26 +74,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
-        }
-
-        public void Setup()
-        {
-            m_ColorTargetIndentifiers = null;
-            m_DepthTargetIndentifiers = null;
-        }
-
-        public void Setup(RTHandle[] colorAttachments, RTHandle depthAttachment)
-        {
-            m_ColorTargetIndentifiers = colorAttachments;
-            m_DepthTargetIndentifiers = depthAttachment;
-        }
-
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            if (m_ColorTargetIndentifiers == null)
-                ResetTarget();
-            else
-                ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
         }
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
@@ -117,8 +126,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-                // TODO: Move from this pass
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, this.m_ColorTargetIndentifiers != null);
+                OnExecute(cmd);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -160,5 +168,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+        protected virtual void OnExecute(CommandBuffer cmd) { }
     }
 }

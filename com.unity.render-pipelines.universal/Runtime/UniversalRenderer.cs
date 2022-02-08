@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
+        DrawObjectsAndRenderingLayersPass m_RenderOpaqueForwardAndRenderingLayersPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
@@ -236,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderOpaqueForwardAndRenderingLayersPass = new DrawObjectsAndRenderingLayersPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             bool copyDepthAfterTransparents = m_CopyDepthMode == CopyDepthMode.AfterTransparents;
 
@@ -823,23 +825,19 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
-                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
-
+                DrawObjectsPass renderOpaqueForwardPass = null;
                 if (renderingLayerProvidesRenderObjectPass)
                 {
-                    RTHandle[] rts = new RTHandle[]
-                    {
-                        m_ActiveCameraColorAttachment,
-                        m_DecalLayersTexture,
-                    };
-
-                    m_RenderOpaqueForwardPass.Setup(rts, m_ActiveCameraDepthAttachment);
+                    renderOpaqueForwardPass = m_RenderOpaqueForwardAndRenderingLayersPass;
+                    m_RenderOpaqueForwardAndRenderingLayersPass.Setup(m_ActiveCameraColorAttachment, m_DecalLayersTexture, m_ActiveCameraDepthAttachment);
                 }
                 else
-                    m_RenderOpaqueForwardPass.Setup();
+                    renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
 
-                EnqueuePass(m_RenderOpaqueForwardPass);
+                renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
+                renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+
+                EnqueuePass(renderOpaqueForwardPass);
             }
 
             if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
