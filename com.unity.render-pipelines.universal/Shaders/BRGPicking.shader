@@ -18,7 +18,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             HLSLPROGRAM
 
             #pragma target 4.5
-            // #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles // TODO Exlude GLCore too when we're done with testing
 
             #pragma editor_sync_compilation
             #pragma multi_compile DOTS_INSTANCING_ON
