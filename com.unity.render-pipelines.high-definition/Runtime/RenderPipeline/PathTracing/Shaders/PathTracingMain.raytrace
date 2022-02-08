@@ -237,38 +237,40 @@ void TracePath()
         // If we hit something, always set alpha/presence to 1.0
         alpha = 1.0;
 
-        float3 valueArray[12];
-        float3 throughputArray[12];
+        uint segmentID, segmentIDMaxDepth = min(_RaytracingMaxRecursion, SEGMENT_ID_MAX_DEPTH);
+        float3 segmentValue[SEGMENT_ID_MAX_DEPTH];
+        float3 segmentThroughput[SEGMENT_ID_MAX_DEPTH];
 
-        valueArray[0] = value;
-        throughputArray[0] = 1.0;
+        segmentValue[0] = value;
+        segmentThroughput[0] = 1.0;
 
-        // Iterate over each path segments, up to a specified max recursion value
-        int iter;
-        for (iter = 1; iter < _RaytracingMaxRecursion && any(payload.rayDirection); iter++)
+        // Iterate over each path segments, up to a specified max recursion depth
+        for (segmentID = 1; segmentID < segmentIDMaxDepth && any(payload.rayDirection); segmentID++)
         {
+            // Store throughput up to that segment
+            segmentThroughput[segmentID] = payload.throughput;
+
             // Update our continuation ray
             GetContinuationRay(payload, ray);
 
             // Update the payload
             SetPixelCoordinates(pixelCoord, payload);
-            SetSegmentID(iter, payload);
-
-            throughputArray[iter] = payload.throughput / throughputArray[iter-1];
+            SetSegmentID(segmentID, payload);
 
             // Trace our continuation ray
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
 
-            // Add the value for this path segment
-            //value += payload.value;
+            // Store segment radiance value
+            segmentValue[segmentID] = payload.value;
+        }
 
-            valueArray[iter] = payload.value;
-        }
-        for (iter--; iter > 0; iter--)
+        // Then iterate backwards, to apply proper intensity clamping
+        for (segmentID--; segmentID > 0; segmentID--)
         {
-            valueArray[iter-1] += ClampValue(throughputArray[iter] * valueArray[iter]);
+            segmentThroughput[segmentID] /= segmentThroughput[segmentID - 1];
+            segmentValue[segmentID - 1] += segmentThroughput[segmentID] * ClampValue(segmentValue[segmentID]);
         }
-        value = valueArray[0];
+        value = segmentValue[0];
     }
     else
     {

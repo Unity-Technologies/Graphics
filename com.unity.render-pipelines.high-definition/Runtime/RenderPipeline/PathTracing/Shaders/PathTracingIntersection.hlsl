@@ -3,9 +3,10 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
-// Special segment IDs (keep in mind that segment IDs are stored as float)
+// Special segment ID values
 #define SEGMENT_ID_TRANSMISSION (~0 - 0)
 #define SEGMENT_ID_RANDOM_WALK  (~0 - 1)
+#define SEGMENT_ID_MAX_DEPTH    16
 
 // Structure that defines the current state of the intersection, for path tracing
 struct PathIntersection
