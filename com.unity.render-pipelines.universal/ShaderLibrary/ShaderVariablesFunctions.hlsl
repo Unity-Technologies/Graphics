@@ -424,13 +424,13 @@ uint GetMeshRenderingLayer()
 
 float EncodeMeshRenderingLayer(uint renderingLayer)
 {
-    //return (renderingLayer & 0x0000FFFF) / (255.0 * 255.0); // todo expose as property
+    // TODO: Expose as property for the size
     return PackInt(renderingLayer, 16);
 }
 
 uint DecodeMeshRenderingLayer(float renderingLayer)
 {
-    //return (renderingLayer & 0x0000FFFF) / (255.0 * 255.0); // todo expose as property
+    // TODO: Expose as property for the size
     return UnpackInt(renderingLayer, 16);
 }
 
