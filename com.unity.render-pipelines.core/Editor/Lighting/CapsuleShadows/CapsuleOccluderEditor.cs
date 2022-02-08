@@ -17,15 +17,8 @@ namespace UnityEngine.Rendering
         };
         static GUIContent[] s_EditModesContent;
 
-        SerializedProperty m_Center, m_Rotation, m_Radius, m_Height;
-
         private void OnEnable()
         {
-            m_Center = serializedObject.FindProperty("center");
-            m_Rotation = serializedObject.FindProperty("rotation");
-            m_Radius = serializedObject.FindProperty("radius");
-            m_Height = serializedObject.FindProperty("height");
-
             if (s_EditModesContent == null)
             {
                 s_EditModesContent = new GUIContent[]
@@ -37,23 +30,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static Func<Bounds> GetBoundsGetter(Editor o)
-        {
-            return () =>
-            {
-                var bounds = new Bounds();
-                var rp = ((Component)o.target).transform;
-                var b = rp.position;
-                bounds.Encapsulate(b);
-                return bounds;
-            };
-        }
-
         public override void OnInspectorGUI()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            EditMode.DoInspectorToolbar(s_EditModes, s_EditModesContent, GetBoundsGetter(this), this);
+            EditMode.DoInspectorToolbar(s_EditModes, s_EditModesContent, null, this);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
