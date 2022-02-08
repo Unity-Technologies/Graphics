@@ -51,14 +51,12 @@ namespace UnityEngine.Rendering
         /// <returns>True if something have been reloaded.</returns>
         public static bool ReloadAllNullIn(System.Object container, string basePath)
         {
-            Debug.Log($"Reloading: {container.ToString()}");
             if (IsNull(container))
                 return false;
 
             var changed = false;
             foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
-                Debug.Log($"container: {container.GetType()}, fieldinfo.name: {fieldInfo.Name}");
                 //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))
                 {
