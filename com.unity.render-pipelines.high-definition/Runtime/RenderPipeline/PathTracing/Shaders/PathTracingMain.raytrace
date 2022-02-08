@@ -110,7 +110,7 @@ void MissMaterial(inout PathIntersection payload : SV_RayPayload)
     payload.value = GetMaterialMissValue();
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
 
-    // Make sure we don't shoot a continuation ray after this
+    // Make sure we don't shoot another continuation ray after this
     payload.rayDirection = 0.0;
 }
 
@@ -126,6 +126,15 @@ void MissTransparentUnlitMaterial(inout PathIntersection payload : SV_RayPayload
     // Misses from Transparent Unlit are special in that they always are straight up continuation rays
     payload.value = payload.segmentID > 1 ? GetMaterialMissValue() : GetCameraMissValue(payload.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
+
+    // Make sure we don't shoot another continuation ray after this
+    payload.rayDirection = 0.0;
+}
+
+uint GetMissIndex(RayDesc ray)
+{
+    // If we have specific Min and Max values, we are shooting a Transparent Unlit continuation ray
+    return (ray.TMin == 0.0 && ray.TMax == FLT_INF) ? 3 : 2;
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
@@ -255,7 +264,8 @@ void TracePath()
             payload.segmentID = segmentID;
 
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+                     RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, GetMissIndex(ray), ray, payload);
 
             // Store segment radiance value
             segmentValue[segmentID] = payload.value;

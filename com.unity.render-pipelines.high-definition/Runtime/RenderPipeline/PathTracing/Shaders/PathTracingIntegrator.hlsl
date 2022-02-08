@@ -240,27 +240,19 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
     #endif
 
-// FIXME!! Reactivate
+    // Simulate opacity blending by simply continuing along the current ray
+    #ifdef _SURFACE_TYPE_TRANSPARENT
+    if (builtinData.opacity < 1.0)
+    {
+        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        float3 rayOrigin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
 
-    // // Simulate opacity blending by simply continuing along the current ray
-    // #ifdef _SURFACE_TYPE_TRANSPARENT
-    // if (builtinData.opacity < 1.0)
-    // {
-    //     RayDesc rayDescriptor;
-    //     float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
-    //     rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
-    //     rayDescriptor.Direction = WorldRayDirection();
-    //     rayDescriptor.TMin = 0.0;
-    //     rayDescriptor.TMax = FLT_INF;
-
-    //     PathIntersection nextPathIntersection = pathIntersection;
-    //     nextPathIntersection.remainingDepth--;
-
-    //     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
-
-    //     pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
-    // }
-    // #endif
+        // Update our payload to fire a straight continuation ray
+        pathIntersection.throughput *= 1.0 - builtinData.opacity;
+        pathIntersection.value *= builtinData.opacity;
+        SetContinuationRay(rayOrigin, WorldRayDirection(), -1.0, pathIntersection);
+    }
+    #endif
 
 #endif // SHADER_UNLIT
 }

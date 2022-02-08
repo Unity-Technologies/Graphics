@@ -65,8 +65,16 @@ void GetContinuationRay(PathIntersection pathIntersection, out RayDesc ray)
 {
     ray.Origin = GetContinuationRayOrigin(pathIntersection);
     ray.Direction = pathIntersection.rayDirection;
-    ray.TMin = pathIntersection.rayTHit - _RaytracingRayBias;
-    ray.TMax = pathIntersection.rayTHit + _RaytracingRayBias;
+    if (pathIntersection.rayTHit > 0.0)
+    {
+        ray.TMin = pathIntersection.rayTHit - _RaytracingRayBias;
+        ray.TMax = pathIntersection.rayTHit + _RaytracingRayBias;
+    }
+    else // Use default values
+    {
+        ray.TMin = 0.0;
+        ray.TMax = FLT_INF;
+    }
 }
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED
