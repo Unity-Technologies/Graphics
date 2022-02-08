@@ -51,12 +51,14 @@ namespace UnityEngine.Rendering
         /// <returns>True if something have been reloaded.</returns>
         public static bool ReloadAllNullIn(System.Object container, string basePath)
         {
+            Debug.Log($"Reloading: {container.ToString()}");
             if (IsNull(container))
                 return false;
 
             var changed = false;
             foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
+                Debug.Log($"container: {container.GetType()}, fieldinfo.name: {fieldInfo.Name}");
                 //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))
                 {
@@ -94,6 +96,15 @@ namespace UnityEngine.Rendering
                             for (int index = 0; index < attribute.paths.Length; ++index)
                                 changed |= SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index), builtin);
                         }
+                    }
+                }
+                else if (fieldInfo.FieldType.IsArray)
+                {
+                    System.Collections.IList arr = (System.Collections.IList)fieldInfo.GetValue(container);
+                    foreach (var item in arr)
+                    {
+                        if (item != null)
+                            changed |= ReloadAllNullIn(item, basePath);
                     }
                 }
             }
