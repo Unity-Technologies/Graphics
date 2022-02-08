@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.Universal
                     downres = 2;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new System.ArgumentOutOfRangeException();
             }
             int tw = m_Descriptor.width >> downres;
             int th = m_Descriptor.height >> downres;
