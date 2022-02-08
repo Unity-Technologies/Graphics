@@ -231,14 +231,14 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    // pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
-    // // Apply shadow matte if requested
-    // #ifdef _ENABLE_SHADOW_MATTE
-    // float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
-    // float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
-    // pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
-    // #endif
+    // Apply shadow matte if requested
+    #ifdef _ENABLE_SHADOW_MATTE
+    float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+    float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+    pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
+    #endif
 
 // FIXME!! Reactivate
 
