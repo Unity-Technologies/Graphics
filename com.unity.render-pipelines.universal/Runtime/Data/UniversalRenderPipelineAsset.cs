@@ -351,6 +351,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
+        [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
         // TODO: Shader Quality Tiers
 
@@ -859,6 +860,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        public bool enableLODCrossFade
+        {
+            get { return m_EnableLODCrossFade; }
         }
 
         public LODCrossFadeDitheringType lodCrossFadeDitheringType

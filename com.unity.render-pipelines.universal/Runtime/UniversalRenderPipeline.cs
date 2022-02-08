@@ -211,6 +211,8 @@ namespace UnityEngine.Rendering.Universal
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
+
+            QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
         }
 
         /// <inheritdoc/>
@@ -774,7 +776,8 @@ namespace UnityEngine.Rendering.Universal
                 receiveShadows = false,
                 reflectionProbes = false,
                 reflectionProbesBlendDistance = true,
-                particleSystemInstancing = true
+                particleSystemInstancing = true,
+                overridesLODCrossFade = true
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif

@@ -167,38 +167,13 @@ namespace UnityEditor.Rendering.Universal
 
                 --EditorGUI.indentLevel;
             }
-
+            EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
+            EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
             if (!ValidateCrossFadeDitheringTextures(serialized.asset))
                 CoreEditorUtils.DrawFixMeBox("Asset doesn't hold references to dithering textures. LOD Cross Fade might not work correctly.",
                     () => ResourceReloader.ReloadAllNullIn(serialized.asset, UniversalRenderPipelineAsset.packagePath));
-
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-
-            if (qualitySettings != null)
-            {
-                var property = qualitySettings.FindProperty("m_QualitySettings");
-
-                if (property != null)
-                {
-                    for (int i = 0; i < property.arraySize; i++)
-                    {
-                        var urp = QualitySettings.GetRenderPipelineAssetAt(i);
-
-                        if (serialized.asset == urp)
-                        {
-                            var qualitySettingsLevel = property.GetArrayElementAtIndex(i);
-                            var enableLODCrossFade = qualitySettingsLevel.FindPropertyRelative("enableLODCrossFade");
-
-                            if (!enableLODCrossFade.boolValue)
-                            {
-                                EditorGUILayout.HelpBox(System.String.Format("LOD Cross Fade is disabled in QualitySettings. For the {0} quality level.", qualitySettingsLevel.displayName), MessageType.Warning);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            EditorGUI.EndDisabledGroup();
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
