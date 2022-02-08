@@ -94,9 +94,9 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Example graph usage
 
-In the following example, the Sample Texture 2D node uses a [Subgraph node](Sub-graph-Node.md) that generates UV coordinates in latitude and longitude format to render a Texture formatted using latitude and longitude coordinates. If the Sample Texture 2D node uses the **Standard** Mip Sampling Mode, the Texture displays with a seam running down the side of the sphere where the left and right sides of the Texture meet.
+In the following example, the Sample Texture 2D node uses a [Subgraph node](Sub-graph-node) that generates UV coordinates in latitude and longitude format. These latitude and longitude UV coordinates help render the **latlong_test** 2D Texture asset, which was created and formatted using a latitude and longitude projection. The generated latitude and longitude UVs accurately map the 2D Texture asset onto a spherical geometry.
 
-The UV coordinates for sampling the Texture jump from `0` to `1` at this point on the model, which causes a problem with the mip level calculation in the sample. The error in the mip level calculation causes the seam. The Texture requires a different mip sampling mode to remove the seam:
+If the Sample Texture 2D node uses the **Standard** Mip Sampling Mode, the Texture displays with a seam running down the side of the sphere where the left and right sides of the Texture meet. The latitude and longitude UV coordinates for sampling the Texture jump from `0` to `1` at the seam on the model, which causes a problem with the mip level calculation in the sample. The error in the mip level calculation causes the seam. The Texture requires a different mip sampling mode to remove the seam:
 
 ![An image of the Graph window, that displays a UV Lat Long Subgraph node connected to the UV input port on a Sample Texture 2D node. The Sample Texture 2D is providing its RGBA output to the Base Color Block node in the Master Stack. The Main Preview of the sampled Texture has a noticeable seam running down the middle of the sphere.](images/sg-sample-texture-2d-node-example.png)
 
