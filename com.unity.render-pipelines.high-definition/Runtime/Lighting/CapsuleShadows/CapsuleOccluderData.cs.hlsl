@@ -15,7 +15,8 @@
 // UnityEngine.Rendering.HighDefinition.CapsuleIndirectShadowMethod:  static fields
 //
 #define CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION (0)
-#define CAPSULEINDIRECTSHADOWMETHOD_DIRECTIONAL (1)
+#define CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_SURFACE (1)
+#define CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE (2)
 
 //
 // UnityEngine.Rendering.HighDefinition.CapsuleAmbientOcclusionMethod:  static fields
@@ -31,10 +32,8 @@ struct CapsuleOccluderData
     float radius;
     float3 axisDirWS;
     float offset;
+    float3 indirectDirWS;
     uint lightLayers;
-    float pad0;
-    float pad1;
-    float pad2;
 };
 
 

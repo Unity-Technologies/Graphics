@@ -15,7 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum CapsuleIndirectShadowMethod
     {
         AmbientOcclusion,
-        Directional,
+        DirectionAtSurface,
+        DirectionAtCapsule,
     }
 
     [GenerateHLSL]
@@ -32,10 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float radius;
         public Vector3 axisDirWS;
         public float offset;
+        public Vector3 indirectDirWS; // for CapsuleIndirectShadowMethod.DirectionAtCapsule
         public uint lightLayers;
-        public float pad0;
-        public float pad1;
-        public float pad2;
     }
 
     internal static class CapsuleOccluderExt
@@ -55,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 radius = radiusWS,
                 axisDirWS = axisDirWS,
                 offset = offset,
+                indirectDirWS = Vector3.zero,
                 lightLayers = (uint)occluder.lightLayersMask,
             };
         }

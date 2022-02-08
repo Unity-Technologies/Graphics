@@ -178,7 +178,8 @@ float EvaluateCapsuleAmbientOcclusion(
 }
 
 float EvaluateCapsuleIndirectShadow(
-    float3 lightDir,
+    float3 overrideLightDir,
+    bool useOverride,
     float lightCosTheta,
     PositionInputs posInput,
     float3 normalWS)
@@ -231,6 +232,7 @@ float EvaluateCapsuleIndirectShadow(
         {
             v_capsuleListOffset++;
 
+            float3 lightDir = useOverride ? overrideLightDir : s_capsuleData.indirectDirWS;
             float occlusion = EvaluateCapsuleOcclusion(
                 flags,
                 lightDir,
