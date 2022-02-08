@@ -24,6 +24,10 @@ This functionality includes a variety of customization options for adapting cont
 
 For more information consult the [HDR Output](HDR-Output.md) documentation
 
+### Custom Pass
+
+Added new functions that sample the custom buffer in custom passes that deals with scaling automatically, it's recommended to use them over the standard texture sampling. Learn more about the **CustomPassSampleCustomColor** and **CustomPassLoadCustomColor** function in the [Creating a Custom Pass](Custom-Pass-Creating.md) documentation.
+
 ## Updated
 
 ### Depth Of Field
