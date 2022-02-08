@@ -155,6 +155,7 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
+        internal static RenderGraph m_RenderGraph = new RenderGraph("URPRenderGraph");
         internal static bool useRenderGraph = true;
 
         /// <summary>
@@ -218,6 +219,9 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
             XRSystem.Dispose();
+
+            m_RenderGraph.Cleanup();
+            m_RenderGraph = null;
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -447,7 +451,9 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph();
+                    RecordAndExecuteRenderGraph(context, cmd, camera);
+
+                    m_RenderGraph.EndFrame();
                 }
                 else
                 {
