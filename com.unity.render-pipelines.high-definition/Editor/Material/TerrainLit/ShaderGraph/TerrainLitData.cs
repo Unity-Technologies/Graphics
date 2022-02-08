@@ -44,5 +44,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_RayTracing;
             set => m_RayTracing = value;
         }
+
+        [SerializeField]
+        SpecularOcclusionMode m_SpecularOcclusionMode = SpecularOcclusionMode.FromAO;
+        public SpecularOcclusionMode specularOcclusionMode
+        {
+            get => m_SpecularOcclusionMode;
+            set => m_SpecularOcclusionMode = value;
+        }
     }
 }

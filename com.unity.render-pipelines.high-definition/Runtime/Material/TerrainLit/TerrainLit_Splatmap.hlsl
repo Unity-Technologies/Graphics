@@ -37,6 +37,14 @@ float GetSumHeight(float4 heights0, float4 heights1)
     return sumHeight;
 }
 
+float4 SampleAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float3 scale)
+{
+    float4 albedo = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
+    albedo.xyz *= scale;
+
+    return albedo;
+}
+
 float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
 {
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
@@ -55,13 +63,46 @@ float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, fl
 #endif
 }
 
-float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 remapScale)
+#define SampleAlbedo(i) SampleAlbedoGrad(_Splat##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _DiffuseRemapScale##i.xyz)
+
+#ifdef _NORMALMAP
+    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _NormalScale##i)
+#else
+    #define SampleNormal(i) float3(0, 0, 0)
+#endif
+
+#define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
+
+float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
 {
-    float4 ret = masks;
-    ret.b *= blendMask; // height needs to be weighted before remapping
-    ret = ret * remapScale + remapOffset;
-    return ret;
+    return masks * remapScale + remapOffset;
 }
+
+#ifdef _MASKMAP
+    #define MaskModeMasks(i) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv), _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define SampleMasks(i)   lerp(DefaultMask(i), MaskModeMasks(i), _LayerHasMask##i)
+    #define NullMask(i)      float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
+#else
+    #define SampleMasks(i)   DefaultMask(i)
+    #define NullMask(i)      float4(0, 1, 0, 0)
+#endif
+
+#define SampleResults(i, mask)                                                                                  \
+    UNITY_BRANCH if (mask > 0)                                                                                  \
+    {                                                                                                           \
+        float2 splat##i##uv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                              \
+        float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                                                        \
+        float2 splat##i##dyuv = dyuv * _Splat##i##_ST.y;                                                        \
+        albedo[i] = SampleAlbedo(i);                                                                            \
+        normal[i] = SampleNormal(i);                                                                            \
+        masks[i] = SampleMasks(i);                                                                              \
+    }                                                                                                           \
+    else                                                                                                        \
+    {                                                                                                           \
+        albedo[i] = float4(0, 0, 0, 0);                                                                         \
+        normal[i] = float3(0, 0, 0);                                                                            \
+        masks[i] = NullMask(i);                                                                                 \
+    }
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME
     #define sampler_Splat0 OVERRIDE_SPLAT_SAMPLER_NAME
@@ -76,41 +117,6 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
     float4 albedo[_LAYER_COUNT];
     float3 normal[_LAYER_COUNT];
     float4 masks[_LAYER_COUNT];
-
-#ifdef _NORMALMAP
-    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv, _NormalScale##i)
-#else
-    #define SampleNormal(i) float3(0, 0, 0)
-#endif
-
-#define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
-
-#ifdef _MASKMAP
-    #define MaskModeMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-#define SampleMasks(i, blendMask) lerp(DefaultMask(i), MaskModeMasks(i, blendMask), _LayerHasMask##i)
-    #define NullMask(i)               float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
-#else
-    #define SampleMasks(i, blendMask) DefaultMask(i)
-    #define NullMask(i)               float4(0, 1, 0, 0)
-#endif
-
-#define SampleResults(i, mask)                                                                                  \
-    UNITY_BRANCH if (mask > 0)                                                                                  \
-    {                                                                                                           \
-        float2 splatuv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                                   \
-        float2 splatdxuv = dxuv * _Splat##i##_ST.x;                                                             \
-        float2 splatdyuv = dyuv * _Splat##i##_ST.y;                                                             \
-        albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);            \
-        albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                             \
-        normal[i] = SampleNormal(i);                                                                            \
-        masks[i] = SampleMasks(i, mask);                                                                        \
-    }                                                                                                           \
-    else                                                                                                        \
-    {                                                                                                           \
-        albedo[i] = float4(0, 0, 0, 0);                                                                         \
-        normal[i] = float3(0, 0, 0);                                                                            \
-        masks[i] = NullMask(i);                                                                                 \
-    }
 
     float2 dxuv = ddx(splatBaseUV);
     float2 dyuv = ddy(splatBaseUV);
@@ -135,15 +141,23 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
         SampleResults(7, blendMasks1.w);
     #endif
 
-#undef SampleNormal
-#undef SampleMasks
-#undef SampleResults
-
     float weights[_LAYER_COUNT];
     ZERO_INITIALIZE_ARRAY(float, weights, _LAYER_COUNT);
 
     #ifdef _MASKMAP
+        // height mask value weighted by blending-masks
         #if defined(_TERRAIN_BLEND_HEIGHT)
+            masks[0].z *= blendMasks0.x;
+            masks[1].z *= blendMasks0.y;
+            masks[2].z *= blendMasks0.z;
+            masks[3].z *= blendMasks0.w;
+            #ifdef _TERRAIN_8_LAYERS
+                masks[4].z *= blendMasks1.x;
+                masks[5].z *= blendMasks1.y;
+                masks[6].z *= blendMasks1.z;
+                masks[7].z *= blendMasks1.w;
+            #endif
+
             // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
             float maxHeight = masks[0].z;
             maxHeight = max(maxHeight, masks[1].z);

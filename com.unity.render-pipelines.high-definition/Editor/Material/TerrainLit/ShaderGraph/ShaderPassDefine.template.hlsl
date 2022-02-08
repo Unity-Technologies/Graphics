@@ -14,10 +14,5 @@ $RefractionBox:                     #define _REFRACTION_PLANE 1
 $RefractionSphere:                  #define _REFRACTION_SPHERE 1
 $RefractionThin:                    #define _REFRACTION_THIN 1
 
-// If we use subsurface scattering, enable output split lighting (for forward pass)
-#if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    #define OUTPUT_SPLIT_LIGHTING
-#endif
-
 // This shader support recursive rendering for raytracing
-#define HAVE_RECURSIVE_RENDERING
+//#define HAVE_RECURSIVE_RENDERING

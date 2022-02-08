@@ -3,7 +3,9 @@
 //-------------------------------------------------------------------------------------
 
 // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+#ifndef SHADER_STAGE_RAY_TRACING
 #define SURFACE_GRADIENT
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -202,50 +204,49 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // This need to be init here to quiet the compiler in case of decal, but can be override later.
     surfaceData.specularOcclusion = 1.0;
 
-#ifdef DECAL_SURFACE_GRADIENT
-
-#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
+    #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
-    #if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        float alpha = 1.0; // unused
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
-    }
-    #endif
-    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
-#elif HAVE_DECALS
-    if (_EnableDecals)
-    {
-        float3 normalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], surfaceData.normalWS);
+        #if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            float alpha = 1.0; // unused
 
-        float alpha = 1.0; // unused
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
-
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+        }
+        #endif // HAVE_DECALS
         GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
-    }
-#endif
+    #elif HAVE_DECALS
+        if (_EnableDecals)
+        {
+            float3 normalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], surfaceData.normalWS);
 
-#else // DECAL_SURFACE_GRADIENT
+            float alpha = 1.0; // unused
 
-#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
-    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
-    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
-#endif
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
 
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        float alpha = 1.0; // unused
-                           // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
-    }
-#endif
+            GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+        }
+    #endif // HAVE_DECALS
+#else // DECAL_SURFACE_GRADIENT && SURFACE_GRADIENT
+    #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+        float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
+        GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+    #endif
 
-#endif // DECAL_SURFACE_GRADIENT
+    #if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            float alpha = 1.0; // unused
+
+            // Both uses and modifies 'surfaceData.normalWS'.
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
+        }
+    #endif // HAVE_DECALS
+#endif // DECAL_SURFACE_GRADIENT && SURFACE_GRADIENT
 
     float3 bentNormalWS = surfaceData.normalWS;
 
