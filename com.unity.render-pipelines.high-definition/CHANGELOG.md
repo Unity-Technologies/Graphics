@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
 - Fixed various issues with render graph viewer when entering playmode.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed HDRP camera debug panel rendering foldout.
 
 ## [12.1.4] - 2021-12-07
 
