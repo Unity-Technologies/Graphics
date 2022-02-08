@@ -220,7 +220,7 @@ namespace UnityEditor.VFX
                 foreach (var (_, type, description) in m_CompilationErrors)
                 {
                     critical = critical || type == VFXErrorType.Error;
-                    errorLog.Append(description);
+                    errorLog.AppendFormat("[{0}] {1}", type.ToString(), description);
                     errorLog.AppendLine();
                 }
 
