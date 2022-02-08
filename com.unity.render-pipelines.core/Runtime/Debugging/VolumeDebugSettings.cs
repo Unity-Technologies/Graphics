@@ -43,10 +43,11 @@ namespace UnityEngine.Rendering
                 if (m_CamerasArray == null || Camera.allCamerasCount != m_CamerasArray.Length)
                 {
                     m_CamerasArray = new Camera[Camera.allCamerasCount];
-                    Camera.GetAllCameras(m_CamerasArray);
                 }
 
-                foreach (var camera in Camera.allCameras)
+                Camera.GetAllCameras(m_CamerasArray);
+
+                foreach (var camera in m_CamerasArray)
                 {
                     if (camera == null || camera.cameraType is CameraType.Preview or CameraType.Reflection)
                         continue;
