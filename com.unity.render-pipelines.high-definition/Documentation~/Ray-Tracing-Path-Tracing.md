@@ -40,6 +40,14 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
 | **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
 | **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
+| **Denoising** | Enable this feature to denoise the output of the the path tracer. This feature is only available if the **Unity Denoising Package** is installed in your project. There are three available options in HDRP: <br>
+- **None**: Disables denoising (this is the default option).
+- **Intel Open Image Denoise** : Performs denoising using the Intel Open Image Denoise library.
+- **NVIDIA OptiX** : Performs denoising using NVIDIA OptiX.
+
+You can also enable two additional settings:
+- **Use AOVs** (Arbitrary Output Variables): Enable this option to increase detail retention after denoising.
+- **Temporal**: Enable this option to improve temporal consistency for denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
 
