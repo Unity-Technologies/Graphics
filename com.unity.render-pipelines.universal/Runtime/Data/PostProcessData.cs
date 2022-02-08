@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     /// <seealso cref="Shader"/>
     /// <seealso cref="Texture"/>
-    [Serializable]
+    [Serializable, ReloadGroup]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var instance = CreateInstance<PostProcessData>();
                 AssetDatabase.CreateAsset(instance, pathName);
-                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
+                //ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }

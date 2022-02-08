@@ -136,12 +136,6 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The instance of Renderer2D</returns>
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                ReloadAllNullProperties();
-            }
-#endif
             return new Renderer2D(this);
         }
 

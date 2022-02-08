@@ -310,6 +310,7 @@ namespace UnityEngine.Rendering.Universal
 
     [ExcludeFromPreset]
     [URPHelpURL("universalrp-asset")]
+    [ReloadGroup]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -469,7 +470,6 @@ namespace UnityEngine.Rendering.Universal
             else
                 dataPath = path;
             AssetDatabase.CreateAsset(data, dataPath);
-            ResourceReloader.ReloadAllNullIn(data, packagePath);
             return data;
         }
 
@@ -500,8 +500,15 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipelineEditorResources()
         {
             var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
-            ResourceReloader.ReloadAllNullIn(instance, packagePath);
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
+            ReloadUniversalPipelineEditorResources(instance);
+        }
+        static void ReloadUniversalPipelineEditorResources(UniversalRenderPipelineEditorResources instance)
+        {
+            var (hasChanged, isNotReady) = ResourceReloader.TryReloadAllNullIn(instance, packagePath);
+            if (isNotReady)
+                EditorApplication.delayCall += () => ReloadUniversalPipelineEditorResources(instance);
+            else
+                AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
         }
 
         UniversalRenderPipelineEditorResources editorResources

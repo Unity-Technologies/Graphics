@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]
+    [ReloadGroup]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
@@ -205,9 +206,6 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Create()
         {
-#if UNITY_EDITOR
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-#endif
             m_DecalPreviewPass = new DecalPreviewPass();
             m_RecreateSystems = true;
         }

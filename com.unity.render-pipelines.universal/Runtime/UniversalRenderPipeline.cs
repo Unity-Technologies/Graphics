@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+            ReloadResourcesIfNeeded();
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
@@ -221,6 +222,15 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+        }
+
+        void ReloadResourcesIfNeeded()
+        {
+            var (hasChange, isNotReady) = ResourceReloader.TryReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
+            if (isNotReady)
+            {
+                EditorApplication.delayCall += () => ReloadResourcesIfNeeded();
+            }
         }
 
 #if UNITY_2021_1_OR_NEWER

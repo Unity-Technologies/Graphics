@@ -64,13 +64,6 @@ namespace UnityEngine.Rendering.Universal
 
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
-
-            ReloadAllNullProperties();
-        }
-
-        private void ReloadAllNullProperties()
-        {
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
         }
 
         private void Awake()

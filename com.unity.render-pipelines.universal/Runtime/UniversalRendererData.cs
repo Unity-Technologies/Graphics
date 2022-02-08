@@ -147,10 +147,6 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            if (!Application.isPlaying)
-            {
-                ReloadAllNullProperties();
-            }
             return new UniversalRenderer(this);
         }
 
@@ -291,29 +287,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
-            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
-            // serialized resources in a different format. Early returning here when OnEnable is called
-            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
-            if (shaders == null)
-                return;
-
-            ReloadAllNullProperties();
-        }
-
-        private void ReloadAllNullProperties()
-        {
-#if UNITY_EDITOR
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-
-            if (postProcessData != null)
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
-#endif
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
