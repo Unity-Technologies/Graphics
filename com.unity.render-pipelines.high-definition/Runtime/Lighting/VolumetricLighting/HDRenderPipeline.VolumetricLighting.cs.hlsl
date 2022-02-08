@@ -16,6 +16,8 @@ struct LocalVolumetricFogEngineData
 {
     float3 scattering;
     float extinction;
+    int blendingMode;
+    float priority;
     float3 textureTiling;
     int invertFade;
     float3 textureScroll;
@@ -64,6 +66,14 @@ float3 GetScattering(LocalVolumetricFogEngineData value)
 float GetExtinction(LocalVolumetricFogEngineData value)
 {
     return value.extinction;
+}
+int GetBlendingMode(LocalVolumetricFogEngineData value)
+{
+    return value.blendingMode;
+}
+float GetPriority(LocalVolumetricFogEngineData value)
+{
+    return value.priority;
 }
 float3 GetTextureTiling(LocalVolumetricFogEngineData value)
 {
