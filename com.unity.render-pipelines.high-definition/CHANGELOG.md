@@ -22,9 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added time slicing support for realtime reflection probes.
 - Added denoising for the path tracer.
 
-### Added
-- Added graphics test for shadow cascades with custom projection matrix
-
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
 - Updated Physically Based Sky documentation with more warnings about warmup cost.
