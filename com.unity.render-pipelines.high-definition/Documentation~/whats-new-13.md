@@ -70,3 +70,7 @@ The [SensorSDK package](https://docs.unity3d.com/Packages/com.unity.sensorsdk@1.
 Orthographic views are now fully supported by the path tracer.
 
 Last but not least, volumetric scattering now takes the fog color into account, adding scattered contribution on top of the non-scattered result. In addition, the sampling quality has been improved when dealing with multiple light sources.
+
+### Custom Pass
+
+Added new functions that sample the custom buffer in custom passes that deals with scaling automatically, it's recommended to use them over the standard texture sampling. Learn more about the **CustomPassSampleCustomColor** and **CustomPassLoadCustomColor** function in the [Creating a Custom Pass](Custom-Pass-Creating.md) documentation.
