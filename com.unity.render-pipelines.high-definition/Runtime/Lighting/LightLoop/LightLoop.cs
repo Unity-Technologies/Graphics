@@ -1918,7 +1918,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
                     cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
-                    + decalDatasCount + m_LocalVolumetricFogCount);
+                    + decalDatasCount + m_LocalVolumetricFogCount + m_CapsuleDirectShadowCount + m_CapsuleIndirectShadowCount);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
