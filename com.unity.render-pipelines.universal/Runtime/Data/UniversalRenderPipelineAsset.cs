@@ -856,7 +856,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the downsampling method used when copying the camera color texture after rendering opaques. 
+        /// Returns the downsampling method used when copying the camera color texture after rendering opaques.
         /// </summary>
         public Downsampling opaqueDownsampling
         {
@@ -1002,7 +1002,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Additional light shadows are rendered into a single shadow map atlas texture. This setting controls the resolution of the shadow map atlas texture. 
+        /// Additional light shadows are rendered into a single shadow map atlas texture. This setting controls the resolution of the shadow map atlas texture.
         /// </summary>
         public int additionalLightsShadowmapResolution
         {
