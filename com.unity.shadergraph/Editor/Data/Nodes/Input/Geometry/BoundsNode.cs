@@ -5,12 +5,11 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
-    [SRPFilter(typeof(HDRenderPipeline))] // TODO: move to ShaderGraph and add the renderer bounds in URP as well
-    [Title("Utility", "High Definition Render Pipeline", "Bounds")]
+    // TODO: disable this node for bultin
+    [Title("Input", "Geometry", "Bounds")]
     class BoundsNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public BoundsNode()
@@ -19,14 +18,17 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-Bounds");
+        // public override string documentationURL => Documentation.GetPageLink("SGNode-Bounds");
 
+        public CoordinateSpace space;
         // TODO: space option: world, object, view, etc.
 
         const int kBoundsMinOutputSlotId = 0;
         const int kBoundsMaxOutputSlotId = 1;
+        const int kBoundsSizeOutputSlotId = 2;
         const string kBoundsMinOutputSlotName = "Min";
         const string kBoundsMaxOutputSlotName = "Max";
+        const string kBoundsSizeOutputSlotName = "Size";
 
         public override bool hasPreview { get { return false; } }
 
@@ -34,17 +36,22 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             AddSlot(new Vector3MaterialSlot(kBoundsMinOutputSlotId, kBoundsMinOutputSlotName, kBoundsMinOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(kBoundsMaxOutputSlotId, kBoundsMaxOutputSlotName, kBoundsMaxOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(kBoundsSizeOutputSlotId, kBoundsSizeOutputSlotName, kBoundsSizeOutputSlotName, SlotType.Output, Vector3.zero));
 
             RemoveSlotsNameNotMatching(new[]
             {
-                kBoundsMinOutputSlotId, kBoundsMaxOutputSlotId,
+                kBoundsMinOutputSlotId, kBoundsMaxOutputSlotId, kBoundsSizeOutputSlotId
             });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine($"$precision3 {GetSlotValue(kBoundsMinOutputSlotId, generationMode)} = unity_RendererBounds_Min;");
-            sb.AppendLine($"$precision3 {GetSlotValue(kBoundsMaxOutputSlotId, generationMode)} = unity_RendererBounds_Max;");
+            if (IsSlotConnected(kBoundsMinOutputSlotId))
+                sb.AppendLine($"$precision3 {GetSlotValue(kBoundsMinOutputSlotId, generationMode)} = unity_RendererBounds_Min;");
+            if (IsSlotConnected(kBoundsMaxOutputSlotId))
+                sb.AppendLine($"$precision3 {GetSlotValue(kBoundsMaxOutputSlotId, generationMode)} = unity_RendererBounds_Max;");
+            if (IsSlotConnected(kBoundsSizeOutputSlotId))
+                sb.AppendLine($"$precision3 {GetSlotValue(kBoundsSizeOutputSlotId, generationMode)} = unity_RendererBounds_Max - unity_RendererBounds_Min;");
         }
     }
 }

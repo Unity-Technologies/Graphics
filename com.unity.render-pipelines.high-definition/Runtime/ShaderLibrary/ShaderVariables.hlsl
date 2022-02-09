@@ -76,6 +76,7 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBb;
     float4 unity_SHC;
 
+    // Renderer bounding box.
     float4 unity_RendererBounds_Min;
     float4 unity_RendererBounds_Max;
 
@@ -459,8 +460,8 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 
 void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
 {
-    minBounds = unity_RendererBounds_Min;
-    maxBounds = unity_RendererBounds_Max;
+    minBounds = unity_RendererBounds_Min.xyz;
+    maxBounds = unity_RendererBounds_Max.xyz;
 }
 
 void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
@@ -471,6 +472,13 @@ void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
     minBounds -= _WorldSpaceCameraPos.xyz;
     maxBounds -= _WorldSpaceCameraPos.xyz;
 #endif
+}
+
+float3 GetRendererExtents()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return (maxBounds - minBounds) * 0.5;
 }
 
 // Define Model Matrix Macro
