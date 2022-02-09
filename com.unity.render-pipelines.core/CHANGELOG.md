@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
 - Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
 - Fixed cubemap array macros for GLCore.
+- Built-in resources will also throw invalid import if the ResourceReloader is unable to retrive the resource.
 
 ## [14.0.0] - 2021-11-17
 
