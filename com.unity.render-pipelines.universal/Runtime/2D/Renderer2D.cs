@@ -237,6 +237,8 @@ namespace UnityEngine.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 RTHandle postProcessDestHandle;
@@ -258,7 +260,8 @@ namespace UnityEngine.Rendering.Universal
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle.nameID == k_CameraTarget.nameID);
+                    postProcessDestHandle.nameID == k_CameraTarget.nameID,
+                    hasPassesAfterPostProcessing);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
@@ -284,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(finalTargetHandle);
+                finalPostProcessPass.SetupFinalPass(finalTargetHandle, hasPassesAfterPostProcessing);
                 EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && finalTargetHandle != k_CameraTarget)

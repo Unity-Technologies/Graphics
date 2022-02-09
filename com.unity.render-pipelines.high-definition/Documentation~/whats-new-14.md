@@ -4,6 +4,13 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Added
 
+### Material Samples Transparency Scenes
+
+![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
+
+These new scenes include examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
+To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
+
 ### Ray Tracing Acceleration Structure Culling
 
 In order to control the cost of building the ray tracing acceleration structure, new parameters have been added to the [Ray Tracing Settings](Ray-Tracing-Settings.md) volume component that allow you to define the algorithm that is going to perform the culling.

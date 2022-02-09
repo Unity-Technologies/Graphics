@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (customPassType.GetCustomAttribute<HideInInspector>() != null)
                     continue;
 
-                tree.Add(new SearchTreeEntry(new GUIContent(customPassType.Name, icon))
+                tree.Add(new SearchTreeEntry(new GUIContent(ObjectNames.NicifyVariableName(customPassType.Name), icon))
                 {
                     level = 1,
                     userData = customPassType

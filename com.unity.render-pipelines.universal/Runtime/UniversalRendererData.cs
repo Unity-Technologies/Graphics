@@ -19,6 +19,9 @@ namespace UnityEngine.Rendering.Universal
         AfterTransparents
     }
 
+    /// <summary>
+    /// Class containing resources needed for the <c>UniversalRenderer</c>.
+    /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [URPHelpURL("urp-universal-renderer")]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
@@ -42,27 +45,51 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        /// <summary>
+        /// Class containing shader resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            /// <summary>
+            /// Blit shader.
+            /// </summary>
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            /// <summary>
+            /// Copy Depth shader.
+            /// </summary>
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
+            /// <summary>
+            /// Screen Space Shadows shader.
+            /// </summary>
             [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
+            /// <summary>
+            /// Sampling shader.
+            /// </summary>
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            /// <summary>
+            /// Stencil Deferred shader.
+            /// </summary>
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
+            /// <summary>
+            /// Fallback error shader.
+            /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
 
+            /// <summary>
+            /// Material Error shader.
+            /// </summary>
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 
@@ -73,21 +100,35 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
-
+            /// <summary>
+            /// Camera Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]
             public Shader cameraMotionVector;
 
+            /// <summary>
+            /// Object Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/ObjectMotionVectors.shader")]
             public Shader objectMotionVector;
         }
 
+        /// <summary>
+        /// Resources needed for Post Processing.
+        /// </summary>
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>
+        /// Shader resources needed in URP for XR.
+        /// </summary>
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
 
+        /// <summary>
+        /// Shader resources used in URP.
+        /// </summary>
         public ShaderResources shaders = null;
 
         const int k_LatestAssetVersion = 2;
@@ -236,6 +277,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         protected override void OnValidate()
         {
             base.OnValidate();
@@ -245,6 +287,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         protected override void OnEnable()
         {
             base.OnEnable();
