@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
             [ReadOnly] public NativeArray<ulong> sceneLayerMasks;
             [ReadOnly] public NativeArray<float> fadeFactors;
             [ReadOnly] public NativeArray<BoundingSphere> boundingSpheres;
-            [ReadOnly] public NativeArray<DecalLayerEnum> decalLayerMasks;
+            [ReadOnly] public NativeArray<RenderingLayerEnum> decalLayerMasks;
 
             public Vector3 cameraPosition;
             public ulong sceneCullingMask;

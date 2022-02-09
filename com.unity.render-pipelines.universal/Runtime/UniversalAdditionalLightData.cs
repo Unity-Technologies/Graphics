@@ -88,6 +88,14 @@ namespace UnityEngine.Rendering.Universal
             get { return m_AdditionalLightsShadowResolutionTier; }
         }
 
+        [SerializeField] RenderingLayerEnum m_RenderingLayerMask = RenderingLayerEnum.RenderingLayerDefault;
+
+        public RenderingLayerEnum renderingLayerMask
+        {
+            get { return m_RenderingLayerMask; }
+            set { m_RenderingLayerMask = value; }
+        }
+
         // The layer(s) this light belongs too.
         [SerializeField] LightLayerEnum m_LightLayerMask = LightLayerEnum.LightLayerDefault;
 

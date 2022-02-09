@@ -168,11 +168,11 @@ namespace UnityEditor.Rendering.Universal
                 if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers && !isInPreset)
                 {
                     EditorGUI.BeginChangeCheck();
-                    DrawLightLayerMask(serializedLight.lightLayerMask, LightUI.Styles.lightLayer);
+                    DrawLightLayerMask(serializedLight.renderingLayerMask, LightUI.Styles.lightLayer);
                     if (EditorGUI.EndChangeCheck())
                     {
                         if (!serializedLight.customShadowLayers.boolValue)
-                            SyncLightAndShadowLayers(serializedLight, serializedLight.lightLayerMask);
+                            SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayerMask);
                     }
                 }
             }
@@ -196,13 +196,16 @@ namespace UnityEditor.Rendering.Universal
 
         internal static void DrawLightLayerMask(SerializedProperty property, GUIContent style)
         {
+            if (UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length == 0)
+                return;
+
             Rect controlRect = EditorGUILayout.GetControlRect(true);
             int lightLayer = property.intValue;
 
             EditorGUI.BeginProperty(controlRect, style, property);
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = lightLayer;
 

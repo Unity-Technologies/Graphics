@@ -189,11 +189,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
+        RenderingLayerEnum m_DecalLayerMask = RenderingLayerEnum.RenderingLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerEnum decalLayerMask
+        public RenderingLayerEnum decalLayerMask
         {
             get => m_DecalLayerMask;
             set => m_DecalLayerMask = value;

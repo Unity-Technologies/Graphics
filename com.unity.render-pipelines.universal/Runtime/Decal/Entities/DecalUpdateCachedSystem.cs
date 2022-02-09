@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<float> fadeFactors;
         public NativeArray<BoundingSphere> boundingSpheres;
         public NativeArray<DecalScaleMode> scaleModes;
-        public NativeArray<DecalLayerEnum> decalLayerMasks;
+        public NativeArray<RenderingLayerEnum> decalLayerMasks;
         public NativeArray<float3> positions;
         public NativeArray<quaternion> rotation;
         public NativeArray<float3> scales;

@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty lightCookieOffsetProp { get; }                     // Multi dimensional light cookie offset.
 
         // Light layers related
+        public SerializedProperty renderingLayerMask { get; }
         public SerializedProperty lightLayerMask { get; }
         public SerializedProperty customShadowLayers { get; }
         public SerializedProperty shadowLayerMask { get; }
@@ -64,6 +65,8 @@ namespace UnityEditor.Rendering.Universal
             additionalLightsShadowResolutionTierProp = serializedAdditionalDataObject.FindProperty("m_AdditionalLightsShadowResolutionTier");
             lightCookieSizeProp = serializedAdditionalDataObject.FindProperty("m_LightCookieSize");
             lightCookieOffsetProp = serializedAdditionalDataObject.FindProperty("m_LightCookieOffset");
+
+            renderingLayerMask = serializedAdditionalDataObject.FindProperty("m_RenderingLayerMask");
 
             lightLayerMask = serializedAdditionalDataObject.FindProperty("m_LightLayerMask");
             customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");

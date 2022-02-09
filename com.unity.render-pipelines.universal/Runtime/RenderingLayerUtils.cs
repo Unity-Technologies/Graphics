@@ -2,6 +2,32 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>Rendering Layers.</summary>
+    [System.Flags]
+    public enum RenderingLayerEnum
+    {
+        /// <summary>The rendering will no affect any object.</summary>
+        Nothing = 0,   // Custom name for "Nothing" option
+        /// <summary>Rendering Layer 0.</summary>
+        RenderingLayerDefault = 1 << 0,
+        /// <summary>Rendering Layer 1.</summary>
+        RenderingLayer1 = 1 << 1,
+        /// <summary>Rendering Layer 2.</summary>
+        RenderingLayer2 = 1 << 2,
+        /// <summary>Rendering Layer 3.</summary>
+        RenderingLayer3 = 1 << 3,
+        /// <summary>Rendering Layer 4.</summary>
+        RenderingLayer4 = 1 << 4,
+        /// <summary>Rendering Layer 5.</summary>
+        RenderingLayer5 = 1 << 5,
+        /// <summary>Rendering Layer 6.</summary>
+        RenderingLayer6 = 1 << 6,
+        /// <summary>Rendering Layer 7.</summary>
+        RenderingLayer7 = 1 << 7,
+        /// <summary>Everything.</summary>
+        Everything = 0xFF, // Custom name for "Everything" option
+    }
+
     /// <summary>
     /// Helper class for finding out if Rendering Layers Texture is required by Scriptable Renderer Features.
     /// </summary>
@@ -41,6 +67,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return e;
+        }
+
+        public static uint ToRenderingLayers(RenderingLayerEnum renderingLayers)
+        {
+            return (uint)renderingLayers;
         }
 
         public static uint ToRenderingLayers(LightLayerEnum lightLayers)

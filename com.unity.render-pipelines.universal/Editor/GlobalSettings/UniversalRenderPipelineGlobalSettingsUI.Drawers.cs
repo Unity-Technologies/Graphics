@@ -12,6 +12,46 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string k_LightLayers = "Light-Layers";
         }
 
+        #region Rendering Layer Names
+
+        static readonly CED.IDrawer RenderingLayerNamesSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.renderingLayersLabel, contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized))),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawRenderingLayerNames),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawRenderingLayerNames(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.renderingLayerNames);
+
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings urpGlobalSettings)
+                            urpGlobalSettings.UpdateRenderingLayerNames();
+                    }
+                }
+            }
+        }
+
+        static void OnContextClickRenderingLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames();
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        #endregion
+
         #region Light Layer Names
 
         static readonly CED.IDrawer LightLayerNamesSection = CED.Group(
@@ -122,8 +162,7 @@ namespace UnityEditor.Rendering.Universal
         #endregion
 
         public static readonly CED.IDrawer Inspector = CED.Group(
-                LightLayerNamesSection,
-                DecalLayerNamesSection,
+                RenderingLayerNamesSection,
                 MiscSection
             );
     }

@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.Universal
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
 
+        public SerializedProperty renderingLayerNames;
+
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
         public SerializedProperty lightLayerName2;
@@ -48,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
                     throw new System.Exception($"Target object has an invalid object, objects must be of type {typeof(UniversalRenderPipelineGlobalSettings)}");
             }
 
+            renderingLayerNames = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.renderingLayerNames);
 
             lightLayerName0 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName1);

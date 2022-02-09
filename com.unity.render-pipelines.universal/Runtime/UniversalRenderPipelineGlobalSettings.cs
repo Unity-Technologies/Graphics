@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Serialization;
 
@@ -150,6 +151,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (src != null)
                 {
+                    assetCreated.renderingLayerNames = new List<string>(src.renderingLayerNames);
+
                     assetCreated.lightLayerName0 = System.String.Copy(src.lightLayerName0);
                     assetCreated.lightLayerName1 = System.String.Copy(src.lightLayerName1);
                     assetCreated.lightLayerName2 = System.String.Copy(src.lightLayerName2);
@@ -183,17 +186,8 @@ namespace UnityEngine.Rendering.Universal
             UpdateRenderingLayerNames();
         }
 
-        [System.NonSerialized]
-        string[] m_RenderingLayerNames;
-        string[] renderingLayerNames
-        {
-            get
-            {
-                if (m_RenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_RenderingLayerNames;
-            }
-        }
+        public List<string> renderingLayerNames;
+
         [System.NonSerialized]
         string[] m_PrefixedRenderingLayerNames;
         string[] prefixedRenderingLayerNames
@@ -206,41 +200,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public string[] renderingLayerMaskNames => renderingLayerNames;
+        public string[] renderingLayerMaskNames => renderingLayerNames.ToArray();
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
         /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
         internal void UpdateRenderingLayerNames()
         {
-            if (m_RenderingLayerNames == null)
-                m_RenderingLayerNames = new string[32];
-
-            int index = 0;
-            m_RenderingLayerNames[index++] = lightLayerName0;
-            m_RenderingLayerNames[index++] = lightLayerName1;
-            m_RenderingLayerNames[index++] = lightLayerName2;
-            m_RenderingLayerNames[index++] = lightLayerName3;
-            m_RenderingLayerNames[index++] = lightLayerName4;
-            m_RenderingLayerNames[index++] = lightLayerName5;
-            m_RenderingLayerNames[index++] = lightLayerName6;
-            m_RenderingLayerNames[index++] = lightLayerName7;
-
-            m_RenderingLayerNames[index++] = decalLayerName0;
-            m_RenderingLayerNames[index++] = decalLayerName1;
-            m_RenderingLayerNames[index++] = decalLayerName2;
-            m_RenderingLayerNames[index++] = decalLayerName3;
-            m_RenderingLayerNames[index++] = decalLayerName4;
-            m_RenderingLayerNames[index++] = decalLayerName5;
-            m_RenderingLayerNames[index++] = decalLayerName6;
-            m_RenderingLayerNames[index++] = decalLayerName7;
-
-            // Unused
-            for (int i = index; i < m_RenderingLayerNames.Length; ++i)
-            {
-                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
-            }
-
             // Update prefixed
             if (m_PrefixedRenderingLayerNames == null)
                 m_PrefixedRenderingLayerNames = new string[32];
@@ -248,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 m_PrefixedLightLayerNames = new string[8];
             for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
             {
-                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, i < renderingLayerNames.Count ? renderingLayerNames[i] : "Not Created");
                 if (i < 8)
                     m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
             }

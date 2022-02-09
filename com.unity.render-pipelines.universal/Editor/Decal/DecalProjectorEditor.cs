@@ -607,7 +607,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
 
-                EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+                DrawRenderingLayerMask(m_DecalLayerMask, k_DecalLayerMaskContent);
 
                 foreach (var target in targets)
                 {
@@ -705,6 +705,24 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
+        }
+
+        internal static void DrawRenderingLayerMask(SerializedProperty property, GUIContent style)
+        {
+            if (UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length == 0)
+                return;
+
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            int lightLayer = property.intValue;
+
+            EditorGUI.BeginProperty(controlRect, style, property);
+
+            EditorGUI.BeginChangeCheck();
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = lightLayer;
+
+            EditorGUI.EndProperty();
         }
 
         [Shortcut("URP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
