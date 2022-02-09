@@ -387,10 +387,13 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeVolumeSHBands shBands;
 
             public NativeArray<Brick> bricks { get; internal set; }
+            public NativeArray<uint> validity { get; internal set; }
+            public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<Vector3> offsetVectors { get; internal set; }
 
+            // Per state data
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
-            public NativeArray<uint> validity { get; internal set; }
 
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
@@ -903,12 +906,9 @@ namespace UnityEngine.Experimental.Rendering
         internal void UnloadAllCells()
         {
             for (int i = 0; i < m_LoadedCells.size; ++i)
-            {
-                CellInfo cellInfo = m_LoadedCells[i];
-                UnloadCell(cellInfo);
-                m_ToBeLoadedCells.Add(cellInfo);
-            }
+                UnloadCell(m_LoadedCells[i]);
 
+            m_ToBeLoadedCells.AddRange(m_LoadedCells);
             m_LoadedCells.Clear();
         }
 
@@ -1139,8 +1139,6 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.LogWarning($"Trying to load an asset {asset.GetSerializedFullPath()} that has been baked with a previous version of the system. Please re-bake the data.");
                 return;
             }
-
-            var path = asset.GetSerializedFullPath();
 
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
