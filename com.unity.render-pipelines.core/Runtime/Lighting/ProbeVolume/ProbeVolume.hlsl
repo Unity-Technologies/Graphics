@@ -15,7 +15,8 @@
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
 #define _Weight _Weight_MinLoadedCell.x
 #define _MinLoadedCell _Weight_MinLoadedCell.yzw
-#define _MaxLoadedCell _MaxLoadedCell_Padding.xyz
+#define _MaxLoadedCell _MaxLoadedCell_FrameIndex.xyz
+#define _NoiseFrameIndex _MaxLoadedCell_FrameIndex.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -562,7 +563,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 
     if (_PVSamplingNoise > 0)
     {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, _NoiseFrameIndex) * 2.0f - 1.0f) * _PVSamplingNoise;
         posWS += noise1D_0;
     }
 

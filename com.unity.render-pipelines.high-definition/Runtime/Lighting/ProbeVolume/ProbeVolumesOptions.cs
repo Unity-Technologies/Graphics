@@ -49,6 +49,13 @@ namespace UnityEngine.Experimental.Rendering
         [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
 
+
+        /// <summary>
+        /// Whether to animate the noise when TAA is enabled, smoothing potentially out the noise pattern introduced.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Whether to animate the noise when TAA is enabled, smoothing potentially out the noise pattern introduced.")]
+        public BoolParameter animateSamplingNoiseWithTAA = new BoolParameter(true);
+
         /// <summary>
         /// Method used to reduce leaks.
         /// </summary>
