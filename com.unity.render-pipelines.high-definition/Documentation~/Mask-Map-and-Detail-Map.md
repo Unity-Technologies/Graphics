@@ -14,7 +14,7 @@ To create a mask map:
 6. Merge the curve with layer you've just worked on.
 7. Repeat steps 3 to 6 for your other layers.
 3. Export your image.
-4. When you import the image into Unity, make sure that it uses linear color space.
+4. When you import the image into Unity, make sure that it uses linear color space and you set **Texture Type** to **Default**.
 
 <a name="MaskMap"></a>
 
