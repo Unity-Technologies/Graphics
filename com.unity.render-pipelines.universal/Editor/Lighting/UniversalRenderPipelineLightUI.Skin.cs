@@ -59,6 +59,10 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
             public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
+
+            public static readonly GUIContent EnableCapsuleShadows = EditorGUIUtility.TrTextContent("Enable Capsule Shadows", "Controls whether capsule shadows are enabled for this light.");
+            public static readonly GUIContent CapsuleShadowAngle = EditorGUIUtility.TrTextContent("Capsule Shadow Angle", "Controls the amount of softening applied to capsule shadows.");
+            public static readonly GUIContent CapsuleShadowRange = EditorGUIUtility.TrTextContent("Capsule Shadow Range", "Controls the range at which capsule shadows fade out.");
         }
     }
 }
