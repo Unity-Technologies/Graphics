@@ -265,7 +265,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             Name "UberPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex FullscreenTriangleVert
                 #pragma fragment Frag
             ENDHLSL
         }
