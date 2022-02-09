@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,30 +99,28 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             return output;
         }
 
-        static bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor)
+
+        static Color SampleMaterialColor(Material material)
         {
-            var outputTexture = DrawShaderToTexture(testMaterial.shader);
+            var outputTexture = DrawShaderToTexture(material.shader);
             try
             {
-                var outputColor = outputTexture.GetPixel(0, 0);
-                return outputColor == expectedColor;
+                return outputTexture.GetPixel(0, 0);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-
         }
 
-        static bool DoesImageMatchColor(Texture expectedImage, Color expectedColor)
+        static Color SampleImageColor(Texture image)
         {
             try
             {
-                var renderTexture = expectedImage as RenderTexture;
+                var renderTexture = image as RenderTexture;
                 var outputTexture = DrawRTToTexture(renderTexture);
-                var outputColor = outputTexture.GetPixel(0, 0);
-                return expectedColor == outputColor;
+                return outputTexture.GetPixel(0, 0);
             }
             catch (Exception e)
             {
@@ -163,7 +161,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Request master preview material once the graph has been setup correctly
             m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
             Assert.IsNotNull(masterPreviewMaterial);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.red));
+            Assert.AreEqual(Color.red, SampleMaterialColor(masterPreviewMaterial));
         }
 
 
@@ -202,7 +200,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             // Request master preview material once the graph has been setup correctly
             m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, new Color(1, 1, 0, 1)));
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(masterPreviewMaterial));
         }
 
         [Test]
@@ -240,7 +238,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             // Request master preview material once the graph has been setup correctly
             m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.black));
+            Assert.AreEqual(Color.black, SampleMaterialColor(masterPreviewMaterial));
         }
 
         [Test]
@@ -263,7 +261,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Request node preview material once the graph has been setup correctly
             var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
             Assert.IsNotNull(nodePreviewMaterial);
-            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, Color.red));
+            Assert.AreEqual(Color.red, SampleMaterialColor(nodePreviewMaterial));
         }
 
         [Test]
@@ -286,7 +284,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Request node preview image once the graph has been setup correctly
             m_PreviewManager.RequestNodePreviewImage("Add1", out var nodeRenderOutput, out var shaderMessages);
             Assert.IsNotNull(nodeRenderOutput);
-            Assert.IsTrue(DoesImageMatchColor(nodeRenderOutput, Color.red));
+            Assert.AreEqual(Color.red, SampleImageColor(nodeRenderOutput));
         }
 
         [Test]
@@ -313,7 +311,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Request node preview material once the graph has been setup correctly
             var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
             Assert.IsNotNull(nodePreviewMaterial);
-            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, new Color(1, 1, 0, 1)));
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(nodePreviewMaterial));
         }
 
         [Test]
@@ -340,7 +338,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Request node preview material once the graph has been setup correctly
             var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
             Assert.IsNotNull(nodePreviewMaterial);
-            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, Color.black));
+            Assert.AreEqual(Color.black, SampleMaterialColor(nodePreviewMaterial));
         }
 
         // TODO: Same tests as above but testing the output texture/image instead of the material
