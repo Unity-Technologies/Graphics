@@ -514,7 +514,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (m_IncompatibleCameras.Contains(selectedCameraInStack))
                     {
-                        var message = "The following camera do not use the same type of renderer as the Base camera.";
+                        var message = "This camera does not use the same type of renderer as the Base camera.";
                         EditorGUILayout.HelpBox(message, MessageType.Error);
                     }
                 }
@@ -523,7 +523,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (m_NotSupportedOverlayCameras.Contains(selectedCameraInStack))
                     {
-                        var message = "The following camera uses a renderer which does not support Overlays in it's current state.";
+                        var message = "This camera uses a renderer which does not support Overlays in it's current state.";
                         EditorGUILayout.HelpBox(message, MessageType.Error);
                     }
                 }
@@ -532,7 +532,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (m_TypeErrorCameras.Contains(selectedCameraInStack))
                     {
-                        var message = "The type of the following Camera must be Overlay render type.";
+                        var message = "The type of this Camera must be Overlay render type.";
                         CoreEditorUtils.DrawFixMeBox(message, MessageType.Error, UpdateStackCameraToOverlay);
                     }
                 }
