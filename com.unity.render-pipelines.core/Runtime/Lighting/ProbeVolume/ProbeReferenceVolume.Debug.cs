@@ -292,6 +292,11 @@ namespace UnityEngine.Experimental.Rendering
             else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
 
+            // This is to force the rendering not to draw to the depth pre pass and still behave.
+            // They are going to be rendered opaque anyhow, just using the transparent render queue to make sure
+            // they properly behave w.r.t fog.
+            m_DebugMaterial.renderQueue = (int)RenderQueue.Transparent;
+
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
                 if (ShouldCullCell(cellInfo.cell.position, camera.transform, m_DebugFrustumPlanes))
