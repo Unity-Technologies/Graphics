@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic 
+        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic
         // description of what needs to be done to add nodes.
         // CLEAN THIS DOC
         class PowNode : Defs.INodeDefinitionBuilder
@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
 
             /**
-             * GetShaderFunction defines the output of the built 
+             * GetShaderFunction defines the output of the built
              * ShaderFoundry.ShaderFunction that results from specific
              * node data.
              */
@@ -253,8 +253,8 @@ namespace UnityEditor.ShaderGraph.Registry
             {
                 data.GetField(kLength, out Length length);
                 data.GetField(kHeight, out Height height);
-                var l = Mathf.Clamp((int)length, 1, 4);
-                var h = Mathf.Clamp((int)height, 1, 4);
+                int l = Mathf.Clamp((int)length, 1, 4);
+                int h = Mathf.Clamp((int)height, 1, 4);
 
                 string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
                 for(int i = 0; i < l * h; ++i)
@@ -272,10 +272,10 @@ namespace UnityEditor.ShaderGraph.Registry
             {
                 data.GetField(kPrimitive, out Primitive primitive);
                 data.GetField(kPrecision, out Precision precision);
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
-                length = Mathf.Clamp(length, 1, 4);
-                height = Mathf.Clamp(height, 1, 4);
+                data.GetField(kLength, out Length length);
+                data.GetField(kHeight, out Height height);
+                int l = Mathf.Clamp((int)length, 1, 4);
+                int h = Mathf.Clamp((int)height, 1, 4);
 
                 string name = "float";
 
@@ -294,14 +294,13 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 var shaderType = ShaderFoundry.ShaderType.Scalar(container, name);
 
-                if (height != 1 && length != 1)
+                if (h != 1 && l != 1)
                 {
-                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, length, height);
+                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, l, h);
                 }
                 else
                 {
-                    length = Mathf.Max(length, height);
-                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, length);
+                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
                 }
                 return shaderType;
             }
