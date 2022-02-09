@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_TimeMultiplier;
 
         // Rendering parameters
-        SerializedProperty m_Material;
+        SerializedProperty m_CustomMaterial;
         SerializedProperty m_WaterSmoothness;
 
         // Refraction parameters
@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Scattering parameters
         SerializedProperty m_ScatteringColor;
-        SerializedProperty m_ScatteringFactor;
         SerializedProperty m_HeightScattering;
         SerializedProperty m_DisplacementScattering;
         SerializedProperty m_DirectLightTipScattering;
@@ -58,10 +57,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WaterMaskOffset;
 
         // Foam
-        SerializedProperty m_SimulationFoamIntensity;
         SerializedProperty m_SimulationFoamAmount;
+        SerializedProperty m_SimulationFoamDrag;
         SerializedProperty m_SimulationFoamSmoothness;
-        SerializedProperty m_SimulationFoamTiling;
         SerializedProperty m_FoamMask;
         SerializedProperty m_FoamMaskExtent;
         SerializedProperty m_FoamMaskOffset;
@@ -94,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
 
             // Rendering parameters
-            m_Material = o.Find(x => x.material);
+            m_CustomMaterial = o.Find(x => x.customMaterial);
             m_WaterSmoothness = o.Find(x => x.waterSmoothness);
 
             // Refraction parameters
@@ -104,7 +102,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Scattering parameters
             m_ScatteringColor = o.Find(x => x.scatteringColor);
-            m_ScatteringFactor = o.Find(x => x.scatteringFactor);
             m_HeightScattering = o.Find(x => x.heightScattering);
             m_DisplacementScattering = o.Find(x => x.displacementScattering);
             m_DirectLightTipScattering = o.Find(x => x.directLightTipScattering);
@@ -127,10 +124,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
-            m_SimulationFoamIntensity = o.Find(x => x.simulationFoamIntensity);
             m_SimulationFoamAmount = o.Find(x => x.simulationFoamAmount);
+            m_SimulationFoamDrag = o.Find(x => x.simulationFoamDrag);
             m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
-            m_SimulationFoamTiling = o.Find(x => x.simulationFoamTiling);
             m_FoamMask = o.Find(x => x.foamMask);
             m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
             m_FoamMaskOffset = o.Find(x => x.foamMaskOffset);
@@ -151,24 +147,22 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LightLayerMask = o.Find(x => x.lightLayerMask);
         }
 
-        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.");
-        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Controls the choppiness factor the waves. Higher values may introduce visual artifacts.");
-        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Controls the speed of the water simulation.This allows to slow down the wave's speed or to accelerate it.");
-        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Control the smoothness used to render the water surface.");
+        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
+        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
+        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
+        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
         static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
         static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
 
-        static public readonly GUIContent k_ScatteringFactor = EditorGUIUtility.TrTextContent("Scattering Factor", "Controls the multiplier that is used to simulate the under-water scattering globally.");
         static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
         static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
         static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.");
         static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.");
 
-        static public readonly GUIContent k_CausticsDispersionAmount = EditorGUIUtility.TrTextContent("Caustics Dispersion Amount", "Controls the amount of dispersion of the caustics.");
         static public readonly GUIContent k_CausticsBand = EditorGUIUtility.TrTextContent("Caustics Band", "Controls which band is used for the caustics evaluation.");
 
         static public readonly GUIContent k_SimulationFoamSmoothness = EditorGUIUtility.TrTextContent("Simulation Foam Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_SimulationFoamIntensity = EditorGUIUtility.TrTextContent("Simulation Foam Intensity", "Controls the simulation foam brightness.");
+        static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.");
         static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.");
 
         static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
@@ -222,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WaterMaxPatchSize);
-                m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 5.0f, 10000.0f);
+                m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 25.0f, 10000.0f);
 
                 EditorGUILayout.PropertyField(m_HighBandCount);
                 highBandCount = m_HighBandCount.boolValue;
@@ -253,7 +247,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Material", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(m_Material);
+                EditorGUILayout.PropertyField(m_CustomMaterial);
                 // Water Smoothness from 0.0f to 0.99f
                 m_WaterSmoothness.floatValue = EditorGUILayout.Slider(k_WaterSmoothness, m_WaterSmoothness.floatValue, 0.0f, 0.99f);
             }
@@ -270,7 +264,6 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_ScatteringColor);
-                m_ScatteringFactor.floatValue = EditorGUILayout.Slider(k_ScatteringFactor, m_ScatteringFactor.floatValue, 0.0f, 1.0f);
                 m_HeightScattering.floatValue = EditorGUILayout.Slider(k_HeightScattering, m_HeightScattering.floatValue, 0.0f, 1.0f);
                 m_DisplacementScattering.floatValue = EditorGUILayout.Slider(k_DisplacementScattering, m_DisplacementScattering.floatValue, 0.0f, 1.0f);
                 m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider(k_DirectLightTipScattering, m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
@@ -334,10 +327,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Surface foam
                 m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
-                m_SimulationFoamIntensity.floatValue = EditorGUILayout.Slider(k_SimulationFoamIntensity, m_SimulationFoamIntensity.floatValue, 0.0f, 1.0f);
+                m_SimulationFoamDrag.floatValue = EditorGUILayout.Slider(k_SimulationFoamDrag, m_SimulationFoamDrag.floatValue, 0.0f, 1.0f);
                 m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
-                EditorGUILayout.PropertyField(m_SimulationFoamTiling);
-                m_SimulationFoamTiling.floatValue = Mathf.Max(m_SimulationFoamTiling.floatValue, 0.01f);
 
                 // Foam masking
                 EditorGUILayout.PropertyField(m_FoamMask);

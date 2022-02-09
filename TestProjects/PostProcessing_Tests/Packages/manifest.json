@@ -1,26 +1,26 @@
 {
-  "dependencies": {
-    "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
-    "com.unity.test-framework": "1.1.29",
-    "com.unity.testframework.graphics": "7.8.11-preview",
-    "com.unity.modules.animation": "1.0.0",
-    "com.unity.modules.assetbundle": "1.0.0",
-    "com.unity.modules.audio": "1.0.0",
-    "com.unity.modules.imageconversion": "1.0.0",
-    "com.unity.modules.imgui": "1.0.0",
-    "com.unity.modules.jsonserialize": "1.0.0",
-    "com.unity.modules.particlesystem": "1.0.0",
-    "com.unity.modules.physics": "1.0.0",
-    "com.unity.modules.uielements": "1.0.0",
-    "com.unity.modules.unityanalytics": "1.0.0",
-    "com.unity.modules.unitywebrequest": "1.0.0",
-    "com.unity.modules.video": "1.0.0",
-    "com.unity.modules.vr": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
-  },
-  "disableProjectUpdate": true,
-  "testables": [
-    "com.unity.postprocessing",
-    "com.unity.testframework.graphics"
-  ]
+    "dependencies": {
+        "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
+        "com.unity.test-framework": "1.1.30",
+        "com.unity.testframework.graphics": "7.8.11-preview",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.assetbundle": "1.0.0",
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.particlesystem": "1.0.0",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.unityanalytics": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.modules.video": "1.0.0",
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.modules.xr": "1.0.0"
+    },
+    "disableProjectUpdate": true,
+    "testables": [
+        "com.unity.postprocessing",
+        "com.unity.testframework.graphics"
+    ]
 }

@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
             return never == null;
         }
 
+        // think this is not called by anyone anymore, leaving it to avoid changing client code
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
     }
 }
