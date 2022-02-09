@@ -85,7 +85,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
 
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
             var cmd = renderingData.commandBuffer;
 
             if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
@@ -100,59 +99,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.nameID);
-
+                // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+                // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
+                // meanwhile we set to load so split screen case works.
+                var loadAction = RenderBufferLoadAction.DontCare;
+                if (!cameraData.isSceneViewCamera && !cameraData.isDefaultViewport)
+                    loadAction = RenderBufferLoadAction.Load;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
-                {
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        m_CameraTargetHandle,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.None,
-                        Color.black);
-
-                    cmd.SetViewport(cameraData.pixelRect);
-
-                    // We y-flip if
-                    // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
-                    // 2) renderTexture starts UV at top
-                    bool yflip = SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
-                }
-                else
+                    loadAction = RenderBufferLoadAction.Load;
 #endif
-                if (isSceneViewCamera || cameraData.isDefaultViewport)
-                {
-                    // This set render target is necessary so we change the LOAD state to DontCare.
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID, m_BlitMaterial);
-                }
-                else
-                {
-                    // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                    // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
-                    // meanwhile we set to load so split screen case works.
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        m_CameraTargetHandle,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.Depth,
-                        Color.black);
 
-                    Camera camera = cameraData.camera;
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.SetViewport(cameraData.pixelRect);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                }
+                RenderingUtils.FinalBlit(cmd, cameraData, m_Source, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, 0);
+
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
         }

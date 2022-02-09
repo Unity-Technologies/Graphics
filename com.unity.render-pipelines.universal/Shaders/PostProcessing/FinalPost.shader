@@ -115,7 +115,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             Name "FinalPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex FullscreenTriangleVert
                 #pragma fragment Frag
                 #pragma target 4.5
             ENDHLSL
@@ -134,7 +134,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             Name "FinalPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex FullscreenTriangleVert
                 #pragma fragment Frag
             ENDHLSL
         }
