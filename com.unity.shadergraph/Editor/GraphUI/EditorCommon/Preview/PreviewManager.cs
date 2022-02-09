@@ -33,6 +33,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(ShaderGraphModel graphModel)
         {
+            // Can be null when the editor window is opened to the onboarding page
+            if(graphModel == null)
+                return;
+
             m_GraphModel = graphModel;
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
