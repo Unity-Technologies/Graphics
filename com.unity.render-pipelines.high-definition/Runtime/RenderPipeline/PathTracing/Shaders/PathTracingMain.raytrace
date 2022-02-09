@@ -1,21 +1,20 @@
-// We do not rely on recursion, beyong shooting shadow and random walk rays from the intersected surface
+// We do not rely on recursion, beyond shooting shadow and random walk rays from the intersected surface
 #pragma max_recursion_depth 2
 
-// HDRP include
+// SRP/HDRP includes
 #define SHADER_TARGET 50
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
+// We need this for the potential volumetric integration on camera misses
+#define HAS_LIGHTLOOP
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
-
-// We need this for the potential volumetric integration on camera misses
-#define HAS_LIGHTLOOP
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
@@ -192,19 +191,11 @@ void TracePath()
         // If we hit something, always set alpha/presence to 1.0
         alpha = 1.0;
 
-        // To apply our battle-tested, recursive clamping strategy, we will store results at each depth
-        uint segmentID, segmentIDMaxDepth = min(_RaytracingMaxRecursion, SEGMENT_ID_MAX_DEPTH);
-        float3 segmentValue[SEGMENT_ID_MAX_DEPTH];
-        float3 segmentThroughput[SEGMENT_ID_MAX_DEPTH];
-
-        segmentValue[0] = value;
-        segmentThroughput[0] = 1.0;
-
         // Iterate over each path segments, up to a specified max recursion depth
-        for (segmentID = 1; segmentID < segmentIDMaxDepth && any(payload.rayDirection); segmentID++)
+        for (uint segmentID = 1; segmentID < _RaytracingMaxRecursion && any(payload.rayDirection); segmentID++)
         {
-            // Store throughput up to that segment
-            segmentThroughput[segmentID] = payload.throughput;
+            // Store the throughput up to that segment
+            float3 throughput = payload.throughput;
 
             // Update our continuation ray
             GetContinuationRay(payload, ray);
@@ -213,23 +204,15 @@ void TracePath()
             payload.value = 0.0;
             payload.rayDirection = 0.0;
             payload.pixelCoord = pixelCoord;
-            payload.segmentID = segmentID;
+            payload.segmentID = segmentID;    
 
             // Trace our continuation ray
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
-            // Store segment radiance value
-            segmentValue[segmentID] = payload.value;
+            // Add this segment's contribution to our overall radiance value
+            value += throughput * ClampValue(payload.value);
         }
-
-        // Then iterate backwards, to apply our recursive intensity clamping
-        for (segmentID--; segmentID > 0; segmentID--)
-        {
-            segmentThroughput[segmentID] /= segmentThroughput[segmentID - 1];
-            segmentValue[segmentID - 1] += segmentThroughput[segmentID] * ClampValue(segmentValue[segmentID]);
-        }
-        value = segmentValue[0];
     }
     else
     {

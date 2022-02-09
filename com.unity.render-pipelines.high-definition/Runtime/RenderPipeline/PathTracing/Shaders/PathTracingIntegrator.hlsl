@@ -23,7 +23,7 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 
 float3 GetSkyValue(PathPayload payload, float3 direction)
 {
-    if (payload.segmentID == 0 && dot(direction, WorldRayDirection()) > 0.999)
+    if (payload.segmentID == 0 && all(direction == WorldRayDirection()))
     {
         // If we can, access our high resolution screen-space background
         return GetSkyBackground(payload.pixelCoord).rgb;
@@ -87,14 +87,14 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, fragInput);
 
-    // Check whether we are called from a subsurface scattering computation
+    // If called from a random walk, just return the normal
     if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
     {
-        payload.value = fragInput.tangentToWorld[2]; // Returns normal
+        payload.value = fragInput.tangentToWorld[2];
         return;
     }
 
-    // Make sure to add the additional travel distance
+    // Make sure to add the additional travel distance to our cone
     payload.cone.width += payload.rayTHit * abs(payload.cone.spreadAngle);
 
 #ifdef SHADER_UNLIT
@@ -130,7 +130,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
     bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
 
-    // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
+    // Get our world space shading position
     float3 shadingPosition = fragInput.positionRWS;
 
     // And reset the payload value, which will store our final radiance result for this path depth
@@ -230,7 +230,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
                     // Add sky contribution separately, if not doing sky sampling
                     if (!IsSkySamplingEnabled() && !hit)
-                        payload.value += value * GetSkyValue(payload, ray.Direction);
+                        payload.value += value * GetSkyValue(ray.Direction);
                 }
 
                 // If we have a hit, we want to prepare our payload for a continuation ray
