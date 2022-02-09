@@ -1,7 +1,9 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.Collections;
 using System.Text;
 using System.Linq;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -9,6 +11,8 @@ using UnityEditor.VFX;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEditor.VFX.Block;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.VersionControl;
 
 namespace UnityEditor.VFX.Test
 {
@@ -159,6 +163,107 @@ namespace UnityEditor.VFX.Test
             var code = stringBuilder.ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[1]));
+        }
+
+        [Test]
+        public void Change_ShaderGraph_Properties_Order()
+        {
+            string vfxPath;
+
+            // Create VFX Graph
+            {
+                var sg = GetShaderGraphFromTempFile("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest.shadergraph_1");
+
+                var graph = VFXTestCommon.MakeTemporaryGraph();
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+                var outputContext = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+                outputContext.SetSettingValue("shaderGraph", sg);
+
+                graph.AddChild(spawnerContext);
+                graph.AddChild(initContext);
+                graph.AddChild(updateContext);
+                graph.AddChild(outputContext);
+
+                spawnerContext.LinkTo(initContext);
+                initContext.LinkTo(updateContext);
+                updateContext.LinkTo(outputContext);
+
+                Assert.AreEqual(2, outputContext.inputSlots.Count);
+                CollectionAssert.AreEqual(new [] { "extraTexture", "alphaOffset"}, outputContext.inputSlots.Select(x => x.name));
+
+                graph.GetResource().WriteAsset();
+                vfxPath = AssetDatabase.GetAssetPath(graph);
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            // Overwrite shader graph and check exposed properties
+            {
+                GetShaderGraphFromTempFile("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest.shadergraph_2");
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+                var updatedOutputContext = ((VFXGraph)vfxAsset.GetResource().graph).children.OfType<VFXPlanarPrimitiveOutput>().Single();
+
+                Assert.AreEqual(3, updatedOutputContext.inputSlots.Count);
+                CollectionAssert.AreEqual(new [] { "_Float", "alphaOffset", "extraTexture"}, updatedOutputContext.inputSlots.Select(x => x.name));
+            }
+        }
+
+        [Test]
+        public void Set_ShaderGraph_Null_No_Properties()
+        {
+            string vfxPath;
+
+            // Create VFX Graph
+            {
+                var sg = GetShaderGraphFromTempFile("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest.shadergraph_1");
+
+                var graph = VFXTestCommon.MakeTemporaryGraph();
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+                var outputContext = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+                outputContext.SetSettingValue("shaderGraph", sg);
+
+                graph.AddChild(spawnerContext);
+                graph.AddChild(initContext);
+                graph.AddChild(updateContext);
+                graph.AddChild(outputContext);
+
+                spawnerContext.LinkTo(initContext);
+                initContext.LinkTo(updateContext);
+                updateContext.LinkTo(outputContext);
+
+                Assert.AreEqual(2, outputContext.inputSlots.Count);
+                CollectionAssert.AreEqual(new [] { "extraTexture", "alphaOffset"}, outputContext.inputSlots.Select(x => x.name));
+
+                graph.GetResource().WriteAsset();
+                vfxPath = AssetDatabase.GetAssetPath(graph);
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            // Remove reference to shader graph and check there are no more properties
+            {
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+                var outputContext = ((VFXGraph)vfxAsset.GetResource().graph).children.OfType<VFXPlanarPrimitiveOutput>().Single();
+                outputContext.SetSettingValue("shaderGraph", null);
+
+                Assert.AreEqual(1, outputContext.inputSlots.Count);
+                CollectionAssert.AreEqual(new [] { "mainTexture" }, outputContext.inputSlots.Select(x => x.name));
+            }
+        }
+
+        private ShaderGraphVfxAsset GetShaderGraphFromTempFile(string tempFile)
+        {
+            var extension = Path.GetExtension(tempFile);
+            var sgPath = Path.Combine(VFXTestCommon.tempBasePath,  Path.GetFileName(tempFile).Replace(extension, ".shadergraph"));
+            var sgContent = File.ReadAllText(tempFile);
+            File.WriteAllText(sgPath, sgContent);
+            AssetDatabase.Refresh();
+
+            return AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(sgPath);
         }
     }
 }
