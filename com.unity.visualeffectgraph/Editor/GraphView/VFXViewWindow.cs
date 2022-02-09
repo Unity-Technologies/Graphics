@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using UnityEditor.Experimental.GraphView;
 
 using UnityEngine;
@@ -135,6 +136,11 @@ namespace UnityEditor.VFX.UI
         public VFXView graphView { get; private set; }
         public VisualEffectResource displayedResource => m_DisplayedResource;
 
+        public void UpdateTitle(string assetPath)
+        {
+            titleContent.text = Path.GetFileNameWithoutExtension(assetPath);
+        }
+
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
             VFXLibrary.LogUnsupportedSRP();
@@ -236,6 +242,7 @@ namespace UnityEditor.VFX.UI
             InternalLoadResource(m_ResourceHistory.Last());
 
             m_ResourceHistory.RemoveAt(m_ResourceHistory.Count - 1);
+            graphView.ClearSelection();
         }
 
         protected void CreateGUI()
@@ -345,6 +352,12 @@ namespace UnityEditor.VFX.UI
         {
             if (graphView != null) // OnFocus can be somehow called before OnEnable
                 graphView.OnFocus();
+        }
+
+        void OnLostFocus()
+        {
+            if (graphView != null)
+                graphView.ClearSelectionOnly();
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)

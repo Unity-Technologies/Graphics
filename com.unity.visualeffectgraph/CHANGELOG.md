@@ -17,10 +17,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
 - VFX Subgraph operator and block windows now have dedicated icons
 - Some operators were missing in node search window (gradient for instance)
+- Resize custom operator (multiply, add...) to the minimum size when changing input types
+- Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
+- Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
+- Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
 
 ## [13.1.5] - 2021-12-17
+
 ### Fixed
-- Enable/disable state of VFX blocks and operators are preserved after copy/paste
 - Incorrect behavior of Tangent Space in ShaderGraph [Case 1363279](https://issuetracker.unity3d.com/product/unity/issues/guid/1363279/)
 
 ## [13.1.4] - 2021-12-04
