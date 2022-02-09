@@ -13,16 +13,16 @@ namespace UnityEditor.ShaderFoundry
     {
         internal static void Copy(ShaderFunction.Builder builder, VariableLinkInstance variable, VariableLinkInstance parent)
         {
-            var propInfo = PropertyInfo.Extract(variable.Type, variable.Name, variable.Attributes);
-            if (propInfo != null && propInfo.UniformReadingInfo != null)
+            var propInfo = PropertyDeclarations.Extract(variable.Type, variable.Name, variable.Attributes);
+            if (propInfo != null && propInfo.UniformReadingData != null)
             {
-                propInfo.UniformReadingInfo.Copy(builder, parent);
+                propInfo.UniformReadingData.Copy(builder, parent);
             }
         }
 
         internal static void Declare(UniformDeclarationContext context, BlockVariable variable)
         {
-            var propInfo = PropertyInfo.Extract(variable.Type, variable.Name, variable.Attributes);
+            var propInfo = PropertyDeclarations.Extract(variable.Type, variable.Name, variable.Attributes);
             if (propInfo != null && propInfo.UniformDeclarations != null)
             {
                 foreach (var uniformDeclInfo in propInfo.UniformDeclarations)

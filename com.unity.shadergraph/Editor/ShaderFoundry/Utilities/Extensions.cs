@@ -109,6 +109,25 @@ namespace UnityEditor.ShaderFoundry
         {
             builder.CallFunctionWithDeclaredReturn(function, function.ReturnType, returnVariableName, arguments);
         }
+
+        internal static void DeclareAttribute(this ShaderBuilder builder, ShaderAttribute attribute)
+        {
+            builder.Add("[");
+            builder.Add(attribute.Name);
+            var paramCount = 0;
+            foreach (var param in attribute.Parameters)
+            {
+                if (paramCount == 0)
+                    builder.Add("(");
+                else
+                    builder.Add(", ");
+                ++paramCount;
+                builder.Add(param.Value);
+            }
+            if (paramCount != 0)
+                builder.Add(")");
+            builder.Add("]");
+        }
     }
 
     internal static class ShaderFunctionExtensions

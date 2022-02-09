@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderFoundry;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
@@ -379,6 +379,28 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
+        void ExtractKeywordDescriptors(Block block, ref IEnumerable<UnityEditor.ShaderFoundry.KeywordDescriptor> shaderKeywords)
+        {
+            // Check all inputs for any keywords
+            foreach (var input in block.Inputs)
+            {
+                // Skip anything that isn't a property (needed for the uniform name)
+                var propertyAttribute = PropertyAttribute.FindFirst(input.Attributes);
+                if (propertyAttribute == null)
+                    continue;
+
+                var uniformName = propertyAttribute.UniformName ?? input.Name;
+
+                var boolKeywordAttribute = BoolKeywordAttribute.FindFirst(input.Attributes);
+                if (boolKeywordAttribute != null)
+                    shaderKeywords = shaderKeywords.Append(boolKeywordAttribute.BuildDescriptor(Container, uniformName));
+
+                var enumKeywordAttribute = EnumKeywordAttribute.FindFirst(input.Attributes);
+                if (enumKeywordAttribute != null)
+                    shaderKeywords = shaderKeywords.Append(enumKeywordAttribute.BuildDescriptor(Container, uniformName));
+            }
+        }
+
         void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.CommandDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var commandDesc in descriptors)
@@ -483,6 +505,7 @@ namespace UnityEditor.ShaderFoundry
                     shaderIncludes = shaderIncludes.Concat(block.Includes);
                     shaderKeywords = shaderKeywords.Concat(block.Keywords);
                     shaderPragmas = shaderPragmas.Concat(block.Pragmas);
+                    ExtractKeywordDescriptors(block, ref shaderKeywords);
                 }
             }
 
