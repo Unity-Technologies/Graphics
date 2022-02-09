@@ -21,15 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing { get; }
 
         // HDRP specific properties
-        public SerializedProperty gateFit;
-        public SerializedProperty focusDistance;
-        public SerializedProperty iso;
-        public SerializedProperty shutterSpeed;
-        public SerializedProperty aperture;
-        public SerializedProperty bladeCount;
-        public SerializedProperty curvature;
-        public SerializedProperty barrelClipping;
-        public SerializedProperty anamorphism;
         public SerializedProperty exposureTarget;
 
         public SerializedProperty allowDeepLearningSuperSampling;
@@ -82,17 +73,6 @@ namespace UnityEditor.Rendering.HighDefinition
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
-
-            // HDRP specific properties
-            gateFit = serializedAdditionalDataObject.FindProperty("physicalParameters.m_GateFit");
-            focusDistance = serializedAdditionalDataObject.FindProperty("physicalParameters.m_FocusDistance");
-            iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
-            shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");
-            aperture = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Aperture");
-            bladeCount = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BladeCount");
-            curvature = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Curvature");
-            barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
-            anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
 
             exposureTarget = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.exposureTarget);
 
