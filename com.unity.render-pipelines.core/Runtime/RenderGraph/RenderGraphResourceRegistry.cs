@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        delegate void ResourceCallback(RenderGraphContext rgContext, IRenderGraphResource res);
+        delegate void ResourceCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res);
 
         class RenderGraphResourcesData
         {
@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void CreatePooledResource(RenderGraphContext rgContext, int type, int index)
+        internal void CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index)
         {
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
@@ -460,7 +460,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void CreateTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
+        void CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
 
@@ -484,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleasePooledResource(RenderGraphContext rgContext, int type, int index)
+        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, int type, int index)
         {
             var resource = m_RenderGraphResources[type].resourceArray[index];
 
@@ -501,7 +501,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void ReleaseTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
+        void ReleaseTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
 

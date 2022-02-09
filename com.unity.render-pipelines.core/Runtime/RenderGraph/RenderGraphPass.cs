@@ -6,12 +6,12 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    abstract class RenderGraphPass<ContextType> where ContextType : IRenderGraphContext
+    abstract class RenderGraphPass
     {
-        public BaseRenderFunc<PassData, ContextType> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData, ContextType>)this).renderFunc;
+        public RenderFunc<PassData> GetExecuteDelegate<PassData>()
+            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
 
-        public abstract void Execute(ContextType renderGraphContext);
+        public abstract void Execute(InternalRenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
@@ -121,33 +121,50 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             generateDebugData = value;
         }
 
-        public void SetColorBuffer(TextureHandle resource, int index)
+        public void SetColorBuffer(TextureHandle resource, int index, DepthAccess flags = DepthAccess.Write)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
-            colorBuffers[index] = resource;
-            AddResourceWrite(resource.handle);
+            if (colorBuffers[index].handle == resource.handle || colorBuffers[index].handle == TextureHandle.nullHandle.handle)
+            {
+                colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
+                colorBuffers[index] = resource;
+                if ((flags & DepthAccess.Read) != 0)
+                    AddResourceRead(resource.handle);
+                if ((flags & DepthAccess.Write) != 0)
+                    AddResourceWrite(resource.handle);
+            }
+            else
+            {
+                throw new Exception("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+            }
         }
 
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
-            depthBuffer = resource;
-            if ((flags & DepthAccess.Read) != 0)
-                AddResourceRead(resource.handle);
-            if ((flags & DepthAccess.Write) != 0)
-                AddResourceWrite(resource.handle);
+            // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
+            if (depthBuffer.handle == resource.handle || depthBuffer.handle == TextureHandle.nullHandle.handle)
+            {
+                depthBuffer = resource;
+                if ((flags & DepthAccess.Read) != 0)
+                    AddResourceRead(resource.handle);
+                if ((flags & DepthAccess.Write) != 0)
+                    AddResourceWrite(resource.handle);
+            }
+            else
+            {
+                throw new Exception("You can only set a single depth texture per pass.");
+            }
         }
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class RenderGraphPass<PassData, ContextType> : RenderGraphPass<ContextType>
+    internal sealed class RenderGraphPass<PassData> : RenderGraphPass
         where PassData : class, new()
-        where ContextType : class
     {
         internal PassData data;
-        internal BaseRenderFunc<PassData, ContextType> renderFunc;
+        internal RenderFunc<PassData> renderFunc;
 
-        public override void Execute(ContextType renderGraphContext)
+        public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             GetExecuteDelegate<PassData>()(data, renderGraphContext);
         }

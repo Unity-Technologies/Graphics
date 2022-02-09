@@ -16,6 +16,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [Flags]
     public enum DepthAccess
     {
+        ///<summary>This resource will not be accessed as a depth surface.</summary>
+        None = 0,
         ///<summary>Read Access.</summary>
         Read = 1 << 0,
         ///<summary>Write Access.</summary>
@@ -26,52 +28,81 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     public interface IRenderGraphContext
     {
-
+        public void FromGraphContext(InternalRenderGraphContext context);
     }
 
     /// <summary>
     /// Generic base class for different command buffer types.
     /// </summary>
-    public class BaseRenderGraphContext<T> : IRenderGraphContext where T : class
+    public class InternalRenderGraphContext
     {
         ///<summary>Scriptable Render Context used for rendering.</summary>
         public ScriptableRenderContext renderContext;
         ///<summary>Command Buffer used for rendering.</summary>
-        public T cmd;
+        public CommandBuffer cmd;
         ///<summary>Render Graph pool used for temporary data.</summary>
         public RenderGraphObjectPool renderGraphPool;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources defaultResources;
     }
 
-
     /// <summary>
     /// This class specifies the context given to every render pass.
     /// </summary>
-    public class RasterGraphContext : BaseRenderGraphContext<RasterCommandBuffer>
+    public struct RenderGraphContext : IRenderGraphContext
     {
-    }
+        private InternalRenderGraphContext wrapped;
+        public void FromGraphContext(InternalRenderGraphContext context)
+        {
+            wrapped = context;
+        }
 
-
-    /// <summary>
-    /// This class specifies the context given to every render pass.
-    /// </summary>
-    public class ComputeGraphContext : BaseRenderGraphContext<ComputeCommandBuffer>
-    {
-    }
-
-    /// <summary>
-    /// This class specifies the context given to every render pass.
-    /// </summary>
-    public class GraphicsGraphContext : BaseRenderGraphContext<GraphicsCommandBuffer>
-    {
+        public ScriptableRenderContext renderContext { get => wrapped.renderContext; }
+        public CommandBuffer cmd { get => wrapped.cmd;  }
+        public RenderGraphObjectPool renderGraphPool {  get => wrapped.renderGraphPool; }
+        public RenderGraphDefaultResources defaultResources { get => wrapped.defaultResources; }
     }
 
     /// <summary>
     /// This class specifies the context given to every render pass.
     /// </summary>
-    public class RenderGraphContext : BaseRenderGraphContext<CommandBuffer>
+    public struct RasterGraphContext : IRenderGraphContext
     {
+        private InternalRenderGraphContext wrapped;
+        public RasterCommandBuffer cmd;
+        public void FromGraphContext(InternalRenderGraphContext context)
+        {
+            wrapped = context;
+            cmd = new RasterCommandBuffer(wrapped.cmd);
+        }
+    }
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class ComputeGraphContext : IRenderGraphContext
+    {
+        private InternalRenderGraphContext wrapped;
+        public ComputeCommandBuffer cmd;
+        public void FromGraphContext(InternalRenderGraphContext context)
+        {
+            wrapped = context;
+            cmd = new ComputeCommandBuffer(wrapped.cmd, false);
+        }
+    }
+
+    /// <summary>
+    /// This class specifies the context given to every render pass.
+    /// </summary>
+    public class GraphicsGraphContext : IRenderGraphContext
+    {
+        private InternalRenderGraphContext wrapped;
+        public GraphicsCommandBuffer cmd;
+        public void FromGraphContext(InternalRenderGraphContext context)
+        {
+            wrapped = context;
+            cmd = new GraphicsCommandBuffer(wrapped.cmd);
+        }
     }
 
     /// <summary>
@@ -201,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <typeparam name="PassData">The type of the class used to provide data to the Render Pass.</typeparam>
     /// <param name="data">Render Pass specific data.</param>
     /// <param name="renderGraphContext">Global Render Graph context.</param>
-    public delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
+    public delegate void RenderFunc<PassData>(PassData data, InternalRenderGraphContext renderGraphContext) where PassData : class, new();
 
 
 
@@ -279,9 +310,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
-        internal struct CompiledPassInfo<ContextType> where ContextType : IRenderGraphContext
+        internal struct CompiledPassInfo
         {
-            public RenderGraphPass<ContextType> pass;
+            public RenderGraphPass pass;
             public List<int>[] resourceCreateList;
             public List<int>[] resourceReleaseList;
             public int refCount;
@@ -301,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<string>[]   debugResourceWrites;
 #endif
 
-            public void Reset(RenderGraphPass<ContextType> pass)
+            public void Reset(RenderGraphPass pass)
             {
                 this.pass = pass;
                 enableAsyncCompute = pass.enableAsyncCompute;
@@ -359,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDefaultResources m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler> m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
         bool m_ExecutionExceptionWasRaised;
-        RenderGraphContext m_RenderGraphContext = new RenderGraphContext();
+        InternalRenderGraphContext m_RenderGraphContext = new InternalRenderGraphContext();
         CommandBuffer m_PreviousCommandBuffer;
         int m_CurrentImmediatePassIndex;
         List<int>[] m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
@@ -654,6 +685,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderPasses.Add(renderPass);
 
             return new RenderGraphBuilder(renderPass, m_Resources, this);
+        }
+
+        public IRasterRenderGraphBuilder AddRasterRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler) where PassData : class, new()
+        {
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+
+            passData = renderPass.data;
+
+            m_RenderPasses.Add(renderPass);
+
+            return new RenderGraphBuilders(renderPass, m_Resources, this);
         }
 
         /// <summary>
@@ -1399,7 +1442,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
+        void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, InternalRenderGraphContext rgContext)
         {
             var pass = passInfo.pass;
             if (pass.depthBuffer.IsValid() || pass.colorBufferMaxIndex != -1)
@@ -1442,7 +1485,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PreRenderPassExecute(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
+        void PreRenderPassExecute(in CompiledPassInfo passInfo, InternalRenderGraphContext rgContext)
         {
             RenderGraphPass pass = passInfo.pass;
 
@@ -1477,7 +1520,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PostRenderPassExecute(ref CompiledPassInfo passInfo, RenderGraphContext rgContext)
+        void PostRenderPassExecute(ref CompiledPassInfo passInfo, InternalRenderGraphContext rgContext)
         {
             RenderGraphPass pass = passInfo.pass;
 
