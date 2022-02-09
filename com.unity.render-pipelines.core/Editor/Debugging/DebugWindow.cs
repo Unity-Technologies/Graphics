@@ -33,7 +33,6 @@ namespace UnityEditor.Rendering
         Vector2 m_ContentScroll;
 
         static bool s_TypeMapDirty;
-        static Dictionary<Type, Type> s_WidgetStateMap; // DebugUI.Widget type -> DebugState type
         static Dictionary<Type, DebugUIDrawer> s_WidgetDrawerMap; // DebugUI.Widget type -> DebugUIDrawer
 
         static bool s_Open;
@@ -63,27 +62,8 @@ namespace UnityEditor.Rendering
 
         static void RebuildTypeMaps()
         {
-            // Map states to widget (a single state can map to several widget types if the value to
-            // serialize is the same)
-            var attrType = typeof(DebugStateAttribute);
-            var stateTypes = CoreUtils.GetAllTypesDerivedFrom<DebugState>()
-                .Where(
-                    t => t.IsDefined(attrType, false)
-                    && !t.IsAbstract
-                );
-
-            s_WidgetStateMap = new Dictionary<Type, Type>();
-
-            foreach (var stateType in stateTypes)
-            {
-                var attr = (DebugStateAttribute)stateType.GetCustomAttributes(attrType, false)[0];
-
-                foreach (var t in attr.types)
-                    s_WidgetStateMap.Add(t, stateType);
-            }
-
             // Drawers
-            attrType = typeof(DebugUIDrawerAttribute);
+            var attrType = typeof(DebugUIDrawerAttribute);
             var types = CoreUtils.GetAllTypesDerivedFrom<DebugUIDrawer>()
                 .Where(
                     t => t.IsDefined(attrType, false)
@@ -127,7 +107,7 @@ namespace UnityEditor.Rendering
             hideFlags = HideFlags.HideAndDontSave;
             autoRepaintOnSceneChange = true;
 
-            if (s_WidgetStateMap == null || s_WidgetDrawerMap == null || s_TypeMapDirty)
+            if (s_WidgetDrawerMap == null || s_TypeMapDirty)
                 RebuildTypeMaps();
 
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
@@ -135,7 +115,7 @@ namespace UnityEditor.Rendering
 
             // First init
             m_DebugTreeState = DebugManager.instance.GetState();
-            UpdateWidgetStates();
+            DebugWindowGlobalState.instance.UpdateWidgetStates();
 
             EditorApplication.update -= Repaint;
             var panels = DebugManager.instance.panels;
@@ -161,77 +141,6 @@ namespace UnityEditor.Rendering
             m_IsDirty = true;
         }
 
-        // We use item states to keep a cached value of each serializable debug items in order to
-        // handle domain reloads, play mode entering/exiting and undo/redo
-        // Note: no removal of orphan states
-        void UpdateWidgetStates()
-        {
-            foreach (var panel in DebugManager.instance.panels)
-                UpdateWidgetStates(panel);
-        }
-
-        void UpdateWidgetStates(DebugUI.IContainer container)
-        {
-            // Skip runtime only containers, we won't draw them so no need to serialize them either
-            if (container is DebugUI.Widget actualWidget && actualWidget.isInactiveInEditor)
-                return;
-
-            var widgetStates = DebugWindowGlobalState.instance.states;
-            // Recursively update widget states
-            foreach (var widget in container.children)
-            {
-                // Skip non-serializable widgets but still traverse them in case one of their
-                // children needs serialization support
-                if (widget is DebugUI.IValueField valueField)
-                {
-                    // Skip runtime & readonly only items
-                    if (widget.isInactiveInEditor)
-                        return;
-
-                    var widgetType = widget.GetType();
-                    // Create missing states & recreate the ones that are null
-                    if (s_WidgetStateMap.TryGetValue(widgetType, out Type stateType))
-                    {
-                        string guid = widget.queryPath;
-                        if (!widgetStates.TryGetValue(guid, out var state) || state == null)
-                        {
-                            var inst = (DebugState)CreateInstance(stateType);
-                            inst.queryPath = guid;
-                            inst.SetValue(valueField.GetValue(), valueField);
-                            widgetStates[guid] = inst;
-                        }
-                    }
-                }
-
-                // Recurse if the widget is a container
-                if (widget is DebugUI.IContainer containerField)
-                    UpdateWidgetStates(containerField);
-            }
-        }
-
-        public void ApplyStates(bool forceApplyAll = false)
-        {
-            if (!forceApplyAll && DebugState.m_CurrentDirtyState != null)
-            {
-                ApplyState(DebugState.m_CurrentDirtyState.queryPath, DebugState.m_CurrentDirtyState);
-                DebugState.m_CurrentDirtyState = null;
-                return;
-            }
-
-            foreach (var state in DebugWindowGlobalState.instance.states)
-                ApplyState(state.Key, state.Value);
-
-            DebugState.m_CurrentDirtyState = null;
-        }
-
-        void ApplyState(string queryPath, DebugState state)
-        {
-            if (DebugManager.instance.GetItem(queryPath) is not DebugUI.IValueField widget)
-                return;
-
-            widget.SetValue(state.GetValue());
-        }
-
         void OnUndoRedoPerformed()
         {
             int stateHash = DebugWindowGlobalState.instance.ComputeStateHash();
@@ -239,7 +148,7 @@ namespace UnityEditor.Rendering
             // Something has been undone / redone, re-apply states to the debug tree
             if (stateHash != DebugWindowGlobalState.instance.currentStateHash)
             {
-                ApplyStates(true);
+                DebugWindowGlobalState.instance.ApplyStates(true);
                 DebugWindowGlobalState.instance.currentStateHash = stateHash;
             }
 
@@ -248,11 +157,13 @@ namespace UnityEditor.Rendering
 
         void Update()
         {
+            bool forceUpdateAndApply = false;
+
             // If the render pipeline asset has been reloaded we force-refresh widget states in case
             // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
             if (DebugManager.instance.refreshEditorRequested)
             {
-                DebugWindowGlobalState.instance.DestroyWidgetStates();
+                forceUpdateAndApply = true;
                 DebugManager.instance.refreshEditorRequested = false;
             }
 
@@ -264,10 +175,10 @@ namespace UnityEditor.Rendering
 
             int treeState = DebugManager.instance.GetState();
 
-            if (m_DebugTreeState != treeState || m_IsDirty)
+            if (forceUpdateAndApply || m_DebugTreeState != treeState || m_IsDirty)
             {
-                UpdateWidgetStates();
-                ApplyStates();
+                DebugWindowGlobalState.instance.UpdateWidgetStates();
+                DebugWindowGlobalState.instance.ApplyStates(forceApplyAll:forceUpdateAndApply);
                 m_DebugTreeState = treeState;
                 m_IsDirty = false;
             }
@@ -283,7 +194,7 @@ namespace UnityEditor.Rendering
                 {
                     DebugManager.instance.Reset();
                     DebugWindowGlobalState.instance.DestroyWidgetStates();
-                    UpdateWidgetStates();
+                    DebugWindowGlobalState.instance.UpdateWidgetStates();
                     InternalEditorUtility.RepaintAllViews();
                 }
                 EditorUtility.ClearProgressBar();
@@ -395,7 +306,7 @@ namespace UnityEditor.Rendering
 
                     if (changedScope.changed)
                     {
-                        DebugWindowGlobalState.instance.UpdateStateHas();
+                        DebugWindowGlobalState.instance.UpdateStateHash();
                         DebugManager.instance.ReDrawOnScreenDebug();
                     }
                 }

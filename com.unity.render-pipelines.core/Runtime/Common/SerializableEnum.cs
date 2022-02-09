@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
         private string m_EnumValueAsString;
 
         [SerializeField]
-        private Type m_EnumType;
+        private string m_EnumTypeAsString;
 
         /// <summary>
         /// Value of enum
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (Enum.TryParse(m_EnumType, m_EnumValueAsString, out object result))
+                if (Enum.TryParse(Type.GetType(m_EnumTypeAsString), m_EnumValueAsString, out object result))
                     return (Enum)result;
 
                 return default(Enum);
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
         /// <param name="enumType">The underliying type of the enum</param>
         public SerializableEnum(Type enumType)
         {
-            m_EnumType = enumType;
+            m_EnumTypeAsString = enumType.AssemblyQualifiedName;
             m_EnumValueAsString = Enum.GetNames(enumType)[0];
         }
     }

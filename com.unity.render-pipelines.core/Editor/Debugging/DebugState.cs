@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering
         public override void SetValue(object value, DebugUI.IValueField field)
         {
             m_EnumField = field as DebugUI.EnumField;
-            base.SetValue(value, field);
+            UpdateValue();
         }
 
         void UpdateValue()
