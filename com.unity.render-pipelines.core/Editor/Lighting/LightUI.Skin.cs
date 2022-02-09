@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering
             /// <summary>Title with "Shadows"</summary>
             public static readonly GUIContent shadowHeader = EditorGUIUtility.TrTextContent("Shadows");
             /// <summary>Title with "Light Layer"</summary>
-            public static readonly GUIContent lightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
+            public static readonly GUIContent lightLayer = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Specifies the current Rendering Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
             // Emission
             /// <summary>Label with "Color"</summary>
