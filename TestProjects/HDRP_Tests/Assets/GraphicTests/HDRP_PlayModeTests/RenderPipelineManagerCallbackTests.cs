@@ -40,7 +40,7 @@ public class RenderPipelineManagerCallbackTests
         return begin == end && begin == expectedValue;
     }
 
-    [UnityTest]
+    [Test]
     public bool BeginAndEndCameraRenderingCallbackMatch_Camera()
     {
         var camera = SetupTest();
@@ -49,7 +49,7 @@ public class RenderPipelineManagerCallbackTests
         return CheckResult(k_RenderCount);
     }
 
-    [UnityTest]
+    [Test]
     public bool BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
     {
         var camera = SetupTest();
@@ -60,7 +60,7 @@ public class RenderPipelineManagerCallbackTests
         return CheckResult(k_RenderCount);
     }
 
-    [UnityTest]
+    [Test]
     public bool BeginAndEndCameraRenderingCallbackMatch_CustomRender()
     {
         var camera = SetupTest();
@@ -71,7 +71,7 @@ public class RenderPipelineManagerCallbackTests
         return CheckResult(k_RenderCount);
     }
 
-    [UnityTest]
+    [Test]
     public bool BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
     {
         var camera = SetupTest();
