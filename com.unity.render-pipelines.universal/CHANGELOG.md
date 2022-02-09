@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed Screen Space Decal to work with fog. [1383719](https://issuetracker.unity3d.com/issues/decal-is-not-displayed-when-fog-is-enabled)
 - Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
-- Merge MaterialError.shader and FallbackError.shader 
+- Merged MaterialError.shader and FallbackError.shader 
 
 ## [14.0.0] - 2021-11-17
 
