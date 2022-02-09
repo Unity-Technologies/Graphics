@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
             public int maxSubdivLevelInsideVolume;
-            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -621,7 +620,6 @@ namespace UnityEngine.Experimental.Rendering
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         maxSubdivLevelInsideVolume = subdivLevel,
-                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

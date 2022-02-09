@@ -40,8 +40,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_CreateEmptyShadowmap;
 
+        int renderTargetWidth;
+        int renderTargetHeight;
+
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
+        /// <summary>
+        /// Creates a new <c>MainLightShadowCasterPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(MainLightShadowCasterPass));
@@ -68,12 +76,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Dispose()
         {
             m_MainLightShadowmapTexture?.Release();
             m_EmptyLightShadowmapTexture?.Release();
         }
 
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="renderingData"></param>
+        /// <returns>True if the pass should be enqueued, otherwise false.</returns>
+        /// <seealso cref="RenderingData"/>
         public bool Setup(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
@@ -140,12 +157,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
+        /// <inheritdoc />
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_CreateEmptyShadowmap)
-                ConfigureTarget(m_EmptyLightShadowmapTexture, m_EmptyLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+                ConfigureTarget(m_EmptyLightShadowmapTexture);
             else
-                ConfigureTarget(m_MainLightShadowmapTexture, m_MainLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+                ConfigureTarget(m_MainLightShadowmapTexture);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

@@ -15,7 +15,7 @@
 #pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
 // Ambient probe convolution for clouds.
 // Does not output diffuse and volumetric buffer and does not use input texture mips.
-#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS
+#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS OUTPUT_CLOUDS
 
 // Input Cubemap
 TEXTURECUBE(_AmbientProbeInputCubemap);
@@ -23,6 +23,12 @@ TEXTURECUBE(_AmbientProbeInputCubemap);
 RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
 RWStructuredBuffer<float4> _VolumetricAmbientProbeOutputBuffer;
 RWStructuredBuffer<float4> _DiffuseAmbientProbeOutputBuffer;
+
+// If we use local VGPRs as a scratch buffer we end up using too many register
+// To avoid that we go through memory.
+// This is quite messy and bad for performance but this shader should never be critical so it should be fine.
+// Uint is used as it's the only format supported everywhere as read/write from same thread.
+RWStructuredBuffer<uint> _ScratchBuffer;
 
 uniform float4 _FogParameters;
 
@@ -39,6 +45,45 @@ uniform float4 _FogParameters;
     // Allocate space for parallel reduction (so half the number of samples.
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
 #endif
+
+    void PackSHFromScratchBuffer(RWStructuredBuffer<float4> buffer)
+    {
+        int c = 0;
+        for (c = 0; c < 3; c++)
+
+        {
+            buffer[c] = float4(asfloat(_ScratchBuffer[c * 9 + 3]), asfloat(_ScratchBuffer[c * 9 + 1]), asfloat(_ScratchBuffer[c * 9 + 2]), asfloat(_ScratchBuffer[c * 9 + 0]) - asfloat(_ScratchBuffer[c * 9 + 6]));
+        }
+
+        // Quadratic (4/5)
+        for (c = 0; c < 3; c++)
+        {
+            buffer[3 + c] = float4(asfloat(_ScratchBuffer[c * 9 + 4]), asfloat(_ScratchBuffer[c * 9 + 5]), asfloat(_ScratchBuffer[c * 9 + 6]) * 3.0f, asfloat(_ScratchBuffer[c * 9 + 7]));
+        }
+
+        // Quadratic (5)
+        buffer[6] = float4(asfloat(_ScratchBuffer[0 * 9 + 8]), asfloat(_ScratchBuffer[1 * 9 + 8]), asfloat(_ScratchBuffer[2 * 9 + 8]), 1.0f);
+    }
+
+    void ConvolveZonalFromScratchBuffer(float3 zh)
+    {
+        for (int l = 0; l <= 2; l++)
+        {
+            float n = sqrt((4.0f * PI) / (2 * l + 1));
+            float k = zh[l];
+            float p = n * k;
+
+            for (int m = -l; m <= l; m++)
+            {
+                int i = l * (l + 1) + m;
+
+                for (int c = 0; c < 3; c++)
+                {
+                    _ScratchBuffer[c * 9 + i] = asuint(asfloat(_ScratchBuffer[c * 9 + i]) * p);
+                }
+            }
+        }
+    }
 
 [numthreads(SAMPLE_COUNT, 1, 1)]
 void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
@@ -167,37 +212,37 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
         }
 
+#if !defined(OUTPUT_CLOUDS)
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             // ClampedCosine * SH Coefficient used in Decode
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * kClampedCosineCoefs[i % 9] * kSHBasisCoef[i % 9];
         }
-
-        float result[27];
+#endif
 
 #if OUTPUT_DIFFUSE
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            result[i] = _AmbientProbeOutputBuffer[i];
+            _ScratchBuffer[i] = asuint(_AmbientProbeOutputBuffer[i]);
         }
 
         // Diffuse convolution packed to be ready for shader consumption
-        PackSH(_DiffuseAmbientProbeOutputBuffer, result);
+        PackSHFromScratchBuffer(_DiffuseAmbientProbeOutputBuffer);
 #endif
 
-#if OUTPUT_VOLUMETRIC
+#if OUTPUT_VOLUMETRIC || OUTPUT_CLOUDS
 
         // Note: Code below could be optimize (lot of constant multiplication), but compiler may figure it out and this path is rarely executed, so prefer clean code.
         // Apply FogDimmer
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            result[i] = outputSHCoeffs[i] *_FogDimmer;
+            _ScratchBuffer[i] = asuint(outputSHCoeffs[i] * _FogDimmer);
         }
 
         // Apply CornetteShank phase function
         float3 zh;
         GetCornetteShanksPhaseFunction(zh, _FogAnisotropy);
-        ConvolveZonal(result, zh);
+        ConvolveZonalFromScratchBuffer(zh);
 
         // Premultiplies the SH with the polynomial coefficients of SH basis functions,
         // which avoids using any constants during SH evaluation.
@@ -205,10 +250,10 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            result[i] = result[i] * kSHBasisCoef[i % 9];
+            _ScratchBuffer[i] = asuint(asfloat(_ScratchBuffer[i]) * kSHBasisCoef[i % 9]);
         }
 
-        PackSH(_VolumetricAmbientProbeOutputBuffer, result);
+        PackSHFromScratchBuffer(_VolumetricAmbientProbeOutputBuffer);
 #endif
     }
 }

@@ -140,72 +140,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
-        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
-        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
-        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixInvP");
-        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
-        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
-        internal static readonly int UNITY_STEREO_CAMERA_PROJECTION = Shader.PropertyToID("unity_StereoCameraProjection");
-        internal static readonly int UNITY_STEREO_CAMERA_INV_PROJECTION = Shader.PropertyToID("unity_StereoCameraInvProjection");
-        internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
-
-        // Hold the stereo matrices in this class to avoid allocating arrays every frame
-        internal class StereoConstants
-        {
-            public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
-            public Matrix4x4[] invCameraProjMatrix = new Matrix4x4[2];
-            public Vector4[] worldSpaceCameraPos = new Vector4[2];
-        };
-
-        static readonly StereoConstants stereoConstants = new StereoConstants();
-
-        /// <summary>
-        /// Helper function to set all view and projection related matrices
-        /// Should be called before draw call and after cmd.SetRenderTarget
-        /// Internal usage only, function name and signature may be subject to change
-        /// </summary>
-        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
-        /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
-        /// <param name="projectionMatrix">Projection matrix to be set.Array size is 2.</param>
-        /// <param name="cameraProjectionMatrix">Camera projection matrix to be set.Array size is 2. Does not include platform specific transformations such as depth-reverse, depth range in post-projective space and y-flip. </param>
-        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
-        /// <returns>Void</c></returns>
-        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, Matrix4x4[] cameraProjMatrix, bool setInverseMatrices)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                stereoConstants.viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
-                stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
-                stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
-                stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
-                stereoConstants.invCameraProjMatrix[i] = Matrix4x4.Inverse(cameraProjMatrix[i]);
-                stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
-            }
-
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
-
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_PROJECTION, cameraProjMatrix);
-
-            if (setInverseMatrices)
-            {
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
-
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_INV_PROJECTION, stereoConstants.invCameraProjMatrix);
-            }
-            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
-        }
-
-#endif
-
         internal static void Blit(CommandBuffer cmd,
             RTHandle source,
             RTHandle destination,
@@ -483,10 +417,11 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
-        internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
+        internal static bool MultisampleDepthResolveSupported()
         {
-            if (useRenderPassEnabled)
+            // Temporarily disabling depth resolve a driver bug on OSX when using some AMD graphics cards. Temporarily disabling depth resolve on that platform
+            // TODO: re-enable once the issue is investigated/fixed
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
                 return false;
 
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?

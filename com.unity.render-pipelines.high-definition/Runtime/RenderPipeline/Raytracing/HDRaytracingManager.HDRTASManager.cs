@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingAccelerationStructure rtas = null;
         public RayTracingInstanceCullingConfig cullingConfig = new RayTracingInstanceCullingConfig();
         public List<RayTracingInstanceCullingTest> instanceTestArray = new List<RayTracingInstanceCullingTest>();
+        internal Plane[] rtCullingPlaneArray = new Plane[6];
 
         // Culling tests
         RayTracingInstanceCullingTest ShT_CT = new RayTracingInstanceCullingTest();
@@ -196,15 +197,88 @@ namespace UnityEngine.Rendering.HighDefinition
             PT_CT.instanceMask = (uint)RayTracingRendererFlag.PathTracing;
         }
 
+        void SetupCullingData(HDCamera hdCamera, bool pathTracingEnabled)
+        {
+            // Grab the ray tracing settings parameter
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+            switch (rtSettings.cullingMode.value)
+            {
+                case RTASCullingMode.ExtendedFrustum:
+                {
+                    // We'll be using an extension
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.EnablePlaneCulling;
+
+                    // Build the culling plane data
+                    Vector3 camerPosWS = hdCamera.camera.transform.position;
+                    Vector3 forward = hdCamera.camera.transform.forward;
+                    Vector3 right = hdCamera.camera.transform.right;
+                    Vector3 up = hdCamera.camera.transform.up;
+
+                    float far, height, width;
+                    far = hdCamera.camera.farClipPlane;
+                    height = Mathf.Tan(Mathf.Deg2Rad * hdCamera.camera.fieldOfView * 0.5f) * far;
+                    float horizontalFov = Camera.VerticalToHorizontalFieldOfView(hdCamera.camera.fieldOfView, hdCamera.camera.aspect);
+                    width = Mathf.Tan(Mathf.Deg2Rad * horizontalFov * 0.5f) * far;
+
+                    // Front plane
+                    rtCullingPlaneArray[0].normal = -forward;
+                    rtCullingPlaneArray[0].distance = -Vector3.Dot(camerPosWS + forward * far, -forward);
+
+                    // Back plane
+                    rtCullingPlaneArray[1].normal = forward;
+                    rtCullingPlaneArray[1].distance = -Vector3.Dot(camerPosWS - forward * far, forward);
+
+                    // Right plane
+                    rtCullingPlaneArray[2].normal = -right;
+                    rtCullingPlaneArray[2].distance = -Vector3.Dot(camerPosWS + right * width, -right);
+
+                    // Left plane
+                    rtCullingPlaneArray[3].normal = right;
+                    rtCullingPlaneArray[3].distance = -Vector3.Dot(camerPosWS - right * width, right);
+
+                    // Top plane
+                    rtCullingPlaneArray[4].normal = -up;
+                    rtCullingPlaneArray[4].distance = -Vector3.Dot(camerPosWS + up * height, -up);
+
+                    // Bottom plane
+                    rtCullingPlaneArray[5].normal = up;
+                    rtCullingPlaneArray[5].distance = -Vector3.Dot(camerPosWS - up * height, up);
+
+                    // Set the planes
+                    cullingConfig.planes = rtCullingPlaneArray;
+                }
+                break;
+                case RTASCullingMode.Sphere:
+                {
+                    // We use a sphere
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.EnableSphereCulling;
+                    cullingConfig.sphereRadius = rtSettings.cullingDistance.value;
+                    cullingConfig.sphereCenter = hdCamera.camera.transform.position;
+                }
+                break;
+                default:
+                {
+                    // We explicitly want no culling.
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.None;
+                }
+                break;
+            }
+
+            // We want the LODs to match the rasterization and we want to exclude reflection probes
+            cullingConfig.flags |= RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
+
+            // Dirtiness need to be kept track of for the path tracing (when enabled)
+            if (pathTracingEnabled)
+                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+        }
+
         public RayTracingInstanceCullingResults Cull(HDCamera hdCamera, in HDEffectsParameters parameters)
         {
             // The list of instanceTestArray needs to be cleared every frame as the list depends on the active effects and their parameters.
             instanceTestArray.Clear();
 
-            // Set up the culling flags
-            cullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
-            if (parameters.pathTracing)
-                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+            // Set up the culling data
+            SetupCullingData(hdCamera, parameters.pathTracing);
 
             // Set up the LOD flags
             cullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;

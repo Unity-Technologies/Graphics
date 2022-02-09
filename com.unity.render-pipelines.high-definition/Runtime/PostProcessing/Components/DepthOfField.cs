@@ -252,6 +252,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Adjust near blur CoC based on depth distance when manual, non-physical mode is used.
+        /// </summary>
+        public bool limitManualRangeNearBlur
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_LimitManualRangeNearBlur.value;
+
+                return GetPostProcessingQualitySettings().LimitManualRangeNearBlur[quality.levelAndOverride.level];
+            }
+            set => m_LimitManualRangeNearBlur.value = value;
+        }
+
+        /// <summary>
         /// Specifies the resolution at which HDRP processes the depth of field effect.
         /// </summary>
         /// <seealso cref="DepthOfFieldResolution"/>
@@ -312,6 +327,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("When enabled, HDRP uses a more accurate but slower physically based algorithm to compute the depth of field effect.")]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
+
+        [AdditionalProperty]
+        [Tooltip("Adjust near blur CoC based on depth distance when manual, non-physical mode is used.")]
+        [SerializeField]
+        BoolParameter m_LimitManualRangeNearBlur = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

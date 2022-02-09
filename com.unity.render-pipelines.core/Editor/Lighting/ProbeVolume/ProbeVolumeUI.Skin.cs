@@ -12,7 +12,8 @@ namespace UnityEditor.Experimental.Rendering
             internal static readonly GUIContent s_HighestSubdivLevel = new GUIContent("Highest Subdivision Level", "Overrides the highest subdivision level used by the system. This determines how finely a probe volume is subdivided, lower values means larger minimum distance between probes.");
             internal static readonly GUIContent s_LowestSubdivLevel = new GUIContent("Lowest Subdivision Level", "Overrides the lowest subdivision level used by the system. This determines how coarsely a probe volume is allowed to be subdivided, higher values means smaller maximum distance between probes.");
             internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Layer Mask", "Control which layers will be used to select the meshes for the probe placement algorithm.");
-            internal static readonly GUIContent s_GeometryDistanceOffset = new GUIContent("Probe Placement Distance Offset", "Affects the minimum distance at which the subdivision system will attempts to place probes near the geometry. This value can be useful in situations where the generated probes don't fully cover an object.");
+            internal static readonly GUIContent s_MinRendererVolumeSize = new GUIContent("Min Volume Size", "Specifies the minimum bounding box volume of renderers to consider placing probes around.");
+            internal static readonly GUIContent s_OverrideRendererFilters = new GUIContent("Override Renderer Filters", "Overrides the filters used to select renderers for the probe placement.");
             internal static readonly string s_ProbeVolumeChangedMessage = "The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.";
 
             internal static readonly Color k_GizmoColorBase = new Color32(137, 222, 144, 255);

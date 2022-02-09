@@ -358,7 +358,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   settingType: 2
   gBuffer: 0
-  fullScreenDebugMode: 26
+  fullScreenDebugMode: 29
   lightlayers: 1
   lightingFullScreenDebugMode: 0
   lightingFullScreenDebugRTASView: 0
