@@ -103,7 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Rect dynamicAtlasViewport;
         public Rect cachedAtlasViewport;
         public bool zClip;
-        public bool isOrthographic;
         public Vector4[] frustumPlanes;
 
         // Store the final shadow indice in the shadow data array

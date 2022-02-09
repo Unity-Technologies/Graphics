@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowRequests = m_ShadowRequests;
                 passData.clearMaterial = m_ClearMaterial;
                 passData.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
-                passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0, false);
+                passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.isRenderingOnACache = m_IsACacheForShadows;
 
@@ -334,7 +334,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             data.shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
                             data.shadowDrawSettings.splitData = shadowRequest.splitData;
-                            data.shadowDrawSettings.isOrthographic = shadowRequest.isOrthographic;
 
                             // Setup matrices for shadow rendering:
                             Matrix4x4 view = shadowRequest.view;
