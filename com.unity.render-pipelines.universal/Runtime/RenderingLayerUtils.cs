@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
         public static Event GetEvent(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures)
         {
             var e = Event.None;
-            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
 
             foreach (var rendererFeature in rendererFeatures)
             {

@@ -638,7 +638,7 @@ namespace UnityEngine.Rendering.Universal
             if ((this.renderingModeActual == RenderingMode.Deferred && !this.useRenderPassEnabled) || requiresDepthPrepass || requiresDepthCopyPass)
             {
                 var depthDescriptor = cameraTargetDescriptor;
-                if (requiresDepthPrepass && this.actualRenderingMode != RenderingMode.Deferred)
+                if (requiresDepthPrepass && this.renderingModeActual != RenderingMode.Deferred)
                 {
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
@@ -665,7 +665,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var renderingLayersTexture = ref m_DecalLayersTexture;
                 string renderingLayersTextureName = "_CameraRenderingLayersTexture";
 
-                if (this.actualRenderingMode == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
+                if (this.renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                 {
                     renderingLayersTexture = ref m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferRenderingLayers];
                     renderingLayersTextureName = renderingLayersTexture.name;
@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
-                if (this.actualRenderingMode == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
+                if (this.renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                     renderingLayersDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayers); // the one used by the gbuffer.
                 else
                     renderingLayersDescriptor.graphicsFormat = GraphicsFormat.R16_UNorm;
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
-                if (this.actualRenderingMode == RenderingMode.Deferred) // TODO: Clean this up
+                if (this.renderingModeActual == RenderingMode.Deferred) // TODO: Clean this up
                     cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -722,7 +722,7 @@ namespace UnityEngine.Rendering.Universal
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
-                if (this.actualRenderingMode == RenderingMode.Deferred) // TODO: Clean this up
+                if (this.renderingModeActual == RenderingMode.Deferred) // TODO: Clean this up
                     cmd.SetGlobalTexture("_CameraNormalsTexture", normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

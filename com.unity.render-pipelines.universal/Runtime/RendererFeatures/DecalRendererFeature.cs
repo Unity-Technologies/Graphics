@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Technique == DecalTechnique.DBuffer)
             {
-                m_DBufferRenderPass.Setup(renderingData.actualRenderingMode);
+                m_DBufferRenderPass.Setup(renderingData.cameraData);
 
                 var universalRenderer = renderer as UniversalRenderer;
                 if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
