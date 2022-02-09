@@ -7,7 +7,9 @@
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #ifdef HAS_LIGHTLOOP
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #endif
 
@@ -230,7 +232,11 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
                     // Add sky contribution separately, if not doing sky sampling
                     if (!IsSkySamplingEnabled() && !hit)
-                        payload.value += value * GetSkyValue(ray.Direction);
+                    {
+                        float3 skyValue = GetSkyValue(ray.Direction);
+                        ApplyFogAttenuation(ray.Origin, ray.Direction, skyValue);
+                        payload.value += value * skyValue;
+                    }
                 }
 
                 // If we have a hit, we want to prepare our payload for a continuation ray
@@ -290,7 +296,11 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         {
             payload.value *= builtinData.opacity;
             if (!hit)
-                payload.value += (1.0 - builtinData.opacity) * GetSkyValue(payload, ray.Direction);
+            {
+                float3 skyValue = GetSkyValue(payload, ray.Direction);
+                ApplyFogAttenuation(ray.Origin, ray.Direction, skyValue);
+                payload.value += (1.0 - builtinData.opacity) * skyValue;
+            }
         }
 
         if (hit)
@@ -318,6 +328,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
         return;
 
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool sampleVolume = false;
 
     float4 inputSample = 0.0;
     float volSurfPdf = 1.0;
@@ -325,7 +336,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 #ifdef HAS_LIGHTLOOP
 
     float3 lightPosition;
-    bool sampleLocalLights, sampleVolume = false;
+    bool sampleLocalLights;
 
     // Skip this code if getting out of a SSS random walk
     if (payload.segmentID != SEGMENT_ID_RANDOM_WALK)
