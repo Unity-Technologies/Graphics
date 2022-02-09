@@ -310,16 +310,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
 
             EditorGUI.indentLevel--;
-
-            EditorGUILayout.PropertyField(serialized.supportsCapsuleDirectShadowsProp, Styles.supportsCapsuleDirectShadowText);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.stencilCapsuleDirectShadowsProp, Styles.stencilCapsuleDirectShadowText);
-            EditorGUI.indentLevel--;
-
-            EditorGUILayout.PropertyField(serialized.supportsCapsuleAmbientOcclusionProp, Styles.supportsCapsuleAmbientOcclusionText);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.capsuleAmbientOcclusionRangeProp, Styles.capsuleAmbientOcclusionRangeText);
-            EditorGUI.indentLevel--;
         }
 
         static void DrawShadowsAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

@@ -810,7 +810,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xrRendering && rendererSupportsMSAA)
                 msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
 
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha || CapsuleOccluderManager.instance.occluders.Count > 0;
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
             // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
             bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
@@ -1140,11 +1140,6 @@ namespace UnityEngine.Rendering.Universal
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
-
-            shadowData.supportsCapsuleDirectShadows = settings.supportsCapsuleDirectShadows;
-            shadowData.stencilCapsuleDirectShadows = settings.stencilCapsuleDirectShadows;
-            shadowData.supportsCapsuleAmbientOcclusion = settings.supportsCapsuleAmbientOcclusion;
-            shadowData.capsuleAmbientOcclusionRange = settings.capsuleAmbientOcclusionRange;
 
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;

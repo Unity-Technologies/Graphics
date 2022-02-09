@@ -24,26 +24,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         _ClearStencilRef ("ClearStencilRef", Int) = 0
         _ClearStencilReadMask ("ClearStencilReadMask", Int) = 0
         _ClearStencilWriteMask ("ClearStencilWriteMask", Int) = 0
-
-        _CapsuleAmbientOcclusionStencilRef ("CapsuleAmbientOcclusionStencilRef", Int) = 0
-        _CapsuleAmbientOcclusionStencilReadMask ("CapsuleAmbientOcclusionStencilReadMask", Int) = 0
-        _CapsuleAmbientOcclusionStencilWriteMask ("CapsuleAmbientOcclusionStencilWriteMask", Int) = 0
-
-        _PunctualCapsuleStencilRef ("PunctualCapsuleStencilRef", Int) = 0
-        _PunctualCapsuleStencilReadMask ("PunctualCapsuleStencilReadMask", Int) = 0
-        _PunctualCapsuleStencilWriteMask ("PunctualCapsuleStencilWriteMask", Int) = 0
-
-        _PunctualCapsuleShadowStencilRef ("PunctualCapsuleShadowStencilRef", Int) = 0
-        _PunctualCapsuleShadowStencilReadMask ("PunctualCapsuleShadowStencilReadMask", Int) = 0
-        _PunctualCapsuleShadowStencilWriteMask ("PunctualCapsuleShadowStencilWriteMask", Int) = 0
-
-        _DirCapsuleStencilRef ("DirCapsuleStencilRef", Int) = 0
-        _DirCapsuleStencilReadMask ("DirCapsuleStencilReadMask", Int) = 0
-        _DirCapsuleStencilWriteMask ("DirCapsuleStencilWriteMask", Int) = 0
-
-        _DirCapsuleShadowStencilRef ("DirCapsuleShadowStencilRef", Int) = 0
-        _DirCapsuleShadowStencilReadMask ("DirCapsuleShadowStencilReadMask", Int) = 0
-        _DirCapsuleShadowStencilWriteMask ("DirCapsuleShadowStencilWriteMask", Int) = 0
     }
 
     HLSLINCLUDE
@@ -51,7 +31,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 
     struct Attributes
     {
@@ -99,7 +78,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if (defined(_DIRECTIONAL) && !defined(_CAPSULE_SHADOW)) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_SSAO_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_SSAO_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
             // Full screen render using a large triangle.
             output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
         #elif defined(_SSAO_ONLY) && !defined(_SCREEN_SPACE_OCCLUSION)
@@ -166,10 +145,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     int _ShadowLightIndex;
     uint _LightLayerMask;
     int _CookieLightIndex;
-    float3 _CapsuleCenterWS;
-    float3 _CapsuleAxisDirWS;
-    float4 _CapsuleParams; // (radius, offset, cosTheta, range)
-    
+
     half4 FragWhite(Varyings input) : SV_Target
     {
         return half4(1.0, 1.0, 1.0, 1.0);
@@ -348,43 +324,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
             color = diffuseColor * surfaceData.albedo + specularColor;
-        #elif defined(_CAPSULE_AMBIENT_OCCLUSION)
-            float capsuleRadius = _CapsuleParams.x;
-            float capsuleOffset = _CapsuleParams.y;
-            float shadowRange = _CapsuleParams.w;
-            float occlusion = EvaluateCapsuleAmbientOcclusion(
-                0,
-                _CapsuleCenterWS - inputData.positionWS,
-                _CapsuleAxisDirWS,
-                capsuleOffset,
-                capsuleRadius,
-                shadowRange,
-                inputData.normalWS);
-            alpha = 1.0 - occlusion;
-        #elif defined(_CAPSULE_SHADOW)
-            #if defined(_DIRECTIONAL)
-            float3 surfaceToLightVec = unityLight.direction;
-            float lightIsPunctual = false;
-            #else
-            float3 surfaceToLightVec = _LightPosWS - inputData.positionWS;
-            float lightIsPunctual = true;
-            #endif
-            float capsuleRadius = _CapsuleParams.x;
-            float capsuleOffset = _CapsuleParams.y;
-            float lightCosTheta = _CapsuleParams.z;
-            float shadowRange = _CapsuleParams.w;
-            float occlusion = EvaluateCapsuleOcclusion(
-                CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW,
-                surfaceToLightVec,
-                lightIsPunctual,
-                lightCosTheta,
-                _CapsuleCenterWS - inputData.positionWS,
-                _CapsuleAxisDirWS,
-                capsuleOffset,
-                capsuleRadius,
-                shadowRange,
-                inputData.normalWS);
-            alpha = 1.0 - occlusion;
         #endif
 
         return half4(color, alpha);
@@ -467,7 +406,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZWrite Off
             ZClip false
             Cull Front
-            Blend DstAlpha One, One Zero
+            Blend One One, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -514,7 +453,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZWrite Off
             ZClip false
             Cull Front
-            Blend DstAlpha One, One Zero
+            Blend One One, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -560,7 +499,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend DstAlpha SrcAlpha, One Zero
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -609,7 +548,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend DstAlpha SrcAlpha, One Zero
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -733,182 +672,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma vertex Vertex
             #pragma fragment FragSSAOOnly
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 8 - Capsule Ambient Occlusion
-        Pass
-        {
-            Name "Capsule Ambient Occlusion"
-
-            ZTest GEqual
-            ZWrite Off
-            Cull Front
-            Blend Zero SrcAlpha, Zero One
-            BlendOp Add, Add
-
-            Stencil {
-                Ref [_CapsuleAmbientOcclusionStencilRef]
-                ReadMask [_CapsuleAmbientOcclusionStencilReadMask]
-                WriteMask [_CapsuleAmbientOcclusionStencilWriteMask]
-                Comp NotEqual
-                Pass Keep
-                Fail Keep
-                ZFail Keep
-            }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma multi_compile _CAPSULE_AMBIENT_OCCLUSION
-            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-
-            #pragma vertex Vertex
-            #pragma fragment DeferredShading
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 9 - Punctual Capsule Stencil Volume
-        Pass
-        {
-            Name "Punctual Capsule Stencil Volume"
-
-            ZTest LEQual
-            ZWrite Off
-            ZClip false
-            Cull Off
-            ColorMask 0
-
-            Stencil {
-                Ref [_PunctualCapsuleStencilRef]
-                ReadMask [_PunctualCapsuleStencilReadMask]
-                WriteMask [_PunctualCapsuleStencilWriteMask]
-                CompFront Equal
-                PassFront Keep
-                ZFailFront Invert
-                CompBack Equal
-                PassBack Keep
-                ZFailBack Invert
-            }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma vertex Vertex
-            #pragma fragment FragWhite
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 10 - Punctual Capsule Shadow
-        // This pass multiplies capsule shadow occlusion into the lighting alpha channel.
-        Pass
-        {
-            Name "Punctual Capsule Shadow"
-
-            ZTest GEqual
-            ZWrite Off
-            Cull Front
-            Blend Zero One, DstAlpha Zero
-            BlendOp Add, Add
-
-            Stencil {
-                Ref [_PunctualCapsuleShadowStencilRef]
-                ReadMask [_PunctualCapsuleShadowStencilReadMask]
-                WriteMask [_PunctualCapsuleShadowStencilWriteMask]
-                Comp Equal
-                Pass Zero
-                Fail Keep
-                ZFail Keep
-            }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma multi_compile _CAPSULE_SHADOW
-            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-
-            #pragma vertex Vertex
-            #pragma fragment DeferredShading
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 11 - Directional Capsule Stencil Volume
-        Pass
-        {
-            Name "Directional Capsule Stencil Volume"
-
-            ZTest LEQual
-            ZWrite Off
-            ZClip false
-            Cull Off
-            ColorMask 0
-
-            Stencil {
-                Ref [_DirCapsuleStencilRef]
-                ReadMask [_DirCapsuleStencilReadMask]
-                WriteMask [_DirCapsuleStencilWriteMask]
-                CompFront NotEqual
-                PassFront Keep
-                ZFailFront Invert
-                CompBack NotEqual
-                PassBack Keep
-                ZFailBack Invert
-            }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma vertex Vertex
-            #pragma fragment FragWhite
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 12 - Directional Capsule Shadow
-        // This pass multiplies capsule shadow occlusion into the lighting alpha channel.
-        Pass
-        {
-            Name "Directional Capsule Shadow"
-
-            ZTest GEqual
-            ZWrite Off
-            Cull Front
-            Blend Zero One, DstAlpha Zero
-            BlendOp Add, Add
-
-            Stencil {
-                Ref [_DirCapsuleShadowStencilRef]
-                ReadMask [_DirCapsuleShadowStencilReadMask]
-                WriteMask [_DirCapsuleShadowStencilWriteMask]
-                Comp Equal
-                Pass Zero
-                Fail Keep
-                ZFail Keep
-            }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma multi_compile _CAPSULE_SHADOW
-            #pragma multi_compile _DIRECTIONAL
-            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-
-            #pragma vertex Vertex
-            #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL

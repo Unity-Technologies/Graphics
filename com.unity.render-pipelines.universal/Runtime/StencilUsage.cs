@@ -13,9 +13,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         MaterialMask = 0b_0110_0000,
         MaterialUnlit = 0b_0000_0000,
         MaterialLit = 0b_0010_0000,
-        MaterialSimpleLit = 0b_0100_0000,
+        MaterialSimpleLit = 0b_0100_0000
 
-        // Bit [7] is used for stenciling shadow shapes.
-        StencilShadow = 0b_1000_0000
+        // Bit [7] is reserved.
     }
 }

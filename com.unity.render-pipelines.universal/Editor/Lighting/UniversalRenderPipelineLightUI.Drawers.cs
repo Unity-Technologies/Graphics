@@ -288,9 +288,11 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
+            if (serializedLight.settings.light.shadows == LightShadows.None)
+                return;
+
             var lightType = serializedLight.settings.light.type;
 
-            if (serializedLight.settings.light.shadows != LightShadows.None)
             using (new EditorGUI.IndentLevelScope())
             {
                 if (serializedLight.settings.isBakedOrMixed)
@@ -360,20 +362,6 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
-            }
-
-            switch (lightType)
-            {
-                case LightType.Spot:
-                case LightType.Directional:
-                case LightType.Point:
-                    EditorGUILayout.PropertyField(serializedLight.enableCapsuleShadows, Styles.EnableCapsuleShadows);
-                    EditorGUILayout.Slider(serializedLight.capsuleShadowAngle, 0.0f, 90.0f, Styles.CapsuleShadowAngle);
-                    EditorGUILayout.PropertyField(serializedLight.capsuleShadowRange, Styles.CapsuleShadowRange);
-                    break;
-
-                default:
-                    break;
             }
 
             if (!UnityEditor.Lightmapping.bakedGI && !serializedLight.settings.lightmapping.hasMultipleDifferentValues && serializedLight.settings.isBakedOrMixed)

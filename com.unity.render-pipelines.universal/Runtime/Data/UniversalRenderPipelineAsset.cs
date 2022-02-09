@@ -375,11 +375,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
-        [SerializeField] bool m_SupportsCapsuleDirectShadows = true;
-        [SerializeField] bool m_StencilCapsuleDirectShadows = true;
-        [SerializeField] bool m_SupportsCapsuleAmbientOcclusion = true;
-        [SerializeField] float m_CapsuleAmbientOcclusionRange = 4.0f;
-
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
         [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
@@ -988,27 +983,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ShadowDistance; }
             set { m_ShadowDistance = Mathf.Max(0.0f, value); }
-        }
-
-        public bool supportsCapsuleDirectShadows
-        {
-            get { return m_SupportsCapsuleDirectShadows; }
-            set { m_SupportsCapsuleDirectShadows = value; }
-        }
-        public bool stencilCapsuleDirectShadows
-        {
-            get { return m_StencilCapsuleDirectShadows; }
-            set { m_StencilCapsuleDirectShadows = value; }
-        }
-        public bool supportsCapsuleAmbientOcclusion
-        {
-            get { return m_SupportsCapsuleAmbientOcclusion; }
-            set { m_SupportsCapsuleAmbientOcclusion = value; }
-        }
-        public float capsuleAmbientOcclusionRange
-        {
-            get { return m_CapsuleAmbientOcclusionRange; }
-            set { m_CapsuleAmbientOcclusionRange = value; }
         }
 
         /// <summary>
