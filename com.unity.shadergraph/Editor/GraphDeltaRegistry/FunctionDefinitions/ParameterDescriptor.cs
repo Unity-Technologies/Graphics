@@ -20,11 +20,5 @@ namespace com.unity.shadergraph.defs
             TypeDescriptor = typeDescriptor;
             Usage = usage;
         }
-
-        public override string ToString()
-        {
-            // TODO Make this not a stub.
-            return base.ToString();
-        }
     }
 }
