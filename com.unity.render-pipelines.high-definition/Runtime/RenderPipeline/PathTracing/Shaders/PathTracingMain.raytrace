@@ -22,6 +22,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 // Input(s)
 TEXTURE2D_X(_SkyCameraTexture);
@@ -33,6 +34,11 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+
+// AOVs
+RW_TEXTURE2D_X(float4, _AlbedoAOV);
+RW_TEXTURE2D_X(float4, _NormalAOV);
+RW_TEXTURE2D_X(float4, _MotionVectorAOV);
 
 float4 GetCameraMissValue(uint2 xy)
 {
@@ -89,6 +95,9 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         // Reinject the environment value
         pathIntersection.value += envValue;
     }
+
+    // Need to be cleared since these values are hijacked for AOVs
+    ClearAOVData(pathIntersection);
 }
 
 [shader("miss")]
@@ -147,12 +156,8 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-[shader("raygeneration")]
-void RayGen()
+PathIntersection GenerateRay(uint2 pixelCoord)
 {
-    // Get the current pixel coordinates
-    uint2 pixelCoord = DispatchRaysIndex().xy;
-
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
     uint2 tileIndex = uint2(_PathTracingTilingParameters.zw);
@@ -201,6 +206,7 @@ void RayGen()
     pathIntersection.remainingDepth = _RaytracingMaxRecursion;
     pathIntersection.pixelCoord = tiledPixelCoord;
     pathIntersection.maxRoughness = 0.0;
+    pathIntersection.motionVector = jitteredPixelCoord.xy;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
@@ -209,7 +215,32 @@ void RayGen()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
+    return pathIntersection;
+}
+
+[shader("raygeneration")]
+void RayGen()
+{
+    // Get the current pixel coordinates
+    uint2 pixelCoord = DispatchRaysIndex().xy;
+
+    PathIntersection pathIntersection = GenerateRay(pixelCoord);
+
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+}
+
+[shader("raygeneration")]
+void RayGenAOV()
+{
+    // Get the current pixel coordinates
+    uint2 pixelCoord = DispatchRaysIndex().xy;
+
+     PathIntersection pathIntersection = GenerateRay(pixelCoord);
+
+    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+    _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
+    _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
+    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.motionVector.x, pathIntersection.motionVector.y, 0.0, 1.0);
 }
 
 // This should never be called, return magenta just in case

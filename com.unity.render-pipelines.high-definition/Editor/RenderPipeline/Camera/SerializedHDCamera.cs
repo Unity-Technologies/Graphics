@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing { get; }
 
         // HDRP specific properties
+        public SerializedProperty gateFit;
         public SerializedProperty focusDistance;
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
@@ -83,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
 
             // HDRP specific properties
+            gateFit = serializedAdditionalDataObject.FindProperty("physicalParameters.m_GateFit");
             focusDistance = serializedAdditionalDataObject.FindProperty("physicalParameters.m_FocusDistance");
             iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
             shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");

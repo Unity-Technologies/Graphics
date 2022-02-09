@@ -367,6 +367,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
             public ComputeShader accumulationCS;
 
+            [Reload("Runtime/RenderPipeline/Accumulation/Shaders/BlitAndExpose.compute")]
+            public ComputeShader blitAndExposeCS;
+
             // Compositor
             [Reload("Runtime/Compositor/Shaders/AlphaInjection.shader")]
             public Shader alphaInjectionPS;
