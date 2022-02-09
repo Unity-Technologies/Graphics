@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             var parameters = new LinkedList<ParameterDescriptor>();
             parameters.AddFirst(new ParameterDescriptor("In", TYPE.Vector, Usage.In));
             parameters.AddFirst(new ParameterDescriptor("Out", TYPE.Vector, Usage.Out));
-            FunctionDescriptor fd = new(1, "Test", parameters, "Out = In;");
+            FunctionDescriptor fd = new(1, "Test", "Out = In;", parameters);
             RegistryKey registryKey = registry.Register(fd);
 
             // add a single node to the graph

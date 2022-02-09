@@ -19,13 +19,14 @@ namespace com.unity.shadergraph.defs {
         public FunctionDescriptor(
             int version,
             string name,
-            IEnumerable<ParameterDescriptor> parameters,
-            string body)
+            string body,
+            IEnumerable<ParameterDescriptor> parameters)
         {
             Version = version;
             Name = name;
             Parameters = parameters.ToList().AsReadOnly();
             Body = body;
         }
+
     }
 }
