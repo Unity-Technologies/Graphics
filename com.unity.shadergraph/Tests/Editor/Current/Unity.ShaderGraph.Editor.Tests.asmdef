@@ -6,9 +6,8 @@
         "GUID:0acc523941302664db1f4e527237feb3"
     ],
     "includePlatforms": [
-        "Editor"
     ],
-    "excludePlatforms": [],
+    "excludePlatforms": ["Editor"],
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
@@ -16,7 +15,6 @@
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
     ],
     "versionDefines": [
         {
