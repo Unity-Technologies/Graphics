@@ -23,33 +23,4 @@ namespace com.unity.shadergraph.defs {
             Body = body;
         }
     }
-
-    // EXAMPLE ParameterDescriptor
-    //ParameterDescriptor myParameter = {
-    //    Name = "Exp",
-    //    TypeDescriptor = Vec2,  // Can use a predefined Type here or specify one
-    //};
-
-    // EXAMPLE Function Descriptor
-    //FunctionDescriptor pow = {
-    //    Name = "pow",
-    //    Parameters = new List<ParameterDescriptor> {
-    //        {
-    //            Name = "In",
-    //            Usage = Use.In,
-    //            TypeDescriptor = TYPE.Vec4
-    //        },
-    //        {
-    //            Name = "Exp",
-    //            Usage = Use.In,
-    //            TypeDescriptor = TYPE.Vec4
-    //        },
-    //        {
-    //            Name = "Out",
-    //            Usage = Use.Out,
-    //            TypeDescriptor = TYPE.Vec4
-    //        }
-    //    },
-    //    Body = "Out = pow(In, Exp);",
-    //};
 }
