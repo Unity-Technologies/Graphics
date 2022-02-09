@@ -308,6 +308,8 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var sceneData in perSceneDataList)
             {
+                if (!ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene)) continue;
+
                 var asset = sceneData.asset;
                 string assetPath = asset.GetSerializedFullPath();
                 foreach (var cell in asset.cells)
@@ -399,7 +401,10 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     foreach (var sceneData in perSceneDataList)
-                        prv.AddPendingAssetRemoval(sceneData.asset);
+                    {
+                        if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene))
+                            prv.AddPendingAssetRemoval(sceneData.asset);
+                    }
 
                     // Make sure unloading happens.
                     prv.PerformPendingOperations();
@@ -427,7 +432,8 @@ namespace UnityEngine.Experimental.Rendering
 
                     foreach (var sceneData in perSceneDataList)
                     {
-                        sceneData.QueueAssetLoading();
+                        if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene))
+                            sceneData.QueueAssetLoading();
                     }
                 }
 
@@ -579,9 +585,12 @@ namespace UnityEngine.Experimental.Rendering
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                data.asset = ProbeVolumeAsset.CreateAsset(data);
-                data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
-                scene2Data[data.gameObject.scene] = data;
+                if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene))
+                {
+                    data.asset = ProbeVolumeAsset.CreateAsset(data);
+                    data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
+                    scene2Data[data.gameObject.scene] = data;
+                }
             }
 
             // Allocate cells to the respective assets
@@ -625,7 +634,8 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
+                bool hasAsset = ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene);
+                if (hasAsset && Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
                 {
                     EditorUtility.SetDirty(data);
                     EditorUtility.SetDirty(data.asset);
