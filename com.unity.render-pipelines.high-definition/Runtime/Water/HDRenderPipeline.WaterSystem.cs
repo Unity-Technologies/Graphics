@@ -277,9 +277,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScatteringColorTips = new Vector4(remappedScattering.r, remappedScattering.g, remappedScattering.b, 0 /*Unsused*/);
             cb._DeltaTime = currentWater.simulation.deltaTime;
 
-            cb._MaxRefractionDistance = Mathf.Min(currentWater.maxAbsorptionDistance, currentWater.maxRefractionDistance);
+            cb._MaxRefractionDistance = Mathf.Min(currentWater.absorptionDistance, currentWater.maxRefractionDistance);
 
-            cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.maxAbsorptionDistance;
+            cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.absorptionDistance;
             cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
 
             cb._HeightBasedScattering = currentWater.heightScattering;
@@ -599,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsOffset.Set(causticsOffset * causticOrientation.x, causticsOffset * causticOrientation.y);
 
             // Bind the decal layer data
-            parameters.waterRenderingCB._WaterDecalLayer = ((uint)currentWater.decalLayerMask);
+            parameters.waterRenderingCB._WaterDecalLayer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? ((uint)currentWater.decalLayerMask) : ShaderVariablesGlobal.DefaultDecalLayers;
 
             // Waterline & underwater
             parameters.simulationCS = m_WaterSimulationCS;
@@ -704,13 +704,13 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.bodyScatteringHeight = waterSurface.directLightBodyScattering;
             profile.tipScatteringHeight = waterSurface.directLightTipScattering;
             profile.waterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
-            profile.maxRefractionDistance = Mathf.Min(waterSurface.maxAbsorptionDistance, waterSurface.maxRefractionDistance);
+            profile.maxRefractionDistance = Mathf.Min(waterSurface.absorptionDistance, waterSurface.maxRefractionDistance);
             profile.lightLayers = (uint)waterSurface.lightLayerMask;
             profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ? 1 : 0;
             profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.g, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.b, 0.99f));
-            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;
+            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
             profile.scatteringColor = new Vector3(waterSurface.scatteringColor.r, waterSurface.scatteringColor.g, waterSurface.scatteringColor.b);
             m_WaterSurfaceProfileArray[waterSurfaceIndex] = profile;
         }

@@ -120,10 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.underWaterKernel = m_UnderWaterKernel;
 
                 // Fill the under water CB
-                passData.underWaterCB._MaxViewDistanceMultiplier = waterSurface.viewDistanceMultiplier;
+                passData.underWaterCB._MaxViewDistanceMultiplier = waterSurface.absorbtionDistanceMultiplier;
                 passData.underWaterCB._WaterScatteringColor = waterSurface.scatteringColor;
                 passData.underWaterCB._WaterRefractionColor = waterSurface.refractionColor;
-                passData.underWaterCB._OutScatteringCoeff = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;
+                passData.underWaterCB._OutScatteringCoeff = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
                 passData.underWaterCB._WaterTransitionSize = waterSurface.transitionSize;
 
                 // All the required textures

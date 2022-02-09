@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 1.0f;
-            waterSurface.maxAbsorptionDistance = 1.0f;
+            waterSurface.absorptionDistance = 1.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.3f, 0.25f);
             waterSurface.windSpeed = 30.0f;
             waterSurface.causticsIntensity = 0.1f;
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering
             // Scattering & transparency data
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 0.5f;
-            waterSurface.maxAbsorptionDistance = 10.0f;
+            waterSurface.absorptionDistance = 10.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.40f, 0.75f);
 
             // No choppiness for the water

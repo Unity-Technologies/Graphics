@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the maximum distance in meters that the camera can perceive under the water surface.
         /// </summary>
         [Tooltip("Controls the maximum distance in meters that the camera can perceive under the water surface.")]
-        public float maxAbsorptionDistance = 5.0f;
+        public float absorptionDistance = 5.0f;
         #endregion
 
         #region Water Scattering
@@ -413,10 +413,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float transitionSize = 0.1f;
 
         /// <summary>
-        /// Sets the relative view distance under water with respect to the above water one.
+        /// Sets the multiplier for the Absorption Distance when the camera is under water. A value of 2.0 means you will see twice as far underwater.
         /// </summary>
-        [Tooltip("Sets the relative view distance under water with respect to the above water one.")]
-        public float viewDistanceMultiplier = 1.0f;
+        [Tooltip("Sets the multiplier for the  Absorption Distance when the camera is under water. A value of 2.0 means you will see twice as far underwater.")]
+        public float absorbtionDistanceMultiplier = 1.0f;
         #endregion
 
         // Internal simulation data

@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Refraction parameters
         SerializedProperty m_MaxRefractionDistance;
-        SerializedProperty m_MaxAbsorptionDistance;
+        SerializedProperty m_AbsorptionDistance;
         SerializedProperty m_RefractionColor;
 
         // Scattering parameters
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_VolumeDepth;
         SerializedProperty m_VolumePriority;
         SerializedProperty m_TransitionSize;
-        SerializedProperty m_ViewDistanceMultiplier;
+        SerializedProperty m_AbsorbtionDistanceMultiplier;
 
         void OnEnable()
         {
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WaterSmoothness = o.Find(x => x.waterSmoothness);
 
             // Refraction parameters
-            m_MaxAbsorptionDistance = o.Find(x => x.maxAbsorptionDistance);
+            m_AbsorptionDistance = o.Find(x => x.absorptionDistance);
             m_MaxRefractionDistance = o.Find(x => x.maxRefractionDistance);
             m_RefractionColor = o.Find(x => x.refractionColor);
 
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_VolumeDepth = o.Find(x => x.volumeDepth);
             m_VolumePriority = o.Find(x => x.volumePrority);
             m_TransitionSize = o.Find(x => x.transitionSize);
-            m_ViewDistanceMultiplier = o.Find(x => x.viewDistanceMultiplier);
+            m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
         static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
         static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
-        static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
+        static public readonly GUIContent k_AbsorptionDistance = EditorGUIUtility.TrTextContent("Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
 
         static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
         static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
@@ -271,7 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(m_RefractionColor);
                 m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
-                m_MaxAbsorptionDistance.floatValue = EditorGUILayout.Slider(k_MaxAbsorptionDistance, m_MaxAbsorptionDistance.floatValue, 0.0f, 100.0f);
+                m_AbsorptionDistance.floatValue = EditorGUILayout.Slider(k_AbsorptionDistance, m_AbsorptionDistance.floatValue, 0.0f, 100.0f);
             }
 
             EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
@@ -430,8 +430,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
 
                         // View distance
-                        EditorGUILayout.PropertyField(m_ViewDistanceMultiplier);
-                        m_ViewDistanceMultiplier.floatValue = Mathf.Max(m_ViewDistanceMultiplier.floatValue, 0.0f);
+                        EditorGUILayout.PropertyField(m_AbsorbtionDistanceMultiplier);
+                        m_AbsorbtionDistanceMultiplier.floatValue = Mathf.Max(m_AbsorbtionDistanceMultiplier.floatValue, 0.0f);
                     }
                 }
             }
