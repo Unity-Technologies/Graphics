@@ -46,6 +46,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
         }
     }
 
+    // This SubShader is used when trying to render a scene with URP materials while still using the built-in renderer. This happens when the URP Asset is not set in the project settings for example.
     SubShader
     {
         Pass
