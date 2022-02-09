@@ -672,6 +672,16 @@ namespace UnityEngine.Rendering.Universal
         public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
+        /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="cmd">Use this command buffer to record commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        public virtual void RecordRenderGraph(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        {
+        }
+
+        /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
         /// compute and upload light CBUFFER for example.
         /// </summary>

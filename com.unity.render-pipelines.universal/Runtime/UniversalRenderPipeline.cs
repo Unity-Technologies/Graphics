@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph(context, cmd, camera);
+                    RecordAndExecuteRenderGraph(context, cmd, ref renderingData);
 
                     m_RenderGraph.EndFrame();
                 }
