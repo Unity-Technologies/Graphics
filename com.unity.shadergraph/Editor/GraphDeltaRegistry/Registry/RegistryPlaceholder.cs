@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 int resolvedLength = 4;
                 int resolvedHeight = 1; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
                 var resolvedPrimitive = Primitive.Float;
-                var resolvedPrecision = Precision.Full;
+                var resolvedPrecision = Precision.Single;
 
                 // UserData ports only exist if a user inlines a value or makes a connection.
                 foreach (var port in userData.GetPorts())
@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            public enum Precision { Fixed, Half, Full, Any }
+            public enum Precision { Fixed, Half, Single, Any }
             public enum Primitive { Bool, Int, Float, Any }
             public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
             public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
@@ -196,7 +196,7 @@ namespace UnityEditor.ShaderGraph.Registry
             {
                 { Precision.Fixed, 1 },
                 { Precision.Half, 2 },
-                { Precision.Full, 3 },
+                { Precision.Single, 3 },
                 { Precision.Any, -1}
             };
             public static readonly Dictionary<Primitive, int> PrimitiveToPriority = new()
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph.Registry
             public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {
                 // default initialize to a float4.
-                typeWriter.SetField(kPrecision, Precision.Full);
+                typeWriter.SetField(kPrecision, Precision.Single);
                 typeWriter.SetField(kPrimitive, Primitive.Float);
                 typeWriter.SetField(kLength, Length.Four);
                 typeWriter.SetField(kHeight, Height.One);
