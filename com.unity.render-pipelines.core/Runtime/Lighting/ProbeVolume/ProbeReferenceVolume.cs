@@ -395,9 +395,6 @@ namespace UnityEngine.Experimental.Rendering
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
 
-            public NativeArray<Vector3> probePositions { get; internal set; }
-            public NativeArray<Vector3> offsetVectors { get; internal set; }
-
             static internal uint PackValidityAndMask(float validity, byte mask)
             {
                 // 24 bits for validity at the top of the uint, 8 bits for the mask at the bottom.
