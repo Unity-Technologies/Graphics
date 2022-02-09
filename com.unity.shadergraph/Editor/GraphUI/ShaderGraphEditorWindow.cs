@@ -69,14 +69,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override bool CanHandleAssetType(IGraphAssetModel asset)
         {
+            if (asset.GraphModel is ShaderGraphModel graphModel) 
+            {
+                m_PreviewManager.Initialize(graphModel);
+
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, GraphTool.Dispatcher);
+            }
+
             return asset is ShaderGraphAssetModel;
-        }
-
-        protected void OnBecameVisible()
-        {
-            m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel);
-
-            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, GraphTool.Dispatcher);
         }
 
         protected override MainToolbar CreateMainToolbar()
