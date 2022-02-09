@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        private const int k_MaxVisibleCapsuleOccluders = 256;
+        internal const int k_MaxDirectShadowCapsulesOnScreen = 256;
+        internal const int k_MaxIndirectShadowCapsulesOnScreen = 256;
 
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
@@ -46,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_CapsuleOccluders.bounds = new List<OrientedBBox>();
             m_CapsuleOccluders.occluders = new List<CapsuleOccluderData>();
-            m_CapsuleOccluderDataBuffer = new ComputeBuffer(k_MaxVisibleCapsuleOccluders, Marshal.SizeOf(typeof(CapsuleOccluderData)));
+            m_CapsuleOccluderDataBuffer = new ComputeBuffer(k_MaxDirectShadowCapsulesOnScreen + k_MaxIndirectShadowCapsulesOnScreen, Marshal.SizeOf(typeof(CapsuleOccluderData)));
         }
 
         internal void CleanupCapsuleShadows()
@@ -115,12 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     var occluders = CapsuleOccluderManager.instance.occluders;
                     foreach (CapsuleOccluder occluder in occluders)
                     {
-                        if (m_CapsuleOccluders.TotalCount() >= k_MaxVisibleCapsuleOccluders)
-                            break;
-
                         CapsuleOccluderData data = occluder.GetOccluderData(originWS);
 
-                        if (enableDirectShadows)
+                        if (enableDirectShadows && m_CapsuleOccluders.directCount < k_MaxDirectShadowCapsulesOnScreen)
                         {
                             OrientedBBox bounds;
                             if (optimiseBoundsForLight)
@@ -167,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
 
-                        if (enableIndirectShadows && m_CapsuleOccluders.TotalCount() < k_MaxVisibleCapsuleOccluders)
+                        if (enableIndirectShadows && m_CapsuleOccluders.indirectCount < k_MaxIndirectShadowCapsulesOnScreen)
                         {
                             float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
                             OrientedBBox bounds = new OrientedBBox(

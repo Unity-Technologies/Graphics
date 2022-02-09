@@ -171,6 +171,8 @@ namespace UnityEngine.Rendering.HighDefinition
             maxLightsPerClusterCell = 8,
             maxLocalVolumetricFogSize = LocalVolumetricFogResolution.Resolution32,
             maxLocalVolumetricFogOnScreen = 64, // 8MB texture atlas allocated by default
+            maxCapsuleDirectShadowsOnScreen = HDRenderPipeline.k_MaxDirectShadowCapsulesOnScreen,
+            maxCapsuleIndirectShadowsOnScreen = HDRenderPipeline.k_MaxIndirectShadowCapsulesOnScreen,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -222,6 +224,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxPlanarReflectionOnScreen;
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
+        /// <summary>Maximum number of capsule direct shadows at the same time on screen.</summary>
+        public int maxCapsuleDirectShadowsOnScreen;
+        /// <summary>Maximum number of capsule indirect shadows at the same time on screen.</summary>
+        public int maxCapsuleIndirectShadowsOnScreen;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;

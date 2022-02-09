@@ -738,7 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxAreaLightsOnScreen = lightLoopSettings.maxAreaLightsOnScreen;
             m_MaxDecalsOnScreen = lightLoopSettings.maxDecalsOnScreen;
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
-            m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
+            m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen + lightLoopSettings.maxCapsuleDirectShadowsOnScreen + lightLoopSettings.maxCapsuleIndirectShadowsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
             // Cluster
