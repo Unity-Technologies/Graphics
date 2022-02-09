@@ -89,7 +89,7 @@ namespace com.unity.shadergraph.defs
             }
             if (resolvedPrecision == Precision.Any)
             {
-                resolvedPrecision = Precision.Full;
+                resolvedPrecision = Precision.Single;
             }
             if (resolvedPrimitive == Primitive.Any)
             {
