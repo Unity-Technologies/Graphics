@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
@@ -674,10 +675,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
         /// </summary>
+        /// <param name="renderGraph">Use this render graph handle to record passes.</param>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="cmd">Use this command buffer to record commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        public virtual void RecordRenderGraph(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        public virtual void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
 
