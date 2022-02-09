@@ -618,8 +618,6 @@ namespace UnityEngine.Rendering.Universal
                 GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
                 // Done with Uber, blit it
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
-
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
                 if (m_Destination == k_CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
@@ -653,43 +651,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
                 }
 
-                bool setViewProjectionMatrices = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    setViewProjectionMatrices = false;
-#endif
-
-                bool isRenderToBackBufferTarget = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    isRenderToBackBufferTarget = cameraTargetHandle == cameraData.xr.renderTarget;
-#endif
-
-                if (setViewProjectionMatrices)
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
-                CoreUtils.SetRenderTarget(cmd, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-
-                if (isRenderToBackBufferTarget)
-                    cmd.SetViewport(cameraData.pixelRect);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    // We y-flip if
-                    // 1) we are blitting from render texture to back buffer and
-                    // 2) renderTexture starts UV at top
-                    bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
-                }
-                else
-#endif
-                {
-                    cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
-                }
+                RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
 
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
@@ -723,9 +685,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Cleanup
-                if (setViewProjectionMatrices)
-                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
-
                 if (tempTargetUsed)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
 
@@ -1479,7 +1438,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
 
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
+            var sourceTex = m_Source;
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -1521,7 +1480,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
                     Blit(cmd, m_Source, m_ScalingSetupTarget, m_Materials.scalingSetup);
 
-                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_ScalingSetupTarget);
+                    sourceTex = m_ScalingSetupTarget;
 
                     sourceRtId = m_ScalingSetupTarget;
                 }
@@ -1577,7 +1536,7 @@ namespace UnityEngine.Rendering.Universal
                                 }
 
                                 // Update the source texture for the next operation
-                                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaledTarget);
+                                sourceTex = m_UpscaledTarget;
                                 PostProcessUtils.SetSourceSize(cmd, upscaleRtDesc);
 
                                 break;
@@ -1610,6 +1569,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
                 cameraTarget = cameraData.xr.renderTarget;
 #endif
+
             // Create RTHandle alias to use RTHandle apis
             if (m_CameraTargetHandle != cameraTarget)
             {
@@ -1617,47 +1577,9 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
 
-            bool setViewProjectionMatrices = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                setViewProjectionMatrices = false;
-#endif
+            RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
 
-            bool isRenderToBackBufferTarget = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                isRenderToBackBufferTarget = m_CameraTargetHandle == cameraData.xr.renderTarget;
-#endif
-
-            if (setViewProjectionMatrices)
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
-            CoreUtils.SetRenderTarget(cmd, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-
-            if (isRenderToBackBufferTarget)
-                cmd.SetViewport(cameraData.pixelRect);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                // We y-flip if
-                // 1) we are blitting from render texture to back buffer and
-                // 2) renderTexture starts UV at top
-                bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-#endif
-            {
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
-            }
-
-            // Cleanup
-            if (setViewProjectionMatrices)
-                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+            cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
         }
 
         #endregion
