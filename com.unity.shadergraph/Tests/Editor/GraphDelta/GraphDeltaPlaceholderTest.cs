@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
                 public RegistryFlags GetRegistryFlags()
                 {
-                    throw new System.NotImplementedException();
+                    return RegistryFlags.Base;
                 }
 
                 public RegistryKey GetRegistryKey()
