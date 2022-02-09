@@ -777,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
                 reflectionProbes = false,
                 reflectionProbesBlendDistance = true,
                 particleSystemInstancing = true,
-                overridesLODCrossFade = true
+                overridesEnableLODCrossFade = true
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
