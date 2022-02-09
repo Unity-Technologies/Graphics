@@ -7,6 +7,8 @@ using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 #if UNITY_EDITOR
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditor;
 #endif
 
@@ -387,13 +389,13 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeVolumeSHBands shBands;
 
             public NativeArray<Brick> bricks { get; internal set; }
-
-            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
-            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
             public NativeArray<float> validity { get; internal set; }
-
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
+
+            // Per state data
+            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
+            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -867,12 +869,9 @@ namespace UnityEngine.Experimental.Rendering
         internal void UnloadAllCells()
         {
             for (int i = 0; i < m_LoadedCells.size; ++i)
-            {
-                CellInfo cellInfo = m_LoadedCells[i];
-                UnloadCell(cellInfo);
-                m_ToBeLoadedCells.Add(cellInfo);
-            }
+                UnloadCell(m_LoadedCells[i]);
 
+            m_ToBeLoadedCells.AddRange(m_LoadedCells);
             m_LoadedCells.Clear();
         }
 
@@ -1104,8 +1103,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            var path = asset.GetSerializedFullPath();
-
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
@@ -1255,11 +1252,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
+#endif
+
         ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
+
+#if UNITY_EDITOR
+            Type lightMappingType = typeof(Lightmapping);
+            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
+            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
+#endif
+
         }
 
         /// <summary>

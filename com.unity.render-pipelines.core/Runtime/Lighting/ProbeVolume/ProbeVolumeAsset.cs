@@ -72,68 +72,47 @@ namespace UnityEngine.Experimental.Rendering
             return m_AssetFullPath;
         }
 
-        static internal bool ResolveCells(ProbeVolumeAsset asset, TextAsset cellDataAsset, TextAsset cellOptionalDataAsset, TextAsset cellSharedDataAsset, TextAsset cellSupportDataAsset)
+
+        static int AlignUp16(int count)
         {
-            if (cellDataAsset == null || cellSharedDataAsset == null)
+            var alignment = 16;
+            var remainder = count % alignment;
+            return count + (remainder == 0 ? 0 : alignment - remainder);
+        }
+
+        // The unpacking in Resolve functions is the "inverse" of ProbeBakingGI.WriteBakingCells flattening
+        internal bool ResolveSharedCellData(TextAsset cellSharedDataAsset, TextAsset cellSupportDataAsset)
+        {
+            if (cellSharedDataAsset == null)
                 return false;
-
-            // The unpacking here is the "inverse" of ProbeBakingGI.WriteBakingCells flattening
-
-            static int AlignUp16(int count)
-            {
-                var alignment = 16;
-                var remainder = count % alignment;
-                return count + (remainder == 0 ? 0 : alignment - remainder);
-            }
-
-            var cellData = cellDataAsset.GetData<byte>();
-            var shL0L1DataByteCount = asset.totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
-            var validityByteStart = AlignUp16(shL0L1DataByteCount);
-            var validityByteCount = asset.totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
-
-            if ((shL0L1DataByteCount + validityByteCount) != cellData.Length)
-                return false;
-            var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
-            var validityData = cellData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
-
-
-            var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
-            var hasOptionalData = cellOptionalData.IsCreated;
-            var shL2DataByteCount = asset.totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
-            if (hasOptionalData && (shL2DataByteCount + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
-                return false;
-            var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
 
             var cellSharedData = cellSharedDataAsset.GetData<byte>();
-            var bricksByteCount = asset.totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
-            if (bricksByteCount != cellSharedData.Length)
+            var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
+            var validityByteStart = AlignUp16(bricksByteCount);
+            var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            if ((validityByteStart + validityByteCount) != cellSharedData.Length)
                 return false;
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
+            var validityData = cellSharedData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
-            var positionsByteCount = asset.totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
+            var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
             var offsetByteStart = AlignUp16(positionsByteCount);
-            var offsetByteCount = asset.totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
+            var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
             if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
                 return false;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(0, positionsByteCount).Reinterpret<Vector3>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
 
             var startCounts = new CellCounts();
-            for (var i = 0; i < asset.cells.Length; ++i)
+            for (var i = 0; i < cells.Length; ++i)
             {
-                var cell = asset.cells[i];
-                var counts = asset.cellCounts[i];
+                var cell = cells[i];
+                var counts = cellCounts[i];
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
-                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
                 cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
-
-                if (hasOptionalData)
-                {
-                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
-                }
 
                 if (hasSupportData)
                 {
@@ -147,9 +126,39 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
 
-        internal bool ResolveCells(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset, TextAsset cellSharedDataAsset, TextAsset cellSupportDataAsset)
+        internal bool ResolvePerStateCellData(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset)
         {
-            return ResolveCells(this, cellDataAsset, cellOptionalDataAsset, cellSharedDataAsset, cellSupportDataAsset);
+            if (cellDataAsset == null)
+                return false;
+
+            var cellData = cellDataAsset.GetData<byte>();
+            var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
+            if (shL0L1DataByteCount != cellData.Length)
+                return false;
+            var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
+
+            var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
+            var hasOptionalData = cellOptionalData.IsCreated;
+            var shL2DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
+            if (hasOptionalData && (shL2DataByteCount + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
+                return false;
+            var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
+
+            var startCounts = new CellCounts();
+            for (var i = 0; i < cells.Length; ++i)
+            {
+                var cell = cells[i];
+                var counts = cellCounts[i];
+
+                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+
+                if (hasOptionalData)
+                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+
+                startCounts.Add(counts);
+            }
+
+            return true;
         }
 
 #if UNITY_EDITOR
