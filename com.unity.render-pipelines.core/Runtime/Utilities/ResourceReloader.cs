@@ -190,19 +190,34 @@ namespace UnityEngine.Rendering
 
             // Else the path is good. Attempt loading resource if AssetDatabase available.
             UnityEngine.Object result;
-            if (builtin && type == typeof(Shader))
+            try
             {
-                result = Shader.Find(path);
+                if (builtin && type == typeof(Shader))
+                {
+                    result = Shader.Find(path);
+                }
+                else
+                {
+                    result = AssetDatabase.LoadAssetAtPath(path, type);
+
+                    if (IsNull(result))
+                        result = Resources.GetBuiltinResource(type, path);
+
+                    if (IsNull(result))
+                        result = AssetDatabase.GetBuiltinExtraResource(type, path);
+                }
             }
-            else
+            catch (Exception e)
             {
-                result = AssetDatabase.LoadAssetAtPath(path, type);
-
-                if (IsNull(result))
-                    result = Resources.GetBuiltinResource(type, path);
-
-                if (IsNull(result))
-                    result = AssetDatabase.GetBuiltinExtraResource(type, path);
+                //guid is not null as checked before unless this is builtin
+                if (!builtin)
+                {
+                    var ex = new Exception($"Cannot load. Path {path} is correct but AssetDatabase cannot load now.");
+                    ex.Data["InvalidImport"] = 1;
+                    throw ex;
+                }
+                else
+                    throw e;
             }
 
             if (IsNull(result))
