@@ -22,11 +22,5 @@ namespace com.unity.shadergraph.defs
             Length = length;
             Height = height;
         }
-
-        public override string ToString()
-        {
-            // TODO Make this not a stub.
-            return base.ToString();
-        }
     }
 }
