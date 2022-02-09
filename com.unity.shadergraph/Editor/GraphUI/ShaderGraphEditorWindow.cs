@@ -69,11 +69,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override bool CanHandleAssetType(IGraphAssetModel asset)
         {
-            if (asset.GraphModel is ShaderGraphModel graphModel) 
+            if (asset.GraphModel is ShaderGraphModel graphModel)
             {
                 m_PreviewManager.Initialize(graphModel);
 
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, GraphTool.Dispatcher);
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, graphModel, GraphTool.Dispatcher);
             }
 
             return asset is ShaderGraphAssetModel;

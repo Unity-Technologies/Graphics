@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class ShaderGraphCommandsRegistrar
     {
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, PreviewManager previewManager, Dispatcher dispatcher)
+        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, PreviewManager previewManager, ShaderGraphModel shaderGraphModel, Dispatcher dispatcher)
         {
             if (dispatcher is not CommandDispatcher commandDispatcher)
                 return;
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ShaderGraphCommandOverrides.HandleUpdatePortValue,
                 graphView.GraphViewState,
                 previewManager,
-                graphTool.ToolState.GraphModel
+                shaderGraphModel
             );
         }
     }
