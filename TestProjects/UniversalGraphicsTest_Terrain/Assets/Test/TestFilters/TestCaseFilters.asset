@@ -15,6 +15,21 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    - {fileID: 102900000, guid: fa7b4e9f812398d41bdc005faebd62aa, type: 3}
+    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    - {fileID: 102900000, guid: a90386d4c0292b7489de8256b45fb16e, type: 3}
+    - {fileID: 102900000, guid: 57b37a9fcda3f244992f314e76964faa, type: 3}
+    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
+    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : unstable'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -22,6 +37,16 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
+    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : development build text issue'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
@@ -65,31 +90,6 @@ MonoBehaviour:
     Reason: Decals not supported
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
-    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 19
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 7
-    Reason: 'XR : development build text issue'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    - {fileID: 102900000, guid: fa7b4e9f812398d41bdc005faebd62aa, type: 3}
-    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
-    - {fileID: 102900000, guid: a90386d4c0292b7489de8256b45fb16e, type: 3}
-    - {fileID: 102900000, guid: 57b37a9fcda3f244992f314e76964faa, type: 3}
-    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
-    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: 
-    StereoModes: 7
-    Reason: 'XR : unstable'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -97,3 +97,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : broken feature'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/URP-1313

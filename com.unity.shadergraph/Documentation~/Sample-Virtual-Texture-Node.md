@@ -27,7 +27,7 @@ For information about Streaming Virtual Texturing, see [Streaming Virtual Textur
 
 ## Settings
 
-The Sample Virtual Texture node has several settings available for you to specify its behavior. These settings work in combination with any scripts you might have set up in your project. To view the settings, select the node with the [Graph Inspector](Internal-Inspector) open. For more information, see [Streaming Virtual Texturing](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-streaming-virtual-texturing.html).
+The Sample Virtual Texture node has several settings available for you to specify its behavior. These settings work in combination with any scripts you might have set up in your project. To view the settings, select the node with the [Graph Inspector](Internal-Inspector.md) open. For more information, see [Streaming Virtual Texturing](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
