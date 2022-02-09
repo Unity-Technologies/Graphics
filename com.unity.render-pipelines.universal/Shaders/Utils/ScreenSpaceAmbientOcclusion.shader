@@ -6,43 +6,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-        struct Attributes
-        {
-            float4 positionHCS   : POSITION;
-            float2 uv           : TEXCOORD0;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
-        };
-
-        struct Varyings
-        {
-            float4  positionCS  : SV_POSITION;
-            float2  uv          : TEXCOORD0;
-            UNITY_VERTEX_OUTPUT_STEREO
-        };
-
-        Varyings VertDefault(Attributes input)
-        {
-            Varyings output;
-            UNITY_SETUP_INSTANCE_ID(input);
-            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-            // Note: The pass is setup with a mesh already in CS
-            // Therefore, we can just output vertex position
-            output.positionCS = float4(input.positionHCS.xyz, 1.0);
-
-            #if UNITY_UV_STARTS_AT_TOP
-            output.positionCS.y *= _ScaleBiasRt.x;
-            #endif
-
-            output.uv = input.uv;
-
-            // Add a small epsilon to avoid artifacts when reconstructing the normals
-            output.uv += 1.0e-6;
-
-            return output;
-        }
-
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
     ENDHLSL
 
     SubShader
@@ -63,7 +27,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
+                #pragma vertex Vert
                 #pragma fragment SSAO
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS
@@ -79,7 +43,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_HorizontalBlur"
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
+                #pragma vertex Vert
                 #pragma fragment HorizontalBlur
                 #define BLUR_SAMPLE_CENTER_NORMAL
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
@@ -95,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_VerticalBlur"
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
+                #pragma vertex Vert
                 #pragma fragment VerticalBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
@@ -107,7 +71,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_FinalBlur"
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
+                #pragma vertex Vert
                 #pragma fragment FinalBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
@@ -125,7 +89,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             BlendOp Add, Add
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
+                #pragma vertex Vert
                 #pragma fragment FragAfterOpaque
                 #define _SCREEN_SPACE_OCCLUSION
 
@@ -135,7 +99,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 {
                     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.uv);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.texcoord);
                     half occlusion = aoFactor.indirectAmbientOcclusion;
                     return half4(0.0, 0.0, 0.0, occlusion);
                 }
