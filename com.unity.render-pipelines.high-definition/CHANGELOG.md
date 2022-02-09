@@ -120,6 +120,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed couple bugs in the volumetric clouds shader code.
 - Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
 - Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed HDRP camera debug panel rendering foldout.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed various issues with render graph viewer when entering playmode.
+- Fixed Probe Debug view misbehaving with fog.
 - Fixed issue with shader graph custom velocity and VFX (case 1388149)
 - Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
