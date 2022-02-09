@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 2;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -980;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.shader";
         public override uint GetVersion()
         {
@@ -152,7 +152,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            material.SetFloat("_Glossiness", 0.0f);
+            if (description.TryGetProperty("Shininess", out float shininess))
+            {
+                var glossiness = Mathf.Sqrt(shininess * 0.01f);
+                material.SetFloat("_Smoothness", glossiness);
+            }
+            else
+                material.SetFloat("_Smoothness", 0.0f);
 
             if (PlayerSettings.colorSpace == ColorSpace.Linear)
                 RemapAndTransformColorCurves(description, clips, "DiffuseColor", "_BaseColor", ConvertFloatLinearToGamma);
