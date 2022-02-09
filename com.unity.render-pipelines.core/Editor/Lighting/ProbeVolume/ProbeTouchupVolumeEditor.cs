@@ -65,6 +65,19 @@ namespace UnityEditor.Experimental.Rendering
                     EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
                     return;
                 }
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_SerializedTouchupVolume.size, Styles.s_Size);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Vector3 tmpClamp = m_SerializedTouchupVolume.size.vector3Value;
+                    tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
+                    tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
+                    tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
+                    m_SerializedTouchupVolume.size.vector3Value = tmpClamp;
+                }
+
+
                 EditorGUILayout.PropertyField(m_SerializedTouchupVolume.invalidateProbes, Styles.s_InvalidateProbes);
 
                 using (new EditorGUI.DisabledScope(m_SerializedTouchupVolume.invalidateProbes.boolValue))
