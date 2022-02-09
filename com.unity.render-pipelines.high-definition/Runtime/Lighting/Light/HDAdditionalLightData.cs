@@ -1524,7 +1524,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
                 {
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                    // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                    if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                        HDShadowManager.cachedShadowManager.RegisterLight(this);
                 }
 
                 m_ShadowUpdateMode = value;
@@ -3179,7 +3181,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
         }
 
@@ -3318,6 +3322,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="enabled"></param>
         public void EnableShadows(bool enabled) => legacyLight.shadows = enabled ? LightShadows.Soft : LightShadows.None;
+
+        internal bool ShadowsEnabled()
+        {
+            return legacyLight.shadows != LightShadows.None;
+        }
 
         /// <summary>
         /// Set the shadow resolution.
@@ -3599,9 +3608,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
+                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             SetEmissiveMeshRendererEnabled(true);

@@ -33,7 +33,7 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/
+    Reason: See https://fogbugz.unity3d.com/f/cases/1118812/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 0379b72b85eee8045afdaec3b1362957, type: 3}
@@ -44,4 +44,22 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/
+    Reason: See https://fogbugz.unity3d.com/f/cases/1118812/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 810f6e5fbd289164eb3fe0ba8eb32588, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: See https://fogbugz.unity3d.com/f/cases/1398537/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 810f6e5fbd289164eb3fe0ba8eb32588, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: See https://fogbugz.unity3d.com/f/cases/1398537/
