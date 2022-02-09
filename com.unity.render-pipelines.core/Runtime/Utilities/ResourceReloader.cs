@@ -190,19 +190,23 @@ namespace UnityEngine.Rendering
 
             // Else the path is good. Attempt loading resource if AssetDatabase available.
             UnityEngine.Object result;
-            if (builtin && type == typeof(Shader))
+            if (builtin)
             {
-                result = Shader.Find(path);
+                if (type == typeof(Shader))
+                {
+                    result = Shader.Find(path);
+                }
+                else
+                {
+                    result = Resources.GetBuiltinResource(type, path);
+
+                    if (IsNull(result))
+                        result = AssetDatabase.GetBuiltinExtraResource(type, path);
+                }
             }
             else
             {
                 result = AssetDatabase.LoadAssetAtPath(path, type);
-
-                if (IsNull(result))
-                    result = Resources.GetBuiltinResource(type, path);
-
-                if (IsNull(result))
-                    result = AssetDatabase.GetBuiltinExtraResource(type, path);
             }
 
             if (IsNull(result))
