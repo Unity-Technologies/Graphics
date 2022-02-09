@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
+        public SerializedProperty supportVFXRayTracing;
         public SerializedProperty supportedRayTracingMode;
         public SerializedProperty supportDistortion;
         public SerializedProperty supportTransparentBackface;
@@ -116,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportProbeVolumeStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeStreaming);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);
             supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
