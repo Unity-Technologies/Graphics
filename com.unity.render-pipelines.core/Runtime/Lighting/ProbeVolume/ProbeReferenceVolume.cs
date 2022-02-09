@@ -7,6 +7,8 @@ using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 #if UNITY_EDITOR
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditor;
 #endif
 
@@ -1250,11 +1252,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
+#endif
+
         ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
+
+#if UNITY_EDITOR
+            Type lightMappingType = typeof(Lightmapping);
+            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
+            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
+#endif
+
         }
 
         /// <summary>

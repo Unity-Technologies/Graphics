@@ -124,6 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 - Fixed various issues with render graph viewer when entering playmode.
 - Fixed Probe Debug view misbehaving with fog.
+- Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
 
 ## [14.0.0] - 2021-11-17
 
