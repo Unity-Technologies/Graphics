@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using com.unity.shadergraph.defs;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -15,29 +16,6 @@ namespace UnityEditor.ShaderGraph.Registry
 
     namespace Types
     {
-        ////public class MakeNode : Defs.INodeDefinitionBuilder
-        ////{
-        ////    public RegistryKey GetRegistryKey() => new RegistryKey { Name = "MakeType", Version = 1 };
-        ////    public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
-
-        ////    public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
-        ////    {
-        ////        // We just have a field for now that indicates what our type is.
-        ////        userData.GetField("Type", out RegistryKey key);
-
-        ////        // Erroneous if Key is default or not a Type, but we have no error msging yet.
-
-        ////        var inport = nodeWriter.AddPort(userData, "In", true, key, registry);
-        ////        var outport = nodeWriter.AddPort(userData, "Out", false, key, registry);
-        ////        inport.TryAddConnection(outport);
-
-        ////        // To be able to support nested types (eg. TypeDefs of TypeDefs),
-        ////        // we'll need to be able to concretize and iterate over fields to promote them to ports properly,
-        ////        // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
-        ////    }
-        ////}
-        ///
-
         public static class NodeHelpers
         {
             // all common math operations can probably use the same resolver.
@@ -46,8 +24,8 @@ namespace UnityEditor.ShaderGraph.Registry
                 int operands = 0;
                 int resolvedLength = 4;
                 int resolvedHeight = 1; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
-                var resolvedPrimitive = GraphType.Primitive.Float;
-                var resolvedPrecision = GraphType.Precision.Full;
+                var resolvedPrimitive = Primitive.Float;
+                var resolvedPrecision = Precision.Full;
 
                 // UserData ports only exist if a user inlines a value or makes a connection.
                 foreach (var port in userData.GetPorts())
@@ -55,16 +33,16 @@ namespace UnityEditor.ShaderGraph.Registry
                     if (!port.IsInput()) continue;
                     operands++;
                     // UserData is allowed to have holes, so we should ignore what's missing.
-                    bool hasLength = port.GetField(GraphType.kLength, out int length);
-                    bool hasHeight = port.GetField(GraphType.kHeight, out int height);
-                    bool hasPrimitive = port.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive);
-                    bool hasPrecision = port.GetField(GraphType.kPrecision, out GraphType.Precision precision);
+                    bool hasLength = port.GetField(kLength, out Length length);
+                    bool hasHeight = port.GetField(kHeight, out Height height);
+                    bool hasPrimitive = port.GetField(kPrimitive, out Primitive primitive);
+                    bool hasPrecision = port.GetField(kPrecision, out Precision precision);
 
                     // Legacy DynamicVector's default behavior is to use the most constrained typing.
-                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, length) : resolvedLength;
-                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, height) : resolvedHeight;
-                    resolvedPrimitive = hasPrimitive ? (GraphType.Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
-                    resolvedPrecision = hasPrecision ? (GraphType.Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
+                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, (int)length) : resolvedLength;
+                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, (int)height) : resolvedHeight;
+                    resolvedPrimitive = hasPrimitive ? (Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
+                    resolvedPrecision = hasPrecision ? (Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
                 }
 
                 // We need at least 2 input ports or 1 more than the existing number of connections.
@@ -79,10 +57,10 @@ namespace UnityEditor.ShaderGraph.Registry
                             : nodeWriter.AddPort<GraphType>(userData, $"In{i}", true, registry);
 
                     // Then constrain them so that type conversion in code gen can resolve the values properly.
-                    port.SetField(GraphType.kLength, resolvedLength);
-                    port.SetField(GraphType.kHeight, resolvedHeight);
-                    port.SetField(GraphType.kPrimitive, resolvedPrimitive);
-                    port.SetField(GraphType.kPrecision, resolvedPrecision);
+                    port.SetField(kLength, (Length)resolvedLength);
+                    port.SetField(kHeight, (Height)resolvedHeight);
+                    port.SetField(kPrimitive, resolvedPrimitive);
+                    port.SetField(kPrecision, resolvedPrecision);
                 }
             }
 
@@ -94,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
-                var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
+                var typeBuilder = registry.GetTypeBuilder(kRegistryKey);
 
                 var shaderType = typeBuilder.GetShaderType((IFieldReader)outPort, container, registry);
                 int count = data.GetPorts().Count() - 1;
@@ -157,11 +135,11 @@ namespace UnityEditor.ShaderGraph.Registry
             public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
             {
                 var portWriter = nodeWriter.AddPort<GraphType>(userData, "In", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
                 portWriter = nodeWriter.AddPort<GraphType>(userData, "Exp", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
                 portWriter = nodeWriter.AddPort<GraphType>(userData, "Out", false, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
             }
 
             /**
@@ -206,13 +184,45 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            // Numeric values for enum members here represent a resolving priority
-            // The highest numeric value has the highest priority.
-            public enum Precision { Fixed = 2, Half = 1, Full = 0, Any = -1 }
-            public enum Primitive { Bool = 2, Int = 1, Float = 0, Any = -1 }
-            public enum Length { One = 1, Two = 4, Three = 3, Four = 2, Any = -1 }
-            public enum Height { One = 1, Two = 4, Three = 3, Four = 2, Any = -1 }
+            public enum Precision { Fixed, Half, Full, Any }
+            public enum Primitive { Bool, Int, Float, Any }
+            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
+            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
             public enum Usage { In, Out, Static, }
+
+            // Values here represent a resolving priority.
+            // The highest numeric value has the highest priority.
+            public static readonly Dictionary<Precision, int> PrecisionToPriority = new()
+            {
+                { Precision.Fixed, 1 },
+                { Precision.Half, 2 },
+                { Precision.Full, 3 },
+                { Precision.Any, -1}
+            };
+            public static readonly Dictionary<Primitive, int> PrimitiveToPriority = new()
+            {
+                { Primitive.Bool, 1 },
+                { Primitive.Int, 2 },
+                { Primitive.Float, 3 },
+                { Primitive.Any, -1 }
+            };
+            public static readonly Dictionary<Length, int> LengthToPriority = new()
+            {
+                { Length.One, 1 },
+                { Length.Two, 4 },
+                { Length.Three, 3 },
+                { Length.Four, 2 },
+                { Length.Any, -1 }
+            };
+            public static readonly Dictionary<Height, int> HeightToPriority = new()
+            {
+                { Height.One, 1 },
+                { Height.Two, 4 },
+                { Height.Three, 3 },
+                { Height.Four, 2 },
+                { Height.Any, -1 }
+            };
+
 
             public const string kPrimitive = "Primitive";
             public const string kPrecision = "Precision";
@@ -301,7 +311,7 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
-            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
+            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (kRegistryKey, kRegistryKey);
             public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
 
 

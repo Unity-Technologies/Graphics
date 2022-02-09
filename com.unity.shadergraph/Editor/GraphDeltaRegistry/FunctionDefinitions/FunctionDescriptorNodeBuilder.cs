@@ -10,6 +10,11 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 namespace com.unity.shadergraph.defs
 {
     /// <summary>
+    /// FunctionDescriptorNodeBuilder is a way to to make INodeDefinitionBuilder
+    /// instances from FunctionDescriptors.
+    ///
+    /// This is used to load the standard node defintions into the Registry.
+    /// (See: StandardNodeDefinitions)
     /// </summary>
     internal class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
     {
@@ -27,63 +32,59 @@ namespace com.unity.shadergraph.defs
             // 1 < 4 < 3 < 2 for Height and Length
             // Bigger wins for Primitive and Precision
 
-            //Height resultHeight = Height.One;  // this matches the legacy resolving behavior
-            //Length resultLength = Length.Four;
-            //Precision resultPrecision = Precision.Full;
-            //Primitive resultPrimitive = Primitive.Float;
-
             Height resolvedHeight = Height.Any;
             Length resolvedLength = Length.Any;
             Precision resolvedPrecision = Precision.Any;
             Primitive resolvedPrimitive = Primitive.Any;
 
+            // Find the highest priority value for all type parameters set
+            // in the user data.
             foreach (var port in userData.GetPorts())
             {
                 var field = (IFieldReader)port;
                 if (field.TryGetSubField(kLength, out IFieldReader fieldReader))
                 {
                     fieldReader.TryGetValue(out Length readLength);
-                    if (resolvedLength.CompareTo(readLength) < 0)
+                    if (LengthToPriority[resolvedLength] < LengthToPriority[readLength])
                     {
                         resolvedLength = readLength;
                     }
                 }
-
                 if (field.TryGetSubField(kHeight, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Height readHeight);
-                    if (resolvedHeight.CompareTo(readHeight) < 0)
+                    if (HeightToPriority[resolvedHeight] < HeightToPriority[readHeight])
                     {
                         resolvedHeight = readHeight;
                     }
                 }
-
-
                 if (field.TryGetSubField(kPrecision, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Precision readPrecision);
-                    if (resolvedPrecision.CompareTo(readPrecision) < 0)
+                    if (PrecisionToPriority[resolvedPrecision] < PrecisionToPriority[readPrecision])
                     {
                         resolvedPrecision = readPrecision;
                     }
                 }    
-
                 if (field.TryGetSubField(kPrimitive, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Primitive readPrimitive);
-                    if (resolvedPrimitive.CompareTo(readPrimitive) < 0)
+                    if (PrimitiveToPriority[resolvedPrimitive] < PrimitiveToPriority[readPrimitive])
                     {
                         resolvedPrimitive = readPrimitive;
                     }
                 }                    
             }
 
+            // If we didn't find a value for a type parameter in user data,
+            // set it to a legacy default.
             if (resolvedLength == Length.Any)
             {
                 resolvedLength = Length.Four;
             }
             if (resolvedHeight == Height.Any)
             {
+                // this matches the legacy resolving behavior
                 resolvedHeight = Height.One;
             }
             if (resolvedPrecision == Precision.Any)
@@ -94,11 +95,6 @@ namespace com.unity.shadergraph.defs
             {
                 resolvedPrimitive = Primitive.Float;
             }
-
-            //Height resultHeight = Height.One;  // this matches the legacy resolving behavior
-            //Length resultLength = Length.Four;
-            //Precision resultPrecision = Precision.Full;
-            //Primitive resultPrimitive = Primitive.Float;
 
             return new TypeDescriptor(
                 resolvedPrecision,
