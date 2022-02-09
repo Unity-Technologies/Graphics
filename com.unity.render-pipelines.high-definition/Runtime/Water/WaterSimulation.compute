@@ -10,6 +10,9 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+// Required for finding the vertical displacements
+#pragma multi_compile HIGH_RESOLUTION_WATER
+
 // Required to be defined for some includes
 #define WATER_SIMULATION
 
@@ -136,7 +139,7 @@ void CopyAdditionalData(uint3 currentThread : SV_DispatchThreadID)
 RWStructuredBuffer<float> _WaterCameraHeightBufferRW;
 
 // We allow up to 10 steps to figure out the height of the point
-#define SEARCH_ITERATION_COUNT 16
+#define SEARCH_ITERATION_COUNT 8
 
 // We consider that we found the point if we were able to
 #define SEARCH_DISTANCE_THRESHOLD 0.001
@@ -187,7 +190,7 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
     bool found = false;
     int stepCount = 0;
     TapData tapData = EvaluateDisplacementData(targetPosition, targetPosition);
-    float3 currentLocation = targetPosition - float3(tapData.offset.x, 0, tapData.offset.y);
+    float3 currentLocation = targetPosition;
     float2 stepSize = tapData.offset;
     float currentError = tapData.distance;
     float currentHeight = tapData.height;
@@ -205,19 +208,8 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
         // Keep track of the step size that will be use for the 4 samples
         float2 localSearchStepSize = stepSize;
 
-        float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, 0);
+        float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, localSearchStepSize.y);
         TapData tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
-        if (tapData.distance < currentError)
-        {
-            currentLocation = candidateLocation;
-            stepSize = tapData.offset;
-            currentError = tapData.distance;
-            currentHeight = tapData.height;
-            progress = true;
-        }
-
-        candidateLocation = currentLocation - float3(0, 0, localSearchStepSize.y);
-        tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
         if (tapData.distance < currentError)
         {
             currentLocation = candidateLocation;
