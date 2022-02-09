@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         OITResolveLightingForwardFast,
         OITResolveLightingDeferredSSTracing,
         OITComputePhotonRefractionBuffer,
+        OITAccumulation,
         VBufferMaterialDepth,
         VBufferLightTileClassification,
         VBufferMaterialTileClassification,

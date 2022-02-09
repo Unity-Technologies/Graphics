@@ -828,6 +828,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     offscreenDirectReflectionLightingTexture,
                     photonBuffer,
                     oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+
+                if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.enableAccumulation)
+                    OITAccumulation(renderGraph, hdCamera, currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.accumulationCoef, ref colorBuffer);
             }
         }
 
@@ -1168,6 +1171,45 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
 
                 PushFullScreenDebugTexture(renderGraph, passData.oitDebugSSTracing, FullScreenDebugMode.VisibilityOITDebugSSTracing);
+            }
+        }
+
+        class OITAccumulationRenderPass
+        {
+            public ComputeShader cs;
+            public Vector2Int screenSize;
+            public TextureHandle previousTexture;
+            public TextureHandle currentTexture;
+            public TextureHandle outputColor;
+            public float coef;
+        }
+
+        void OITAccumulation(RenderGraph renderGraph, HDCamera hdCamera, float coef, ref TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITAccumulationRenderPass>("OITAccumulation", out var passData, ProfilingSampler.Get(HDProfileId.OITAccumulation)))
+            {
+                hdCamera.AllocateTransparentOITAccumulationHistoryBuffer(1.0f);
+
+                passData.cs = defaultResources.shaders.exponentialSmoothingCS;
+                passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+
+                passData.previousTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TransparentOITAccumulation)));
+                passData.currentTexture = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TransparentOITAccumulation)));
+
+                passData.outputColor = builder.WriteTexture(colorBuffer);
+
+                passData.coef = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, Mathf.Clamp01(coef)));
+
+                builder.SetRenderFunc(
+                    (OITAccumulationRenderPass data, RenderGraphContext context) =>
+                    {
+                        int kernel = data.cs.FindKernel("ExponentialSmoothing");
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._PreviousTexture, data.previousTexture);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._CurrentTexture, data.currentTexture);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.SetComputeFloatParam(data.cs, HDShaderIDs._Coefficient, data.coef);
+                        context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
+                    });
             }
         }
 

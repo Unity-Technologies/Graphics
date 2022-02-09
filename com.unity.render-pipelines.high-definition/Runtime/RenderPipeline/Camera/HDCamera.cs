@@ -1243,6 +1243,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void AllocateTransparentOITAccumulationHistoryBuffer(float scaleFactor)
+        {
+            if (scaleFactor != m_ScreenSpaceAccumulationResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.TransparentOITAccumulation) == null)
+            {
+                ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.TransparentOITAccumulation);
+
+                var oitAccumAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R16G16B16A16_SFloat, "OIT Accumulation history");
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TransparentOITAccumulation, oitAccumAlloc.Allocator, 2);
+
+                m_ScreenSpaceAccumulationResolutionScale = scaleFactor;
+            }
+        }
+
         internal void ReleaseHistoryFrameRT(int id)
         {
             m_HistoryRTSystem.ReleaseBuffer(id);

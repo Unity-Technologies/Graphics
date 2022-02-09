@@ -49,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricClouds1,
         /// <summary>Screen Space Reflection Accumulation.</summary>
         ScreenSpaceReflectionAccumulation,
+        /// <summary>Transparent OIT Accumulation.</summary>
+        TransparentOITAccumulation,
         /// <summary>Number of history buffers.</summary>
         Count // TODO: Obsolete
     }

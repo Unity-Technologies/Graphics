@@ -1162,6 +1162,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITOutputSparseColorBuffer = Shader.PropertyToID("_VisOITOutputSparseColorBuffer");
         public static readonly int _VisOITSparseColorBuffer = Shader.PropertyToID("_VisOITSparseColorBuffer");
 
+        public static readonly int _PreviousTexture = Shader.PropertyToID("_PreviousTexture");
+        public static readonly int _CurrentTexture = Shader.PropertyToID("_CurrentTexture");
+        public static readonly int _Coefficient = Shader.PropertyToID("_Coefficient");
+
         //Visibility classification
         public static readonly int _VisBufferFeatureTileOutput = Shader.PropertyToID("_VisBufferFeatureTileOutput");
         public static readonly int _VisBufferTileSize = Shader.PropertyToID("_VisBufferTileSize");

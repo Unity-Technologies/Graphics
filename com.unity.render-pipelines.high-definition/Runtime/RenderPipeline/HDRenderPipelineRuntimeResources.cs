@@ -147,6 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader oitTileComputeHiZCS;
             [Reload("Runtime/Material/Visibility/OITPhotonBuffer.compute")]
             public ComputeShader oitPhotonBuffer;
+            [Reload("Runtime/Material/Visibility/ExponentialSmoothing.compute")]
+            public ComputeShader exponentialSmoothingCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
