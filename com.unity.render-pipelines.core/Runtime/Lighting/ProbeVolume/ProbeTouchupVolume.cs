@@ -16,12 +16,24 @@ namespace UnityEngine.Experimental.Rendering
     public class ProbeTouchupVolume : MonoBehaviour
     {
         internal float intensityScale = 1.0f;
+        /// <summary>
+        /// Whether to invalidate all probes falling within this volume.
+        /// </summary>
         public bool invalidateProbes = false;
-
+        /// <summary>
+        /// Whether to use a custom threshold for dilation for probes falling withing this volume.
+        /// </summary>
         public bool overrideDilationThreshold = false;
+
+        /// <summary>
+        /// The overridden dilation threshold.
+        /// </summary>
         [Range(0.0f, 1.0f)]
         public float overriddenDilationThreshold = 0.75f;
 
+        /// <summary>
+        /// The size.
+        /// </summary>
         public Vector3 size = new Vector3(1, 1, 1);
 
 #if UNITY_EDITOR
