@@ -37,8 +37,21 @@ public class FoundryTestRenderer
     internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
     internal Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
 
+    internal void CheckForShaderErrors(Shader shader)
+    {
+        if (ShaderUtil.ShaderHasError(shader))
+        {
+            var messages = ShaderUtil.GetShaderMessages(shader);
+            foreach (var message in messages)
+                if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
+                    throw new Exception(message.message);
+        }
+    }
+
     internal int TestShaderIsConstantColor(Shader shader, string filePrefix, Color32 expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
     {
+        CheckForShaderErrors(shader);
+
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(defaultResolution, defaultResolution, defaultFormat, depthBufferBits: 32);
         var target = RenderTexture.GetTemporary(descriptor);
 
@@ -234,6 +247,7 @@ public class FoundryTestRenderer
 
         // render with it
         RenderMeshWithMaterial(previewScene.camera, previewScene.quad, quadMatrix, mat, target, useSRP);
+        UnityEngine.Object.DestroyImmediate(mat);
     }
 
     internal static void RenderMeshWithMaterial(Camera cam, Mesh mesh, Matrix4x4 transform, Material mat, RenderTexture target, bool useSRP = true)
