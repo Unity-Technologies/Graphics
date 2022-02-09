@@ -30,6 +30,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enableIndirectShadows = new BoolParameter(false);
 
         /// <summary>
+        /// Use the full resolution light loop path for indirect shadows (temporary).
+        /// </summary>
+        public BoolParameter indirectInLightLoop = new BoolParameter(true);
+
+        /// <summary>
         /// The minimium amount of visibility that must remain after indirect shadows.
         /// </summary>
         public FloatParameter indirectMinVisibility = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);

@@ -670,43 +670,50 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    if ((_CapsuleIndirectShadowCountAndFlags & 0x00ffffffU) != 0)
+    if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK) != 0)
     {
-        uint method = (_CapsuleIndirectShadowCountAndFlags >> 24) & 0xfU;
         float visibility = 1.f;
-        if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
+        if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
         {
-            uint aoMethod = _CapsuleIndirectShadowCountAndFlags >> 28;
-
-            uint flags = 0;
-            if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
-                flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
-
-            visibility = EvaluateCapsuleAmbientOcclusion(flags, posInput, bsdfData.normalWS);
-        }
-        else if (method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_SURFACE)
-        {
-            float3 indirectVec = _CapsuleIndirectDirectionBias;
-#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-            APVResources apvRes = FillAPVResources();
-            float3 posWS = GetAbsolutePositionWS(posInput.positionWS);
-            APVSample apvSample = SampleAPV(posWS, bsdfData.normalWS, V);
-            if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+            uint method = (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_METHOD_MASK) >> CAPSULEINDIRECTSHADOWFLAGS_METHOD_SHIFT;
+            if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
             {
-#if MANUAL_FILTERING == 0
-                apvSample.Decode();
-#endif
-                // use the "optimal linear" direction as the indirect direction
-                // ref: stupid SH tricks
-                float3 luma = float3(0.2126729f, 0.7151522f, 0.0721750f);
-                indirectVec += normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
+                uint aoMethod = (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_EXTRA_MASK) >> CAPSULEINDIRECTSHADOWFLAGS_EXTRA_SHIFT;
+
+                uint flags = 0;
+                if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
+                    flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
+
+                visibility = EvaluateCapsuleAmbientOcclusion(flags, posInput, bsdfData.normalWS);
             }
+            else if (method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_SURFACE)
+            {
+                float3 indirectVec = _CapsuleIndirectDirectionBias;
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+                APVResources apvRes = FillAPVResources();
+                float3 posWS = GetAbsolutePositionWS(posInput.positionWS);
+                APVSample apvSample = SampleAPV(posWS, bsdfData.normalWS, V);
+                if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+                {
+#if MANUAL_FILTERING == 0
+                    apvSample.Decode();
 #endif
-            visibility = EvaluateCapsuleIndirectShadow(normalize(indirectVec), true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+                    // use the "optimal linear" direction as the indirect direction
+                    // ref: stupid SH tricks
+                    float3 luma = float3(0.2126729f, 0.7151522f, 0.0721750f);
+                    indirectVec += normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
+                }
+#endif
+                visibility = EvaluateCapsuleIndirectShadow(normalize(indirectVec), true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+            }
+            else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
+            {
+                visibility = EvaluateCapsuleIndirectShadow(float3(0.f, 0.f, 0.f), false, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+            }
         }
-        else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
+        else
         {
-            visibility = EvaluateCapsuleIndirectShadow(float3(0.f, 0.f, 0.f), false, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+            visibility = 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowTexture, int2(posInput.positionSS)/2);
         }
         aggregateLighting.indirect.shadow = lerp(1.f - _CapsuleIndirectMinimumVisibility, 0.f, visibility);
     }

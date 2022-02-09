@@ -119,6 +119,7 @@ MonoBehaviour:
     GTAOCopyHistoryCS: {fileID: 7200000, guid: 7f43be57ffd12ff469d4fc175c00c4b4, type: 3}
     GTAOBlurAndUpsample: {fileID: 7200000, guid: 9eb1abde882538a4ea46fa23e49ab9fa, type: 3}
     screenSpaceGlobalIlluminationCS: {fileID: 7200000, guid: 96170a954eb538b40a5ff369552c3629, type: 3}
+    capsuleShadowsCS: {fileID: 7200000, guid: 426e94c20c50c514c8ab6c472b72156b, type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
     colorResolvePS: {fileID: 4800000, guid: dd7047092f3c82b40b3a07868f9c4de2, type: 3}
     resolveMotionVecPS: {fileID: 4800000, guid: ea18ca9826385e943979c46cf98968cc, type: 3}

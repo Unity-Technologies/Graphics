@@ -1,0 +1,53 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel CapsuleShadowMain
+
+RW_TEXTURE2D_X(float, _CapsuleShadowTexture);
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+
+#define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
+
+[numthreads(8,8,1)]
+void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 pixelCoord = dispatchThreadId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + pixelCoord).x;
+    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * 2);
+
+    float3 positionWS = ComputeWorldSpacePosition((pixelCoord + .5f)*_SizeRcp, deviceDepth, UNITY_MATRIX_I_VP);
+
+    NormalData normalData;
+    DecodeFromNormalBuffer(normalBufferData, normalData);
+    float3 normalWS = normalData.normalWS;
+
+    uint capsuleCount = _CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK;
+    uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
+    float visibility = 1.f;
+    for (uint i = 0; i < capsuleCount; ++i)
+    {
+        CapsuleOccluderData s_capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + i];
+
+        float occlusion = EvaluateCapsuleAmbientOcclusion(
+            flags,
+            s_capsuleData.centerRWS - positionWS,
+            s_capsuleData.axisDirWS,
+            s_capsuleData.offset,
+            s_capsuleData.radius,
+            s_capsuleData.radius*_CapsuleIndirectRangeFactor,
+            normalWS);
+
+        visibility *= max(1.f - occlusion, 0.f);
+    }
+
+    _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = 1.f - visibility;
+}

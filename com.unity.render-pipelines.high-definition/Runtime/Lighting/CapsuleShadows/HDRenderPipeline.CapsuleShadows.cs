@@ -224,17 +224,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
 
-            uint indirectCountAndFlags = (uint)m_CapsuleOccluders.indirectCount | ((uint)capsuleShadows.indirectShadowMethod.value << 24);
+            uint indirectCountAndFlags
+                = (uint)m_CapsuleOccluders.indirectCount
+                | ((uint)capsuleShadows.indirectShadowMethod.value << (int)CapsuleIndirectShadowFlags.MethodShift);
             switch (capsuleShadows.indirectShadowMethod.value)
             {
                 case CapsuleIndirectShadowMethod.AmbientOcclusion:
-                    indirectCountAndFlags |= (uint)capsuleShadows.ambientOcclusionMethod.value << 28;
+                    indirectCountAndFlags |= ((uint)capsuleShadows.ambientOcclusionMethod.value << (int)CapsuleIndirectShadowFlags.ExtraShift);
                     break;
                 case CapsuleIndirectShadowMethod.DirectionAtSurface:
                 case CapsuleIndirectShadowMethod.DirectionAtCapsule:
-                    // no additional flags
+                    // no extra flags
                     break;
             }
+            if (capsuleShadows.indirectInLightLoop.value)
+                indirectCountAndFlags |= (uint)CapsuleIndirectShadowFlags.LightLoopBit;
 
             cb._CapsuleDirectShadowCount = (uint)m_CapsuleOccluders.directCount;
             cb._CapsuleIndirectShadowCountAndFlags = indirectCountAndFlags;
@@ -247,6 +251,65 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
         {
             cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_CapsuleOccluderDataBuffer);
+        }
+
+        class RenderCapsuleShadowsPassData
+        {
+            public ComputeShader capsuleCS;
+            public int kernel;
+
+            public TextureHandle output;
+            public TextureHandle depthPyramid;
+            public TextureHandle normalBuffer;
+            public ComputeBufferHandle capsuleOccluderDatas;
+            public Vector2Int firstDepthMipOffset;
+        }
+
+        internal TextureHandle RenderCapsuleShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, in HDUtils.PackedMipChainInfo depthMipInfo)
+        {
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+            if (m_CapsuleOccluders.indirectCount == 0 || capsuleShadows.indirectInLightLoop.value)
+                return renderGraph.defaultResources.blackTextureXR;
+
+            using (var builder = renderGraph.AddRenderPass<RenderCapsuleShadowsPassData>("Capsule Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RenderCapsuleShadows)))
+            {
+                passData.capsuleCS = defaultResources.shaders.capsuleShadowsCS;
+                passData.kernel = passData.capsuleCS.FindKernel("CapsuleShadowMain");
+
+                passData.output = builder.WriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one * 0.5f, dynamicResolution: true, xrReady: true)
+                    {
+                        colorFormat = GraphicsFormat.R16_UNorm,
+                        enableRandomWrite = true,
+                        name = "Capsule Shadows"
+                    }));
+                passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
+                passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
+
+                builder.SetRenderFunc(
+                    (RenderCapsuleShadowsPassData data, RenderGraphContext ctx) =>
+                    {
+                        RTHandle output = data.output;
+                        Vector2Int size = output.GetScaledSize(output.rtHandleProperties.currentViewportSize);
+
+                        ShaderVariablesCapsuleShadows cb = new ShaderVariablesCapsuleShadows { };
+                        cb._SizeRcp = new Vector2(1.0f/size.x, 1.0f/size.y);
+                        cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
+                        cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
+
+                        ConstantBuffer.Push(ctx.cmd, cb, data.capsuleCS, HDShaderIDs._ShaderVariablesCapsuleShadows);
+                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleShadowTexture, data.output);
+                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                        ctx.cmd.SetComputeBufferParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleOccluderDatas, data.capsuleOccluderDatas);
+
+                        ctx.cmd.DispatchCompute(data.capsuleCS, data.kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), 1);
+                    });
+
+                return passData.output;
+            }
         }
     }
 }

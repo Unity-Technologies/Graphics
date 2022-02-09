@@ -254,6 +254,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
             public ComputeShader screenSpaceGlobalIlluminationCS;
 
+            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.compute")]
+            public ComputeShader capsuleShadowsCS;
+
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
             public Shader depthValuesPS;

@@ -26,6 +26,17 @@ namespace UnityEngine.Rendering.HighDefinition
         LineAndClosestSphere,
     }
 
+    [GenerateHLSL]
+    public enum CapsuleIndirectShadowFlags
+    {
+        CountMask = 0x0000ffff,
+        MethodShift = 16,
+        MethodMask = 0x000f0000,
+        ExtraShift = 20,
+        ExtraMask = 0x00f00000,
+        LightLoopBit = 0x01000000,
+    }
+
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleOccluderData
     {

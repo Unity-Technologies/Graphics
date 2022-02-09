@@ -194,6 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SliceIndex = Shader.PropertyToID("_SliceIndex");
         public static readonly int _DebugContactShadowLightIndex = Shader.PropertyToID("_DebugContactShadowLightIndex");
 
+        public static readonly int _ShaderVariablesCapsuleShadows = Shader.PropertyToID("ShaderVariablesCapsuleShadows");
+        public static readonly int _CapsuleShadowTexture = Shader.PropertyToID("_CapsuleShadowTexture");        
+
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _AmbientOcclusionTextureRW = Shader.PropertyToID("_AmbientOcclusionTextureRW");
         public static readonly int _MultiAmbientOcclusionTexture = Shader.PropertyToID("_MultiAmbientOcclusionTexture");

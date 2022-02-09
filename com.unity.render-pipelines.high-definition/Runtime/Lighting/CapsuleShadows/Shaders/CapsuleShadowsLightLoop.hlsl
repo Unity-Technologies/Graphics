@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+TEXTURE2D_X(_CapsuleShadowTexture);
 
 uint GetDefaultCapsuleShadowFlags()
 {
