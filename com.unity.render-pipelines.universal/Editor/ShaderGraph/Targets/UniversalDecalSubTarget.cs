@@ -513,6 +513,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.ForwardEmissiveMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.MeshWithEmission,
+                keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
             };
 
@@ -780,6 +781,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
+                { Pragma.debug },
             };
 
             public static PragmaCollection GBuffer = new PragmaCollection
@@ -789,6 +791,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
+                { Pragma.debug },
             };
 
             public static PragmaCollection MultipleRenderTargets = new PragmaCollection
@@ -949,6 +952,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
+                { Descriptors.DecalLayers },
+            };
+
+            public static KeywordCollection ForwardEmissiveProjector = new KeywordCollection
+            {
                 { Descriptors.DecalLayers },
             };
 
