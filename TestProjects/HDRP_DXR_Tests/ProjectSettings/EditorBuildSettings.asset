@@ -342,6 +342,15 @@ EditorBuildSettings:
     path: Assets/Scenes/2008_Debug_SubSurfaceScattering.unity
     guid: bb4c2806fa330ce4a8015c64186b031d
   - enabled: 1
+    path: Assets/Scenes/2009_Debug_RTAS_ScreenSpaceReflections_InstanceID.unity
+    guid: 056c6092c4cc1d046ae735b88ac44337
+  - enabled: 1
+    path: Assets/Scenes/2009_Debug_RTAS_ScreenSpaceReflections_PrimitiveID.unity
+    guid: 9d32afd44c7a74e458fb78b75a84f166
+  - enabled: 1
+    path: Assets/Scenes/2009_Debug_RTAS_Shadows_PrimitiveID.unity
+    guid: b5dbda28632484a409651e54abc8dbae
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
@@ -413,4 +422,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/7000_QuadChannelTexCoord.unity
     guid: 93bf762e6d528a640b338bfa061dfffb
+  - enabled: 1
+    path: Assets/Scenes/8001_SphereCulling.unity
+    guid: 24429a7355c86aa478cfe1b526c4da92
+  - enabled: 1
+    path: Assets/Scenes/8002_NoCulling.unity
+    guid: 3ff85ad28abb90843810968c3fd26868
+  - enabled: 1
+    path: Assets/Scenes/8003_FarPlaneCulling.unity
+    guid: 531302efb75a33f409e705a90c451ddf
   m_configObjects: {}

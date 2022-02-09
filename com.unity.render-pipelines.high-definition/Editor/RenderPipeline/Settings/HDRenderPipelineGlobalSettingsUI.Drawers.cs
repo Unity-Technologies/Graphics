@@ -298,7 +298,8 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.generalSettingsLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawMiscSettings),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((serialized, owner) => RenderPipelineGlobalSettingsUI.DrawShaderStrippingSettings(serialized, owner))
         );
         static void DrawMiscSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
@@ -307,7 +308,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
                 EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);

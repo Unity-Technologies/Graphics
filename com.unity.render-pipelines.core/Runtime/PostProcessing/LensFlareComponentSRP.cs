@@ -99,9 +99,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Retrieves the projected occlusion radius from a particular celestial in the infinity plane with an angular radius.
         /// This is used for directional lights which require to have consistent occlusion radius regardless of the near/farplane configuration.
-        /// <param name="mainCam">The camera utilized to calculate the occlusion radius</param>
-        /// <return>The value, in world units, of the occlusion angular radius.</return>
         /// </summary>
+        /// <param name="mainCam">The camera utilized to calculate the occlusion radius</param>
+        /// <returns>The value, in world units, of the occlusion angular radius.</returns>
         public float celestialProjectedOcclusionRadius(Camera mainCam)
         {
             float projectedRadius = (float)Math.Tan(sCelestialAngularRadius) * mainCam.farClipPlane;

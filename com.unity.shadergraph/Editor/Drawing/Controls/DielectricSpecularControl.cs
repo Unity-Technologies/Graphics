@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     RedrawRangeControls(m_DielectricMaterial.range);
 
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             panel.Add(field);
             return field;
         }

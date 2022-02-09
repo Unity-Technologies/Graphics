@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(LiftGammaGain))]
+    [CustomEditor(typeof(LiftGammaGain))]
     sealed class LiftGammaGainEditor : VolumeComponentEditor
     {
         static class Styles

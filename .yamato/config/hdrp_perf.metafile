@@ -16,6 +16,7 @@ reuse_blocks:
 test_platforms:
   - type: playmode
     name: performance_memory
+    allow_cache: False
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
@@ -32,6 +33,7 @@ test_platforms:
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
   - type: playmode
+    allow_cache: False
     name: performance_counters
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
@@ -53,7 +55,7 @@ test_platforms:
           - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
-    allow_cache: True
+    allow_cache: False
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:

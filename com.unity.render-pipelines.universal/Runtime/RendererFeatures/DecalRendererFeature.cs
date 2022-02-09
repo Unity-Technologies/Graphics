@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
-            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
             return GetTechnique(isDeferred);
         }
 
@@ -336,6 +336,8 @@ namespace UnityEngine.Rendering.Universal
             if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS5)
                 return true;
             if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.WSA)
+                return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Switch)
                 return true;
             return false;
 #else
@@ -489,8 +491,10 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Technique == DecalTechnique.DBuffer)
             {
+                m_DBufferRenderPass.Setup(renderingData.actualRenderingMode);
+
                 var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
                 {
                     m_DBufferRenderPass.Setup(renderingData.cameraData, renderer.cameraDepthTargetHandle);
 
@@ -520,6 +524,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            m_DBufferRenderPass?.Dispose();
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_DBufferClearMaterial);
 

@@ -2,19 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
-using UnityEditor.VFX;
+
+using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
-
 using UnityObject = UnityEngine.Object;
-using UnityEditor.Graphs;
-using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX
 {
@@ -43,14 +39,19 @@ namespace UnityEditor.VFX
                             graph.SanitizeForImport();
                             if (!wasGraphSanitized && graph.sanitized)
                             {
-                                if (assetToReimport == null)
-                                    assetToReimport = new List<string>();
+                                assetToReimport ??= new List<string>();
                                 assetToReimport.Add(assetPath);
                             }
                         }
                         catch (Exception exception)
                         {
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
+                        }
+
+                        var window = VFXViewWindow.GetWindow(graph, false, false);
+                        if (window != null)
+                        {
+                            window.UpdateTitle(assetPath);
                         }
                     }
                     else
@@ -249,7 +250,7 @@ namespace UnityEditor.VFX
     {
         public static bool HasVFXExtension(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (!System.IO.File.Exists(filePath))
                 return false;
             return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)
@@ -316,7 +317,7 @@ namespace UnityEditor.VFX
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
         {
-            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+            return AssetDatabase.IsOpenForEdit((UnityEngine.Object)resource.asset ?? resource.subgraph, StatusQueryOptions.UseCachedIfPossible);
         }
     }
 

@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
                     cmd.SetGlobalTexture(dBufferColorHandles[2].name, dBufferColorHandles[2].nameID);
 
+
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, m_Settings.surfaceData == DecalSurfaceData.Albedo);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
@@ -186,11 +187,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, false);
-
-            for (int dbufferIndex = 0; dbufferIndex < m_DBufferCount; ++dbufferIndex)
-            {
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(s_DBufferNames[dbufferIndex]));
-            }
         }
     }
 }

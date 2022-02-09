@@ -115,7 +115,8 @@ namespace UnityEngine.Rendering.Universal
                         AssetDatabase.CreateFolder("Assets", folderPath);
                     assetCreated = Create(path);
 
-                    Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                    // TODO: Reenable after next urp template is published
+                    //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
                 }
                 else
                 {

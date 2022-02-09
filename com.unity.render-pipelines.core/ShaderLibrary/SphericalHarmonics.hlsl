@@ -141,14 +141,15 @@ void ConvolveZonal(inout float sh[27], float3 zh)
 // Constant + linear
 void PackSH(RWStructuredBuffer<float4> buffer, float sh[27])
 {
-    for (int c = 0; c < 3; c++)
+    int c = 0;
+    for (c = 0; c < 3; c++)
 
     {
         buffer[c] = float4(sh[c * 9 + 3], sh[c * 9 + 1], sh[c * 9 + 2], sh[c * 9 + 0] - sh[c * 9 + 6]);
     }
 
     // Quadratic (4/5)
-    for (int c = 0; c < 3; c++)
+    for (c = 0; c < 3; c++)
     {
         buffer[3 + c] = float4(sh[c * 9 + 4], sh[c * 9 + 5], sh[c * 9 + 6] * 3.0f, sh[c * 9 + 7]);
     }
