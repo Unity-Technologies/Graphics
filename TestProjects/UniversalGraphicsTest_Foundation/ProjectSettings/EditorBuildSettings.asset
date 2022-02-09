@@ -138,6 +138,9 @@ EditorBuildSettings:
     path: Assets/Scenes/066_Blending.unity
     guid: d27c51a5aecee4e0e9c29141a0819c8b
   - enabled: 1
+    path: Assets/Scenes/067_Blending_Particles.unity
+    guid: c8a775519652940ac936ad7b75d2c615
+  - enabled: 1
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
   - enabled: 1
