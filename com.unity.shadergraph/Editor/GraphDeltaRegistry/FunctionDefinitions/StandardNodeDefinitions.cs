@@ -12,7 +12,6 @@ internal class StandardNodeDefinitions
     {
         new FunctionDescriptor(
             1,      // Version
-            "Pow",  // Name
             "Out = pow(In, Exp);",
             new List<ParameterDescriptor>()
             {
@@ -35,7 +34,6 @@ internal class StandardNodeDefinitions
         )
     };
 
-    // StandardNodeDefinitions should not be instantiated
     private StandardNodeDefinitions()
     { }
 }
