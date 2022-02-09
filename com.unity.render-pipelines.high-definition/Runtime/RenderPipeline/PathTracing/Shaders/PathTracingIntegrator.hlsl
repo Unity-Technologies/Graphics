@@ -21,6 +21,18 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
     return geomNormal * (below ? -bias : bias);
 }
 
+float3 GetSkyValue(PathPayload payload, float3 direction)
+{
+    if (payload.segmentID == 0 && dot(direction, WorldRayDirection()) > 0.999)
+    {
+        // If we can, access our high resolution screen-space background
+        return GetSkyBackground(payload.pixelCoord).rgb;
+    }
+
+    // Otherwise query the lower resolution cubemap
+    return GetSkyValue(direction);
+}
+
 #ifdef _ENABLE_SHADOW_MATTE
 
 // Compute scalar visibility for shadow mattes, between 0 and 1
@@ -81,9 +93,6 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         payload.value = fragInput.tangentToWorld[2]; // Returns normal
         return;
     }
-
-    // A null direction equates to no further continuation ray
-    payload.rayDirection = 0.0;
 
     // Make sure to add the additional travel distance
     payload.cone.width += payload.rayTHit * abs(payload.cone.spreadAngle);
@@ -168,6 +177,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
+                    // Add direct light sampling contribution
                     float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
                     payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity) * misWeight;
                 }
@@ -198,59 +208,97 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
                 shadowPayload.rayTHit = FLT_INF;
 
-                // Shoot a shadow ray, and also get the nearest tHit, to optimize the continuation ray in the same direction
+                // Shoot a ray returning nearest tHit, both to shadow direct lighting and optimize the continuation ray in the same direction
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
+                bool hit = (shadowPayload.rayTHit < FLT_INF);
 
-                // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
-                payload.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, payload.maxRoughness);
-
-                // To perform texture filtering, we maintain a footprint of the pixel
-                payload.cone.spreadAngle = payload.cone.spreadAngle + roughnessToSpreadAngle(payload.maxRoughness);
-
-                // Compute material absorption and apply it to our throughput
+                // Compute material absorption (typically, tinted refraction), and throw in the Russian roulette compensation
                 float3 absorption = rrFactor * GetMaterialAbsorption(mtlData, surfaceData, shadowPayload.rayTHit, isSampleBelow);
-                payload.throughput *= absorption;
 
                 if (computeDirect)
                 {
-                    // Use same ray for direct lighting (use indirect result for occlusion)
+                    // Use the hit distance to know which lights are visible
                     ray.TMax = shadowPayload.rayTHit + _RaytracingRayBias;
                     float3 lightValue;
                     float lightPdf;
                     EvaluateLights(lightList, ray, lightValue, lightPdf);
 
+                    // Add direct material sampling contribution
+                    value *= absorption;
                     float misWeight = PowerHeuristic(pdf, lightPdf);
-                    payload.value += value * absorption * lightValue * misWeight;
+                    payload.value += value * lightValue * misWeight;
+
+                    // Add sky contribution separately, if not doing sky sampling
+                    if (!IsSkySamplingEnabled() && !hit)
+                        payload.value += value * GetSkyValue(payload, ray.Direction);
                 }
 
-                // Update our payload to fire the next continuation ray
-                SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
+                // If we have a hit, we want to prepare our payload for a continuation ray
+                if (hit)
+                {
+                    // Apply aborption to the throughput
+                    payload.throughput *= absorption;
+
+                    // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
+                    payload.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, payload.maxRoughness);
+
+                    // To perform texture filtering, we maintain a footprint of the pixel
+                    payload.cone.spreadAngle = payload.cone.spreadAngle + roughnessToSpreadAngle(payload.maxRoughness);
+
+                    // Update the actual continuation ray parameters
+                    SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
+                }
             }
         }
     }
 
 #else // SHADER_UNLIT
 
-    payload.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    if (computeDirect)
+    {
+        payload.value = surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor;
 
-    // Apply shadow matte if requested
     #ifdef _ENABLE_SHADOW_MATTE
-    float3 shadowColor = lerp(payload.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
-    float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
-    payload.value = lerp(shadowColor, payload.value, visibility);
+        // Apply shadow matte if requested
+        float3 shadowColor = lerp(payload.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+        float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+        payload.value = lerp(shadowColor, payload.value, visibility);
     #endif
+    }
 
-    // Simulate opacity blending by simply continuing along the current ray
     #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
     {
-        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
-        float3 rayOrigin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
+        // Simulate opacity blending by simply continuing along the current ray
+        PathPayload shadowPayload;
+        shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
+        shadowPayload.rayTHit = FLT_INF;
 
-        // Update our payload to fire a straight continuation ray
-        payload.throughput *= 1.0 - builtinData.opacity;
-        payload.value *= builtinData.opacity;
-        SetContinuationRay(rayOrigin, WorldRayDirection(), -1.0, payload);
+        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+
+        RayDesc ray;
+        ray.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
+        ray.Direction = WorldRayDirection();
+        ray.TMin = 0.0;
+        ray.TMax = FLT_INF;
+
+        // Shoot a ray returning nearest tHit, to decide if we fetch the sky value or fire a continuation ray in the same direction
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
+        bool hit = (shadowPayload.rayTHit < FLT_INF);
+
+        if (computeDirect)
+        {
+            payload.value *= builtinData.opacity;
+            if (!hit)
+                payload.value += (1.0 - builtinData.opacity) * GetSkyValue(payload, ray.Direction);
+        }
+
+        if (hit)
+        {
+            // Update our payload to fire a continuation ray
+            payload.throughput *= 1.0 - builtinData.opacity;
+            SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
+        }
     }
     #endif
 

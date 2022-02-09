@@ -24,7 +24,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 
 // Input(s)
-TEXTURE2D_X(_SkyCameraTexture);
 float4x4    _PixelCoordToViewDirWS;
 int         _PathTracingCameraSkyEnabled;
 float4      _PathTracingCameraClearColor;
@@ -34,19 +33,8 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
 
-float4 GetCameraMissValue(uint2 xy)
-{
-    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
-        _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
-}
-
-float3 GetMaterialMissValue()
-{
-    return IsSkyEnabled() ? GetSkyValue(WorldRayDirection()) : 0.0;
-}
-
 [shader("miss")]
-void MissCamera(inout PathPayload payload : SV_RayPayload)
+void CameraMiss(inout PathPayload payload : SV_RayPayload)
 {
     // Set initial "hit" to infinity (before potential volumetric scattering)
     payload.rayTHit = FLT_INF;
@@ -59,7 +47,8 @@ void MissCamera(inout PathPayload payload : SV_RayPayload)
         return;
     }
 
-    float4 missColor = GetCameraMissValue(payload.pixelCoord);
+    float4 missColor = IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
+        GetSkyBackground(payload.pixelCoord) : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
 
     payload.value = missColor.rgb;
     payload.throughput.x = missColor.a;
@@ -75,17 +64,17 @@ void MissCamera(inout PathPayload payload : SV_RayPayload)
 
         // Compute volumetric scattering
         payload.value = 0.0;
-        float pdf = 1.0;
+        float volPdf = 1.0;
         bool sampleLocalLights;
-        if (SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, pdf, sampleLocalLights, lightPosition))
+        if (SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, volPdf, sampleLocalLights, lightPosition))
         {
             ComputeVolumeScattering(payload, inputSample.xyz, sampleLocalLights, lightPosition);
 
-            // Apply the pdf
-            payload.value /= pdf;
-
             // Apply volumetric attenuation
             ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.rayTHit, payload.value, false);
+
+            // Apply the volumetric PDF
+            payload.value /= volPdf;
         }
 
         // Reinject the environment value
@@ -94,47 +83,8 @@ void MissCamera(inout PathPayload payload : SV_RayPayload)
 }
 
 [shader("miss")]
-void MissLight(inout PathPayload payload : SV_RayPayload)
+void EmptyMiss(inout PathPayload payload : SV_RayPayload)
 {
-}
-
-[shader("miss")]
-void MissMaterial(inout PathPayload payload : SV_RayPayload)
-{
-    if (IsSkySamplingEnabled() || payload.segmentID < _RaytracingMinRecursion)
-    {
-        payload.value = 0.0;
-        return;
-    }
-
-    payload.value = GetMaterialMissValue();
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
-
-    // Make sure we don't shoot another continuation ray after this
-    payload.rayDirection = 0.0;
-}
-
-[shader("miss")]
-void MissTransparentUnlitMaterial(inout PathPayload payload : SV_RayPayload)
-{
-    if (payload.segmentID < _RaytracingMinRecursion)
-    {
-        payload.value = 0.0;
-        return;
-    }
-
-    // Misses from Transparent Unlit are special in that they always are straight up continuation rays
-    payload.value = payload.segmentID > 1 ? GetMaterialMissValue() : GetCameraMissValue(payload.pixelCoord).rgb;
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value);
-
-    // Make sure we don't shoot another continuation ray after this
-    payload.rayDirection = 0.0;
-}
-
-uint GetMissIndex(RayDesc ray)
-{
-    // If we have specific Min and Max values, we are shooting a Transparent Unlit continuation ray
-    return (ray.TMin == 0.0 && ray.TMax == FLT_INF) ? 3 : 2;
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
@@ -173,7 +123,6 @@ void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ra
 
     // Initialize the payload for this camera ray
     payload.throughput = 1.0;
-    payload.value = 0.0;
     payload.maxRoughness = 0.0;
     payload.pixelCoord = tiledPixelCoord;
     payload.segmentID = 0;
@@ -260,13 +209,15 @@ void TracePath()
             // Update our continuation ray
             GetContinuationRay(payload, ray);
 
-            // Refresh the payload (done after extracting continuation ray, because of data aliasing)
+            // Reset the payload (done after extracting continuation ray, because of data aliasing)
+            payload.value = 0.0;
+            payload.rayDirection = 0.0;
             payload.pixelCoord = pixelCoord;
             payload.segmentID = segmentID;
 
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-                     RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, GetMissIndex(ray), ray, payload);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+                     RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
             // Store segment radiance value
             segmentValue[segmentID] = payload.value;

@@ -67,16 +67,8 @@ void GetContinuationRay(PathPayload payload, out RayDesc ray)
 {
     ray.Origin = GetContinuationRayOrigin(payload);
     ray.Direction = payload.rayDirection;
-    if (payload.rayTHit > 0.0)
-    {
-        ray.TMin = payload.rayTHit - _RaytracingRayBias;
-        ray.TMax = payload.rayTHit + _RaytracingRayBias;
-    }
-    else // Use default values
-    {
-        ray.TMin = 0.0;
-        ray.TMax = FLT_INF;
-    }
+    ray.TMin = payload.rayTHit - _RaytracingRayBias;
+    ray.TMax = payload.rayTHit + _RaytracingRayBias;
 }
 
 #endif // UNITY_PATH_TRACING_PAYLOAD_INCLUDED
