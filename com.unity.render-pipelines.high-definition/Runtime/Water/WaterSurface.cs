@@ -71,12 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool infinite = true;
 
         /// <summary>
-        /// Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.
-        /// </summary>
-        [Tooltip("Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.")]
-        public float earthRadius = 6371000.0f;
-
-        /// <summary>
         /// Specifies the type of geometry used to render the water surface when non infinite.
         /// </summary>
         [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
@@ -87,6 +81,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
         public Mesh geometry = null;
+
+        /// <summary>
+        /// When enabled, the water surface will follow the planet's curvature.
+        /// </summary>
+        [Tooltip("When enabled, the water surface will follow the planet's curvature.")]
+        public bool projectOnPlanet = false;
+
+        /// <summary>
+        /// Sets the planet radius that is used to curve the water surface when in infite mode to simulate the planet's curvature.
+        /// </summary>
+        [Tooltip("Sets the planet radius that is used to curve the water surface when in infite mode to simulate the planet's curvature.")]
+        public float planetRadius = 6371000.0f;
         #endregion
 
         #region Water Simulation
