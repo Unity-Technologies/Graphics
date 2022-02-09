@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Checks whether ANY of the debug settings are currently active.
         /// </summary>
-        public bool AreAnySettingsActive => volumeDebugSettings.selectedCamera != null || volumeComponentEnumIndex > 0;
+        public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
         /// <summary>
         /// Checks whether the current state of these settings allows post-processing.
         /// </summary>
