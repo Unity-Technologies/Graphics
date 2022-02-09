@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Infinite;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
-        SerializedProperty m_ProjectOnPlanet;
-        SerializedProperty m_PlanetRadius;
 
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
@@ -90,8 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Infinite = o.Find(x => x.infinite);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
-            m_ProjectOnPlanet = o.Find(x => x.projectOnPlanet);
-            m_PlanetRadius = o.Find(x => x.planetRadius);
 
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
@@ -218,17 +214,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(m_GeometryType);
                         if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
                             EditorGUILayout.PropertyField(m_Geometry);
-                    }
-                }
-
-                // Planet parameters
-                EditorGUILayout.PropertyField(m_ProjectOnPlanet);
-                using (new IndentLevelScope())
-                {
-                    if (m_ProjectOnPlanet.boolValue)
-                    {
-                        EditorGUILayout.PropertyField(m_PlanetRadius);
-                        m_PlanetRadius.floatValue = Mathf.Max(m_PlanetRadius.floatValue, 500.0f);
                     }
                 }
             }

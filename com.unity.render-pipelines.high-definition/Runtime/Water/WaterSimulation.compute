@@ -235,7 +235,7 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
         stepCount++;
     }
 
-    _WaterCameraHeightBufferRW[4 * coord] = _WorldSpaceCameraPos.y - currentHeight;
+    _WaterCameraHeightBufferRW[4 * coord] = targetPosition.y - currentHeight;
     _WaterCameraHeightBufferRW[4 * coord + 1] = currentError;
     _WaterCameraHeightBufferRW[4 * coord + 2] = stepCount;
     _WaterCameraHeightBufferRW[4 * coord + 3] = 0.0;

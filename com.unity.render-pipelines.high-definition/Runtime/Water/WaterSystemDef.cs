@@ -124,8 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _WaterLODCount;
         // Number of water patches that need to be rendered
         public uint _NumWaterPatches;
-        // Planet radius
-        public float _PlanetRadius;
+        // Padding
+        public float _PaddingWR0;
         // Intensity of the water caustics
         public float _CausticsIntensity;
 
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _CausticsOffset;
         // Tiling factor of the caustics
         public float _CausticsTiling;
-        public float _PaddingWR0;
+        public float _PaddingWR1;
 
         // Blend distance
         public float _CausticsPlaneBlendDistance;

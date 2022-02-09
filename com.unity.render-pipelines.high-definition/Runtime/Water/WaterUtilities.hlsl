@@ -197,15 +197,7 @@ float3 WaterSimulationPosition(float3 objectPosition)
 float3 GetWaterVertexPosition(float3 positionRWS)
 {
     // Get the absolute world position from the camera relative one
-    float3 relativeWorldPos = GetAbsolutePositionWS(positionRWS);
-
-    // Apply the earth's curvature
-    float L = sqrt(_PlanetRadius * _PlanetRadius + relativeWorldPos.x * relativeWorldPos.x + relativeWorldPos.z * relativeWorldPos.z) - _PlanetRadius;
-    float3 toEarthCenterVector = normalize(float3(0, -_PlanetRadius , 0) - relativeWorldPos);
-    relativeWorldPos += _PlanetRadius != 0.0 ? (L * toEarthCenterVector) : 0.0;
-
-    // Return the final world space position
-    return relativeWorldPos;
+    return GetAbsolutePositionWS(positionRWS);
 }
 
 struct WaterDisplacementData

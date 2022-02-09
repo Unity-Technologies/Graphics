@@ -72,7 +72,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float4 _WaterAmbientProbe;
     uint _WaterLODCount;
     uint _NumWaterPatches;
-    float _PlanetRadius;
+    float _PaddingWR0;
     float _CausticsIntensity;
     float2 _WaterMaskScale;
     float2 _WaterMaskOffset;
@@ -80,7 +80,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _FoamMaskOffset;
     float2 _CausticsOffset;
     float _CausticsTiling;
-    float _PaddingWR0;
+    float _PaddingWR1;
     float _CausticsPlaneBlendDistance;
     int _WaterCausticsType;
     uint _WaterDecalLayer;

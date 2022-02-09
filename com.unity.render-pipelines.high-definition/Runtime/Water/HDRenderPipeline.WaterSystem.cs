@@ -551,7 +551,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsIntensity = currentWater.causticsIntensity;
             parameters.waterRenderingCB._CausticsTiling = currentWater.causticsTiling;
             parameters.waterRenderingCB._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
-            parameters.waterRenderingCB._PlanetRadius = currentWater.projectOnPlanet ? currentWater.planetRadius : 0.0f;
             parameters.waterRenderingCB._InfiniteSurface = currentWater.infinite ? 1 : 0;
             parameters.waterRenderingCB._WaterCausticsType = parameters.causticsEnabled ? (parameters.simulationCaustics ? 0 : 1) : 0;
             parameters.waterRenderingCB._CameraInUnderwaterRegion = insideUnderWaterVolume ? 1 : 0;

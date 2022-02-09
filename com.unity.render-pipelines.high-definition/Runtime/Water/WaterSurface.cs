@@ -81,18 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
         public Mesh geometry = null;
-
-        /// <summary>
-        /// When enabled, the water surface will follow the planet's curvature.
-        /// </summary>
-        [Tooltip("When enabled, the water surface will follow the planet's curvature.")]
-        public bool projectOnPlanet = false;
-
-        /// <summary>
-        /// Sets the planet radius that is used to curve the water surface when in infite mode to simulate the planet's curvature.
-        /// </summary>
-        [Tooltip("Sets the planet radius that is used to curve the water surface when in infite mode to simulate the planet's curvature.")]
-        public float planetRadius = 6371000.0f;
         #endregion
 
         #region Water Simulation
