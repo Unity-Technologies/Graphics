@@ -781,7 +781,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
-                { Pragma.debug },
             };
 
             public static PragmaCollection GBuffer = new PragmaCollection
@@ -791,7 +790,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
-                { Pragma.debug },
             };
 
             public static PragmaCollection MultipleRenderTargets = new PragmaCollection
