@@ -1228,6 +1228,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public Vector4 packedArgs;
             public Vector4 depthEncodeParams;
+            public BlueNoise blueNoise;
+            public Texture2D ditherTexture;
             public TextureHandle outputPhotonBuffer;
         }
 
@@ -1257,6 +1259,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle opaqueColorPyramid = renderGraph.ImportTexture(opaqueColorPyramidRT);
                     passData.opaqueColorPyramid = builder.ReadTexture(opaqueColorPyramid);
                 }
+
+                passData.blueNoise = GetBlueNoiseManager();
 
                 passData.gBuffer0Texture = builder.ReadTexture(gBuffer0Texture);
                 passData.gBuffer1Texture = builder.ReadTexture(gBuffer1Texture);
@@ -1297,6 +1301,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer1, data.gBuffer1Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenDirectReflectionLighting, data.offscreenDirectReflectionLightingTexture);
+
+                        data.blueNoise.BindDitheredRNGData1SPP(context.cmd);
+
                         context.cmd.DispatchCompute(data.cs, kernel, data.samplesDispatchArgsBuffer, 0);
                     });
             }
