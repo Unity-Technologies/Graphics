@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public List<CapsuleOccluderData> occluders;
         public bool directUsesSphereBounds;
         public int directCount;
+        public bool indirectInLightLoop;
         public int indirectCount;
 
         public void Clear()
@@ -28,17 +29,12 @@ namespace UnityEngine.Rendering.HighDefinition
             directCount = 0;
             indirectCount = 0;
         }
-
-        public int TotalCount()
-        {
-            return directCount + indirectCount;
-        }
     };
 
     public partial class HDRenderPipeline
     {
-        internal const int k_MaxDirectShadowCapsulesOnScreen = 256;
-        internal const int k_MaxIndirectShadowCapsulesOnScreen = 256;
+        internal const int k_MaxDirectShadowCapsulesOnScreen = 1024;
+        internal const int k_MaxIndirectShadowCapsulesOnScreen = 1024;
 
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
@@ -103,6 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CapsuleOccluders.Clear();
             m_CapsuleOccluders.directUsesSphereBounds = !optimiseBoundsForLight;
+            m_CapsuleOccluders.indirectInLightLoop = capsuleShadows.indirectInLightLoop.value;
 
             bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
             float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;

@@ -15,38 +15,151 @@ StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 
 #define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
 
-[numthreads(8,8,1)]
-void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+#define DEPTH_MIN_EMPTY 0xffffffffU
+groupshared uint s_depthMin;
+groupshared uint s_depthMax;
+groupshared uint s_activeCapsules[2];
+
+#if USE_LEFT_HAND_CAMERA_SPACE
+#define PACK_UNPACK_POSITIVE_DEPTH(D)   (D)
+#else
+#define PACK_UNPACK_POSITIVE_DEPTH(D)   (-(D))
+#endif
+
+float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
+{
+    return float3(posVS_XY * abs(linearDepth), linearDepth);
+}
+
+#define TILE_SIZE   8
+
+[numthreads(TILE_SIZE,TILE_SIZE,1)]
+void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
 {
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + pixelCoord).x;
+    bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
+
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * 2);
 
-    float3 positionWS = ComputeWorldSpacePosition((pixelCoord + .5f)*_SizeRcp, deviceDepth, UNITY_MATRIX_I_VP);
+    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_SizeRcp, deviceDepth);
+
+    // TODO: handle orthographic
+    float4x4 invProj = UNITY_MATRIX_I_P;
+    float linearDepth = invProj._m23/(invProj._m32 * positionCS.z + invProj._m33);
+    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
+    float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+
+    float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
+    float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
 
     NormalData normalData;
     DecodeFromNormalBuffer(normalBufferData, normalData);
     float3 normalWS = normalData.normalWS;
 
-    uint capsuleCount = _CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK;
-    uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
-    float visibility = 1.f;
-    for (uint i = 0; i < capsuleCount; ++i)
+    if (flatThreadIndex == 0)
     {
-        CapsuleOccluderData s_capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + i];
+        s_depthMin = DEPTH_MIN_EMPTY;
+        s_depthMax = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
 
-        float occlusion = EvaluateCapsuleAmbientOcclusion(
-            flags,
-            s_capsuleData.centerRWS - positionWS,
-            s_capsuleData.axisDirWS,
-            s_capsuleData.offset,
-            s_capsuleData.radius,
-            s_capsuleData.radius*_CapsuleIndirectRangeFactor,
-            normalWS);
+    if (!is_sky)
+    {
+        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
+        InterlockedMin(s_depthMin, asuint(depth));
+        InterlockedMax(s_depthMax, asuint(depth));
+    }
+    GroupMemoryBarrierWithGroupSync();
 
-        visibility *= max(1.f - occlusion, 0.f);
+    // early out if tile is all far clip
+    if (s_depthMin == DEPTH_MIN_EMPTY)
+        return;
+
+    // TODO: splitting planes for froxel
+    // TODO: move work to setup pass to run as one tile per thread
+    // TODO: save/restore to LDS each pass to free up registers
+    // TODO: two depth ranges, to handle edges better
+    // for now just make a bounding sphere using all threads
+    float nearLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMin));
+    float farLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMax));
+
+    // build viewspace bounds
+    float midLinearDepth = 0.5f*(nearLinearDepth + farLinearDepth);
+    float3 tileCenterVS = ViewspaceFromXY(positionVS_XY, midLinearDepth);
+
+    // TODO: optimise
+    float tileRadiusSqVS = 0.f;
+    for (int i = 0; i < 8; ++i) {
+        float2 cornerVS_XY = positionVS_XY + float2((i & 1) != 0 ? 1.f : -1.f, (i & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_SizeRcp*TILE_SIZE;
+        float cornerLinearDepth = ((i & 4) != 0 ? nearLinearDepth : farLinearDepth);
+        float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - tileCenterVS;
+        tileRadiusSqVS = max(tileRadiusSqVS, dot(offsetVS, offsetVS));
+    }
+    float3 tileCenterWS = TransformViewToWorld(tileCenterVS);
+    float tileRadiusWS = sqrt(tileRadiusSqVS) * abs(UNITY_MATRIX_I_V._m00);
+
+
+    // loop over capsules in batches of 64
+    // TODO: make 32, check 2 depth ranges per capsule
+    float visibility = 1.f;
+    uint capsuleCount = _CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK;
+    for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
+    {
+        // clear state
+        if (flatThreadIndex < 2)
+            s_activeCapsules[flatThreadIndex] = 0;
+        GroupMemoryBarrierWithGroupSync();
+
+        // use one thread per capsule to check against tile
+        {
+            uint capsuleIndex = capsuleBaseIndex + flatThreadIndex;
+            if (capsuleIndex < capsuleCount)
+            {
+                CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + capsuleIndex];
+
+                float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
+                float radiusWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
+
+                if (dot(offsetWS, offsetWS) < Sq(radiusWS + tileRadiusWS))
+                    InterlockedOr(s_activeCapsules[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
+            }
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        // loop over set bits to do the shading
+        uint remainingBits = s_activeCapsules[0];
+        bool secondPass = false;
+        for (;;)
+        {
+            if (remainingBits == 0 && !secondPass)
+            {
+                remainingBits = s_activeCapsules[1];
+                secondPass = true;
+            }
+            if (remainingBits == 0)
+                break;
+
+            int bitIndex = firstbitlow(remainingBits);
+            remainingBits &= ~(1U << bitIndex);
+
+            uint capsuleIndex = capsuleBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
+
+            CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + capsuleIndex];
+            uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
+            float occlusion = EvaluateCapsuleAmbientOcclusion(
+                flags,
+                capsuleData.centerRWS - positionWS,
+                capsuleData.axisDirWS,
+                capsuleData.offset,
+                capsuleData.radius,
+                capsuleData.radius*_CapsuleIndirectRangeFactor,
+                normalWS);
+
+            visibility *= max(1.f - occlusion, 0.f);
+        }
     }
 
     _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = 1.f - visibility;
