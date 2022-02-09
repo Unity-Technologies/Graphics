@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEngine;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using System.Linq;
 
 namespace com.unity.shadergraph.defs {
     /// <summary>
@@ -16,12 +14,12 @@ namespace com.unity.shadergraph.defs {
         public FunctionDescriptor(
             int version,
             string name,
-            IReadOnlyCollection<ParameterDescriptor> parameters,
+            IEnumerable<ParameterDescriptor> parameters,
             string body)
         {
             Version = version;
             Name = name;
-            Parameters = parameters;
+            Parameters = parameters.ToList().AsReadOnly();
             Body = body;
         }
     }
