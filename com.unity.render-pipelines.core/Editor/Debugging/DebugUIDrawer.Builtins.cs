@@ -328,7 +328,7 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                index = w.currentIndex;
+                index = value;
                 index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
                 value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.HistoryEnumField>(widget);
-            var s = Cast<DebugStateInt>(state);
+            var s = Cast<DebugStateEnum>(state);
 
             if (w.indexes == null)
                 w.InitIndexes();
