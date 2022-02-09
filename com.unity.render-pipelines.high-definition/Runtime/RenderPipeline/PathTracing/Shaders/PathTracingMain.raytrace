@@ -161,10 +161,10 @@ void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ra
     }
 }
 
-float3 ClampValue(float3 value)
+float3 ClampValue(float3 value, float maxIntensity = _RaytracingIntensityClamp)
 {
     float intensity = Luminance(value) * GetCurrentExposureMultiplier();
-    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
+    return intensity > maxIntensity ? value * maxIntensity / intensity : value;
 }
 
 [shader("raygeneration")]
@@ -210,8 +210,8 @@ void TracePath()
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
-            // Add this segment's contribution to our overall radiance value
-            value += throughput * ClampValue(payload.value);
+            // Add the clamped segment contribution to our overall radiance value
+            value += ClampValue(throughput, 1.0) * ClampValue(payload.value);
         }
     }
     else
