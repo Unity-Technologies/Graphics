@@ -6,7 +6,6 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
         #pragma multi_compile_local_fragment _ _GAMMA_20
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 

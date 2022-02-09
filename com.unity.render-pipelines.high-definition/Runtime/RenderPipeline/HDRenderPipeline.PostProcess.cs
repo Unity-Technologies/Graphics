@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !m_PathTracing.enable.value)
                 {
-                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
+                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, null, false);
                 }
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
