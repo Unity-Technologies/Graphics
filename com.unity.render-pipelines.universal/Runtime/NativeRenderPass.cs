@@ -320,9 +320,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else // In this case we might be rendering the the targetTexture or the Backbuffer, so less information is available
                     {
-                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : GetDefaultGraphicsFormat(cameraData));
-                            ? pass.renderTargetFormat[0]
-                            : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha)); // TODO: maybe this our of UniversalRenderPipeline
+                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha));
 
                         samples = cameraData.cameraTargetDescriptor.msaaSamples;
                         colorAttachmentTarget = usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
@@ -671,8 +669,5 @@ namespace UnityEngine.Rendering.Universal
 
             return new RenderPassDescriptor(targetRT.width, targetRT.height, targetRT.msaaSamples, depthID);
         }
-        private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
-            if (isDepth)
-                return SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
     }
 }
