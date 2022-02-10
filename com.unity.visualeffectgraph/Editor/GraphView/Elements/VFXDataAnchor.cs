@@ -15,6 +15,8 @@ namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
+        readonly Vector2 portPositionOffset = new Vector2(-4, -20);
+
         VFXDataAnchorController m_Controller;
         Controller IControlledElement.controller
         {
@@ -433,6 +435,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
                     {
+                        AlignNodeToLinkedPort(view, port, newNodeController);
                         break;
                     }
                 }
@@ -447,6 +450,15 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+        }
+
+        void AlignNodeToLinkedPort(VFXView view, VFXDataAnchorController port, VFXNodeController nodeController)
+        {
+            var portNode = view.GetDataAnchorByController(port);
+            var connectorElement = portNode.Q<VisualElement>("connector");
+            var newNode = view.GetNodeByController(nodeController);
+            var offset = newNode.worldBound.position - connectorElement.worldBound.position + portPositionOffset;
+            nodeController.model.position += offset / view.scale;
         }
 
         void CopyValueToParameter(VFXParameter parameter)
