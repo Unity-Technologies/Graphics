@@ -16,13 +16,18 @@ namespace UnityEngine.Rendering
         private string m_EnumTypeAsString;
 
         /// <summary>
+        ///  Gets the enum type
+        /// </summary>
+        public Type enumType => Type.GetType(m_EnumTypeAsString);
+
+        /// <summary>
         /// Value of enum
         /// </summary>
         public Enum value
         {
             get
             {
-                if (Enum.TryParse(Type.GetType(m_EnumTypeAsString), m_EnumValueAsString, out object result))
+                if (Enum.TryParse(enumType, m_EnumValueAsString, out object result))
                     return (Enum)result;
 
                 return default(Enum);

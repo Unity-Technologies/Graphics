@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = System.Object;
 
 namespace UnityEditor.Rendering
 {

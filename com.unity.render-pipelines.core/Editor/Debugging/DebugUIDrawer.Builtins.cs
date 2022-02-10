@@ -120,26 +120,11 @@ namespace UnityEditor.Rendering
     /// Builtin Drawer for Boolean Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.BoolField))]
-    public sealed class DebugUIDrawerBoolField : DebugUIDrawer
+    public sealed class DebugUIDrawerBoolField : DebugUIValueDrawer<bool>
     {
-        /// <summary>
-        /// OnGUI implementation for Boolean DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
-        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        protected override bool OnGUI(Rect controlRect, GUIContent guiContent, DebugUI.Field<bool> widget, DebugState<bool> state)
         {
-            var w = Cast<DebugUI.BoolField>(widget);
-            var s = Cast<DebugStateBool>(state);
-
-            var rect = PrepareControlRect();
-            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (bool)s.GetValue());
-
-            if (w.GetValue() != value)
-                Apply(w, s, value);
-
-            return true;
+            return EditorGUI.Toggle(controlRect, guiContent, (bool)state.GetValue());
         }
     }
 
@@ -307,6 +292,8 @@ namespace UnityEditor.Rendering
 
             var label = EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip);
 
+            int index = -1;
+
             if (w.enumNames == null || w.enumValues == null)
             {
                 EditorGUI.LabelField(rect, label, "Can't draw an empty enumeration.");
@@ -317,12 +304,14 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                int index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(value, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
-                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
+                index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(value, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
             }
 
-            if (w.GetValue() != value)
+            if (w.currentIndex != index)
+            {
+                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
                 Apply(w, s, value);
+            }
 
             return true;
         }
@@ -466,7 +455,7 @@ namespace UnityEditor.Rendering
             var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (int)Convert.ToInt32(value), enumNames);
             value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
 
-            if (w.GetValue() != value)
+            if (w.GetValue().CompareTo(value) != 0)
                 Apply(w, s, value);
 
             return true;

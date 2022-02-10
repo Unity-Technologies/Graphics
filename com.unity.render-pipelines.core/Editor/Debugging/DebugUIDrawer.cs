@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering
             if (casted == null)
             {
                 string typeName = o == null ? "null" : o.GetType().ToString();
-                throw new InvalidOperationException("Can't cast " + typeName + " to " + typeof(T));
+                throw new InvalidCastException("Can't cast " + typeName + " to " + typeof(T));
             }
 
             return casted;
@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering
         /// <param name="value">Input value.</param>
         protected void Apply(DebugUI.IValueField widget, DebugState state, object value)
         {
+            // If the user has changed the value we put it on the undo stack, other wise, it was an State <-> UI sync
             Undo.RegisterCompleteObjectUndo(state, $"Debug Property '{state.queryPath}' Change");
             state.SetValue(value, widget);
             widget.SetValue(value);
@@ -108,6 +109,76 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.labelWidth = fullWidth ? rect.width : rect.width / 2f;
 
             return rect;
+        }
+    }
+
+    public class DebugUIValueDrawer<T> : DebugUIDrawer
+        where T : IComparable<T>, IEquatable<T>
+    {
+        /// <summary>
+        /// Implement this to execute processing before UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void Begin(DebugUI.Widget widget, DebugState state)
+        {
+            EditorGUI.BeginChangeCheck();
+        }
+
+        /// <summary>
+        /// Implement this to execute UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>Returns the state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            m_Value = OnGUI(
+                PrepareControlRect(),
+                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                Cast<DebugUI.Field<T>>(widget),
+                Cast<DebugState<T>>(state));
+
+            return true;
+        }
+
+        private T m_Value;
+
+        protected virtual T OnGUI(Rect controlRect, GUIContent guiContent, DebugUI.Field<T> widget, DebugState<T> state)
+        {
+            return default(T);
+        }
+
+        /// <summary>
+        /// Implement this to execute processing after UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void End(DebugUI.Widget widget, DebugState state)
+        {
+            // If the user has changed the value we put it on the undo stack, other wise, it was an State <-> UI sync
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RegisterCompleteObjectUndo(state, $"'{state.queryPath}' change");
+            }
+
+            var field = Cast<DebugUI.Field<T>>(widget);
+            var debugState = Cast<DebugState<T>>(state);
+
+            T fieldValue = field.GetValue();
+            if (fieldValue.CompareTo(m_Value) != 0)
+            {
+                T stateValue = (T)debugState.GetValue();
+                if (stateValue.CompareTo(m_Value) != 0)
+                {
+                    debugState.SetValue(m_Value, field);
+                    EditorUtility.SetDirty(state);
+                    DebugState.m_CurrentDirtyState = state;
+                }
+
+                field.SetValue(m_Value);
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
         }
     }
 }
