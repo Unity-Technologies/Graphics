@@ -110,7 +110,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
     {
         if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
         {
-            // FIXME: Apply phase function and divide by pdf (only isotropic for now, and not sure about sigmaS value)
+            // Apply phase function and divide by PDF
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;
 
             if (Luminance(value) > 0.001)
@@ -129,6 +129,8 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
         }
     }
 
+    // Override AOV motion vector information
+    payload.aovMotionVector = 0.0;
 }
 
 #endif // UNITY_PATH_TRACING_VOLUME_INCLUDED

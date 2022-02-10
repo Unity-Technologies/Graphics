@@ -570,10 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         // Run the computation
-                        ctx.cmd.DispatchRays(data.shader, "TracePath", (uint)data.width, (uint)data.height, 1);
-
-                        // FIXME AOV SUPPORT
-                        //ctx.cmd.DispatchRays(data.shader, data.enableAOVs ? "RayGenAOV" : "RayGen", (uint)data.width, (uint)data.height, 1);
+                        ctx.cmd.DispatchRays(data.shader, data.enableAOVs ? "RayGenAOV" : "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
             }
         }

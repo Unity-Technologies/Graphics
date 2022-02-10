@@ -24,22 +24,33 @@ struct PathPayload
     //
     // Input
     //
-    uint2   pixelCoord;   // Pixel coordinates from which the path emanates
-    uint    segmentID;    // Identifier for path segment (see above)
+    uint2   pixelCoord;      // Pixel coordinates from which the path emanates
+    uint    segmentID;       // Identifier for path segment (see above)
 
     //
     // Input/output
     //
-    float3  throughput;   // Current path throughput
-    float   maxRoughness; // Current maximum roughness encountered along the path
-    RayCone cone;         // Ray differential information (not used currently)
+    float3  throughput;      // Current path throughput
+    float   maxRoughness;    // Current maximum roughness encountered along the path
+    RayCone cone;            // Ray differential information (not used currently)
 
     //
     // Output
     //
-    float3  value;        // Main value (radiance, or normal for random walk)
-    float3  rayDirection; // Continuation ray direction, null means no continuation
-    float   rayTHit;      // Ray parameter, used either for current or next hit
+    float3  value;           // Main value (radiance, or normal for random walk)
+    float3  rayDirection;    // Continuation ray direction, null means no continuation
+    float   rayTHit;         // Ray parameter, used either for current or next hit
+
+    //
+    // AOV Input/output
+    //
+    float2  aovMotionVector; // Motion vector (also serve as on/off AOV switch)
+
+    //
+    // AOV Output
+    //
+    float3  aovAlbedo;       // Diffuse reflectance
+    float3  aovNormal;       // Shading normal
 };
 
 void SetContinuationRayOrigin(float3 origin, out PathPayload payload)

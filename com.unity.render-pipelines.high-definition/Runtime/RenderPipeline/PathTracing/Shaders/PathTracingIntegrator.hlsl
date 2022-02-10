@@ -8,6 +8,7 @@
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
@@ -123,6 +124,12 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
 
+    // Get our world space shading position
+    float3 shadingPosition = fragInput.positionRWS;
+
+    // We will write our AOV data in there
+    AOVData aovData;
+
 #ifndef SHADER_UNLIT
 
     // Compute the bsdf data
@@ -131,9 +138,6 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
     bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
-
-    // Get our world space shading position
-    float3 shadingPosition = fragInput.positionRWS;
 
     // And reset the payload value, which will store our final radiance result for this path depth
     payload.value = computeDirect ? builtinData.emissiveColor : 0.0;
@@ -258,6 +262,9 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         }
     }
 
+    // Grab AOV data
+    GetAOVData(mtlData, aovData);
+
 #else // SHADER_UNLIT
 
     if (computeDirect)
@@ -272,6 +279,9 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     #endif
     }
 
+    // Get the closest thing we have to a shading normal in the Unlit model
+    float3 shadingNormal = fragInput.tangentToWorld[2];
+
     #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
     {
@@ -280,10 +290,10 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
         shadowPayload.rayTHit = FLT_INF;
 
-        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        float bias = dot(WorldRayDirection(), shadingNormal) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
 
         RayDesc ray;
-        ray.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
+        ray.Origin = shadingPosition + bias * shadingNormal;
         ray.Direction = WorldRayDirection();
         ray.TMin = 0.0;
         ray.TMax = FLT_INF;
@@ -312,7 +322,15 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     }
     #endif
 
+    // Grab AOV data for Unlit
+    aovData.albedo = surfaceData.color;
+    aovData.normal = shadingNormal;
+
 #endif // SHADER_UNLIT
+
+    // Write AOV data to the payload (if needed)
+    if (payload.segmentID == 0 && any(payload.aovMotionVector))
+        WriteAOVData(aovData, shadingPosition, payload);
 }
 
 // Generic function that handles one scattering event (a vertex along the full path), can be either:
@@ -324,7 +342,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     // Always set the new t value
     payload.rayTHit = RayTCurrent();
 
-    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT)
+    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
         return;
 
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;

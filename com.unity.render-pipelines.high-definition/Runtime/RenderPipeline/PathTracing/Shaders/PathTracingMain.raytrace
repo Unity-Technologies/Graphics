@@ -21,6 +21,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 // Input(s)
 float4x4    _PixelCoordToViewDirWS;
@@ -31,6 +32,11 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+
+// AOVs
+RW_TEXTURE2D_X(float4, _AlbedoAOV);
+RW_TEXTURE2D_X(float4, _NormalAOV);
+RW_TEXTURE2D_X(float4, _MotionVectorAOV);
 
 [shader("miss")]
 void CameraMiss(inout PathPayload payload : SV_RayPayload)
@@ -79,6 +85,9 @@ void CameraMiss(inout PathPayload payload : SV_RayPayload)
         // Reinject the environment value
         payload.value += envValue;
     }
+
+    // Override AOV motion vector information
+    payload.aovMotionVector = 0.0;
 }
 
 [shader("miss")]
@@ -108,7 +117,7 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ray)
+void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ray, bool withAOV = false)
 {
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
@@ -129,6 +138,11 @@ void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ra
     // In order to achieve texture filtering, we need to compute the spread angle of the subpixel
     payload.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
     payload.cone.width = 0.0;
+
+    // The motion vector AOV value will also serve as a on/off indicator for AOV computations
+    payload.aovMotionVector = withAOV ? jitteredPixelCoord.xy : 0.0;
+    payload.aovAlbedo = 0.0;
+    payload.aovNormal = 0.0;
 
     // Generate the ray descriptor for this pixel
     ray.TMin = _RaytracingCameraNearPlane;
@@ -167,16 +181,12 @@ float3 ClampValue(float3 value, float maxIntensity = _RaytracingIntensityClamp)
     return intensity > maxIntensity ? value * maxIntensity / intensity : value;
 }
 
-[shader("raygeneration")]
-void TracePath()
+void TracePath(uint2 pixelCoord, bool withAOV = false)
 {
-    // Get the current integer pixel coordinates
-    uint2 pixelCoord = DispatchRaysIndex().xy;
-
     // Generate the camera segment of our path
     PathPayload payload;
     RayDesc ray;
-    GenerateCameraRay(pixelCoord, payload, ray);
+    GenerateCameraRay(pixelCoord, payload, ray, withAOV);
 
     // Trace our camera ray
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, payload);
@@ -204,7 +214,7 @@ void TracePath()
             payload.value = 0.0;
             payload.rayDirection = 0.0;
             payload.pixelCoord = pixelCoord;
-            payload.segmentID = segmentID;    
+            payload.segmentID = segmentID;
 
             // Trace our continuation ray
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
@@ -222,4 +232,24 @@ void TracePath()
 
     // Copy the full path radiance value (and alpha/presence) to our output buffer
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(value, alpha);
+
+    if (withAOV)
+    {
+        // If we computed AOVs, copy relevant values to our output buffers
+        _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.aovAlbedo, 1.0);
+        _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.aovNormal, 1.0);
+        _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.aovMotionVector, 0.0, 1.0);
+    }
+}
+
+[shader("raygeneration")]
+void RayGen()
+{
+    TracePath(DispatchRaysIndex().xy);
+}
+
+[shader("raygeneration")]
+void RayGenAOV()
+{
+    TracePath(DispatchRaysIndex().xy, true);
 }
