@@ -731,7 +731,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool UpsampleHappensBeforePost()
         {
-            return IsDLSSEnabled() || IsTAAUEnabled();
+            //return IsDLSSEnabled() || IsTAAUEnabled();
+            return IsTAAUEnabled();
         }
 
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;

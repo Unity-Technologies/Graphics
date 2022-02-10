@@ -530,10 +530,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
-                {
-                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                }
+                //if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                //{
+                //    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
+                //}
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
@@ -601,9 +601,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
             {
-                // AMD Fidelity FX passes
-                source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
-                source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
+                if (m_DLSSPassEnabled)
+                {
+                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
+                }
+                else
+                {
+                    // AMD Fidelity FX passes
+                    source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
+                    source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
+                }
             }
 
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace);
@@ -4637,7 +4644,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
                 }
 
-                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
+                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost && !hdCamera.IsDLSSEnabled())
                 {
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
@@ -5006,7 +5013,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (data.dynamicResIsOn)
                         {
-                            if (data.performUpsampling)
+                            if (!data.performUpsampling || hdCamera.IsDLSSEnabled())
+                            {
+                                finalPassMaterial.EnableKeyword("BYPASS");
+                            }
+                            else
                             {
                                 switch (data.dynamicResFilter)
                                 {
@@ -5042,10 +5053,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                         }
                                         break;
                                 }
-                            }
-                            else
-                            {
-                                finalPassMaterial.EnableKeyword("BYPASS");
                             }
                         }
 
