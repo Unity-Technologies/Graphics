@@ -76,7 +76,9 @@ namespace UnityEditor.VFX
                     refContext.RegisterCompilationError(
                         "SGUnsupportedExposedType_" + unsupported.name.Replace(" ", string.Empty)
                         , unsupported.error ? VFXErrorType.Error : VFXErrorType.Warning
-                        , unsupported.name + " blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
+                        , unsupported.name
+                          + " blackboard properties in Shader Graph are currently not supported in Visual Effect shaders."
+                          + (unsupported.error ? " The Effect Output won't compile." : string.Empty));
                 }
             }
 

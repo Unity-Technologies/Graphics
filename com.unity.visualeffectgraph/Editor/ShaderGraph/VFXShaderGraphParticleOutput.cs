@@ -725,12 +725,12 @@ namespace UnityEditor.VFX
             {
                 if (!isLitShader && shaderGraph.lit && !shaderGraph.generatesWithShaderGraph)
                 {
-                    RegisterCompilationError("UnlitSGWithUnlitOutput", VFXErrorType.Error, "You must use an unlit vfx master node with an unlit output");
+                    RegisterCompilationError("UnlitSGWithUnlitOutput", VFXErrorType.Error, "You must use an unlit vfx master node with an unlit output. The Effect Output won't compile.");
                     return false;
                 }
                 if (isLitShader && !shaderGraph.lit && !shaderGraph.generatesWithShaderGraph)
                 {
-                    RegisterCompilationError("LitSGWithLitOutput", VFXErrorType.Error, "You must use a lit vfx master node with a lit output");
+                    RegisterCompilationError("LitSGWithLitOutput", VFXErrorType.Error, "You must use a lit vfx master node with a lit output. The Effect Output won't compile.");
                     return false;
                 }
 
