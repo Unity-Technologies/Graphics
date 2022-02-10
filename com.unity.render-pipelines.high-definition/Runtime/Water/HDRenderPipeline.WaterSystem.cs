@@ -784,7 +784,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Raise the right stencil flags
                         ctx.cmd.SetGlobalFloat("_StencilWaterRefGBuffer", (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
                         ctx.cmd.SetGlobalFloat("_StencilWaterWriteMaskGBuffer", (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
-                        ctx.cmd.SetGlobalFloat("_CullWaterMask", passData.parameters.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
+                        ctx.cmd.SetGlobalFloat("_CullWaterMask", data.parameters.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
 
                         // Raise the keyword if it should be raised
                         CoreUtils.SetKeyword(ctx.cmd, "HIGH_RESOLUTION_WATER", data.parameters.highBandCount);
