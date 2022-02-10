@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed missing XR warnings for XR non-friendly effects when using XR plugins (case 1328062)
 - Fixed rendering artifacts when depth buffer is used after screen space reflections pass on iOS and M1 (case 1341052)
+- Fixed bug where alpha could not be used with HDR on mobile (case 1387848). HDR texture format is now set from Graphics Tier Settings when using Unity 2019.3 or newer.
 
 ## [3.2.0] - 2021-11-15
 
