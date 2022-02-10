@@ -12,12 +12,17 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
+            public static GUIContent alphaRemappingText = new GUIContent("Alpha Remapping", "Controls a remap for the alpha channel in the Base Color.");
         }
 
         MaterialProperty color = null;
         const string kColor = "_UnlitColor";
         MaterialProperty colorMap = null;
         const string kColorMap = "_UnlitColorMap";
+        MaterialProperty alphaRemapMin = null;
+        const string kAlphaRemapMin = "_AlphaRemapMin";
+        MaterialProperty alphaRemapMax = null;
+        const string kAlphaRemapMax = "_AlphaRemapMax";
 
         /// <summary>
         /// Constructs an UnlitSurfaceInputsUIBlock based on the parameters.
@@ -35,6 +40,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             color = FindProperty(kColor);
             colorMap = FindProperty(kColorMap);
+
+            alphaRemapMin = FindProperty(kAlphaRemapMin);
+            alphaRemapMax = FindProperty(kAlphaRemapMax);
         }
 
         /// <summary>
@@ -43,6 +51,12 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void OnGUIOpen()
         {
             materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
+
+            if (colorMap.textureValue != null)
+            {
+                materialEditor.MinMaxShaderProperty(alphaRemapMin, alphaRemapMax, 0.0f, 1.0f, Styles.alphaRemappingText);
+            }
+
             materialEditor.TextureScaleOffsetProperty(colorMap);
         }
     }

@@ -1,12 +1,10 @@
-using System;
+using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Reflection;
-using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -16,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
         static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
-        string GetSceneGUID(Scene scene)
+        internal string GetSceneGUID(Scene scene)
         {
             Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
             return (string)s_SceneGUID.GetValue(scene);
@@ -46,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializablePVBakeSettings
         {
-            [SerializeField] public string sceneGUID;
-            [SerializeField] public ProbeVolumeBakingProcessSettings settings;
+            public string sceneGUID;
+            public ProbeVolumeBakingProcessSettings settings;
         }
 
         [System.Serializable]
@@ -57,6 +55,28 @@ namespace UnityEngine.Experimental.Rendering
             public List<string> sceneGUIDs = new List<string>();
             public ProbeVolumeBakingProcessSettings settings;
             public ProbeReferenceVolumeProfile profile;
+
+            public List<string> bakingStates = new List<string>();
+
+            internal string CreateBakingState(string name)
+            {
+                if (bakingStates.Contains(name))
+                {
+                    string renamed;
+                    int index = 1;
+                    do
+                        renamed = $"{name} ({index++})";
+                    while (bakingStates.Contains(renamed));
+                    name = renamed;
+                }
+                bakingStates.Add(name);
+                return name;
+            }
+
+            internal bool RemoveBakingState(string name)
+            {
+                return bakingStates.Remove(name);
+            }
         }
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;
@@ -74,6 +94,21 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<string, ProbeReferenceVolumeProfile> sceneProfiles;
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
         internal List<BakingSet> bakingSets;
+
+        [SerializeField] string m_BakingState = ProbeReferenceVolume.defaultBakingState;
+        internal string bakingState
+        {
+            get => m_BakingState;
+            set
+            {
+                if (value == m_BakingState)
+                    return;
+                m_BakingState = value;
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    data.SetBakingState(value);
+                ProbeReferenceVolume.instance.onBakingStateChanged?.Invoke(value);
+            }
+        }
 
         /// <summary>
         /// Constructor for ProbeVolumeSceneData.
@@ -144,8 +179,16 @@ namespace UnityEngine.Experimental.Rendering
                 sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
             }
 
+            if (string.IsNullOrEmpty(m_BakingState))
+                m_BakingState = ProbeReferenceVolume.defaultBakingState;
+
             foreach (var set in serializedBakingSets)
+            {
+                // Ensure baking set settings are up to date
+                set.settings.Upgrade();
+
                 bakingSets.Add(set);
+            }
         }
 
         // This function must not be called during the serialization (because of asset creation)
@@ -156,6 +199,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Small migration code to ensure that old sets have correct settings
                 if (set.profile == null)
                     InitializeBakingSet(set, set.name);
+                if (set.bakingStates.Count == 0)
+                    InitializeBakingStates(set);
             }
 
             // Initialize baking set in case it's empty:
@@ -240,23 +285,14 @@ namespace UnityEngine.Experimental.Rendering
 
             set.name = name;
             set.profile = newProfile;
-            set.settings = new ProbeVolumeBakingProcessSettings
-            {
-                dilationSettings = new ProbeDilationSettings
-                {
-                    enableDilation = true,
-                    dilationDistance = 1,
-                    dilationValidityThreshold = 0.25f,
-                    dilationIterations = 1,
-                    squaredDistWeighting = true,
-                },
-                virtualOffsetSettings = new VirtualOffsetSettings
-                {
-                    useVirtualOffset = true,
-                    outOfGeoOffset = 0.01f,
-                    searchMultiplier = 0.2f,
-                }
-            };
+            set.settings = ProbeVolumeBakingProcessSettings.Default;
+
+            InitializeBakingStates(set);
+        }
+
+        void InitializeBakingStates(BakingSet set)
+        {
+            set.bakingStates = new List<string>() { ProbeReferenceVolume.defaultBakingState };
         }
 
         internal void SyncBakingSetSettings()
@@ -413,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering
             var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
             foreach (var volume in volumes)
             {
-                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
+                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID && volume.isActiveAndEnabled)
                 {
                     hasProbeVolumes[sceneGUID] = true;
                     return;
@@ -429,14 +465,13 @@ namespace UnityEngine.Experimental.Rendering
 
             if (hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID])
             {
-                var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-
                 bool foundPerSceneData = false;
-                foreach (var data in perSceneData)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
                     if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
                     {
                         foundPerSceneData = true;
+                        break;
                     }
                 }
 
@@ -503,11 +538,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
 
             var sceneGUID = GetSceneGUID(scene);
-
-            ProbeVolumeBakingProcessSettings settings = new ProbeVolumeBakingProcessSettings();
-            settings.dilationSettings = dilationSettings;
-            settings.virtualOffsetSettings = virtualOffsetSettings;
-            sceneBakingSettings[sceneGUID] = settings;
+            sceneBakingSettings[sceneGUID] = new ProbeVolumeBakingProcessSettings(dilationSettings, virtualOffsetSettings);
         }
 
         internal ProbeReferenceVolumeProfile GetProfileForScene(Scene scene)
@@ -531,7 +562,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings != null && sceneBakingSettings.ContainsKey(sceneGUID))
                 return sceneBakingSettings[sceneGUID];
 
-            return new ProbeVolumeBakingProcessSettings();
+            return ProbeVolumeBakingProcessSettings.Default;
         }
 
         // This is sub-optimal, but because is called once when kicking off a bake

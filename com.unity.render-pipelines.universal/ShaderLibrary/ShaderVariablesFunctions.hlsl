@@ -169,7 +169,7 @@ half3 AlphaModulate(half3 albedo, half alpha)
     // would be painting whiter pixels in the texture.
     // This emulates that procedure in shader, so it should be applied to the base/source color.
 #if defined(_ALPHAMODULATE_ON)
-    return lerp(1, albedo, alpha);
+    return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
 #else
     return albedo;
 #endif

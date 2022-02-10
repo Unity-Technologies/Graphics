@@ -45,11 +45,52 @@ namespace UnityEditor.VFX.UI
             s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
         }
 
+        static bool CanPasteSubgraph(VisualEffectSubgraph subgraph, string openedAssetPath)
+        {
+            var path = AssetDatabase.GetAssetPath(subgraph);
+            if (path == openedAssetPath)
+            {
+                return false;
+            }
+
+            var resource = VisualEffectResource.GetResourceAtPath(path);
+            var graph = resource.GetOrCreateGraph();
+
+            return graph.children
+                .OfType<VFXSubgraphOperator>()
+                .All(x => CanPasteSubgraph(x.subgraph, openedAssetPath));
+        }
+
+        static bool CanPasteNode(Node node, string openedAssetPath)
+        {
+            var subgraphType = typeof(VisualEffectSubgraph);
+            return node.settings
+                .Where(x => subgraphType.IsAssignableFrom(x.value.type))
+                .All(x =>
+                    {
+                        var obj = x.value.Get<VisualEffectSubgraph>();
+                        //var path = AssetDatabase.GetAssetPath(obj);
+                        // Check if the copied node does not contains the destination graph to prevent recursion
+                        return CanPasteSubgraph(obj, openedAssetPath);
+                    }
+                );
+        }
+
         public static bool CanPaste(VFXView view, object data)
         {
             try
             {
                 var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
+
+                if (view.controller.model.isSubgraph)
+                {
+                    var path = AssetDatabase.GetAssetPath(view.controller.model.subgraph);
+                    if (!serializableGraph.operators.All(x => CanPasteNode(x, path)))
+                    {
+                        return false;
+                    }
+                }
+
                 if (serializableGraph.blocksOnly)
                 {
                     var selectedContexts = view.selection.OfType<VFXContextUI>();

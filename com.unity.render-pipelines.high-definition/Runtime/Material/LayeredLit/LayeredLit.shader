@@ -49,6 +49,16 @@ Shader "HDRP/LayeredLit"
         _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
         _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
 
+        _AlphaRemapMin0("AlphaRemapMin0", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin1("AlphaRemapMin1", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin2("AlphaRemapMin2", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin3("AlphaRemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _AlphaRemapMax0("AlphaRemapMax0", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax1("AlphaRemapMax1", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax2("AlphaRemapMax2", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax3("AlphaRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
         _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
         _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0
@@ -235,7 +245,7 @@ Shader "HDRP/LayeredLit"
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
-        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
+        [Enum(None, 0, Multiply, 1, AddSubstract, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
         [ToggleUI]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
@@ -713,7 +723,7 @@ Shader "HDRP/LayeredLit"
         }
 
         // Extracts information for lightmapping, GI (emission, albedo, ...)
-        // This pass it not used during regular rendering.
+        // This pass is not used during regular rendering.
         Pass
         {
             Name "META"

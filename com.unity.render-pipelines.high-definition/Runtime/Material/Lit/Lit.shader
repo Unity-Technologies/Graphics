@@ -17,6 +17,8 @@ Shader "HDRP/Lit"
         _MetallicRemapMax("MetallicRemapMax", Float) = 1.0
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        _AlphaRemapMin("AlphaRemapMin", Float) = 0.0
+        _AlphaRemapMax("AlphaRemapMax", Float) = 1.0
         _AORemapMin("AORemapMin", Float) = 0.0
         _AORemapMax("AORemapMax", Float) = 1.0
 
@@ -515,7 +517,7 @@ Shader "HDRP/Lit"
         }
 
         // Extracts information for lightmapping, GI (emission, albedo, ...)
-        // This pass it not used during regular rendering.
+        // This pass is not used during regular rendering.
         Pass
         {
             Name "META"
