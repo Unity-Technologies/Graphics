@@ -276,14 +276,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             return graph.CreateTexture(colorRTDesc);
         }
 
-        public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer, ref RenderingData renderingData)
+        public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer, TextureHandle depth, ref RenderingData renderingData)
         {
             using (var builder = graph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
                 new ProfilingSampler("Draw Objects Pass Profiler")))
             {
                 passData.m_Albedo = builder.UseColorBuffer(backBuffer, 0);
-                TextureHandle Depth = CreateDepthTexture(graph, camera);
-                passData.m_Depth = builder.UseDepthBuffer(Depth, DepthAccess.ReadWrite); //DepthAccess.Write);
+                //TextureHandle Depth = CreateDepthTexture(graph, camera);
+                passData.m_Depth = builder.UseDepthBuffer(depth, DepthAccess.Write); //DepthAccess.Write);
 
                 passData.renderingData = renderingData;
 
