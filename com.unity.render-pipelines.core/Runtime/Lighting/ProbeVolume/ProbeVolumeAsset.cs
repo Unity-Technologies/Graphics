@@ -92,16 +92,18 @@ namespace UnityEngine.Experimental.Rendering
             if (cellSharedDataAsset == null)
                 return false;
 
+            var chunkSizeInProbeCount = chunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
+
             var cellSharedData = cellSharedDataAsset.GetData<byte>();
             var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
 
             var validityOldByteStart = AlignUp16(bricksByteCount);
-            var validityOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var validityOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<uint>();
 
             var packedValidityByteStart = AlignUp16(validityOldByteStart + validityOldByteCount);
-            var packedValidityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var packedValidityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<uint>();
 
-            if ((validityOldByteStart + packedValidityByteStart + packedValidityByteCount) != cellSharedData.Length)
+            if ((packedValidityByteStart + packedValidityByteCount) != cellSharedData.Length)
                 return false;
 
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);

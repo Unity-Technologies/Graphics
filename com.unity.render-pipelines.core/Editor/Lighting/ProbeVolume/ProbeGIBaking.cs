@@ -1081,10 +1081,10 @@ namespace UnityEngine.Experimental.Rendering
                     fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
 
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validityOld.GetUnsafeReadOnlyPtr(), validityOld.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new ReadOnlySpan<byte>(validityOld.GetUnsafeReadOnlyPtr(), validityOld.Length * UnsafeUtility.SizeOf<uint>()));
 
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<byte>()));
+                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<uint>()));
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
