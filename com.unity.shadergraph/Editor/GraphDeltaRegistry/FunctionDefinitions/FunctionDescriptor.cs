@@ -28,5 +28,16 @@ namespace com.unity.shadergraph.defs {
             Body = body;
         }
 
+        public FunctionDescriptor(
+        int version,
+        string name,
+        string body,
+        params ParameterDescriptor[] parameters)
+        {
+            Version = version;
+            Name = name;
+            Parameters = parameters.ToList().AsReadOnly();
+            Body = body;
+        }
     }
 }

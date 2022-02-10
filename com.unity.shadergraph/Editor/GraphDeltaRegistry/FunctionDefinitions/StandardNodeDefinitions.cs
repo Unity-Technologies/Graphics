@@ -32,7 +32,14 @@ internal class StandardNodeDefinitions
                     Usage.Out
                 )
             }
-        )
+        ),
+
+        new FunctionDescriptor(
+            1,
+            "Example",
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Any, Usage.In, 1, 1, 0, 1),
+            new ParameterDescriptor("Out", TYPE.Any, Usage.Out))
     };
 
     // StandardNodeDefinitions should not be instantiated

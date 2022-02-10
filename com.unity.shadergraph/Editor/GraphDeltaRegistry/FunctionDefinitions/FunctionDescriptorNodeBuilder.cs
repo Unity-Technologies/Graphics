@@ -65,7 +65,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrecision = readPrecision;
                     }
-                }    
+                }
                 if (field.TryGetSubField(kPrimitive, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Primitive readPrimitive);
@@ -73,7 +73,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrimitive = readPrimitive;
                     }
-                }                    
+                }
             }
 
             // If we didn't find a value for a type parameter in user data,
@@ -105,7 +105,7 @@ namespace com.unity.shadergraph.defs
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="param"></param>
         /// <param name="resolveType"></param>
@@ -142,6 +142,12 @@ namespace com.unity.shadergraph.defs
             port.SetField(kHeight, resolvedType.Height);
             port.SetField(kPrecision, resolvedType.Precision);
             port.SetField(kPrimitive, resolvedType.Primitive);
+
+            // Set the initial value for this object
+            int it = 0;
+            foreach(var value in param.InitialValue)
+                    port.SetField($"c{it++}", value);
+
             return port;
         }
 
