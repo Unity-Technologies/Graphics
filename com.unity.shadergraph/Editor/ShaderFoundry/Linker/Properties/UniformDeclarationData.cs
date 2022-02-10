@@ -50,9 +50,11 @@ namespace UnityEditor.ShaderFoundry
             if (uniformDeclaration == null || dataSource == UniformDataSource.None)
                 return;
 
+            // TODO @ SHADERS: This currently only handles global and per-material cbuffers. We need to update this later to be more robust.
             var builder = context.PerMaterialBuilder;
             if (dataSource == UniformDataSource.Global)
                 builder = context.GlobalBuilder;
+
             if (dataSource == UniformDataSource.PerInstance)
             {
                 builder.AddLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");

@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator IntegerProperty_DefaultPropertyValueUsed_IsExpectedColor()
         {
-            var expectedColor = new Color(1, 1, 1, 1);
+            var expectedColor = new Color(1, 0, 0, 0);
 
             var container = CreateContainer();
             var propBuilder = BuildWithoutNameOverrides("1");
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         public IEnumerator IntegerProperty_MaterialColorSet_IsExpectedColor()
         {
             var inputValue = 1;
-            var expectedColor = new Color(inputValue, inputValue, inputValue, 1);
+            var expectedColor = new Color(inputValue, 0, 0, 0);
 
             var container = CreateContainer();
             var propBuilder = BuildWithNameOverrides("0");

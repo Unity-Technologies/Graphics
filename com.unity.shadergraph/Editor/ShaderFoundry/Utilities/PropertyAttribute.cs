@@ -42,7 +42,6 @@ namespace UnityEditor.ShaderFoundry
             if (!attribute.IsValid || attribute.Name != AttributeName)
                 return null;
 
-
             var result = new PropertyAttribute();
 
             var signature = new AttributeParsing.SignatureDescription();

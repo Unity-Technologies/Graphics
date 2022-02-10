@@ -19,7 +19,11 @@ namespace UnityEditor.ShaderFoundry.UnitTests
                 FieldType = container._bool,
                 FieldName = FieldName,
                 PropertyAttribute = PropertyAttribute,
-                OutputsAssignmentCallback = (builder, propData) => builder.AddLine($"outputs.BaseColor = float3(inputs.{FieldName}.xxx);"),
+                OutputsAssignmentCallback = (builder, propData) =>
+                {
+                    builder.AddLine($"outputs.BaseColor = float3(inputs.{FieldName}, 0, 0);");
+                    builder.AddLine($"outputs.Alpha = 0;");
+                },
             };
             return BlockBuilderUtilities.CreateSimplePropertyBlock(container, BlockName, propData);
         }

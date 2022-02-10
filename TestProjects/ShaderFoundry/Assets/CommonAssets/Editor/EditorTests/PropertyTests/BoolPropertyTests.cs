@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator BoolProperty_DefaultPropertyValueUsed_IsExpectedColor()
         {
-            var expectedColor = new Color(1, 1, 1, 1);
+            var expectedColor = new Color(1, 0, 0, 0);
             var container = new ShaderFoundry.ShaderContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("1");
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator BoolProperty_NoOverrides_IsExpectedColor()
         {
-            var expectedColor = new Color(1, 1, 1, 1);
+            var expectedColor = new Color(1, 0, 0, 0);
             var container = new ShaderFoundry.ShaderContainer();
 
             var propBuilder = BuildBoolWithoutNameOverrides("1");
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         public IEnumerator BoolProperty_MaterialColorSet_IsExpectedColor()
         {
             var inputValue = 1;
-            var expectedColor = new Color(inputValue, inputValue, inputValue, 1);
+            var expectedColor = new Color(inputValue, 0, 0, 0);
 
             var container = CreateContainer();
 
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         public IEnumerator BoolProperty_NotExposed_ShaderPropertiesAreValid()
         {
             var inputValue = 1;
-            var expectedColor = new Color(inputValue, inputValue, inputValue, 1);
+            var expectedColor = new Color(inputValue, 0, 0, 0);
 
             var container = CreateContainer();
 
