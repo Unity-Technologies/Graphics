@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering
 {
@@ -9,6 +10,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Root panel class.
         /// </summary>
+        [DebuggerDisplay("{displayName}")]
         public class Panel : IContainer, IComparable<Panel>
         {
             /// <summary>

@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering
             /// Set the value of the field.
             /// </summary>
             /// <param name="value">Input value.</param>
-            public void SetValue(T value)
+            public virtual void SetValue(T value)
             {
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
@@ -353,6 +353,28 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < enumNames.Length; i++)
                 {
                     indexes[i] = i;
+                }
+            }
+
+            /// <summary>
+            /// Set the value of the field.
+            /// </summary>
+            /// <param name="value">Input value.</param>
+            public override void SetValue(int value)
+            {
+                Assert.IsNotNull(setter);
+                var v = ValidateValue(value);
+
+                if (!v.Equals(getter()))
+                {
+                    setter(v);
+
+                    // There might be cases that the value does not map the index, look for the correct index
+                    var newIndex = Array.IndexOf(enumValues, value);
+                    if (newIndex >= 0)
+                        currentIndex = newIndex;
+
+                    onValueChanged?.Invoke(this, v);
                 }
             }
         }

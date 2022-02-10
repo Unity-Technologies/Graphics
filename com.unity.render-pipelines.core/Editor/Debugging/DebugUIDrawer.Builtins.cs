@@ -133,12 +133,10 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.BoolField>(widget);
             var s = Cast<DebugStateBool>(state);
 
-            EditorGUI.BeginChangeCheck();
-
             var rect = PrepareControlRect();
-            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
+            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (bool)s.GetValue());
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -178,7 +176,7 @@ namespace UnityEditor.Rendering
             EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip));
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; //be at left of rects
-            bool value = EditorGUI.Toggle(valueRects[0], w.GetValue());
+            bool value = EditorGUI.Toggle(valueRects[0], (bool)s.GetValue());
             using (new EditorGUI.DisabledScope(true))
             {
                 for (int i = 0; i < w.historyDepth; i++)
@@ -186,7 +184,7 @@ namespace UnityEditor.Rendering
             }
             EditorGUI.indentLevel = indent;
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -210,14 +208,12 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.IntField>(widget);
             var s = Cast<DebugStateInt>(state);
 
-            EditorGUI.BeginChangeCheck();
-
             var rect = PrepareControlRect();
             int value = w.min != null && w.max != null
                 ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.min(), w.max())
                 : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -241,17 +237,15 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.UIntField>(widget);
             var s = Cast<DebugStateUInt>(state);
 
-            EditorGUI.BeginChangeCheck();
-
             // No UIntField so we need to max to 0 ourselves or the value will wrap around
             var rect = PrepareControlRect();
+            int currentValue = Convert.ToInt32(s.GetValue());
             int tmp = w.min != null && w.max != null
-                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, (int)w.GetValue()), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
-                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, (int)w.GetValue()));
+                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, currentValue), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
+                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, currentValue));
 
-            uint value = (uint)Mathf.Max(0, tmp);
-
-            if (EditorGUI.EndChangeCheck())
+            uint value = Convert.ToUInt32(tmp);
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -275,14 +269,12 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.FloatField>(widget);
             var s = Cast<DebugStateFloat>(state);
 
-            EditorGUI.BeginChangeCheck();
-
             var rect = PrepareControlRect();
             float value = w.min != null && w.max != null
-                ? EditorGUI.Slider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.min(), w.max())
-                : EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
+                ? EditorGUI.Slider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (float)s.GetValue(), w.min(), w.max())
+                : EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (float)s.GetValue());
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -309,12 +301,9 @@ namespace UnityEditor.Rendering
             if (w.indexes == null)
                 w.InitIndexes();
 
-            EditorGUI.BeginChangeCheck();
-
             var rect = PrepareControlRect();
 
-            int index = -1;
-            int value = w.GetValue();
+            int value = (int)s.GetValue();
 
             var label = EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip);
 
@@ -328,17 +317,12 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                index = value;
-                index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
+                int index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(value, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
                 value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
 
-            if (EditorGUI.EndChangeCheck())
-            {
+            if (w.GetValue() != value)
                 Apply(w, s, value);
-                if (index > -1)
-                    w.currentIndex = index;
-            }
 
             return true;
         }
@@ -367,7 +351,7 @@ namespace UnityEditor.Rendering
             var elements = w.getObjects();
             if (elements?.Any() ?? false)
             {
-                var selectedValue = w.GetValue();
+                var selectedValue = (UnityEngine.Object)s.GetValue();
                 var elementsArrayNames = elements.Select(e => e.name).ToArray();
                 var elementsArrayIndices = Enumerable.Range(0, elementsArrayNames.Length).ToArray();
                 var selectedIndex = selectedValue != null ? Array.IndexOf(elementsArrayNames, selectedValue.name) : 0;
@@ -472,8 +456,7 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.BitField>(widget);
             var s = Cast<DebugStateFlags>(state);
 
-            EditorGUI.BeginChangeCheck();
-            Enum value = w.GetValue();
+            Enum value = (Enum)s.GetValue();
             var rect = PrepareControlRect();
 
             // Skip first element (with value 0) because EditorGUI.MaskField adds a 'Nothing' field anyway
@@ -483,7 +466,7 @@ namespace UnityEditor.Rendering
             var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (int)Convert.ToInt32(value), enumNames);
             value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -599,12 +582,10 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.ColorField>(widget);
             var s = Cast<DebugStateColor>(state);
 
-            EditorGUI.BeginChangeCheck();
-
             var rect = PrepareControlRect();
-            var value = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.showPicker, w.showAlpha, w.hdr);
+            var value = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (Color)s.GetValue(), w.showPicker, w.showAlpha, w.hdr);
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -628,11 +609,9 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Vector2Field>(widget);
             var s = Cast<DebugStateVector2>(state);
 
-            EditorGUI.BeginChangeCheck();
+            var value = EditorGUILayout.Vector2Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (Vector2)s.GetValue());
 
-            var value = EditorGUILayout.Vector2Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
-
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -656,11 +635,9 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Vector3Field>(widget);
             var s = Cast<DebugStateVector3>(state);
 
-            EditorGUI.BeginChangeCheck();
+            var value = EditorGUILayout.Vector3Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (Vector3)s.GetValue());
 
-            var value = EditorGUILayout.Vector3Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
-
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;
@@ -684,11 +661,8 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Vector4Field>(widget);
             var s = Cast<DebugStateVector4>(state);
 
-            EditorGUI.BeginChangeCheck();
-
-            var value = EditorGUILayout.Vector4Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
-
-            if (EditorGUI.EndChangeCheck())
+            var value = EditorGUILayout.Vector4Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (Vector4)s.GetValue());
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             return true;

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Assertions;
 
@@ -36,6 +37,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Base class for all debug UI widgets.
         /// </summary>
+        [DebuggerDisplay("{queryPath}")]
         public abstract class Widget
         {
             // Set to null until it's added to a panel, be careful

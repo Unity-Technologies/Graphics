@@ -1323,23 +1323,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RegisterLightingDebug()
         {
-            var list = new List<DebugUI.Widget>();
-            list.Add(CreateMissingDebugShadersWarning());
+            var list = new List<DebugUI.Widget> {CreateMissingDebugShadersWarning()};
             {
                 var shadows = new DebugUI.Container() { displayName = "Shadows" };
 
-                shadows.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.ShadowDebugMode, getter = () => (int)data.lightingDebugSettings.shadowDebugMode, setter = value => SetShadowDebugMode((ShadowMapDebugMode)value), autoEnum = typeof(ShadowMapDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.shadowDebugModeEnumIndex, setIndex = value => data.shadowDebugModeEnumIndex = value });
+                shadows.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.ShadowDebugMode, getter = () => (int)data.lightingDebugSettings.shadowDebugMode, setter = value => SetShadowDebugMode((ShadowMapDebugMode)value), autoEnum = typeof(ShadowMapDebugMode), getIndex = () => data.shadowDebugModeEnumIndex, setIndex = value => data.shadowDebugModeEnumIndex = value });
 
-                if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap || data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                var container = new DebugUI.Container() { isHiddenCallback = () => data.lightingDebugSettings.shadowDebugMode != ShadowMapDebugMode.VisualizeShadowMap && data.lightingDebugSettings.shadowDebugMode != ShadowMapDebugMode.SingleShadow};
+                container.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.ShadowDebugUseSelection, getter = () => data.lightingDebugSettings.shadowDebugUseSelection, setter = value => data.lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly });
+
+                container.children.Add(new DebugUI.UIntField
                 {
-                    var container = new DebugUI.Container();
-                    container.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.ShadowDebugUseSelection, getter = () => data.lightingDebugSettings.shadowDebugUseSelection, setter = value => data.lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug });
+                    nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex,
+                    getter = () => data.lightingDebugSettings.shadowMapIndex,
+                    setter = value => data.lightingDebugSettings.shadowMapIndex = value,
+                    min = () => 0u,
+                    max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)),
+                    isHiddenCallback = () => data.lightingDebugSettings.shadowDebugUseSelection
+                });
 
-                    if (!data.lightingDebugSettings.shadowDebugUseSelection)
-                        container.children.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex, getter = () => data.lightingDebugSettings.shadowMapIndex, setter = value => data.lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)) });
-
-                    shadows.children.Add(container);
-                }
+                shadows.children.Add(container);
 
                 shadows.children.Add(new DebugUI.FloatField
                 {
