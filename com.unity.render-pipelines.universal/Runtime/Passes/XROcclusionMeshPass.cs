@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = renderingData.commandBuffer;
                 renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
         }
     }

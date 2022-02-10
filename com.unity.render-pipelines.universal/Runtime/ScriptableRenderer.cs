@@ -1098,12 +1098,10 @@ namespace UnityEngine.Rendering.Universal
             // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
             {
-                cmd = CommandBufferPool.Get();
-
                 XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
 
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
 #endif
         }
