@@ -3,9 +3,9 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_local_fragment _ _GAMMA_20
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
@@ -24,6 +24,12 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 
 #if _FXAA
             color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
+#endif
+
+#if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
+            // EASU expects perceptually encoded color data so either encode to gamma 2.0 here if the input
+            // data is linear, or let it pass through unchanged if it's already gamma encoded.
+            color = LinearToGamma20(color);
 #endif
 
             return half4(color, 1.0);

@@ -35,7 +35,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -163,7 +163,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -203,7 +203,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_C
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -331,7 +331,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
