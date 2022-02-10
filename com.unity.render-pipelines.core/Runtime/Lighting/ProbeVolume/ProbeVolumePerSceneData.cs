@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
-        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks data
+        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
         [SerializeField] List<SerializablePerStateDataItem> serializedStates = new();
 
@@ -65,6 +65,17 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        void DeleteAsset(Object asset)
+        {
+            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                AssetDatabase.DeleteAsset(assetPath);
+            }
+        }
+#endif
+
         internal void Clear()
         {
             QueueAssetRemoval();
@@ -73,13 +84,13 @@ namespace UnityEngine.Experimental.Rendering
             try
             {
                 AssetDatabase.StartAssetEditing();
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(asset));
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(cellSharedDataAsset));
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(cellSupportDataAsset));
+                DeleteAsset(asset);
+                DeleteAsset(cellSharedDataAsset);
+                DeleteAsset(cellSupportDataAsset);
                 foreach (var stateData in states.Values)
                 {
-                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellDataAsset));
-                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellOptionalDataAsset));
+                    DeleteAsset(stateData.cellDataAsset);
+                    DeleteAsset(stateData.cellOptionalDataAsset);
                 }
             }
             finally
@@ -126,16 +137,19 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        internal bool ResolveCells()
+        internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerStateCellData();
+
+        bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
+        bool ResolvePerStateCellData()
         {
-            if (currentState == null || !states.TryGetValue(currentState, out var stateData))
+            if (currentState == null || !states.TryGetValue(currentState, out var data))
                 return false;
-            return asset.ResolveCells(stateData.cellDataAsset, stateData.cellOptionalDataAsset, cellSharedDataAsset, cellSupportDataAsset);
+            return asset.ResolvePerStateCellData(data.cellDataAsset, data.cellOptionalDataAsset);
         }
 
         internal void QueueAssetLoading()
         {
-            if (asset == null || !ResolveCells())
+            if (asset == null || !ResolvePerStateCellData())
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -156,6 +170,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
 
+            ResolveSharedCellData();
             if (ProbeReferenceVolume.instance.sceneData != null)
                 SetBakingState(ProbeReferenceVolume.instance.bakingState);
             // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
@@ -173,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering
             currentState = null;
         }
 
-        public void SetBakingState(string state)
+        internal void SetBakingState(string state)
         {
             if (state == currentState)
                 return;
@@ -184,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
+        internal void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
         {
             var state = ProbeReferenceVolume.instance.bakingState;
             string basePath = Path.Combine(ProbeVolumeAsset.GetDirectory(gameObject.scene.path, gameObject.scene.name), ProbeVolumeAsset.assetName);
@@ -201,6 +216,9 @@ namespace UnityEngine.Experimental.Rendering
             cellSupportDataFilename = GetOrCreateFileName(cellSupportDataAsset, ".CellSupportData.bytes");
         }
 
+        /// <summary>
+        /// Call this function during OnProcessScene to strip debug from project builds.
+        /// </summary>
         public void StripSupportData()
         {
             cellSupportDataAsset = null;

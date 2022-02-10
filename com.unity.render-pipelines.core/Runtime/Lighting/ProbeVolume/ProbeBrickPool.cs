@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -31,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering
             internal Texture3D TexL2_2;
             internal Texture3D TexL2_3;
 
+            internal Texture3D TexValidity;
+
             internal int width;
             internal int height;
             internal int depth;
@@ -47,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering
                 CoreUtils.Destroy(TexL2_2);
                 CoreUtils.Destroy(TexL2_3);
 
+                CoreUtils.Destroy(TexValidity);
+
                 TexL0_L1rx = null;
 
                 TexL1_G_ry = null;
@@ -56,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering
                 TexL2_1 = null;
                 TexL2_2 = null;
                 TexL2_3 = null;
+                TexValidity = null;
             }
         }
 
@@ -79,11 +85,14 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
+        static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();
+        static DynamicArray<byte> s_PackedValidity_locData = new DynamicArray<byte>();
 
         static DynamicArray<Color> s_L2_0_locData = null;
         static DynamicArray<Color> s_L2_1_locData = null;
         static DynamicArray<Color> s_L2_2_locData = null;
         static DynamicArray<Color> s_L2_3_locData = null;
+
 
         internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
@@ -141,6 +150,8 @@ namespace UnityEngine.Experimental.Rendering
             rr.L2_1 = m_Pool.TexL2_1;
             rr.L2_2 = m_Pool.TexL2_2;
             rr.L2_3 = m_Pool.TexL2_3;
+
+            rr.Validity = m_Pool.TexValidity;
         }
 
         internal void Clear()
@@ -214,6 +225,8 @@ namespace UnityEngine.Experimental.Rendering
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
 
+                    Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
+
                     if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
                         Graphics.CopyTexture(source.TexL2_0, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_0, dst.z + j, 0, dst.x, dst.y);
@@ -280,6 +293,11 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL1_B_rz.name = $"{name}_TexL1_B_rz";
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
+            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexValidity.hideFlags = HideFlags.HideAndDontSave;
+            loc.TexValidity.name = $"{name}_Validity";
+            allocatedBytes += texelCount;
+
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
                 loc.TexL2_0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
@@ -325,6 +343,8 @@ namespace UnityEngine.Experimental.Rendering
             s_L0L1Rx_locData.Resize(size);
             s_L1GL1Ry_locData.Resize(size);
             s_L1BL1Rz_locData.Resize(size);
+            s_Validity_locData.Resize(size);
+            s_PackedValidity_locData.Resize(size);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
@@ -356,7 +376,47 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
-        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int startIndex, int count, ProbeVolumeSHBands dstBands)
+        static void SetPixelAlpha(DynamicArray<Color> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, float value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index].a = value;
+        }
+
+        static void SetPixel(DynamicArray<byte> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, byte value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
+
+        static void SetPixel(DynamicArray<float> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, float value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
+
+        static float GetData(DynamicArray<float> data, int x, int y, int z, int dataLocWidth, int dataLocHeight)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            return data[index];
+        }
+
+        static int PackValidity(float[] validity)
+        {
+            int outputByte = 0;
+            for (int i = 0; i < 8; ++i)
+            {
+                int val = (validity[i] > 0.05f) ? 0 : 1;
+                outputByte |= (val << i);
+            }
+            return outputByte;
+        }
+
+        static Vector3Int GetSampleOffset(int i)
+        {
+            return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
+        }
+
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<float> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
         {
             // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
             // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
@@ -373,6 +433,7 @@ namespace UnityEngine.Experimental.Rendering
             ValidateTemporaryBuffers(loc, dstBands);
 
             var shL0L1Ptr = (float*)shL0L1Data.GetUnsafeReadOnlyPtr();
+            var validityPtr = (float*)validity.GetUnsafeReadOnlyPtr();
             var shL2Ptr = (float*)(shL2Data.IsCreated ? shL2Data.GetUnsafeReadOnlyPtr() : default);
 
             for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
@@ -395,6 +456,9 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, kZZZH);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, 1.0f);
+                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, 0);
+
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -410,6 +474,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, validityPtr[shidx]);
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -450,12 +515,39 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            // This can be optimized later.
+            for (int x = 0; x < loc.width; ++x)
+            {
+                for (int y = 0; y < loc.height; ++y)
+                {
+                    for (int z = 0; z < loc.depth; ++z)
+                    {
+
+                        float[] validities = new float[8];
+                        for (int o = 0; o < 8; ++o)
+                        {
+                            Vector3Int off = GetSampleOffset(o);
+                            Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, loc.width - 1),
+                                                                  Mathf.Clamp(y + off.y, 0, loc.height - 1),
+                                                                  Mathf.Clamp(z + off.z, 0, kBrickProbeCountPerDim - 1));
+                            validities[o] = GetData(s_Validity_locData, samplePos.x, samplePos.y, samplePos.z, loc.width, loc.height);
+                        }
+
+                        int packedData = PackValidity(validities);
+                        SetPixel(s_PackedValidity_locData, x, y, z, loc.width, loc.height, Convert.ToByte(packedData));
+                    }
+                }
+            }
+
             loc.TexL0_L1rx.SetPixels(s_L0L1Rx_locData);
             loc.TexL0_L1rx.Apply(false);
             loc.TexL1_G_ry.SetPixels(s_L1GL1Ry_locData);
             loc.TexL1_G_ry.Apply(false);
             loc.TexL1_B_rz.SetPixels(s_L1BL1Rz_locData);
             loc.TexL1_B_rz.Apply(false);
+
+            loc.TexValidity.SetPixelData<byte>(s_PackedValidity_locData, 0);
+            loc.TexValidity.Apply(false);
 
             if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {

@@ -2,7 +2,7 @@ using UnityEditor.Search;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     static class ConversionIndexers
     {

@@ -123,10 +123,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water Material
         /// <summary>
-        /// Sets the material that is used to render the water surface. If set to None a default material is used.
+        /// Sets a custom material that will be used to render the water surface. If set to None a default material is used.
         /// </summary>
-        [Tooltip("Sets the material that is used to render the water surface. If set to None a default material is used.")]
-        public Material material = null;
+        [Tooltip("Sets a custom material that will be used to render the water surface. If set to None a default material is used.")]
+        public Material customMaterial = null;
+
         /// <summary>
         /// Controls the smoothness used to render the water surface.
         /// </summary>
@@ -162,12 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
         [ColorUsage(false)]
         public Color scatteringColor = new Color(0.0f, 0.12f, 0.25f);
-
-        /// <summary>
-        /// Controls the multiplier applied to the scattering factor to attenuate the scattering term.
-        /// </summary>
-        [Tooltip("Controls the multiplier that is used to simulate the under-water scattering globally.")]
-        public float scatteringFactor = 0.5f;
 
         /// <summary>
         /// Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
@@ -296,28 +291,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water Foam
         /// <summary>
-        /// Controls the simulation foam smoothness.
-        /// </summary>
-        [Tooltip("Controls the surface foam smoothness.")]
-        public float simulationFoamSmoothness = 0.3f;
-
-        /// <summary>
-        /// Controls the simulation foam brightness.
-        /// </summary>
-        [Tooltip("Controls the simulation foam brightness.")]
-        public float simulationFoamIntensity = 0.5f;
-
-        /// <summary>
         /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.
         /// </summary>
         [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.")]
         public float simulationFoamAmount = 0.5f;
 
         /// <summary>
-        /// Controls the simulation foam tiling.
+        /// Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.
         /// </summary>
-        [Tooltip("Controls the simulation foam tiling.")]
-        public float simulationFoamTiling = 1.0f;
+        [Tooltip("Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.")]
+        public float simulationFoamDrag = 0.5f;
+
+        /// <summary>
+        /// Controls the simulation foam smoothness.
+        /// </summary>
+        [Tooltip("Controls the surface foam smoothness.")]
+        public float simulationFoamSmoothness = 0.3f;
 
         /// <summary>
         /// Set the texture used to attenuate or supress the simulation foam.
@@ -358,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
         #endregion
 
-        #region Water Masking
+        #region Water Wind
         /// <summary>
         /// Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.
         /// </summary>
@@ -401,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount, ref bool initialAllocation)
+        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount)
         {
             bool needUpdate = false;
             // If the resources have not been allocated for this water surface, allocate them
@@ -410,14 +399,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 simulation = new WaterSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
-                initialAllocation = true;
             }
             else if (!simulation.ValidResources(bandResolution, bandCount))
             {
                 simulation.ReleaseSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
-                initialAllocation = true;
             }
 
             if (simulation.windSpeed != windSpeed
@@ -426,14 +413,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 || simulation.patchSizes.x != waterMaxPatchSize)
             {
                 needUpdate = true;
-                initialAllocation = false;
             }
 
             // The simulation data are not valid, we need to re-evaluate the spectrum
             if (needUpdate)
-            {
                 UpdateSimulationData();
-            }
 
             return !needUpdate;
         }
