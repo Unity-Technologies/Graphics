@@ -217,6 +217,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
                 var nodePreviewData = m_CachedPreviewData[nodeName];
+                // TODO: Remove when we have shader property promotion
                 nodePreviewData.isShaderOutOfDate = true;
 
                 var portReader = Mock_GetPortReaderForProperty(nodeName, propertyName);
