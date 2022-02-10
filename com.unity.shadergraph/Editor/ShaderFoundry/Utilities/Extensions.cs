@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderFoundry
     {
         internal static IEnumerable<BlockVariable> Properties(this Block block)
         {
-            foreach(var input in block.Inputs)
+            foreach (var input in block.Inputs)
             {
                 if (input.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
                     yield return input;

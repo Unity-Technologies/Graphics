@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal bool FindLegacyPass(string referenceName, ref UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor)
         {
-            foreach(var legacyPass in m_LegacySubShader.passes)
+            foreach (var legacyPass in m_LegacySubShader.passes)
             {
                 if (legacyPass.descriptor.referenceName == referenceName)
                 {
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderFoundry
                 builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
             }
         }
-        
+
         void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances, ShaderBuilder builder)
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderFoundry
             BuildLookups(legacyPass, out vertexInLookup, out vertexOutLookup, out fragmentInLookup, out fragmentOutLookup);
 
             targetActiveFields = new ActiveFields();
-            if(legacyEntryPoints.vertexDescBlockInstance.IsValid)
+            if (legacyEntryPoints.vertexDescBlockInstance.IsValid)
                 targetActiveFields.baseInstance.Add(Fields.GraphVertex);
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
             GetTargetActiveFields(legacyPass, targetActiveFields);
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderFoundry
 
             void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, FieldDescriptorLookupMap lookups)
             {
-                foreach(var descriptor in lookups.Find(prop.Name))
+                foreach (var descriptor in lookups.Find(prop.Name))
                     activeFields.baseInstance.Add(descriptor);
             }
 
@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderFoundry
             Dictionary<string, List<FieldDescriptor>> Lookups = new Dictionary<string, List<FieldDescriptor>>();
             internal void Add(string name, FieldDescriptor descriptor)
             {
-                if(!Lookups.TryGetValue(name, out var descriptors))
+                if (!Lookups.TryGetValue(name, out var descriptors))
                 {
                     descriptors = new List<FieldDescriptor>();
                     Lookups.Add(name, descriptors);
@@ -278,11 +278,13 @@ namespace UnityEditor.ShaderFoundry
 
                 allTypes.Add(type);
             }
+
             void TraverseTypes(IEnumerable<ShaderType> types)
             {
                 foreach (var type in types)
                     TraverseType(type);
             }
+
             void TraverseFunction(ShaderFunction function)
             {
                 if (!visitedRegistry.TryVisit(function))
@@ -293,11 +295,13 @@ namespace UnityEditor.ShaderFoundry
                     TraverseType(param.Type);
                 allFunctions.Add(function);
             }
+
             void TraverseFunctions(IEnumerable<ShaderFunction> functions)
             {
                 foreach (var function in functions)
                     TraverseFunction(function);
             }
+
             TraverseTypes(block.ReferencedTypes);
             TraverseTypes(block.Types);
             TraverseFunctions(block.ReferencedFunctions);
@@ -339,6 +343,7 @@ namespace UnityEditor.ShaderFoundry
                 foreach (var type in types)
                     builder.AddTypeDeclarationString(type);
             }
+
             void DeclareFunctions(ShaderBuilder builder, IEnumerable<ShaderFunction> functions)
             {
                 foreach (var function in functions)
@@ -348,7 +353,7 @@ namespace UnityEditor.ShaderFoundry
             BuildTypeAndFunctionGroups(blockInst.Block, visitedRegistry, out var typeGroups, out var functionGroups);
             foreach (var groupContext in typeGroups)
             {
-                if(!groupContext.Block.IsValid)
+                if (!groupContext.Block.IsValid)
                 {
                     DeclareTypes(builder, groupContext.Types);
                     continue;
@@ -489,7 +494,7 @@ namespace UnityEditor.ShaderFoundry
             var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
             var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
             var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
-            
+
             void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
                 if (blockInstance.IsValid)
@@ -1029,7 +1034,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var field in targetActiveFields.baseInstance.fields)
                 blockActiveFields.baseInstance.Add(field);
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(blockActiveFields, spliceCommands,
-                    isDebug, sharedTemplateDirectories, m_assetCollection, true);
+                isDebug, sharedTemplateDirectories, m_assetCollection, true);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             subPassBuilder.AppendLines(templatePreprocessor.GetShaderCode().ToString());
 

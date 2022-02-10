@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderFoundry
         internal bool Exposed => propertyAttribute.Exposed;
         internal UniformDataSource DataSource => propertyAttribute.DataSource;
         internal string DefaultValue => propertyAttribute.DefaultValue;
-        
-        
+
+
         internal Dictionary<string, ShaderAttribute> ProcessedAttributes = new Dictionary<string, ShaderAttribute>();
         // Any extra attributes being added by a property that don't have backing ShaderAttributes.
         // Used to do things like add the [Toggle] attribute for booleans.

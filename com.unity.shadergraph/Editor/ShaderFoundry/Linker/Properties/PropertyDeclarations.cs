@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderFoundry
                 if (layerAttribute != null && layerAttribute.Index < layerCount)
                     layerInfo[layerAttribute.Index] = layerAttribute;
             }
-            
+
             // The stack is built by calling a macro with each layer name
             var declareStackBuilder = new ShaderBuilder();
             declareStackBuilder.Add("DECLARE_STACK");

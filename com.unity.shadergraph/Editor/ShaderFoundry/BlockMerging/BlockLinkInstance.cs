@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderFoundry
             this.blockInstance = blockInstance;
             this.block = blockInstance.Block;
 
-            if(!block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
+            if (!block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
             {
                 throw new System.Exception($"Block {block.Name} doesn't have a valid entry point function");
             }

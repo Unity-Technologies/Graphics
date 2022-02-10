@@ -36,9 +36,9 @@ namespace UnityEditor.ShaderFoundry
         {
             var index = 0;
             bool isPositional = true;
-            foreach(var param in attribute.Parameters)
+            foreach (var param in attribute.Parameters)
             {
-                if(isPositional)
+                if (isPositional)
                 {
                     if (!string.IsNullOrEmpty(param.Name))
                     {
