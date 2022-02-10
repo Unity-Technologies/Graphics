@@ -49,7 +49,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
             // Render pipeline is only reconstructed when a frame is renderer
             // If scene requires lightmap baking, we have to force it
-            if (forceCameraRenderDuringSetup && !Application.isPlaying)
+            if (forceCameraRenderDuringSetup && !Application.isPlaying && Application.platform != RuntimePlatform.OSXEditor)
                 Camera.main.Render();
         }
     }
