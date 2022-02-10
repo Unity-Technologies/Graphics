@@ -631,12 +631,8 @@ namespace UnityEditor.ShaderFoundry
                 }
                 WritePragmas(shaderPragmas, passPragmaBuilder);
 
-                // Enable this to turn on shader debugging
-                bool debugShader = false;
-                if (debugShader)
-                {
+                if (templatePass.EnableDebugging)
                     passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");
-                }
 
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
