@@ -944,7 +944,7 @@ namespace UnityEngine.Experimental.Rendering
             outCell.probePositions = new Vector3[numberOfProbes];
             outCell.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
-            outCell.validity = new float[numberOfProbes];
+            outCell.validity = new uint[numberOfProbes];
             outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
             outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
 
