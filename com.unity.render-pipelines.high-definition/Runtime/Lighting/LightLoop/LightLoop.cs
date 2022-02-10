@@ -1968,15 +1968,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
 
-                    for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)
-                    {
-                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-
-                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
-                    }
-
                     if (capsuleOccluderList.directUsesSphereBounds)
                     {
                         for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
@@ -2010,6 +2001,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                         }
+                    }
+
+                    for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)
+                    {
+                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+
+                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                     }
                 }
 
