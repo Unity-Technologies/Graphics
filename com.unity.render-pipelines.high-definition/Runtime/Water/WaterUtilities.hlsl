@@ -162,7 +162,7 @@ float2 SimpleHash2(float2 p)
     return frac(sin(mul(float2x2(127.1, 311.7, 269.5, 183.3), p)) * 43758.5453);
 }
 
-#if UNITY_PROCEDURAL_INSTANCING_ENABLED
+#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 {
     // Grab the patch data for the current instance/patch
