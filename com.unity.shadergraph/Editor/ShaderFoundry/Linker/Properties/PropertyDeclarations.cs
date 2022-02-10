@@ -79,28 +79,28 @@ namespace UnityEditor.ShaderFoundry
         static bool HandleFloatType(FieldPropertyContext context, FieldPropertyData result)
         {
             var displayType = GetDisplayType(context, "Float", new HashSet<string> { "Integer", "Int", "Range" });
-            BuildSimpleProperty(context, displayType, "1", result);
+            BuildSimpleProperty(context, displayType, "0", result);
             return true;
         }
 
         static bool HandleFloat2Type(FieldPropertyContext context, FieldPropertyData result)
         {
             var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(1, 1, 0, 0)", result);
+            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
             return true;
         }
 
         static bool HandleFloat3Type(FieldPropertyContext context, FieldPropertyData result)
         {
             var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(1, 1, 1, 0)", result);
+            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
             return true;
         }
 
         static bool HandleFloat4Type(FieldPropertyContext context, FieldPropertyData result)
         {
             var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(1, 1, 1, 1)", result);
+            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
             return true;
         }
 
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderFoundry
                 return HandleEnumKeywordType(context, enumKeywordAttribute, result);
 
             var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float", "Range" });
-            BuildSimpleProperty(context, displayType, "1", result);
+            BuildSimpleProperty(context, displayType, "0", result);
             return true;
         }
 
@@ -123,15 +123,15 @@ namespace UnityEditor.ShaderFoundry
             if (boolKeywordAttribute != null)
                 return HandleBoolKeywordType(context, boolKeywordAttribute, result);
 
-            var displayType = GetDisplayType(context, "Float", new HashSet<string> { "Int", "Integer" });
+            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
             context.ExtraAttributes = new List<string> { "[Toggle]" };
-            BuildSimpleProperty(context, displayType, "1", result);
+            BuildSimpleProperty(context, displayType, "0", result);
             return true;
         }
 
         static bool HandleBoolKeywordType(FieldPropertyContext context, BoolKeywordAttribute boolKeywordAttribute, FieldPropertyData result)
         {
-            var displayType = GetDisplayType(context, "Float", new HashSet<string> { "Int", "Integer" });
+            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
             var uniformName = context.UniformName;
             var keywordName = boolKeywordAttribute.GetKeywordName(uniformName);
             bool usePreProcessor = boolKeywordAttribute.KeywordMode != KeywordMode.dynamic_branch;
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderFoundry
             }
 
             context.ExtraAttributes = new List<string> { $"[Toggle({keywordName})]" };
-            MaterialPropertyDeclarationData.BuildSimple(context, displayType, "1", result);
+            MaterialPropertyDeclarationData.BuildSimple(context, displayType, "0", result);
 
             result.UniformReadingData = new UniformReadingData
             {
@@ -187,7 +187,7 @@ namespace UnityEditor.ShaderFoundry
             }
 
             context.ExtraAttributes = new List<string> { enumKeywordAttribute.BuildPropertyAttributeString() };
-            MaterialPropertyDeclarationData.BuildSimple(context, displayType, "1", result);
+            MaterialPropertyDeclarationData.BuildSimple(context, displayType, "0", result);
 
             result.UniformReadingData = new UniformReadingData
             {

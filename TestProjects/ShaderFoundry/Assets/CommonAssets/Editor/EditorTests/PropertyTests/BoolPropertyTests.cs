@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator BoolProperty_MaterialColorSet_IsExpectedColor()
         {
-            var inputValue = 1.0f;
+            var inputValue = 1;
             var expectedColor = new Color(inputValue, inputValue, inputValue, 1);
 
             var container = CreateContainer();
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var propBuilder = BuildBoolWithNameOverrides("0");
             var block = propBuilder.Build(container);
 
-            SetupMaterialDelegate materialSetupDelegate = m => { m.SetFloat(propBuilder.PropertyAttribute.UniformName, inputValue); };
+            SetupMaterialDelegate materialSetupDelegate = m => { m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
             yield break;
         }
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator BoolProperty_NotExposed_ShaderPropertiesAreValid()
         {
-            var inputValue = 1.0f;
+            var inputValue = 1;
             var expectedColor = new Color(inputValue, inputValue, inputValue, 1);
 
             var container = CreateContainer();
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var block = propBuilder.Build(container);
 
             SetupMaterialDelegate materialSetupDelegate = m => {
-                m.SetFloat(propBuilder.PropertyAttribute.UniformName, inputValue);
+                m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue);
                 var propIndex = m.shader.FindPropertyIndex(propBuilder.FieldName);
                 Assert.AreEqual(-1, propIndex);
             };
@@ -110,8 +110,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             Assert.AreNotEqual(-1, propIndex);
             Assert.AreEqual(propBuilder.FieldName, shader.GetPropertyName(propIndex));
             Assert.AreEqual(propBuilder.FieldName, shader.GetPropertyDescription(propIndex));
-            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultFloatValue(propIndex));
-            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Float, shader.GetPropertyType(propIndex));
+            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultIntValue(propIndex));
+            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Int, shader.GetPropertyType(propIndex));
 
             UnityEngine.Object.DestroyImmediate(shader);
         }
@@ -131,8 +131,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             Assert.AreNotEqual(-1, propIndex);
             Assert.AreEqual(propBuilder.PropertyAttribute.UniformName, shader.GetPropertyName(propIndex));
             Assert.AreEqual(propBuilder.PropertyAttribute.DisplayName, shader.GetPropertyDescription(propIndex));
-            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultFloatValue(propIndex));
-            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Float, shader.GetPropertyType(propIndex));
+            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultIntValue(propIndex));
+            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Int, shader.GetPropertyType(propIndex));
 
             UnityEngine.Object.DestroyImmediate(shader);
         }
@@ -154,8 +154,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             Assert.AreNotEqual(-1, propIndex);
             Assert.AreEqual(propBuilder.PropertyAttribute.UniformName, shader.GetPropertyName(propIndex));
             Assert.AreEqual(propBuilder.PropertyAttribute.DisplayName, shader.GetPropertyDescription(propIndex));
-            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultFloatValue(propIndex));
-            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Float, shader.GetPropertyType(propIndex));
+            Assert.AreEqual(expectedDefaultValue, shader.GetPropertyDefaultIntValue(propIndex));
+            Assert.AreEqual(UnityEngine.Rendering.ShaderPropertyType.Int, shader.GetPropertyType(propIndex));
 
             UnityEngine.Object.DestroyImmediate(shader);
         }
