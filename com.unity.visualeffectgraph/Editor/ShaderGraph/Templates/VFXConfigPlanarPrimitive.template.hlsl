@@ -124,3 +124,38 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 
     return true;
 }
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+    #define VFXAttributes InternalAttributesElement
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
+
+    void BuildFragInputsFromVFXIntersection(AttributeData attributeData, out FragInputs outFragInputs)
+    {
+
+        int index = PrimitiveIndex() * VFX_RT_DECIMATION_FACTOR;
+
+        InternalAttributesElement attributes;
+        ZERO_INITIALIZE(InternalAttributesElement, attributes);
+        $splice(VFXLoadAttribute)
+        $splice(VFXProcessBlocks)
+        float3 size3 = GetElementSize(attributes);
+        size3 *= sqrt(VFX_RT_DECIMATION_FACTOR);
+
+        float3 rayDirection = WorldRayDirection();
+        outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
+        outFragInputs.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
+        outFragInputs.texCoord0 = float4(attributeData.barycentrics,0,0);
+        outFragInputs.texCoord1 = float4(attributeData.barycentrics,0,0);
+        outFragInputs.texCoord2 = float4(attributeData.barycentrics,0,0);
+        outFragInputs.texCoord3 = float4(attributeData.barycentrics,0,0);
+
+        outFragInputs.color = float4(attributes.color, attributes.alpha);
+
+        // Compute the world space normal
+        float3 normalWS = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
+        float3 tangentWS = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
+        outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, /*sign(currentVertex.tangentOS.w)*/1);
+
+        outFragInputs.isFrontFace = dot(rayDirection, outFragInputs.tangentToWorld[2]) < 0.0f;
+    }
+#endif

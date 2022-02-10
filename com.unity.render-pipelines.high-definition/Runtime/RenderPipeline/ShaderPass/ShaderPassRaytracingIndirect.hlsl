@@ -9,14 +9,19 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
+
     // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
+#ifdef HAVE_VFX_MODIFICATION
+    FragInputs fragInput;
+    BuildFragInputsFromVFXIntersection(attributeData, fragInput);
+#else
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, fragInput);
-
+#endif
     // Compute the view vector
     float3 viewWS = -WorldRayDirection();
     float3 pointWSPos = fragInput.positionRWS;

@@ -339,7 +339,11 @@ Pass
     // Visual Effect Vertex Invocations
 
 	#ifdef HAVE_VFX_MODIFICATION
-	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+        #if !defined(SHADER_STAGE_RAY_TRACING)
+	    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+        #else
+        $features.graphVFX:     $include("IntersectionShader.template.hlsl")
+        #endif
 	#endif
 
     ENDHLSL
