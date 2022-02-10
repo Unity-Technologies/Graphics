@@ -9,6 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty albedo;
         public SerializedProperty meanFreePath;
 
+        public SerializedProperty blendingMode;
+        public SerializedProperty priority;
+
         public SerializedProperty volumeTexture;
         public SerializedProperty textureScroll;
         public SerializedProperty textureTile;
@@ -38,6 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             albedo = densityParams.FindPropertyRelative("albedo");
             meanFreePath = densityParams.FindPropertyRelative("meanFreePath");
+
+            blendingMode = densityParams.FindPropertyRelative("blendingMode");
+            priority = densityParams.FindPropertyRelative("priority");
 
             volumeTexture = densityParams.FindPropertyRelative("volumeMask");
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
