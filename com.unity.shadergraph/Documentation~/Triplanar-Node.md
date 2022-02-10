@@ -20,7 +20,9 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | Normal      | Input | Vector 3 | World Space Normal | Fragment normal |
 | Tile      | Input | Float    | None | Tiling amount for generated UVs |
 | Blend      | Input | Float    | None | Blend factor between different samples |
-| Out | Output      |    Vector 4 | None | Output value |
+| XYZ | Output      |    Vector 4 | None | Three planes projection value |
+| XZ | Output      |    Vector 4 | None | X and Z axes projection value |
+| Y | Output      |    Vector 4 | None | Y axis projection value |
 
 ## Controls
 
@@ -41,7 +43,9 @@ Node_Blend /= dot(Node_Blend, 1.0);
 float4 Node_X = SAMPLE_TEXTURE2D(Texture, Sampler, Node_UV.zy);
 float4 Node_Y = SAMPLE_TEXTURE2D(Texture, Sampler, Node_UV.xz);
 float4 Node_Z = SAMPLE_TEXTURE2D(Texture, Sampler, Node_UV.xy);
-float4 Out = Node_X * Node_Blend.x + Node_Y * Node_Blend.y + Node_Z * Node_Blend.z;
+float4 Out_XYZ = Node_X * Node_Blend.x + Node_Y * Node_Blend.y + Node_Z * Node_Blend.z;
+float4 Out_XZ = Node_X * Node_Blend.x + Node_Z * Node_Blend.z;
+float4 Out_Y = Node_Y * Node_Blend.y;
 ```
 
 **Normal**
@@ -56,7 +60,12 @@ float3 Node_Z = UnpackNormal(SAMPLE_TEXTURE2D(Texture, Sampler, Node_UV.xy));
 Node_X = float3(Node_X.xy + Normal.zy, abs(Node_X.z) * Normal.x);
 Node_Y = float3(Node_Y.xy + Normal.xz, abs(Node_Y.z) * Normal.y);
 Node_Z = float3(Node_Z.xy + Normal.xy, abs(Node_Z.z) * Normal.z);
-float4 Out = float4(normalize(Node_X.zyx * Node_Blend.x + Node_Y.xzy * Node_Blend.y + Node_Z.xyz * Node_Blend.z), 1);
+float4 Out_XYZ = float4(normalize(Node_X.zyx * Node_Blend.x + Node_Y.xzy * Node_Blend.y + Node_Z.xyz * Node_Blend.z), 1);
+float4 Out_XZ = float4(normalize(Node_X.zyx * Node_Blend.x + Node_Z.xyz * Node_Blend.z), 1);
+float4 Out_Y = float4(normalize(Node_Y.xzy * Node_Blend.y), 1);
+
 float3x3 Node_Transform = float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);
-Out.rgb = TransformWorldToTangent(Out.rgb, Node_Transform);
+Out_XYZ.rgb = TransformWorldToTangent(Out_XYZ.rgb, Node_Transform);
+Out_XZ.rgb = TransformWorldToTangent(Out_XZ.rgb, Node_Transform);
+Out_Y.rgb = TransformWorldToTangent(Out_Y.rgb, Node_Transform);
 ```
