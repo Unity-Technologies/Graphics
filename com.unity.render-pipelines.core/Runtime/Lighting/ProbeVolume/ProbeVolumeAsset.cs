@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering
             if ((validityByteStart + validityByteCount) != cellSharedData.Length)
                 return false;
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
-            var validityData = cellSharedData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
+            var validityData = cellSharedData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<uint>(1);
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
