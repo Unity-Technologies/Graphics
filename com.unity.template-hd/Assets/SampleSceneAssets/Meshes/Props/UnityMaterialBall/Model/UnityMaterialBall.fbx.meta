@@ -1,18 +1,33 @@
 fileFormatVersion: 2
-guid: 916a8fb579c63874394827cbec0773ae
+guid: 39857cfad1651644682ff5b772e6e697
 ModelImporter:
-  serializedVersion: 21201
+  serializedVersion: 22102
   internalIDToNameTable: []
   externalObjects:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: UnityBall_Base
-    second: {fileID: 2100000, guid: c9af0dbe88854d64aa8e276b41a10462, type: 2}
+      name: 10 - Default
+    second: {fileID: 2100000, guid: e0f7961861aa5ae4a97805f16f8306b7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat1
+    second: {fileID: 2100000, guid: 51715d426647c0a469aa54fd0d386aa6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat2
+    second: {fileID: 2100000, guid: 8580b3c6eca9551408bdc152c11f51b9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat3
+    second: {fileID: 2100000, guid: 587b589e0d804a3489c8a1962960fa7d, type: 2}
   materials:
-    materialImportMode: 1
-    materialName: 1
-    materialSearch: 2
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
     materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
@@ -49,9 +64,10 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
-    fileIdsGeneration: 1
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 2
     swapUVChannels: 0
-    generateSecondaryUV: 1
+    generateSecondaryUV: 0
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1
@@ -64,13 +80,14 @@ ModelImporter:
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
-    secondaryUVAreaDistortion: 15
+    secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVMarginMethod: 1
-    secondaryUVMinLightmapResolution: 8
+    secondaryUVMinLightmapResolution: 40
     secondaryUVMinObjectScale: 1
-    secondaryUVPackMargin: 8
+    secondaryUVPackMargin: 4
     useFileScale: 1
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -102,7 +119,8 @@ ModelImporter:
   animationType: 2
   humanoidOversampling: 1
   avatarSetup: 0
-  addHumanoidExtraRootOnlyWhenUsingAvatar: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 0
   additionalBone: 0
   userData: 
   assetBundleName: 
