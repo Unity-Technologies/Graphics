@@ -2073,7 +2073,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
                 parameters.focusDistance = m_DepthOfField.focusDistance.value;
             else
-                parameters.focusDistance = camera.camera.focalDistance;
+                parameters.focusDistance = camera.camera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 

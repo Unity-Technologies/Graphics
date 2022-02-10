@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering
             public static void Drawer_PhysicalCamera_FocusDistance(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;
-                EditorGUILayout.PropertyField(cam.focalDistance, Styles.focusDistance);
+                EditorGUILayout.PropertyField(cam.focusDistance, Styles.focusDistance);
             }
 
             public static void Drawer_PhysicalCamera_CameraBody_ISO(ISerializedCamera p, Editor owner)

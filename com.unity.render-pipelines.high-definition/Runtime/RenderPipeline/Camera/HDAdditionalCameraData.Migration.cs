@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     camera.iso = physicalProps.iso;
                     camera.shutterSpeed = physicalProps.shutterSpeed;
                     camera.aperture = physicalProps.aperture;
-                    camera.focalDistance = physicalProps.focusDistance;
+                    camera.focusDistance = physicalProps.focusDistance;
                     camera.gateFit = physicalProps.m_GateFit;
                     camera.bladeCount = physicalProps.bladeCount;
                     camera.curvature = physicalProps.curvature;

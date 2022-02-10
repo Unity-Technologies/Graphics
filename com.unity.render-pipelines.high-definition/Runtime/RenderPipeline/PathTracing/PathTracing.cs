@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = (enableDof && hdCamera.camera.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.camera.aperture : 0.0f;
 
-            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.camera.focalDistance;
+            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.camera.focusDistance;
 
             return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
