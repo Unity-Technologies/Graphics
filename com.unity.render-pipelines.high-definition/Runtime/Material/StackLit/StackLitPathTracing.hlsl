@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 // StackLit Material Data:
 //
@@ -375,4 +376,10 @@ float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, floa
 {
     // No absorption here
     return 1.0;
+}
+
+void GetAOVData(MaterialData mtlData, out AOVData aovData)
+{
+    aovData.albedo = mtlData.bsdfData.diffuseColor;
+    aovData.normal = mtlData.bsdfData.normalWS;
 }
