@@ -199,29 +199,24 @@ namespace UnityEngine.Rendering.Universal
         internal static void FinalBlit(
             CommandBuffer cmd,
             CameraData cameraData,
+            bool isRenderToBackBufferTarget,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
             RenderBufferStoreAction storeAction,
             Material material, int passIndex)
         {
-            bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera; //&& !cameraData.isDefaultViewport;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                isRenderToBackBufferTarget = true;
-#endif
-            isRenderToBackBufferTarget &= cameraData.targetTexture == null;
-
             // We y-flip if
             // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
             // 2) renderTexture starts UV at top
-            bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
+            bool yflip = isRenderToBackBufferTarget && cameraData.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source.nameID);
             cmd.SetGlobalTexture(ShaderPropertyId.blitTexture, source.nameID);
             Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
             cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
             CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
-            cmd.SetViewport(cameraData.pixelRect);
+            if (isRenderToBackBufferTarget)
+                cmd.SetViewport(cameraData.pixelRect);
             if (SystemInfo.graphicsShaderLevel < 30)
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, passIndex);
             else

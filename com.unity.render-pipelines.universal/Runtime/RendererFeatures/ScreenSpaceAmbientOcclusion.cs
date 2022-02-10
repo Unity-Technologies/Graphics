@@ -373,10 +373,18 @@ namespace UnityEngine.Rendering.Universal
 
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
+                    {
+                        var cameraData = renderingData.cameraData;
+                        bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        if (cameraData.xr.enabled)
+                            isRenderToBackBufferTarget = true;
+#endif
                         RenderingUtils.FinalBlit(
-                            cmd, renderingData.cameraData, m_SSAOTextureFinal,
+                            cmd, cameraData, isRenderToBackBufferTarget, m_SSAOTextureFinal,
                             m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
                             m_Material, (int)ShaderPasses.AfterOpaque);
+                    }
                 }
             }
 
