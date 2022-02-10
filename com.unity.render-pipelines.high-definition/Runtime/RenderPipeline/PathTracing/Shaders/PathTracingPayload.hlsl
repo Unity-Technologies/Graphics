@@ -67,7 +67,7 @@ void GetContinuationRay(PathPayload payload, out RayDesc ray)
 {
     ray.Origin = GetContinuationRayOrigin(payload);
     ray.Direction = payload.rayDirection;
-    ray.TMin = payload.rayTHit - _RaytracingRayBias;
+    ray.TMin = max(payload.rayTHit - _RaytracingRayBias, 0.0);
     ray.TMax = payload.rayTHit + _RaytracingRayBias;
 }
 

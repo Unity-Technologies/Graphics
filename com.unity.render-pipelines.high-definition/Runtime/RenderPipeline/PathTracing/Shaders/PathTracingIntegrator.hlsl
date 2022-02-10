@@ -195,7 +195,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
             payload.throughput *= value;
 
-            // Apply Russian roulette to our path
+            // Apply Russian roulette to our path (might be too aggressive)
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
             float rrFactor, rrValue = Luminance(payload.throughput);
 
