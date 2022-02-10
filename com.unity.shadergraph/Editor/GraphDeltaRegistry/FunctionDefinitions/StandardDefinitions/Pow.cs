@@ -10,24 +10,9 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Pow", // Name
             "Out = pow(In, Exp);",
-            new List<ParameterDescriptor>()
-            {
-                new ParameterDescriptor(
-                    "In",
-                    TYPE.Any,
-                    Usage.In
-                ),
-                new ParameterDescriptor(
-                    "Out",
-                    TYPE.Any,
-                    Usage.Out
-                ),
-                new ParameterDescriptor(
-                    "Exp",
-                    TYPE.Any,
-                    Usage.In
-                ),
-            }
+            new ParameterDescriptor("In", TYPE.Any, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Any, Usage.Out),
+            new ParameterDescriptor("Exp", TYPE.Any, Usage.In)
         );
 
         public static Dictionary<string, string> UIStrings => new()

@@ -105,13 +105,13 @@ namespace com.unity.shadergraph.defs
         }
 
         /// <summary>
-        /// 
+        /// Adds a port/field to the passed in node with configuration from param.
         /// </summary>
-        /// <param name="param"></param>
-        /// <param name="resolveType"></param>
-        /// <param name="nodeReader"></param>
-        /// <param name="nodeWriter"></param>
-        /// <param name="registry"></param>
+        /// <param name="param">Configuration info</param>
+        /// <param name="resolveType">The type to resolve ANY fields to.</param>
+        /// <param name="nodeReader">The way to read from the port/field.</param>
+        /// <param name="nodeWriter">The way to write to the port/field.</param>
+        /// <param name="registry">The registry holding the node.</param>
         /// <returns></returns>
         static IPortWriter ParameterDescriptorToField(
             ParameterDescriptor param,

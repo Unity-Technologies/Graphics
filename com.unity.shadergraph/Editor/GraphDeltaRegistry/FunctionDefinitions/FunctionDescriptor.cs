@@ -20,7 +20,7 @@ namespace com.unity.shadergraph.defs {
             int version,
             string name,
             string body,
-            IEnumerable<ParameterDescriptor> parameters)
+            params ParameterDescriptor[] parameters)
         {
             Version = version;
             Name = name;
