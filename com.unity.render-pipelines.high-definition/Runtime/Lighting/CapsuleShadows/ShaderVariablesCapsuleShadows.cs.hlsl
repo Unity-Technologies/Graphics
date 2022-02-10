@@ -8,10 +8,16 @@
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleShadows)
     float4 _OutputSize;
+    float3 _CapsuleLightDir;
+    float _CapsuleLightCosTheta;
+    float _CapsuleLightTanTheta;
+    float _CapsuleShadowRange;
+    uint _CapsulePad0;
+    uint _CapsulePad1;
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;
     uint _CapsulesFullResolution;
-    uint _CapsuleShadowsPad0;
+    uint _CapsulePad2;
 CBUFFER_END
 
 

@@ -11,9 +11,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public sealed class CapsuleIndirectShadowPipelineParameter : VolumeParameter<CapsuleIndirectShadowPipeline>
+    public sealed class CapsuleShadowPipelineParameter : VolumeParameter<CapsuleShadowPipeline>
     {
-        public CapsuleIndirectShadowPipelineParameter(CapsuleIndirectShadowPipeline value, bool overrideState = false) : base(value, overrideState) { }
+        public CapsuleShadowPipelineParameter(CapsuleShadowPipeline value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     [Serializable]
@@ -26,14 +26,19 @@ namespace UnityEngine.Rendering.HighDefinition
     public class CapsuleShadowsVolumeComponent : VolumeComponent
     {
         /// <summary>
+        /// Choose a pipeline for how capsule shadowing interacts with HDRP.
+        /// </summary>
+        public CapsuleShadowPipelineParameter pipeline = new CapsuleShadowPipelineParameter(CapsuleShadowPipeline.InLightLoop);
+
+        /// <summary>
         /// When enabled, capsules cast shadows for supported lights.
         /// </summary>
         public BoolParameter enableDirectShadows = new BoolParameter(true);
 
         /// <summary>
-        /// Choose a pipeline for indirect shadows from capsules, or None.
+        /// When enabled, capsules produce indirect shadows or ambient occlusion.
         /// </summary>
-        public CapsuleIndirectShadowPipelineParameter indirectShadowPipeline = new CapsuleIndirectShadowPipelineParameter(CapsuleIndirectShadowPipeline.None);
+        public BoolParameter enableIndirectShadows = new BoolParameter(true);
 
         /// <summary>
         /// The minimium amount of visibility that must remain after indirect shadows.

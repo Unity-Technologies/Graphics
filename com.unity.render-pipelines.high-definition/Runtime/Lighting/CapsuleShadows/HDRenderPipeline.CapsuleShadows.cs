@@ -18,8 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public List<CapsuleOccluderData> occluders;
         public bool directUsesSphereBounds;
         public int directCount;
-        public bool indirectInLightLoop;
         public int indirectCount;
+        public bool inLightLoop;
 
         public void Clear()
         {
@@ -28,16 +28,34 @@ namespace UnityEngine.Rendering.HighDefinition
             directUsesSphereBounds = false;
             directCount = 0;
             indirectCount = 0;
+            inLightLoop = false;
         }
     };
 
     public partial class HDRenderPipeline
     {
+        struct CapsuleShadowDirectionalLight
+        {
+            public Vector3 direction;
+            public float cosTheta;
+            public float tanTheta;
+            public float range;
+
+            public CapsuleShadowDirectionalLight(Vector3 _direction, float _theta, float _range)
+            {
+                direction = _direction;
+                cosTheta = Mathf.Cos(_theta);
+                tanTheta = Mathf.Tan(_theta);
+                range = _range;
+            }
+        }
+
         internal const int k_MaxDirectShadowCapsulesOnScreen = 1024;
         internal const int k_MaxIndirectShadowCapsulesOnScreen = 1024;
 
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
+        CapsuleShadowDirectionalLight m_DirectionalLight;
 
         internal void InitializeCapsuleShadows()
         {
@@ -63,9 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // if there is a single light with capsule shadows, build optimised bounds
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            CapsuleShadowDirectionalLight singleLight = new CapsuleShadowDirectionalLight { };
             bool optimiseBoundsForLight = false;
-            Vector3 lightDirection = Vector3.zero;
-            float lightHalfAngle = 0.0f;
             float maxRange = 0.0f;
             for (int i = 0; i < cullResults.visibleLights.Length; ++i)
             {
@@ -85,25 +102,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // optimise for this light, continue checking through the visible list
                         optimiseBoundsForLight = true;
-                        lightDirection = visibleLight.GetForward().normalized;
-                        lightHalfAngle = Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
+                        singleLight = new CapsuleShadowDirectionalLight(
+                            -visibleLight.GetForward().normalized,
+                            Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f,
+                            lightData.capsuleShadowRange);
                     }
                     else
                     {
                         // cannot optimise for a single directional light, disable and early out
+                        singleLight = new CapsuleShadowDirectionalLight { };
                         optimiseBoundsForLight = false;
                         break;
                     }
                 }
             }
+            m_DirectionalLight = singleLight;
 
             m_CapsuleOccluders.Clear();
             m_CapsuleOccluders.directUsesSphereBounds = !optimiseBoundsForLight;
-            m_CapsuleOccluders.indirectInLightLoop = capsuleShadows.indirectShadowPipeline.value == CapsuleIndirectShadowPipeline.InLightLoop;
+            m_CapsuleOccluders.inLightLoop = capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop;
 
             bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
             float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
-            bool enableIndirectShadows = capsuleShadows.indirectShadowPipeline.value != CapsuleIndirectShadowPipeline.None && indirectRangeFactor > 0.0f;
+            bool enableIndirectShadows = capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f;
             if (enableDirectShadows || enableIndirectShadows)
             {
                 using (ListPool<OrientedBBox>.Get(out List<OrientedBBox> indirectBounds))
@@ -121,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (optimiseBoundsForLight)
                             {
                                 // align local X with the capsule axis
-                                Vector3 localZ = lightDirection;
+                                Vector3 localZ = singleLight.direction;
                                 Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
                                 Vector3 localX = Vector3.Cross(localY, localZ);
 
@@ -131,11 +152,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
                                     Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
                                     Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
-                                halfExtentLS.z += 0.5f * maxRange;
-                                centerRWS += (0.5f * maxRange) * localZ;
+                                halfExtentLS.z += 0.5f * singleLight.range;
+                                centerRWS -= (0.5f * singleLight.range) * localZ;
 
                                 // expand by max penumbra
-                                float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
+                                float penumbraSize = Mathf.Tan(singleLight.tanTheta) * singleLight.range;
                                 halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
                                 halfExtentLS.y += penumbraSize;
 
@@ -223,16 +244,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 = (uint)m_CapsuleOccluders.indirectCount
                 | ((uint)capsuleShadows.indirectShadowMethod.value << (int)CapsuleIndirectShadowFlags.MethodShift);
 
-            switch (capsuleShadows.indirectShadowPipeline.value)
+            switch (capsuleShadows.pipeline.value)
             {
-                case CapsuleIndirectShadowPipeline.None:
-                    break;
-                case CapsuleIndirectShadowPipeline.InLightLoop:
+                case CapsuleShadowPipeline.InLightLoop:
                     indirectCountAndFlags |= (uint)CapsuleIndirectShadowFlags.LightLoopBit;
                     break;
-                case CapsuleIndirectShadowPipeline.PrePassFullResolution:
+                case CapsuleShadowPipeline.PrePassFullResolution:
                     break;
-                case CapsuleIndirectShadowPipeline.PrePassHalfResolution:
+                case CapsuleShadowPipeline.PrePassHalfResolution:
                     indirectCountAndFlags |= (uint)CapsuleIndirectShadowFlags.HalfResBit;
                     break;
             }
@@ -266,6 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader capsuleCS;
             public int kernel;
 
+            public CapsuleShadowDirectionalLight directionalLight;
+            public bool isFullResolution;
+
             public TextureHandle output;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
@@ -276,20 +298,23 @@ namespace UnityEngine.Rendering.HighDefinition
         internal TextureHandle RenderCapsuleShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            bool isFullResolution = (capsuleShadows.indirectShadowPipeline.value == CapsuleIndirectShadowPipeline.PrePassFullResolution);
-            bool isHalfResolution = (capsuleShadows.indirectShadowPipeline.value == CapsuleIndirectShadowPipeline.PrePassHalfResolution);
-            if (m_CapsuleOccluders.indirectCount == 0 || !(isFullResolution || isHalfResolution))
+            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop)
                 return renderGraph.defaultResources.blackTextureXR;
 
             using (var builder = renderGraph.AddRenderPass<RenderCapsuleShadowsPassData>("Capsule Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RenderCapsuleShadows)))
             {
+                bool isFullResolution = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassFullResolution);
+
                 passData.capsuleCS = defaultResources.shaders.capsuleShadowsCS;
                 passData.kernel = passData.capsuleCS.FindKernel("CapsuleShadowMain");
+
+                passData.directionalLight = m_DirectionalLight;
+                passData.isFullResolution = isFullResolution;
 
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one * (isFullResolution ? 1.0f : 0.5f), dynamicResolution: true, xrReady: true)
                     {
-                        colorFormat = GraphicsFormat.R16_UNorm,
+                        colorFormat = GraphicsFormat.R16G16_UNorm,
                         enableRandomWrite = true,
                         name = "Capsule Shadows"
                     }));
@@ -306,9 +331,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ShaderVariablesCapsuleShadows cb = new ShaderVariablesCapsuleShadows { };
                         cb._OutputSize = new Vector4(size.x, size.y, 1.0f/size.x, 1.0f/size.y);
+
+                        cb._CapsuleLightDir = passData.directionalLight.direction;
+                        cb._CapsuleLightCosTheta = passData.directionalLight.cosTheta;
+
+                        cb._CapsuleLightTanTheta = passData.directionalLight.tanTheta;
+                        cb._CapsuleShadowRange = passData.directionalLight.range;
+
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
-                        cb._CapsulesFullResolution = isFullResolution ? 1U : 0U;
+                        cb._CapsulesFullResolution = data.isFullResolution ? 1U : 0U;
 
                         ConstantBuffer.Push(ctx.cmd, cb, data.capsuleCS, HDShaderIDs._ShaderVariablesCapsuleShadows);
                         ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleShadowTexture, data.output);

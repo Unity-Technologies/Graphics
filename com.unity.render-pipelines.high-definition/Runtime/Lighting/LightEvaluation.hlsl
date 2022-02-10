@@ -308,9 +308,19 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
     if (_CapsuleDirectShadowCount != 0 && light.capsuleShadowRange != 0.f)
     {
-        float cosTheta = light.capsuleShadowMaxCosTheta;
-        float capsuleShadow = EvaluateCapsuleDirectShadow(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
-        shadow *= capsuleShadow;
+        if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+        {
+            float cosTheta = light.capsuleShadowMaxCosTheta;
+            float capsuleShadow = EvaluateCapsuleDirectShadow(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
+            shadow *= capsuleShadow;
+        }
+        else
+        {
+            int2 coord = int2(posInput.positionSS);
+            if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_HALF_RES_BIT) != 0)
+                coord /= 2;
+            shadow *= 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowTexture, coord).x;
+        }
     }
 #endif
 

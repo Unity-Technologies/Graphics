@@ -10,7 +10,7 @@
 
 #pragma kernel CapsuleShadowMain
 
-RW_TEXTURE2D_X(float, _CapsuleShadowTexture);
+RW_TEXTURE2D_X(float2, _CapsuleShadowTexture);
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 
 #define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
@@ -18,7 +18,7 @@ StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 #define DEPTH_MIN_EMPTY 0xffffffffU
 groupshared uint s_depthMin;
 groupshared uint s_depthMax;
-groupshared uint s_activeCapsules[2];
+groupshared uint s_capsuleBits[2];
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 #define PACK_UNPACK_POSITIVE_DEPTH(D)   (D)
@@ -104,39 +104,62 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 
     // loop over capsules in batches of 64
     // TODO: make 32, check 2 depth ranges per capsule
-    float visibility = 1.f;
-    uint capsuleCount = _CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK;
+    float directVisibility = 1.f;
+    float indirectVisibility = 1.f;
+    uint capsuleCount = _CapsuleDirectShadowCount + (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK);
     for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
     {
         // clear state
         if (flatThreadIndex < 2)
-            s_activeCapsules[flatThreadIndex] = 0;
+        {
+            s_capsuleBits[flatThreadIndex] = 0;
+        }
         GroupMemoryBarrierWithGroupSync();
 
         // use one thread per capsule to check against tile
+        // TODO: check if any pixels still visible?
         {
             uint capsuleIndex = capsuleBaseIndex + flatThreadIndex;
             if (capsuleIndex < capsuleCount)
             {
-                CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + capsuleIndex];
+                CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
 
                 float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
-                float radiusWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
+                float centerToCenterDistSq = dot(offsetWS, offsetWS);
 
-                if (dot(offsetWS, offsetWS) < Sq(radiusWS + tileRadiusWS))
-                    InterlockedOr(s_activeCapsules[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
+                bool intersectsTile = false;
+                if (capsuleIndex < _CapsuleDirectShadowCount)
+                {
+                    float lightT = max(0.f, dot(offsetWS, _CapsuleLightDir));
+                    float tileInfluenceRadius = tileRadiusWS + lightT * _CapsuleLightTanTheta;
+                    float3 checkOffsetWS = offsetWS - _CapsuleLightDir*lightT;
+                    bool intersectsPenumbra = (dot(checkOffsetWS, checkOffsetWS) < Sq(tileInfluenceRadius + capsuleData.offset + capsuleData.radius));
+
+                    float directRangeWS = capsuleData.offset + capsuleData.radius + _CapsuleShadowRange;
+                    bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
+
+                    intersectsTile = intersectsPenumbra && intersectsRange;
+                }
+                else
+                {
+                    float indirectRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
+                    intersectsTile = (centerToCenterDistSq < Sq(indirectRangeWS + tileRadiusWS));
+                }
+
+                if (intersectsTile)
+                    InterlockedOr(s_capsuleBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
             }
         }
         GroupMemoryBarrierWithGroupSync();
 
         // loop over set bits to do the shading
-        uint remainingBits = s_activeCapsules[0];
+        uint remainingBits = s_capsuleBits[0];
         bool secondPass = false;
         for (;;)
         {
             if (remainingBits == 0 && !secondPass)
             {
-                remainingBits = s_activeCapsules[1];
+                remainingBits = s_capsuleBits[1];
                 secondPass = true;
             }
             if (remainingBits == 0)
@@ -147,20 +170,38 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 
             uint capsuleIndex = capsuleBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
-            CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[_CapsuleDirectShadowCount + capsuleIndex];
-            uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
-            float occlusion = EvaluateCapsuleAmbientOcclusion(
-                flags,
-                capsuleData.centerRWS - positionWS,
-                capsuleData.axisDirWS,
-                capsuleData.offset,
-                capsuleData.radius,
-                capsuleData.radius*_CapsuleIndirectRangeFactor,
-                normalWS);
-
-            visibility *= max(1.f - occlusion, 0.f);
+            CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
+            if (capsuleIndex < _CapsuleDirectShadowCount)
+            {
+                uint flags = CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+                float occlusion = EvaluateCapsuleOcclusion(
+                    flags,
+                    _CapsuleLightDir,
+                    false,
+                    _CapsuleLightCosTheta,
+                    capsuleData.centerRWS - positionWS,
+                    capsuleData.axisDirWS,
+                    capsuleData.offset,
+                    capsuleData.radius,
+                    _CapsuleShadowRange,
+                    normalWS);
+                directVisibility *= max(1.f - occlusion, 0.0f);
+            }
+            else
+            {
+                uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
+                float occlusion = EvaluateCapsuleAmbientOcclusion(
+                    flags,
+                    capsuleData.centerRWS - positionWS,
+                    capsuleData.axisDirWS,
+                    capsuleData.offset,
+                    capsuleData.radius,
+                    capsuleData.radius*_CapsuleIndirectRangeFactor,
+                    normalWS);
+                indirectVisibility *= max(1.f - occlusion, 0.f);
+            }
         }
     }
 
-    _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = 1.f - visibility;
+    _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
 }

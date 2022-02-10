@@ -11,9 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Ellipsoid
     }
 
-    public enum CapsuleIndirectShadowPipeline
+    public enum CapsuleShadowPipeline
     {
-        None,
         InLightLoop,
         PrePassFullResolution,
         PrePassHalfResolution,

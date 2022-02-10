@@ -1912,8 +1912,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
                 m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
-                m_CapsuleDirectShadowCount = capsuleOccluderList.directCount;
-                m_CapsuleIndirectShadowCount = capsuleOccluderList.indirectInLightLoop ? capsuleOccluderList.indirectCount : 0;
+                m_CapsuleDirectShadowCount = capsuleOccluderList.inLightLoop ? capsuleOccluderList.directCount : 0;
+                m_CapsuleIndirectShadowCount = capsuleOccluderList.inLightLoop ? capsuleOccluderList.indirectCount : 0;
 
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
@@ -1968,31 +1968,31 @@ namespace UnityEngine.Rendering.HighDefinition
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
 
-                    if (capsuleOccluderList.directUsesSphereBounds)
+                    if (capsuleOccluderList.inLightLoop)
                     {
-                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
+                        if (capsuleOccluderList.directUsesSphereBounds)
                         {
-                            // Capsule Occluders volumes are not lights and therefore should not affect light classification.
-                            LightFeatureFlags featureFlags = 0;
-                            CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                            for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
+                            {
+                                // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                                LightFeatureFlags featureFlags = 0;
+                                CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
 
-                            m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                                m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                            }
                         }
-                    }
-                    else
-                    {
-                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
+                        else
                         {
-                            // Capsule Occluders volumes are not lights and therefore should not affect light classification.
-                            LightFeatureFlags featureFlags = 0;
-                            CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                            for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
+                            {
+                                // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                                LightFeatureFlags featureFlags = 0;
+                                CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
 
-                            m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                                m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                            }
                         }
-                    }
 
-                    if (capsuleOccluderList.indirectInLightLoop)
-                    { 
                         for (int i = 0, offset = capsuleOccluderList.directCount, n = capsuleOccluderList.indirectCount; i < n; i++)
                         {
                             // Capsule Occluders volumes are not lights and therefore should not affect light classification.
