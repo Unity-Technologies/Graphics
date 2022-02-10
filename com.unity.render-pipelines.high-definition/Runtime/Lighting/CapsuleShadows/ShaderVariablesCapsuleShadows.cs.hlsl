@@ -7,9 +7,11 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleShadows
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleShadows)
-    float2 _SizeRcp;
+    float4 _OutputSize;
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;
+    uint _CapsulesFullResolution;
+    uint _CapsuleShadowsPad0;
 CBUFFER_END
 
 

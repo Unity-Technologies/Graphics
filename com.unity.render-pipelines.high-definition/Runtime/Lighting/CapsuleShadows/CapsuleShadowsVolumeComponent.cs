@@ -11,6 +11,12 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
+    public sealed class CapsuleIndirectShadowPipelineParameter : VolumeParameter<CapsuleIndirectShadowPipeline>
+    {
+        public CapsuleIndirectShadowPipelineParameter(CapsuleIndirectShadowPipeline value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
     public sealed class CapsuleIndirectShadowMethodParameter : VolumeParameter<CapsuleIndirectShadowMethod>
     {
         public CapsuleIndirectShadowMethodParameter(CapsuleIndirectShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
@@ -25,14 +31,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enableDirectShadows = new BoolParameter(true);
 
         /// <summary>
-        /// When enabled, capsules cast shadows for supported lights.
+        /// Choose a pipeline for indirect shadows from capsules, or None.
         /// </summary>
-        public BoolParameter enableIndirectShadows = new BoolParameter(false);
-
-        /// <summary>
-        /// Use the full resolution light loop path for indirect shadows (temporary).
-        /// </summary>
-        public BoolParameter indirectInLightLoop = new BoolParameter(true);
+        public CapsuleIndirectShadowPipelineParameter indirectShadowPipeline = new CapsuleIndirectShadowPipelineParameter(CapsuleIndirectShadowPipeline.None);
 
         /// <summary>
         /// The minimium amount of visibility that must remain after indirect shadows.

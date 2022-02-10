@@ -11,6 +11,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Ellipsoid
     }
 
+    public enum CapsuleIndirectShadowPipeline
+    {
+        None,
+        InLightLoop,
+        PrePassFullResolution,
+        PrePassHalfResolution,
+    }
+
     [GenerateHLSL]
     public enum CapsuleIndirectShadowMethod
     {
@@ -35,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ExtraShift = 20,
         ExtraMask = 0x00f00000,
         LightLoopBit = 0x01000000,
+        HalfResBit = 0x02000000,
     }
 
     [GenerateHLSL(needAccessors = false)]

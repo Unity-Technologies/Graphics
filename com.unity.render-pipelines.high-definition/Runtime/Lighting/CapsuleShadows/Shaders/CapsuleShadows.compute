@@ -39,12 +39,12 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + pixelCoord).x;
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (_CapsulesFullResolution ? 0 : _FirstDepthMipOffset)).x;
     bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
 
-    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * 2);
+    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (_CapsulesFullResolution ? 1 : 2));
 
-    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_SizeRcp, deviceDepth);
+    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_OutputSize.zw, deviceDepth);
 
     // TODO: handle orthographic
     float4x4 invProj = UNITY_MATRIX_I_P;
@@ -93,7 +93,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
     // TODO: optimise
     float tileRadiusSqVS = 0.f;
     for (int i = 0; i < 8; ++i) {
-        float2 cornerVS_XY = positionVS_XY + float2((i & 1) != 0 ? 1.f : -1.f, (i & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_SizeRcp*TILE_SIZE;
+        float2 cornerVS_XY = positionVS_XY + float2((i & 1) != 0 ? 1.f : -1.f, (i & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_OutputSize.zw*TILE_SIZE;
         float cornerLinearDepth = ((i & 4) != 0 ? nearLinearDepth : farLinearDepth);
         float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - tileCenterVS;
         tileRadiusSqVS = max(tileRadiusSqVS, dot(offsetVS, offsetVS));
