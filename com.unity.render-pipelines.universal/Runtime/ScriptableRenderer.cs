@@ -1392,11 +1392,10 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, cameraData.xr.foveatedRenderingInfo != IntPtr.Zero);
+                cmd.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                context.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
             }
 #endif
         }
@@ -1410,11 +1409,10 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseFoveatedRendering);
+                cmd.ConfigureFoveatedRendering(IntPtr.Zero);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                context.ConfigureFoveatedRendering(IntPtr.Zero);
             }
 #endif
         }

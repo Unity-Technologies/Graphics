@@ -657,12 +657,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
                 var pass0 = xrLayout.GetActivePasses()[0].Item2;
-                context.ConfigureFoveatedRendering(pass0.foveatedRenderingInfo);
+                cmd.ConfigureFoveatedRendering(pass0.foveatedRenderingInfo);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, pass0.foveatedRenderingInfo != IntPtr.Zero);
                 XRSystem.RenderMirrorView(cmd, baseCamera);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                cmd.ConfigureFoveatedRendering(IntPtr.Zero);
                 context.ExecuteCommandBuffer(cmd);
-                context.ConfigureFoveatedRendering(IntPtr.Zero);
                 context.Submit();
                 CommandBufferPool.Release(cmd);
             }
