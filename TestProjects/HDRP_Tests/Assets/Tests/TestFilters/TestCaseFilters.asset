@@ -60,6 +60,15 @@ MonoBehaviour:
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: API Bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -67,6 +76,42 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
@@ -78,42 +123,6 @@ MonoBehaviour:
     Reason: unstable on  XR yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: fa0d54c5ccbc8b143a8db100374e0f5e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -121,3 +130,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: API Bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: API Bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Error on lightmapper side

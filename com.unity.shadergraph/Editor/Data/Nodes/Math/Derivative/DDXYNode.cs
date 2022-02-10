@@ -14,18 +14,19 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_DDXY", BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
-        static string Unity_DDXY(
+        string Unity_DDXY(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-@"
-{
+$@"
+{{
+    {GetRayTracingError()}
     Out = abs(ddx(In)) + abs(ddy(In));
-}
+}}
 ";
         }
     }
