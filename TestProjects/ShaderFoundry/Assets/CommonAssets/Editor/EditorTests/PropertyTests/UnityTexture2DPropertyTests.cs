@@ -58,9 +58,9 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator Texture2DProperty_MaterialColorSet_IsExpectedColor()
+        public IEnumerator Texture2DProperty_MaterialTextureSet_IsExpectedColor()
         {
-            var expectedColor = new Color(0.24f, 0.49f, 0.74f, 1.0f);
+            var expectedColor = new Color(0.25f, 0.5f, 0.75f, 1.0f);
             var inputTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             inputTexture.SetPixel(0, 0, expectedColor);
             inputTexture.Apply();
@@ -70,12 +70,11 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var block = propBuilder.Build(container);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetTexture(propBuilder.PropertyAttribute.UniformName, inputTexture); };
-            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
+            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate, errorThreshold : 1);
 
             UnityEngine.Object.DestroyImmediate(inputTexture);
 
             yield break;
         }
-
     }
 }

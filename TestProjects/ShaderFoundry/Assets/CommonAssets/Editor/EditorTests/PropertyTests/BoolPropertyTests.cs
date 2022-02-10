@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             propBuilder.PropertyAttribute.DataSource = ShaderFoundry.UniformDataSource.None;
             var block = propBuilder.Build(container);
 
-            // This ideally needs to check that there's no uniform...
+            // TODO @ SHADERS: This ideally needs to check that there's no uniform...
             var shader = BuildSimpleSurfaceBlockShaderObject(container, propBuilder.BlockName, block);
 
             var propIndex = shader.FindPropertyIndex(propBuilder.PropertyAttribute.UniformName);

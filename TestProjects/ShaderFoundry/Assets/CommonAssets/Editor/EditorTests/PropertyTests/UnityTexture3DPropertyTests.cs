@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator Texture3DProperty_MaterialColorSet_IsExpectedColor()
+        public IEnumerator Texture3DProperty_MaterialTextureSet_IsExpectedColor()
         {
             var expectedColor = new Color(0.24f, 0.49f, 0.74f, 1.0f);
             var inputTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
@@ -61,6 +61,5 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             yield break;
         }
-
     }
 }

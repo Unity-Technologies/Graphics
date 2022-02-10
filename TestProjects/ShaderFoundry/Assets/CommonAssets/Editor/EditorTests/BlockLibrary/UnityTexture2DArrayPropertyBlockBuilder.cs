@@ -5,7 +5,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 {
     internal class UnityTexture2DArrayPropertyBlockBuilder : BasePropertyBlockBuilder
     {
-        
         public int SampleIndex = 0;
 
         public UnityTexture2DArrayPropertyBlockBuilder()
@@ -14,7 +13,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             FieldName = "FieldTexture";
             PropertyAttribute = new PropertyAttributeData() { DefaultValue = "\"\" {}" };
         }
-
 
         public Block Build(ShaderContainer container)
         {

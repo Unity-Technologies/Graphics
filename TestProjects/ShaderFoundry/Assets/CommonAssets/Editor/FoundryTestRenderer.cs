@@ -25,6 +25,7 @@ public class FoundryTestRenderer
         mostWrongPixels = 0;
         mostWrongString = string.Empty;
     }
+
     internal void ReportTests()
     {
         if (wrongImageCount > 0)
@@ -43,8 +44,11 @@ public class FoundryTestRenderer
         {
             var messages = ShaderUtil.GetShaderMessages(shader);
             foreach (var message in messages)
+            {
+                // TODO @ SHADERS: We should probably check for warnings at some point
                 if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
                     throw new Exception(message.message);
+            }
         }
     }
 
@@ -199,7 +203,7 @@ public class FoundryTestRenderer
         }
 
         UnityEngine.Object.DestroyImmediate(temp);
-        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / (float) mismatchCount) : 0.0f);
+        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / (float)mismatchCount) : 0.0f);
         return mismatchCount;
     }
 

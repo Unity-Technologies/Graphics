@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator TextureCubeProperty_MaterialColorSet_IsExpectedColor()
+        public IEnumerator TextureCubeProperty_MaterialTextureSet_IsExpectedColor()
         {
             var expectedColor = new Color(0.25f, 0.5f, 0.75f, 1.0f);
             var inputTexture = new Cubemap(1, TextureFormat.ARGB32, false);
@@ -61,6 +61,5 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             yield break;
         }
-
     }
 }

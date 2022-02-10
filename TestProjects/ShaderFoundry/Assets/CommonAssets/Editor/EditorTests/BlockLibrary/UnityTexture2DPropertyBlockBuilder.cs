@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             PropertyAttribute = new PropertyAttributeData() { DefaultValue = "\"\" {}" };
         }
 
-
         public Block Build(ShaderContainer container)
         {
             var propData = new BlockBuilderUtilities.PropertyDeclarationData

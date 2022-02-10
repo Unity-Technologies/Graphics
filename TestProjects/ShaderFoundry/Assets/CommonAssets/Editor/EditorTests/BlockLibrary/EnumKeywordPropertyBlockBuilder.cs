@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var enumKeywordAttributeBuilder = new EnumKeywordAttribute();
             foreach (var entry in EnumEntries)
             {
-                if(int.TryParse(entry.Value, out int value))
+                if (int.TryParse(entry.Value, out int value))
                     enumKeywordAttributeBuilder.AddEnum(entry.Name, value);
                 else
                     enumKeywordAttributeBuilder.AddEnum(entry.Name);

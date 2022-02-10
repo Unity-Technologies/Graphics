@@ -51,10 +51,10 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var inputTypeBuilder = new ShaderType.StructBuilder(blockBuilder, "Input");
             var fieldName = propertyData.FieldName;
             var inputFieldBuilder = new StructField.Builder(container, fieldName, propertyData.FieldType);
-            if(propertyData.PropertyAttribute != null)
+            if (propertyData.PropertyAttribute != null)
                 MarkAsProperty(container, inputFieldBuilder, propertyData.PropertyAttribute);
 
-            if(propertyData.ExtraAttributes != null)
+            if (propertyData.ExtraAttributes != null)
             {
                 foreach (var attribute in propertyData.ExtraAttributes)
                     inputFieldBuilder.AddAttribute(attribute);
