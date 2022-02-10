@@ -91,7 +91,8 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // If called from a random walk, just return the normal
-    if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
+    uint segmentID = payload.segmentID;
+    if (segmentID == SEGMENT_ID_RANDOM_WALK)
     {
         payload.value = fragInput.tangentToWorld[2];
         return;
@@ -122,7 +123,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
 
     // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool computeDirect = segmentID >= _RaytracingMinRecursion - 1;
 
     // Get our world space shading position
     float3 shadingPosition = fragInput.positionRWS;
@@ -203,7 +204,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
             float rrFactor, rrValue = Luminance(payload.throughput);
 
-            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !payload.segmentID))
+            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !segmentID))
             {
                 bool isSampleBelow = IsBelow(mtlData, ray.Direction);
 
@@ -329,7 +330,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 #endif // SHADER_UNLIT
 
     // Write AOV data to the payload (if needed)
-    if (payload.segmentID == 0 && any(payload.aovMotionVector))
+    if (segmentID == 0 && any(payload.aovMotionVector))
         WriteAOVData(aovData, shadingPosition, payload);
 }
 
