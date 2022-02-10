@@ -421,6 +421,96 @@ class VisualEffectAssetEditor : Editor
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
+    public static void DisplayPrewarmInspectorGUI(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
+    {
+        if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
+        {
+            var currentDeltaTime = prewarmDeltaTime.floatValue;
+            var currentStepCount = prewarmStepCount.uintValue;
+            var currentTotalTime = currentDeltaTime * currentStepCount;
+            EditorGUI.BeginChangeCheck();
+            currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1u;
+                }
+
+                currentDeltaTime = currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentStepCount = (uint)EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1;
+                }
+
+                currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                prewarmStepCount.uintValue = currentStepCount;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                {
+                    prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                }
+
+                if (currentDeltaTime > currentTotalTime)
+                {
+                    currentTotalTime = currentDeltaTime;
+                }
+
+                if (currentTotalTime != 0.0f)
+                {
+                    var candidateStepCount_A = (uint)Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_B = (uint)Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                    var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                    var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                    if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                    {
+                        currentStepCount = candidateStepCount_A;
+                    }
+                    else
+                    {
+                        currentStepCount = candidateStepCount_B;
+                    }
+
+                    prewarmStepCount.uintValue = currentStepCount;
+                }
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+        else
+        {
+            //Multi selection case, can't resolve total time easily
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
+            EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
+                    prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+    }
+
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
@@ -561,92 +651,7 @@ class VisualEffectAssetEditor : Editor
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
-            if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
-            {
-                var currentDeltaTime = prewarmDeltaTime.floatValue;
-                var currentStepCount = prewarmStepCount.intValue;
-                var currentTotalTime = currentDeltaTime * currentStepCount;
-                EditorGUI.BeginChangeCheck();
-                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    prewarmStepCount.intValue = currentStepCount;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
-                    {
-                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
-                    }
-
-                    if (currentDeltaTime > currentTotalTime)
-                    {
-                        currentTotalTime = currentDeltaTime;
-                    }
-
-                    if (currentTotalTime != 0.0f)
-                    {
-                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
-                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
-
-                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
-                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
-
-                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
-                        {
-                            currentStepCount = candidateStepCount_A;
-                        }
-                        else
-                        {
-                            currentStepCount = candidateStepCount_B;
-                        }
-
-                        prewarmStepCount.intValue = currentStepCount;
-                    }
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
-            else
-            {
-                //Multi selection case, can't resolve total time easily
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
-                EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
-                        prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
+            DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
         }
 
         if (initialEventName != null)
