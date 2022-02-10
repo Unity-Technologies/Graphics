@@ -1,0 +1,5 @@
+{
+    "displayName": "Contexts GTF example",
+    "description": "A simple example of usage of contexts using Graph Tools Foundation",
+    "createSeparatePackage": false
+}

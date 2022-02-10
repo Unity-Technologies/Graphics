@@ -1,0 +1,24 @@
+{
+    "name": "Unity.GraphToolsFoundation.Searcher.Editor",
+    "rootNamespace": "",
+    "references": [
+        "com.unity.quicksearch"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.quicksearch",
+            "expression": "3.0.0-preview.1",
+            "define": "QUICKSEARCH_3_0_0_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

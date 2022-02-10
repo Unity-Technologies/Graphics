@@ -1,0 +1,319 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
+{
+    public abstract class AssetStateComponent<TUpdater> : UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponent<TUpdater>, System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IAssetStateComponent, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent where TUpdater : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater, new()
+    {
+        protected AssetStateComponent() {}
+    }
+
+    public abstract class AssetViewStateComponent<TUpdater> : UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponent<TUpdater>, System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IAssetViewStateComponent, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent where TUpdater : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater, new()
+    {
+        public virtual UnityEngine.Hash128 ViewGUID { get; set; }
+        protected AssetViewStateComponent() {}
+    }
+
+    public class ChangesetManager<TChangeset> where TChangeset : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IChangeset, new()
+    {
+        public TChangeset CurrentChangeset { get; }
+        public ChangesetManager() {}
+        public TChangeset GetAggregatedChangeset(System.UInt32 sinceVersion, System.UInt32 currentVersion);
+        public System.UInt32 PurgeOldChangesets(System.UInt32 untilVersion, System.UInt32 currentVersion);
+        public void PushChangeset(System.UInt32 version);
+    }
+
+    public delegate void CommandHandler<TState, TCommand>(TState state, TCommand command) where TState : UnityEngine.GraphToolsFoundation.CommandStateObserver.IState where TCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand;
+
+    [System.Flags] public enum Diagnostics
+    {
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.Diagnostics CheckRecursiveDispatch = 2;
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.Diagnostics LogAllCommands = 1;
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.Diagnostics None = 0;
+        public int value__;
+    }
+
+    public class Dispatcher : System.IDisposable
+    {
+        protected readonly System.Collections.Generic.Dictionary<System.Type, UnityEngine.GraphToolsFoundation.CommandStateObserver.Dispatcher.CommandHandlerFunctorBase> m_CommandHandlers;
+        protected readonly System.Collections.Generic.List<System.Action<UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand>> m_CommandPreDispatchCallbacks;
+        protected UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand m_CurrentCommand;
+        protected readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver>> m_StateObservers;
+        public UnityEngine.GraphToolsFoundation.CommandStateObserver.IState State { get; }
+        public Dispatcher(UnityEngine.GraphToolsFoundation.CommandStateObserver.IState state) {}
+        public virtual void Dispatch(UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand command);
+        public virtual void Dispose();
+        protected virtual void Dispose(bool disposing);
+        protected virtual void Finalize();
+        public void InvalidateAllObservers();
+        protected virtual bool IsDiagnosticFlagSet(UnityEngine.GraphToolsFoundation.CommandStateObserver.Diagnostics flag);
+        public virtual void NotifyObservers();
+        protected virtual void PostDispatchCommand(UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand command);
+        protected virtual void PreDispatchCommand(UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand command);
+        public void RegisterCommandHandler<TState, TCommand>(UnityEngine.GraphToolsFoundation.CommandStateObserver.CommandHandler<TState, TCommand> commandHandler) where TState : UnityEngine.GraphToolsFoundation.CommandStateObserver.IState where TCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand;
+        public void RegisterCommandHandler<TCommand>(UnityEngine.GraphToolsFoundation.CommandStateObserver.CommandHandler<UnityEngine.GraphToolsFoundation.CommandStateObserver.IState, TCommand> commandHandler) where TCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand;
+        public void RegisterCommandPreDispatchCallback(System.Action<UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand> callback);
+        public void RegisterObserver(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver observer, bool allowDuplicateType = False);
+        public void UnregisterCommandHandler<TCommand>() where TCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand;
+        public void UnregisterCommandPreDispatchCallback(System.Action<UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand> callback);
+        public void UnregisterObserver(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver observer);
+        protected abstract class CommandHandlerFunctorBase
+        {
+            protected CommandHandlerFunctorBase() {}
+            public abstract void Invoke(UnityEngine.GraphToolsFoundation.CommandStateObserver.IState state, UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand command, bool logHandler);
+        }
+    }
+
+    public interface IAssetStateComponent : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent
+    {
+    }
+
+    public interface IAssetViewStateComponent : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent
+    {
+        public abstract UnityEngine.Hash128 ViewGUID { get; set; }
+    }
+
+    public interface IChangeset
+    {
+        public abstract void AggregateFrom(System.Collections.Generic.IEnumerable<UnityEngine.GraphToolsFoundation.CommandStateObserver.IChangeset> changesets);
+        public abstract void Clear();
+    }
+
+    public interface ICommand
+    {
+    }
+
+    public interface IState
+    {
+        public abstract System.Collections.Generic.IEnumerable<UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent> AllStateComponents { get; }
+        public abstract void RegisterCommandHandlers(UnityEngine.GraphToolsFoundation.CommandStateObserver.Dispatcher dispatcher);
+    }
+
+    public interface IStateComponent : System.IDisposable
+    {
+        public abstract System.UInt32 CurrentVersion { get; }
+        public abstract string StateSlotName { get; set; }
+        public abstract void AfterDeserialize();
+        public abstract void BeforeSerialize();
+        public abstract UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType GetUpdateType(UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponentVersion observerVersion);
+        public abstract bool HasChanges();
+        public abstract void PurgeOldChangesets(System.UInt32 untilVersion);
+    }
+
+    public interface IStateComponentUpdater : System.IDisposable
+    {
+        public abstract void Initialize(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent state);
+    }
+
+    public interface IStateObserver
+    {
+        public abstract System.Collections.Generic.IEnumerable<string> ModifiedStateComponents { get; }
+        public abstract System.Collections.Generic.IEnumerable<string> ObservedStateComponents { get; }
+        public abstract void Observe(UnityEngine.GraphToolsFoundation.CommandStateObserver.IState state);
+    }
+
+    public interface IUndo
+    {
+        public abstract void IncrementCurrentGroup();
+        public abstract void RegisterCompleteObjectUndo(UnityEngine.Object[] objects, string undoString);
+        public abstract void SetCurrentGroupName(string name);
+    }
+
+    public interface IViewStateComponent : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent
+    {
+        public abstract UnityEngine.Hash128 ViewGUID { get; set; }
+    }
+
+    public abstract class ModelCommand<TModel> : UnityEngine.GraphToolsFoundation.CommandStateObserver.UndoableCommand
+    {
+        public System.Collections.Generic.IReadOnlyList<TModel> Models;
+        protected ModelCommand(string undoString) {}
+        protected ModelCommand(string undoStringSingular, string undoStringPlural, System.Collections.Generic.IReadOnlyList<TModel> models) {}
+    }
+
+    public abstract class ModelCommand<TModel, TValue> : UnityEngine.GraphToolsFoundation.CommandStateObserver.ModelCommand<TModel>
+    {
+        public TValue Value;
+        protected ModelCommand(string undoString) {}
+        protected ModelCommand(string undoStringSingular, string undoStringPlural, TValue value, System.Collections.Generic.IReadOnlyList<TModel> models) {}
+    }
+
+    public class Observation : System.IDisposable
+    {
+        public System.UInt32 LastObservedVersion { get; }
+        public UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType UpdateType { get; }
+        public virtual void Dispose();
+        protected virtual void Finalize();
+    }
+
+    public sealed class PersistedState
+    {
+        public TComponent GetOrCreateAssetStateComponent<TComponent>(string name) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IAssetStateComponent, new();
+        public TComponent GetOrCreateAssetViewStateComponent<TComponent>(UnityEngine.Hash128 viewGUID, string name) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IAssetViewStateComponent, new();
+        public TComponent GetOrCreateViewStateComponent<TComponent>(UnityEngine.Hash128 viewGUID, string name) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IViewStateComponent, new();
+        public static void RemoveViewState(UnityEngine.Hash128 viewGUID);
+        public void SetAssetKey(string key);
+        public void SetAssetStateComponent<TComponent>(TComponent state) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent;
+        public void SetAssetViewStateComponent<TComponent>(UnityEngine.Hash128 viewGUID, TComponent state) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IAssetViewStateComponent;
+        public void SetViewStateComponent<TComponent>(UnityEngine.Hash128 viewGUID, TComponent state) where TComponent : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IViewStateComponent;
+    }
+
+    [System.Reflection.DefaultMember(@"Item")] public class SerializedReferenceDictionary<TKey, TValue> : System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IDictionary<TKey, TValue>, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IReadOnlyCollection<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>, System.Collections.IEnumerable, UnityEngine.ISerializationCallbackReceiver
+    {
+        public virtual int Count { get; }
+        public virtual bool IsReadOnly { get; }
+        public virtual TValue this[TKey key] { get; set; }
+        public virtual System.Collections.Generic.ICollection<TKey> Keys { get; }
+        public virtual System.Collections.Generic.ICollection<TValue> Values { get; }
+        public SerializedReferenceDictionary(int capacity = 0) {}
+        public virtual void Add(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual void Add(TKey key, TValue value);
+        public virtual void Clear();
+        public virtual bool Contains(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual bool ContainsKey(TKey key);
+        public virtual void CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[] array, int arrayIndex);
+        public System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>> GetEnumerator();
+        public virtual void OnAfterDeserialize();
+        public virtual void OnBeforeSerialize();
+        public virtual bool Remove(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual bool Remove(TKey key);
+        public virtual bool TryGetValue(TKey key, out TValue value);
+    }
+
+    [System.Reflection.DefaultMember(@"Item")] public class SerializedValueDictionary<TKey, TValue> : System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IDictionary<TKey, TValue>, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IReadOnlyCollection<System.Collections.Generic.KeyValuePair<TKey, TValue>>, System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>, System.Collections.IEnumerable, UnityEngine.ISerializationCallbackReceiver
+    {
+        public virtual int Count { get; }
+        public virtual bool IsReadOnly { get; }
+        public virtual TValue this[TKey key] { get; set; }
+        public virtual System.Collections.Generic.ICollection<TKey> Keys { get; }
+        public virtual System.Collections.Generic.ICollection<TValue> Values { get; }
+        public SerializedValueDictionary(int capacity = 0) {}
+        public virtual void Add(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual void Add(TKey key, TValue value);
+        public virtual void Clear();
+        public virtual bool Contains(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual bool ContainsKey(TKey key);
+        public virtual void CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[] array, int arrayIndex);
+        public System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>> GetEnumerator();
+        public virtual void OnAfterDeserialize();
+        public virtual void OnBeforeSerialize();
+        public virtual bool Remove(System.Collections.Generic.KeyValuePair<TKey, TValue> item);
+        public virtual bool Remove(TKey key);
+        public virtual bool TryGetValue(TKey key, out TValue value);
+    }
+
+    public abstract class State : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IState
+    {
+        public virtual System.Collections.Generic.IEnumerable<UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent> AllStateComponents { get; }
+        protected UnityEngine.GraphToolsFoundation.CommandStateObserver.PersistedState PersistedState { get; }
+        protected State() {}
+        protected virtual void DeserializeFromUndo(UnityEngine.GraphToolsFoundation.CommandStateObserver.SerializedReferenceDictionary<string, string> stateComponentUndoData);
+        public virtual void Dispose();
+        protected virtual void Dispose(bool disposing);
+        protected virtual void Finalize();
+        public virtual void PushUndo(UnityEngine.GraphToolsFoundation.CommandStateObserver.UndoableCommand command);
+        public virtual void RegisterCommandHandlers(UnityEngine.GraphToolsFoundation.CommandStateObserver.Dispatcher dispatcher);
+        protected virtual void ResetStateCaches();
+        protected virtual void SerializeForUndo(UnityEngine.GraphToolsFoundation.CommandStateObserver.SerializedReferenceDictionary<string, string> stateComponentUndoData);
+        protected virtual void ValidateAfterDeserialize();
+    }
+
+    public abstract class StateComponent<TUpdater> : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent where TUpdater : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater, new()
+    {
+        public virtual System.UInt32 CurrentVersion { get; }
+        protected System.UInt32 EarliestChangeSetVersion { get; set; }
+        public virtual string StateSlotName { get; set; }
+        public TUpdater UpdateScope { get; }
+        protected UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType UpdateType { get; }
+        protected StateComponent() {}
+        public virtual void AfterDeserialize();
+        public virtual void BeforeSerialize();
+        public virtual void Dispose();
+        protected abstract void Dispose(bool disposing);
+        protected virtual void Finalize();
+        public virtual UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType GetUpdateType(UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponentVersion observerVersion);
+        public virtual bool HasChanges();
+        public virtual void PurgeOldChangesets(System.UInt32 untilVersion);
+        protected virtual void PushChangeset(System.UInt32 version);
+        protected void ResetUpdateType();
+        public virtual void SetUpdateType(UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType type, bool force = False);
+        public virtual void ValidateAfterDeserialize();
+        public abstract class BaseUpdater<TUpdater, TStateComponent> : System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater where TUpdater : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater, new() where TStateComponent : UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponent<TUpdater>
+        {
+            protected TStateComponent m_State;
+            protected BaseUpdater() {}
+            public virtual void Dispose();
+            protected virtual void Dispose(bool disposing);
+            protected virtual void Finalize();
+            public void ForceCompleteUpdate();
+            public virtual void Initialize(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent state);
+        }
+    }
+
+    [System.Runtime.CompilerServices.Extension] public static class StateComponentHelper
+    {
+        public static T Deserialize<T>(string jsonString) where T : UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent;
+        public static string Serialize(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent obj);
+    }
+
+    public struct StateComponentVersion
+    {
+        public int HashCode;
+        public System.UInt32 Version;
+        public virtual string ToString();
+    }
+
+    public abstract class StateObserver<TState> : UnityEngine.GraphToolsFoundation.CommandStateObserver.IInternalStateObserver, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver where TState : UnityEngine.GraphToolsFoundation.CommandStateObserver.IState
+    {
+        public virtual System.Collections.Generic.IEnumerable<string> ModifiedStateComponents { get; }
+        public virtual System.Collections.Generic.IEnumerable<string> ObservedStateComponents { get; }
+        protected StateObserver(params string[] observedStateComponents) {}
+        protected StateObserver(System.Collections.Generic.IEnumerable<string> observedStateComponents, System.Collections.Generic.IEnumerable<string> modifiedStateComponents) {}
+        protected abstract void Observe(TState state);
+        public virtual void Observe(UnityEngine.GraphToolsFoundation.CommandStateObserver.IState state);
+    }
+
+    [System.Runtime.CompilerServices.Extension] public static class StateObserverExtensions
+    {
+        [System.Runtime.CompilerServices.Extension] public static UnityEngine.GraphToolsFoundation.CommandStateObserver.Observation ObserveState(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver observer, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent stateComponent);
+        [System.Runtime.CompilerServices.Extension] public static UnityEngine.GraphToolsFoundation.CommandStateObserver.Observation PeekAtState(UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateObserver observer, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent stateComponent);
+    }
+
+    public static class Undo
+    {
+        public static UnityEngine.GraphToolsFoundation.CommandStateObserver.IUndo UndoProxy { set; }
+        public static void NotifyUndoRedoPerformed();
+    }
+
+    public abstract class UndoableCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand
+    {
+        public string UndoString { get; set; }
+        protected UndoableCommand() {}
+    }
+
+    public class UndoRedoCommand : UnityEngine.GraphToolsFoundation.CommandStateObserver.ICommand
+    {
+        public UndoRedoCommand() {}
+        public static void DefaultCommandHandler(UnityEngine.GraphToolsFoundation.CommandStateObserver.IState state, UnityEngine.GraphToolsFoundation.CommandStateObserver.UndoRedoCommand command);
+    }
+
+    public enum UpdateType
+    {
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType Complete = 2;
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType None = 0;
+        public const UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType Partial = 1;
+        public int value__;
+    }
+
+    [System.Runtime.CompilerServices.Extension] public static class UpdateTypeExtensions
+    {
+        public static UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType Combine(System.Collections.Generic.IEnumerable<UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType> updateTypes);
+        [System.Runtime.CompilerServices.Extension] public static UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType Combine(UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType self, UnityEngine.GraphToolsFoundation.CommandStateObserver.UpdateType other);
+    }
+
+    public abstract class ViewStateComponent<TUpdater> : UnityEngine.GraphToolsFoundation.CommandStateObserver.StateComponent<TUpdater>, System.IDisposable, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponent, UnityEngine.GraphToolsFoundation.CommandStateObserver.IViewStateComponent where TUpdater : class, UnityEngine.GraphToolsFoundation.CommandStateObserver.IStateComponentUpdater, new()
+    {
+        public virtual UnityEngine.Hash128 ViewGUID { get; set; }
+        protected ViewStateComponent() {}
+    }
+}

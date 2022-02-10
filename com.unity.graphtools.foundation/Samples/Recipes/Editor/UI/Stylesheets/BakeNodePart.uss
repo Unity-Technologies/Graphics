@@ -1,0 +1,7 @@
+.ge-sample-bake-node-part {
+    flex-direction: row;
+}
+
+.ge-sample-bake-node-part .ge-editable-label {
+    flex-grow: 1;
+}

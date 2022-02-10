@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using com.unity.shadergraph.defs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
@@ -48,7 +50,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 RegistryInstance.Register<Registry.Types.GraphType>();
                 RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
                 RegistryInstance.Register<Registry.Types.AddNode>();
-                RegistryInstance.Register<Registry.Types.PowNode>();
+                //RegistryInstance.Register<Registry.Types.PowNode>();
+
+                foreach (FunctionDescriptor fd in StandardNodeDefinitions.FUNCTIONS)
+                {
+                    RegistryInstance.Register(fd);
+                }
             }
             return RegistryInstance;
         }

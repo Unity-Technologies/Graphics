@@ -1,0 +1,23 @@
+{
+    "name": "Unity.GraphTools.Foundation.Tests",
+    "rootNamespace": "",
+    "references": [
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
+        "UnityEngine.TestRunner",
+        "Unity.InternalAPIEngineBridge.015"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

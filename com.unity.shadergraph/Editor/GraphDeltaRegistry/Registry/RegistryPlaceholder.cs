@@ -1,7 +1,9 @@
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
 using System.Linq;
 using UnityEngine;
+using com.unity.shadergraph.defs;
+using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -14,29 +16,6 @@ namespace UnityEditor.ShaderGraph.Registry
 
     namespace Types
     {
-        ////public class MakeNode : Defs.INodeDefinitionBuilder
-        ////{
-        ////    public RegistryKey GetRegistryKey() => new RegistryKey { Name = "MakeType", Version = 1 };
-        ////    public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
-
-        ////    public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
-        ////    {
-        ////        // We just have a field for now that indicates what our type is.
-        ////        userData.GetField("Type", out RegistryKey key);
-
-        ////        // Erroneous if Key is default or not a Type, but we have no error msging yet.
-
-        ////        var inport = nodeWriter.AddPort(userData, "In", true, key, registry);
-        ////        var outport = nodeWriter.AddPort(userData, "Out", false, key, registry);
-        ////        inport.TryAddConnection(outport);
-
-        ////        // To be able to support nested types (eg. TypeDefs of TypeDefs),
-        ////        // we'll need to be able to concretize and iterate over fields to promote them to ports properly,
-        ////        // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
-        ////    }
-        ////}
-        ///
-
         public static class NodeHelpers
         {
             // all common math operations can probably use the same resolver.
@@ -45,8 +24,8 @@ namespace UnityEditor.ShaderGraph.Registry
                 int operands = 0;
                 int resolvedLength = 4;
                 int resolvedHeight = 1; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
-                var resolvedPrimitive = GraphType.Primitive.Float;
-                var resolvedPrecision = GraphType.Precision.Full;
+                var resolvedPrimitive = Primitive.Float;
+                var resolvedPrecision = Precision.Single;
 
                 // UserData ports only exist if a user inlines a value or makes a connection.
                 foreach (var port in userData.GetPorts())
@@ -54,16 +33,16 @@ namespace UnityEditor.ShaderGraph.Registry
                     if (!port.IsInput()) continue;
                     operands++;
                     // UserData is allowed to have holes, so we should ignore what's missing.
-                    bool hasLength = port.GetField(GraphType.kLength, out int length);
-                    bool hasHeight = port.GetField(GraphType.kHeight, out int height);
-                    bool hasPrimitive = port.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive);
-                    bool hasPrecision = port.GetField(GraphType.kPrecision, out GraphType.Precision precision);
+                    bool hasLength = port.GetField(kLength, out Length length);
+                    bool hasHeight = port.GetField(kHeight, out Height height);
+                    bool hasPrimitive = port.GetField(kPrimitive, out Primitive primitive);
+                    bool hasPrecision = port.GetField(kPrecision, out Precision precision);
 
                     // Legacy DynamicVector's default behavior is to use the most constrained typing.
-                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, length) : resolvedLength;
-                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, height) : resolvedHeight;
-                    resolvedPrimitive = hasPrimitive ? (GraphType.Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
-                    resolvedPrecision = hasPrecision ? (GraphType.Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
+                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, (int)length) : resolvedLength;
+                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, (int)height) : resolvedHeight;
+                    resolvedPrimitive = hasPrimitive ? (Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
+                    resolvedPrecision = hasPrecision ? (Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
                 }
 
                 // We need at least 2 input ports or 1 more than the existing number of connections.
@@ -78,10 +57,10 @@ namespace UnityEditor.ShaderGraph.Registry
                             : nodeWriter.AddPort<GraphType>(userData, $"In{i}", true, registry);
 
                     // Then constrain them so that type conversion in code gen can resolve the values properly.
-                    port.SetField(GraphType.kLength, resolvedLength);
-                    port.SetField(GraphType.kHeight, resolvedHeight);
-                    port.SetField(GraphType.kPrimitive, resolvedPrimitive);
-                    port.SetField(GraphType.kPrecision, resolvedPrecision);
+                    port.SetField(kLength, (Length)resolvedLength);
+                    port.SetField(kHeight, (Height)resolvedHeight);
+                    port.SetField(kPrimitive, resolvedPrimitive);
+                    port.SetField(kPrecision, resolvedPrecision);
                 }
             }
 
@@ -93,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
-                var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
+                var typeBuilder = registry.GetTypeBuilder(kRegistryKey);
 
                 var shaderType = typeBuilder.GetShaderType((IFieldReader)outPort, container, registry);
                 int count = data.GetPorts().Count() - 1;
@@ -141,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic 
+        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic
         // description of what needs to be done to add nodes.
         // CLEAN THIS DOC
         class PowNode : Defs.INodeDefinitionBuilder
@@ -156,15 +135,15 @@ namespace UnityEditor.ShaderGraph.Registry
             public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
             {
                 var portWriter = nodeWriter.AddPort<GraphType>(userData, "In", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
                 portWriter = nodeWriter.AddPort<GraphType>(userData, "Exp", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
                 portWriter = nodeWriter.AddPort<GraphType>(userData, "Out", false, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter.SetField<int>(kLength, 1);
             }
 
             /**
-             * GetShaderFunction defines the output of the built 
+             * GetShaderFunction defines the output of the built
              * ShaderFoundry.ShaderFunction that results from specific
              * node data.
              */
@@ -205,8 +184,45 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            public enum Precision {Fixed, Half, Full };
-            public enum Primitive { Bool, Int, Float };
+            public enum Precision { Fixed, Half, Single, Any }
+            public enum Primitive { Bool, Int, Float, Any }
+            public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
+            public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
+            public enum Usage { In, Out, Static, }
+
+            // Values here represent a resolving priority.
+            // The highest numeric value has the highest priority.
+            public static readonly Dictionary<Precision, int> PrecisionToPriority = new()
+            {
+                { Precision.Fixed, 1 },
+                { Precision.Half, 2 },
+                { Precision.Single, 3 },
+                { Precision.Any, -1}
+            };
+            public static readonly Dictionary<Primitive, int> PrimitiveToPriority = new()
+            {
+                { Primitive.Bool, 1 },
+                { Primitive.Int, 2 },
+                { Primitive.Float, 3 },
+                { Primitive.Any, -1 }
+            };
+            public static readonly Dictionary<Length, int> LengthToPriority = new()
+            {
+                { Length.One, 1 },
+                { Length.Two, 4 },
+                { Length.Three, 3 },
+                { Length.Four, 2 },
+                { Length.Any, -1 }
+            };
+            public static readonly Dictionary<Height, int> HeightToPriority = new()
+            {
+                { Height.One, 1 },
+                { Height.Two, 4 },
+                { Height.Three, 3 },
+                { Height.Four, 2 },
+                { Height.Any, -1 }
+            };
+
 
             public const string kPrimitive = "Primitive";
             public const string kPrecision = "Precision";
@@ -217,35 +233,35 @@ namespace UnityEditor.ShaderGraph.Registry
             public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {
                 // default initialize to a float4.
-                typeWriter.SetField(kPrecision, Precision.Full);
+                typeWriter.SetField(kPrecision, Precision.Single);
                 typeWriter.SetField(kPrimitive, Primitive.Float);
-                typeWriter.SetField(kLength, 4);
-                typeWriter.SetField(kHeight, 1);
+                typeWriter.SetField(kLength, Length.Four);
+                typeWriter.SetField(kHeight, Height.One);
 
                 // read userdata and make sure we have enough fields.
-                if (!userData.GetField(kLength, out int length))
-                    length = 4;
-                if (!userData.GetField(kHeight, out int height))
-                    height = 1;
+                if (!userData.GetField(kLength, out Length length))
+                    length = Length.Four;
+                if (!userData.GetField(kHeight, out Height height))
+                    height = Height.One;
 
                 // ensure that enough subfield values exist to represent userdata's current data.
-                for (int i = 0; i < length * height; ++i)
+                for (int i = 0; i < (int)length * (int)height; ++i)
                     typeWriter.SetField<float>($"c{i}", 0);
             }
 
             string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
-                length = Mathf.Clamp(length, 1, 4);
-                height = Mathf.Clamp(height, 1, 4);
+                data.GetField(kLength, out Length length);
+                data.GetField(kHeight, out Height height);
+                int l = Mathf.Clamp((int)length, 1, 4);
+                int h = Mathf.Clamp((int)height, 1, 4);
 
                 string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
-                for(int i = 0; i < length*height; ++i)
+                for(int i = 0; i < l * h; ++i)
                 {
                     data.GetField($"c{i}", out float componentValue);
                     result += $"{componentValue}";
-                    if (i != length * height - 1)
+                    if (i != l * h - 1)
                         result += ", ";
                 }
                 result += ")";
@@ -256,10 +272,10 @@ namespace UnityEditor.ShaderGraph.Registry
             {
                 data.GetField(kPrimitive, out Primitive primitive);
                 data.GetField(kPrecision, out Precision precision);
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
-                length = Mathf.Clamp(length, 1, 4);
-                height = Mathf.Clamp(height, 1, 4);
+                data.GetField(kLength, out Length length);
+                data.GetField(kHeight, out Height height);
+                int l = Mathf.Clamp((int)length, 1, 4);
+                int h = Mathf.Clamp((int)height, 1, 4);
 
                 string name = "float";
 
@@ -278,14 +294,13 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 var shaderType = ShaderFoundry.ShaderType.Scalar(container, name);
 
-                if (height != 1 && length != 1)
+                if (h != 1 && l != 1)
                 {
-                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, length, height);
+                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, l, h);
                 }
                 else
                 {
-                    length = Mathf.Max(length, height);
-                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, length);
+                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
                 }
                 return shaderType;
             }
@@ -295,7 +310,7 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
-            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
+            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (kRegistryKey, kRegistryKey);
             public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
 
 

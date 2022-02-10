@@ -1,0 +1,16 @@
+.ge-inline-value-editor {
+    flex-direction: row;
+}
+
+.ge-inline-value-editor .unity-base-text-field__label {
+    margin-right: 2px;
+    flex-basis: auto;
+}
+
+.ge-inline-value-editor .unity-base-text-field__input {
+    width: 60px;
+}
+
+.ge-inline-value-editor .unity-toggle {
+    margin: 3px;
+}

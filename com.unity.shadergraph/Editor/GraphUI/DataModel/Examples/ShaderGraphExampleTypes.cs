@@ -150,8 +150,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNodeReader(nodeName);
             nodeReader.TryGetPort(portName, out var portReader);
-            portReader.GetField(Registry.Types.GraphType.kLength, out int length);
-            return length;
+            portReader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length length);
+            return (int)length;
         }
 
         private float gc(int i)
