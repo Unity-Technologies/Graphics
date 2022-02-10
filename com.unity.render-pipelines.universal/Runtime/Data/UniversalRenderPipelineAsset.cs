@@ -13,7 +13,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// The shadow quality is used to define how the shadows are rendered.
+    /// The elements in this enum define how Unity renders shadows.
     /// </summary>
     public enum ShadowQuality
     {
