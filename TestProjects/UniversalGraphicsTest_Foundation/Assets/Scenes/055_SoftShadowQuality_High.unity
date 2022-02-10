@@ -803,7 +803,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!1 &990036847
 GameObject:
