@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         _2DRenderer,
         /// <summary>
-        /// Used previously for Universal Renderer.
+        /// This name was used before the Universal Renderer was implemented.
         /// </summary>
         [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
         ForwardRenderer = UniversalRenderer,
