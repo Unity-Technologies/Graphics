@@ -379,7 +379,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
-                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
+                    {
+                        color.rgb = GetOverdrawColor(pixelCost, _TransparencyOverdrawMaxPixelCost);
+                    }
+
+                    DrawOverdrawLegend(input.texcoord / _RTHandleScale.xy, _TransparencyOverdrawMaxPixelCost, _ScreenSize, color.rgb);
+
                     return color;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
