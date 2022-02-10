@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderFoundry
             var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
             var uniformName = context.UniformName;
             var keywordName = boolKeywordAttribute.GetKeywordName(uniformName);
-            bool usePreProcessor = boolKeywordAttribute.KeywordMode != KeywordMode.dynamic_branch;
+            bool usePreProcessor = boolKeywordAttribute.KeywordMode != KeywordMode.DynamicBranch;
 
             var ifString = "if";
             var elseString = "else";
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderFoundry
             var uniformName = context.UniformName;
             var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float", "Range" });
 
-            bool usePreProcessor = enumKeywordAttribute.KeywordMode != KeywordMode.dynamic_branch;
+            bool usePreProcessor = enumKeywordAttribute.KeywordMode != KeywordMode.DynamicBranch;
             var ifString = "if";
             var elseIfString = "else if";
             var elseString = "else";

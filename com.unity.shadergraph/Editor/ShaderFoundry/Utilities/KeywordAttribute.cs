@@ -5,16 +5,25 @@ namespace UnityEditor.ShaderFoundry
 {
     internal enum KeywordMode
     {
-        shader_feature,
-        multi_compile,
-        dynamic_branch,
+        ShaderFeature,
+        MultiCompile,
+        DynamicBranch,
     };
 
     static class KeywordModeExtensions
     {
         public static string ToShaderLabString(this KeywordMode keywordMode)
         {
-            return keywordMode.ToString();
+            switch (keywordMode)
+            {
+                case KeywordMode.ShaderFeature:
+                    return "shader_feature";
+                case KeywordMode.MultiCompile:
+                    return "multi_compile";
+                case KeywordMode.DynamicBranch:
+                    return "dynamic_branch";
+            }
+            throw new Exception("Invalid keyword mode");
         }
     }
 
@@ -27,7 +36,7 @@ namespace UnityEditor.ShaderFoundry
         const string StageParamName = "stage";
 
         internal string KeywordName;
-        internal KeywordMode KeywordMode = KeywordMode.shader_feature;
+        internal KeywordMode KeywordMode = KeywordMode.ShaderFeature;
         internal string Scope = "local";
         internal string Stage = "all";
 
@@ -105,7 +114,7 @@ namespace UnityEditor.ShaderFoundry
         internal IEnumerable<EnumPair> EnumPairs => enumPairs;
 
         internal bool AllowsNone = false;
-        internal KeywordMode KeywordMode = KeywordMode.shader_feature;
+        internal KeywordMode KeywordMode = KeywordMode.ShaderFeature;
         internal string Scope = "local";
         internal string Stage = "all";
 
