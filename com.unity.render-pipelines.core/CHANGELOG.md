@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add probe volume influence weight parameter
 - Added support for multiple Baking States to Prove Volumes.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
+- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
 - Added Screen Coordinates Override shader utilities.
 
 ### Changed
@@ -26,6 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
 - Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
 - Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+- Fixed regression on ResourceReloader due to change for supporting built-in resources.
 
 ## [14.0.0] - 2021-11-17
 

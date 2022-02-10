@@ -300,6 +300,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2110_IndirectController.unity
     guid: 443ac92abc2bd6a4d94e9e673dbcc29f
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2120_APV_Baking.unity
+    guid: fc784678bf952de4482e78aea61ccdc8
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
@@ -407,6 +410,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2320_Mixed_Cached_ShadowMap_Directional.unity
     guid: c1fbd001447cf044f9deade52e5e8f45
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2321_Shadow_Cascades_CustomProj.unity
+    guid: 879e29801a2c8a445a211d17ece0764a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
