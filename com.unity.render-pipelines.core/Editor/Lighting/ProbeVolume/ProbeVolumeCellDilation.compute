@@ -101,7 +101,8 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
             float totalWeight = 0;
             float3 uvwDelta = rcp(_PoolDim);
 
-            if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv))
+            float3 biasedPosWS;
+            if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv, biasedPosWS))
             {
                 float stepSize = _MinBrickSizeForDilation / 3.0f;
 
