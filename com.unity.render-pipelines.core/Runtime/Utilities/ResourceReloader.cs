@@ -104,12 +104,17 @@ namespace UnityEngine.Rendering
             return changed;
         }
 
+        static void CheckReloadGroupSupportedType(Type type)
+        {
+            if (type.IsSubclassOf(typeof(ScriptableObject)))
+                throw new Exception(@$"ReloadGroup attribute must not be used on {nameof(ScriptableObject)}.
+If {nameof(ResourceReloader)} create an instance of it, it will be not saved as a file, resulting in corrupted ID when building.");
+        }
+
         static bool FixGroupIfNeeded(System.Object container, FieldInfo info)
         {
             var type = info.FieldType;
-            if (type.IsSubclassOf(typeof(ScriptableObject)))
-                throw new Exception(@$"ReloadGroup attribute must not be used on {nameof(ScriptableObject)}.
-If {nameof(ResourceReloader)} create an instance of it, it will be not saved as a file, resulting in corrupted ID wnem building.");
+            CheckReloadGroupSupportedType(type);
 
             if (IsNull(container, info))
             {
@@ -130,9 +135,7 @@ If {nameof(ResourceReloader)} create an instance of it, it will be not saved as 
             Assert.IsNotNull(array);
 
             var type = array.GetType().GetElementType();
-            if (type.IsSubclassOf(typeof(ScriptableObject)))
-                throw new Exception(@$"ReloadGroup attribute must not be used on {nameof(ScriptableObject)}.
-If {nameof(ResourceReloader)} create an instance of it, it will be not saved as a file, resulting in corrupted ID wnem building.");
+            CheckReloadGroupSupportedType(type);
 
             if (IsNull(array.GetValue(index)))
             {
