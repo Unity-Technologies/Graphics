@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntegrator.hlsl.meta
-guid: 84847f826a4d9a143aff1666626dbb78
-=======
 guid: e9b53130a9126764fa146d07a77ef57d
->>>>>>> master:com.unity.render-pipelines.high-definition/Editor/Material/Water/ShaderGraph/Tessellation.template.hlsl.meta
 ShaderIncludeImporter:
   externalObjects: {}
   userData: 
