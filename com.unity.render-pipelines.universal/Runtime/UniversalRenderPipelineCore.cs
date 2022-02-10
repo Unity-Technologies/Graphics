@@ -492,6 +492,8 @@ namespace UnityEngine.Rendering.Universal
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
+
+        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
     }
 
     public sealed partial class UniversalRenderPipeline

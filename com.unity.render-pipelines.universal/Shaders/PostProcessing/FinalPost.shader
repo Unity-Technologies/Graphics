@@ -9,7 +9,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
-        #pragma multi_compile _ SCREEN_COORD_OVERRIDE
+        #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

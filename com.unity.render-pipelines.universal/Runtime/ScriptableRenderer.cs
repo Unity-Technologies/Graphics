@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
-            CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", cameraData.useScreenCoordOverride);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
 
