@@ -210,8 +210,8 @@ void TracePath()
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
-            // Add the clamped segment contribution to our overall radiance value
-            value += ClampValue(throughput, 1.0) * ClampValue(payload.value);
+            // Add the segment contribution to our overall radiance value
+            value += throughput * ClampValue(payload.value);
         }
     }
     else
