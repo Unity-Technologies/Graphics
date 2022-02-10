@@ -78,10 +78,6 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod(string.Format("Unity_ColorspaceConversion_{0}_{1}", GetSpaceFrom(), GetSpaceTo()),
                 BindingFlags.Static | BindingFlags.NonPublic);
         }
-        //TODO: Add project colorspace as option
-        //Check if current project colorspace is RGB or Linear
-        //if isGammaSpace() is true, project colorspace is gamma(sRGB), convert input to sRGB
-        //if ifGammaSpace() is false, poeject colorspace is Linear, convert input to Linear
 
         static string Unity_ColorspaceConversion_Linear_ProjectColorspace(
             [Slot(0, Binding.None)] Vector3 In,
@@ -90,10 +86,16 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-            Out = In;
-        }
-        ";
+{
+    if (IsGammaSpace()){
+        $precision3 sRGBLo = In * 12.92;
+        $precision3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), $precision3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+        Out = $precision3(In <= 0.0031308) ? sRGBLo : sRGBHi;
+    }else{
+        Out = In;
+    }
+}
+";
         }
         static string Unity_ColorspaceConversion_ProjectColorspace_Linear(
          [Slot(0, Binding.None)] Vector3 In,
@@ -102,16 +104,16 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {          //IsGammaSpace() ? sRGB to Linear : Linear(In)
-                if (IsGammaSpace()){
-                    $precision3 linearRGBLo = In / 12.92;
-                    $precision3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
-                    Out = $precision3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
-                }else{
-                    Out = In;
-                }
-        }
-        ";
+{
+    if (IsGammaSpace()){
+        $precision3 linearRGBLo = In / 12.92;
+        $precision3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
+        Out = $precision3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
+    }else{
+        Out = In;
+    }
+}
+";
         }
         static string Unity_ColorspaceConversion_RGB_ProjectColorspace(
     [Slot(0, Binding.None)] Vector3 In,
@@ -120,17 +122,16 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-            if (IsGammaSpace()){
-                Out = In;
-            }else{
-                //project colorspace is linear, RGB->Linear
-                $precision3 linearRGBLo = In / 12.92;
-                $precision3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
-                Out = $precision3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
-            }
-        }
-        ";
+{
+    if (IsGammaSpace()){
+        Out = In;
+    }else{
+        $precision3 linearRGBLo = In / 12.92;
+        $precision3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
+        Out = $precision3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
+    }
+}
+";
         }
         static string Unity_ColorspaceConversion_ProjectColorspace_RGB(
     [Slot(0, Binding.None)] Vector3 In,
@@ -139,17 +140,16 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-                if (IsGammaSpace()){
-                    //Gamma -> RGB
-                    Out = In;
-                }else{
-                    $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-                    $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
-                    Out = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
-                }
-        }
-        ";
+{
+    if (IsGammaSpace()){
+        Out = In;
+    }else{
+        $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
+        Out = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
+    }
+}
+";
         }
         static string Unity_ColorspaceConversion_HSV_ProjectColorspace(
     [Slot(0, Binding.None)] Vector3 In,
@@ -158,23 +158,21 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-                if (IsGammaSpace()){
-                    //HSV -> Gamma
-                    $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-                    $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
-                    Out = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
-                }else{
-                    //HSV -> Linear 
-                    $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-                    $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
-                    $precision3 RGB = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
-                    $precision3 linearRGBLo = RGB / 12.92;
-                    $precision3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
-                    Out = $precision3(RGB <= 0.04045) ? linearRGBLo : linearRGBHi;
-                }
-        }
-        ";
+{
+    if (IsGammaSpace()){
+        $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
+        Out = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
+    }else{
+        $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
+        $precision3 RGB = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
+        $precision3 linearRGBLo = RGB / 12.92;
+        $precision3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
+        Out = $precision3(RGB <= 0.04045) ? linearRGBLo : linearRGBHi;
+    }
+}
+";
         }
         static string Unity_ColorspaceConversion_ProjectColorspace_HSV(
     [Slot(0, Binding.None)] Vector3 In,
@@ -183,28 +181,27 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-                if (IsGammaSpace()){
-                    // Gamma -> HSV
-                    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-                    $precision4 P = lerp($precision4(In.bg, K.wz), $precision4(In.gb, K.xy), step(In.b, In.g));
-                    $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
-                    $precision D = Q.x - min(Q.w, Q.y);
-                    $precision  E = 1e-10;
-                    $precision V = (D == 0) ? Q.x : (Q.x + E);
-                    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), V);
-                }else{
-                    //Linear -> HSV 
-                    $precision3 sRGBLo = In * 12.92;
-                    $precision3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), $precision3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-                    $precision3 Linear = $precision3(In <= 0.0031308) ? sRGBLo : sRGBHi;
-                    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-                    $precision4 P = lerp($precision4(Linear.bg, K.wz), $precision4(Linear.gb, K.xy), step(Linear.b, Linear.g));
-                    $precision4 Q = lerp($precision4(P.xyw, Linear.r), $precision4(Linear.r, P.yzx), step(P.x, Linear.r));
-                    $precision D = Q.x - min(Q.w, Q.y);
-                    $precision  E = 1e-10;
-                    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);       
-        }        }
+{
+    if (IsGammaSpace()){
+        $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+        $precision4 P = lerp($precision4(In.bg, K.wz), $precision4(In.gb, K.xy), step(In.b, In.g));
+        $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
+        $precision D = Q.x - min(Q.w, Q.y);
+        $precision  E = 1e-10;
+        $precision V = (D == 0) ? Q.x : (Q.x + E);
+        Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), V);
+    }else{
+        $precision3 sRGBLo = In * 12.92;
+        $precision3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), $precision3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+        $precision3 Linear = $precision3(In <= 0.0031308) ? sRGBLo : sRGBHi;
+        $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+        $precision4 P = lerp($precision4(Linear.bg, K.wz), $precision4(Linear.gb, K.xy), step(Linear.b, Linear.g));
+        $precision4 Q = lerp($precision4(P.xyw, Linear.r), $precision4(Linear.r, P.yzx), step(P.x, Linear.r));
+        $precision D = Q.x - min(Q.w, Q.y);
+        $precision  E = 1e-10;
+        Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);       
+    }
+}
         ";
         }
         static string Unity_ColorspaceConversion_ProjectColorspace_ProjectColorspace(
@@ -214,10 +211,10 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return
 @"
-        {
-            Out = In;
-        }
-        ";
+{
+    Out = In;
+}
+";
         }
 
         static string Unity_ColorspaceConversion_RGB_RGB(
