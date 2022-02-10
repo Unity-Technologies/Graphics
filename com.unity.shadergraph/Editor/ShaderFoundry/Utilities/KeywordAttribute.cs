@@ -3,7 +3,20 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal enum KeywordMode { shader_feature, multi_compile, dynamic_branch };
+    internal enum KeywordMode
+    {
+        shader_feature,
+        multi_compile,
+        dynamic_branch,
+    };
+
+    static class KeywordModeExtensions
+    {
+        public static string ToShaderLabString(this KeywordMode keywordMode)
+        {
+            return keywordMode.ToString();
+        }
+    }
 
     internal class BoolKeywordAttribute
     {
@@ -25,7 +38,7 @@ namespace UnityEditor.ShaderFoundry
 
         public KeywordDescriptor BuildDescriptor(ShaderContainer container, string uniformName)
         {
-            var definition = KeywordMode.ToString();
+            var definition = KeywordMode.ToShaderLabString();
             var stage = Stage == "all" ? null : Stage;
             var ops = new string[] { GetKeywordName(uniformName) };
             var builder = new KeywordDescriptor.Builder(container, "_", definition, Scope, stage, ops);
@@ -57,18 +70,19 @@ namespace UnityEditor.ShaderFoundry
         {
             if (attribute.Name != AttributeName)
                 return null;
+
             var result = new BoolKeywordAttribute();
-            foreach (var param in attribute.Parameters)
+
+            var signature = new AttributeParsing.SignatureDescription();
+            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
-                if (param.Name == KeywordNameParamName)
-                    result.KeywordName = param.Value;
-                else if (param.Name == KeywordModeParamName)
-                    Enum.TryParse(param.Value, out result.KeywordMode);
-                else if (param.Name == ScopeParamName)
-                    result.Scope = param.Value;
-                else if (param.Name == StageParamName)
-                    result.Stage = param.Value;
-            }
+                new AttributeParsing.ParameterDescription(KeywordNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.KeywordName)),
+                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode) ),
+                new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
+                new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),
+            };
+            AttributeParsing.Parse(attribute, signature);
+
             return result;
         }
     }
@@ -120,7 +134,7 @@ namespace UnityEditor.ShaderFoundry
 
         public KeywordDescriptor BuildDescriptor(ShaderContainer container, string uniformName)
         {
-            var definition = KeywordMode.ToString();
+            var definition = KeywordMode.ToShaderLabString();
             var stage = Stage == "all" ? null : Stage;
 
             var keywordOps = new List<string>();
@@ -180,32 +194,38 @@ namespace UnityEditor.ShaderFoundry
 
             var currentNameValue = 0;
             var result = new EnumKeywordAttribute();
-            result.enumPairs = new List<EnumPair>();
-            foreach (var param in attribute.Parameters)
+
+            var signature = new AttributeParsing.SignatureDescription();
+            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
-                if (param.Name == KeywordModeParamName)
-                    Enum.TryParse(param.Value, out result.KeywordMode);
-                else if (param.Name == AllowsNoneParamName)
-                    bool.TryParse(param.Value, out result.AllowsNone);
-                else if (param.Name == ScopeParamName)
-                    result.Scope = param.Value;
-                else if (param.Name == StageParamName)
-                    result.Stage = param.Value;
-                else if (string.IsNullOrEmpty(param.Name))
+                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode) ),
+                new AttributeParsing.ParameterDescription(AllowsNoneParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.AllowsNone)),
+                new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
+                new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),
+            };
+            // Any unknown parameter is an enum value
+            signature.UnknownParameterCallback = (param, index) =>
+            {
+                string enumName;
+                int enumValue = currentNameValue;
+
+                // If the enum has a name and value then use the value. If the enum doesn't have a name then the value is implicit.
+                // Note: attribute parameters of the form [Attribute(value)] are specifying a value, not a name, effectively a positional argument, not named.
+                if (!string.IsNullOrEmpty(param.Name))
                 {
-                    result.AddEnum(param.Value, currentNameValue);
-                    ++currentNameValue;
+                    enumName = param.Name;
+                    if (!int.TryParse(param.Value, out enumValue))
+                        throw new Exception($"Param {param.Name} value {param.Value} is not a valid integer.");
                 }
                 else
-                {
-                    if (!int.TryParse(param.Value, out currentNameValue))
-                    {
-                        throw new Exception($"Param {param.Name} value {param.Value} is not a valid integer.");
-                    }
-                    result.AddEnum(param.Name, currentNameValue);
-                    ++currentNameValue;
-                }
-            }
+                    enumName = param.Value;
+
+                result.AddEnum(enumName, enumValue);
+                ++currentNameValue;
+            };
+
+            AttributeParsing.Parse(attribute, signature);
+
             return result;
         }
     }

@@ -32,20 +32,20 @@ namespace UnityEditor.ShaderFoundry
                 return null;
 
             var result = new VirtualTextureAttribute();
-            var index = 0;
-            foreach (var param in attribute.Parameters)
+
+            var signature = new AttributeParsing.SignatureDescription();
+            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
-                if (index > 0)
-                    throw new Exception($"Argument at index {index} is invalid. {AttributeName} only accepts one argument.");
+                new AttributeParsing.ParameterDescription(LayerCountParamName, (param, index) => AttributeParsing.IntRangeParseCallback(param, index, 0, MaxLayerCount - 1, ref result.LayerCount)),
+            };
+            signature.UnknownParameterCallback = (param, index) =>
+            {
+                if (index != 0)
+                    throw new Exception($"Attribtute {AttributeName} only allows one argument.");
+                AttributeParsing.IntRangeParseCallback(param, index, 0, MaxLayerCount - 1, ref result.LayerCount);
+            };
+            AttributeParsing.Parse(attribute, signature);
 
-                if (param.Name != LayerCountParamName && !string.IsNullOrEmpty(param.Name))
-                    throw new Exception($"Parameter {param.Name} isn't valid.");
-
-                if (!int.TryParse(param.Value, out result.LayerCount))
-                    throw new Exception($"Parameter {LayerCountParamName} must be an integer value.");
-
-                ++index;
-            }
             return result;
         }
     }
@@ -95,31 +95,16 @@ namespace UnityEditor.ShaderFoundry
                 return null;
             var result = new VirtualTextureLayerAttribute();
 
-            var index = 0;
-            foreach (var param in attribute.Parameters)
+            var signature = new AttributeParsing.SignatureDescription();
+            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
-                if ((index == 0 && string.IsNullOrEmpty(param.Name)) || param.Name == IndexParamName)
-                    int.TryParse(param.Value, out result.Index);
-                else if (param.Name == UniformNameParamName)
-                    result.UniformName = param.Value;
-                else if (param.Name == DisplayNameParamName)
-                    result.DisplayName = param.Value;
-                else if (param.Name == TextureNameParamName)
-                    result.TextureName = param.Value;
-                else if (param.Name == TextureTypeParamName)
-                    Enum.TryParse(param.Value, out result.TextureType);
-                ++index;
-            }
-
-            //var paramDataList = new List<AttributeParsing.ParamData>
-            //{
-            //    new AttributeParsing.ParamData { ParamName = IndexParamName, parseDelegate = (param, data) => { result.Index = int.Parse(param.Value); } },
-            //    new AttributeParsing.ParamData { ParamName = UniformNameParamName, parseDelegate = (param, data) => { result.UniformName = param.Value; } },
-            //    new AttributeParsing.ParamData{ ParamName = DisplayNameParamName, parseDelegate = (param, data) => { result.DisplayName = param.Value; } },
-            //    new AttributeParsing.ParamData{ ParamName = TextureNameParamName, parseDelegate = (param, data) => { result.TextureName = param.Value; } },
-            //    new AttributeParsing.ParamData{ ParamName = TextureTypeParamName, parseDelegate = (param, data) => { Enum.TryParse(param.Value, out result.TextureType); } },
-            //};
-            //AttributeParsing.Parse(attribute, paramDataList);
+                new AttributeParsing.ParameterDescription(IndexParamName, (param, index) => AttributeParsing.IntParseCallback(param, index, ref result.Index)),
+                new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
+                new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
+                new AttributeParsing.ParameterDescription(TextureNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.TextureName)),
+                new AttributeParsing.ParameterDescription(TextureTypeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.TextureType) ),
+            };
+            AttributeParsing.Parse(attribute, signature);
 
             return result;
         }
