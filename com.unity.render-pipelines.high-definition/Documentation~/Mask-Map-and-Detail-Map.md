@@ -4,18 +4,6 @@ The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.md#Cha
 
 This document describes the format of the mask map and detail map so that you can author your own to use in HDRP.
 
-To create a mask map:
-
-1. Open image editing software that supports channel editing (such as Adobe Photoshop).
-2. Import your grayscale textures onto separate layers.
-3. Make only one of the layers visble.
-4. Under **Adjustments**, select **Curves**.
-5. Leaving only the color channel you want that texture to be in, set the outputs of the other channels to 0 and the inputs to 4. For information about which texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
-6. Merge the curve with layer you've just worked on.
-7. Repeat steps 3 to 6 for your other layers.
-3. Export your image.
-4. When you import the image into Unity, make sure that it uses linear color space and you set **Texture Type** to **Default**.
-
 <a name="MaskMap"></a>
 
 ## Mask map
@@ -32,6 +20,16 @@ The mask map contains four grayscale textures, one in each color channel. The de
 The following example image demonstrates the individual components of a full mask map.
 
 ![](Images/MaskMapAndDetailMap2.png)
+
+To create a mask map using Adobe Photoshop:
+
+1. Import your grayscale textures onto separate layers.
+2. Hide all layers except one.
+3. Under **Adjustments**, select **Curves**.
+4. Set the outputs of the channels to 0 and the inputs to 4, apart from the channel you are using for your texture. For information about which texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
+5. Repeat steps 3 to 6 for your other layers.
+6. Export your image.
+7. When you import the image into Unity, in the **Image Importer** Inspector window, make sure you deselect **sRGB (Color Texture)** and you set **Texture Type** to **Default**.
 
 <a name="DetailMap"></a>
 
