@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderFoundry
 
             TargetSetupContext context = new TargetSetupContext(m_assetCollection);
             LegacyTarget.Setup(ref context);
+            context.SetupFinalize();
 
             var subShaderIndex = 0;
             foreach (var subShader in context.subShaders)
@@ -85,6 +86,24 @@ namespace UnityEditor.ShaderFoundry
                 BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
 
                 builder.AddPass(passBuilder.Build());
+            }
+
+            builder.AdditionalShaderID = subShaderDescriptor.additionalShaderID;
+            builder.ShaderFallback = subShaderDescriptor.shaderFallback ?? "Hidden/Shader Graph/FallbackError";
+
+            if (subShaderDescriptor.shaderDependencies != null)
+                foreach (var dependency in subShaderDescriptor.shaderDependencies)
+                    builder.AddShaderDependency(dependency.dependencyName, dependency.shaderName);
+
+            if (subShaderDescriptor.shaderCustomEditors != null)
+                foreach (var customEditor in subShaderDescriptor.shaderCustomEditors)
+                    builder.AddShaderCustomEditor(customEditor.shaderGUI, customEditor.renderPipelineAssetType);
+
+            // TODO: we might just be able to get rid of subShaderDescriptor.shaderCustomEditor,
+            // I don't believe anyone is still using it...
+            if (!string.IsNullOrWhiteSpace(subShaderDescriptor.shaderCustomEditor))
+            {
+                builder.AddShaderCustomEditor(subShaderDescriptor.shaderCustomEditor, null);
             }
 
             return builder.Build();
