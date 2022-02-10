@@ -100,6 +100,8 @@ for t, c, sz in (
 #define UNITY_DOTS_INSTANCING_TYPESPEC_half2x4 H16
 #define UNITY_DOTS_INSTANCING_TYPESPEC_half3x4 H24
 #define UNITY_DOTS_INSTANCING_TYPESPEC_half4x4 H32
+#define UNITY_DOTS_INSTANCING_TYPESPEC_min16float H2
+#define UNITY_DOTS_INSTANCING_TYPESPEC_min16float4 H8
 
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
@@ -129,6 +131,7 @@ for t, c, sz in (
 
 #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
@@ -174,7 +177,11 @@ static DOTSVisibleData unity_SampledDOTSVisibleData;
 
 uint GetDOTSInstanceIndex()
 {
+#if 0
+    return 0;
+#else
     return unity_SampledDOTSVisibleData.VisibleData.x;
+#endif
 }
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
@@ -422,7 +429,7 @@ type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(int,   int,     4)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(uint,  uint,    4)
-DEFINE_DOTS_LOAD_INSTANCE_SCALAR(half,  half,    2)
+//DEFINE_DOTS_LOAD_INSTANCE_SCALAR(half,  half,    2)
 
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(float, 2, asfloat, 4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(float, 3, asfloat, 4)
@@ -433,9 +440,41 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(int,   4, int4,    4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  2, uint2,   4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  3, uint3,   4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  4, uint4,   4)
-DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  2, half2,   2)
-DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  3, half3,   2)
-DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  4, half4,   2)
+//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  2, half2,   2)
+//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  3, half3,   2)
+//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  4, half4,   2)
+
+half LoadDOTSInstancedData_half(uint metadata)
+{
+    float f = LoadDOTSInstancedData_float(metadata);
+    min16float f16 = min16float(f);
+    return f16;
+}
+half4 LoadDOTSInstancedData_half4(uint metadata)
+{
+    float4 f = LoadDOTSInstancedData_float4(metadata);
+    min16float4 f16x4 = min16float4(f.x, f.y, f.z, f.w);
+    return f16x4;
+}
+
+min16float LoadDOTSInstancedData_min16float(uint metadata)
+{
+    return LoadDOTSInstancedData_half(metadata);
+}
+min16float4 LoadDOTSInstancedData_min16float4(uint metadata)
+{
+    return LoadDOTSInstancedData_half4(metadata);
+}
+min16float LoadDOTSInstancedData_min16float(min16float default_value, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_min16float(metadata) : default_value;
+}
+min16float4 LoadDOTSInstancedData_min16float4(min16float4 default_value, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_min16float4(metadata) : default_value;
+}
 
 // TODO: Other matrix sizes
 float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
@@ -467,6 +506,33 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
         p1.z, p2.y, p3.x, p3.w,
         0.0,  0.0,  0.0,  1.0
     );
+}
+
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_overridden(uint metadata)
+{
+    bool secondary;
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 3 * 16, secondary);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(secondary, address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(secondary, address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(secondary, address + 2 * 16));
+
+    return float4x4(
+        p1.x, p1.w, p2.z, p3.y,
+        p1.y, p2.x, p2.w, p3.z,
+        p1.z, p2.y, p3.x, p3.w,
+        0.0,  0.0,  0.0,  1.0
+    );
+}
+
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_o2w(uint metadata)
+{
+    // uint metadata = kPerInstanceDataBit | 0;
+    return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
+}
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_w2o(uint metadata)
+{
+    // uint metadata = kPerInstanceDataBit | 48;
+    return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
 }
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)

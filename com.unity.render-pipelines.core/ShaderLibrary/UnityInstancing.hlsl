@@ -376,13 +376,23 @@
         #undef UNITY_PREV_MATRIX_I_M
 
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+#if 1
             #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
             #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
+#else
+            #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4_o2w(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4_w2o(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
+#endif
             #define UNITY_PREV_MATRIX_M   ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM)))
             #define UNITY_PREV_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI)))
         #else
+#if 1
             #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
             #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
+#else
+            #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4_o2w(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4_w2o(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
+#endif
             #define UNITY_PREV_MATRIX_M   LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
             #define UNITY_PREV_MATRIX_I_M LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
         #endif
