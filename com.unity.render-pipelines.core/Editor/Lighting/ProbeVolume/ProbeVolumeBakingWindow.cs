@@ -3,14 +3,13 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ProbeVolumeBakingWindow : EditorWindow
     {

@@ -1,10 +1,8 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="APVLeakReductionMode"/> value.

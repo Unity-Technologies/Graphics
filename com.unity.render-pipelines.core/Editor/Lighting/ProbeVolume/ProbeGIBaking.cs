@@ -5,14 +5,16 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering;
 
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
-using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
-using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
+
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
+using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     struct BakingCell
     {

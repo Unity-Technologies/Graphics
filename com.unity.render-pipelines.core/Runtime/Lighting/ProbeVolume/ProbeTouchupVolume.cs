@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
@@ -53,4 +53,4 @@ namespace UnityEngine.Experimental.Rendering
         }
 #endif
     }
-} // UnityEngine.Experimental.Rendering.HDPipeline
+} // UnityEngine.Rendering.HDPipeline

@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     // Add Profile and baking settings.
     /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>

@@ -1,4 +1,4 @@
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     internal class SerializedProbeVolume
     {
