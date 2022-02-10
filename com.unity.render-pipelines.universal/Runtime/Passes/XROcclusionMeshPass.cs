@@ -16,10 +16,13 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (!renderingData.cameraData.xr.enabled)
-                return;
-
-            renderingData.cameraData.xr.RenderOcclusionMesh(renderingData.commandBuffer);
+            if (renderingData.cameraData.xr.hasValidOcclusionMesh)
+            {
+                CommandBuffer cmd = renderingData.commandBuffer;
+                renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
         }
     }
 }

@@ -87,6 +87,7 @@ namespace UnityEditor.ShaderGraph
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                 using (s.BlockScope())
                 {
+                    s.AppendLine(GetRayTracingError());
                     s.AppendLine("$precision3 worldDerivativeX = ddx(Position);");
                     s.AppendLine("$precision3 worldDerivativeY = ddy(Position);");
                     s.AppendNewLine();
