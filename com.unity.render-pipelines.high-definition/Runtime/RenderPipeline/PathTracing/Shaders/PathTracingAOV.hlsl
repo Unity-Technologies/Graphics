@@ -11,6 +11,10 @@ struct AOVData
 
 void WriteAOVData(AOVData aovData, float3 positionWS, inout PathPayload payload)
 {
+    // Check if we have anything to write to the payload
+    if (payload.segmentID || !any(payload.aovMotionVector))
+        return;
+
     // Compute motion vector (from pixel coordinates and world position passed as inputs)
     float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
     float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);

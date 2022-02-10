@@ -371,8 +371,8 @@ float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, floa
     return 1.0;
 }
 
-void GetAOVData(MaterialData mtlData, out AOVData aovData)
+void GetAOVData(BSDFData bsdfData, out AOVData aovData)
 {
-    aovData.albedo = mtlData.bsdfData.diffuseColor;
-    aovData.normal = mtlData.bsdfData.normalWS;
+    aovData.albedo = bsdfData.diffuseColor;
+    aovData.normal = bsdfData.normalWS;
 }
