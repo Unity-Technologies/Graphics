@@ -5,8 +5,8 @@ namespace com.unity.shadergraph.defs
 
     internal interface IStandardNode
     {
-        FunctionDescriptor functionDescriptor { get; }
-        Dictionary<string, string> uIStrings { get; }
+        static FunctionDescriptor FunctionDescriptor { get; }
+        static Dictionary<string, string> UIStrings { get; }
     }
 
 }
