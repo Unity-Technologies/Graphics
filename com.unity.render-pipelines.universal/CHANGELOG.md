@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
 - Particle alpha channel blend mode to match standard shader.
 - Removed skipIterations from Bloom settings. It has now been replaced with maxIterations.
+- Merged MaterialError.shader and FallbackError.shader
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
@@ -38,7 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed Screen Space Decal to work with fog. [1383719](https://issuetracker.unity3d.com/issues/decal-is-not-displayed-when-fog-is-enabled)
 - Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
-- Merged MaterialError.shader and FallbackError.shader 
 
 ## [14.0.0] - 2021-11-17
 
