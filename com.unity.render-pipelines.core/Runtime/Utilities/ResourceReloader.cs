@@ -200,7 +200,10 @@ If {nameof(ResourceReloader)} create an instance of it, it will be not saved as 
                         result = Resources.GetBuiltinResource(type, path); //handle wrong path error
                     break;
                 case ReloadAttribute.Package.BuiltinExtra:
-                    result = AssetDatabase.GetBuiltinExtraResource(type, path); //handle wrong path error
+                    if (type == typeof(Shader))
+                        result = Shader.Find(path);
+                    else
+                        result = AssetDatabase.GetBuiltinExtraResource(type, path); //handle wrong path error
                     break;
                 case ReloadAttribute.Package.Root:
                     result = AssetDatabase.LoadAssetAtPath(path, type);
