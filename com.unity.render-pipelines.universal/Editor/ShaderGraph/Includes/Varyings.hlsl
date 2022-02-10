@@ -35,6 +35,12 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 #endif
 
+#if defined(HAVE_VFX_MODIFICATION)
+//compiler shows warning when using intermediate returns (see vfx culling), disable this.
+#pragma warning(push)
+#pragma warning(disable : 4000)
+#endif
+
 Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -189,6 +195,10 @@ Varyings BuildVaryings(Attributes input)
 
     return output;
 }
+
+#if defined(HAVE_VFX_MODIFICATION)
+#pragma warning(pop)
+#endif
 
 SurfaceDescription BuildSurfaceDescription(Varyings varyings)
 {

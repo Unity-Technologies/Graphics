@@ -126,6 +126,12 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #define PackVaryingsType PackVaryingsToPS
 #endif
 
+#if defined(HAVE_VFX_MODIFICATION)
+//compiler shows warning when using intermediate returns (see vfx culling), disable this.
+#pragma warning(push)
+#pragma warning(disable : 4000)
+#endif
+
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #ifdef HAVE_VFX_MODIFICATION
@@ -234,6 +240,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
     return output;
 }
+
+#if defined(HAVE_VFX_MODIFICATION)
+#pragma warning(pop)
+#endif
 
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
