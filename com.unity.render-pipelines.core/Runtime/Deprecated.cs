@@ -5,10 +5,6 @@ using System.Reflection;
 
 namespace UnityEngine.Rendering
 {
-    /// <summary>
-    /// The volume settings
-    /// </summary>
-    /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
     public abstract partial class VolumeDebugSettings<T>
     {
         static List<Type> s_ComponentTypes;
