@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - No more exception raised when selecting all nodes with CTRL+A and then deleting them
 - Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
+- Resize custom operator (multiply, add...) to the minimum size when changing input types
 
 ## [12.1.4] - 2021-12-07
 ### Fixed
@@ -24,7 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.1.3] - 2021-11-17
 ### Fixed
 - Automatically offset contexts when a new node is inserted to avoid overlapping
-
 
 ## [12.1.2] - 2021-10-22
 ### Fixed
