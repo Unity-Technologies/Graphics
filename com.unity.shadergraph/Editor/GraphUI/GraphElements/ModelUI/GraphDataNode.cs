@@ -25,15 +25,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendSeparator();
-            evt.menu.AppendAction("Preview/Expand", action =>
-            {
-                GraphView.Dispatch(new ChangePreviewExpandedCommand(true, new [] {m_GraphDataNodeModel}));
-            });
 
-            evt.menu.AppendAction("Preview/Collapse", action =>
-            {
-                GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
-            });
+            // TODO: (Sai) Re-enable in Sprint 2
+            // Currently commented out as we don't require preview expansion/collapse
+            //evt.menu.AppendAction("Preview/Expand", action =>
+            //{
+            //    GraphView.Dispatch(new ChangePreviewExpandedCommand(true, new [] {m_GraphDataNodeModel}));
+            //});
+            //
+            //evt.menu.AppendAction("Preview/Collapse", action =>
+            //{
+            //    GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
+            //});
 
             evt.menu.AppendAction("Copy Shader", action =>
             {
