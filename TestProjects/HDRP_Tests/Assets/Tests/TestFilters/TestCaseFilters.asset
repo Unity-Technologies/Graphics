@@ -123,15 +123,6 @@ MonoBehaviour:
     Reason: unstable on  XR yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fa0d54c5ccbc8b143a8db100374e0f5e, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: API Bug
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
