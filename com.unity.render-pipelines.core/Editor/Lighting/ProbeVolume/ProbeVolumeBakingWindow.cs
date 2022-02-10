@@ -170,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering
                         m_RenameSelectedBakingSet = false;
 
                         // Rename profile asset to match name:
-                        set.profile.name = set.name;
                         AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(set.profile), set.name);
+                        set.profile.name = set.name;
                     }
                 }
                 else
@@ -203,6 +203,9 @@ namespace UnityEngine.Experimental.Rendering
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                     UpdateSceneData();
+                    // A new set will be selected automatically, so we perform the same operations as if we did the selection explicitly.
+                    OnBakingSetSelected(m_BakingSets);
+
                 }
             };
 
@@ -747,8 +750,21 @@ namespace UnityEngine.Experimental.Rendering
                 if (GUILayout.Button("Generate Lighting", "DropDownButton", GUILayout.ExpandWidth(true)))
                 {
                     var menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Bake the set"), false, () => BakeLightingForSet(GetCurrentBakingSet()));
-                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () => Lightmapping.BakeAsync());
+                    menu.AddItem(new GUIContent("Bake the set"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        BakeLightingForSet(GetCurrentBakingSet());
+                    });
+                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        Lightmapping.BakeAsync();
+                    });
+                    menu.AddItem(new GUIContent("Bake active scene"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = true;
+                        Lightmapping.BakeAsync();
+                    });
                     menu.ShowAsContext();
                 }
             }

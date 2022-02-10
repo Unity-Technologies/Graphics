@@ -33,7 +33,8 @@ To add **Bloom** to a Volume:
 | **Tint**                   | Use the color picker to select a color for the Bloom effect to tint to. |
 | **Clamp**                  | Set the maximum intensity that Unity uses to calculate Bloom. If pixels in your Scene are more intense than this, URP renders them at their current intensity, but uses this intensity value for the purposes of Bloom calculations. The default value is 65472. |
 | **High Quality Filtering** | Enable this to use high quality sampling. This reduces flickering and improves the overall smoothness, but is more resource-intensive and can affect performance. |
-| **Skip Iterations** | The last iterations in the processing sequence might have little contribution to the appearance of the rendered frame. In this setting you define the number of final iterations to skip. Increasing this value reduces processing load and increases performance, especially on mobile devices. The default value is 1. |
+| **Downscale**              | Set the initial resolution scale for the effect. Using a greater reduction reduces the cost of the initial blur by only starting from a lower resolution.
+| **Max Iterations**         | The amount of iterations is based upon the size of hte rendered image. In this setting you define the maximum number of iterations. Decreasing this value reduces processing load and increases performance, especially on mobile devices with high DPI screens. The default value is 6. |
 
 ### Lens Dirt
 
@@ -49,4 +50,5 @@ To add **Bloom** to a Volume:
 There are multiple ways to improve the performance impact of Bloom. Listed in order of effectiveness, you can:
 
 1. Disable **High Quality Filtering**. Bloom then uses bilinear filtering instead of bicubic. This reduces the overall smoothness of the Bloom effect, but greatly improves performance, especially on lower-end hardware and platforms. In some extreme cases, you might see blocky graphical artifacts in your Scene.
-2. Use a lower resolution **Lens Dirt** Texture to reduce memory pressure and speed up blending across volumes.
+2. Set **Downscale** to **Quarter** starting resolution to make the initial cost of Bloom much lower.
+3. Use a lower resolution **Lens Dirt** Texture to reduce memory pressure and speed up blending across volumes.
