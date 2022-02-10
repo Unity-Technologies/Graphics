@@ -139,3 +139,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: API Bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Error on lightmapper side

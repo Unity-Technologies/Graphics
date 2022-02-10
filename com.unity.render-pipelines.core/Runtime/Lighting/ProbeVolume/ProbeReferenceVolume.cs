@@ -1366,6 +1366,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
+                UnloadAllCells();
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
