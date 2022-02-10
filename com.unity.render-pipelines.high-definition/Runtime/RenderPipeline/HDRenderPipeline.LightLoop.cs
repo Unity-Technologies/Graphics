@@ -468,9 +468,9 @@ namespace UnityEngine.Rendering.HighDefinition
             advanceIndexShift(m_GpuLightsBuilder.lightsCount); // punctual index shift is 0
             cb._EnvLightIndexShift = advanceIndexShift(m_lightList.envLights.Count);
             cb._DecalIndexShift = advanceIndexShift(decalDatasCount);
-            cb._LocalVolumetricFogIndexShift = advanceIndexShift(m_LocalVolumetricFogCount);
             cb._CapsuleDirectShadowIndexShift = advanceIndexShift(m_CapsuleDirectShadowCount);
             cb._CapsuleIndirectShadowIndexShift = advanceIndexShift(m_CapsuleIndirectShadowCount);
+            cb._LocalVolumetricFogIndexShift = advanceIndexShift(m_LocalVolumetricFogCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;
