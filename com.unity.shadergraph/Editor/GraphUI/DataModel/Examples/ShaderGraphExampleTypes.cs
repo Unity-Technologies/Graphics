@@ -7,7 +7,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// GTF constant type for System.DayOfWeek, used to create a simple custom type w/ inline editor

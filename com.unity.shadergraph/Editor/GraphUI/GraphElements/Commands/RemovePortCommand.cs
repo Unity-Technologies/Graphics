@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class RemovePortCommand : ModelCommand<CustomizableNodeModel>
     {

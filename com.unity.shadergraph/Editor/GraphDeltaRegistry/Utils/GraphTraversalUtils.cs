@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Utils
         }
 
 
-        static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
+        public static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
         {
             foreach (var inputPort in startingNode.GetInputPorts())
             {
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Utils
             yield return startingNode;
         }
 
-        static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
+        public static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
         {
             foreach (var inputPort in startingNode.GetOutputPorts())
             {

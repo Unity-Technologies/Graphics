@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class NodeModelExtensions
     {
