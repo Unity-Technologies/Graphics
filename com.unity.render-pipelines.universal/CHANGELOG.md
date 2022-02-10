@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material converter not being able to be called in batch mode. [case 1375962]
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
+- Fixed an issue where preview cameras were missing the descriptor for creating their RenderTexture [case 1393818](https://issuetracker.unity3d.com/issues/urp-errors-are-spammed-after-entering-play-mode-in-sunflare-scene-and-navigating-the-project-view)
 - Fixed max light count cpu/gpu mismatch on Windows Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 - Fixed missing shader keyword SHADOWS_SHADOWMASK for shader graph using deferred rendering.
 - Fixed double alpha modulate for particle unlit shader.
