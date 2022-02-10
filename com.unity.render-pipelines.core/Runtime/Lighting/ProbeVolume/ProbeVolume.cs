@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume (Experimental)")]
+    [AddComponentMenu("Light/Probe Volume")]
     public class ProbeVolume : MonoBehaviour
     {
         /// <summary>
