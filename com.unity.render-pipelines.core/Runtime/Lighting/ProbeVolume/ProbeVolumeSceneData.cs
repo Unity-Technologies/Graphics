@@ -106,7 +106,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_BakingState = value;
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                     data.SetBakingState(value);
-                ProbeReferenceVolume.instance.onBakingStateChanged?.Invoke(value);
             }
         }
 

@@ -663,14 +663,15 @@ namespace UnityEngine.Experimental.Rendering
                         var l0 = sh[j][rgb, 0];
 
                         if (l0 == 0.0f)
-                            continue;
-
-                        if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
+                        {
+                            shv[rgb, 0] = 0.0f;
+                            for (int k = 1; k < 9; ++k)
+                                shv[rgb, k] = 0.5f;
+                        }
+                        else if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
                         {
                             for (int k = 0; k < 9; ++k)
-                            {
-                                shv[rgb, k] = 0.0f;
-                            }
+                                shv[rgb, 0] = 0.0f;
                         }
                         else
                         {
