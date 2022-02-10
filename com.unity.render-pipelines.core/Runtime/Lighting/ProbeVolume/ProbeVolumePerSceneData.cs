@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         void DeleteAsset(Object asset)
         {
-            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
+            if (asset != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 AssetDatabase.DeleteAsset(assetPath);
