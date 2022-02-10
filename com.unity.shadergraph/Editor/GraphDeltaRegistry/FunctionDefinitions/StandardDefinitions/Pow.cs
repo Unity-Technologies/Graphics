@@ -1,18 +1,39 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Pow : MonoBehaviour
+namespace com.unity.shadergraph.defs
 {
-    // Start is called before the first frame update
-    void Start()
+
+    internal class Pow : IStandardNode
     {
-        
+        FunctionDescriptor functionDescriptor = new FunctionDescriptor(
+            1,     // Version
+            "Pow", // Name
+            "Out = pow(In, Exp);",
+            new List<ParameterDescriptor>()
+            {
+                new ParameterDescriptor(
+                    "In",
+                    TYPE.Any,
+                    Usage.In
+                ),
+                new ParameterDescriptor(
+                    "Out",
+                    TYPE.Any,
+                    Usage.Out
+                ),
+                new ParameterDescriptor(
+                    "Exp",
+                    TYPE.Any,
+                    Usage.In
+                ),
+            }
+        )
+        };
+
+        Dictionary<string, string> uIStrings = new()
+        {
+
+        };
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }
