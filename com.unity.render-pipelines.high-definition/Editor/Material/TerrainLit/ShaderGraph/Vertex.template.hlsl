@@ -47,9 +47,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
         #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
-            input.uv0 = sampleCoords;
+            input.uv0.xy = sampleCoords;
         #else
-            input.uv0 = sampleCoords * _TerrainHeightmapRecipSize.zw;
+            input.uv0.xy = sampleCoords * _TerrainHeightmapRecipSize.zw;
         #endif
     #endif
 #endif

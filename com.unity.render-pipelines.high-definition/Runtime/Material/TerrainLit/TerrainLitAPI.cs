@@ -29,8 +29,27 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
 
-            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
+            if (material.HasInt(kSpecularOcclusionMode))
+            {
+                int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
+            }
+        }
+
+        public static void SetupLayersMappingKeywords(Material material)
+        {
+            const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
+            const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
+
+            for (int i = 0; i < kMaxLayerCount; ++i)
+            {
+                string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
+                UVBaseMapping layerUVBaseMapping = (UVBaseMapping)material.GetFloat(layerUVBaseParam);
+                string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
+                CoreUtils.SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == UVBaseMapping.Planar);
+                string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
+                CoreUtils.SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == UVBaseMapping.Triplanar);
+            }
         }
     }
 }

@@ -213,7 +213,6 @@ Pass
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
     {
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
-        float2 terrainNormalMapUV = (fragInputs.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
         fragInputs.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
 #endif
 

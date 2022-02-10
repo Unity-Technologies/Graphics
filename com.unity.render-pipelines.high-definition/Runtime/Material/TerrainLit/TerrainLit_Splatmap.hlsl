@@ -87,21 +87,21 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define NullMask(i)      float4(0, 1, 0, 0)
 #endif
 
-#define SampleResults(i, mask)                                                                                  \
-    UNITY_BRANCH if (mask > 0)                                                                                  \
-    {                                                                                                           \
-        float2 splat##i##uv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                              \
-        float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                                                        \
-        float2 splat##i##dyuv = dyuv * _Splat##i##_ST.y;                                                        \
-        albedo[i] = SampleAlbedo(i);                                                                            \
-        normal[i] = SampleNormal(i);                                                                            \
-        masks[i] = SampleMasks(i);                                                                              \
-    }                                                                                                           \
-    else                                                                                                        \
-    {                                                                                                           \
-        albedo[i] = float4(0, 0, 0, 0);                                                                         \
-        normal[i] = float3(0, 0, 0);                                                                            \
-        masks[i] = NullMask(i);                                                                                 \
+#define SampleResults(i, mask)                                                     \
+    UNITY_BRANCH if (mask > 0)                                                     \
+    {                                                                              \
+        float2 splat##i##uv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw; \
+        float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                           \
+        float2 splat##i##dyuv = dyuv * _Splat##i##_ST.y;                           \
+        albedo[i] = SampleAlbedo(i);                                               \
+        normal[i] = SampleNormal(i);                                               \
+        masks[i] = SampleMasks(i);                                                 \
+    }                                                                              \
+    else                                                                           \
+    {                                                                              \
+        albedo[i] = float4(0, 0, 0, 0);                                            \
+        normal[i] = float3(0, 0, 0);                                               \
+        masks[i] = NullMask(i);                                                    \
     }
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME

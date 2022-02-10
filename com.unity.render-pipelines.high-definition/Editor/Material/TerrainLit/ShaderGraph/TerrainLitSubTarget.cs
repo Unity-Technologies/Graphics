@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string raytracingInclude => CoreIncludes.kTerrainRaytracing;
 
         protected override bool requireSplitLighting => false;
-        protected override bool supportForward => true;
+        protected override bool supportForward => false;
         protected override bool supportLighting => true;
         protected override bool supportDistortion => false;
         protected override bool supportRaytracing => false; // TODO : support later
@@ -66,9 +66,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new SubShaderDescriptor
             {
                 generatesPreview = true,
-                customTags = new List<string>() { "\"TerrainCompatible\" = \"True\"" },
+                customTags = GetTerrainTags(),
                 passes = GetPasses(),
             };
+
+            List<string> GetTerrainTags()
+            {
+                var tagList = new List<string>();
+                tagList.Add("\"SplatCount\" = \"8\"");
+                tagList.Add("\"TerrainCompatible\" = \"True\"");
+
+                return tagList;
+            }
 
             PassCollection GetPasses()
             {
@@ -111,7 +120,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             pass.defines.Add(TerrainKeywordDescriptors.TerrainEnabled, 1);
+            pass.keywords.Add(TerrainKeywordDescriptors.TerrainNormalmap);
+            pass.keywords.Add(TerrainKeywordDescriptors.TerrainMaskmap);
             pass.keywords.Add(TerrainKeywordDescriptors.Terrain8Layers);
+            pass.keywords.Add(TerrainKeywordDescriptors.TerrainBlendHeight);
+            pass.keywords.Add(TerrainKeywordDescriptors.TerrainInstancedPerPixelNormal);
 
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
@@ -157,10 +170,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            //systemData.doubleSidedMode = DoubleSidedMode.Disabled;
-
-            //base.GetFields(ref context);
-
             // Common properties to all Lit master nodes
             var descs = context.blocks.Select(x => x.descriptor);
 
@@ -222,73 +231,85 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             collector.AddShaderProperty(new BooleanShaderProperty
             {
-                overrideReferenceName = "_EnableHeightBlend",
+                value = terrainLitData.enableHeightBlend,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = terrainLitData.enableHeightBlend,
+                overrideReferenceName = "_EnableHeightBlend",
                 displayName = "EnableHeightBlend",
             });
 
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                overrideReferenceName = "_HeightTransition",
+                floatType = FloatType.Slider,
+                value = terrainLitData.heightTransition,
                 hidden = false,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = terrainLitData.heightTransition,
+                overrideReferenceName = "_HeightTransition",
                 displayName = "Height Transition",
             });
 
             collector.AddShaderProperty(new BooleanShaderProperty
             {
-                overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                value = terrainLitData.enableInstancedPerPixelNormal,
                 hidden = false,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = terrainLitData.enableInstancedPerPixelNormal,
+                overrideReferenceName = "_EnableInstancedPerPixelNormal",
                 displayName = "Instanced per pixel normal",
             });
 
             collector.AddShaderProperty(new Texture2DShaderProperty
             {
-                overrideReferenceName = "_TerrainHolesTexture",
+                defaultType = Texture2DShaderProperty.DefaultType.White,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                defaultType = Texture2DShaderProperty.DefaultType.White,
+                overrideReferenceName = "_TerrainHolesTexture",
                 displayName = "Holes Map (RGB)",
                 useTilingAndOffset = true,
             });
 
             collector.AddShaderProperty(new Texture2DShaderProperty
             {
-                overrideReferenceName = "_MainTex",
+                defaultType = Texture2DShaderProperty.DefaultType.White,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                defaultType = Texture2DShaderProperty.DefaultType.White,
+                overrideReferenceName = "_MainTex",
                 displayName = "Albedo",
                 useTilingAndOffset = true,
             });
 
             collector.AddShaderProperty(new ColorShaderProperty()
             {
-                overrideReferenceName = "_EmissionColor",
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f),
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
+                overrideReferenceName = "_Color",
+                displayName = "Color,"
+            });
+
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f),
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                overrideReferenceName = "_EmissionColor",
+                displayName = "Color,"
             });
 
             // ShaderGraph only property used to send the RenderQueueType to the material
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                overrideReferenceName = "_RenderQueueType",
+                value = (int)systemData.renderQueueType,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = (int)systemData.renderQueueType,
+                overrideReferenceName = "_RenderQueueType",
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
@@ -348,11 +369,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                overrideReferenceName = "_CullMode",
+                value = (int)CullMode.Back,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = (int)CullMode.Back,
+                overrideReferenceName = "_CullMode",
             });
 
             collector.AddShaderProperty(new Vector1ShaderProperty
@@ -406,10 +427,46 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
+            public static KeywordDescriptor TerrainNormalmap = new KeywordDescriptor()
+            {
+                displayName = "Terrain Normal Map",
+                referenceName = "_NORMALMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainMaskmap = new KeywordDescriptor()
+            {
+                displayName = "Terrain Mask Map",
+                referenceName = "_MASKMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
             public static KeywordDescriptor Terrain8Layers = new KeywordDescriptor()
             {
-                displayName = "HD Terrain 8 Layers",
+                displayName = "Terrain 8 Layers",
                 referenceName = "_TERRAIN_8_LAYERS",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainBlendHeight = new KeywordDescriptor()
+            {
+                displayName = "Terrain Blend Height",
+                referenceName = "_TERRAIN_BLEND_HEIGHT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainInstancedPerPixelNormal = new KeywordDescriptor()
+            {
+                displayName = "Instanced PerPixel Normal",
+                referenceName = "_TERRAIN_INSTANCED_PERPIXEL_NORMAL",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

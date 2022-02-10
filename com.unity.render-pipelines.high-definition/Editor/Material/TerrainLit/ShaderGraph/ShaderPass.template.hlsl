@@ -1,20 +1,48 @@
+
+float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
+{
+#ifdef _NORMALMAP
+    #ifdef SURFACE_GRADIENT
+        return SurfaceGradientFromTBN(normalData.xy, tangentWS, bitangentWS);
+    #else
+        return normalData;
+    #endif
+#else
+    #ifdef SURFACE_GRADIENT
+        return float3(0.0, 0.0, 0.0); // No gradient
+    #else
+        return float3(0.0, 0.0, 1.0);
+    #endif
+#endif
+}
+
 void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
 {
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
-    // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
-    // however specularOcclusion can come from the graph, so need to be init here so it can be override.
-    surfaceData.specularOcclusion = 1.0;
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    #ifdef TERRAIN_PERPIXEL_NORMAL_OVERRIDE
+        float3 normalWS = surfaceDescription.normalWS;
+    #else
+        float2 terrainNormalMapUV = (fragInputs.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2.0 - 1.0;
+        float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
+    #endif
+    float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
+    fragInputs.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
+    surfaceData.normalWS = normalWS;
+#endif
 
-    $SurfaceDescription.BaseColor:                  surfaceData.baseColor =                 surfaceDescription.BaseColor;
-    $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
-    $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
-    $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
-    $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
-
-    surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+    // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
+
+    $SurfaceDescription.BaseColor:         surfaceData.baseColor =            surfaceDescription.BaseColor;
+    $SurfaceDescription.Smoothness:        surfaceData.perceptualSmoothness = surfaceDescription.Smoothness;
+    $SurfaceDescription.Occlusion:         surfaceData.ambientOcclusion =     surfaceDescription.Occlusion;
+    $SurfaceDescription.SpecularOcclusion: surfaceData.specularOcclusion =    surfaceDescription.SpecularOcclusion;
+    $SurfaceDescription.Metallic:          surfaceData.metallic =             surfaceDescription.Metallic;
 
     // Transparency parameters
     // Use thickness from SSS
@@ -23,26 +51,20 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
+    // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
+    // however specularOcclusion can come from the graph, so need to be init here so it can be override.
+    surfaceData.specularOcclusion = 1.0;
+
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-
-    // normal delivered to master node
-    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
-
-    $SurfaceDescription.TangentOS: surfaceData.tangentWS = TransformObjectToWorldNormal(surfaceDescription.TangentOS);
-    $SurfaceDescription.TangentTS: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.TangentTS, fragInputs.tangentToWorld);
-    $SurfaceDescription.TangentWS: surfaceData.tangentWS = surfaceDescription.TangentWS;
-
 #if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
-    $SurfaceDescription.NormalOS: float3 normalTS = TransformObjectToTangent(surfaceDescription.TangentOS, fragInputs.tangentToWorld);
-    $SurfaceDescription.NormalTS: float3 normalTS = surfaceDescription.TangentTS;
-    $SurfaceDescription.NormalWS: float3 normalTS = TransformWorldToTangent(surfaceDescription.TangentWS, fragInput.tangentToWorld);
-
     #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    $SurfaceDescription.NormalOS: normalTS = TransformObjectToTangent(surfaceDescription.NormalOS, fragInputs.tangentToWorld);
+    $SurfaceDescription.NormalTS: normalTS = surfaceDescription.NormalTS;
+    $SurfaceDescription.NormalWS: normalTS = TransformWorldToTangent(surfaceDescription.NormalWS, fragInput.tangentToWorld);
+    normalTS = ConvertToNormalTS(normalTS, fragInputs.tangentToWorld[0], fragInputs.tangentToWorld[1]);
         #if HAVE_DECALS
         if (_EnableDecals)
         {
@@ -52,16 +74,30 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData, normalTS);
         }
         #endif // HAVE_DECALS
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
     #elif HAVE_DECALS
         if (_EnableDecals)
         {
+            float3 normalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], surfaceData.normalWS);
+
             float alpha = 1.0; // unused
 
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData, normalTS);
+
+            GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
         }
     #endif // HAVE_DECALS
 #else // DECAL_SURFACE_GRADIENT && SURFACE_GRADIENT
+    #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    $SurfaceDescription.NormalOS: normalTS = TransformObjectToTangent(surfaceDescription.NormalOS, fragInputs.tangentToWorld);
+    $SurfaceDescription.NormalTS: normalTS = surfaceDescription.NormalTS;
+    $SurfaceDescription.NormalWS: normalTS = TransformWorldToTangent(surfaceDescription.NormalWS, fragInput.tangentToWorld);
+    normalTS = ConvertToNormalTS(normalTS, fragInputs.tangentToWorld[0], fragInputs.tangentToWorld[1]);
+    GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+    #endif
+
     #if HAVE_DECALS
         if (_EnableDecals)
         {
@@ -75,9 +111,6 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 #endif // DECAL_SURFACE_GRADIENT && SURFACE_GRADIENT
 
     bentNormalWS = surfaceData.normalWS;
-    $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-
-    surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

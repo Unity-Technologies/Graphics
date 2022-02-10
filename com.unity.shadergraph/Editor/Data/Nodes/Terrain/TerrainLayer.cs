@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1} = albedo[{2}].xyz;", albedoType, albedoValue, inputLayerIndexValue);
             sb.AppendLine("{0} {1} = normal[{2}];", normalType, normalValue, inputLayerIndexValue);
             sb.AppendLine("{0} {1} = masks[{2}].x;", metallicType, metallicValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = masks[{2}].z;", smoothnessType, smoothnessValue, inputLayerIndexValue);
+            sb.AppendLine("{0} {1} = masks[{2}].w;", smoothnessType, smoothnessValue, inputLayerIndexValue);
             sb.AppendLine("{0} {1} = masks[{2}].y;", occlusionType, occlusionValue, inputLayerIndexValue);
             sb.AppendLine("{0} {1} = albedo[{2}].w;", alphaType, alphaValue, inputLayerIndexValue);
             sb.AppendLine("#else");

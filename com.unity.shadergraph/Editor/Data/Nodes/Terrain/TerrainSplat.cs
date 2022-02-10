@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndexValue);
             sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndexValue);
             sb.AppendLine("float2 blendUV{0} = (IN.uv0.xy * (_Control{0}_TexelSize.zw - 1.0) + 0.5) * _Control{0}_TexelSize.xy;", inputSplatIndexValue);
-            sb.AppendLine("float4 splatControl{0} = SAMPLE_TEXTURE2D(_Control{0}, sampler_Control{0}, blendUV{0});", inputSplatIndexValue);
+            sb.AppendLine("float4 splatControl{0} = SAMPLE_TEXTURE2D(_Control{0}, sampler_Control0, blendUV{0});", inputSplatIndexValue);
             sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndexValue);
             sb.AppendLine("{0} {1} = splatControl{2}.r;", controlRType, controlRValue, inputSplatIndexValue);
             sb.AppendLine("{0} {1} = splatControl{2}.g;", controlGType, controlGValue, inputSplatIndexValue);
