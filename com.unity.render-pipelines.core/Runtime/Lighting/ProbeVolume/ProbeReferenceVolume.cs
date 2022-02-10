@@ -375,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kTemporaryDataLocChunkCount = 8;
+        internal const int kTemporaryDataLocChunkCount = 8;
 
         [Serializable]
         internal class Cell
@@ -389,13 +389,49 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeVolumeSHBands shBands;
 
             public NativeArray<Brick> bricks { get; internal set; }
-            public NativeArray<float> validity { get; internal set; }
+            public NativeArray<uint> validity { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
 
             // Per state data
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+
+            static internal uint PackValidityAndMask(float validity, byte mask)
+            {
+                // 24 bits for validity at the top of the uint, 8 bits for the mask at the bottom.
+                uint outValue = 0;
+                outValue = (mask & 255u);
+                uint packableValidity = 0;
+                uint maxInt = (1 << 24) - 1u;
+                packableValidity = (uint)(validity * maxInt + 0.5);
+                outValue |= packableValidity << 8;
+                return outValue;
+            }
+
+            internal float GetValidity(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityFromPacked(validity[probeIdx]);
+            }
+
+            internal static float GetValidityFromPacked(uint packedValidity)
+            {
+                uint extractionMask = (1 << 24) - 1;
+                return ((packedValidity >> 8) & extractionMask) / (float)(extractionMask);
+            }
+
+            internal static byte GetValidityNeighMaskFromPacked(uint packedValidity)
+            {
+                return Convert.ToByte(packedValidity & 255);
+            }
+
+            internal byte GetNeighbourhoodValidityMask(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityNeighMaskFromPacked(validity[probeIdx]); // TODO_FCC: TMP.
+            }
+
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -1316,6 +1352,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
+                UnloadAllCells();
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();

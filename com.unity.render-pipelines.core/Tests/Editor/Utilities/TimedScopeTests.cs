@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NUnit.Framework;
 using System.Threading;
 using UnityEditor.Rendering;
@@ -9,26 +10,39 @@ namespace UnityEngine.Rendering.Utils.Tests
         private const int k_MillisecondsTimeout = 1000;
         private const int k_TimeComparisonDelta = 20;
 
+
         [Test]
         public unsafe void SimpleTimeCheckFromPtr()
         {
-            double stripTimeMs = 0;
-            using (TimedScope.FromPtr(&stripTimeMs))
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            double timedScopeTime = 0;
+            using (TimedScope.FromPtr(&timedScopeTime))
             {
                 Thread.Sleep(k_MillisecondsTimeout);
             }
-            Assert.AreEqual(stripTimeMs, k_MillisecondsTimeout, k_TimeComparisonDelta);
+
+            stopwatch.Stop();
+            double stopWatchTime = stopwatch.Elapsed.TotalMilliseconds;
+            Assert.AreEqual(stopWatchTime, timedScopeTime, k_TimeComparisonDelta);
         }
 
         [Test]
         public void SimpleTimeCheckFromRef()
         {
-            double stripTimeMs = 0;
-            using (TimedScope.FromRef(ref stripTimeMs))
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            double timedScopeTime = 0;
+            using (TimedScope.FromRef(ref timedScopeTime))
             {
                 Thread.Sleep(k_MillisecondsTimeout);
             }
-            Assert.AreEqual(stripTimeMs, k_MillisecondsTimeout, k_TimeComparisonDelta);
+
+            stopwatch.Stop();
+            double stopWatchTime = stopwatch.Elapsed.TotalMilliseconds;
+            Assert.AreEqual(stopWatchTime, timedScopeTime, k_TimeComparisonDelta);
         }
     }
 }

@@ -49,7 +49,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (!queriesHitBackBefore)
                     Physics.queriesHitBackfaces = false;
 
-                CleanupOccluders();
+                // We do not cleanup occluders here as it is done after the validity masks are processed.
+                //CleanupOccluders();
             }
         }
 
@@ -309,35 +310,35 @@ namespace UnityEngine.Experimental.Rendering
             const float k0 = 0, k1 = 1, k2 = (float)0.70710678118654752440084436210485, k3 = (float)0.57735026918962576450914878050196;
             static readonly Vector3[] kRayDirections =
             {
-                new(-k3, +k3, -k3),
-                new( k0, +k2, -k2),
-                new(+k3, +k3, -k3),
-                new(-k2, +k2,  k0),
-                new( k0, +k1,  k0),
-                new(+k2, +k2,  k0),
-                new(-k3, +k3, +k3),
-                new( k0, +k2, +k2),
-                new(+k3, +k3, +k3),
+                new(-k3, +k3, -k3), // -1  1 -1
+                new( k0, +k2, -k2), //  0  1 -1
+                new(+k3, +k3, -k3), //  1  1 -1
+                new(-k2, +k2,  k0), // -1  1  0
+                new( k0, +k1,  k0), //  0  1  0
+                new(+k2, +k2,  k0), //  1  1  0
+                new(-k3, +k3, +k3), // -1  1  1
+                new( k0, +k2, +k2), //  0  1  1
+                new(+k3, +k3, +k3), //  1  1  1
 
-                new(-k2,  k0, -k2),
-                new( k0,  k0, -k1),
-                new(+k2,  k0, -k2),
-                new(-k1,  k0,  k0),
+                new(-k2,  k0, -k2), // -1  0 -1
+                new( k0,  k0, -k1), //  0  0 -1
+                new(+k2,  k0, -k2), //  1  0 -1
+                new(-k1,  k0,  k0), // -1  0  0
                 // k0, k0, k0 - skip center position (which would be a zero-length ray)
-                new(+k1,  k0,  k0),
-                new(-k2,  k0, +k2),
-                new( k0,  k0, +k1),
-                new(+k2,  k0, +k2),
+                new(+k1,  k0,  k0), //  1  0  0
+                new(-k2,  k0, +k2), // -1  0  1
+                new( k0,  k0, +k1), //  0  0  1
+                new(+k2,  k0, +k2), //  1  0  1
 
-                new(-k3, -k3, -k3),
-                new( k0, -k2, -k2),
-                new(+k3, -k3, -k3),
-                new(-k2, -k2,  k0),
-                new( k0, -k1,  k0),
-                new(+k2, -k2,  k0),
-                new(-k3, -k3, +k3),
-                new( k0, -k2, +k2),
-                new(+k3, -k3, +k3),
+                new(-k3, -k3, -k3), // -1 -1 -1
+                new( k0, -k2, -k2), //  0 -1 -1
+                new(+k3, -k3, -k3), //  1 -1 -1
+                new(-k2, -k2,  k0), // -1 -1  0
+                new( k0, -k1,  k0), //  0 -1  0
+                new(+k2, -k2,  k0), //  1 -1  0
+                new(-k3, -k3, +k3), // -1 -1  1
+                new( k0, -k2, +k2), //  0 -1  1
+                new(+k3, -k3, +k3), //  1 -1  1
             };
         }
 
