@@ -15,6 +15,7 @@
     "com.unity.learn.iet-framework": "2.1.1",
     "com.unity.render-pipelines.high-definition": "12.1.2",
     "com.unity.timeline": "1.6.2",
-    "com.unity.ugui": "1.0.0"
+    "com.unity.ugui": "1.0.0",
+    "com.unity.visualscripting": "1.7.6"
   }
 }

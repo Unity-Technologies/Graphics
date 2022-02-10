@@ -3,6 +3,7 @@
 * [What's new](whats-new.md)
   * [10 / Unity 2020.2](whats-new-10.md)
   * [11 / Unity 2021.1](whats-new-11.md)
+  * [12 / Unity 2021.2](whats-new-12.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -52,6 +53,7 @@
     * [Output Decal](Context-OutputForwardDecal.md)
     * [Output Line](Context-OutputLine.md)
     * [Output Particle Mesh](Context-OutputParticleMesh.md)
+    * [Output Particle HDRP Lit Decal](Context-OutputParticleHDRPLitDecal.md)
     * [Output Point](Context-OutputPoint.md)
     * [Output Primitive](Context-OutputPrimitive.md)
     * Shared Output Settings

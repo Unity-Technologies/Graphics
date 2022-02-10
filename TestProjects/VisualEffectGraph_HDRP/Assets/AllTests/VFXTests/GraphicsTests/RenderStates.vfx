@@ -391,7 +391,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614553}
   cullMode: 2
@@ -400,7 +400,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 3
+  vfxSystemSortPriority: 3
   sort: 0
   indirectDraw: 0
   computeCulling: 0
@@ -518,7 +518,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614550}
   cullMode: 0
@@ -527,7 +527,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: -1
+  vfxSystemSortPriority: -1
   sort: 1
   indirectDraw: 0
   computeCulling: 0
@@ -2558,7 +2558,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614554}
   cullMode: 1
@@ -2567,7 +2567,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 2
+  vfxSystemSortPriority: 2
   sort: 0
   indirectDraw: 0
   computeCulling: 0
@@ -2977,7 +2977,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614551}
   cullMode: 1
@@ -2986,7 +2986,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
   indirectDraw: 0
   computeCulling: 0
@@ -3112,7 +3112,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114789301396980456
 MonoBehaviour:
@@ -3218,7 +3218,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614549}
   cullMode: 0
@@ -3227,7 +3227,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 1
+  vfxSystemSortPriority: 1
   sort: 0
   indirectDraw: 0
   computeCulling: 0
@@ -3550,7 +3550,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114882463585513378
 MonoBehaviour:
@@ -3793,7 +3793,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614552}
   cullMode: 2
@@ -3802,7 +3802,7 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: -1
+  vfxSystemSortPriority: -1
   sort: 0
   indirectDraw: 0
   computeCulling: 0
@@ -4037,7 +4037,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114990017084746180
 MonoBehaviour:

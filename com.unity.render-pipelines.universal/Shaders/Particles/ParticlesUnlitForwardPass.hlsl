@@ -55,15 +55,13 @@ void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfac
     const half3 emission = 0;
     #endif
 
-    surfaceData.albedo = albedo.rgb;
+    surfaceData.albedo = albedo.rgb; // NOTE: Pre-multiplied and modulated in SampleAlbedo().
     surfaceData.specular = 0;
     surfaceData.normalTS = normalTS;
     surfaceData.emission = emission;
     surfaceData.metallic = 0;
     surfaceData.smoothness = 1;
     surfaceData.occlusion = 1;
-
-    surfaceData.albedo = AlphaModulate(surfaceData.albedo, albedo.a);
     surfaceData.alpha = albedo.a;
 
     surfaceData.clearCoatMask       = 0;

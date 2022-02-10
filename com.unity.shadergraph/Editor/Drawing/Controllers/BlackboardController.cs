@@ -174,6 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (shaderInputToCopy)
             {
                 case AbstractShaderProperty property:
+                    insertIndex = Mathf.Clamp(insertIndex, -1, graphData.properties.Count() - 1);
 
                     var copiedProperty = (AbstractShaderProperty)graphData.AddCopyOfShaderInput(property, insertIndex);
                     if (copiedProperty != null) // some property types cannot be duplicated (unknown types)
@@ -197,6 +198,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // InsertIndex gets passed in relative to the blackboard position of an item overall,
                     // and not relative to the array sizes of the properties/keywords/dropdowns
                     var keywordInsertIndex = insertIndex - graphData.properties.Count();
+                    keywordInsertIndex = Mathf.Clamp(keywordInsertIndex, -1, graphData.keywords.Count() - 1);
 
                     // Don't duplicate built-in keywords within the same graph
                     if (shaderKeyword.isBuiltIn && graphData.keywords.Any(p => p.referenceName == shaderInputToCopy.referenceName))
@@ -221,6 +223,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // InsertIndex gets passed in relative to the blackboard position of an item overall,
                     // and not relative to the array sizes of the properties/keywords/dropdowns
                     var dropdownInsertIndex = insertIndex - graphData.properties.Count() - graphData.keywords.Count();
+                    dropdownInsertIndex = Mathf.Clamp(dropdownInsertIndex, -1, graphData.dropdowns.Count() - 1);
 
                     var copiedDropdown = (ShaderDropdown)graphData.AddCopyOfShaderInput(shaderDropdown, dropdownInsertIndex);
 
