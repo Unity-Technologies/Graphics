@@ -101,14 +101,14 @@ namespace UnityEngine.Experimental.Rendering
             var validityOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<uint>();
 
             var packedValidityByteStart = AlignUp16(validityOldByteStart + validityOldByteCount);
-            var packedValidityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<uint>();
+            var packedValidityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<byte>();
 
             if ((packedValidityByteStart + packedValidityByteCount) != cellSharedData.Length)
                 return false;
 
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
             var validityOldData = cellSharedData.GetSubArray(validityOldByteStart, validityOldByteCount).Reinterpret<uint>(1);
-            var packedValidityData = cellSharedData.GetSubArray(packedValidityByteStart, packedValidityByteCount).Reinterpret<uint>(1);
+            var packedValidityData = cellSharedData.GetSubArray(packedValidityByteStart, packedValidityByteCount).Reinterpret<byte>(1);
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
                 cell.validity = validityOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                cell.packedValidityData = packedValidityData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                cell.packedValidityData = packedValidityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
 
                 if (hasSupportData)
                 {

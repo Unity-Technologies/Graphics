@@ -637,7 +637,6 @@ namespace UnityEngine.Experimental.Rendering
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
-
                 ComputeValidityMasks(cell);
 
                 m_BakedCells[cell.index] = cell;
@@ -797,17 +796,6 @@ namespace UnityEngine.Experimental.Rendering
             sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
         }
 
-        unsafe static int PackValidity(float* validity)
-        {
-            int outputByte = 0;
-            for (int i = 0; i < 8; ++i)
-            {
-                int val = (validity[i] > 0.05f) ? 0 : 1;
-                outputByte |= (val << i);
-            }
-            return outputByte;
-        }
-
         /// <summary>
         /// This method converts a list of baking cells into 5 separate assets:
         ///  2 assets per baking state:
@@ -874,7 +862,7 @@ namespace UnityEngine.Experimental.Rendering
             // CellSharedData
             using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validityOld = new NativeArray<uint>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var packedValidity = new NativeArray<uint>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var packedValidity = new NativeArray<byte>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData
             using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -888,7 +876,6 @@ namespace UnityEngine.Experimental.Rendering
 
             int validityChunkOffset = 0;
             var validityChunkSize = ProbeBrickPool.GetChunkSizeInProbeCount();
-            var tempValidityArray = new DynamicArray<float>(asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount());
 
             // Init SH with values that will resolve to black
             var blackSH = new SphericalHarmonicsL2();
@@ -965,7 +952,6 @@ namespace UnityEngine.Experimental.Rendering
                                     {
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
 
-                                        tempValidityArray[index] = 1.0f;
                                         packedValidityChunkTarget[index] = 0;
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -978,7 +964,7 @@ namespace UnityEngine.Experimental.Rendering
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
 
-                                        tempValidityArray[index] = bakingCell.validity[shidx];
+                                        packedValidityChunkTarget[index] = Cell.GetValidityNeighMaskFromPacked(bakingCell.validity[shidx]);
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                         {
@@ -1007,36 +993,11 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
 
-                    float* validities = stackalloc float[8];
-
-                    // This can be optimized later.
-                    for (int x = 0; x < locSize.x; ++x)
-                    {
-                        for (int y = 0; y < locSize.y; ++y)
-                        {
-                            for (int z = 0; z < locSize.z; ++z)
-                            {
-                                int index = x + locSize.x * (y + locSize.y * z);
-
-                                for (int o = 0; o < 8; ++o)
-                                {
-                                    Vector3Int off = GetSampleOffset(o);
-                                    Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, locSize.x - 1),
-                                                                          Mathf.Clamp(y + off.y, 0, locSize.y - 1),
-                                                                          Mathf.Clamp(z + off.z, 0, ProbeBrickPool.kBrickProbeCountPerDim - 1));
-                                    int validityIndex = samplePos.x + locSize.x * (samplePos.y + locSize.y * samplePos.z);
-                                    validities[o] = tempValidityArray[validityIndex];
-                                }
-
-                                packedValidityChunkTarget[index] = Convert.ToByte(PackValidity(validities));
-                            }
-                        }
-                    }
-
                     chunkOffset += chunkSize;
                     validityChunkOffset += validityChunkSize;
                 }
 
+                bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
                 validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
@@ -1084,7 +1045,7 @@ namespace UnityEngine.Experimental.Rendering
                     fs.Write(new ReadOnlySpan<byte>(validityOld.GetUnsafeReadOnlyPtr(), validityOld.Length * UnsafeUtility.SizeOf<uint>()));
 
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<uint>()));
+                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<byte>()));
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {

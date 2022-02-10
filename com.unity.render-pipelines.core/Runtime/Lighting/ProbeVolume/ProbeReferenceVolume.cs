@@ -390,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<Brick> bricks { get; internal set; }
             public NativeArray<uint> validity { get; internal set; }
-            public NativeArray<uint> packedValidityData { get; internal set; }
+            public NativeArray<byte> packedValidityData { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
 
