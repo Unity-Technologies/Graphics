@@ -8,10 +8,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
 // Textures & Samplers
-TEXTURE2D_X(_BaseMap);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
-SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BlitTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
@@ -89,7 +88,7 @@ static half SSAORandomUV[40] =
 
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()
-#define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv));
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under

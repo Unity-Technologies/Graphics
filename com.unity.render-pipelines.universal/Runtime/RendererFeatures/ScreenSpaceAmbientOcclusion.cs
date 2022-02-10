@@ -143,7 +143,6 @@ namespace UnityEngine.Rendering.Universal
             private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
 
             // Statics
-            private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
@@ -348,6 +347,8 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
+                    var cameraData = renderingData.cameraData;
+
                     if (!m_CurrentSettings.AfterOpaque)
                     {
                         CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
@@ -358,7 +359,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
 
                     // Execute the SSAO
-                    Render(cmd, m_SSAOTexture1, ShaderPasses.AO);
+                    RenderAndSetBaseMap(cmd, cameraData.renderer.cameraDepthTargetHandle, m_SSAOTexture1, ShaderPasses.AO);
 
                     // Execute the Blur Passes
                     RenderAndSetBaseMap(cmd, m_SSAOTexture1, m_SSAOTexture2, ShaderPasses.BlurHorizontal);
@@ -374,7 +375,6 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
-                        var cameraData = renderingData.cameraData;
                         bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -388,23 +388,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            private void Render(CommandBuffer cmd, RTHandle target, ShaderPasses pass)
-            {
-                CoreUtils.SetRenderTarget(
-                    cmd,
-                    target,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.None,
-                    Color.clear
-                );
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)pass);
-            }
-
             private void RenderAndSetBaseMap(CommandBuffer cmd, RTHandle baseMap, RTHandle target, ShaderPasses pass)
             {
-                cmd.SetGlobalTexture(s_BaseMapID, baseMap.nameID);
-                Render(cmd, target, pass);
+                Blitter.BlitCameraTexture(cmd, baseMap, target, m_Material, (int)pass);
             }
 
             /// <inheritdoc/>
