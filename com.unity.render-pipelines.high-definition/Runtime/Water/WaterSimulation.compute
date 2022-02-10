@@ -11,7 +11,7 @@
 // #pragma enable_d3d11_debug_symbols
 
 // Required for finding the vertical displacements
-#pragma multi_compile HIGH_RESOLUTION_WATER
+#pragma multi_compile _ HIGH_RESOLUTION_WATER
 
 // Required to be defined for some includes
 #define WATER_SIMULATION
