@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Controled if profiling should be logged or not. This enum is not longer in use.
+    /// Defines if profiling is logged or not. This enum is not longer in use.
     /// </summary>
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
     public enum PipelineDebugLevel
