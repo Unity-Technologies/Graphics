@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
-        internal static RenderGraph m_RenderGraph = new RenderGraph("URPRenderGraph");
+        internal static RenderGraph m_RenderGraph;
         internal static bool useRenderGraph = true;
 
         /// <summary>
@@ -203,6 +203,8 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ClearSystemInfoCache();
 
             DecalProjector.defaultMaterial = asset.decalMaterial;
+
+            m_RenderGraph = new RenderGraph("URPRenderGraph");
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);

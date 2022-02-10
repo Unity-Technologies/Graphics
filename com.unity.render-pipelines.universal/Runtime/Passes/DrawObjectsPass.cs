@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -165,5 +167,153 @@ namespace UnityEngine.Rendering.Universal.Internal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+
+
+
+
+        // ----------------- RENDERGRAPH PROTOTYPE --------------------
+
+        // RenderGraph prototype changes:
+        // - using a single cmd buffer passed down as parameter
+        // - not responsible anymore to call ExecuteCommandBuffer() and cmd.Clear()
+        // - commented out this call renderingData.cameraData.IsCameraProjectionMatrixFlipped() because relies on ScriptableRenderer's resources not related to RG (it causes a !insideRenderPass warning)
+        public void ExecuteRG(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            //CommandBuffer cmd = CommandBufferPool.Get();
+            //using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                // Global render pass data containing various settings.
+                // x,y,z are currently unused
+                // w is used for knowing whether the object is opaque(1) or alpha blended(0)
+                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
+                cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
+                float flipSign = -1; //(renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                Vector4 scaleBias = (flipSign < 0.0f)
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+
+                //context.ExecuteCommandBuffer(cmd);
+                //cmd.Clear();
+
+                Camera camera = renderingData.cameraData.camera;
+                var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                    sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+
+                var filterSettings = m_FilteringSettings;
+
+#if UNITY_EDITOR
+                // When rendering the preview camera, we want the layer mask to be forced to Everything
+                if (renderingData.cameraData.isPreviewCamera)
+                {
+                    filterSettings.layerMask = -1;
+                }
+#endif
+
+                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
+                {
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock,
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        {
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        });
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+
+                    // Render objects that did not match any shader pass with error shader
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                }
+            }
+            //context.ExecuteCommandBuffer(cmd);
+            //CommandBufferPool.Release(cmd);
+        }
+
+
+
+
+
+
+
+
+        public class PassData
+        {
+            public TextureHandle m_Albedo;
+            public TextureHandle m_Depth;
+
+            public RenderingData renderingData;
+
+            public Camera m_Camera;
+        }
+
+        static private TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera)
+        {
+            bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+
+            //Texture description
+            TextureDesc colorRTDesc = new TextureDesc(camera.pixelWidth, camera.pixelHeight);
+            colorRTDesc.colorFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, colorRT_sRGB);
+            colorRTDesc.depthBufferBits = DepthBits.Depth24;
+            colorRTDesc.msaaSamples = MSAASamples.None;
+            colorRTDesc.enableRandomWrite = false;
+            colorRTDesc.clearBuffer = true;
+            colorRTDesc.clearColor = Color.black;
+            colorRTDesc.name = "Depth";
+
+            return graph.CreateTexture(colorRTDesc);
+        }
+
+        public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer, ref RenderingData renderingData)
+        {
+            using (var builder = graph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
+                new ProfilingSampler("Draw Objects Pass Profiler")))
+            {
+                passData.m_Albedo = builder.UseColorBuffer(backBuffer, 0);
+                TextureHandle Depth = CreateDepthTexture(graph, camera);
+                passData.m_Depth = builder.UseDepthBuffer(Depth, DepthAccess.ReadWrite); //DepthAccess.Write);
+
+                passData.renderingData = renderingData;
+
+                //builder.WriteTexture(Albedo);
+
+                builder.AllowPassCulling(false);
+
+                passData.m_Camera = camera;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    //context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 0,0);
+                    OnCameraSetup(context.cmd, ref passData.renderingData);
+                    ExecuteRG(context.renderContext, context.cmd, ref passData.renderingData);
+                });
+
+                return passData;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

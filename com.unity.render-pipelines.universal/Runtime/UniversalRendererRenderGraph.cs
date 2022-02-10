@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -8,16 +10,19 @@ namespace UnityEngine.Rendering.Universal
         public override void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
             base.RecordRenderGraph(renderGraph, context, cmd, ref renderingData);
-
             Camera camera = renderingData.cameraData.camera;
 
-            RenderGraphTestPass.PassData testPassData = RenderGraphTestPass.Render(camera, renderGraph);
+            context.SetupCameraProperties(camera);
+
+            TextureHandle backBuffer = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+
+            RenderGraphSkyboxTestPass.PassData testPassData = RenderGraphSkyboxTestPass.Render(camera, renderGraph, backBuffer);
+
+            m_RenderOpaqueForwardPass.Render(camera, renderGraph, backBuffer, ref renderingData);
         }
     }
 
-
-
-    class RenderGraphTestPass
+    class RenderGraphSkyboxTestPass
     {
         public class PassData
         {
@@ -61,12 +66,12 @@ namespace UnityEngine.Rendering.Universal
             return graph.CreateTexture(colorRTDesc);
         }
 
-        static public PassData Render(Camera camera, RenderGraph graph)
+        static public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer)
         {
             using (var builder = graph.AddRenderPass<PassData>("Test Pass", out var passData, new ProfilingSampler("Test Pass Profiler")))
             {
-                TextureHandle Albedo = graph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget); //CreateColorTexture(graph,camera,"Albedo");
-                passData.m_Albedo = builder.UseColorBuffer(Albedo, 0);
+                //CreateColorTexture(graph,camera,"Albedo");
+                passData.m_Albedo = builder.UseColorBuffer(backBuffer, 0);
                 TextureHandle Depth = CreateDepthTexture(graph, camera);
                 passData.m_Depth = builder.UseDepthBuffer(Depth, DepthAccess.Write);
 
