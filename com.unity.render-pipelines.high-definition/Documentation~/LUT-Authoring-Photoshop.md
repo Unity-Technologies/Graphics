@@ -52,7 +52,7 @@ You can now start grading your image. Make sure you only do global color operati
 
 When you finish grading, export your work as a CUBE file. To do this in Photoshop:
 
-1. Select **File** > **Export** > **Color Lookup Tables** (if you’re using another digital content creation program, see its documentation to learn how to do this). 
+1. Select **File** > **Export** > **Color Lookup Tables** (if you’re using another digital content creation program, see its documentation to learn how to do this).
 2. Set the **Grid Point** property to the same value as the **Grading LUT Size** in your Project's [HDRP Asset](HDRP-Asset.md).
 3. Save the CUBE file in your Unity Project's Assets folder.
 
