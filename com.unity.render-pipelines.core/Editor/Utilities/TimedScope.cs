@@ -9,14 +9,14 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Allows time measurements
     /// </summary>
-    /// <example> <![CDATA[
+    /// <example>
     /// double duration = 0;
-    /// using (TimedScope.FromPtr(&duration))
+    /// using (TimedScope.FromPtr(&amp;duration))
     /// {
     ///     // something to get the time
     /// }
     /// Debug.Log($"Duration: {duration}")
-    /// ]]> </example>
+    /// </example>
     public unsafe struct TimedScope : IDisposable
     {
         static readonly ThreadLocal<Stopwatch> s_StopWatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());
