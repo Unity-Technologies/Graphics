@@ -110,7 +110,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     loadAction = RenderBufferLoadAction.Load;
 #endif
 
-                RenderingUtils.FinalBlit(cmd, cameraData, m_Source, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, m_Source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
+                bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    isRenderToBackBufferTarget = true;
+#endif
+
+                RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, m_Source, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, m_Source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
 
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
