@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderFoundry
                 {
                     enumName = param.Name;
                     if (!int.TryParse(param.Value, out enumValue))
-                        throw new Exception($"Param {param.Name} value {param.Value} is not a valid integer.");
+                        ErrorHandling.ReportError($"Param {param.Name} value {param.Value} is not a valid integer.");
                 }
                 else
                     enumName = param.Value;

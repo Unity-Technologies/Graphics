@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderFoundry
                 else
                 {
                     if (signatureDescription.UnknownParameterCallback == null)
-                        throw new Exception($"Unknown parameter {attributeParam.Name} at position {index}.");
+                        ErrorHandling.ReportError($"Unknown parameter {attributeParam.Name} at position {index}.");
                     signatureDescription.UnknownParameterCallback(attributeParam, index);
                 }
 
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderFoundry
         public static void BoolParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref bool result)
         {
             if (!bool.TryParse(attributeParam.Value, out bool value))
-                throw new Exception($"Parameter {attributeParam.Name} at position {parameterIndex} must be an boolean.");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an boolean.");
             result = value;
 
         }
@@ -64,23 +64,23 @@ namespace UnityEditor.ShaderFoundry
         public static void IntParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
-                throw new Exception($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
             result = value;
         }
 
         public static void IntRangeParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, int rangeMin, int rangeMax, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
-                throw new Exception($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
             if (value < rangeMin || rangeMax < value)
-                throw new Exception($"Parameter {attributeParam.Name} at position {parameterIndex} must be in the range of [{rangeMin}, {rangeMax}].");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be in the range of [{rangeMin}, {rangeMax}].");
             result = value;
         }
 
         public static void EnumParseCallback<EnumType>(ShaderAttributeParam attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
         {
             if (!Enum.TryParse(attributeParam.Value, out EnumType value))
-                throw new Exception($"Parameter {attributeParam.Name} at index {parameterIndex} with value {attributeParam.Value} must be a valid {typeof(EnumType).Name} enum value.");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at index {parameterIndex} with value {attributeParam.Value} must be a valid {typeof(EnumType).Name} enum value.");
             result = value;
         }
     }

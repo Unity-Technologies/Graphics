@@ -3,7 +3,14 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal enum UniformDataSource { Global, PerMaterial, PerInstance, Custom, None = -1 }
+    internal enum UniformDataSource
+    {
+        Global,
+        PerMaterial,
+        PerInstance,
+        Custom,
+        None = -1
+    }
 
     internal class PropertyAttribute
     {
@@ -35,33 +42,21 @@ namespace UnityEditor.ShaderFoundry
             if (!attribute.IsValid || attribute.Name != AttributeName)
                 return null;
 
-            var result = new PropertyAttribute();
-            foreach (var param in attribute.Parameters)
-            {
-                if (param.Name == UniformNameParamName)
-                    result.UniformName = param.Value;
-                else if (param.Name == DisplayNameParamName)
-                    result.DisplayName = param.Value;
-                else if (param.Name == DefaultValueParamName)
-                    result.DefaultValue = param.Value;
-                else if (param.Name == DataSourceParamName)
-                    result.DataSource = ParseDataSource(param.Value);
-                else if (param.Name == CustomBufferParamName)
-                    result.CustomBufferName = param.Value;
-                else if (param.Name == ExposedParamName)
-                {
-                    if (bool.TryParse(param.Value, out var exposed))
-                        result.Exposed = exposed;
-                }
-            }
-            return result;
-        }
 
-        static UniformDataSource ParseDataSource(string dataSource)
-        {
-            UniformDataSource result;
-            if (!Enum.TryParse(dataSource, out result))
-                result = UniformDataSource.PerMaterial;
+            var result = new PropertyAttribute();
+
+            var signature = new AttributeParsing.SignatureDescription();
+            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
+            {
+                new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
+                new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
+                new AttributeParsing.ParameterDescription(DefaultValueParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DefaultValue)),
+                new AttributeParsing.ParameterDescription(DataSourceParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.DataSource) ),
+                new AttributeParsing.ParameterDescription(CustomBufferParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.CustomBufferName)),
+                new AttributeParsing.ParameterDescription(ExposedParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.Exposed)),
+            };
+            AttributeParsing.Parse(attribute, signature);
+
             return result;
         }
     }

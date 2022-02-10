@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderFoundry
             signature.UnknownParameterCallback = (param, index) =>
             {
                 if (index != 0)
-                    throw new Exception($"Attribtute {AttributeName} only allows one argument.");
+                    ErrorHandling.ReportError($"Attribtute {AttributeName} only allows one argument.");
                 AttributeParsing.IntRangeParseCallback(param, index, 0, MaxLayerCount - 1, ref result.LayerCount);
             };
             AttributeParsing.Parse(attribute, signature);
