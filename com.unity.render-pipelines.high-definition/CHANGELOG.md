@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
 
 ## [12.1.5] - 2022-01-14
 

@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDLightRenderEntity lightRenderEntity = lightEntities.lightEntities[lightIdx];
                 HDAdditionalLightData hdLight = lightEntities.hdAdditionalLightData[lightIdx];
-                if (hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
+                if (hdLight != null && hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
                 {
                     // Check if there is a ray traced shadow in the scene
                     m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
@@ -424,7 +424,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
                 // Add it to the list if enabled
                 // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
-                if (reflectionProbe.enabled
+                if (reflectionProbe != null
+                    && reflectionProbe.enabled
                     && reflectionProbe.ReflectionProbeIsEnabled()
                     && reflectionProbe.gameObject.activeSelf
                     && reflectionProbe.HasValidRenderedData())
