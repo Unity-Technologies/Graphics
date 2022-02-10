@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
 
-        static class RenderPassBlock
+        internal static class RenderPassBlock
         {
             // Executes render passes that are inputs to the main rendering
             // but don't depend on camera state. They all render in monoscopic mode. f.ex, shadow maps.
@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="cmd">Use this command buffer to record commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        public virtual void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        protected virtual void RecordRenderGraphBlock(int renderPassBlock, RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
 
@@ -710,6 +710,48 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd"></param>
         public virtual void FinishRendering(CommandBuffer cmd)
         {
+        }
+
+        static public TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera)
+        {
+            bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+
+            //Texture description
+            TextureDesc colorRTDesc = new TextureDesc(camera.pixelWidth, camera.pixelHeight);
+            colorRTDesc.colorFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, colorRT_sRGB);
+            colorRTDesc.depthBufferBits = DepthBits.Depth24;
+            colorRTDesc.msaaSamples = MSAASamples.None;
+            colorRTDesc.enableRandomWrite = false;
+            colorRTDesc.clearBuffer = true;
+            colorRTDesc.clearColor = Color.black;
+            colorRTDesc.name = "Depth";
+
+            return graph.CreateTexture(colorRTDesc);
+        }
+
+        public struct ScriptableRendererFrameResources
+        {
+            public TextureHandle backBuffer;
+            public TextureHandle depth;
+        };
+
+        public ScriptableRendererFrameResources frameResources;
+
+        public void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            Camera camera = renderingData.cameraData.camera;
+
+            // create frame resources
+            frameResources.backBuffer = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+            frameResources.depth = CreateDepthTexture(renderGraph, camera);
+
+            RecordRenderGraphBlock(RenderPassBlock.BeforeRendering, renderGraph, context, cmd, ref renderingData);
+
+            context.SetupCameraProperties(camera);
+
+            RecordRenderGraphBlock(RenderPassBlock.MainRenderingOpaque, renderGraph, context, cmd, ref renderingData);
+            RecordRenderGraphBlock(RenderPassBlock.MainRenderingTransparent, renderGraph, context, cmd, ref renderingData);
+            RecordRenderGraphBlock(RenderPassBlock.AfterRendering, renderGraph, context, cmd, ref renderingData);
         }
 
         /// <summary>

@@ -7,21 +7,28 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
-        public override void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        protected override void RecordRenderGraphBlock(int renderPassBlock, RenderGraph renderGraph, ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
-            base.RecordRenderGraph(renderGraph, context, cmd, ref renderingData);
             Camera camera = renderingData.cameraData.camera;
 
-            context.SetupCameraProperties(camera);
+            if (renderPassBlock == RenderPassBlock.BeforeRendering)
+            {
 
-            TextureHandle backBuffer = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            TextureHandle depth = RenderGraphSkyboxTestPass.CreateDepthTexture(renderGraph, camera);
+            }
+            else if (renderPassBlock == RenderPassBlock.MainRenderingOpaque)
+            {
+                m_RenderOpaqueForwardPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth, ref renderingData);
 
+                RenderGraphSkyboxTestPass.PassData testPassData = RenderGraphSkyboxTestPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth);
+            }
+            else if (renderPassBlock == RenderPassBlock.MainRenderingTransparent)
+            {
 
+            }
+            else if (renderPassBlock == RenderPassBlock.AfterRendering)
+            {
 
-            m_RenderOpaqueForwardPass.Render(camera, renderGraph, backBuffer, depth, ref renderingData);
-
-            RenderGraphSkyboxTestPass.PassData testPassData = RenderGraphSkyboxTestPass.Render(camera, renderGraph, backBuffer, depth);
+            }
         }
     }
 
@@ -48,23 +55,6 @@ namespace UnityEngine.Rendering.Universal
             colorRTDesc.clearBuffer = true;
             colorRTDesc.clearColor = Color.black;
             colorRTDesc.name = name;
-
-            return graph.CreateTexture(colorRTDesc);
-        }
-
-        static public TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera)
-        {
-            bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-
-            //Texture description
-            TextureDesc colorRTDesc = new TextureDesc(camera.pixelWidth, camera.pixelHeight);
-            colorRTDesc.colorFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, colorRT_sRGB);
-            colorRTDesc.depthBufferBits = DepthBits.Depth24;
-            colorRTDesc.msaaSamples = MSAASamples.None;
-            colorRTDesc.enableRandomWrite = false;
-            colorRTDesc.clearBuffer = true;
-            colorRTDesc.clearColor = Color.black;
-            colorRTDesc.name = "Depth";
 
             return graph.CreateTexture(colorRTDesc);
         }

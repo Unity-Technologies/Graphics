@@ -259,23 +259,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public Camera m_Camera;
         }
 
-        static private TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera)
-        {
-            bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-
-            //Texture description
-            TextureDesc colorRTDesc = new TextureDesc(camera.pixelWidth, camera.pixelHeight);
-            colorRTDesc.colorFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, colorRT_sRGB);
-            colorRTDesc.depthBufferBits = DepthBits.Depth24;
-            colorRTDesc.msaaSamples = MSAASamples.None;
-            colorRTDesc.enableRandomWrite = false;
-            colorRTDesc.clearBuffer = true;
-            colorRTDesc.clearColor = Color.black;
-            colorRTDesc.name = "Depth";
-
-            return graph.CreateTexture(colorRTDesc);
-        }
-
         public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer, TextureHandle depth, ref RenderingData renderingData)
         {
             using (var builder = graph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
