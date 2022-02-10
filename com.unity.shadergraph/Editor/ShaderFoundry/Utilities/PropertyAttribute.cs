@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderFoundry
                 new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
                 new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
                 new AttributeParsing.ParameterDescription(DefaultValueParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DefaultValue)),
-                new AttributeParsing.ParameterDescription(DataSourceParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.DataSource) ),
+                new AttributeParsing.ParameterDescription(DataSourceParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.DataSource)),
                 new AttributeParsing.ParameterDescription(CustomBufferParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.CustomBufferName)),
                 new AttributeParsing.ParameterDescription(ExposedParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.Exposed)),
             };

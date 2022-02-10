@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderFoundry
                 new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
                 new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
                 new AttributeParsing.ParameterDescription(TextureNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.TextureName)),
-                new AttributeParsing.ParameterDescription(TextureTypeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.TextureType) ),
+                new AttributeParsing.ParameterDescription(TextureTypeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.TextureType)),
             };
             AttributeParsing.Parse(attribute, signature);
 

@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderFoundry
             signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
                 new AttributeParsing.ParameterDescription(KeywordNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.KeywordName)),
-                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode) ),
+                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode)),
                 new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
                 new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),
             };
@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderFoundry
             var signature = new AttributeParsing.SignatureDescription();
             signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
             {
-                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode) ),
+                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode)),
                 new AttributeParsing.ParameterDescription(AllowsNoneParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.AllowsNone)),
                 new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
                 new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),

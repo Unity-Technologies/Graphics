@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var block = propBuilder.Build(container);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetTexture(propBuilder.PropertyAttribute.UniformName, inputTexture); };
-            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate, errorThreshold : 1);
+            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate, errorThreshold: 1);
 
             UnityEngine.Object.DestroyImmediate(inputTexture);
 

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderFoundry
             public string ParamName;
             public ParseDelegate ParseCallback;
 
-            public ParameterDescription() { }
+            public ParameterDescription() {}
             public ParameterDescription(string paramName, ParseDelegate parseCallback)
             {
                 ParamName = paramName;
@@ -58,7 +58,6 @@ namespace UnityEditor.ShaderFoundry
             if (!bool.TryParse(attributeParam.Value, out bool value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an boolean.");
             result = value;
-
         }
 
         public static void IntParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
