@@ -850,13 +850,12 @@ Shader ""Hidden/GraphErrorShader2""
                 portPropertyIndices[portIndex] = new List<int>();
             }
 
-            foreach (var property in graph.properties)
+            // Fetch properties from the categories to keep the same order as in the shader graph blackboard
+            foreach (var property in graph.categories
+                .SelectMany(x => x.Children)
+                .OfType<AbstractShaderProperty>()
+                .Where(x => x.isExposed))
             {
-                if (!property.isExposed)
-                {
-                    continue;
-                }
-
                 var propertyIndex = inputProperties.Count;
                 var codeIndex = codeSnippets.Count;
 
@@ -873,10 +872,9 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 
                 propertiesStages.Add(stageCapability);
+                inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentStringForVFX(property.concretePrecision.ToShaderString())}");
             }
-
-            inputProperties.AddRange(graph.categories.SelectMany(x => x.Children).OfType<AbstractShaderProperty>().Where(x => x.isExposed));
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
