@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile_local_fragment _ SCREEN_COORD_OVERRIDE
+        #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ FXAA
         #pragma multi_compile_local_fragment _ GRAIN
         #pragma multi_compile_local_fragment _ DITHER
