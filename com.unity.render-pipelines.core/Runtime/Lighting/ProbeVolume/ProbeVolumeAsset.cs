@@ -98,11 +98,14 @@ namespace UnityEngine.Experimental.Rendering
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
             var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
-            var offsetByteStart = AlignUp16(positionsByteCount);
+            var touchupInteractionStart = AlignUp16(positionsByteCount);
+            var touchupInteractionByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var offsetByteStart = AlignUp16(positionsByteCount) + AlignUp16(touchupInteractionByteCount);
             var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
             if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
                 return false;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(0, positionsByteCount).Reinterpret<Vector3>(1) : default;
+            var touchupInteractionData = hasSupportData ? cellSupportData.GetSubArray(touchupInteractionStart, touchupInteractionByteCount).Reinterpret<float>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
 
             var startCounts = new CellCounts();
@@ -118,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     cell.probePositions = positionsData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
+                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.probesCount, counts.probesCount);
                 }
 
                 startCounts.Add(counts);
