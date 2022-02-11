@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         RGB,
         Linear,
         HSV,
-        ProjectColorspace
+        Project
     }
 
     [Serializable]
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
                 BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ColorspaceConversion_Linear_ProjectColorspace(
+        static string Unity_ColorspaceConversion_Linear_Project(
             [Slot(0, Binding.None)] Vector3 In,
             [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        static string Unity_ColorspaceConversion_ProjectColorspace_Linear(
+        static string Unity_ColorspaceConversion_Project_Linear(
          [Slot(0, Binding.None)] Vector3 In,
          [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        static string Unity_ColorspaceConversion_RGB_ProjectColorspace(
+        static string Unity_ColorspaceConversion_RGB_Project(
     [Slot(0, Binding.None)] Vector3 In,
     [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        static string Unity_ColorspaceConversion_ProjectColorspace_RGB(
+        static string Unity_ColorspaceConversion_Project_RGB(
     [Slot(0, Binding.None)] Vector3 In,
     [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        static string Unity_ColorspaceConversion_HSV_ProjectColorspace(
+        static string Unity_ColorspaceConversion_HSV_Project(
     [Slot(0, Binding.None)] Vector3 In,
     [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        static string Unity_ColorspaceConversion_ProjectColorspace_HSV(
+        static string Unity_ColorspaceConversion_Project_HSV(
     [Slot(0, Binding.None)] Vector3 In,
     [Slot(1, Binding.None)] out Vector3 Out)
         {
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph
 }
         ";
         }
-        static string Unity_ColorspaceConversion_ProjectColorspace_ProjectColorspace(
+        static string Unity_ColorspaceConversion_Project_Project(
     [Slot(0, Binding.None)] Vector3 In,
     [Slot(1, Binding.None)] out Vector3 Out)
         {

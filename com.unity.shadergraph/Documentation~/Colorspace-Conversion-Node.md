@@ -15,8 +15,8 @@ Returns the result of converting the value of input **In** from one colorspace s
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| From      | Dropdown | RGB, Linear, HSV, ProjectColorspace | Selects the colorspace to convert from |
-| To      | Dropdown | RGB, Linear, HSV, ProjectColorspace | Selects the colorspace to convert to |
+| From      | Dropdown | RGB, Linear, HSV, Project | Selects the colorspace to convert from |
+| To      | Dropdown | RGB, Linear, HSV, Project | Selects the colorspace to convert to |
 
 ## Generated Code Example
 
@@ -127,10 +127,10 @@ void Unity_ColorspaceConversion_HSV_HSV_float(float3 In, out float3 Out)
 }
 ```
 
-**Linear > ProjectColorspace**
+**Linear > Project**
 
 ```
-void Unity_ColorspaceConversion_Linear_ProjectColorspace(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Linear_Project(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         float3 sRGBLo = In * 12.92;
@@ -142,10 +142,10 @@ void Unity_ColorspaceConversion_Linear_ProjectColorspace(float3 In, out float3 O
 }
 ```
 
-**ProjectColorspace > Linear**
+**Project > Linear**
 
 ```
-void Unity_ColorspaceConversion_ProjectColorspace_Linear(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Project_Linear(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         float3 linearRGBLo = In / 12.92;
@@ -158,10 +158,10 @@ void Unity_ColorspaceConversion_ProjectColorspace_Linear(float3 In, out float3 O
 
 ```
 
-**RGB > ProjectColorspace**
+**RGB > Project**
 
 ```
-void Unity_ColorspaceConversion_RGB_ProjectColorspace(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_RGB_Project(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         Out = In;
@@ -174,10 +174,10 @@ void Unity_ColorspaceConversion_RGB_ProjectColorspace(float3 In, out float3 Out)
 
 ```
 
-**ProjectColorspace > RGB**
+**Project > RGB**
 
 ```
-void Unity_ColorspaceConversion_ProjectColorspace_RGB(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Project_RGB(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         Out = In;
@@ -190,10 +190,10 @@ void Unity_ColorspaceConversion_ProjectColorspace_RGB(float3 In, out float3 Out)
 
 ```
 
-**HSV > ProjectColorspace**
+**HSV > Project**
 
 ```
-void Unity_ColorspaceConversion_HSV_ProjectColorspace(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_HSV_Project(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -211,10 +211,10 @@ void Unity_ColorspaceConversion_HSV_ProjectColorspace(float3 In, out float3 Out)
 
 ```
 
-**ProjectColorspace > HSV**
+**Project > HSV**
 
 ```
-void Unity_ColorspaceConversion_ProjectColorspace_HSV(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Project_HSV(float3 In, out float3 Out)
 {
     if (IsGammaSpace()){
         float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -240,10 +240,10 @@ void Unity_ColorspaceConversion_ProjectColorspace_HSV(float3 In, out float3 Out)
 ```
 
 
-**ProjectColorspace > ProjectColorspace**
+**Project > Project**
 
 ```
-void Unity_ColorspaceConversion_ProjectColorspace_ProjectColorspace(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Project_Project(float3 In, out float3 Out)
 {
     Out = In;
 

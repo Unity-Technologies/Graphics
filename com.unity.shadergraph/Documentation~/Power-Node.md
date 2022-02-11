@@ -10,15 +10,15 @@ Note: If the input **A** is negative, the output might be inconsistent or NaN.
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| A      | Input | Dynamic Vector | First input value |
-| B      | Input      |   Dynamic Vector | Second input value |
+| Base      | Input | Dynamic Vector | First input value |
+| Exp      | Input      |   Dynamic Vector | Second input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
 ## Controls
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Absolute A      | Toggle | True, false | If true the input A will be A's absolute value. |
+| Unsign Base  | Toggle | True, false | If true the input A will be A's absolute value. |
 
 ## Generated Code Example
 
@@ -27,13 +27,13 @@ The following example code represents one possible outcome of this node.
 ```
 void Unity_Power_float4(float4 A, float4 B, out float4 Out)
 {
-    Out = pow(A, B);
+    Out = pow(Base, Exp);
 }
 ```
 
 ```
 void Unity_Power_float4(float4 A, float4 B, out float4 Out)
 {
-    Out = pow(abs(A), B);
+    Out = pow(abs(Base), Exp);
 }
 ```

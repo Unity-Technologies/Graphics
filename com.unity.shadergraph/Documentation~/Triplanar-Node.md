@@ -1,4 +1,4 @@
-# Triplanar Node
+# Sample Triplanar Node
 
 ## Description
 

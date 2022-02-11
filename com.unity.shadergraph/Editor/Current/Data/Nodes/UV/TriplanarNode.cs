@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV", "Triplanar")]
+    [Title("UV", "Sample Triplanar")]
     class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
         public const int OutputSlotXYZId = 0;
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
 
         public TriplanarNode()
         {
-            name = "Triplanar";
+            name = "Sample Triplanar";
             synonyms = new string[] { "project" };
             m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();

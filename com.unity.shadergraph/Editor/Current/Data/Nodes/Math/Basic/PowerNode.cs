@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph
             name = "Power";
         }
         [SerializeField]
-        bool m_AbsA = true;
+        bool m_AbsA = false;
 
-        [ToggleControl("Absolute A")]
+        [ToggleControl("Unsign Base")]
         public ToggleData absA
         {
             get { return new ToggleData(m_AbsA); }
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         protected override MethodInfo GetFunctionToConvert()
         {
             MethodInfo powerFunction;
-            if (m_AbsA)
+            if (!m_AbsA)
             {
                 powerFunction = GetType().GetMethod("Unity_Power_Absolute", BindingFlags.Static | BindingFlags.NonPublic);
             }
@@ -42,31 +42,30 @@ namespace UnityEditor.ShaderGraph
 
             }
             return powerFunction;
-            //return GetType().GetMethod("Unity_Power_Absolute", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Power(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector Base,
+            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector Exp,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
-    Out = pow(A, B);
+    Out = pow(Base, Exp);
 }
 ";
         }
 
         static string Unity_Power_Absolute(
-    [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-    [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
+    [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector Base,
+    [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector Exp,
     [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
-    Out = pow(abs(A), B);
+    Out = pow(abs(Base), Exp);
 }
 ";
         }
