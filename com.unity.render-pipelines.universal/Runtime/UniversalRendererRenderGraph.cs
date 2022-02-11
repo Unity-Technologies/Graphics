@@ -19,6 +19,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_RenderOpaqueForwardPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth, ref renderingData);
 
+                // TODO: injected passes should go in between passes here? i.e.:
+                //RunCustomPasses(RenderPassEvent.AfterRenderingOpaques)
+
                 RenderGraphSkyboxTestPass.PassData testPassData = RenderGraphSkyboxTestPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth);
             }
             else if (renderPassBlock == RenderPassBlock.MainRenderingTransparent)

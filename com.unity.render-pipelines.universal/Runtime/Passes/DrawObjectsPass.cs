@@ -276,11 +276,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 passData.m_Camera = camera;
 
+                // TODO: the rendering functions should be static to fix the lambda capture warnings
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     //context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 0,0);
-                    OnCameraSetup(context.cmd, ref passData.renderingData);
-                    ExecuteRG(context.renderContext, context.cmd, ref passData.renderingData);
+                    OnCameraSetup(context.cmd, ref data.renderingData);
+                    ExecuteRG(context.renderContext, context.cmd, ref data.renderingData);
                 });
 
                 return passData;
