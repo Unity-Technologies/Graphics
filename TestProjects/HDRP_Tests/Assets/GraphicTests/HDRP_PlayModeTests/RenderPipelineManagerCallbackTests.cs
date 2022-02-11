@@ -32,54 +32,55 @@ public class RenderPipelineManagerCallbackTests
 
     void CountEndCameraRender(ScriptableRenderContext context, Camera camera) => end++;
 
-    public bool CheckResult(int expectedValue)
+    public void CheckResult(int expectedValue)
     {
         RenderPipelineManager.beginCameraRendering -= CountBeginCameraRender;
         RenderPipelineManager.endCameraRendering -= CountEndCameraRender;
 
-        return begin == end && begin == expectedValue;
+        Assert.IsTrue(begin == end && begin == expectedValue);
     }
 
     [Test]
-    public bool BeginAndEndCameraRenderingCallbackMatch_Camera()
+    public void BeginAndEndCameraRenderingCallbackMatch_Camera()
     {
         var camera = SetupTest();
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
-        return CheckResult(k_RenderCount);
+        CheckResult(k_RenderCount);
     }
 
     [Test]
-    public bool BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
+    public void BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
     {
         var camera = SetupTest();
         camera.targetTexture = new RenderTexture(1, 1, 32, RenderTextureFormat.ARGB32);
         camera.targetTexture.Create();
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
-        return CheckResult(k_RenderCount);
+        CheckResult(k_RenderCount);
     }
 
     [Test]
-    public bool BeginAndEndCameraRenderingCallbackMatch_CustomRender()
+    public void BeginAndEndCameraRenderingCallbackMatch_CustomRender()
     {
         var camera = SetupTest();
         var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.customRender += (_, _) => { };
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
-        return CheckResult(k_RenderCount);
+        CheckResult(k_RenderCount);
     }
 
     [Test]
-    public bool BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
+    public void BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
     {
         var camera = SetupTest();
         var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.fullscreenPassthrough = true;
+        additionalData.customRender += (_, _) => {};
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
         // Fullscreen passthrough don't trigger begin/end camera rendering
-        return CheckResult(0);
+        CheckResult(0);
     }
 }
