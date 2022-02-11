@@ -2153,24 +2153,21 @@ namespace UnityEditor.VFX.UI
             var inspectorObject = inspector.GetInspectedObject();
             if (inspectorObject == null || inspectorObject is VFXObject)
             {
+                var assetToSelect = controller != null && controller.model != null
+                    ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
+                    : null;
+                var assetToSelectPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(assetToSelect)).Replace('\\', '/');
+
                 // This is to select the current VFX asset in the inspector.
                 // But, we temporary lock the project window during the selection so that the project browser don't change directory
                 var projectBrowser = EditorWindow.HasOpenInstances<ProjectBrowser>() ? EditorWindow.GetWindow<ProjectBrowser>() : null;
-                var wasLocked = false;
-                if (projectBrowser != null)
+                if (projectBrowser != null && !projectBrowser.isLocked && assetToSelectPath != projectBrowser.GetActiveFolderPath())
                 {
-                    wasLocked = projectBrowser.isLocked;
                     projectBrowser.isLocked = true;
-                }
-
-                Selection.activeObject = controller != null && controller.model != null
-                    ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
-                    : null;
-
-                if (projectBrowser != null && !wasLocked)
-                {
                     EditorApplication.delayCall += () => UnlockProjectBrowser(inspector, projectBrowser, 4);
                 }
+
+                Selection.activeObject = assetToSelect;
             }
         }
 
