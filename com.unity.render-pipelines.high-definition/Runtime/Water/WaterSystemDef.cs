@@ -14,11 +14,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
         public uint lightLayers;
-        public float padding0;
+        public int cameraUnderWater;
 
         // Refraction data Data
         public Vector3 transparencyColor;
         public float outScatteringCoefficient;
+
+        // Scattering color
+        public Vector3 scatteringColor;
+        public float padding0;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -120,8 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _WaterLODCount;
         // Number of water patches that need to be rendered
         public uint _NumWaterPatches;
-        // Earth radius
-        public float _EarthRadius;
+        // Padding
+        public float _PaddingWR0;
         // Intensity of the water caustics
         public float _CausticsIntensity;
 
@@ -139,8 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _CausticsOffset;
         // Tiling factor of the caustics
         public float _CausticsTiling;
-        // Vertical shift on when the caustics start
-        public float _CausticsPlaneOffset;
+        public float _PaddingWR1;
 
         // Blend distance
         public float _CausticsPlaneBlendDistance;
@@ -153,11 +156,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Max tessellation factor
         public float _WaterMaxTessellationFactor;
-        // Distance at which the fade of the tesselation starts
+        // Distance at which the fade of the tessellation starts
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
+        // Flag that defines if the camera is in the underwater volume of this surface
+        public int _CameraInUnderwaterRegion;
+    }
+
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesUnderWater
+    {
+        // Refraction color of the water surface
+        public Vector4 _WaterRefractionColor;
+        // Scattering color of the water surface
+        public Vector4 _WaterScatteringColor;
+
+        // Multiplier of the view distance when under water
+        public float _MaxViewDistanceMultiplier;
+        // Scattering coefficent for the absorption
+        public float _OutScatteringCoeff;
+        // Vertical transition size of the water
+        public float _WaterTransitionSize;
         // Padding
-        public int _PaddingWR1;
+        public float _PaddingUW;
     }
 }

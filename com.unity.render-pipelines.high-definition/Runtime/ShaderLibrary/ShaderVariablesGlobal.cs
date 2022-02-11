@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int RenderingDecalLayersMask = 0x0000FF00;
         public const int RenderingDecalLayersMaskShift = 8;
         public const int DefaultRenderingLayerMask = 0x0101;
+        public const int DefaultDecalLayers = RenderingDecalLayersMask >> RenderingDecalLayersMaskShift;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
