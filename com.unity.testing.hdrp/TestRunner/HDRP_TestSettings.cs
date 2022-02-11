@@ -49,6 +49,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
             // Render pipeline is only reconstructed when a frame is renderer
             // If scene requires lightmap baking, we have to force it
+            // Currently Camera.Render() fails on mac so we filter out the test. But since setup setpu is run regardless of the filter we add this explicit check
             if (forceCameraRenderDuringSetup && !Application.isPlaying && Application.platform != RuntimePlatform.OSXEditor)
                 Camera.main.Render();
         }
