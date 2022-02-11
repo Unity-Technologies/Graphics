@@ -750,8 +750,21 @@ namespace UnityEngine.Experimental.Rendering
                 if (GUILayout.Button("Generate Lighting", "DropDownButton", GUILayout.ExpandWidth(true)))
                 {
                     var menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Bake the set"), false, () => BakeLightingForSet(GetCurrentBakingSet()));
-                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () => Lightmapping.BakeAsync());
+                    menu.AddItem(new GUIContent("Bake the set"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        BakeLightingForSet(GetCurrentBakingSet());
+                    });
+                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        Lightmapping.BakeAsync();
+                    });
+                    menu.AddItem(new GUIContent("Bake active scene"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = true;
+                        Lightmapping.BakeAsync();
+                    });
                     menu.ShowAsContext();
                 }
             }
