@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.LightingDebugMode,
                 autoEnum = typeof(DebugLightingMode),
                 getter = () => (int)data.lightingDebugMode,
-                setter = (value) => { },
+                setter = (value) => data.lightingDebugMode = (DebugLightingMode)value,
                 getIndex = () => (int)data.lightingDebugMode,
                 setIndex = (value) => data.lightingDebugMode = (DebugLightingMode)value
             };

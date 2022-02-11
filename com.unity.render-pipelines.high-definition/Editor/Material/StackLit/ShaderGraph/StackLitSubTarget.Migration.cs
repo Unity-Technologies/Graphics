@@ -44,7 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.distortionDepthTest = stackLitMasterNode.m_DistortionDepthTest;
             builtinData.addPrecomputedVelocity = stackLitMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = stackLitMasterNode.m_depthOffset;
-            builtinData.alphaToMask = stackLitMasterNode.m_AlphaToMask;
 
             lightingData.normalDropOffSpace = stackLitMasterNode.m_NormalDropOffSpace;
             lightingData.blendPreserveSpecular = stackLitMasterNode.m_BlendPreserveSpecular;

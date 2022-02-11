@@ -20,6 +20,8 @@ struct PathIntersection
     uint2 pixelCoord;
     // Max roughness encountered along the path
     float maxRoughness;
+
+    float2 motionVector;
 };
 
 int GetCurrentDepth(PathIntersection pathIntersection)

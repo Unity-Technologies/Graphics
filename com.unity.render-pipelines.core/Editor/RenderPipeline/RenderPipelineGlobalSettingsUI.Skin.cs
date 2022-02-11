@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static partial class RenderPipelineGlobalSettingsUI
     {
+        /// <summary>A collection of GUIContent for use in the inspector</summary>
         public static class Styles
         {
             /// <summary>

@@ -39,6 +39,7 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer.parent != null)
                 {
                     m_EditContainer.RemoveFromHierarchy();
+                    style.minWidth = 0;
                 }
                 else
                 {
@@ -212,20 +213,22 @@ namespace UnityEditor.VFX.UI
 
                 ApplyWidths(labelWidth, controlWidth);
 
-                // Do not let the UI reduce in width so that collapse button does not move
-                var newMinWidth = resolvedStyle.width;
-                if (resolvedStyle.minWidth.value < newMinWidth)
+                // To prevent width to change between expanded and collapsed state
+                // we set the minwidth to actual width before collapse, and reset to zero when expand
+                // so that the expand/collapse button does not move
+                if (!expanded)
                 {
-                    style.minWidth = newMinWidth;
+                    var newMinWidth = resolvedStyle.width;
+                    if (resolvedStyle.minWidth.value < newMinWidth)
+                    {
+                        style.minWidth = newMinWidth;
+                    }
+
+                    return;
                 }
             }
-            else
-            {
-                if (resolvedStyle.minWidth != 0f)
-                {
-                    style.minWidth = 0f;
-                }
-            }
+
+            style.minWidth = 0f;
         }
     }
 }
