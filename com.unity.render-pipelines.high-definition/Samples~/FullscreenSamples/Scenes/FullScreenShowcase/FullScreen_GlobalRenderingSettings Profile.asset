@@ -332,9 +332,9 @@ MonoBehaviour:
   - {fileID: 7219443887150412936}
   - {fileID: -1496246409296299133}
   - {fileID: -1473560568689943415}
-  - {fileID: 5902687475825776220}
+  - {fileID: 3295574249892907707}
   - {fileID: -6592059453201720892}
---- !u!114 &5902687475825776220
+--- !u!114 &3295574249892907707
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -354,7 +354,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   intensity:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   scatter:
     m_OverrideState: 0

@@ -93,22 +93,7 @@ MonoBehaviour:
   receiverMotionRejection:
     m_OverrideState: 0
     m_Value: 1
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Colorblindness_VolumeProfile
-  m_EditorClassIdentifier: 
-  components:
-  - {fileID: 1169440504870053474}
-  - {fileID: -2955618793792610457}
---- !u!114 &1169440504870053474
+--- !u!114 &-2204551636162740421
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -126,4 +111,19 @@ MonoBehaviour:
     m_Value: 1
   Type:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Colorblindness_VolumeProfile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: -2955618793792610457}
+  - {fileID: -2204551636162740421}
