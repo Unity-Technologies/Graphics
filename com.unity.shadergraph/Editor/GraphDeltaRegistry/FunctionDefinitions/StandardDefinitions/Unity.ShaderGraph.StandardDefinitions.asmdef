@@ -1,0 +1,16 @@
+{
+    "name": "Unity.ShaderGraph.StandardDefinitions",
+    "references": [
+        "Unity.ShaderGraph.GraphDeltaRegistry"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": []
+}
