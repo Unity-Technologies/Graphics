@@ -43,6 +43,8 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, m_Settings.normalBlend == DecalNormalBlend.Low);

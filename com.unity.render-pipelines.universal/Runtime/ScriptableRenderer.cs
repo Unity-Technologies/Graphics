@@ -868,7 +868,7 @@ namespace UnityEngine.Rendering.Universal
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget, cmd);
+                InternalFinishRendering(context, cameraData.resolveFinalTarget, renderingData);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1654,20 +1654,20 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, CommandBuffer cmd)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
         {
             using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
+                    m_ActiveRenderPassQueue[i].FrameCleanup(renderingData.commandBuffer);
 
                 // Happens when rendering the last camera in the camera stack.
                 if (resolveFinalTarget)
                 {
                     for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(renderingData.commandBuffer);
 
-                    FinishRendering(cmd);
+                    FinishRendering(renderingData.commandBuffer);
 
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
@@ -1677,8 +1677,8 @@ namespace UnityEngine.Rendering.Universal
 
             ResetNativeRenderPassFrameData();
 
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+            context.ExecuteCommandBuffer(renderingData.commandBuffer);
+            renderingData.commandBuffer.Clear();
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

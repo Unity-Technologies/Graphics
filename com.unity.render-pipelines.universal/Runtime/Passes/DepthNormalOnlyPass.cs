@@ -69,8 +69,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            using (new ProfilingScope(renderingData.commandBuffer, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
+            CommandBuffer cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;

@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.Universal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;
-
             using (new ProfilingScope(cmd, m_ProfilingScope))
             {
                 CoreUtils.SetRenderTarget(cmd, m_UpscaleHandle,
