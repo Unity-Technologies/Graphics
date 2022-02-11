@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Infinite;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
+        SerializedProperty m_CPUSimulation;
 
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
@@ -88,7 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Infinite = o.Find(x => x.infinite);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
-
+            m_CPUSimulation = o.Find(x => x.cpuSimulation);
+            
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
             m_HighBandCount = o.Find(x => x.highBandCount);
@@ -158,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_TransitionSize = o.Find(x => x.transitionSize);
             m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
-
+        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("CPU Simulation", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature..");
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
@@ -203,7 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            EditorGUILayout.LabelField("Geometry", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_Infinite);
@@ -215,6 +217,21 @@ namespace UnityEditor.Rendering.HighDefinition
                         if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
                             EditorGUILayout.PropertyField(m_Geometry);
                     }
+                }
+
+                // Display the CPU simulation checkbox, but only make it available if the asset allows it
+                bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
+                using (new EditorGUI.DisabledScope(!cpuSimSupported))
+                {
+                    EditorGUILayout.PropertyField(m_CPUSimulation, k_CPUSimulation);
+                }
+
+                // Redirect to the asset if disabled
+                if (!cpuSimSupported)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'CPU Simulation' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                    EditorGUILayout.Space();
                 }
             }
 

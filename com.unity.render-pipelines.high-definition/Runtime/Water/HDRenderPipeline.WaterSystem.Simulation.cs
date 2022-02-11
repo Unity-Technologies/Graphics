@@ -1,3 +1,5 @@
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -26,17 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Ultra512 = 512
     }
 
-    internal class WaterSimulationResources
+    internal class WaterSimulationResourcesGPU
     {
-        // Overall time that has passed since Unity has been initialized
-        private float m_Time = 0;
-
-        // Current simulation time (used to compute the dispersion of the Phillips spectrum)
-        public float simulationTime = 0;
-
-        // Delta time of the current frame
-        public float deltaTime = 0;
-
         // Texture that holds the Phillips spectrum
         public RTHandle phillipsSpectrumBuffer = null;
 
@@ -48,6 +41,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Texture that holds the caustics
         public RTHandle causticsBuffer = null;
+    }
+
+    internal class WaterSimulationResourcesCPU
+    {
+        // Texture that holds the Phillips spectrum
+        public NativeArray<float2> h0BufferCPU;
+
+        // Texture that holds the displacement buffers
+        public NativeArray<float4> displacementBufferCPU;
+    }
+
+    internal class WaterSimulationResources
+    {
+        // Overall time that has passed since Unity has been initialized
+        private float m_Time = 0;
+
+        // Current simulation time (used to compute the dispersion of the Phillips spectrum)
+        public float simulationTime = 0;
+
+        // Delta time of the current frame
+        public float deltaTime = 0;
 
         // Resolution at which the water system is ran
         public int simulationResolution = 0;
@@ -66,6 +80,18 @@ namespace UnityEngine.Rendering.HighDefinition
         // Value that defines the wind speed that is applied to each patch (up to 4)
         public Vector4 patchWindSpeed = Vector4.zero;
 
+        // Wave amplitude multiplier
+        public Vector4 waveAmplitude = Vector4.zero;
+
+        // Maximum wave height of the simulation
+        public float maxWaveHeight = 0.0f;
+
+        // The set of GPU Buffers used to run the simulation
+        public WaterSimulationResourcesGPU gpuBuffers = null;
+
+        // The set of CPU Buffers used to run the simulation
+        public WaterSimulationResourcesCPU cpuBuffers = null;
+
         // Function that allocates the resources and keep track of the resolution and number of bands
         public void AllocateSmmulationResources(int simulationRes, int nbBands)
         {
@@ -75,9 +101,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Time = Time.realtimeSinceStartup;
 
             // Allocate the buffers
-            phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+            gpuBuffers = new WaterSimulationResourcesGPU();
+            gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
+            gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
+            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+
+            // Allocate the CPU buffers
+            cpuBuffers = new WaterSimulationResourcesCPU();
+            cpuBuffers.h0BufferCPU = new NativeArray<float2>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
+            cpuBuffers.displacementBufferCPU = new NativeArray<float4>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
         }
 
         // Function that validates the resources (size and if allocated)
@@ -91,9 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that makes sure that all the textures are allocated
         public bool AllocatedTextures()
         {
-            return (phillipsSpectrumBuffer != null)
-                && (displacementBuffer != null)
-                && (additionalDataBuffer != null);
+            return (gpuBuffers != null);
         }
 
         public void CheckCausticsResources(bool used, int causticsResolution)
@@ -101,22 +131,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (used)
             {
                 bool needsAllocation = true;
-                if (causticsBuffer != null)
+                if (gpuBuffers.causticsBuffer != null)
                 {
-                    needsAllocation = causticsBuffer.rt.width != causticsResolution;
+                    needsAllocation = gpuBuffers.causticsBuffer.rt.width != causticsResolution;
                     if (needsAllocation)
-                        RTHandles.Release(causticsBuffer);
+                        RTHandles.Release(gpuBuffers.causticsBuffer);
                 }
 
                 if (needsAllocation)
-                    causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+                    gpuBuffers.causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
             }
             else
             {
-                if (causticsBuffer != null)
+                if (gpuBuffers.causticsBuffer != null)
                 {
-                    RTHandles.Release(causticsBuffer);
-                    causticsBuffer = null;
+                    RTHandles.Release(gpuBuffers.causticsBuffer);
+                    gpuBuffers.causticsBuffer = null;
                 }
             }
         }
@@ -133,18 +163,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleaseSimulationResources()
         {
             // Release the textures
-            RTHandles.Release(additionalDataBuffer);
-            additionalDataBuffer = null;
-            RTHandles.Release(displacementBuffer);
-            displacementBuffer = null;
-            RTHandles.Release(phillipsSpectrumBuffer);
-            phillipsSpectrumBuffer = null;
-
-            // Release the caustics resources if allocated
-            if (causticsBuffer != null)
+            if (gpuBuffers != null)
             {
-                RTHandles.Release(causticsBuffer);
-                causticsBuffer = null;
+                RTHandles.Release(gpuBuffers.additionalDataBuffer);
+                RTHandles.Release(gpuBuffers.displacementBuffer);
+                RTHandles.Release(gpuBuffers.phillipsSpectrumBuffer);
+                RTHandles.Release(gpuBuffers.causticsBuffer);
+                gpuBuffers = null;
+            }
+
+            // Get rid of the CPU buffers
+            if (cpuBuffers != null)
+            {
+                cpuBuffers.h0BufferCPU.Dispose();
+                cpuBuffers.displacementBufferCPU.Dispose();
+                cpuBuffers = null;
             }
 
             // Reset the resolution data

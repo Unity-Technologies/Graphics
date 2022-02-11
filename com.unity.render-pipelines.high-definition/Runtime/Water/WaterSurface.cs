@@ -1,5 +1,6 @@
+using Unity.Collections;
+using Unity.Mathematics;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -81,6 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
         public Mesh geometry = null;
+
+        /// <summary>
+        /// When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.
+        /// </summary>
+        [Tooltip("When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.")]
+        public bool cpuSimulation = false;
         #endregion
 
         #region Water Simulation
@@ -416,9 +423,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount)
+        internal bool CheckResources(int bandResolution, int bandCount, bool cpuSim)
         {
+            // By default we shouldn't need an update
             bool needUpdate = false;
+
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
             {
@@ -441,12 +450,47 @@ namespace UnityEngine.Rendering.HighDefinition
                 needUpdate = true;
             }
 
-            // The simulation data are not valid, we need to re-evaluate the spectrum
-            if (needUpdate)
-                UpdateSimulationData();
+            // Re-evaluate the simulation data
+            UpdateSimulationData();
 
+            // Flag that defines if the spectrum needs to regenerated
             return !needUpdate;
         }
+
+        public bool FillWaterSearchData(ref WaterSimSearchData wsd)
+        {
+            // If a displacement buffer is available return it,
+            if (simulation != null && simulation.cpuBuffers != null)
+            {
+                wsd.displacementData = simulation.cpuBuffers.displacementBufferCPU;
+                wsd.waterSurfacePosition = transform.position;
+                wsd.simulationRes = simulation.simulationResolution;
+                wsd.choppiness = choppiness;
+                wsd.amplitude = simulation.waveAmplitude;
+                wsd.patchSizes = simulation.patchSizes;
+                return true;
+            }
+            return false;
+        }
+
+        public bool FindWaterSurfaceHeight(WaterSearchParameters wsp, out WaterSearchResult wsr)
+        {
+            // Invalidate the search result in case the simulation data is not available
+            wsr.error = float.MaxValue;
+            wsr.height = 0;
+            wsr.candidateLocation = float3.zero;
+            wsr.stepCount = wsp.maxIteration;
+
+            // Try to do the 
+            WaterSimSearchData wsd = new WaterSimSearchData();
+            if (FillWaterSearchData(ref wsd))
+            {
+                HDRenderPipeline.FindWaterSurfaceHeight(wsd, wsp, out wsr);
+                return true;
+            }
+            return false;
+        }
+
         private void Start()
         {
             // Add this water surface to the internal surface management
@@ -478,6 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
             simulation.windAffectCurrent = windAffectCurrent;
             simulation.patchSizes = HDRenderPipeline.ComputeBandPatchSizes(waterMaxPatchSize);
             simulation.patchWindSpeed = HDRenderPipeline.ComputeWindSpeeds(simulation.windSpeed, simulation.patchSizes);
+            HDRenderPipeline.ComputeMaximumWaveHeight(amplitude, simulation.patchWindSpeed.x, highBandCount, out simulation.waveAmplitude, out simulation.maxWaveHeight);
         }
 
         void OnDestroy()

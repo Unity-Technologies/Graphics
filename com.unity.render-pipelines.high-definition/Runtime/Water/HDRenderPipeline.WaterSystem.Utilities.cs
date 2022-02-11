@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that loops thought all the current waves and computes the maximal wave height
-        internal void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
+        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
         {
             // Initialize the band data
             float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
@@ -196,26 +196,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 49;
             }
             return 1;
-        }
-
-        uint4 ShiftUInt(uint4 val, int numBits)
-        {
-            return new uint4(val.x >> 16, val.y >> 16, val.z >> 16, val.w >> 16);
-        }
-
-        uint4 WaterHashFunctionUInt4(uint3 coord)
-        {
-            uint4 x = coord.xyzz;
-            x = (ShiftUInt(x, 16) ^ x.yzxy) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxz) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxx) * 0x45d9f3bu;
-            return x;
-        }
-
-        float4 WaterHashFunctionFloat4(uint3 p)
-        {
-            uint4 hashed = WaterHashFunctionUInt4(p);
-            return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
         }
     }
 }

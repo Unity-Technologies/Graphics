@@ -115,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent waterSubTitle = EditorGUIUtility.TrTextContent("Water");
             public static readonly GUIContent supportWaterContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the water surfaces simulation and rendering. This allows you to use decals in your Unity Project.");
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
+            public static readonly GUIContent cpuSimulationContent = EditorGUIUtility.TrTextContent("CPU Simulation", "");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
