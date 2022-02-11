@@ -31,7 +31,7 @@ ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -72,7 +72,7 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
+                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
     artifacts:
         logs:
             paths:
@@ -108,7 +108,7 @@ ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -149,7 +149,7 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
+                utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
     artifacts:
         logs:
             paths:

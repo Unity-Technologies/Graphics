@@ -238,6 +238,12 @@
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
+    #if defined(UNITY_SETUP_INSTANCE_ID)
+        #undef UNITY_SETUP_INSTANCE_ID
+        #define UNITY_SETUP_INSTANCE_ID(input) {\
+            DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
+            SetupDOTSVisibleInstancingData();}
+    #endif
 
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
@@ -368,6 +374,7 @@
         #undef UNITY_MATRIX_I_M
         #undef UNITY_PREV_MATRIX_M
         #undef UNITY_PREV_MATRIX_I_M
+
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
             #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
             #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
@@ -384,6 +391,8 @@
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
+        #undef UNITY_PREV_MATRIX_M
+        #undef UNITY_PREV_MATRIX_I_M
 
         // Use #if instead of preprocessor concatenation to avoid really hard to debug
         // preprocessing issues in some cases.

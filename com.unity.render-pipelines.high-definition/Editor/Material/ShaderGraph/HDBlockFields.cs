@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor Distortion = new BlockFieldDescriptor(SurfaceDescription.name, "Distortion", "SURFACEDESCRIPTION_DISTORTION",
                 new Vector2Control(Vector2.zero), ShaderStage.Fragment); // TODO: Lit is Vector2(2.0f, -1.0f)
             public static BlockFieldDescriptor DistortionBlur = new BlockFieldDescriptor(SurfaceDescription.name, "DistortionBlur", "Distortion Blur", "SURFACEDESCRIPTION_DISTORTIONBLUR",
-                new FloatControl(1.0f), ShaderStage.Fragment);
+                new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor ShadowTint = new BlockFieldDescriptor(SurfaceDescription.name, "ShadowTint", "Shadow Tint", "SURFACEDESCRIPTION_SHADOWTINT",
                 new ColorRGBAControl(Color.black), ShaderStage.Fragment);
 

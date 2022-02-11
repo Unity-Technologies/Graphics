@@ -18,6 +18,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_AllowColorGradingACESHDR = true;
 
+        /// <summary>
+        /// Creates a new <c>ColorGradingLutPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="data">The <c>PostProcessData</c> resources to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="PostProcessData"/>
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
             base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
@@ -58,6 +65,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AllowColorGradingACESHDR = false;
         }
 
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="internalLut">The RTHandle to use to render to.</param>
+        /// <seealso cref="RTHandle"/>
         public void Setup(in RTHandle internalLut)
         {
             m_InternalLut = internalLut;
@@ -66,6 +78,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Get a descriptor and filter mode for the required texture for this pass
         /// </summary>
+        /// <param name="postProcessingData"></param>
+        /// <param name="descriptor"></param>
+        /// <param name="filterMode"></param>
         public void ConfigureDescriptor(in PostProcessingData postProcessingData, out RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -183,8 +198,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_InternalLut);
+                CoreUtils.SetRenderTarget(cmd, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
                 // Render the lut
-                cmd.Blit(null, m_InternalLut.nameID, material);
+                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, material, 0);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
@@ -193,6 +210,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Cleanup()
         {
             CoreUtils.Destroy(m_LutBuilderLdr);

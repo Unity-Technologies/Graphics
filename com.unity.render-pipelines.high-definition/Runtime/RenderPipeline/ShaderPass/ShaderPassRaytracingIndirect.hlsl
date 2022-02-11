@@ -21,7 +21,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - ObjectRayOrigin());
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
 
@@ -79,7 +79,6 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         // Create and init the RayIntersection structure for this
         RayIntersection reflectedIntersection;
         reflectedIntersection.color = float3(0.0, 0.0, 0.0);
-        reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
@@ -154,7 +153,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
-    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - ObjectRayOrigin());
     rayIntersection.t = travelDistance;
 
     PositionInputs posInput;

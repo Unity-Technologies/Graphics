@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
-            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
+            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
             // Register hover callbacks
             RegisterCallback<MouseEnterEvent>(OnHoverStartEvent);
             RegisterCallback<MouseLeaveEvent>(OnHoverEndEvent);

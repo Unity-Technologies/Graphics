@@ -52,13 +52,13 @@ RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
 RW_TEXTURE2D_X(float2, _AnalyticProbBuffer);
 
 [shader("miss")]
-void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadows(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     rayIntersection.color = float3(1.0, 1.0, 1.0);
 }
 
 [shader("miss")]
-void MissShaderShadowsColor(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadowsColor(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     // Does nothing intentionally
 }
@@ -221,8 +221,8 @@ void RayGenAreaShadows()
         // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
         ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-        // Create and init the RayIntersection structure for this
-        RayIntersection rayIntersection;
+        // Create and init the RayIntersectionVisibility structure for this
+        RayIntersectionVisibility rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
 
         // Evaluate the ray visibility term and PDF
@@ -274,7 +274,7 @@ void RayGenAreaShadows()
 
 // Fallback default any hit shader for this raytrace shader
 [shader("anyhit")]
-void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHitMain(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.t = RayTCurrent();
@@ -347,8 +347,8 @@ void RayGenAreaShadowSingle()
     // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
     ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
 
     // Evaluate the ray visibility term and PDF
@@ -418,8 +418,8 @@ void RayGenDirectionalShadowSingle()
     // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
     ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
@@ -487,8 +487,8 @@ void RayGenDirectionalColorShadowSingle()
     // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
     ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
@@ -587,8 +587,8 @@ void RayGenShadowSegmentSingle()
     // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
     ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
@@ -677,8 +677,8 @@ void RayGenSemiTransparentShadowSegmentSingle()
     // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
     ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
