@@ -211,9 +211,9 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Controled if profiling should be logged or not. This enum is not longer in use.
+    /// Controled if profiling should be logged or not. Replaced to use the profiler and is no longer used.
     /// </summary>
-    [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
+    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", false)]
     public enum PipelineDebugLevel
     {
         /// <summary>
@@ -1193,9 +1193,9 @@ namespace UnityEngine.Rendering.Universal
         public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
 
         /// <summary>
-        /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated.
+        /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
         /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
+        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
             get => PipelineDebugLevel.Disabled;
