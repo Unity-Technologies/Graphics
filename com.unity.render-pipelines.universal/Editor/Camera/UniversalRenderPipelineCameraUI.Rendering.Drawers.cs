@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.Universal
 
             static bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineSerializedCamera p, UniversalRenderPipelineAsset rpAsset)
             {
-                return UniversalRenderPipelineGlobalSettings.instance.postProcessData != null;
+                return UniversalRenderPipelineGlobalSettings.instance.postProcessData == null;
                 /*
                 int selectedRendererOption = p.renderer.intValue;
 
