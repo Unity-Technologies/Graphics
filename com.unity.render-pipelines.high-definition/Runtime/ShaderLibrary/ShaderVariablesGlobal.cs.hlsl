@@ -150,6 +150,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     float _DeExposureMultiplier;
+    float4 _ScreenSizeOverride;
+    float4 _ScreenCoordScaleBias;
 CBUFFER_END
 
 

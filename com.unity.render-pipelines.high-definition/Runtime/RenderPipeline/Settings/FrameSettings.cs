@@ -159,6 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
         [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
         Water = 99,
+        /// <summary>When enabled, HDRP accounts for asymmetry in the projection matrix when evaluating the view direction based on pixel coordinates.</summary>
+        [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 107, tooltip: "When enabled HDRP will account for asymmetric projection when evaluating the view direction based on pixel coordinates.")]
+        AsymmetricProjection = 78,
+        /// <summary>When enabled, HDRP evaluates post effects using transformed screen space coordinates, this allows post effects to be compatible with Cluster Display for example.</summary>
+        [FrameSettingsField(0, displayedName: "Screen Coordinates Override", customOrderInGroup: 108, tooltip: "When enabled HDRP will use Screen Coordinates Override for post processing and custom passes. This allows post effects to be compatible with Cluster Display for example.")]
+        ScreenCoordOverride = 77,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
