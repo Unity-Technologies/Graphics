@@ -9706,6 +9706,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "4a9bd2eca5e84e0b87d7f9cc90fa76d2",
+    "m_Id": 1,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "4ab5aa040734493fbea48806ef38e304",
     "m_Id": 2,
@@ -21377,7 +21392,7 @@
             "m_Id": "ec0946d0bccd4584a16e094f6068b0cb"
         },
         {
-            "m_Id": "fb9e6395b49f42d78312811dc7b3f82b"
+            "m_Id": "4a9bd2eca5e84e0b87d7f9cc90fa76d2"
         }
     ],
     "synonyms": [],
@@ -21388,8 +21403,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "_maskInput": "",
-    "convertedMask": ""
+    "_maskInput": "x",
+    "convertedMask": "x"
 }
 
 {
@@ -28042,31 +28057,6 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "SurfaceDescription.BentNormal"
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "fb9e6395b49f42d78312811dc7b3f82b",
-    "m_Id": 1,
-    "m_DisplayName": "Out",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
 }
 
 {
