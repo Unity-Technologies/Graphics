@@ -296,7 +296,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     if (currentDepth == 0)
     {
-        WriteAOVData(pathIntersection, aovData, fragInput.positionRWS);
+        WriteAOVData(pathIntersection, aovData, currentVertex.positionOS);
     }
 }
 

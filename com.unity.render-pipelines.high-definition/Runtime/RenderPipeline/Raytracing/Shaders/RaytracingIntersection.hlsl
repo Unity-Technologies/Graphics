@@ -72,6 +72,8 @@ struct AttributeData
 // Structure to fill for intersections
 struct IntersectionVertex
 {
+    // Object space position of the vertex
+    float3 positionOS;
     // Object space normal of the vertex
     float3 normalOS;
     // Object space tangent of the vertex
@@ -96,6 +98,7 @@ struct IntersectionVertex
 // Fetch the intersetion vertex data for the target vertex
 void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
 {
+    outVertex.positionOS   = UnityRayTracingFetchVertexAttribute3(vertexIndex, kVertexAttributePosition);
     outVertex.normalOS   = UnityRayTracingFetchVertexAttribute3(vertexIndex, kVertexAttributeNormal);
 
     #ifdef ATTRIBUTES_NEED_TANGENT
@@ -151,6 +154,7 @@ void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionV
     float3 barycentricCoordinates = float3(1.0 - attributeData.barycentrics.x - attributeData.barycentrics.y, attributeData.barycentrics.x, attributeData.barycentrics.y);
 
     // Interpolate all the data
+    outVertex.positionOS = INTERPOLATE_RAYTRACING_ATTRIBUTE(v0.positionOS, v1.positionOS, v2.positionOS, barycentricCoordinates);
     outVertex.normalOS   = INTERPOLATE_RAYTRACING_ATTRIBUTE(v0.normalOS, v1.normalOS, v2.normalOS, barycentricCoordinates);
 
     #ifdef ATTRIBUTES_NEED_TANGENT
