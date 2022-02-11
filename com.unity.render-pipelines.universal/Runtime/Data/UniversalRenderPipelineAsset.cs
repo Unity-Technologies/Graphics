@@ -25,8 +25,17 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum SoftShadowQuality
     {
+        /// <summary>
+        /// Low quality soft shadows. Recommended for mobile. 4 PCF sample filtering.
+        /// </summary>
         Low,
+        /// <summary>
+        /// Medium quality soft shadows. The default. 5x5 tent filtering.
+        /// </summary>
         Medium,
+        /// <summary>
+        /// High quality soft shadows. Low performance due to high sample count. 7x7 tent filtering.
+        /// </summary>
         High,
     }
 
