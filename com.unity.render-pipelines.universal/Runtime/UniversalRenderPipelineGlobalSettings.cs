@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
 
         /// <summary>
-        /// Controls whether Screen Coord Override shader variants are automatically stripped.
+        /// Controls whether Screen Coordinates Override shader variants are automatically stripped.
         /// </summary>
         public bool stripScreenCoordOverrideVariants { get => m_StripScreenCoordOverrideVariants; set => m_StripScreenCoordOverrideVariants = value; }
 
