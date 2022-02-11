@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Resize custom operator (multiply, add...) to the minimum size when changing input types
 - Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
 - Better node position when created by dragging an edge
+- Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
 
 ## [12.1.4] - 2021-12-07
 ### Fixed
