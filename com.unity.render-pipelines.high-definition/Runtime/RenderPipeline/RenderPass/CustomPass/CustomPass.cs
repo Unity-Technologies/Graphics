@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (targets.normalBufferRG.IsValid())
                 output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
             if (targets.motionVectorBufferRG.IsValid())
-                output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
+                output.motionVectorBufferRG = builder.ReadWriteTexture(targets.motionVectorBufferRG);
 
             return output;
         }
@@ -230,8 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                        bool motionVectorBufferValid = customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering && customPass.injectionPoint != CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
-                        if (motionVectorBufferValid)
+                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
@@ -259,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
-                            motionVectorBufferValid ? customPass.currentRenderTarget.motionVectorBufferRG : ctx.defaultResources.blackTextureXR,
+                            customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()
