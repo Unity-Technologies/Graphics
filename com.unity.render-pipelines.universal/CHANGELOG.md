@@ -3,10 +3,6 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-## [Unreleased]
-
-### Fixed
--- Fixed issue where ShadowCasterGroup2D would throw an exception when there were no shadow casters. [case 1387201](https://issuetracker.unity3d.com/product/unity/issues/guid/1387201/)
 
 ## [14.0.1] - 2021-12-07
 
@@ -30,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed material converter not being able to be called in batch mode. [case 1375962]
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
+- Fixed issue where ShadowCasterGroup2D would throw an exception when there were no shadow casters. [case 1387201](https://issuetracker.unity3d.com/product/unity/issues/guid/1387201/)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
 
 ## [14.0.0] - 2021-11-17
