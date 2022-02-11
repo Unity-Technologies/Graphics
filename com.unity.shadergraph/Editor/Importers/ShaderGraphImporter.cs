@@ -851,10 +851,14 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             // Fetch properties from the categories to keep the same order as in the shader graph blackboard
-            foreach (var property in graph.categories
+            // Union with the flat properties collection because previous shader graph version could store properties without category
+            var sortedProperties = graph.categories
                 .SelectMany(x => x.Children)
                 .OfType<AbstractShaderProperty>()
-                .Where(x => x.isExposed))
+                .Union(graph.properties)
+                .Where(x => x.isExposed);
+
+            foreach (var property in sortedProperties)
             {
                 var propertyIndex = inputProperties.Count;
                 var codeIndex = codeSnippets.Count;
