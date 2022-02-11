@@ -109,7 +109,7 @@
 #define PLATFORM_SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)                  textureName.SampleBias(samplerName, coord3, bias)
 
 // BUG: FogBugz Case 1402457
-// We're forced to use UNITY_NO_CUBEMAP_ARRAY instead of SHADER_AVAILABLE_CUBEARRAY because UNITY_NO_CUBEMAP_ARRAY isn't defined in compute shaders
+// We're forced to use UNITY_NO_CUBEMAP_ARRAY instead of SHADER_AVAILABLE_CUBEARRAY because SHADER_AVAILABLE_CUBEARRAY isn't defined in compute shaders
 #if UNITY_NO_CUBEMAP_ARRAY
 #define PLATFORM_SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)                ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY)
 #define PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)       ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_LOD)
@@ -164,7 +164,7 @@
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                textureName.Gather(samplerName, coord3)
 
 // BUG: FogBugz Case 1402457
-// We're forced to use UNITY_NO_CUBEMAP_ARRAY instead of SHADER_AVAILABLE_CUBEARRAY because UNITY_NO_CUBEMAP_ARRAY isn't defined in compute shaders
+// We're forced to use UNITY_NO_CUBEMAP_ARRAY instead of SHADER_AVAILABLE_CUBEARRAY because SHADER_AVAILABLE_CUBEARRAY isn't defined in compute shaders
 #if UNITY_NO_CUBEMAP_ARRAY
 #define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_TEXTURECUBE_ARRAY)
 #else
