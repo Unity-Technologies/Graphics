@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
+
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;

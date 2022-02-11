@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering.Universal
 
     public struct RenderingData
     {
+        /// <summary>
+        /// Global ComandBuffer for the pipeline to be used instead of local command buffers inside ScriptableRenderPass.
+        /// This buffer is automatically executed after <c>ScriptableRenderPass.Execute</c>
+        /// </summary>
+        /// <seealso cref="ScriptableRenderPass.Execute(ScriptableRenderContext, ref RenderingData)"/>
         public CommandBuffer commandBuffer;
         public CullingResults cullResults;
         public CameraData cameraData;

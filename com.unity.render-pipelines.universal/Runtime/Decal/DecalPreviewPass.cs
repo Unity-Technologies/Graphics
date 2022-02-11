@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
+
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }
         }
