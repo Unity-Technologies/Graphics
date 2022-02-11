@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Utils.Tests
 
 
         [Test]
+        [Ignore("Test is not stable for CI.")]
         public unsafe void SimpleTimeCheckFromPtr()
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Utils.Tests
         }
 
         [Test]
+        [Ignore("Test is not stable for CI.")]
         public void SimpleTimeCheckFromRef()
         {
             Stopwatch stopwatch = new Stopwatch();
