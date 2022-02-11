@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphView : GraphView
     {

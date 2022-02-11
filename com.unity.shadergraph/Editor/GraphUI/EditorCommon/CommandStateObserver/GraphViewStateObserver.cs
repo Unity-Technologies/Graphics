@@ -1,18 +1,16 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
-using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphViewStateObserver : StateObserver
     {
         PreviewManager m_PreviewManagerInstance;
         GraphViewStateComponent m_GraphViewStateComponent;
 
-        public GraphViewStateObserver(GraphViewStateComponent graphViewStateComponent, PreviewManager previewManager) : base(graphViewStateComponent)
+        public GraphViewStateObserver(GraphViewStateComponent graphViewStateComponent, PreviewManager previewManager) : base(new [] {graphViewStateComponent}, new [] {graphViewStateComponent})
         {
             m_PreviewManagerInstance = previewManager;
             m_GraphViewStateComponent = graphViewStateComponent;
@@ -34,6 +32,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                         if (addedModel is GraphDataNodeModel graphDataNodeModel)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                            using var graphUpdater = m_GraphViewStateComponent.UpdateScope;
+                            graphUpdater.MarkChanged(addedModel);
                         }
                     }
 

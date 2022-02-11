@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
+using com.unity.shadergraph.defs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -50,7 +50,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 RegistryInstance.Register<Registry.Types.GraphType>();
                 RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
                 RegistryInstance.Register<Registry.Types.AddNode>();
-                RegistryInstance.Register<Registry.Types.PowNode>();
+
+                // Register nodes from FunctionDescriptors in IStandardNode classes.
+                var interfaceType = typeof(IStandardNode);
+                var types = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(s => s.GetTypes())
+                    .Where(p => interfaceType.IsAssignableFrom(p));
+                string m = "get_FunctionDescriptor";
+                foreach (var t in types)
+                {
+                    var fdMethod = t.GetMethod(m);
+                    if (t != interfaceType && fdMethod != null)
+                    {
+                        var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
+                        RegistryInstance.Register(fd);
+                    }
+                }
             }
             return RegistryInstance;
         }

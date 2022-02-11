@@ -2,7 +2,7 @@
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     [SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Connection Info")]
     public class ConnectionInfoNodeModel : NodeModel

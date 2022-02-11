@@ -1,6 +1,0 @@
-class StandardNodeDefinitions
-{
-    private StandardNodeDefinitions()
-    {
-    }
-}

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class AddPortCommand : ModelCommand<CustomizableNodeModel>
     {

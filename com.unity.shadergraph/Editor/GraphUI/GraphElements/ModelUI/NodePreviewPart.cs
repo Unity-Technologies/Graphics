@@ -1,11 +1,8 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class NodePreviewPart : BaseModelUIPart
     {
@@ -20,7 +17,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
         const string ussRootName = "ge-node-preview-part";
 
         public override VisualElement Root => m_Root;
-
 
         public NodePreviewPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
@@ -43,22 +39,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
                 m_PreviewImage.image = defaultTexture;
             }
 
-            m_CollapseButton = m_Root.Q<VisualElement>("collapse");
-            m_CollapseButton?.RegisterCallback<MouseDownEvent>(OnCollapseButtonClicked);
-
-            m_ExpandButton = m_Root.Q<VisualElement>("expand");
-            m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
+            // TODO: (Sai) Re-enable in sprint 2
+            //m_CollapseButton = m_Root.Q<VisualElement>("collapse");
+            //m_CollapseButton?.RegisterCallback<MouseDownEvent>(OnCollapseButtonClicked);
+            //
+            //m_ExpandButton = m_Root.Q<VisualElement>("expand");
+            //m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
 
             m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
+
+            // TODO: (Sai) Re-enable in sprint 2
             // TODO: Handle preview collapse/expand state serialization
-            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            // HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 
             parent.Add(Root);
         }
 
         protected override void UpdatePartFromModel()
         {
-            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            // Don't need to do this for node previews in Searcher
+            if (!m_GraphDataNodeModel.existsInGraphData)
+                return;
+
+            // TODO: (Sai) Re-enable in sprint 2
+            //HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 
             // TODO: When shader compilation is complete and we have updated texture, need to notify NodePreviewPart so image tint can be changed
             HandlePreviewShaderCurrentlyCompiling(m_GraphDataNodeModel.PreviewShaderIsCompiling);

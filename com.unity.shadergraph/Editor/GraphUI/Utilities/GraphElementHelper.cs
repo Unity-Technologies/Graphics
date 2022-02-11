@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
    static class GraphElementHelper
     {

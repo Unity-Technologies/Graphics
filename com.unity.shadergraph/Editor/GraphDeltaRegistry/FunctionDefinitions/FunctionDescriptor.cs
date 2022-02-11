@@ -2,7 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace com.unity.shadergraph.defs {
+
     /// <summary>
+    /// A FunctionDescriptor describes a shader function.
+    ///
+    /// In registration (See: Register(FunctionDescriptor funcDesc)), a
+    /// FunctionDescriptor is registered as a node prototype.
     /// </summary>
     internal readonly struct FunctionDescriptor
     {
@@ -14,13 +19,14 @@ namespace com.unity.shadergraph.defs {
         public FunctionDescriptor(
             int version,
             string name,
-            IEnumerable<ParameterDescriptor> parameters,
-            string body)
+            string body,
+            params ParameterDescriptor[] parameters)
         {
             Version = version;
             Name = name;
             Parameters = parameters.ToList().AsReadOnly();
             Body = body;
         }
+
     }
 }

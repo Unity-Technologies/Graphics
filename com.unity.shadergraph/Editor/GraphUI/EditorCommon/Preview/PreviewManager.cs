@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Editor.GraphUI.Utilities;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 
@@ -15,26 +13,37 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
     {
         HeadlessPreviewManager m_PreviewHandlerInstance;
 
+        GraphViewStateComponent m_GraphViewStateComponent;
+
         HashSet<string> m_DirtyNodes;
 
         ShaderGraphModel m_GraphModel;
 
         Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
-        public PreviewManager(ShaderGraphModel graphModel)
+        public PreviewManager(GraphViewStateComponent graphViewStateComponent)
         {
-            m_GraphModel = graphModel;
+            m_GraphViewStateComponent = graphViewStateComponent;
 
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
+
+            m_DirtyNodes = new HashSet<string>();
+            m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
+        }
+
+        public void Initialize(ShaderGraphModel graphModel)
+        {
+            // Can be null when the editor window is opened to the onboarding page
+            if(graphModel == null)
+                return;
+
+            m_GraphModel = graphModel;
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance);
 
-            m_DirtyNodes = new HashSet<string>();
-            m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
-
             // Initialize preview data for any nodes that exist on graph load
-            foreach (var nodeModel in graphModel.NodeModels)
+            foreach (var nodeModel in m_GraphModel.NodeModels)
             {
                 if(nodeModel is GraphDataNodeModel graphDataNodeModel)
                     OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
@@ -56,6 +65,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
                         // Headless preview manager handles assigning correct texture in case of completion, error state, still updating etc.
                         // We just need to update the texture on this side regardless of what happens
                         graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
+
+                        using var graphUpdater = m_GraphViewStateComponent.UpdateScope;
+                        {
+                            graphUpdater.MarkChanged(nodeModel);
+                        }
 
                         // Node is updated, remove from dirty list
                         if (previewOutputState == HeadlessPreviewManager.PreviewOutputState.Complete)
@@ -85,6 +99,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
         public void OnNodeFlowChanged(string nodeName)
         {
             m_DirtyNodes.Add(nodeName);
+            var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
+            foreach (var downstreamNode in impactedNodes)
+            {
+                m_DirtyNodes.Add(downstreamNode);
+            }
         }
 
         public void OnNodeAdded(String nodeName, SerializableGUID nodeGuid)
@@ -108,7 +127,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
         {
             m_DirtyNodes.Add(nodeName);
-            m_PreviewHandlerInstance.SetLocalProperty(nodeName, propertyName, newValue);
+            var impactedNodes = m_PreviewHandlerInstance.SetLocalProperty(nodeName, propertyName, newValue);
+            foreach (var downstreamNode in impactedNodes)
+            {
+                m_DirtyNodes.Add(downstreamNode);
+            }
         }
     }
 }

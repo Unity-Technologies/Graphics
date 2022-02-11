@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphSearcherDatabaseProvider : DefaultSearcherDatabaseProvider
     {
