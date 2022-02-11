@@ -13,7 +13,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// The shadow quality is used to define how the shadows are rendered.
+    /// The elements in this enum define how Unity renders shadows.
     /// </summary>
     public enum ShadowQuality
     {
@@ -211,7 +211,11 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+<<<<<<< HEAD
     /// Controled if profiling should be logged or not. Replaced to use the profiler and is no longer used.
+=======
+    /// Defines if profiling is logged or not. This enum is not longer in use.
+>>>>>>> ac66365a7278678b5ee4e72147f9d1c888f5fa41
     /// </summary>
     [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", false)]
     public enum PipelineDebugLevel
@@ -246,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         _2DRenderer,
         /// <summary>
-        /// Used previously for Universal Renderer.
+        /// This name was used before the Universal Renderer was implemented.
         /// </summary>
         [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
         ForwardRenderer = UniversalRenderer,
