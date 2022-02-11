@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added public API for Diffusion Profile Override volume Component.
 - Added time slicing support for realtime reflection probes.
 - Added denoising for the path tracer.
+- Added an initial version of under water rendering for the water system.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
