@@ -548,9 +548,9 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
         /// <summary>
-        /// Used to initialized the rendererData that is required by the renderer.
+        /// Use this class to initialize the rendererData element that is required by the renderer.
         /// </summary>
-        /// <param name="type">The <c>RendererType</c> of the new renderer it should initialized within this asset.</param>
+        /// <param name="type">The <c>RendererType</c> of the new renderer that is initialized within this asset.</param>
         /// <returns></returns>
         /// <see cref="RendererType"/>
         public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
