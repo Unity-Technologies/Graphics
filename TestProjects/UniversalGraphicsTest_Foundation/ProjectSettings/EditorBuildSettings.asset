@@ -126,15 +126,6 @@ EditorBuildSettings:
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
-    path: Assets/Scenes/055_SoftShadowQuality_Low.unity
-    guid: e9e5c842eb0ba4a1798a7ddb05f68d7e
-  - enabled: 1
-    path: Assets/Scenes/055_SoftShadowQuality_Medium.unity
-    guid: e6fb9446c7b8045a6a963b95486f41c5
-  - enabled: 1
-    path: Assets/Scenes/055_SoftShadowQuality_High.unity
-    guid: 55923f5f43d284f20a0a566a84d43269
-  - enabled: 1
     path: Assets/Scenes/066_Blending.unity
     guid: d27c51a5aecee4e0e9c29141a0819c8b
   - enabled: 1
@@ -287,4 +278,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/206_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_Low.unity
+    guid: e9e5c842eb0ba4a1798a7ddb05f68d7e
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_Medium.unity
+    guid: e6fb9446c7b8045a6a963b95486f41c5
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_High.unity
+    guid: 55923f5f43d284f20a0a566a84d43269
   m_configObjects: {}
