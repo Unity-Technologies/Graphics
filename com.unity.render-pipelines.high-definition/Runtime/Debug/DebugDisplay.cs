@@ -48,9 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugIsLitShaderModeDeferred;
 
         public int _DebugAOVOutput;
-        public int _DebugCapsuleShadowMethod;
-        public int _DebugCapsuleFadeSelfShadow;
         public float _ShaderVariablesDebugDisplayPad0;
+        public float _ShaderVariablesDebugDisplayPad1;
+        public float _ShaderVariablesDebugDisplayPad2;
     }
 
     /// <summary>
@@ -338,7 +338,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int gBufferEnumIndex;
             internal int shadowDebugModeEnumIndex;
             internal int capsuleTileDebugModeEnumIndex;
-            internal int capsuleShadowMethodEnumIndex;
             internal int tileClusterDebugByCategoryEnumIndex;
             internal int clusterDebugModeEnumIndex;
             internal int lightVolumeDebugTypeEnumIndex;
@@ -1241,8 +1240,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip LogCachedShadowAtlasStatus = new() { name = "Log Cached Shadow Atlas Status", tooltip = "Displays a list of the Lights currently in the cached shadow atlas in the Console." };
 
             public static readonly NameAndTooltip CapsuleTileDebugMode = new() { name = "Capsule Tile Debug Mode", tooltip = "Use the drop-down to select which capsule tile information to overlay on the screen." };
-            public static readonly NameAndTooltip CapsuleShadowMethod = new() { name = "Capsule Shadow Method", tooltip = "Use the drop-down to select an alternative capsule shadow method." };
-            public static readonly NameAndTooltip FadeCapsuleSelfShadow = new() { name = "Fade Capsule Self Shadow", tooltip = "Enable the checkbox to fade self-shadowing from capsule occluders." };
 
             // Lighting
             public static readonly NameAndTooltip ShowLightsByType = new() { name = "Show Lights By Type", tooltip = "Allows the user to enable or disable lights in the scene based on their type. This will not change the actual settings of the light." };
@@ -1374,21 +1371,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     autoEnum = typeof(CapsuleTileDebugMode),
                     getIndex = () => data.capsuleTileDebugModeEnumIndex,
                     setIndex = (v) => data.capsuleTileDebugModeEnumIndex = v
-                });
-                shadows.children.Add(new DebugUI.EnumField
-                {
-                    nameAndTooltip = LightingStrings.CapsuleShadowMethod,
-                    getter = () => (int)data.lightingDebugSettings.capsuleShadowMethod,
-                    setter = (v) => data.lightingDebugSettings.capsuleShadowMethod = (CapsuleShadowMethod)v,
-                    autoEnum = typeof(CapsuleShadowMethod),
-                    getIndex = () => data.capsuleShadowMethodEnumIndex,
-                    setIndex = (v) => data.capsuleShadowMethodEnumIndex = v
-                });
-                shadows.children.Add(new DebugUI.BoolField
-                {
-                    nameAndTooltip = LightingStrings.FadeCapsuleSelfShadow,
-                    getter = () => data.lightingDebugSettings.fadeCapsuleSelfShadow,
-                    setter = (v) => data.lightingDebugSettings.fadeCapsuleSelfShadow = v
                 });
 
                 list.Add(shadows);
@@ -2104,8 +2086,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
                 data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
-                data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
-                data.lightingDebugSettings.capsuleShadowMethod != CapsuleShadowMethod.FlattenThenClosestSphere || !data.lightingDebugSettings.fadeCapsuleSelfShadow;
+                data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
         }
     }
 }

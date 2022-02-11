@@ -308,16 +308,16 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
     if (_CapsuleDirectShadowCount != 0 && light.capsuleShadowRange != 0.f)
     {
-        if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+        if (_CapsuleDirectShadowInLightLoop)
         {
             float cosTheta = light.capsuleShadowMaxCosTheta;
-            float capsuleShadow = EvaluateCapsuleDirectShadow(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
+            float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
             shadow *= capsuleShadow;
         }
         else
         {
             int2 coord = int2(posInput.positionSS);
-            if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_HALF_RES_BIT) != 0)
+            if (_CapsuleDirectShadowIsHalfRes)
                 coord /= 2;
             shadow *= 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowTexture, coord).x;
         }
@@ -513,7 +513,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
         float radius = light.size.x;
         float sinTheta = radius/length(posInput.positionWS - light.positionRWS);
         float cosTheta = min(light.capsuleShadowMaxCosTheta, sqrt(max(1.f - sinTheta*sinTheta, 0.f)));
-        float capsuleShadow = EvaluateCapsuleDirectShadow(light.positionRWS, true, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
+        float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(light.positionRWS, true, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
         shadow *= capsuleShadow;
     }
 #endif

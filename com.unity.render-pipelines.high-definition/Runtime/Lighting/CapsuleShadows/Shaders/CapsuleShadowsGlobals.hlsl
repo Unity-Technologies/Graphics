@@ -1,0 +1,58 @@
+#ifndef CAPSULE_SHADOWS_GLOBALS_DEF
+#define CAPSULE_SHADOWS_GLOBALS_DEF
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
+
+#define _CapsuleDirectShadowCount           (_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
+#define _CapsuleDirectShadowMethod          ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)
+#define _CapsuleDirectShadowInLightLoop     ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+#define _CapsuleDirectShadowIsHalfRes       ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_HALF_RES_BIT) != 0)
+#define _CapsuleFadeDirectSelfShadow        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_FADE_SELF_SHADOW_BIT) != 0)
+
+#define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
+#define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)
+#define _CapsuleIndirectShadowExtra         ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_EXTRA_MASK) >> CAPSULESHADOWFLAGS_EXTRA_SHIFT)
+#define _CapsuleIndirectShadowInLightLoop   ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+#define _CapsuleIndirectShadowIsHalfRes     ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_HALF_RES_BIT) != 0)
+#define _CapsuleIndirectInLightLoop         ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+
+uint GetCapsuleDirectOcclusionFlags()
+{
+#if 0
+    return CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+#else
+    uint flags = 0;
+    switch (_CapsuleDirectShadowMethod) {
+    case CAPSULESHADOWMETHOD_ELLIPSOID:
+        flags |= CAPSULE_SHADOW_FLAG_ELLIPSOID;
+        break;
+    case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
+        flags |= CAPSULE_SHADOW_FLAG_FLATTEN;
+        break;
+    }
+    if (_CapsuleFadeDirectSelfShadow) {
+        flags |= CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+    }
+    return flags;
+#endif
+}
+
+uint GetCapsuleAmbientOcclusionFlags()
+{
+#if 0
+    return 0;
+#else
+    uint flags = 0;
+    if (_CapsuleDirectShadowMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
+        flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
+    return flags;
+#endif
+}
+
+uint GetCapsuleIndirectOcclusionFlags()
+{
+    // hardcoded (probably cheapest) shadow function
+    return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
+}
+
+#endif // ndef CAPSULE_SHADOWS_GLOBALS_DEF

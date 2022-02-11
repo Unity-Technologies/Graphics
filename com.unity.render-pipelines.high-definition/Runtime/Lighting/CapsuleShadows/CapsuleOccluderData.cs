@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    public enum CapsuleIndirectShadowFlags
+    public enum CapsuleShadowFlags
     {
         CountMask = 0x0000ffff,
         MethodShift = 16,
@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ExtraMask = 0x00f00000,
         LightLoopBit = 0x01000000,
         HalfResBit = 0x02000000,
+        FadeSelfShadowBit = 0x04000000,
     }
 
     [GenerateHLSL(needAccessors = false)]

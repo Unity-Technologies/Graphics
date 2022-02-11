@@ -274,9 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
-                || shadowDebugMode == ShadowMapDebugMode.SingleShadow
-                || capsuleShadowMethod != CapsuleShadowMethod.FlattenThenClosestSphere
-                || !fadeCapsuleSelfShadow;
+                || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -310,10 +308,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Show the number of capsules per tile.</summary>
         public CapsuleTileDebugMode capsuleTileDebugMode = CapsuleTileDebugMode.None;
-        /// <summary>Choose between alternative capsule shadow methods.</summary>
-        public CapsuleShadowMethod capsuleShadowMethod = CapsuleShadowMethod.FlattenThenClosestSphere;
-        /// <summary>Fade self-shadowing from capsule occluders.</summary>
-        public bool fadeCapsuleSelfShadow = true;
 
         /// <summary>Override smoothness of the whole scene for lighting debug.</summary>
         public bool overrideSmoothness = false;

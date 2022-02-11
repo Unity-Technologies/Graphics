@@ -22,6 +22,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public CapsuleIndirectShadowMethodParameter(CapsuleIndirectShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
     }
 
+    [Serializable]
+    public sealed class CapsuleShadowMethodParameter : VolumeParameter<CapsuleShadowMethod>
+    {
+        public CapsuleShadowMethodParameter(CapsuleShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
     [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Capsule Shadows", typeof(HDRenderPipeline))]
     public class CapsuleShadowsVolumeComponent : VolumeComponent
     {
@@ -34,6 +40,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// When enabled, capsules cast shadows for supported lights.
         /// </summary>
         public BoolParameter enableDirectShadows = new BoolParameter(true);
+
+        /// <summary>
+        /// The method to use for direct shadowing from capsules.
+        /// </summary>
+        public CapsuleShadowMethodParameter directShadowMethod = new CapsuleShadowMethodParameter(CapsuleShadowMethod.FlattenThenClosestSphere);
+
+        /// <summary>
+        /// Whether to fade out self-shadowing artifacts from capsules.
+        /// </summary>
+        public BoolParameter fadeDirectSelfShadow = new BoolParameter(true);
 
         /// <summary>
         /// When enabled, capsules produce indirect shadows or ambient occlusion.

@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _DecalCount;
 
         // Capsule shadows
-        public uint _CapsuleDirectShadowCount;
+        public uint _CapsuleDirectShadowCountAndFlags;
         public uint _CapsuleIndirectShadowCountAndFlags;
         public float _CapsuleIndirectRangeFactor;
         public float _CapsuleIndirectMinimumVisibility;

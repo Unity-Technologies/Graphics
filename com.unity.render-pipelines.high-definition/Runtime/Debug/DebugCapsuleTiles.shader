@@ -55,7 +55,7 @@ Shader "Hidden/HDRP/DebugCapsuleTiles"
 
                 float4 result = float4(0.f, 0.f, 0.f, 0.f);
                 if (n > 0)
-                    result = OverlayHeatMapColor(n, 32, 0.3f);
+                    result = OverlayHeatMapColor(n, 32, 0.5f);
                 return result;
             }
             ENDHLSL

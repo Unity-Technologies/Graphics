@@ -10,7 +10,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 #ifdef CAPSULE_TILE_DEBUG
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
 #endif
@@ -47,14 +47,15 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (_CapsulesFullResolution ? 0 : _FirstDepthMipOffset)).x;
+    bool isHalfRes = _CapsuleDirectShadowIsHalfRes;
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
     bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
 
-    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (_CapsulesFullResolution ? 1 : 2));
+    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
 
     float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_OutputSize.zw, deviceDepth);
 
-    // TODO: handle orthographic
+    // TODO: handle orthographic/oblique
     float4x4 invProj = UNITY_MATRIX_I_P;
     float linearDepth = invProj._m23/(invProj._m32 * positionCS.z + invProj._m33);
     float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
@@ -62,6 +63,9 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 
     float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
     float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
+
+    // TODO: handle scaled view matrix?
+    float absWorldFromViewScale = 1.f;
 
     NormalData normalData;
     DecodeFromNormalBuffer(normalBufferData, normalData);
@@ -113,8 +117,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
         tileRadiusSqVS = max(tileRadiusSqVS, dot(offsetVS, offsetVS));
     }
     float3 tileCenterWS = TransformViewToWorld(tileCenterVS);
-    float tileRadiusWS = sqrt(tileRadiusSqVS) * abs(UNITY_MATRIX_I_V._m00);
-
+    float tileRadiusWS = sqrt(tileRadiusSqVS) * absWorldFromViewScale;
 
     // loop over capsules in batches of 64
     // TODO: make 32, check 2 depth ranges per capsule
@@ -123,7 +126,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 #ifdef CAPSULE_TILE_DEBUG
     uint processedCapsuleCounter = 0;
 #endif
-    uint capsuleCount = _CapsuleDirectShadowCount + (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK);
+    uint capsuleCount = _CapsuleDirectShadowCount + _CapsuleIndirectShadowCount;
     for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
     {
         // clear state
@@ -147,10 +150,16 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
                 bool intersectsTile = false;
                 if (capsuleIndex < _CapsuleDirectShadowCount)
                 {
-                    float lightT = max(0.f, dot(offsetWS, _CapsuleLightDir));
-                    float tileInfluenceRadius = tileRadiusWS + lightT * _CapsuleLightTanTheta;
-                    float3 checkOffsetWS = offsetWS - _CapsuleLightDir*lightT;
-                    bool intersectsPenumbra = (dot(checkOffsetWS, checkOffsetWS) < Sq(tileInfluenceRadius + capsuleData.offset + capsuleData.radius));
+                    float offsetDotLight = dot(offsetWS, _CapsuleLightDir);
+                    float absAxisDotLight = abs(dot(capsuleData.axisDirWS, _CapsuleLightDir));
+                    float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
+                    float lightT = max(
+                        offsetDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius,   // farthest point along light axis
+                        0.f);
+                    float tileRadiusTowardsCapsule = tileRadiusWS + lightT*_CapsuleLightTanTheta;
+                    float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
+                    float3 checkOffsetWS = offsetWS - offsetDotLight*_CapsuleLightDir;
+                    bool intersectsPenumbra = (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
 
                     float directRangeWS = capsuleData.offset + capsuleData.radius + _CapsuleShadowRange;
                     bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
@@ -190,9 +199,8 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
             CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
             if (capsuleIndex < _CapsuleDirectShadowCount)
             {
-                uint flags = CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
                 float occlusion = EvaluateCapsuleOcclusion(
-                    flags,
+                    GetCapsuleDirectOcclusionFlags(),
                     _CapsuleLightDir,
                     false,
                     _CapsuleLightCosTheta,
@@ -212,7 +220,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
             {
                 uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
                 float occlusion = EvaluateCapsuleAmbientOcclusion(
-                    flags,
+                    GetCapsuleAmbientOcclusionFlags(),
                     capsuleData.centerRWS - positionWS,
                     capsuleData.axisDirWS,
                     capsuleData.offset,

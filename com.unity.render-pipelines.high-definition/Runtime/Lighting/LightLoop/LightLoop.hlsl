@@ -670,21 +670,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK) != 0)
+    if (_CapsuleIndirectShadowCount != 0)
     {
         float visibility = 1.f;
-        if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
+        if (_CapsuleIndirectInLightLoop)
         {
-            uint method = (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_METHOD_MASK) >> CAPSULEINDIRECTSHADOWFLAGS_METHOD_SHIFT;
+            uint method = _CapsuleIndirectShadowMethod;
             if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
             {
-                uint aoMethod = (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_EXTRA_MASK) >> CAPSULEINDIRECTSHADOWFLAGS_EXTRA_SHIFT;
-
-                uint flags = 0;
-                if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
-                    flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
-
-                visibility = EvaluateCapsuleAmbientOcclusion(flags, posInput, bsdfData.normalWS);
+                visibility = EvaluateCapsuleAmbientOcclusionLightLoop(posInput, bsdfData.normalWS);
             }
             else if (method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_SURFACE)
             {
@@ -704,17 +698,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     indirectVec += normalize(apvSample.L1_R*luma.x + apvSample.L1_G*luma.y + apvSample.L1_B*luma.z);
                 }
 #endif
-                visibility = EvaluateCapsuleIndirectShadow(normalize(indirectVec), true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+                visibility = EvaluateCapsuleIndirectShadowLightLoop(normalize(indirectVec), true, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
             }
             else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
             {
-                visibility = EvaluateCapsuleIndirectShadow(float3(0.f, 0.f, 0.f), false, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
+                visibility = EvaluateCapsuleIndirectShadowLightLoop(float3(0.f, 0.f, 0.f), false, _CapsuleIndirectCosAngle, posInput, bsdfData.normalWS);
             }
         }
         else
         {
             int2 coord = int2(posInput.positionSS);
-            if ((_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_HALF_RES_BIT) != 0)
+            if (_CapsuleIndirectShadowIsHalfRes)
                 coord /= 2;
             visibility = 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowTexture, coord).y;
         }

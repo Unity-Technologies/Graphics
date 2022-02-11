@@ -2,34 +2,13 @@
 #define CAPSULE_SHADOWS_LIGHT_LOOP_DEF
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 TEXTURE2D_X(_CapsuleShadowTexture);
 
-uint GetDefaultCapsuleShadowFlags()
-{
-#ifdef DEBUG_DISPLAY
-    uint flags = 0;
-    switch (_DebugCapsuleShadowMethod) {
-    case CAPSULESHADOWMETHOD_ELLIPSOID:
-        flags |= CAPSULE_SHADOW_FLAG_ELLIPSOID;
-        break;
-    case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
-        flags |= CAPSULE_SHADOW_FLAG_FLATTEN;
-        break;
-    }
-    if (_DebugCapsuleFadeSelfShadow) {
-        flags |= CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
-    }
-    return flags;
-#else
-    return CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
-#endif
-}
-
-float EvaluateCapsuleDirectShadow(
+float EvaluateCapsuleDirectShadowLightLoop(
     float3 lightPosOrAxis,
     bool lightIsPunctual,
     float lightCosTheta,
@@ -42,7 +21,7 @@ float EvaluateCapsuleDirectShadow(
     if (lightIsPunctual)
         surfaceToLightVec -= posInput.positionWS;
 
-    uint flags = GetDefaultCapsuleShadowFlags();
+    uint flags = GetCapsuleDirectOcclusionFlags();
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -111,16 +90,17 @@ float EvaluateCapsuleDirectShadow(
     return visibility;
 }
 
-float EvaluateCapsuleAmbientOcclusion(
-    uint flags,
+float EvaluateCapsuleAmbientOcclusionLightLoop(
     PositionInputs posInput,
     float3 normalWS)
 {
+    uint flags = GetCapsuleAmbientOcclusionFlags();
+
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_INDIRECT_SHADOW, capsuleStart, capsuleCount);
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    capsuleCount = _CapsuleIndirectShadowCountAndFlags & 0x00ffffffU; 
+    capsuleCount = _CapsuleIndirectShadowCount; 
     capsuleStart = 0;
 #endif
 
@@ -177,21 +157,20 @@ float EvaluateCapsuleAmbientOcclusion(
     return visibility;
 }
 
-float EvaluateCapsuleIndirectShadow(
+float EvaluateCapsuleIndirectShadowLightLoop(
     float3 overrideLightDir,
     bool useOverride,
     float lightCosTheta,
     PositionInputs posInput,
     float3 normalWS)
 {
-    // hardcoded (probably cheapest) shadow function
-    uint flags = CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
+    uint flags = GetCapsuleIndirectOcclusionFlags();
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_INDIRECT_SHADOW, capsuleStart, capsuleCount);
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    capsuleCount = _CapsuleIndirectShadowCountAndFlags & 0x00ffffffU; 
+    capsuleCount = _CapsuleIndirectShadowCount; 
     capsuleStart = 0;
 #endif
 

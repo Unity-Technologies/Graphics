@@ -77,9 +77,9 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _DebugSingleShadowIndex;
     int _DebugIsLitShaderModeDeferred;
     int _DebugAOVOutput;
-    int _DebugCapsuleShadowMethod;
-    int _DebugCapsuleFadeSelfShadow;
     float _ShaderVariablesDebugDisplayPad0;
+    float _ShaderVariablesDebugDisplayPad1;
+    float _ShaderVariablesDebugDisplayPad2;
 CBUFFER_END
 
 
