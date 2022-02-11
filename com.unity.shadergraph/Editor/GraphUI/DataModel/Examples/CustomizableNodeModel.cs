@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -8,7 +8,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-   [SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Customizable Node")]
+   //[SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Customizable Node")]
     [Serializable]
     public class CustomizableNodeModel : NodeModel
     {
