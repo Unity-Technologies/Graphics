@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool allocateDepth { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
+        internal SortingCriteria? sortingCriteriaOverride { get; set; } = null;
+
         FilteringSettings m_FilteringSettings;
 
         // Constants
@@ -84,10 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                // var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var sortFlags = SortingCriteria.QuantizedFrontToBack |
-                                SortingCriteria.RenderQueue |
-                                SortingCriteria.OptimizeStateChanges;
+                var sortFlags = sortingCriteriaOverride ?? renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 

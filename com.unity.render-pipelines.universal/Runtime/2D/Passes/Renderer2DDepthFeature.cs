@@ -31,6 +31,9 @@ namespace UnityEngine.Rendering.Universal
             cameraTargetDescriptor.height = (int)(cameraTargetDescriptor.height * renderer2DData.lightRenderTextureScale);
 
             m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
+            m_DepthPrepass.sortingCriteriaOverride = SortingCriteria.QuantizedFrontToBack |
+                                                     SortingCriteria.RenderQueue |
+                                                     SortingCriteria.OptimizeStateChanges;
             renderer.EnqueuePass(m_DepthPrepass);
 
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
