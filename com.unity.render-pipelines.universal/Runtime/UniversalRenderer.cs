@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             {
-                var settings = LightCookieManager.Settings.GetDefault();
+                var settings = LightCookieManager.Settings.Create();
                 var asset = UniversalRenderPipeline.asset;
                 if (asset)
                 {
@@ -249,7 +249,13 @@ namespace UnityEngine.Rendering.Universal
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
-            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
+            {
+                var asset = UniversalRenderPipeline.asset;
+                var postProcessParams = PostProcessParams.Create();
+                postProcessParams.blitMaterial = m_BlitMaterial;
+                postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
+                m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref postProcessParams);
+            }
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);

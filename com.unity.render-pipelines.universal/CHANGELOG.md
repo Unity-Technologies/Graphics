@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
+- Added FP16 camera render target option.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added support for FidelityFX Super Resolution 1.0 upscaling filter.
 - Added Downscale and Max Iterations options for Bloom
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Re-added the menu button to be able to convert selected materials.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
+- PostProcessPass to internal visibility since it's in Internal namespace.
 - Particle alpha channel blend mode to match standard shader.
 - Removed skipIterations from Bloom settings. It has now been replaced with maxIterations.
 

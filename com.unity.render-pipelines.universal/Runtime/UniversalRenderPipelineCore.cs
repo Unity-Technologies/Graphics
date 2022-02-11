@@ -144,8 +144,9 @@ namespace UnityEngine.Rendering.Universal
         internal ImageUpscalingFilter upscalingFilter;
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
-        public bool clearDepth;
+        internal HDRColorBufferPrecision hdrColorBufferPrecision;
         public CameraType cameraType;
+        public bool clearDepth;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
@@ -544,11 +545,12 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+        internal static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, bool needsAlpha)
         {
             if (isHdrEnabled)
             {
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
                 if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
@@ -559,7 +561,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
+            bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
             int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
@@ -571,7 +573,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = scaledWidth;
                 desc.height = scaledHeight;
-                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
+                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
