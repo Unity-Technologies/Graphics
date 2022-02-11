@@ -831,17 +831,15 @@ namespace UnityEngine.Rendering.HighDefinition
         class CapsuleTilesOverlayPassData : DebugOverlayPassData
         {
             public Material debugCapsuleTilesMaterial;
-            public TextureHandle capsuleTileDebugBuffer;
+            public TextureHandle capsuleTileDebugTexture;
         }
 
-        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer)
+        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle capsuleTileDebugTexture)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode == CapsuleTileDebugMode.None)
                 return;
 
-            TextureHandle capsuleTileDebugBuffer = m_LastCapsuleTileDebugBuffer;
-            m_LastCapsuleTileDebugBuffer = TextureHandle.nullHandle;
-            if (!capsuleTileDebugBuffer.IsValid())
+            if (!capsuleTileDebugTexture.IsValid())
                 return;
 
             using (var builder = renderGraph.AddRenderPass<CapsuleTilesOverlayPassData>("CapsuleTilesOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugCapsuleTiles)))
@@ -849,12 +847,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.debugCapsuleTilesMaterial = m_DebugCapsuleTilesMaterial;
-                passData.capsuleTileDebugBuffer = builder.ReadTexture(capsuleTileDebugBuffer);
+                passData.capsuleTileDebugTexture = builder.ReadTexture(capsuleTileDebugTexture);
 
                 builder.SetRenderFunc(
                     (CapsuleTilesOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                         data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleTileDebug, data.capsuleTileDebugBuffer);
+                         data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleTileDebug, data.capsuleTileDebugTexture);
                          HDUtils.DrawFullScreen(ctx.cmd, data.debugCapsuleTilesMaterial, data.colorBuffer);
                     });
             }
@@ -865,6 +863,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer,
             TextureHandle depthPyramidTexture,
             TextureHandle rayCountTexture,
+            TextureHandle capsuleTileDebugTexture,
             in BuildGPULightListOutput lightLists,
             in ShadowResult shadowResult,
             HDCamera hdCamera)
@@ -888,7 +887,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
-            RenderCapsuleTilesOverlay(renderGraph, colorBuffer);
+            RenderCapsuleTilesOverlay(renderGraph, colorBuffer, capsuleTileDebugTexture);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
@@ -1193,6 +1192,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorPickerDebugTexture,
             TextureHandle rayCountTexture,
             TextureHandle xyBufferMapping,
+            TextureHandle capsuleTileDebugTexture,
             in BuildGPULightListOutput lightLists,
             in ShadowResult shadowResult,
             CullingResults cullResults,
@@ -1227,7 +1227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderLightVolumes(renderGraph, output, depthBuffer, cullResults, hdCamera);
 
-            RenderDebugOverlays(renderGraph, output, depthBuffer, depthPyramidTexture, rayCountTexture, lightLists, shadowResult, hdCamera);
+            RenderDebugOverlays(renderGraph, output, depthBuffer, depthPyramidTexture, rayCountTexture, capsuleTileDebugTexture, lightLists, shadowResult, hdCamera);
 
             return output;
         }

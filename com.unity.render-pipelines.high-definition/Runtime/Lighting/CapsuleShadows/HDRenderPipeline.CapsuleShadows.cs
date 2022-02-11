@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             indirectCount = 0;
             inLightLoop = false;
         }
-    };
+    }
 
     public partial class HDRenderPipeline
     {
@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
         CapsuleShadowDirectionalLight m_DirectionalLight;
-        TextureHandle m_LastCapsuleTileDebugBuffer;
 
         internal void InitializeCapsuleShadows()
         {
@@ -299,11 +298,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int firstDepthMipOffset;
         }
 
-        internal TextureHandle RenderCapsuleShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, in HDUtils.PackedMipChainInfo depthMipInfo)
+        internal TextureHandle RenderCapsuleShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, in HDUtils.PackedMipChainInfo depthMipInfo, ref TextureHandle capsuleTileDebugTexture)
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop)
+            {
+                capsuleTileDebugTexture = TextureHandle.nullHandle;
                 return renderGraph.defaultResources.blackTextureXR;
+            }
 
             using (var builder = renderGraph.AddRenderPass<RenderCapsuleShadowsPassData>("Capsule Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RenderCapsuleShadows)))
             {
@@ -373,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.DispatchCompute(data.capsuleCS, data.kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), 1);
                     });
 
-                m_LastCapsuleTileDebugBuffer = passData.tileDebugOutput;
+                capsuleTileDebugTexture = passData.tileDebugOutput;
                 return passData.output;
             }
         }
