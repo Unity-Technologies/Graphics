@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DBufferPrepareDrawData,
         DBufferNormal,
         DisplayDebugDecalsAtlas,
+        DisplayDebugCapsuleTiles,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
         SubsurfaceScattering,

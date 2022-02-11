@@ -175,6 +175,20 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Shadow Maps Debug Mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum CapsuleTileDebugMode
+    {
+        /// <summary>No capsule tile debug.</summary>
+        None,
+        /// <summary>Show capsules used for indirect shadows.</summary>
+        Indirect,
+        /// <summary>Show capsules used for direct shadows.</summary>
+        Direct,
+    }
+
+    /// <summary>
     /// Exposure debug mode.
     /// </summary>
     [GenerateHLSL]
@@ -294,6 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Clear shadow atlases each frame.</summary>
         public bool clearShadowAtlas = false;
 
+        /// <summary>Show the number of capsules per tile.</summary>
+        public CapsuleTileDebugMode capsuleTileDebugMode = CapsuleTileDebugMode.None;
         /// <summary>Choose between alternative capsule shadow methods.</summary>
         public CapsuleShadowMethod capsuleShadowMethod = CapsuleShadowMethod.FlattenThenClosestSphere;
         /// <summary>Fade self-shadowing from capsule occluders.</summary>

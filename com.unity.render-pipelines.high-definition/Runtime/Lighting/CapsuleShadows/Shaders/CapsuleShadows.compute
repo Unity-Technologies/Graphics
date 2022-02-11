@@ -1,17 +1,25 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile_local _ CAPSULE_TILE_DEBUG
+
+#pragma kernel CapsuleShadowMain
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
-
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-//#pragma enable_d3d11_debug_symbols
-
-#pragma kernel CapsuleShadowMain
+#ifdef CAPSULE_TILE_DEBUG
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
+#endif
 
 RW_TEXTURE2D_X(float2, _CapsuleShadowTexture);
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+#ifdef CAPSULE_TILE_DEBUG
+RW_TEXTURE2D_X(float, _CapsuleTileDebug);
+#endif
 
 #define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
 
@@ -76,7 +84,13 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 
     // early out if tile is all far clip
     if (s_depthMin == DEPTH_MIN_EMPTY)
+    {
+#ifdef CAPSULE_TILE_DEBUG
+        if (flatThreadIndex == 0)
+            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0.f;
+#endif
         return;
+    }
 
     // TODO: splitting planes for froxel
     // TODO: move work to setup pass to run as one tile per thread
@@ -106,6 +120,9 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
     // TODO: make 32, check 2 depth ranges per capsule
     float directVisibility = 1.f;
     float indirectVisibility = 1.f;
+#ifdef CAPSULE_TILE_DEBUG
+    uint processedCapsuleCounter = 0;
+#endif
     uint capsuleCount = _CapsuleDirectShadowCount + (_CapsuleIndirectShadowCountAndFlags & CAPSULEINDIRECTSHADOWFLAGS_COUNT_MASK);
     for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
     {
@@ -186,6 +203,10 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
                     _CapsuleShadowRange,
                     normalWS);
                 directVisibility *= max(1.f - occlusion, 0.0f);
+#ifdef CAPSULE_TILE_DEBUG
+                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT)
+                    ++processedCapsuleCounter;
+#endif
             }
             else
             {
@@ -199,9 +220,17 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
                     capsuleData.radius*_CapsuleIndirectRangeFactor,
                     normalWS);
                 indirectVisibility *= max(1.f - occlusion, 0.f);
+#ifdef CAPSULE_TILE_DEBUG
+                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_INDIRECT)
+                    ++processedCapsuleCounter;
+#endif
             }
         }
     }
 
     _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
+#ifdef CAPSULE_TILE_DEBUG
+    if (flatThreadIndex == 0)
+        _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = (float)processedCapsuleCounter/(float)65535.f;
+#endif
 }

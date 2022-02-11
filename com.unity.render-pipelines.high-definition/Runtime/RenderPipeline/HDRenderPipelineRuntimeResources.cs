@@ -33,6 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
             public ComputeShader debugLightVolumeCS;
+            [Reload("Runtime/Debug/DebugCapsuleTiles.shader")]
+            public Shader debugCapsuleTilesPS;
             [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
             public Shader debugBlitQuad;
             [Reload("Runtime/Debug/DebugVTBlit.Shader")]

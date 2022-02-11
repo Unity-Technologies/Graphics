@@ -337,6 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int propertiesEnumIndex;
             internal int gBufferEnumIndex;
             internal int shadowDebugModeEnumIndex;
+            internal int capsuleTileDebugModeEnumIndex;
             internal int capsuleShadowMethodEnumIndex;
             internal int tileClusterDebugByCategoryEnumIndex;
             internal int clusterDebugModeEnumIndex;
@@ -1239,6 +1240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ShadowRangeMaximumValue = new() { name = "Shadow Range Maximum Value", tooltip = "Set the maximum shadow value to display in the various shadow debug overlays." };
             public static readonly NameAndTooltip LogCachedShadowAtlasStatus = new() { name = "Log Cached Shadow Atlas Status", tooltip = "Displays a list of the Lights currently in the cached shadow atlas in the Console." };
 
+            public static readonly NameAndTooltip CapsuleTileDebugMode = new() { name = "Capsule Tile Debug Mode", tooltip = "Use the drop-down to select which capsule tile information to overlay on the screen." };
             public static readonly NameAndTooltip CapsuleShadowMethod = new() { name = "Capsule Shadow Method", tooltip = "Use the drop-down to select an alternative capsule shadow method." };
             public static readonly NameAndTooltip FadeCapsuleSelfShadow = new() { name = "Fade Capsule Self Shadow", tooltip = "Enable the checkbox to fade self-shadowing from capsule occluders." };
 
@@ -1364,6 +1366,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMinimumValue, getter = () => data.lightingDebugSettings.shadowMinValue, setter = value => data.lightingDebugSettings.shadowMinValue = value });
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMaximumValue, getter = () => data.lightingDebugSettings.shadowMaxValue, setter = value => data.lightingDebugSettings.shadowMaxValue = value });
 
+                shadows.children.Add(new DebugUI.EnumField
+                {
+                    nameAndTooltip = LightingStrings.CapsuleTileDebugMode,
+                    getter = () => (int)data.lightingDebugSettings.capsuleTileDebugMode,
+                    setter = (v) => data.lightingDebugSettings.capsuleTileDebugMode = (CapsuleTileDebugMode)v,
+                    autoEnum = typeof(CapsuleTileDebugMode),
+                    getIndex = () => data.capsuleTileDebugModeEnumIndex,
+                    setIndex = (v) => data.capsuleTileDebugModeEnumIndex = v
+                });
                 shadows.children.Add(new DebugUI.EnumField
                 {
                     nameAndTooltip = LightingStrings.CapsuleShadowMethod,

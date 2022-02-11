@@ -23,6 +23,7 @@ MonoBehaviour:
     debugHDRPS: {fileID: 4800000, guid: 9bc5229549892084da43ad706d84f1bc, type: 3}
     debugLightVolumePS: {fileID: 4800000, guid: 8e706c0e71fcec34a8f5c9713e5e2943, type: 3}
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184, type: 3}
+    debugCapsuleTilesPS: {fileID: 4800000, guid: 725b4e33c33a61449b19c8c1454ce707, type: 3}
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e, type: 3}
     materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}

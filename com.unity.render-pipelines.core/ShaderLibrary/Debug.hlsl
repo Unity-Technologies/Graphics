@@ -111,17 +111,23 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     }
 }
 
-// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// Draws increasingly "hot" background colors depending on n,
 // where values at or above maxN receive strong red background color.
-float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+float4 OverlayHeatMapColor(uint n, uint maxN, float opacity)
 {
     int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
     colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
     float4 col = kDebugColorGradient[colorIndex];
+    return float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+}
 
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
     int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
 
-    float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+    float4 color = OverlayHeatMapColor(n, maxN, opacity);
     if (n >= 0)
     {
         if (SampleDebugFontNumber(coord, n))        // Shadow

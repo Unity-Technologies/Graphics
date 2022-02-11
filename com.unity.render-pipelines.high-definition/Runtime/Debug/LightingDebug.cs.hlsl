@@ -65,6 +65,13 @@
 #define SHADOWMAPDEBUGMODE_SINGLE_SHADOW (7)
 
 //
+// UnityEngine.Rendering.HighDefinition.CapsuleTileDebugMode:  static fields
+//
+#define CAPSULETILEDEBUGMODE_NONE (0)
+#define CAPSULETILEDEBUGMODE_INDIRECT (1)
+#define CAPSULETILEDEBUGMODE_DIRECT (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.ExposureDebugMode:  static fields
 //
 #define EXPOSUREDEBUGMODE_NONE (0)

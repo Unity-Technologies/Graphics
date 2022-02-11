@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugExposure;
         Material m_DebugHDROutput;
         Material m_DebugViewTilesMaterial;
+        Material m_DebugCapsuleTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugLocalVolumetricFogMaterial;
         Material m_DebugBlitMaterial;
@@ -53,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
             m_DebugHDROutput = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDRPS);
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
+            m_DebugCapsuleTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugCapsuleTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
             m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugLocalVolumetricFogAtlasPS);
             m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
@@ -73,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugExposure);
             CoreUtils.Destroy(m_DebugHDROutput);
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
+            CoreUtils.Destroy(m_DebugCapsuleTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugLocalVolumetricFogMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
@@ -825,6 +828,38 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class CapsuleTilesOverlayPassData : DebugOverlayPassData
+        {
+            public Material debugCapsuleTilesMaterial;
+            public TextureHandle capsuleTileDebugBuffer;
+        }
+
+        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer)
+        {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode == CapsuleTileDebugMode.None)
+                return;
+
+            TextureHandle capsuleTileDebugBuffer = m_LastCapsuleTileDebugBuffer;
+            m_LastCapsuleTileDebugBuffer = TextureHandle.nullHandle;
+            if (!capsuleTileDebugBuffer.IsValid())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<CapsuleTilesOverlayPassData>("CapsuleTilesOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugCapsuleTiles)))
+            {
+                passData.debugOverlay = m_DebugOverlay;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.debugCapsuleTilesMaterial = m_DebugCapsuleTilesMaterial;
+                passData.capsuleTileDebugBuffer = builder.ReadTexture(capsuleTileDebugBuffer);
+
+                builder.SetRenderFunc(
+                    (CapsuleTilesOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                         data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleTileDebug, data.capsuleTileDebugBuffer);
+                         HDUtils.DrawFullScreen(ctx.cmd, data.debugCapsuleTilesMaterial, data.colorBuffer);
+                    });
+            }
+        }
+
         void RenderDebugOverlays(RenderGraph renderGraph,
             TextureHandle colorBuffer,
             TextureHandle depthBuffer,
@@ -853,6 +888,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
+            RenderCapsuleTilesOverlay(renderGraph, colorBuffer);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)

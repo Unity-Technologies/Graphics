@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
         CapsuleShadowDirectionalLight m_DirectionalLight;
+        TextureHandle m_LastCapsuleTileDebugBuffer;
 
         internal void InitializeCapsuleShadows()
         {
@@ -288,6 +289,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public CapsuleShadowDirectionalLight directionalLight;
             public bool isFullResolution;
 
+            public CapsuleTileDebugMode tileDebugMode;
+            public TextureHandle tileDebugOutput;
+
             public TextureHandle output;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
@@ -318,6 +322,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         enableRandomWrite = true,
                         name = "Capsule Shadows"
                     }));
+                passData.tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode;
+                if (passData.tileDebugMode != CapsuleTileDebugMode.None)
+                {
+                    passData.tileDebugOutput = builder.WriteTexture(renderGraph.CreateTexture(
+                        new TextureDesc(Vector2.one * (isFullResolution ? 1.0f : 0.5f)/8.0f, dynamicResolution: true, xrReady: true)
+                        {
+                            colorFormat = GraphicsFormat.R16_UNorm,
+                            enableRandomWrite = true,
+                            name = "Capsule Tile Debug"
+                        }));
+                }
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
@@ -341,16 +356,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
                         cb._CapsulesFullResolution = data.isFullResolution ? 1U : 0U;
+                        cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
 
                         ConstantBuffer.Push(ctx.cmd, cb, data.capsuleCS, HDShaderIDs._ShaderVariablesCapsuleShadows);
+
                         ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleShadowTexture, data.output);
                         ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
                         ctx.cmd.SetComputeBufferParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleOccluderDatas, data.capsuleOccluderDatas);
 
+                        bool useTileDebug = (data.tileDebugMode != CapsuleTileDebugMode.None);
+                        if (useTileDebug)
+                            ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
+                        CoreUtils.SetKeyword(data.capsuleCS, "CAPSULE_TILE_DEBUG", useTileDebug);
+
                         ctx.cmd.DispatchCompute(data.capsuleCS, data.kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), 1);
                     });
 
+                m_LastCapsuleTileDebugBuffer = passData.tileDebugOutput;
                 return passData.output;
             }
         }

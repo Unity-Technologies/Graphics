@@ -16,6 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _FirstDepthMipOffsetX;
         public uint _FirstDepthMipOffsetY;
         public uint _CapsulesFullResolution;
-        public uint _CapsulePad2;
+        public uint _CapsuleTileDebugMode;
     }
 }
