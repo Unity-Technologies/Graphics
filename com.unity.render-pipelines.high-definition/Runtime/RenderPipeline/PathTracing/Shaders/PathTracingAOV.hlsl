@@ -16,7 +16,8 @@ void WriteAOVData(AOVData aovData, float3 positionWS, inout PathPayload payload)
         return;
 
     // Compute motion vector (from pixel coordinates and world position passed as inputs)
-    float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
+    float3 positionOS = TransformWorldToObject(positionWS);
+    float3 prevPosWS = mul(GetPrevObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
     float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);
     prevClipPos.xy /= prevClipPos.w;
     prevClipPos.y = -prevClipPos.y;
@@ -24,7 +25,7 @@ void WriteAOVData(AOVData aovData, float3 positionWS, inout PathPayload payload)
     float2 prevPixelCoord = (prevClipPos.xy * 0.5 + 0.5) * viewportSize;
 
     // Write final AOV values to the payload
-    payload.aovMotionVector = prevPixelCoord - payload.aovMotionVector;
+    payload.aovMotionVector -= prevPixelCoord;
     payload.aovAlbedo = aovData.albedo;
     payload.aovNormal = aovData.normal;
 }
