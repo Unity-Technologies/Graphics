@@ -88,6 +88,31 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       }
     },
+    "com.unity.render-pipelines.high-definition": {
+      "version": "file:../../com.unity.render-pipelines.high-definition",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.burst": "1.5.0",
+        "com.unity.modules.video": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.terrain": "1.0.0",
+        "com.unity.render-pipelines.core": "13.1.1",
+        "com.unity.shadergraph": "13.1.1",
+        "com.unity.visualeffectgraph": "13.1.1",
+        "com.unity.render-pipelines.high-definition-config": "13.1.1"
+      }
+    },
+    "com.unity.render-pipelines.high-definition-config": {
+      "version": "file:../../com.unity.render-pipelines.high-definition-config",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.render-pipelines.core": "13.1.1"
+      }
+    },
     "com.unity.render-pipelines.universal": {
       "version": "file:../../com.unity.render-pipelines.universal",
       "depth": 0,
@@ -202,6 +227,15 @@
       "dependencies": {
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
+      }
+    },
+    "com.unity.visualeffectgraph": {
+      "version": "file:../../com.unity.visualeffectgraph",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.shadergraph": "13.1.1",
+        "com.unity.render-pipelines.core": "13.1.1"
       }
     },
     "com.unity.xr.interactionsubsystems": {

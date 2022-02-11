@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 393cd9f0a61108c46b2df7689a2d61e4, type: 3}
+  m_Name: ShaderGraph
+  m_EditorClassIdentifier: 
+  m_GraphModel:
+    rid: 9009708605690609664
+  m_GraphAssetType: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 9009708605690609664
+      type: {class: ShaderGraphModel, ns: UnityEditor.ShaderGraph.GraphUI, asm: Unity.ShaderGraph.GraphUI}
+      data:
+        m_AssetModel: {fileID: 11400000}
+        m_GraphNodeModels: []
+        m_EdgeModels: []
+        m_BadgeModels: []
+        m_GraphEdgeModels: []
+        m_PolymorphicEdgeModels: []
+        m_StickyNoteModels: []
+        m_GraphStickyNoteModels: []
+        m_PlacematModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels: []
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 9009708605690609665
+        m_Name: 
+        m_StencilTypeName: UnityEditor.ShaderGraph.GraphUI.ShaderGraphStencil, Unity.ShaderGraph.GraphUI,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    - rid: 9009708605690609665
+      type: {class: SectionModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 7272255933557378972
+          m_Value1: 11479827091462202517
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Items: []
+        <Title>k__BackingField: Graph Variables
