@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripDebugVariants;
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
+        public SerializedProperty stripScreenCoordOverrideVariants;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.Universal
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
+            stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
         }
