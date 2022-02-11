@@ -54,6 +54,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
     guid: 42a36d7781122534f9ce00fa769bdd5c
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/019_CustomSimulate.unity
+    guid: ffbf1ce97ab782b43b4ec8f431e5a0ab
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/101_Exposure.unity
     guid: 4125f3630764c6a43a752a73908fa0ee
   - enabled: 1
