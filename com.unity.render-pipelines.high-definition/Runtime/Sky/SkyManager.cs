@@ -1074,12 +1074,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var skyCubemap = GenerateSkyCubemap(renderGraph, skyContext);
 
-                        if (updateAmbientProbe && !renderingContext.computeAmbientProbeRequested)
+                        if (updateAmbientProbe)
                         {
                             UpdateAmbientProbe(renderGraph, skyCubemap, outputForClouds: false,
                                 renderingContext.ambientProbeResult, renderingContext.diffuseAmbientProbeBuffer, renderingContext.volumetricAmbientProbeBuffer,
                                 hdCamera.volumeStack.GetComponent<Fog>(), renderingContext.OnComputeAmbientProbeDone);
-                            renderingContext.computeAmbientProbeRequested = true;
                         }
 
                         if (renderingContext.supportsConvolution)
