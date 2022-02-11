@@ -380,8 +380,122 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsRenderPassDepthOnly(ScriptableRenderPass renderPass, CameraData cameraData)
+        {
+            var depthOnly = (renderPass.colorAttachmentHandle.rt != null && IsDepthOnlyRenderTexture(renderPass.colorAttachmentHandle.rt)) || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
+            return depthOnly;
+        }
+
+        internal void ExecuteNativeRenderPassCMD(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData)
+        {
+            int currentPassIndex = renderPass.renderPassQueueIndex;
+            Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
+            int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
+            int validPassCount = GetValidPassIndexCount(currentMergeablePasses);
+            int validColorBuffersCount = m_RenderPassesAttachmentCount[currentPassHash];
+
+            var cmd = CommandBufferPool.Get();
+
+            if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex)
+            {
+                var depthOnly = IsRenderPassDepthOnly(renderPass, cameraData);
+                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget)); // &&
+
+                var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
+
+                var depthAttachmentIdx = useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1;
+
+                var attachments = new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
+                for (var i = 0; i < validColorBuffersCount; ++i)
+                {
+                    attachments[i] = m_ActiveColorAttachmentDescriptors[i];
+                }
+                if (useDepth && !depthOnly)
+                {
+                    attachments[validColorBuffersCount] = m_ActiveDepthAttachmentDescriptor;
+                }
+
+                var actualSPCount = 1;
+                for (var spIdx = 1; spIdx < validPassCount; ++spIdx)
+                {
+                    var rp = m_ActiveRenderPassQueue[currentMergeablePasses[spIdx]];
+                    if (PassHasInputAttachments(rp) || !AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex]))
+                    {
+                        actualSPCount++;
+                    }
+                }
+
+                var subPasses = new NativeArray<SubPassDescriptor>(actualSPCount, Allocator.Temp);
+                for (var spIdx = 0; spIdx < actualSPCount; ++spIdx)
+                {
+                    var rp = m_ActiveRenderPassQueue[currentMergeablePasses[spIdx]];
+
+                    if (spIdx == 0 || PassHasInputAttachments(rp))
+                    {
+                        var spDesc = new SubPassDescriptor();
+
+                        var rpDepthOnly = IsRenderPassDepthOnly(rp, cameraData);
+                        var rpAttachmentCount = !depthOnly ? GetSubPassAttachmentIndicesCount(rp) : 0;
+
+                        spDesc.colorOutputs = new AttachmentIndexArray((int)rpAttachmentCount);
+                        for (var ai = 0; ai < rpAttachmentCount; ++ai)
+                            spDesc.colorOutputs[ai] = rp.m_ColorAttachmentIndices[ai];
+
+                        spDesc.flags = SubPassFlags.None;
+                        spDesc.inputs = PassHasInputAttachments(rp) ? new AttachmentIndexArray(rp.m_InputAttachmentIndices) : AttachmentIndexArray.Emtpy;
+
+                        subPasses[spIdx] = spDesc;
+                    }
+                }
+
+                cmd.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1) /*why is this not inside RPDesc init?*/, attachments, depthAttachmentIdx, subPasses);
+
+                attachments.Dispose();
+                subPasses.Dispose();
+
+                m_LastBeginSubpassPassIndex = currentPassIndex; //TODO(ddebaets) is this correct ?
+            }
+            else
+            {
+               if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex]))
+               {
+                   cmd.NextSubPass();
+               }
+               else if (PassHasInputAttachments(m_ActiveRenderPassQueue[currentPassIndex]))
+               {
+                   cmd.NextSubPass();
+               }
+            }
+
+            // We must execute here because the RP.Execute is not working on this cmd
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            cmd = CommandBufferPool.Get();
+
+            renderPass.Execute(context, ref renderingData);
+
+            if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentPassIndex) // Check if it's the last pass
+            {
+                cmd.EndRenderPass();
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            for (int i = 0; i < m_ActiveColorAttachmentDescriptors.Length; ++i)
+            {
+                m_ActiveColorAttachmentDescriptors[i] = RenderingUtils.emptyAttachment;
+                m_IsActiveColorAttachmentTransient[i] = false;
+            }
+
+            m_ActiveDepthAttachmentDescriptor = RenderingUtils.emptyAttachment;
+        }
+
         internal void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData)
         {
+#if true
+            ExecuteNativeRenderPassCMD(context, renderPass, cameraData, ref renderingData);
+#else
             using (new ProfilingScope(null, Profiling.execute))
             {
                 int currentPassIndex = renderPass.renderPassQueueIndex;
@@ -390,8 +504,8 @@ namespace UnityEngine.Rendering.Universal
 
                 int validColorBuffersCount = m_RenderPassesAttachmentCount[currentPassHash];
 
-                var depthOnly = (renderPass.colorAttachmentHandle.rt != null && IsDepthOnlyRenderTexture(renderPass.colorAttachmentHandle.rt)) || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
-                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget));// &&
+                var depthOnly = IsRenderPassDepthOnly(renderPass, cameraData);
+                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget)); // &&
 
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
@@ -474,6 +588,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_ActiveDepthAttachmentDescriptor = RenderingUtils.emptyAttachment;
             }
+#endif
         }
 
         internal void SetupInputAttachmentIndices(ScriptableRenderPass pass)
