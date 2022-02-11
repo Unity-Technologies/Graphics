@@ -2,6 +2,14 @@
 #error GLES.hlsl should not be included if SHADER_API_GLCORE is not defined
 #endif
 
+// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
+// So we define it manually for compute atm.
+// It won't compile for devices that don't have cubemap array support but this is acceptable by now
+// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
+#ifdef SHADER_STAGE_COMPUTE
+#define SHADER_AVAILABLE_CUBEARRAY 1
+#endif
+
 #define UNITY_NEAR_CLIP_VALUE (-1.0)
 
 // This value will not go through any matrix projection convertion
