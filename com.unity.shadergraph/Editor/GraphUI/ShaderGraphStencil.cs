@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 RegistryInstance = new Registry.Registry();
                 RegistryInstance.Register<Registry.Types.GraphType>();
                 RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
-                RegistryInstance.Register<Registry.Types.AddNode>();
+                //RegistryInstance.Register<Registry.Types.AddNode>();
 
                 // Register nodes from FunctionDescriptors in IStandardNode classes.
                 var interfaceType = typeof(IStandardNode);

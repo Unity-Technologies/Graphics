@@ -8,7 +8,7 @@ namespace com.unity.shadergraph.defs
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
-            "AddSpecial", // Name
+            "Add", // Name
             "Out = A + B;",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
             new ParameterDescriptor("B", TYPE.Any, Usage.In),
