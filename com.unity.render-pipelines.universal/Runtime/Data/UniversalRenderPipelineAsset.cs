@@ -332,8 +332,8 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// An asset that contains the setting for the RenderPipeline in can produce for URP.
-    /// This asset can be assigned as a quality level.
+    /// The asset that contains the URP setting.
+    /// You can use this asset as a graphics quality level.
     /// <see cref="RenderPipelineAsset"\>
     /// <see cref="UniversalRenderPipeline"/>
     /// </summary>
