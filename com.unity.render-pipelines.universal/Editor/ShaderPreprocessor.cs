@@ -50,7 +50,6 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
-        ScreenCoordOverride = (1 << 31),
     }
 
     [Flags]
@@ -359,6 +358,11 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
+            if (globalSettings != null && globalSettings.stripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
+            {
+                return true;
+            }
+
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
@@ -504,9 +508,6 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendLow, ShaderFeatures.DecalNormalBlendLow,
                 m_DecalNormalBlendMedium, ShaderFeatures.DecalNormalBlendMedium,
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
-                return true;
-
-            if (stripTool.StripMultiCompile(m_ScreenCoordOverride, ShaderFeatures.ScreenCoordOverride))
                 return true;
 
             return false;
@@ -931,9 +932,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
-
-            if (pipelineAsset.useScreenCoordOverride)
-                shaderFeatures |= ShaderFeatures.ScreenCoordOverride;
 
             if (pipelineAsset.supportsLightLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
