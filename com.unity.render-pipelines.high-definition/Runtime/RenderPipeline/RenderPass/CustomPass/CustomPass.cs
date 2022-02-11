@@ -230,7 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
+                        bool motionVectorBufferValid = customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering && customPass.injectionPoint != CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+                        if (motionVectorBufferValid)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
@@ -258,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
-                            customPass.currentRenderTarget.motionVectorBufferRG,
+                            motionVectorBufferValid ? customPass.currentRenderTarget.motionVectorBufferRG : ctx.defaultResources.blackTextureXR,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()
