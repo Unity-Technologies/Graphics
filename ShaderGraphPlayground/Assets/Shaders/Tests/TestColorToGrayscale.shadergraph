@@ -211,7 +211,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Color To Grayscale",
+    "m_Name": "ColorToGrayscale",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -372,7 +372,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Flow Map",
+    "m_Name": "UVFlowMap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -494,7 +494,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Triplanar",
+    "m_Name": "UVTriplanar",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -611,7 +611,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Flow Map Time",
+    "m_Name": "FlowMapTime",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1102,7 +1102,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Altitude Mask",
+    "m_Name": "AltitudeMask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1342,7 +1342,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Alpha Split",
+    "m_Name": "AlphaSplit",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1430,7 +1430,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Color To Grayscale",
+    "m_Name": "ColorToGrayscale",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1603,7 +1603,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Alpha Merge",
+    "m_Name": "AlphaMerge",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1653,7 +1653,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Lat Long",
+    "m_Name": "UVLatLong",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2310,7 +2310,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Interior Cubemap",
+    "m_Name": "UVInteriorCubemap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2397,7 +2397,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Triplanar Direction Masks",
+    "m_Name": "TriplanarDirectionMasks",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2467,7 +2467,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Sphere Map",
+    "m_Name": "UVSphereMap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2657,7 +2657,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Camera Distance Mask",
+    "m_Name": "CameraDistanceMask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -3070,7 +3070,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Face Normal",
+    "m_Name": "FaceNormal",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

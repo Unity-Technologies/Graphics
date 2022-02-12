@@ -852,7 +852,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Camera Distance Mask",
+    "m_Name": "CameraDistanceMask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

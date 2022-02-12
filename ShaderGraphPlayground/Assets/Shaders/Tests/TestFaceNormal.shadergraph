@@ -700,7 +700,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Face Normal",
+    "m_Name": "FaceNormal",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
