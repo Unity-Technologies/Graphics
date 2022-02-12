@@ -379,7 +379,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Lat Long",
+    "m_Name": "UVLatLong",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
