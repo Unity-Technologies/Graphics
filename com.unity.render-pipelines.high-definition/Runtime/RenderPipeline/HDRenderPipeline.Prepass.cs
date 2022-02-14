@@ -203,7 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderRayTracingDepthPrepass(renderGraph, cullingResults, hdCamera, result.depthBuffer);
 
-
                 ApplyCameraMipBias(hdCamera);
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
@@ -240,18 +239,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
-                if (shouldRenderMotionVectorAfterGBuffer)
-                {
-                    // See the call RenderObjectsMotionVectors() above and comment
-                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
-                }
-
-                // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
-                if (!needCameraMVBeforeResolve)
-                {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
-                }
-
                 // After Depth and Normals/roughness including decals
                 bool depthBufferModified = RenderCustomPass(renderGraph, hdCamera, colorBuffer, result, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovBuffers);
 
@@ -276,6 +263,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+
+                if (shouldRenderMotionVectorAfterGBuffer)
+                {
+                    // See the call RenderObjectsMotionVectors() above and comment
+                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
+                }
+
+                // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
+                if (!needCameraMVBeforeResolve)
+                {
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
+                }
 
                 // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
