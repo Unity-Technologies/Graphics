@@ -288,7 +288,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
-                float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, neighborAxisLookup.neighborDirection) * basisAxisNeighborHitIntegral;
+                float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
                 incomingHitRadiance += _HitRadianceCacheAxis[hitIndex] * weight;
             }
             else
@@ -306,15 +306,13 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                         float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
-                        BasisAxisMiss basisAxisMiss = ComputeBasisAxisMiss(neighborAxisLookup.neighborDirection, _Sharpness, _PropagationSharpness);
-
-                        float weight = ComputeBasisAxisMissEvaluateFromDirection(basisAxisMiss, _RayAxis[axisIndex].xyz);
+                        float weight = neighborAxisLookup.propagationWeight;
                         incomingMissRadiance += prevAxisRadiance * weight;
                     #endif
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                 else
-                {                    
+                {
                     #if defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                         // sample neighbor probe volumes to gather radiance from neighbor volumes
                         float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, i, probeVolumeLtw);
@@ -324,13 +322,13 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         SHIncomingIrradiance shIncomingIrradiance = shIncomingIrradianceProbeCurrent;
                     #endif
 
-                    float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, neighborAxisLookup.neighborDirection) * basisAxisNeighborHitIntegral;
+                    float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
 
                     // Because convolution in SH space is cheap (zonal harmonic window component-wise multiplication), we are able to
                     // more accurately capture the integral of incoming irradiance over the hit basis solid angle + weight.
                     // It's important to note that this is an approximation - because our hit axis lobe is not a zonal harmonic - it is an SG or AmbientDice lobe,
                     // but it can be approximately represented as an ZH.
-                    // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indestinguishable.
+                    // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indistinguishable.
                     float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
                     ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
                     SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);

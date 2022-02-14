@@ -285,6 +285,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Sets whether to enable or disable dynamic GI for Probe Volumes.</summary>
         [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Probe Volume Dynamic GI", positiveDependencies: new[] { ProbeVolume })]
         ProbeVolumeDynamicGI = 25,
+        /// <summary>Sets whether to enable or disable dynamic GI for Probe Volumes.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Infinite Bounces", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI })]
+        ProbeVolumeDynamicGIInfiniteBounces = 51,
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Propagation Quality", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI }, type: FrameSettingsFieldAttribute.DisplayType.Others)]
+        ProbeVolumeDynamicGIPropagationQuality = 52,
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Max Simulations Per Frame", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI }, type: FrameSettingsFieldAttribute.DisplayType.Others)]
+        ProbeVolumeDynamicGIMaxSimulationsPerFrame = 53,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
@@ -458,12 +465,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.MaskVolume,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.ProbeVolumeDynamicGI,
+                (uint)FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces,
                 (uint)FrameSettingsField.MSAA
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeDynamicGIPropagationQuality = 2,
+            probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -516,12 +526,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.MaskVolume,
                 (uint)FrameSettingsField.ProbeVolume,
+                (uint)FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeDynamicGIPropagationQuality = 2,
+            probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -569,6 +582,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
+                (uint)FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces,
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
@@ -576,6 +590,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeDynamicGIPropagationQuality = 2,
+            probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -622,6 +638,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
         internal int sssResolvedSampleBudget;
+
+        /// <summary>Stores ProbeVolumeDynamicGIPropagationQuality on disk.</summary>
+        [SerializeField]
+        public int probeVolumeDynamicGIPropagationQuality;
+        /// <summary>Stores ProbeVolumeDynamicGIMaxSimulationsPerFrame on disk.</summary>
+        [SerializeField]
+        public int probeVolumeDynamicGIMaxSimulationsPerFrame;
 
         /// <summary>
         /// The material quality level this rendering component uses.
@@ -734,6 +757,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelQualityLevel])
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIPropagationQuality])
+                overriddenFrameSettings.probeVolumeDynamicGIPropagationQuality = overridingFrameSettings.probeVolumeDynamicGIPropagationQuality;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIMaxSimulationsPerFrame])
+                overriddenFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame = overridingFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaterialQualityLevel])
                 overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
@@ -841,7 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolumeDynamicGI] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolumeDynamicGI] &= renderPipelineSettings.supportProbeVolume && renderPipelineSettings.supportProbeVolumeDynamicGI;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
             // - Performance: Realtime reflection are 99% not necessary in previews
@@ -890,17 +917,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if both settings are equal.</returns>
         public static bool operator ==(FrameSettings a, FrameSettings b)
-            => a.bitDatas                    == b.bitDatas
-            && a.sssQualityMode              == b.sssQualityMode
-            && a.sssQualityLevel             == b.sssQualityLevel
-            && a.sssCustomSampleBudget       == b.sssCustomSampleBudget
-            && a.lodBias                     == b.lodBias
-            && a.lodBiasMode                 == b.lodBiasMode
-            && a.lodBiasQualityLevel         == b.lodBiasQualityLevel
-            && a.maximumLODLevel             == b.maximumLODLevel
-            && a.maximumLODLevelMode         == b.maximumLODLevelMode
-            && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
-            && a.materialQuality             == b.materialQuality;
+            => a.bitDatas                                   == b.bitDatas
+            && a.sssQualityMode                             == b.sssQualityMode
+            && a.sssQualityLevel                            == b.sssQualityLevel
+            && a.sssCustomSampleBudget                      == b.sssCustomSampleBudget
+            && a.lodBias                                    == b.lodBias
+            && a.lodBiasMode                                == b.lodBiasMode
+            && a.lodBiasQualityLevel                        == b.lodBiasQualityLevel
+            && a.maximumLODLevel                            == b.maximumLODLevel
+            && a.maximumLODLevelMode                        == b.maximumLODLevelMode
+            && a.maximumLODLevelQualityLevel                == b.maximumLODLevelQualityLevel
+            && a.probeVolumeDynamicGIPropagationQuality     == b.probeVolumeDynamicGIPropagationQuality
+            && a.probeVolumeDynamicGIMaxSimulationsPerFrame == b.probeVolumeDynamicGIMaxSimulationsPerFrame
+            && a.materialQuality                            == b.materialQuality;
 
         /// <summary>
         /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
@@ -927,6 +956,8 @@ namespace UnityEngine.Rendering.HighDefinition
             && maximumLODLevel.Equals(((FrameSettings)obj).maximumLODLevel)
             && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode)
             && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel)
+            && probeVolumeDynamicGIPropagationQuality.Equals(((FrameSettings)obj).probeVolumeDynamicGIPropagationQuality)
+            && probeVolumeDynamicGIMaxSimulationsPerFrame.Equals(((FrameSettings)obj).probeVolumeDynamicGIMaxSimulationsPerFrame)
             && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         /// <summary>
@@ -947,6 +978,8 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + maximumLODLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
+            hashCode = hashCode * -1521134295 + probeVolumeDynamicGIPropagationQuality.GetHashCode();
+            hashCode = hashCode * -1521134295 + probeVolumeDynamicGIMaxSimulationsPerFrame.GetHashCode();
             hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
 
             return hashCode;
@@ -1032,6 +1065,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("maximumLODLevel", m_FrameSettings.maximumLODLevel),
                         new DebuggerEntry("maximumLODLevelMode", m_FrameSettings.maximumLODLevelMode),
                         new DebuggerEntry("maximumLODLevelQualityLevel", m_FrameSettings.maximumLODLevelQualityLevel),
+                        new DebuggerEntry("probeVolumeDynamicGIPropagationQuality", m_FrameSettings.probeVolumeDynamicGIPropagationQuality),
+                        new DebuggerEntry("probeVolumeDynamicGIMaxSimulationsPerFrame", m_FrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame),
                         new DebuggerEntry("materialQuality", m_FrameSettings.materialQuality),
                     }));
 

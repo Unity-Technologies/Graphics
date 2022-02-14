@@ -11,6 +11,8 @@ using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
+using static UnityEngine.Rendering.HighDefinition.ProbePropagationBasis;
+
 [assembly: InternalsVisibleTo("Unity.Entities.Hybrid.HybridComponents")]
 [assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
 
@@ -80,15 +82,15 @@ namespace UnityEngine.Rendering.HighDefinition
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
-        private float _sortedAxisSharpness = -1;
+        private int _propagationSettingsHash;
         private int _probeVolumeSimulationRequestCount = 0;
         private int _probeVolumeSimulationFrameTick = 0;
 
-        public enum PropagationAxisAmount
+        public enum PropagationQuality
         {
-            All = 0,
-            Most,
-            Least
+            Low,
+            Medium,
+            High
         }
 
         [Serializable]
@@ -164,40 +166,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ClearAllActive(bool clearAll)
         {
             _clearAllActive = clearAll;
-        }
-
-        private bool _overrideInfiniteBounce = false;
-        private float _overrideInfiniteBounceValue;
-        public void OverrideInfiniteBounce(bool setOverride, float value = 0)
-        {
-            _overrideInfiniteBounce = setOverride;
-            _overrideInfiniteBounceValue = value;
-        }
-
-        private int _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
-        public void OverrideMaxSimulationsPerFrame(bool setOverride, int maxSimulations)
-        {
-            if (setOverride)
-            {
-                _maxSimulationsPerFrame = maxSimulations;
-            }
-            else
-            {
-                _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
-            }
-        }
-
-        private PropagationAxisAmount _propagationAxisAmount = PropagationAxisAmount.All;
-        public void OverridePropagationAxisAmount(bool setOverride, PropagationAxisAmount amount)
-        {
-            if (setOverride)
-            {
-                _propagationAxisAmount = amount;
-            }
-            else
-            {
-                _propagationAxisAmount = PropagationAxisAmount.All;
-            }
         }
 
         public struct ProbeVolumeDynamicGIStats
@@ -447,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
-            _sortedAxisSharpness = -1;
+            _propagationSettingsHash = 0;
             ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookupsBuffer);
         }
 
@@ -549,7 +517,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume,
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
-            RenderTargetIdentifier probeVolumeAtlasSHRTHandle, SphericalHarmonicsL2 ambientProbe)
+            RenderTargetIdentifier probeVolumeAtlasSHRTHandle, bool infiniteBounces,
+            PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe)
         {
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
@@ -561,11 +530,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (probeVolume.HitNeighborAxisLength != 0)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
-                    DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+                    DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid);
             }
             
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
-                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, ambientProbe);
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, propagationQuality, ambientProbe);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
                 DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
 
@@ -602,7 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
+        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool infiniteBounces, bool previousRadianceCacheInvalid)
         {
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
@@ -641,12 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: replace with real one
             cmd.SetComputeTextureParam(shader, kernel, "_HierarchicalVarianceScreenSpaceShadowsTexture", TextureXR.GetWhiteTexture());
 
-            float infBounce = giSettings.infiniteBounce.value;
-            if (_overrideInfiniteBounce)
-            {
-                infBounce = _overrideInfiniteBounceValue;
-            }
-
+            float infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
             cmd.SetComputeFloatParam(shader, "_InfiniteBounce", infBounce);
             CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", infBounce > 0);
             CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
@@ -657,7 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings,
-            bool previousRadianceCacheInvalid, SphericalHarmonicsL2 ambientProbe)
+            bool previousRadianceCacheInvalid, PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe)
         {
             var kernel = _PropagationAxesShader.FindKernel("PropagateLight");
             var shader = _PropagationAxesShader;
@@ -689,20 +653,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            switch (_propagationAxisAmount)
+            int propagationAxisAmount;
+            switch (propagationQuality)
             {
-                case PropagationAxisAmount.All:
-                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
-                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
-                    break;
-                case PropagationAxisAmount.Most:
-                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", true);
-                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
-                    break;
-                case PropagationAxisAmount.Least:
+                case PropagationQuality.Low:
+                {
                     CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
                     CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", true);
+                    propagationAxisAmount = 10;
                     break;
+                }
+                case PropagationQuality.Medium:
+                {
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", true);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    propagationAxisAmount = 17;
+                    break;
+                }
+                default:
+                {
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    propagationAxisAmount = 26;
+                    break;
+                }
             }
 
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
@@ -738,7 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
 
-            PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
+            PrecomputeAxisCacheLookup(cmd, propagationAxisAmount, giSettings.basis.value, giSettings.sharpness.value,
+                giSettings.basisPropagationOverride.value, giSettings.propagationSharpness.value);
             cmd.SetComputeBufferParam(shader, kernel, "_SortedNeighborAxisLookups", _sortedNeighborAxisLookupsBuffer);
             CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
@@ -884,38 +859,166 @@ namespace UnityEngine.Rendering.HighDefinition
             return 1.0f / minDensity;
         }
 
-        // http://research.microsoft.com/en-us/um/people/johnsny/papers/sg.pdf
-        float SGEvaluateFromDirection(float sgAmplitude, float sgSharpness, Vector3 sgMean, Vector3 direction)
+        void PrecomputeAxisCacheLookup(CommandBuffer cmd, int axisAmount, ProbeVolumeDynamicGIBasis basis, float sharpness,
+            ProbeVolumeDynamicGIBasisPropagationOverride basisPropagationOverride, float propagationSharpness)
         {
-            // MADD optimized form of: a.amplitude * exp(a.sharpness * (dot(a.mean, direction) - 1.0));
-            return sgAmplitude * Mathf.Exp(Vector3.Dot(sgMean, direction) * sgSharpness - sgSharpness);
+            var settingsHash = 13;
+            settingsHash = settingsHash * 23 + basis.GetHashCode();
+            settingsHash = settingsHash * 23 + sharpness.GetHashCode();
+            settingsHash = settingsHash * 23 + basisPropagationOverride.GetHashCode();
+            settingsHash = settingsHash * 23 + propagationSharpness.GetHashCode();
+            settingsHash = settingsHash * 23 + axisAmount.GetHashCode();
+
+            if (settingsHash != _propagationSettingsHash)
+            {
+                BasisFunction basisFunction = basis switch
+                {
+                    ProbeVolumeDynamicGIBasis.BasisSphericalGaussianWindowed => BasisSGClampedCosineWindowEvaluate,
+                    ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp => BasisAmbientDiceSharpEvaluate,
+                    ProbeVolumeDynamicGIBasis.BasisAmbientDiceSofter => BasisAmbientDiceSofterEvaluate,
+                    ProbeVolumeDynamicGIBasis.BasisAmbientDiceSuperSoft => BasisAmbientDiceSuperSoftEvaluate,
+                    ProbeVolumeDynamicGIBasis.BasisAmbientDiceUltraSoft => BasisAmbientDiceUltraSoftEvaluate,
+                    _ => BasisSGEvaluate
+                };
+
+                BasisFunction basisPropagationFunction = basisPropagationOverride switch
+                {
+                    ProbeVolumeDynamicGIBasisPropagationOverride.BasisSphericalGaussian => BasisMissSGEvaluate,
+                    ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSofter => BasisAmbientDiceWrappedSofterEvaluate,
+                    ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft => BasisAmbientDiceWrappedSuperSoftEvaluate,
+                    ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedUltraSoft => BasisAmbientDiceWrappedUltraSoftEvaluate,
+                    
+                    // No override, use the setting of the hit basis for miss propagation.
+                    _ => basis switch
+                    {
+                        // For miss propagation with SG, we do not use different amplitudes per axis -
+                        // since it is more of a radial blur filter than a storage basis.
+                        // We want to blur all axes the same amount.
+                        // TODO: Discuss why. We still use different amplitudes per axis in some Ambient Dice options.
+                        ProbeVolumeDynamicGIBasis.BasisSphericalGaussian => BasisMissSGEvaluate,
+                        ProbeVolumeDynamicGIBasis.BasisSphericalGaussianWindowed => BasisMissSGClampedCosineWindowEvaluate,
+
+                        // For any Ambient Dice option just use the same exact basis as hits.
+                        _ => basisFunction
+                    }
+                };
+
+                PrecomputeAxisCacheLookup(axisAmount, basisFunction, sharpness, basisPropagationFunction, propagationSharpness);
+                
+                cmd.SetComputeBufferData(_sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups);
+
+                _propagationSettingsHash = settingsHash;
+            }
         }
 
-        unsafe void PrecomputeAxisCacheLookup(float sgSharpness)
+        unsafe void PrecomputeAxisCacheLookup(int axisAmount, BasisFunction basisFunction, float sharpness,
+            BasisFunction basisPropagationFunction, float propagationSharpness)
         {
-            if (!Mathf.Approximately(_sortedAxisSharpness, sgSharpness))
+            for (int axisIndex = 0; axisIndex < s_NeighborAxis.Length; ++axisIndex)
             {
-                for (int axisIndex = 0; axisIndex < s_NeighborAxis.Length; ++axisIndex)
+                var axis = s_NeighborAxis[axisIndex];
+                var sortedAxisStart = axisIndex * s_NeighborAxis.Length;
+                
+                for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
                 {
-                    var axis = s_NeighborAxis[axisIndex];
-                    var sortedAxisStart = axisIndex * s_NeighborAxis.Length;
-                    for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
-                    {
-                        var neighborDirection = s_NeighborAxis[neighborIndex];
-                        var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
-                        sgWeight /= neighborDirection.w * neighborDirection.w;
-                        _sortedNeighborAxisLookups[sortedAxisStart + neighborIndex] = new NeighborAxisLookup(neighborIndex, sgWeight, neighborDirection);
-                    }
+                    var neighborDirection = s_NeighborAxis[neighborIndex];
 
-                    fixed (NeighborAxisLookup* sortedAxisPtr = &_sortedNeighborAxisLookups[sortedAxisStart])
-                    {
-                        CoreUnsafeUtils.QuickSort<NeighborAxisLookup>(s_NeighborAxis.Length, sortedAxisPtr);
-                    }
+                    var hitWeight = basisFunction(axis, neighborDirection, sharpness);
+
+                    // For propagation instead of evaluated axis we use neighbor direction as the basis mean.
+                    // It's not the same because bases can have lower amplitude for corners and diagonals in some modes.
+                    var propagationWeight = basisPropagationFunction(neighborDirection, axis, propagationSharpness);
+
+                    _sortedNeighborAxisLookups[sortedAxisStart + neighborIndex] = new NeighborAxisLookup(neighborIndex, hitWeight, propagationWeight, neighborDirection);
                 }
 
-                _sortedNeighborAxisLookupsBuffer.SetData(_sortedNeighborAxisLookups);
-                _sortedAxisSharpness = sgSharpness;
+                fixed (NeighborAxisLookup* sortedAxisPtr = &_sortedNeighborAxisLookups[sortedAxisStart])
+                {
+                    CoreUnsafeUtils.QuickSort<NeighborAxisLookup>(s_NeighborAxis.Length, sortedAxisPtr);
+                }
+                
+                // Renormalize so all weights still add up to 1 when using limited axis amount.
+                var hitWeights = 0f;
+                var propagationWeights = 0f;
+                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                {
+                    hitWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
+                    propagationWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
+                }
+                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                {
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight /= hitWeights;
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeights;
+                }
             }
+        }
+
+        delegate float BasisFunction(Vector3 mean, Vector3 direction, float sgSharpness);
+
+        static float BasisSGEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            var amplitude = ComputeSGAmplitudeFromSharpnessAndAxisBasis26Fit(sgSharpness, mean);
+            return SGEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
+        }
+
+        static float BasisMissSGEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            var amplitude = ComputeSGAmplitudeFromSharpnessBasis26Fit(sgSharpness);
+            return SGEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
+        }
+
+        static float BasisSGClampedCosineWindowEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            var amplitude = ComputeSGClampedCosineWindowAmplitudeFromSharpnessAndAxisBasis26Fit(sgSharpness, mean);
+            return SGClampedCosineWindowEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
+        }
+       
+        static float BasisMissSGClampedCosineWindowEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            var amplitude = ComputeSGClampedCosineWindowAmplitudeFromSharpnessBasis26Fit(sgSharpness);
+            return SGClampedCosineWindowEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
+        }
+       
+        static float BasisAmbientDiceSharpEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceSharpAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceSofterEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceSofterAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceSuperSoftEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceSuperSoftAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceUltraSoftEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceUltraSoftAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceWrappedSofterEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceSofterAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceWrappedEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceWrappedSuperSoftEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceSuperSoftAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceWrappedEvaluateFromDirection(amplitude, sharpness, mean, direction);
+        }
+
+        static float BasisAmbientDiceWrappedUltraSoftEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
+        {
+            ComputeAmbientDiceUltraSoftAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
+            return AmbientDiceWrappedEvaluateFromDirection(amplitude, sharpness, mean, direction);
         }
 
         internal void ResetSimulationRequests()
@@ -949,14 +1052,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        unsafe internal ProbeVolumeSimulationRequest[] SortSimulationRequests(out int numSimulationRequests)
+        unsafe internal ProbeVolumeSimulationRequest[] SortSimulationRequests(int maxSimulationsPerFrameOverride, out int numSimulationRequests)
         {
             fixed (ProbeVolumeSimulationRequest* requestPtr = &_probeVolumeSimulationRequests[0])
             {
                 CoreUnsafeUtils.QuickSort<ProbeVolumeSimulationRequest>(_probeVolumeSimulationRequestCount, requestPtr);
             }
 
-            numSimulationRequests = Mathf.Min(_probeVolumeSimulationRequestCount, _maxSimulationsPerFrame);
+            int maxSimulationsPerFrame;
+            if (maxSimulationsPerFrameOverride >= 0 && maxSimulationsPerFrameOverride < MAX_SIMULATIONS_PER_FRAME)
+                maxSimulationsPerFrame = maxSimulationsPerFrameOverride;
+            else
+                maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
+            
+            numSimulationRequests = Mathf.Min(_probeVolumeSimulationRequestCount, maxSimulationsPerFrame);
 
             return _probeVolumeSimulationRequests;
         }
@@ -975,19 +1084,21 @@ namespace UnityEngine.Rendering.HighDefinition
         struct NeighborAxisLookup : IComparable<NeighborAxisLookup>
         {
             public Vector3 neighborDirection;
-            public float sgWeight;
+            public float hitWeight;
+            public float propagationWeight;
             public int index;
 
-            public NeighborAxisLookup(int index, float sgWeight, Vector3 neighborDirection)
+            public NeighborAxisLookup(int index, float hitWeight, float propagationWeight, Vector3 neighborDirection)
             {
                 this.index = index;
-                this.sgWeight = sgWeight;
+                this.hitWeight = hitWeight;
+                this.propagationWeight = propagationWeight;
                 this.neighborDirection = neighborDirection;
             }
 
             public int CompareTo(NeighborAxisLookup other)
             {
-                float diff = sgWeight - other.sgWeight;
+                float diff = propagationWeight - other.propagationWeight;
                 return diff < 0 ? 1 : diff > 0 ? -1 : 0;
             }
         }

@@ -1045,6 +1045,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ProbeDynamicGI giSettings;
             public ShaderVariablesGlobal globalCB;
             public SphericalHarmonicsL2 ambientProbe;
+            public bool infiniteBounces;
+            public int propagationQuality;
+            public int maxSimulationsPerFrameOverride;
         }
 
         class ProbeVolumeDynamicGIPassData
@@ -1076,6 +1079,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
             {
+                data.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
+                data.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
+                data.maxSimulationsPerFrameOverride = hdCamera.frameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
+
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
             }
@@ -1113,12 +1120,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // dispatch max number of simulation requests this frame
-                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(out var numSimulationRequests);
+                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(data.maxSimulationsPerFrameOverride, out var numSimulationRequests);
                     for (int i = 0; i < numSimulationRequests; ++i)
                     {
                         var simulationRequest = sortedRequests[i];
                         ProbeVolumeHandle volume = data.volumes[simulationRequest.probeVolumeIndex];
-                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas, data.ambientProbe);
+                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings,
+                            in data.globalCB, probeVolumeAtlas, data.infiniteBounces,
+                            (ProbeVolumeDynamicGI.PropagationQuality)data.propagationQuality, data.ambientProbe);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)

@@ -338,11 +338,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
             );
 
+            // Probe Volumes
+            area.AmmendInfo(FrameSettingsField.ProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
+            area.AmmendInfo(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGI, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIPropagationQuality,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.probeVolumeDynamicGIPropagationQuality.intValue, // 3 levels
+                customSetter: v  => serialized.probeVolumeDynamicGIPropagationQuality.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2
+                hasMixedValues: serialized.probeVolumeDynamicGIPropagationQuality.hasMultipleDifferentValues,
+                overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI
+            );
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIMaxSimulationsPerFrame,
+                customGetter: () => serialized.probeVolumeDynamicGIMaxSimulationsPerFrame.intValue,
+                customSetter: v  => serialized.probeVolumeDynamicGIMaxSimulationsPerFrame.intValue = Math.Max(-1, Math.Min((int)v, 128)),
+                hasMixedValues: serialized.probeVolumeDynamicGIMaxSimulationsPerFrame.hasMultipleDifferentValues,
+                overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI
+            );
+
             area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.LightLayers, overrideable: () => hdrpSettings.supportLightLayers);
-            area.AmmendInfo(FrameSettingsField.ProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
-            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGI, overrideable: () => hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ScreenSpaceShadows, overrideable: () => hdrpSettings.hdShadowInitParams.supportScreenSpaceShadows);
             area.AmmendInfo(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows, overrideable: () => hdrpSettings.hdShadowInitParams.supportHierarchicalVarianceScreenSpaceShadows);
             area.Draw(withOverride);
