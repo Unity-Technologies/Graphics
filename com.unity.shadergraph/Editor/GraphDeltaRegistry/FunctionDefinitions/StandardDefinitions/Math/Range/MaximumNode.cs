@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Range" },
             { "Name.Synonyms", "biggest, greatest, largest, most" },
             { "Tooltip", "returns the greater of A or B" },
             { "Parameters.A.Tooltip", "Input A" },

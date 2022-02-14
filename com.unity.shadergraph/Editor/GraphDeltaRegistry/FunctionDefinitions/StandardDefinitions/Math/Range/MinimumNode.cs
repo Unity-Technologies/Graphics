@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Range" },
             { "Name.Synonyms", "least, littlest, smallest, lesser" },
             { "Tooltip", "returns the smaller of A and B" },
             { "Parameters.A.Tooltip", "Input A" },

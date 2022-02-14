@@ -8,7 +8,7 @@ namespace com.unity.shadergraph.defs
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
-            "Dot Product", // Name
+            "DotProduct", // Name
             "Out = dot(A, B);",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
             new ParameterDescriptor("B", TYPE.Any, Usage.In),
@@ -17,6 +17,8 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "DisplayName", "Dot Product" },
+            { "Category", "Math, Vector" },
             { "Name.Synonyms", "" },
             { "Tooltip", "returns the dot product between two vectors" },
             { "Parameters.A.Tooltip", "Input A" },

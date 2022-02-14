@@ -8,7 +8,7 @@ namespace com.unity.shadergraph.defs
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
-            "Cross Product", // Name
+            "CrossProduct", // Name
             "Out = cross(A, B);",
             new ParameterDescriptor("A", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("B", TYPE.Vec3, Usage.In),
@@ -17,6 +17,8 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "DisplayName", "Cross Product" },
+            { "Category", "Math, Vector" },
             { "Name.Synonyms", "perpendicular" },
             { "Tooltip", "returns a vector that is perpendicular to the two input vectors" },
             { "Parameters.A.Tooltip", "Input A" },

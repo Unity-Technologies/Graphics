@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Advanced" },
             { "Name.Synonyms", "quantize" },
             { "Tooltip", "returns the quantized value of In" },
             { "Parameters.In.Tooltip", "a value to quantize" },

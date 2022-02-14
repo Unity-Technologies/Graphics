@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Vector" },
             { "Name.Synonyms", "mirror" },
             { "Tooltip", "creates a new vector mirrored around the axis of the input normal" },
             { "Parameters.In.Tooltip", "a vector to mirror" },

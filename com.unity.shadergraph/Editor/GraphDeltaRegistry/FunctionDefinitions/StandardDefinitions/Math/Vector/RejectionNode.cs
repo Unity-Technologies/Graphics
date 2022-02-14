@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Vector" },
             { "Name.Synonyms", "" },
             { "Tooltip", "returns the projection of input A onto the plane orthogonal, or perpendicular, to input B" },
             { "Parameters.A.Tooltip", "Input A" },

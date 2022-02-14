@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Basic" },
             { "Name.Synonyms", "division, /, divided by" },
             { "Tooltip", "splits A by the number of B" },
             { "Parameters.A.Tooltip", "the numerator" },

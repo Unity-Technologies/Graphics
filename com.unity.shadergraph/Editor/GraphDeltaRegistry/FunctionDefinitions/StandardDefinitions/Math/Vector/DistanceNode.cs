@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Vector" },
             { "Name.Synonyms", "length" },
             { "Tooltip", "returns the distance between A and B" },
             { "Parameters.A.Tooltip", "Input A" },

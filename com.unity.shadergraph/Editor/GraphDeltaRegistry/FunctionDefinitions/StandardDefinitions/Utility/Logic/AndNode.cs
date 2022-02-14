@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Utility, Logic" },
             { "Name.Synonyms", "&" },
             { "Tooltip", "returns true if both A and B are true" },
             { "Parameters.A.Tooltip", "Input A" },

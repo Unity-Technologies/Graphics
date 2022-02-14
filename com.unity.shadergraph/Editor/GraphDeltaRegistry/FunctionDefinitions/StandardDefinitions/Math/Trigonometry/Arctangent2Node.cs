@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Trigonometry" },
             { "Name.Synonyms", "atan2" },
             { "Tooltip", "returns the arctangent of A divided by B" },
             { "Parameters.A.Tooltip", "Input A" },
