@@ -712,12 +712,6 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
-        /// <summary>Delegate for baking state change.</summary>
-        /// <param name="newState">The new baking state.</param>
-        public delegate void BakingStateChangedDelegate(string newState);
-        /// <summary>Delegate called when the baking state is changed. </summary>
-        public BakingStateChangedDelegate onBakingStateChanged;
-
         /// <summary>The currently selected baking state.</summary>
         public string bakingState
         {
