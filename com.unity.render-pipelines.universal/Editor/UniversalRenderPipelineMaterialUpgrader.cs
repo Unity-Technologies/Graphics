@@ -648,9 +648,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class AutodeskInteractiveUpgrader : MaterialUpgrader
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
-        internal AutodeskInteractiveUpgrader(string oldShaderName)
+        public AutodeskInteractiveUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
         }
