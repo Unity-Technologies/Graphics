@@ -1,12 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ChangePreviewExpandedCommand : ModelCommand<GraphDataNodeModel>
     {

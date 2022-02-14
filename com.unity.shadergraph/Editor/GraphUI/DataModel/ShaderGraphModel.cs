@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Editor.GraphUI.Utilities;
 using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public enum PropagationDirection
     {
@@ -119,20 +114,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
         {
             return this.VariableDeclarations;
-        }
-
-        public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
-        {
-            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
-            var nodeInstanceInputPorts = nodeInstanceReader.GetInputPorts();
-            return nodeInstanceInputPorts;
-        }
-
-        public Shader GetShaderObject(GraphDataNodeModel nodeModel)
-        {
-            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
-            string sourceCode = Interpreter.GetShaderForNode(nodeInstanceReader, m_GraphHandler, RegistryInstance);
-            return ShaderUtil.CreateShaderAsset(sourceCode);
         }
 
         public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)

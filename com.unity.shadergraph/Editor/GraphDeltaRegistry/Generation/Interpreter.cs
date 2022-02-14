@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 case Registry.Types.GraphType.Primitive.Int:
                     return container.GetType($"int{lxh}");
                 case Registry.Types.GraphType.Primitive.Float:
-                    if (entry.precision == Registry.Types.GraphType.Precision.Full)
+                    if (entry.precision == Registry.Types.GraphType.Precision.Single)
                     {
                         return container.GetType($"double{lxh}");
                     }

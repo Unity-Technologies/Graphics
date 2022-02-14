@@ -7,7 +7,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// GTF constant type for System.DayOfWeek, used to create a simple custom type w/ inline editor
@@ -150,8 +150,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNodeReader(nodeName);
             nodeReader.TryGetPort(portName, out var portReader);
-            portReader.GetField(Registry.Types.GraphType.kLength, out int length);
-            return length;
+            portReader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length length);
+            return (int)length;
         }
 
         private float gc(int i)

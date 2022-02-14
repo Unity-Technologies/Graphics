@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         {
             var rt = RenderTexture.GetTemporary(4,4,0,RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var prevActive = RenderTexture.active;
-            RenderTexture.active = rt; 
+            RenderTexture.active = rt;
             Graphics.Blit(null, rt, new Material(shader));
             Texture2D output = new Texture2D(4, 4, TextureFormat.ARGB32, false);
             output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
@@ -57,9 +57,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
         static object[] testAsIsSource = new object[]
         {
-            ("Add1", new Color(1,0,0,0)), //Colors with Alpha 1 since target is opaque
-            ("Add2", new Color(0,1,0,0)),
-            ("Add3", new Color(1,1,0,0)),
+            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
+            ("Add2", new Color(0,1,0,1)),
+            ("Add3", new Color(1,1,0,1)),
         };
 
         [Test]
@@ -70,7 +70,8 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var rt = DrawToTex(shader);
             try
             {
-                Assert.AreEqual(rt.GetPixel(0, 0), input.expectedColor);
+                var pixelColor = rt.GetPixel(0,0);
+                Assert.AreEqual(pixelColor, input.expectedColor);
             }
             catch(Exception e)
             {
