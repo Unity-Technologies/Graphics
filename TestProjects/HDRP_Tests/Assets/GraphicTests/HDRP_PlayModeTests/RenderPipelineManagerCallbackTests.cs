@@ -77,7 +77,7 @@ public class RenderPipelineManagerCallbackTests
         var camera = SetupTest();
         var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.fullscreenPassthrough = true;
-        additionalData.customRender += (_, _) => {};
+        additionalData.customRender += (_, _) => { };
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
         // Fullscreen passthrough don't trigger begin/end camera rendering
