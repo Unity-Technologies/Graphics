@@ -178,8 +178,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         // - using a single cmd buffer passed down as parameter
         // - not responsible anymore to call ExecuteCommandBuffer() and cmd.Clear()
         // - commented out this call renderingData.cameraData.IsCameraProjectionMatrixFlipped() because relies on ScriptableRenderer's resources not related to RG (it causes a !insideRenderPass warning)
-        public void ExecuteRG(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        static public void ExecuteRG(ScriptableRenderContext context, CommandBuffer cmd, ref PassData data, ref RenderingData renderingData)
         {
+            if (renderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                data.m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
+                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+            else if (data.m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            {
+                data.m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
+                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             //CommandBuffer cmd = CommandBufferPool.Get();
@@ -188,7 +199,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
-                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
+                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
 
                 // scaleBias.x = flipSign
@@ -205,11 +216,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 //cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
-                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                var sortFlags = (data.m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                     sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
 
-                var filterSettings = m_FilteringSettings;
+                var filterSettings = data.m_FilteringSettings;
 
 #if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
@@ -219,12 +230,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 #endif
 
-                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+                DrawingSettings drawSettings = CreateDrawingSettings(data.m_ShaderTagIdList, ref renderingData, sortFlags);
 
                 var activeDebugHandler = GetActiveDebugHandler(renderingData);
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock,
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
                         (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
                             ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
@@ -232,7 +243,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock);
 
                     // Render objects that did not match any shader pass with error shader
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
@@ -257,6 +268,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             public RenderingData renderingData;
 
             public Camera m_Camera;
+
+            public bool m_IsOpaque;
+            public RenderStateBlock m_RenderStateBlock;
+            public FilteringSettings m_FilteringSettings;
+            public List<ShaderTagId> m_ShaderTagIdList;
         }
 
         public PassData Render(Camera camera, RenderGraph graph, TextureHandle backBuffer, TextureHandle depth, ref RenderingData renderingData)
@@ -276,12 +292,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 passData.m_Camera = camera;
 
+                passData.m_IsOpaque = m_IsOpaque;
+                passData.m_RenderStateBlock = m_RenderStateBlock;
+                passData.m_FilteringSettings = m_FilteringSettings;
+                passData.m_ShaderTagIdList = m_ShaderTagIdList;
+
                 // TODO: the rendering functions should be static to fix the lambda capture warnings
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     //context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 0,0);
-                    OnCameraSetup(context.cmd, ref data.renderingData);
-                    ExecuteRG(context.renderContext, context.cmd, ref data.renderingData);
+                    //OnCameraSetup(context.cmd, ref data.renderingData);
+                    ExecuteRG(context.renderContext, context.cmd, ref data, ref data.renderingData);
                 });
 
                 return passData;
