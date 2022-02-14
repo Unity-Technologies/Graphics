@@ -16,15 +16,16 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
     SubShader
     {
-        Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+        Tags {"RenderPipeline" = "UniversalPipeline" }
 
         Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
-        ZWrite Off
 
         Pass
         {
             Tags { "LightMode" = "Universal2D" }
+            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
+            ZWrite Off
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -120,6 +121,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Pass
         {
             Tags { "LightMode" = "NormalsRendering"}
+            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
+            ZWrite Off
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -182,7 +185,68 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Pass
         {
-            Tags { "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"}
+            Name "DepthOnly"
+            Tags {"LightMode" = "DepthOnly"}
+            Tags {"Queue" = "Geometry" "RenderType" = "Opaque"}
+
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
+            struct Attributes
+            {
+                float4 position     : POSITION;
+                float2 texcoord     : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float2 uv           : TEXCOORD0;
+                float4 positionCS   : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            float4 _MainTex_ST;
+
+            Varyings DepthOnlyVertex(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
+                output.positionCS = TransformObjectToHClip(input.position.xyz);
+                return output;
+            }
+
+            half4 DepthOnlyFragment(Varyings i) : SV_TARGET
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                half4 main = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                clip(main.a - half(1.0));
+                return 0;
+            }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Tags { "LightMode" = "UniversalForward"}
+            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
+            ZWrite Off
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

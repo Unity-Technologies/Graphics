@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
+        internal RTHandle depthAttachment { get => m_DepthTextureHandle;  }
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
@@ -77,6 +78,18 @@ namespace UnityEngine.Rendering.Universal
             return m_Renderer2DData;
         }
 
+        internal RTHandle GetDepthHandle(ref CameraData cameraData)
+        {
+            ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
+            var depthDescriptor = cameraTargetDescriptor;
+            depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+            depthDescriptor.depthBufferBits = 32;
+            if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
+                depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+            RenderingUtils.ReAllocateIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+            return m_DepthTextureHandle;
+        }
+
         void CreateRenderTextures(
             ref CameraData cameraData,
             bool forceCreateColorTexture,
@@ -99,7 +112,8 @@ namespace UnityEngine.Rendering.Universal
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
-                m_CreateDepthTexture = (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer) || createColorTexture;
+                // m_CreateDepthTexture = (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer) || createColorTexture;
+                m_CreateDepthTexture = m_UseDepthStencilBuffer;
 
                 if (m_CreateColorTexture)
                 {
@@ -110,12 +124,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (m_CreateDepthTexture)
                 {
-                    var depthDescriptor = cameraTargetDescriptor;
-                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = 32;
-                    if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
-                        depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    GetDepthHandle(ref cameraData);
                 }
 
                 colorTargetHandle = m_CreateColorTexture ? m_ColorTextureHandle : k_CameraTarget;
