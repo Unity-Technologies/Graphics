@@ -10,12 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                {
-                    rowKernel = fourierTransformCS.FindKernel("RowPassTi_512");
-                    columnKernel = fourierTransformCS.FindKernel("ColPassTi_512");
-                }
-                break;
                 case WaterSimulationResolution.High256:
                 {
                     rowKernel = fourierTransformCS.FindKernel("RowPassTi_256");
@@ -43,18 +37,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static internal float EvaluateFrequencyOffset(WaterSimulationResolution resolution)
+        {
+            switch (resolution)
+            {
+                case WaterSimulationResolution.High256:
+                    return 0.5f;
+                case WaterSimulationResolution.Medium128:
+                    return 0.25f;
+                case WaterSimulationResolution.Low64:
+                    return 0.125f;
+                default:
+                    return 0.5f;
+            }
+        }
+
         static internal int EvaluateWaterNoiseSampleOffset(WaterSimulationResolution resolution)
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                    return 0;
                 case WaterSimulationResolution.High256:
-                    return 128;
+                    return 0;
                 case WaterSimulationResolution.Medium128:
-                    return 192;
+                    return 64;
                 case WaterSimulationResolution.Low64:
-                    return 224;
+                    return 96;
                 default:
                     return 0;
             }
@@ -170,8 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                    return 3;
                 case WaterSimulationResolution.High256:
                     return 2;
                 case WaterSimulationResolution.Medium128:

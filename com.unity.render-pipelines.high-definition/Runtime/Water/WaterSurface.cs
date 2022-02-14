@@ -88,6 +88,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.")]
         public bool cpuSimulation = false;
+
+        /// <summary>
+        /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
+        /// </summary>
+        [Tooltip("Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.")]
+        public bool cpuFullResolution = true;
         #endregion
 
         #region Water Simulation
@@ -423,38 +429,69 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal bool CheckResources(int bandResolution, int bandCount, bool cpuSim)
+        internal void CheckResources(int bandResolution, int bandCount, bool cpuSimActive, out bool gpuBuffersValid, out bool cpuBuffersValid)
         {
             // By default we shouldn't need an update
-            bool needUpdate = false;
+            gpuBuffersValid = true;
+            cpuBuffersValid = true;
+
+            // If the previously existing resources are not valid, just release them
+            if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
+            {
+                simulation.ReleaseSimulationResources();
+                simulation = null;
+            }
+
+            // Will we need to enable the CPU simulation?
+            bool cpuSimulationActive = cpuSimActive && cpuSimulation;
 
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
             {
+                // In this case the CPU buffers are invalid and we need to rebuild them
+                gpuBuffersValid = false;
+                cpuBuffersValid = false;
+
+                // Create the simulation resources 
                 simulation = new WaterSimulationResources();
-                simulation.AllocateSmmulationResources(bandResolution, bandCount);
-                needUpdate = true;
-            }
-            else if (!simulation.ValidResources(bandResolution, bandCount))
-            {
-                simulation.ReleaseSimulationResources();
-                simulation.AllocateSmmulationResources(bandResolution, bandCount);
-                needUpdate = true;
+
+                // Initialize for the allocation
+                simulation.InitializeSimulationResources(bandResolution, bandCount);
+
+                // GPU buffers should always be allocated
+                simulation.AllocateSimulationBuffersGPU();
+
+                // CPU buffers should be allocated only if required
+                if (cpuSimulationActive)
+                    simulation.AllocateSimulationBuffersCPU();
             }
 
+            // One more case that we need check here is that if the CPU became required
+            if (!cpuSimulationActive && simulation.cpuBuffers != null)
+            {
+                simulation.ReleaseSimulationBuffersCPU();
+                cpuBuffersValid = false;
+            }
+
+            // One more case that we need check here is that if the CPU became required
+            if (cpuSimulationActive && simulation.cpuBuffers == null)
+            {
+                simulation.AllocateSimulationBuffersCPU();
+                cpuBuffersValid = false;
+            }
+
+            // If the spectrum defining data changed, we need to invalidate the buffers
             if (simulation.windSpeed != windSpeed
                 || simulation.windOrientation != windOrientation
                 || simulation.windAffectCurrent != windAffectCurrent
                 || simulation.patchSizes.x != waterMaxPatchSize)
             {
-                needUpdate = true;
+                gpuBuffersValid = false;
+                cpuBuffersValid = false;
             }
 
             // Re-evaluate the simulation data
             UpdateSimulationData();
-
-            // Flag that defines if the spectrum needs to regenerated
-            return !needUpdate;
         }
 
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)

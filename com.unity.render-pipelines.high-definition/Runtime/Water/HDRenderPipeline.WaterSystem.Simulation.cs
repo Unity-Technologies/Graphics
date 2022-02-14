@@ -22,10 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The water simulation will be ran at a resolution of 256x256 samples per band.
         /// </summary>
         High256 = 256,
-        /// <summary>
-        /// The water simulation will be ran at a resolution of 512x512 samples per band.
-        /// </summary>
-        Ultra512 = 512
     }
 
     internal class WaterSimulationResourcesGPU
@@ -92,32 +88,56 @@ namespace UnityEngine.Rendering.HighDefinition
         // The set of CPU Buffers used to run the simulation
         public WaterSimulationResourcesCPU cpuBuffers = null;
 
-        // Function that allocates the resources and keep track of the resolution and number of bands
-        public void AllocateSmmulationResources(int simulationRes, int nbBands)
+        public void AllocateSimulationBuffersGPU()
         {
-            // Keep track of the values that constraint the texture allocation.
-            simulationResolution = simulationRes;
-            numBands = nbBands;
-            m_Time = Time.realtimeSinceStartup;
-
-            // Allocate the buffers
             gpuBuffers = new WaterSimulationResourcesGPU();
             gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+        }
 
-            // Allocate the CPU buffers
+        public void ReleaseSimulationBuffersGPU()
+        {
+            if (gpuBuffers != null)
+            {
+                RTHandles.Release(gpuBuffers.additionalDataBuffer);
+                RTHandles.Release(gpuBuffers.displacementBuffer);
+                RTHandles.Release(gpuBuffers.phillipsSpectrumBuffer);
+                RTHandles.Release(gpuBuffers.causticsBuffer);
+                gpuBuffers = null;
+            }
+        }
+
+        public void AllocateSimulationBuffersCPU()
+        {
             cpuBuffers = new WaterSimulationResourcesCPU();
             cpuBuffers.h0BufferCPU = new NativeArray<float2>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
             cpuBuffers.displacementBufferCPU = new NativeArray<float4>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
         }
 
+        public void ReleaseSimulationBuffersCPU()
+        {
+            if (cpuBuffers != null)
+            {
+                cpuBuffers.h0BufferCPU.Dispose();
+                cpuBuffers.displacementBufferCPU.Dispose();
+                cpuBuffers = null;
+            }
+        }
+
+        // Function that allocates the resources and keep track of the resolution and number of bands
+        public void InitializeSimulationResources(int simulationRes, int nbBands)
+        {
+            // Keep track of the values that constraint the texture allocation.
+            simulationResolution = simulationRes;
+            numBands = nbBands;
+            m_Time = Time.realtimeSinceStartup;
+        }
+
         // Function that validates the resources (size and if allocated)
         public bool ValidResources(int simulationRes, int nbBands)
         {
-            return (simulationRes == simulationResolution)
-                && (nbBands == numBands)
-                && AllocatedTextures();
+            return (simulationRes == simulationResolution) && (nbBands == numBands) && AllocatedTextures();
         }
 
         // Function that makes sure that all the textures are allocated
@@ -163,22 +183,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleaseSimulationResources()
         {
             // Release the textures
-            if (gpuBuffers != null)
-            {
-                RTHandles.Release(gpuBuffers.additionalDataBuffer);
-                RTHandles.Release(gpuBuffers.displacementBuffer);
-                RTHandles.Release(gpuBuffers.phillipsSpectrumBuffer);
-                RTHandles.Release(gpuBuffers.causticsBuffer);
-                gpuBuffers = null;
-            }
-
-            // Get rid of the CPU buffers
-            if (cpuBuffers != null)
-            {
-                cpuBuffers.h0BufferCPU.Dispose();
-                cpuBuffers.displacementBufferCPU.Dispose();
-                cpuBuffers = null;
-            }
+            ReleaseSimulationBuffersGPU();
+            ReleaseSimulationBuffersCPU();
 
             // Reset the resolution data
             simulationResolution = 0;

@@ -302,22 +302,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FoamJacobianLambda = new Vector4(cb._BandPatchSize.x, cb._BandPatchSize.y, cb._BandPatchSize.z, cb._BandPatchSize.w);
 
             cb._CausticsRegionSize = cb._BandPatchSize[currentWater.causticsBand];
+
+            // Values that guarantee the simulation coherence independently of the resolution
+            cb._WaterRefSimRes = (int)WaterSimulationResolution.High256;
             cb._WaterSampleOffset = EvaluateWaterNoiseSampleOffset(m_WaterBandResolution);
+            cb._WaterSpectrumOffset = EvaluateFrequencyOffset(m_WaterBandResolution);
         }
 
-        void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
+        void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid, ShaderVariablesWater shaderVariablesWater)
         {
-            // If the function returns false, this means the resources were just created and they need to be initialized.
-            bool validResources = currentWater.CheckResources((int)m_WaterBandResolution, k_WaterHighBandCount, m_ActiveWaterSimulationCPU);
-
-            // Update the simulation time
-            currentWater.simulation.Update(Time.realtimeSinceStartup, currentWater.timeMultiplier);
-
-            // Update the constant buffer
-            UpdateShaderVariablesWater(currentWater, surfaceIndex, ref m_ShaderVariablesWater);
-
             // Bind the constant buffer
-            ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_WaterSimulationCS, HDShaderIDs._ShaderVariablesWater);
+            ConstantBuffer.Push(cmd, shaderVariablesWater, m_WaterSimulationCS, HDShaderIDs._ShaderVariablesWater);
 
             // Evaluate the band count
             int bandCount = currentWater.highBandCount ? k_WaterHighBandCount : k_WaterLowBandCount;
@@ -326,7 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int tileCount = (int)m_WaterBandResolution / 8;
 
             // Do we need to re-evaluate the Phillips spectrum?
-            if (!validResources)
+            if (true)
             {
                 // Convert the noise to the Phillips spectrum
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, HDShaderIDs._H0BufferRW, currentWater.simulation.gpuBuffers.phillipsSpectrumBuffer);
@@ -340,10 +335,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateDispersionKernel, tileCount, tileCount, bandCount);
 
             // Make sure to define properly if this is the initial frame
-            m_ShaderVariablesWater._WaterInitialFrame = !validResources ? 1 : 0;
+            shaderVariablesWater._WaterInitialFrame = gpuResourcesInvalid ? 1 : 0;
 
             // Bind the constant buffer
-            ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_FourierTransformCS, HDShaderIDs._ShaderVariablesWater);
+            ConstantBuffer.Push(cmd, shaderVariablesWater, m_FourierTransformCS, HDShaderIDs._ShaderVariablesWater);
 
             // First pass of the FFT
             cmd.SetComputeTextureParam(m_FourierTransformCS, m_RowPassTi_Kernel, HDShaderIDs._FFTRealBuffer, m_HtRs);
@@ -371,9 +366,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Make sure the mip-maps are generated
             currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.GenerateMips();
+        }
+
+        void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
+        {
+            // If the function returns false, this means the resources were just created and they need to be initialized.
+            bool validGPUResources, validCPUResources;
+            currentWater.CheckResources((int)m_WaterBandResolution, k_WaterHighBandCount, m_ActiveWaterSimulationCPU, out validGPUResources, out validCPUResources);
+
+            // Update the simulation time
+            currentWater.simulation.Update(Time.realtimeSinceStartup, currentWater.timeMultiplier);
+
+            // Update the constant buffer
+            UpdateShaderVariablesWater(currentWater, surfaceIndex, ref m_ShaderVariablesWater);
+
+            // Update the GPU simulation for the water
+            UpdateGPUWaterSimulation(cmd, currentWater, !validGPUResources, m_ShaderVariablesWater);
 
             // Here we replicate the ocean simulation on the CPU (if requested)
-            UpdateCPUWaterSimulation(currentWater, !validResources, m_ShaderVariablesWater);
+            UpdateCPUWaterSimulation(currentWater, !validCPUResources, m_ShaderVariablesWater);
         }
 
         void EvaluateWaterCaustics(CommandBuffer cmd, WaterSurface currentWater)

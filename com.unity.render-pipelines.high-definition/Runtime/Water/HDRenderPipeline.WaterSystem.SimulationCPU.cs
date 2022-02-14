@@ -611,7 +611,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 uvBand1 = uv / wsd.patchSizes.y;
 
             // Compute the displacement normalization factor
-            float4 patchSizes = wsd.patchSizes / wsd.patchSizes[0];
             float4 disNorm = EvaluateDisplacementNormalization(wsd);
 
             // Accumulate the displacement from the various layers

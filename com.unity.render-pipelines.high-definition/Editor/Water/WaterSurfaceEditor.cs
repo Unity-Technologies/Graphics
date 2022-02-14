@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
         SerializedProperty m_CPUSimulation;
+        SerializedProperty m_CPUFullResolution;
 
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
@@ -90,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
             m_CPUSimulation = o.Find(x => x.cpuSimulation);
-            
+            m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
+
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
             m_HighBandCount = o.Find(x => x.highBandCount);
@@ -160,7 +162,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_TransitionSize = o.Find(x => x.transitionSize);
             m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
-        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("CPU Simulation", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature..");
+        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("CPU Simulation", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
+        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("CPU Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
@@ -224,6 +227,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!cpuSimSupported))
                 {
                     EditorGUILayout.PropertyField(m_CPUSimulation, k_CPUSimulation);
+                    using (new IndentLevelScope())
+                    {
+                        if (m_CPUSimulation.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(m_CPUFullResolution, k_CPUFullResolution);
+                        }
+                    }
                 }
 
                 // Redirect to the asset if disabled
