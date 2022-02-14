@@ -17,7 +17,7 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 - An Area Light renders one shadow map.
 - A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
 
-HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small part of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md). 
+HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small part of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md).
 
 To enable this feature:
 
@@ -119,7 +119,7 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 
 A Light's **Update Mode** determines whether HDRP caches its shadow map:
 
-* If you set a Light's **Update Mode** to **OnEnable** or **OnDemand**, HDRP caches the Light's shadow map. 
+* If you set a Light's **Update Mode** to **OnEnable** or **OnDemand**, HDRP caches the Light's shadow map.
 * If you set a Light's **Update Mode** to **Every Frame**, HDRP doesn't cache the Light's shadow map.
 
 If you set the Light's **Update Mode** to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this:
@@ -127,7 +127,7 @@ If you set the Light's **Update Mode** to **OnDemand**, you can manually request
 1. Select a Light in your scene to view it in the Inspector window.
 2. Go to **HDAdditionalLightData** and open the More menu (&#8942;).
 3. Select **Edit Script**.
-2. Call the `RequestShadowMapRendering` function in the script. 
+2. Call the `RequestShadowMapRendering` function in the script.
 
 If the Light has multiple shadows (for example, multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 
@@ -138,10 +138,10 @@ For a Light that caches its shadows, if you disable it or set its **Update Mode*
 As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option:
 
 1. Select a Light in your Scene to view it in the Inspector window.
-2. Go to **Light** > **Shadows** and set **Update Mode** to **On Enable** 
+2. Go to **Light** > **Shadows** and set **Update Mode** to **On Enable**
 3. Enable **Update on light movement**.
 
-You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. 
+You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component.
 
 **Note**: Point lights ignore the angle differences when determining if they need to perform an update in this mode.
 
@@ -170,7 +170,7 @@ If you want to temporarily set a Light's **Update Mode** to **Every Frame** and 
 1. Select a Light in your scene to view it in the Inspector window.
 2. Go to **HDAdditionalLightData** and open the More menu (&#8942;)
 3. Select **Edit Script**
-4. Enable **preserveCachedShadow** and set it to **True**. HDRP preserves the Light's shadow map's space in its shadow atlas. 
+4. Enable **preserveCachedShadow** and set it to **True**. HDRP preserves the Light's shadow map's space in its shadow atlas.
 
 **Note**: Even if you enable **preserveCachedShadow**, if you destroy the Light, it loses its placement in the shadow atlas.
 
@@ -181,7 +181,7 @@ In HDRP it's possible to cache only some of the shadow map. To do this:
 1. Select a Light in your scene to view it in the Inspector window.
 2. Go to **Light** > **Shadows**
 3. Enable **Always draw dynamic**.
-4. Enable **Static Shadow Caster** for all Renderers to cache shadows for. 
+4. Enable **Static Shadow Caster** for all Renderers to cache shadows for.
 
 **Note**: For Directional Lights, you need to enable the feature on the HDRP asset: **Lighting** > **Shadows** > **Directional Light Shadows** > **Allow Mixed Cached Shadows**.
 
