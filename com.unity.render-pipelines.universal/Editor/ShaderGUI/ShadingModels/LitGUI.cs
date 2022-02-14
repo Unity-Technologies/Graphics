@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             AlbedoAlpha,
         }
 
-        internal static class Styles
+        public static class Styles
         {
             public static GUIContent workflowModeText = EditorGUIUtility.TrTextContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        internal static void Inputs(LitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void Inputs(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         }
 
         // setup keywords for Lit.shader
-        internal static void SetMaterialKeywords(Material material)
+        public static void SetMaterialKeywords(Material material)
         {
             SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkFlow);
 

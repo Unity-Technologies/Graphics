@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     public static class ParticleGUI
     {
-        internal enum ColorMode
+        public enum ColorMode
         {
             Multiply,
             Additive,
@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             Difference
         }
 
-        internal static class Styles
+        public static class Styles
         {
             public static GUIContent colorMode = EditorGUIUtility.TrTextContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty distortionBlend;
             public MaterialProperty distortionStrength;
 
-            internal ParticleProperties(MaterialProperty[] properties)
+            public ParticleProperties(MaterialProperty[] properties)
             {
                 // Surface Option Props
                 colorMode = BaseShaderGUI.FindProperty("_ColorMode", properties, false);
