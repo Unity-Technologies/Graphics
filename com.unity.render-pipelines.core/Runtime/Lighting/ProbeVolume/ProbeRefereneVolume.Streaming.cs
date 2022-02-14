@@ -19,14 +19,12 @@ namespace UnityEngine.Experimental.Rendering
 
         float m_TransitionTimeToLerpFactor;
         float m_BakingStateLerpFactor = 1.0f;
-        bool hasRemainingCellsToBlend = false;
         internal float stateTransitionTime
         {
             set
             {
                 m_TransitionTimeToLerpFactor = value > 0.0f ? 1.0f / value : 0.0f;
                 m_BakingStateLerpFactor = value > 0.0f ? 0.0f : 1.0f;
-                hasRemainingCellsToBlend = true;
                 // Abort any blending operation in progress
                 UnloadAllBlendingCells();
             }
@@ -51,16 +49,14 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        bool ComputeStreamingScoreForBlending(DynamicArray<BlendingCellInfo> cells, bool areUploaded)
+        void ComputeStreamingScoreForBlending(DynamicArray<BlendingCellInfo> cells, bool areUploaded)
         {
-            bool hasRemaining = !areUploaded && cells.size != 0;
             for (int i = 0; i < cells.size; ++i)
             {
                 var cellInfo = cells[i].cellInfo;
                 if (m_BakingStateLerpFactor >= 1.0f && cells[i].blendingFactor >= 1.0f) // Finished blending
                 {
                     cells[i].streamingScore = int.MaxValue;
-                    hasRemaining |= cells[i].blendingFactor < 1.0f;
                 }
                 else
                 {
@@ -71,7 +67,6 @@ namespace UnityEngine.Experimental.Rendering
                         cells[i].blendingFactor = m_BakingStateLerpFactor;
                 }
             }
-            return m_BakingStateLerpFactor < 1.0f || hasRemaining;
         }
 
         bool TryLoadCell(CellInfo cellInfo, ref int shBudget, ref int indexBudget, DynamicArray<CellInfo> loadedCells)
@@ -122,21 +117,10 @@ namespace UnityEngine.Experimental.Rendering
                 m_FrozenCameraPosition = cameraPosition;
             }
 
+            TickBlending();
+
             // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
             var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize() - Vector3.one * 0.5f;
-
-            // Compute lerping factor between states
-            float newStateLerpFactor = m_BakingStateLerpFactor;
-            if (m_BakingStateLerpFactor < 1.0f)
-            {
-                float deltaTime = Time.deltaTime;
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                    deltaTime = 0.033f;
-#endif
-
-                newStateLerpFactor = Mathf.Min(newStateLerpFactor + deltaTime * m_TransitionTimeToLerpFactor, 1.0f);
-            }
 
             ComputeCellCameraDistance(cameraPositionCellSpace, m_ToBeLoadedCells);
             ComputeCellCameraDistance(cameraPositionCellSpace, m_LoadedCells);
@@ -164,14 +148,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (budgetReached)
                 {
                     int pendingUnloadCount = 0;
-                    bool canUnloadCell = true;
-                    while (canUnloadCell && m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
+                    while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
                     {
                         if (m_LoadedCells.size - pendingUnloadCount == 0)
-                        {
-                            canUnloadCell = false;
                             break;
-                        }
 
                         var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
                         var closestUnloadedCell = m_ToBeLoadedCells[m_TempCellToLoadList.size];
@@ -192,11 +172,8 @@ namespace UnityEngine.Experimental.Rendering
 
                             TryLoadCell(closestUnloadedCell, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
                         }
-                        else
-                        {
-                            // We are in a "stable" state, all the closest cells are loaded within the budget.
-                            canUnloadCell = false;
-                        }
+                        else // We are in a "stable" state, all the closest cells are loaded within the budget.
+                            break;
                     }
 
                     if (pendingUnloadCount > 0)
@@ -224,19 +201,40 @@ namespace UnityEngine.Experimental.Rendering
             m_TempCellToUnloadList.Clear();
 
             // Handle cell streaming for blending
-            if (hasRemainingCellsToBlend)
+            if (UpdateBlendingCellStreaming())
+                m_BlendingPool.PerformBlending(m_BakingStateLerpFactor, m_Pool);
+        }
+
+        void TickBlending()
+        {
+            // Compute lerping factor between states
+            if (m_BakingStateLerpFactor < 1.0f)
             {
-                //UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(UnityEditor.SceneView.lastActiveSceneView);
-                m_BakingStateLerpFactor = newStateLerpFactor; // TODO: evaluate consequences of setting that after streaming
-                UpdateBlendingCellStreaming();
-                //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(UnityEditor.SceneView.lastActiveSceneView);
+                float deltaTime = Time.deltaTime;
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    deltaTime = 0.033f;
+#endif
+
+                m_BakingStateLerpFactor = Mathf.Min(m_BakingStateLerpFactor + deltaTime * m_TransitionTimeToLerpFactor, 1.0f);
             }
         }
 
-        void UpdateBlendingCellStreaming()
+        bool UpdateBlendingCellStreaming()
         {
-            hasRemainingCellsToBlend = ComputeStreamingScoreForBlending(m_ToBeLoadedBlendingCells, false);
-            hasRemainingCellsToBlend |= ComputeStreamingScoreForBlending(m_LoadedBlendingCells, true);
+            if (m_ToBeLoadedBlendingCells.size == 0)
+            {
+                bool unfinishedCells = false;
+                for (int i = 0; i < m_LoadedBlendingCells.size; ++i)
+                {
+                    unfinishedCells |= (m_LoadedBlendingCells[i].blendingFactor < 1.0f);
+                    m_LoadedBlendingCells[i].blendingFactor = m_BakingStateLerpFactor;
+                }
+                return unfinishedCells;
+            }
+
+            ComputeStreamingScoreForBlending(m_ToBeLoadedBlendingCells, false);
+            ComputeStreamingScoreForBlending(m_LoadedBlendingCells, true);
 
             m_ToBeLoadedBlendingCells.QuickSort();
             m_LoadedBlendingCells.QuickSort();
@@ -300,8 +298,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ToBeLoadedBlendingCells.AddRange(m_TempBlendingCellToUnloadList);
             m_TempBlendingCellToUnloadList.Clear();
 
-            // Trigger blending compute shader
-            m_BlendingPool.PerformBlending(m_BakingStateLerpFactor, m_Pool);
+            return true;
         }
     }
 }
