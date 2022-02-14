@@ -494,12 +494,12 @@ jobs:
           - performance_playmode_runtime
           - performance_playmode_editor
           - performance_build_editmode
-      - platform: XRQuest
-        api: OpenGLES3
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
+      # - platform: XRQuest
+      #   api: OpenGLES3
+      #   build_config: il2cpp
+      #   color_space: Linear
+      #   test_platforms:
+      #     - performance_playmode_runtime
       #- platform: XRQuest
       #  api: Vulkan
       #  build_config: il2cpp
