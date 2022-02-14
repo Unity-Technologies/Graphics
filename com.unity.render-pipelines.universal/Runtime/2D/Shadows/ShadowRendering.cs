@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
             if (colorChannel == 0)
                 ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
-            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
+            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel);
 
             // Render the shadows for this light
             if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel))
