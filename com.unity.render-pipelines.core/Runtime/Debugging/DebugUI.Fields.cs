@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering
             /// Set the value of the field.
             /// </summary>
             /// <param name="value">Input value.</param>
-            public void SetValue(T value)
+            public virtual void SetValue(T value)
             {
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
@@ -332,7 +332,9 @@ namespace UnityEngine.Rendering
             public int[] enumValues;
 
             internal int[] quickSeparators;
-            internal int[] indexes;
+
+            private int[]? m_Indexes;
+            internal int[] indexes => m_Indexes ??= Enumerable.Range(0, enumNames?.Length ?? 0).ToArray();
 
             /// <summary>
             /// Get the enumeration value index.
@@ -357,7 +359,6 @@ namespace UnityEngine.Rendering
                 {
                     enumNames = EnumUtility.MakeEnumNames(value);
                     enumValues = EnumUtility.MakeEnumValues(value);
-                    InitIndexes();
                     InitQuickSeparators();
                 }
             }
@@ -386,15 +387,23 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            internal void InitIndexes()
+            /// <summary>
+            /// Set the value of the field.
+            /// </summary>
+            /// <param name="value">Input value.</param>
+            public override void SetValue(int value)
             {
-                if (enumNames == null)
-                    enumNames = new GUIContent[0];
+                Assert.IsNotNull(setter);
+                var v = ValidateValue(value);
 
-                indexes = new int[enumNames.Length];
-                for (int i = 0; i < enumNames.Length; i++)
+                if (!v.Equals(getter()))
                 {
-                    indexes[i] = i;
+                    setter(v);
+
+                    // There might be cases that the value does not map the index, look for the correct index
+                    var newCurrentIndex = Array.IndexOf(enumValues, value);
+                    currentIndex = newCurrentIndex;
+                    onValueChanged?.Invoke(this, v);
                 }
             }
         }

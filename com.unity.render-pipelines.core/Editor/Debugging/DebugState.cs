@@ -155,14 +155,11 @@ namespace UnityEditor.Rendering
 
         void UpdateValue()
         {
-            if (m_EnumField != null)
-            {
-                base.SetValue(value, m_EnumField);
-                // There might be cases that the value does not map the index, look for the correct index
-                var newCurrentIndex = Array.IndexOf(m_EnumField.enumValues, value);
-                if (m_EnumField.currentIndex != newCurrentIndex)
-                    m_EnumField.currentIndex = newCurrentIndex;
-            }
+            if (m_EnumField == null)
+                return;
+            
+            base.SetValue(value, m_EnumField);
+            m_EnumField.SetValue(value);
         }
 
         /// <summary>

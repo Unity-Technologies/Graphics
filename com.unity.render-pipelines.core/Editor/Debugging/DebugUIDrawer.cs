@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering
         protected T Cast<T>(object o)
             where T : class
         {
-            if (o == null) throw new ArgumentNullException();
+            if (o == null) return null;
 
             if (o is T casted)
                 return casted;
