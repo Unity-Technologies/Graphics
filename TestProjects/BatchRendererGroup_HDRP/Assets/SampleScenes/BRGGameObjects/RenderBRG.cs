@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 //#define ENABLE_PICKING
 #endif
+//#define ENABLE_ERROR_LOADING_MATERIALS
 
 using System;
 using System.Collections.Generic;
@@ -430,6 +431,7 @@ public unsafe class RenderBRG : MonoBehaviour
         m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
 #endif
 
+#if ENABLE_ERROR_LOADING_MATERIALS
         if (SetFallbackMaterialsOnStart)
         {
             m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialError");
@@ -438,6 +440,7 @@ public unsafe class RenderBRG : MonoBehaviour
             m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialLoading");
             m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
         }
+#endif
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
