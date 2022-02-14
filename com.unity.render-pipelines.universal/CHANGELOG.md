@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added support for FidelityFX Super Resolution 1.0 upscaling filter.
 - Added Downscale and Max Iterations options for Bloom
+- Added Screen Coordinates Override feature. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing depth for Depth of Field in an overlay camera. [case 1365623](https://issuetracker.unity3d.com/product/unity/issues/guid/1365623/)
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed Screen Space Decal to work with fog. [1383719](https://issuetracker.unity3d.com/issues/decal-is-not-displayed-when-fog-is-enabled)
+- Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
 
 ## [14.0.0] - 2021-11-17
 
@@ -42,6 +44,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
 - Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Reflection Probe sample showing how Probe Blending and box projection works.
 
 ### Fixed
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
