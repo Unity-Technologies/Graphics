@@ -299,7 +299,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2110_IndirectController.unity
     guid: 443ac92abc2bd6a4d94e9e673dbcc29f
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2120_APV_Baking.unity
     guid: fc784678bf952de4482e78aea61ccdc8
   - enabled: 1
