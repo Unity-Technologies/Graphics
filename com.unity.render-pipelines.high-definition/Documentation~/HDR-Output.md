@@ -91,12 +91,12 @@ The triangles in this debug view indicate which parts of two specific color gamu
 
 #### Gamut Clip
 
-![HDR-Output-GamutClip](Images\HDR-Output-GamutClip.png)
+![HDR-Output-GamutClip](Images/HDR-Output-GamutClip.png)
 
 This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen outside of the Rec709 color gamut are red, and areas with values within the Rec709 gamut are green.
 
 #### Values exceeding Paper White
 
-![HDR-Output-OverPaperWhite](Images\HDR-Output-OverPaperWhite.png)
+![HDR-Output-OverPaperWhite](Images/HDR-Output-OverPaperWhite.png)
 
 This debug view uses a color coded gradient to indicate parts of the Scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.

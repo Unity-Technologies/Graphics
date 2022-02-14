@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX.UI
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
     {
         private VFXNodeController m_SourceNode;
+        private int m_expressionHashCode;
 
         public VFXNodeController sourceNode
         {
@@ -122,6 +124,22 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXDataAnchorController.ModelChanged:UpdateInfos");
             UpdateInfos();
             Profiler.EndSample();
+
+            // This method is called every time a value change in the expression which is way to often
+            // Currently we only want to refresh the gizmo when the expression change (especially when space or "can evaluate" change)
+            // That's why we cache the expression hash code
+            if (m_GizmoContext != null)
+            {
+                HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
+                model.GetExpressions(expressions);
+
+                var currentExpressionHashCode = UIUtilities.GetHashCode(expressions);
+                if (currentExpressionHashCode != m_expressionHashCode)
+                {
+                    RefreshGizmo();
+                    m_expressionHashCode = currentExpressionHashCode;
+                }
+            }
 
             sourceNode.DataEdgesMightHaveChanged();
 
@@ -489,10 +507,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (!VFXGizmoUtility.HasGizmo(portType))
                     return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
             }
         }
@@ -503,10 +518,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (!VFXGizmoUtility.HasGizmo(portType))
                     return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 return m_GizmoContext.IsIndeterminate();
             }
         }
@@ -517,11 +529,16 @@ namespace UnityEditor.VFX.UI
         {
             if (VFXGizmoUtility.HasGizmo(portType))
             {
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 VFXGizmoUtility.Draw(m_GizmoContext, component);
+            }
+        }
+
+        void CreateGizmoContextIfNeeded()
+        {
+            if (m_GizmoContext == null)
+            {
+                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
         }
 
@@ -739,7 +756,7 @@ namespace UnityEditor.VFX.UI
                         var newValue = o[o.Count - 1];
                         var target = o[o.Count - 2];
 
-                        if (field.FieldType != newValue.GetType())
+                        if (newValue != null && field.FieldType != newValue.GetType())
                         {
                             object convertedValue;
                             if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
