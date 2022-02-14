@@ -26,14 +26,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.AutoEnumField()
             {
                 nameAndTooltip = Strings.LightingDebugMode,
-                autoEnum = typeof(DebugLightingMode),
-                getter = () => (int)data.lightingDebugMode,
+                enumType = typeof(DebugLightingMode),
+                getter = () => data.lightingDebugMode,
                 setter = (value) => data.lightingDebugMode = (DebugLightingMode)value,
-                getIndex = () => (int)data.lightingDebugMode,
-                setIndex = (value) => data.lightingDebugMode = (DebugLightingMode)value
             };
 
             internal static DebugUI.Widget CreateLightingFeatures(DebugDisplaySettingsLighting data) => new DebugUI.BitField

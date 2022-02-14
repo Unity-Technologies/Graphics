@@ -158,14 +158,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.MapOverlays,
-                autoEnum = typeof(DebugFullScreenMode),
-                getter = () => (int)data.fullScreenDebugMode,
+                enumType = typeof(DebugFullScreenMode),
+                getter = () => data.fullScreenDebugMode,
                 setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value,
-                getIndex = () => (int)data.fullScreenDebugMode,
-                setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
 
             internal static DebugUI.Widget CreateMapOverlaySize(DebugDisplaySettingsRendering data) => new DebugUI.Container()
@@ -184,14 +182,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.AdditionalWireframeModes,
-                autoEnum = typeof(DebugWireframeMode),
-                getter = () => (int)data.wireframeMode,
+                enumType = typeof(DebugWireframeMode),
+                getter = () => data.wireframeMode,
                 setter = (value) => data.wireframeMode = (DebugWireframeMode)value,
-                getIndex = () => (int)data.wireframeMode,
-                setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
@@ -217,14 +213,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreateOverdrawMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField()
+            internal static DebugUI.Widget CreateOverdrawMode(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.OverdrawMode,
-                autoEnum = typeof(DebugOverdrawMode),
-                getter = () => (int)data.overdrawMode,
+                enumType = typeof(DebugOverdrawMode),
+                getter = () => data.overdrawMode,
                 setter = (value) => data.overdrawMode = (DebugOverdrawMode)value,
-                getIndex = () => (int)data.overdrawMode,
-                setIndex = (value) => data.overdrawMode = (DebugOverdrawMode)value
             };
 
             internal static DebugUI.Widget CreateMaxOverdrawCount(DebugDisplaySettingsRendering data) => new DebugUI.Container()
@@ -244,14 +238,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.PostProcessing,
-                autoEnum = typeof(DebugPostProcessingMode),
-                getter = () => (int)data.postProcessingDebugMode,
+                enumType = typeof(DebugPostProcessingMode),
+                getter = () => data.postProcessingDebugMode,
                 setter = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value,
-                getIndex = () => (int)data.postProcessingDebugMode,
-                setIndex = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value
             };
 
             internal static DebugUI.Widget CreateMSAA(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
@@ -268,25 +260,21 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => data.enableHDR = value
             };
 
-            internal static DebugUI.Widget CreatePixelValidationMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePixelValidationMode(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField()
             {
                 nameAndTooltip = Strings.PixelValidationMode,
-                autoEnum = typeof(DebugValidationMode),
-                getter = () => (int)data.validationMode,
+                enumType = typeof(DebugValidationMode),
+                getter = () => data.validationMode,
                 setter = (value) => data.validationMode = (DebugValidationMode)value,
-                getIndex = () => (int)data.validationMode,
-                setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
-            internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.Channels,
-                autoEnum = typeof(PixelValidationChannels),
-                getter = () => (int)data.validationChannels,
+                enumType = typeof(PixelValidationChannels),
+                getter = () => data.validationChannels,
                 setter = (value) => data.validationChannels = (PixelValidationChannels)value,
-                getIndex = () => (int)data.validationChannels,
-                setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };
 
             internal static DebugUI.Widget CreatePixelValueRangeMin(DebugDisplaySettingsRendering data) => new DebugUI.FloatField

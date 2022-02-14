@@ -257,45 +257,37 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateMaterialOverride(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMaterialOverride(DebugDisplaySettingsMaterial data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.MaterialOverride,
-                autoEnum = typeof(DebugMaterialMode),
-                getter = () => (int)data.materialDebugMode,
+                enumType = typeof(DebugMaterialMode),
+                getter = () => data.materialDebugMode,
                 setter = (value) => data.materialDebugMode = (DebugMaterialMode)value,
-                getIndex = () => (int)data.materialDebugMode,
-                setIndex = (value) => data.materialDebugMode = (DebugMaterialMode)value
             };
 
-            internal static DebugUI.Widget CreateVertexAttribute(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateVertexAttribute(DebugDisplaySettingsMaterial data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.VertexAttribute,
-                autoEnum = typeof(DebugVertexAttributeMode),
-                getter = () => (int)data.vertexAttributeDebugMode,
+                enumType = typeof(DebugVertexAttributeMode),
+                getter = () => data.vertexAttributeDebugMode,
                 setter = (value) => data.vertexAttributeDebugMode = (DebugVertexAttributeMode)value,
-                getIndex = () => (int)data.vertexAttributeDebugMode,
-                setIndex = (value) => data.vertexAttributeDebugMode = (DebugVertexAttributeMode)value
             };
 
-            internal static DebugUI.Widget CreateMaterialValidationMode(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMaterialValidationMode(DebugDisplaySettingsMaterial data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.MaterialValidationMode,
-                autoEnum = typeof(DebugMaterialValidationMode),
-                getter = () => (int)data.materialValidationMode,
+                enumType = typeof(DebugMaterialValidationMode),
+                getter = () => data.materialValidationMode,
                 setter = (value) => data.materialValidationMode = (DebugMaterialValidationMode)value,
-                getIndex = () => (int)data.materialValidationMode,
-                setIndex = (value) => data.materialValidationMode = (DebugMaterialValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
-            internal static DebugUI.Widget CreateAlbedoPreset(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateAlbedoPreset(DebugDisplaySettingsMaterial data) => new DebugUI.AutoEnumField
             {
                 nameAndTooltip = Strings.ValidationPreset,
-                autoEnum = typeof(AlbedoDebugValidationPreset),
-                getter = () => (int)data.albedoValidationPreset,
+                enumType = typeof(AlbedoDebugValidationPreset),
+                getter = () => data.albedoValidationPreset,
                 setter = (value) => data.albedoValidationPreset = (AlbedoDebugValidationPreset)value,
-                getIndex = () => (int)data.albedoValidationPreset,
-                setIndex = (value) => data.albedoValidationPreset = (AlbedoDebugValidationPreset)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 

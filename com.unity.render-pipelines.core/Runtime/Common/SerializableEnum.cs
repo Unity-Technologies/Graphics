@@ -9,28 +9,14 @@ namespace UnityEngine.Rendering
     [Serializable]
     public class SerializableEnum
     {
-        [SerializeField]
-        private string m_EnumValueAsString;
+        [SerializeField] private string m_EnumValueAsString;
+        [SerializeField] private string m_EnumTypeAsString;
 
-        [SerializeField]
-        private Type m_EnumType;
-
-        /// <summary>
-        /// Value of enum
-        /// </summary>
+        /// <summary> Value as enum </summary>
         public Enum value
         {
-            get
-            {
-                if (Enum.TryParse(m_EnumType, m_EnumValueAsString, out object result))
-                    return (Enum)result;
-
-                return default(Enum);
-            }
-            set
-            {
-                m_EnumValueAsString = value.ToString();
-            }
+            get => Enum.TryParse(Type.GetType(m_EnumTypeAsString), m_EnumValueAsString, out object result) ? (Enum)result : default(Enum);
+            set => m_EnumValueAsString = value.ToString();
         }
 
         /// <summary>
@@ -39,7 +25,7 @@ namespace UnityEngine.Rendering
         /// <param name="enumType">The underliying type of the enum</param>
         public SerializableEnum(Type enumType)
         {
-            m_EnumType = enumType;
+            m_EnumTypeAsString = enumType.AssemblyQualifiedName;
             m_EnumValueAsString = Enum.GetNames(enumType)[0];
         }
     }

@@ -491,6 +491,18 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for Bitfield Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.AutoEnumField))]
+    public sealed class DebugUIDrawerAutoEnumField : DebugUIFieldDrawer<Enum, DebugUI.AutoEnumField, DebugStateFlags>
+    {
+        protected override Enum DoGUI(Rect rect, GUIContent label, DebugUI.AutoEnumField field, DebugStateFlags state)
+        {
+            return EditorGUI.EnumPopup(rect, label, field.GetValue());
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for Foldout Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Foldout))]

@@ -276,6 +276,48 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Auto enum field
+        /// </summary>
+        public class AutoEnumField : Field<Enum>
+        {
+            /// <summary>
+            /// List of names of the enumerator entries.
+            /// </summary>
+            public GUIContent[] enumNames { get; private set; }
+            /// <summary>
+            /// List of values of the enumerator entries.
+            /// </summary>
+            public int[] enumValues { get; private set; }
+
+            /// <summary>
+            /// List of enums to do quick lookups
+            /// </summary>
+            public Enum[] enums { get; private set; }
+
+            Type m_EnumType;
+
+            /// <summary>
+            /// Generates values and names automatically based on the provided type.
+            /// </summary>
+            public Type enumType
+            {
+                get => m_EnumType;
+                set
+                {
+                    m_EnumType = value;
+                    enums = Enum.GetValues(m_EnumType).Cast<Enum>().ToArray();
+                    enumNames = EnumUtility.MakeEnumNames(value);
+                    enumValues = EnumUtility.MakeEnumValues(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Bitfield enumeration field.
+        /// </summary>
+        public class BitField : AutoEnumField { }
+
+        /// <summary>
         /// Enumerator field.
         /// </summary>
         public class EnumField : Field<int>
@@ -392,37 +434,6 @@ namespace UnityEngine.Rendering
                 Assert.IsTrue(historyIndex >= 0 && historyIndex < historyIndexGetter.Length, "out of range historyIndex");
                 Assert.IsNotNull(historyIndexGetter[historyIndex]);
                 return historyIndexGetter[historyIndex]();
-            }
-        }
-
-        /// <summary>
-        /// Bitfield enumeration field.
-        /// </summary>
-        public class BitField : Field<Enum>
-        {
-            /// <summary>
-            /// List of names of the enumerator entries.
-            /// </summary>
-            public GUIContent[] enumNames { get; private set; }
-            /// <summary>
-            /// List of values of the enumerator entries.
-            /// </summary>
-            public int[] enumValues { get; private set; }
-
-            Type m_EnumType;
-
-            /// <summary>
-            /// Generates bitfield values and names automatically based on the provided type.
-            /// </summary>
-            public Type enumType
-            {
-                get => m_EnumType;
-                set
-                {
-                    m_EnumType = value;
-                    enumNames = EnumUtility.MakeEnumNames(value);
-                    enumValues = EnumUtility.MakeEnumValues(value);
-                }
             }
         }
 

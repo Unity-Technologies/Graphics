@@ -187,20 +187,48 @@ namespace UnityEditor.Rendering
             DestroyWidgetStates();
         }
 
-        public void DestroyWidgetStates()
+        void DestroyState(DebugState s)
+        {
+            Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
+            DestroyImmediate(s);
+        }
+
+        public void DestroyWidgetStates(bool force = true)
         {
             if (m_WidgetStates == null)
                 return;
 
-            // Clear all the states from memory
-            foreach (var state in m_WidgetStates)
+            if (force)
             {
-                var s = state.Value;
-                Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
-                DestroyImmediate(s);
+                // Clear all the states from memory
+
+                foreach (var s in m_WidgetStates.Values)
+                {
+                    DestroyState(s);
+                }
+
+                m_WidgetStates.Clear();
+            }
+            else
+            {
+                List<string> queryPathsToDelete = new List<string>();
+
+                foreach (var (queryPath, state) in m_WidgetStates)
+                {
+                    var widget = DebugManager.instance.GetItem(queryPath);
+                    if (widget == null || !s_WidgetStateMap.TryGetValue(widget.GetType(), out var stateType) ||
+                        stateType != state.GetType())
+                    {
+                        queryPathsToDelete.Add(queryPath);
+                        DestroyState(state);
+                    }
+                }
+
+                foreach (var queryPath in queryPathsToDelete)
+                    m_WidgetStates.Remove(queryPath);
+
             }
 
-            m_WidgetStates.Clear();
         }
 
         bool AreWidgetStatesValid()
@@ -325,7 +353,8 @@ namespace UnityEditor.Rendering
             // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
             if (DebugManager.instance.refreshEditorRequested)
             {
-                DestroyWidgetStates();
+                m_IsDirty = true;
+                DestroyWidgetStates(false);
                 DebugManager.instance.refreshEditorRequested = false;
             }
 

@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Flags Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.BitField))]
+    [Serializable, DebugState(typeof(DebugUI.AutoEnumField), typeof(DebugUI.BitField))]
     public sealed class DebugStateFlags : DebugState<Enum>
     {
         [SerializeField]
@@ -214,7 +214,17 @@ namespace UnityEditor.Rendering
         public override void SetValue(object value, DebugUI.IValueField field)
         {
             if (m_SerializableEnum == null)
-                m_SerializableEnum = new SerializableEnum((field as DebugUI.BitField).enumType);
+            {
+                Type enumType = field switch
+                {
+                    DebugUI.BitField bitField => bitField.enumType,
+                    DebugUI.AutoEnumField autoEnumField => autoEnumField.enumType,
+                    _ => null
+                };
+
+                m_SerializableEnum = new SerializableEnum(enumType);
+            }
+
             base.SetValue(value, field);
         }
     }

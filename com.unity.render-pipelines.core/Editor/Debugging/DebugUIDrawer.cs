@@ -35,15 +35,11 @@ namespace UnityEditor.Rendering
         protected T Cast<T>(object o)
             where T : class
         {
-            var casted = o as T;
+            if (o is T casted)
+                return casted;
 
-            if (casted == null)
-            {
-                string typeName = o == null ? "null" : o.GetType().ToString();
-                throw new InvalidOperationException("Can't cast " + typeName + " to " + typeof(T));
-            }
-
-            return casted;
+            string typeName = o == null ? "null" : o.GetType().ToString();
+            throw new InvalidCastException("Can't cast " + typeName + " to " + typeof(T));
         }
 
         /// <summary>
@@ -108,6 +104,70 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.labelWidth = fullWidth ? rect.width : rect.width / 2f;
 
             return rect;
+        }
+    }
+
+    /// <summary>
+    /// Debug Item Field Drawer
+    /// </summary>
+    public abstract class DebugUIFieldDrawer<TValue, TField, TState> : DebugUIDrawer
+        where TField : DebugUI.Field<TValue>
+        where TState : DebugState
+    {
+        private TValue value { get; set; }
+
+        /// <summary>
+        /// Implement this to execute processing before UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void Begin(DebugUI.Widget widget, DebugState state)
+        {
+            EditorGUI.BeginChangeCheck();
+        }
+
+        /// <summary>
+        /// Implement this to execute UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>Returns the state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            value = DoGUI(
+                PrepareControlRect(),
+                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                Cast<TField>(widget),
+                Cast<TState>(state)
+            );
+
+            return true;
+        }
+
+        /// <summary>
+        /// Does the field of the given type
+        /// </summary>
+        /// <param name="rect">The rect to draw the field</param>
+        /// <param name="label">The label for the field</param>
+        /// <param name="field">The field</param>
+        /// <param name="state">The state</param>
+        /// <returns>The current value from the UI</returns>
+        protected abstract TValue DoGUI(Rect rect, GUIContent label, TField field, TState state);
+
+        /// <summary>
+        /// Implement this to execute processing after UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void End(DebugUI.Widget widget, DebugState state)
+        {
+            if (EditorGUI.EndChangeCheck())
+            {
+                var w = Cast<TField>(widget);
+                var s = Cast<TState>(state);
+                Apply(w, s, value);
+            }
+
         }
     }
 }
