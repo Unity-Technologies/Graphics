@@ -4,7 +4,7 @@
 
 [Reflection Probes](Reflection-Probe.md) and [Planar Reflection Probes](Planar-Reflection-Probe.md) provide indirect specular lighting.
 
-A Reflection Probe captures all its surroundings whereas a Planar Reflection Probe only captures one direction.
+A Reflection Probe captures its surroundings whereas a Planar Reflection Probe only captures one direction.
 
 For more information on probes and how they work, see [Reflection Probes](Reflection-Probes-Intro.md).
 
