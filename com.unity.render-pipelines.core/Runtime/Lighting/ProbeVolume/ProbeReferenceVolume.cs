@@ -391,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering
             public NativeArray<Brick> bricks { get; internal set; }
             public NativeArray<uint> validity { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
-            public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view. 
+            public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view.
             public NativeArray<Vector3> offsetVectors { get; internal set; }
 
             // Per state data
