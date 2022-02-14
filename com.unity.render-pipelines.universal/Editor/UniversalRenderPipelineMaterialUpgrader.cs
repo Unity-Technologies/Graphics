@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
             Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
         }
 
-        internal static void UpdateStandardMaterialKeywords(Material material)
+        public static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -406,7 +406,7 @@ namespace UnityEditor.Rendering.Universal
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
-        internal static void UpdateStandardSpecularMaterialKeywords(Material material)
+        public static void UpdateStandardSpecularMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -463,7 +463,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        internal StandardUpgrader(string oldShaderName)
+        public StandardUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
