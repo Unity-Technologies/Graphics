@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering
         /// <param name="value">Input value.</param>
         protected void Apply(DebugUI.IValueField widget, DebugState state, object value)
         {
-            Undo.RegisterCompleteObjectUndo(state, "Debug Property Change");
+            Undo.RegisterCompleteObjectUndo(state, $"Debug Property '{state.queryPath}' Change");
             state.SetValue(value, widget);
             widget.SetValue(value);
             EditorUtility.SetDirty(state);

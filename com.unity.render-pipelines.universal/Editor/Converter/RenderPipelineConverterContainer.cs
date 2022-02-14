@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
     /// A class to contain converters. This is for a common set of converters.

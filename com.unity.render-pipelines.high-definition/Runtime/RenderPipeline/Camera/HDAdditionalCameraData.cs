@@ -38,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+#pragma warning disable 0414
+        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+#pragma warning restore 0414
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
@@ -146,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             val.curvature = new Vector2(2f, 11f);
             val.barrelClipping = 0.25f;
             val.anamorphism = 0;
+            val.m_GateFit = Camera.GateFitMode.Vertical;
 
             return val;
         }
@@ -359,6 +363,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
+
+        /// <summary>Screen size used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenSizeOverride;
+
+        /// <summary>Transform used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenCoordScaleBias;
 
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
@@ -632,6 +642,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.materialMipBias = materialMipBias;
 
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
+
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
             //data.m_CameraRegisterName = m_CameraRegisterName;
@@ -668,7 +681,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
-                    HDVolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -682,7 +694,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    HDVolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;

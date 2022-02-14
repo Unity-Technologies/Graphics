@@ -1,9 +1,11 @@
 using System.Linq;
+using System.Collections.Generic;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using System.Collections.Generic;
+using UnityEditor.Experimental;
 
 using PositionType = UnityEngine.UIElements.Position;
 
@@ -12,6 +14,8 @@ namespace UnityEditor.VFX.UI
     class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
         VFXViewController m_Controller;
+        bool m_CanEdit;
+
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
@@ -53,10 +57,10 @@ namespace UnityEditor.VFX.UI
             m_Categories.Clear();
         }
 
-        VFXView m_View;
-
-        Button m_AddButton;
-        VisualElement m_LockedElement;
+        readonly VFXView m_View;
+        readonly Button m_AddButton;
+        readonly VisualElement m_ContentContainer;
+        Image m_VCSStatusImage;
 
         public VFXBlackboard(VFXView view)
         {
@@ -82,7 +86,11 @@ namespace UnityEditor.VFX.UI
 
             focusable = true;
 
+            m_ContentContainer = this.Q<VisualElement>("contentContainer");
+
             m_AddButton = this.Q<Button>(name: "addButton");
+            m_AddButton.style.width = 27;
+            m_AddButton.style.height = 27;
 
             m_DragIndicator = new VisualElement();
 
@@ -112,25 +120,6 @@ namespace UnityEditor.VFX.UI
             if (s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
 
-            m_LockedElement = new Label("Asset is locked");
-            m_LockedElement.style.color = Color.white * 0.75f;
-            m_LockedElement.style.position = PositionType.Absolute;
-            m_LockedElement.style.left = 0f;
-            m_LockedElement.style.right = new StyleLength(0f);
-            m_LockedElement.style.top = new StyleLength(0f);
-            m_LockedElement.style.bottom = new StyleLength(0f);
-            m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
-            var fontSize = 54f;
-            m_LockedElement.style.fontSize = new StyleLength(fontSize);
-            m_LockedElement.style.paddingBottom = fontSize / 2f;
-            m_LockedElement.style.paddingTop = fontSize / 2f;
-            m_LockedElement.style.display = DisplayStyle.None;
-            m_LockedElement.focusable = true;
-            m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
-            Add(m_LockedElement);
-
-            m_AddButton.SetEnabled(false);
-
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
 
             // Workaround: output category is in a scrollview which can lead to get the Add button invisible (moved out of the visible viewport of the scrollviewer)
@@ -144,14 +133,50 @@ namespace UnityEditor.VFX.UI
 
         public void LockUI()
         {
-            m_LockedElement.style.display = DisplayStyle.Flex;
-            m_AddButton.SetEnabled(false);
+            CreateVCSImageIfNeeded();
+
+            m_VCSStatusImage.style.display = DisplayStyle.Flex;
+            m_ContentContainer.SetEnabled(false);
+            m_CanEdit = false;
+            m_AddButton.tooltip = "Check out to modify";
+            UpdateSubtitle();
         }
 
         public void UnlockUI()
         {
-            m_LockedElement.style.display = DisplayStyle.None;
-            m_AddButton.SetEnabled(m_Controller != null);
+            if (m_VCSStatusImage != null)
+            {
+                m_VCSStatusImage.style.display = DisplayStyle.None;
+            }
+
+            m_ContentContainer.SetEnabled(true);
+            m_CanEdit = true;
+            m_AddButton.tooltip = "Click to add a property";
+            UpdateSubtitle();
+        }
+
+        void CreateVCSImageIfNeeded()
+        {
+            if (m_VCSStatusImage == null)
+            {
+                m_VCSStatusImage = new Image();
+                m_VCSStatusImage.style.position = PositionType.Absolute;
+                m_VCSStatusImage.style.left = 12;
+                m_VCSStatusImage.style.top = 12;
+                m_VCSStatusImage.style.width = 14;
+                m_VCSStatusImage.style.height = 14;
+                m_VCSStatusImage.style.alignSelf = Align.Center;
+                m_VCSStatusImage.image = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "VersionControl/P4_OutOfSync.png");
+
+                m_AddButton.Add(m_VCSStatusImage);
+            }
+        }
+
+        void UpdateSubtitle()
+        {
+            m_PathLabel.text = m_CanEdit
+                ? (controller != null && controller.graph != null ? controller.graph.categoryPath : null)
+                : "Check out to modify";
         }
 
         public VFXBlackboardCategory AddCategory(string initialName)
@@ -169,9 +194,9 @@ namespace UnityEditor.VFX.UI
         DropdownMenuAction.Status GetContextualMenuStatus()
         {
             //Use m_AddButton state which relies on locked & controller status
-            if (m_AddButton.enabledSelf)
-                return DropdownMenuAction.Status.Normal;
-            return DropdownMenuAction.Status.Disabled;
+            return m_AddButton.enabledSelf && m_CanEdit
+                ? DropdownMenuAction.Status.Normal
+                : DropdownMenuAction.Status.Disabled;
         }
 
         void OnOutputCategoryScrollChanged(ScrollView scrollView)
@@ -224,7 +249,7 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseDownSubTitle(MouseDownEvent evt)
         {
-            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse && m_CanEdit && controller != null)
             {
                 StartEditingPath();
                 evt.PreventDefault();
@@ -489,6 +514,11 @@ namespace UnityEditor.VFX.UI
 
         void OnAddItem(Blackboard bb)
         {
+            if (!m_CanEdit)
+            {
+                return;
+            }
+
             GenericMenu menu = new GenericMenu();
 
             if (!(controller.model.subgraph is VisualEffectSubgraphOperator))
@@ -614,6 +644,12 @@ namespace UnityEditor.VFX.UI
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
+            if (e.change == VFXViewController.Change.destroy)
+            {
+                title = null;
+                return;
+            }
+
             if (e.controller != controller && !(e.controller is VFXParameterController)) //optim : reorder only is only the order has changed
                 return;
 
@@ -702,7 +738,7 @@ namespace UnityEditor.VFX.UI
                 m_OutputCategory.SyncParameters(outputControllers);
             }
 
-            m_PathLabel.text = controller.graph.categoryPath;
+            UpdateSubtitle();
         }
 
         public override void UpdatePresenterPosition()

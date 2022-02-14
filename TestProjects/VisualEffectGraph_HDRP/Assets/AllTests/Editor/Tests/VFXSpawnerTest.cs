@@ -307,6 +307,50 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        [UnityTest]
+        public IEnumerator Send_Event_And_Reinit_Expecting_Clear()
+        {
+            yield return new EnterPlayMode();
+
+            var eventName = "fghjkl";
+            CreateAssetAndComponent(0.0f, eventName, out var graph, out var vfxComponent, out var gameObj, out var cameraObj);
+
+            var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerRecordSpawnCount)));
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            basicSpawner.AddChild(blockCustomSpawner);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            VFXCustomSpawnerRecordSpawnCount.ClearReceivedSpawnCount();
+            var attr = vfxComponent.CreateVFXEventAttribute();
+            attr.SetFloat("spawnCount", 0);
+            vfxComponent.SendEvent(eventName, attr);
+            attr.SetFloat("spawnCount", 1);
+            vfxComponent.SendEvent(eventName, attr);
+            attr.SetFloat("spawnCount", 2);
+            vfxComponent.SendEvent(eventName, attr);
+
+            vfxComponent.Reinit();
+
+            attr.SetFloat("spawnCount", 3);
+            vfxComponent.SendEvent(eventName, attr);
+            attr.SetFloat("spawnCount", 4);
+            vfxComponent.SendEvent(eventName, attr);
+            attr.SetFloat("spawnCount", 5);
+            vfxComponent.SendEvent(eventName, attr);
+
+            int maxFrame = 64;
+            while (!VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Any() && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            Assert.AreEqual(3, VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Count());
+            Assert.IsFalse(VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Any(o => o < 3));
+
+            yield return new ExitPlayMode();
+        }
+
         static List<int> s_ReceivedEventNamedId;
         static void OnEventReceived_RegisterNameID(VFXOutputEventArgs evt)
         {

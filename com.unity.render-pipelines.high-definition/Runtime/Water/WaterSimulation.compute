@@ -1,11 +1,17 @@
 #pragma kernel InitializePhillipsSpectrum
 #pragma kernel EvaluateDispersion
 #pragma kernel EvaluateNormalsFoam
+#pragma kernel CopyAdditionalData
+#pragma kernel FindVerticalDisplacements
 #pragma kernel PrepareCausticsGeometry
+#pragma kernel EvaluateInstanceData
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // #pragma enable_d3d11_debug_symbols
+
+// Required for finding the vertical displacements
+#pragma multi_compile _ HIGH_RESOLUTION_WATER
 
 // Required to be defined for some includes
 #define WATER_SIMULATION
@@ -13,28 +19,33 @@
 // SRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/FrustumCulling.hlsl"
 
 // InitializePhillipsSpectrum UAVS
 RWTexture2DArray<float2> _H0BufferRW;
 
 [numthreads(8, 8, 1)]
-void InitializePhillipsSpectrum(uint3 currentThread : SV_DispatchThreadID)
+void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
 {
-    // We need 4 random numbers
-    float4 rn = GenerateRandomNumbers(currentThread);
+    // This water offset ensures that when we switch the resolution the spectrum stays about the same
+    uint3 sampleCoordinate = uint3(thread.xy + _WaterSampleOffset, thread.z);
+
+    // We need 4 random numbers from the sample coords
+    float4 rn = WaterHashFunctionFloat4(sampleCoordinate);
 
     // First part of the phillips spectrum term
     float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
     // Second part of the phillips spectrum term
-    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5f) * 2.0f;
-    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[currentThread.z];
-    float P = Phillips(k, _WindDirection, _WindSpeed[currentThread.z]);
+    float2 nDC = (thread.xy / (float)_BandResolution - 0.5f) * 2.0f;
+    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[thread.z];
+    float P = Phillips(k, _WindDirection, _WindSpeed[thread.z]);
 
     // Combine and output
-    _H0BufferRW[int3(currentThread.xy, currentThread.z)] = E * sqrt(P);
+    _H0BufferRW[int3(thread.xyz)] = E * sqrt(P);
 }
 
 // EvaluateDispersion UAVS
@@ -78,6 +89,7 @@ void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
 }
 
 // EvaluateNormals UAVS
+Texture2DArray<float4> _PreviousWaterAdditionalDataBuffer;
 RWTexture2DArray<float4> _WaterAdditionalDataBufferRW;
 
 [numthreads(8, 8, 1)]
@@ -98,22 +110,127 @@ void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
 
     // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
     float3 p0, p1, p2;
-    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, 1, p0, p1, p2);
+    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, p0, p1, p2);
 
     // Compute the surface gradients of this band
     float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
 
-    // Apply the choppiness to the displacements (the normal doesn't behave that good with the choppiness)
-    float foamChoppiness = FOAM_CHOPPINESS_MULTIPLIER * _Choppiness * _SimulationFoamAmount;
-
-    // Compute the points positions with the choppiness
-    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, foamChoppiness, p0, p1, p2);
-
     // Compute the jacobian of this texel
-    float jacobian = EvaluateJacobian(p0, p1, p2, foamChoppiness, pixelSize);
+    float jacobian = EvaluateJacobian(p0, p1, p2, pixelSize);
+
+    // Read the previous jacobian values
+    float4 additionalData = LOAD_TEXTURE2D_ARRAY(_PreviousWaterAdditionalDataBuffer, coord, bandIdx);
+
+    // Blend the jacobians
+    float surfaceJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - _JacobianDrag) + additionalData.z * _JacobianDrag);
+    float scatteringJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - 0.99) + additionalData.w * 0.99);
 
     // Output the normal and foam
-    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, jacobian, 1.0);
+    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, surfaceJacobian, scatteringJacobian);
+}
+
+[numthreads(8, 8, 1)]
+void CopyAdditionalData(uint3 currentThread : SV_DispatchThreadID)
+{
+    _WaterAdditionalDataBufferRW[int3(currentThread.xy, currentThread.z)] = LOAD_TEXTURE2D_ARRAY(_WaterAdditionalDataBuffer, currentThread.xy, currentThread.z);
+}
+
+// The set of input position we need to process
+RWStructuredBuffer<float> _WaterCameraHeightBufferRW;
+
+// We allow up to 10 steps to figure out the height of the point
+#define SEARCH_ITERATION_COUNT 8
+
+// We consider that we found the point if we were able to
+#define SEARCH_DISTANCE_THRESHOLD 0.001
+
+struct TapData
+{
+    float3 currentDisplacement;
+    float3 displacedPoint;
+    float2 offset;
+    float distance;
+    float height;
+};
+
+TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePosition)
+{
+    TapData data;
+
+    // Evaluate the displacement at the current point
+    WaterDisplacementData displacementData;
+    EvaluateWaterDisplacement(currentLocation, float4(1, 1, 1, 1), displacementData);
+    data.currentDisplacement = displacementData.displacement;
+
+    // Evaluate the complete position
+    data.displacedPoint = currentLocation + data.currentDisplacement;
+
+    // Evaluate the distance to the reference point
+    data.offset = data.displacedPoint.xz - referencePosition.xz;
+
+    // Length of the offset vector
+    data.distance = length(data.offset);
+
+    // Simulation height of the position of the offset vector
+    data.height = displacementData.displacement.y + _PatchOffset.y;
+
+    return data;
+}
+
+[numthreads(1, 1, 1)]
+void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
+{
+    // Get the index of the position to process
+    uint coord = currentThread.x;
+
+    // The point we will be looking for
+    float3 targetPosition = _WorldSpaceCameraPos.xyz;
+
+    // Initialize the search data
+    bool found = false;
+    int stepCount = 0;
+    TapData tapData = EvaluateDisplacementData(targetPosition, targetPosition);
+    float3 currentLocation = targetPosition;
+    float2 stepSize = tapData.offset;
+    float currentError = tapData.distance;
+    float currentHeight = tapData.height;
+
+    while (stepCount < SEARCH_ITERATION_COUNT)
+    {
+        bool progress = false;
+        // Is the point close enough to target position?
+        if (currentError < SEARCH_DISTANCE_THRESHOLD)
+        {
+            found = true;
+            break;
+        }
+
+        // Keep track of the step size that will be use for the 4 samples
+        float2 localSearchStepSize = stepSize;
+
+        float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, localSearchStepSize.y);
+        TapData tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
+        if (tapData.distance < currentError)
+        {
+            currentLocation = candidateLocation;
+            stepSize = tapData.offset;
+            currentError = tapData.distance;
+            currentHeight = tapData.height;
+            progress = true;
+        }
+
+        // If we didn't make any progress in this step, this means out steps are probably too big make them smaller
+        if (!progress)
+            stepSize *= 0.25;
+
+        // If none of the 4 steps managed to get closer, we need a smaller step
+        stepCount++;
+    }
+
+    _WaterCameraHeightBufferRW[4 * coord] = targetPosition.y - currentHeight;
+    _WaterCameraHeightBufferRW[4 * coord + 1] = currentError;
+    _WaterCameraHeightBufferRW[4 * coord + 2] = stepCount;
+    _WaterCameraHeightBufferRW[4 * coord + 3] = 0.0;
 }
 
 // Output indices for the caustics buffer
@@ -154,4 +271,100 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     _CauticsGeometryRW[6 * quadIndex + 3] = C;
     _CauticsGeometryRW[6 * quadIndex + 4] = B;
     _CauticsGeometryRW[6 * quadIndex + 5] = D;
+}
+
+/*
+1 * 0.5 + 2 * 0.5
+1 * 0.5 + 2 + 4 * 0.5
+1 * 0.5 + 2 + 4 + 8 * 0.5
+1 * 0.5 + 2 + 4 + 8 + 16 * 0.5
+1 * 0.5 + 2 + 4 + 8 + 16 + 32 * 0.5
+*/
+static const float offsets[5] = { 0.0f, 1.5f, 4.5f, 10.5f, 22.5f };
+
+// Function that evaluates the bounds of a given grid based on it's coordinates
+void ComputeGridBounds(int x, int y, float centerGridSize,
+                        float2 centerGridPos, float farPlane,
+                        inout float2 center,
+                        inout float2 size)
+{
+    int absX = abs(x);
+    int absY = abs(y);
+    float signX = sign(x);
+    float signY = sign(y);
+
+    // Offset position of the patch
+    center = float2(signX * offsets[absX] * centerGridSize, signY * offsets[absY] * centerGridSize);
+
+    // Size of the patch
+    size = float2(centerGridSize * (1 << absX), centerGridSize * (1 << absY));
+}
+
+// Group share flag that allows us to keep track of the valid instances
+groupshared int gs_instanceValidity[49];
+groupshared float4 gs_instanceData[49];
+
+// Structure that holds the per data patch info
+StructuredBuffer<FrustumGPU> _FrustumGPUBuffer;
+RWStructuredBuffer<float4> _WaterPatchDataRW;
+RWStructuredBuffer<int> _WaterInstanceDataRW;
+
+[numthreads(49, 1, 1)]
+void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
+{
+    // Grab the index of the patch to evaluate
+    uint currentPatch = currentThread.x;
+
+    // Evaluate the grid parameters
+    uint radius = (_WaterLODCount - 1);
+    uint gridResolution = 1 + radius * 2;
+    int x = currentPatch % gridResolution;
+    int y = currentPatch / gridResolution;
+
+    // Compute the grid center and size
+    float2 center;
+    float2 size;
+    ComputeGridBounds(x - radius, y - radius, _GridSize.x, _PatchOffset.xz, _ProjectionParams.z, center, size);
+
+    // Frustum cull the patch while accounting for it's maximal deformation
+    OrientedBBox obb;
+    obb.right = float3(1.0, 0, 0);
+    obb.up = float3(0, 1.0, 0);
+    obb.extentX = size.x * 0.5;
+    obb.extentY = _MaxWaveHeight;
+    obb.extentZ = size.y * 0.5;
+    obb.center = float3(_PatchOffset.x + center.x, _PatchOffset.y, _PatchOffset.z + center.y);
+
+    // Need to make sure that
+    obb.center = GetCameraRelativePositionWS(obb.center);
+
+    // Only include the instance if it is valid and potientially visible
+    gs_instanceValidity[currentPatch] = currentPatch < _NumWaterPatches ? FrustumOBBIntersection(obb, _FrustumGPUBuffer[0]) : 0;
+    gs_instanceData[currentPatch] = float4(size.x, size.y, center.x, center.y);
+
+    // Wait untill all workers have processed their patch data
+    GroupMemoryBarrierWithGroupSync();
+
+    // The first thread is in charge of outputing the instance data, their count
+    if (currentPatch == 0)
+    {
+        // For each patch that needs to be processed
+        uint totalInstanceCount = 0;
+        for (uint patchIdx = 0; patchIdx < _NumWaterPatches; ++patchIdx)
+        {
+            if (gs_instanceValidity[patchIdx])
+            {
+                // Output the patch data to the next slot
+                _WaterPatchDataRW[totalInstanceCount] = gs_instanceData[patchIdx];
+
+                // Increment the count
+                totalInstanceCount++;
+            }
+        }
+
+        // Output the actual instance count
+        // NOTE: Here we have to multiply by the XR view count as it redispatches the geometry
+        // for each view
+        _WaterInstanceDataRW[1] = totalInstanceCount * _XRViewCount;
+    }
 }
