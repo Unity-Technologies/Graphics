@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 cmd.ReleaseTemporaryRT(m_MipIDs[i]);
 
             sheet.properties.SetTexture(ShaderIDs.Resolve, m_Resolve);
-            cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, (int)Pass.Composite);
+            cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, (int)Pass.Composite, preserveDepth: true);
             cmd.EndSample("Screen-space Reflections");
         }
 

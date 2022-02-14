@@ -6,9 +6,9 @@ When you create your own C# Custom Pass using the instructions in [The Custom Pa
 
 <a name="Custom-Pass-C#-template"></a>
 
-## **The Custom Pass C# template**
+## The Custom Pass C# template
 
-To create a new Custom pass, go to **Assets > Create > Rendering > HDRP C# Custom Pass**. This creates a new script that contains the Custom Pass C# template:
+To create a new Custom pass, go to **Assets** > **Create** > **Rendering** > **HDRP C# Custom Pass**. This creates a new script that contains the Custom Pass C# template:
 
 ```C#
 class #SCRIPTNAME# : CustomPass
@@ -31,9 +31,9 @@ The C# Custom Pass template includes the following entry points to code your cus
 
 The `Setup` and `Execute` methods give you access to a `ScriptableRenderContext` and a `CommandBuffer`. For information on using `CommandBuffers` with a `ScriptableRenderContext`, see [Scheduling and executing commands in the Scriptable Render Pipeline](https://docs.unity3d.com/Manual/srp-using-scriptable-render-context.html).
 
-## **Creating a full-screen Custom Pass in C#**
+## Creating a full-screen Custom Pass in C#
 
-The following code demonstrates how to create a full-screen Custom Pass that applies an outline effect to an object in your scene.
+This section demonstrates how to create a full-screen Custom Pass that applies an outline effect to an object in your scene.
 
 ![A mesh in a scene rendered using this outline effect](images/CustomPass_FrameDebugger.png)
 
@@ -42,7 +42,7 @@ This effect uses a transparent full screen pass with a blend mode that replaces 
 This shader code performs the following steps:
 
 1. Renders the objects in the outline layer to a buffer called `outlineBuffer`.
-2. Samples the color in `outlineBuffer`. If the color is below the threshold, then it means that the pixel might be in an outline.
+2. Samples the color in `outlineBuffer`. If the color is below the threshold, it means that the pixel might be in an outline.
 3. Searches neighboring pixels to check if this is the case.
 4. If Unity finds a pixel above the threshold, it applies the outline effect.
 
@@ -52,13 +52,13 @@ This shader code performs the following steps:
 
 This section provides an example of a Custom Pass C# script that applies an outline effect to every GameObject in a Layer.
 
-The following pass renders all the GameObjects in the `Outline Layer` into a custom buffer named `outlineBuffer` in the code. It then performs an edge detection algorithm over the screen that checks for all the GameObjects rendered in the `outlineBuffer`. This edge detection algorithm creates an outline around objects rendered in the `outlineBuffer`. Finally, `CoreUtils.DrawFullScreen` applies the full screen effect.
+The following pass renders all the GameObjects in the `Outline Layer` into a custom buffer named `outlineBuffer` in the code. It performs an edge detection algorithm over the screen that checks for all the GameObjects rendered in the `outlineBuffer`. This edge detection algorithm creates an outline around objects rendered in the `outlineBuffer`. `CoreUtils.DrawFullScreen` applies the full screen effect.
 
 This example only supports a single outline color for all the objects in a Layer.
 
 To use this example Custom Pass script:
 
-1. Create a new C# script (menu: **Assets > Create > C# Script)**.
+1. Create a new C# script (menu: **Assets** > **Create** > **C# Script)**.
 2. Name your script. In this example, the new script is called “Outline”.
 3. Enter the following code:
 
@@ -126,7 +126,7 @@ class Outline : CustomPass
 
 To create a new shader:
 
-1. Create a new Unity shader using **Assets> Create> Shader > HDRP Custom FullScreen Pass**
+1. Create a new Unity shader using **Assets** > **Create** > **Shader** > **HDRP Custom FullScreen Pass**
 2. Name the new shader source file “Outline”
 3. Enter the following code:
 
@@ -374,7 +374,7 @@ public class OutlineDrawer : CustomPassDrawer
 
 When you create a Custom Pass drawer, Unity provides a default list of Custom Pass properties. Unity still does this when `DoPassGUI` is empty. These properties are the same properties that Unity provides in the [draw renderers CustomPass Volume](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) component by default.
 
-If you don't need all of these settings, you can override the `commonPassUIFlags` property to remove some of them. The following example only keeps the name and the target buffer enum:
+If you don't need all these settings, you can override the `commonPassUIFlags` property to remove some of them. The following example only keeps the name and the target buffer enum:
 
 ```c#
 protected override PassUIFlag commonPassUIFlags => PassUIFlag.Name | PassUIFlag.TargetColorBuffer;

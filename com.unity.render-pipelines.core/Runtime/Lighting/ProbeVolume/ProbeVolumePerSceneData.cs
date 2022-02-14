@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+using System.IO;
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Experimental.Rendering
 {
-    // TMP to be moved to ProbeReferenceVolume when we define the concept, here it is just to make stuff compile
-    enum ProbeVolumeState
-    {
-        Default = 0,
-        Invalid = 999
-    }
-
     /// <summary>
     /// A component that stores baked probe volume state and data references. Normally hidden from the user.
     /// </summary>
@@ -18,35 +16,37 @@ namespace UnityEngine.Experimental.Rendering
     public class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [Serializable]
-        struct SerializableAssetItem
+        internal struct PerStateData
         {
-            public ProbeVolumeState state;
-            public ProbeVolumeAsset asset;
-            public TextAsset cellDataAsset;
-            public TextAsset cellOptionalDataAsset;
-            public TextAsset cellSupportDataAsset;
+            public int sceneHash;
+            public TextAsset cellDataAsset; // Contains L0 L1 SH data
+            public TextAsset cellOptionalDataAsset; // Contains L2 SH data
         }
 
-        [SerializeField] List<SerializableAssetItem> serializedAssets = new();
+        [Serializable]
+        struct SerializablePerStateDataItem
+        {
+            public string state;
+            public PerStateData data;
+        }
 
-        Dictionary<ProbeVolumeState, ProbeVolumeAsset> assets = new();
+        [SerializeField] internal ProbeVolumeAsset asset;
+        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
+        [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
+        [SerializeField] List<SerializablePerStateDataItem> serializedStates = new();
 
-        ProbeVolumeState m_CurrentState = ProbeVolumeState.Default;
-        ProbeVolumeState m_PreviousState = ProbeVolumeState.Invalid;
+        internal Dictionary<string, PerStateData> states = new();
+
+        string currentState = null;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
         /// </summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            assets.Clear();
-            foreach (var assetItem in serializedAssets)
-            {
-                assetItem.asset.cellDataAsset = assetItem.cellDataAsset;
-                assetItem.asset.cellOptionalDataAsset = assetItem.cellOptionalDataAsset;
-                assetItem.asset.cellSupportDataAsset = assetItem.cellSupportDataAsset;
-                assets.Add(assetItem.state, assetItem.asset);
-            }
+            states.Clear();
+            foreach (var stateData in serializedStates)
+                states.Add(stateData.state, stateData.data);
         }
 
         /// <summary>
@@ -54,103 +54,174 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            serializedAssets.Clear();
-            foreach (var k in assets.Keys)
+            serializedStates.Clear();
+            foreach (var kvp in states)
             {
-                SerializableAssetItem item;
-                item.state = k;
-                item.asset = assets[k];
-                item.cellDataAsset = item.asset.cellDataAsset;
-                item.cellOptionalDataAsset = item.asset.cellOptionalDataAsset;
-                item.cellSupportDataAsset = item.asset.cellSupportDataAsset;
-                serializedAssets.Add(item);
+                serializedStates.Add(new SerializablePerStateDataItem()
+                {
+                    state = kvp.Key,
+                    data = kvp.Value,
+                });
             }
         }
 
-        internal void StoreAssetForState(ProbeVolumeState state, ProbeVolumeAsset asset)
+#if UNITY_EDITOR
+        void DeleteAsset(Object asset)
         {
-            assets[state] = asset;
-        }
-
-        internal void InvalidateAllAssets()
-        {
-            foreach (var asset in assets.Values)
+            if (asset != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
             {
-                if (asset != null)
-                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                AssetDatabase.DeleteAsset(assetPath);
             }
+        }
+#endif
 
-            assets.Clear();
+        internal void Clear()
+        {
+            QueueAssetRemoval();
+
+#if UNITY_EDITOR
+            try
+            {
+                AssetDatabase.StartAssetEditing();
+                DeleteAsset(asset);
+                DeleteAsset(cellSharedDataAsset);
+                DeleteAsset(cellSupportDataAsset);
+                foreach (var stateData in states.Values)
+                {
+                    DeleteAsset(stateData.cellDataAsset);
+                    DeleteAsset(stateData.cellOptionalDataAsset);
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
+                EditorUtility.SetDirty(this);
+            }
+#endif
+
+            states.Clear();
         }
 
-        internal ProbeVolumeAsset GetCurrentStateAsset()
+        internal void RemoveBakingState(string state)
         {
-            if (assets.ContainsKey(m_CurrentState)) return assets[m_CurrentState];
-            else return null;
+#if UNITY_EDITOR
+            if (states.TryGetValue(state, out var stateData))
+            {
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellDataAsset));
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellOptionalDataAsset));
+                EditorUtility.SetDirty(this);
+            }
+#endif
+            states.Remove(state);
+        }
+
+        internal void RenameBakingState(string state, string newState)
+        {
+            if (!states.TryGetValue(state, out var stateData))
+                return;
+            states.Remove(state);
+            states.Add(newState, stateData);
+
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+            var baseName = ProbeVolumeAsset.assetName + "-" + newState;
+            void RenameAsset(Object asset, string extension)
+            {
+                var oldPath = AssetDatabase.GetAssetPath(asset);
+                AssetDatabase.RenameAsset(oldPath, baseName + extension);
+            }
+            RenameAsset(stateData.cellDataAsset, ".CellData.bytes");
+            RenameAsset(stateData.cellOptionalDataAsset, ".CellOptionalData.bytes");
+#endif
+        }
+
+        internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerStateCellData();
+
+        bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
+        bool ResolvePerStateCellData()
+        {
+            if (currentState == null || !states.TryGetValue(currentState, out var data))
+                return false;
+            return asset.ResolvePerStateCellData(data.cellDataAsset, data.cellOptionalDataAsset);
         }
 
         internal void QueueAssetLoading()
         {
+            if (asset == null || !ResolvePerStateCellData())
+                return;
+
             var refVol = ProbeReferenceVolume.instance;
-            if (assets.TryGetValue(m_CurrentState, out var asset) && asset != null)
-            {
-                if (asset.ResolveCells())
-                {
-                    refVol.AddPendingAssetLoading(asset);
-
+            refVol.AddPendingAssetLoading(asset);
 #if UNITY_EDITOR
-                    if (refVol.sceneData != null)
-                    {
-                        refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
-                    }
+            if (refVol.sceneData != null)
+                refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
 #endif
-
-                    m_PreviousState = m_CurrentState;
-                }
-            }
         }
 
         internal void QueueAssetRemoval()
         {
-            if (assets.ContainsKey(m_CurrentState) && assets[m_CurrentState] != null)
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(assets[m_CurrentState]);
+            if (asset != null)
+                ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
         }
 
         void OnEnable()
         {
-            QueueAssetLoading();
+            ProbeReferenceVolume.instance.RegisterPerSceneData(this);
+
+            ResolveSharedCellData();
+            if (ProbeReferenceVolume.instance.sceneData != null)
+                SetBakingState(ProbeReferenceVolume.instance.bakingState);
+            // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
         }
 
         void OnDisable()
         {
-            QueueAssetRemoval();
+            OnDestroy();
+            ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
         void OnDestroy()
         {
             QueueAssetRemoval();
+            currentState = null;
         }
 
-        void Update()
+        internal void SetBakingState(string state)
         {
-            // Query state from ProbeReferenceVolume.instance.
-            // This is temporary here until we implement a state system.
-            m_CurrentState = ProbeVolumeState.Default;
+            if (state == currentState)
+                return;
 
-            if (m_PreviousState != m_CurrentState)
-            {
-                if (assets.ContainsKey(m_PreviousState) && assets[m_PreviousState] != null)
-                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(assets[m_PreviousState]);
-
-                QueueAssetLoading();
-            }
+            QueueAssetRemoval();
+            currentState = state;
+            QueueAssetLoading();
         }
 
 #if UNITY_EDITOR
+        internal void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
+        {
+            var state = ProbeReferenceVolume.instance.bakingState;
+            string basePath = Path.Combine(ProbeVolumeAsset.GetDirectory(gameObject.scene.path, gameObject.scene.name), ProbeVolumeAsset.assetName);
+
+            string GetOrCreateFileName(Object o, string extension)
+            {
+                var res = AssetDatabase.GetAssetPath(o);
+                if (string.IsNullOrEmpty(res)) res = basePath + extension;
+                return res;
+            }
+            cellDataFilename = GetOrCreateFileName(states[state].cellDataAsset, "-" + state + ".CellData.bytes");
+            cellOptionalDataFilename = GetOrCreateFileName(states[state].cellOptionalDataAsset, "-" + state + ".CellOptionalData.bytes");
+            cellSharedDataFilename = GetOrCreateFileName(cellSharedDataAsset, ".CellSharedData.bytes");
+            cellSupportDataFilename = GetOrCreateFileName(cellSupportDataAsset, ".CellSupportData.bytes");
+        }
+
+        /// <summary>
+        /// Call this function during OnProcessScene to strip debug from project builds.
+        /// </summary>
         public void StripSupportData()
         {
-            foreach (var asset in assets.Values)
-                asset.cellSupportDataAsset = null;
+            cellSupportDataAsset = null;
         }
 #endif
     }

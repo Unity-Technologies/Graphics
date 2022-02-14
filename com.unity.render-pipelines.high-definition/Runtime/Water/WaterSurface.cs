@@ -71,12 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool infinite = true;
 
         /// <summary>
-        /// Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.
-        /// </summary>
-        [Tooltip("Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.")]
-        public float earthRadius = 6371000.0f;
-
-        /// <summary>
         /// Specifies the type of geometry used to render the water surface when non infinite.
         /// </summary>
         [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
@@ -112,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.
         /// </summary>
         [Tooltip("Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.")]
-        public float choppiness = 1.0f;
+        public float choppiness = 0.9f;
 
         /// <summary>
         /// Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
@@ -123,10 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water Material
         /// <summary>
-        /// Sets the material that is used to render the water surface. If set to None a default material is used.
+        /// Sets a custom material that will be used to render the water surface. If set to None a default material is used.
         /// </summary>
-        [Tooltip("Sets the material that is used to render the water surface. If set to None a default material is used.")]
-        public Material material = null;
+        [Tooltip("Sets a custom material that will be used to render the water surface. If set to None a default material is used.")]
+        public Material customMaterial = null;
+
         /// <summary>
         /// Controls the smoothness used to render the water surface.
         /// </summary>
@@ -152,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the maximum distance in meters that the camera can perceive under the water surface.
         /// </summary>
         [Tooltip("Controls the maximum distance in meters that the camera can perceive under the water surface.")]
-        public float maxAbsorptionDistance = 5.0f;
+        public float absorptionDistance = 5.0f;
         #endregion
 
         #region Water Scattering
@@ -162,12 +157,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
         [ColorUsage(false)]
         public Color scatteringColor = new Color(0.0f, 0.12f, 0.25f);
-
-        /// <summary>
-        /// Controls the multiplier applied to the scattering factor to attenuate the scattering term.
-        /// </summary>
-        [Tooltip("Controls the multiplier that is used to simulate the under-water scattering globally.")]
-        public float scatteringFactor = 0.5f;
 
         /// <summary>
         /// Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
@@ -206,12 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
-
-        /// <summary>
-        /// Sets the vertical plane offset in meters at which the caustics start.
-        /// </summary>
-        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
-        public float causticsPlaneOffset = 0.0f;
 
         /// <summary>
         /// Sets the vertical blending distance for the water caustics.
@@ -296,28 +279,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water Foam
         /// <summary>
-        /// Controls the simulation foam smoothness.
-        /// </summary>
-        [Tooltip("Controls the surface foam smoothness.")]
-        public float simulationFoamSmoothness = 0.3f;
-
-        /// <summary>
-        /// Controls the simulation foam brightness.
-        /// </summary>
-        [Tooltip("Controls the simulation foam brightness.")]
-        public float simulationFoamIntensity = 0.5f;
-
-        /// <summary>
         /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.
         /// </summary>
         [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.")]
         public float simulationFoamAmount = 0.5f;
 
         /// <summary>
-        /// Controls the simulation foam tiling.
+        /// Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.
         /// </summary>
-        [Tooltip("Controls the simulation foam tiling.")]
-        public float simulationFoamTiling = 1.0f;
+        [Tooltip("Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.")]
+        public float simulationFoamDrag = 0.5f;
+
+        /// <summary>
+        /// Controls the simulation foam smoothness.
+        /// </summary>
+        [Tooltip("Controls the surface foam smoothness.")]
+        public float simulationFoamSmoothness = 0.3f;
 
         /// <summary>
         /// Set the texture used to attenuate or supress the simulation foam.
@@ -358,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
         #endregion
 
-        #region Water Masking
+        #region Water Wind
         /// <summary>
         /// Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.
         /// </summary>
@@ -398,10 +375,48 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightLayerEnum lightLayerMask = LightLayerEnum.LightLayerDefault;
         #endregion
 
+        #region Water Underwater
+        /// <summary>
+        /// When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.
+        /// </summary>
+        [Tooltip("When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.")]
+        public bool underWater = false;
+
+        /// <summary>
+        /// Sets a box collider that will be used to define the volume where the under water effect is applied for non infinite surfaces.
+        /// </summary>
+        [Tooltip("Sets a box collider that will be used to define the volume where the under water effect is applied for non infinite surfaces.")]
+        public BoxCollider volumeBounds = null;
+
+        /// <summary>
+        /// Sets maximum depth at which the under water effect is evaluated for infinite surfaces.
+        /// </summary>
+        [Tooltip("Sets maximum depth at which the under water effect is evaluated for infinite surfaces.")]
+        public float volumeDepth = 50.0f;
+
+        /// <summary>
+        /// Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.
+        /// </summary>
+        [Tooltip(" Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.")]
+        public int volumePrority = 0;
+
+        /// <summary>
+        /// Sets a vertical distance to the water surface at which the blending between above and under water starts.
+        /// </summary>
+        [Tooltip("Sets a vertical distance to the water surface at which the blending between above and under water starts.")]
+        public float transitionSize = 0.1f;
+
+        /// <summary>
+        /// Sets the multiplier for the Absorption Distance when the camera is under water. A value of 2.0 means you will see twice as far underwater.
+        /// </summary>
+        [Tooltip("Sets the multiplier for the  Absorption Distance when the camera is under water. A value of 2.0 means you will see twice as far underwater.")]
+        public float absorbtionDistanceMultiplier = 1.0f;
+        #endregion
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount, ref bool initialAllocation)
+        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount)
         {
             bool needUpdate = false;
             // If the resources have not been allocated for this water surface, allocate them
@@ -410,14 +425,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 simulation = new WaterSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
-                initialAllocation = true;
             }
             else if (!simulation.ValidResources(bandResolution, bandCount))
             {
                 simulation.ReleaseSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
-                initialAllocation = true;
             }
 
             if (simulation.windSpeed != windSpeed
@@ -426,14 +439,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 || simulation.patchSizes.x != waterMaxPatchSize)
             {
                 needUpdate = true;
-                initialAllocation = false;
             }
 
             // The simulation data are not valid, we need to re-evaluate the spectrum
             if (needUpdate)
-            {
                 UpdateSimulationData();
-            }
 
             return !needUpdate;
         }
