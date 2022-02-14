@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the water surface.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/WaterRendering", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Lighting/WaterRendering"), SupportedOn(typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Water-Rendering")]
     public sealed partial class WaterRendering : VolumeComponent
     {

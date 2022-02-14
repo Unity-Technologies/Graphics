@@ -1,23 +1,20 @@
 using System;
 using System.Reflection;
-using FsCheck;
 using NUnit.Framework;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     public class VolumeComponentArchetypeDefaultStateTests
     {
-        [OneTimeSetUp]
-        public static void SetupFixture()
+        static class Properties
         {
-            ArbX.Register();
-        }
-
-        [Test]
-        public void ReplaceDataResetStackVolumeComponents()
-        {
-            bool Property(VolumeComponentType[] types, int seed)
+            [Test(ExpectedResult = true)]
+            public static bool ReplaceDataResetStackVolumeComponents(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types,
+                [ValueSource(typeof(TSet), nameof(TSet.intSeeds))] int seed
+            )
             {
                 void CallOnEnable(VolumeComponent volumeComponent)
                 {
@@ -88,9 +85,6 @@ namespace UnityEngine.Rendering.Tests
 
                 return true;
             }
-
-            Prop.ForAll<VolumeComponentType[], int>(Property).UnityQuickCheck();
         }
-
     }
 }

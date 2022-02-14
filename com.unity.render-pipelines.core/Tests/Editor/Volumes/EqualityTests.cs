@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
-using FsCheck;
 using NUnit.Framework;
+
+#if FSCHECK
+using FsCheck;
 using UnityEngine.TestTools.FsCheckExtensions;
+#endif
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -10,11 +13,13 @@ namespace UnityEngine.Rendering.Tests
 
     partial class EqualityTests
     {
+#if FSCHECK
         [OneTimeSetUp]
         public static void SetupFixture()
         {
             ArbX.Register();
         }
+#endif
 
         [Test]
         public void IsSupportedVolumeComponentFilterEquality()
@@ -52,11 +57,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
         [Test]
         public void IsExplicitlySupportedVolumeComponentFilterEquality()
@@ -94,11 +103,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
         [Test]
         public void VolumeComponentTypeEquality()
@@ -134,11 +147,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
         [Test]
         public void IsVisibleVolumeComponentFilterEquality()
@@ -176,11 +193,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<bool, bool>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<bool>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
         [Test]
         public void VolumeComponentArchetypeEquality()
@@ -218,11 +239,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<VolumeComponentType[], VolumeComponentType[]>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType[]>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
         [Test]
         public void VolumeComponentArchetypeTreeProviderPathNodeEquality()
@@ -260,11 +285,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<(string name, VolumeComponentType type), (string name, VolumeComponentType type)>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<(string name, VolumeComponentType type)>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
 
         [Test]

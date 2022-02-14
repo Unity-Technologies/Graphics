@@ -4,9 +4,12 @@
 #>
 using System;
 using System.Linq;
-using FsCheck;
 using NUnit.Framework;
+
+#if FSCHECK
+using FsCheck;
 using UnityEngine.TestTools.FsCheckExtensions;
+#endif
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -14,11 +17,13 @@ namespace UnityEngine.Rendering.Tests
 
     partial class EqualityTests
     {
+#if FSCHECK
         [OneTimeSetUp]
         public static void SetupFixture()
         {
             ArbX.Register();
         }
+#endif
 
 <# foreach (var test in equalityTests) Write(test); #>
 
@@ -70,11 +75,15 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
+#if FSCHECK
             Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).UnityQuickCheck();
 
             // Enforce testing equality
             var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
+#else
+            throw new NotImplementedException();
+#endif
         }
 <#+
     }

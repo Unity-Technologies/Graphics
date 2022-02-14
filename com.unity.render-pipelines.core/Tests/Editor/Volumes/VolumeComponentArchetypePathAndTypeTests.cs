@@ -1,24 +1,20 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using FsCheck;
 using NUnit.Framework;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     public class VolumeComponentArchetypePathAndTypeTests
     {
-        [OneTimeSetUp]
-        public static void SetupFixture()
+        static class Properties
         {
-            ArbX.Register();
-        }
-
-        [Test]
-        public void SkipObsoleteOrHiddenComponent()
-        {
-            bool Property(VolumeComponentType[] types)
+            [Test(ExpectedResult = true)]
+            public static bool SkipObsoleteOrHiddenComponent(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types
+            )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
                 if (!archetype.GetOrAddPathAndType(out var extension))
@@ -34,13 +30,10 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
-        }
-
-        [Test]
-        public void PathIsProvidedByMenuAttribute()
-        {
-            bool Property(VolumeComponentType[] types)
+            [Test(ExpectedResult = true)]
+            public static bool PathIsProvidedByMenuAttribute(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types
+            )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
                 if (!archetype.GetOrAddPathAndType(out var extension))
@@ -59,9 +52,6 @@ namespace UnityEngine.Rendering.Tests
 
                 return true;
             }
-
-            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
-
     }
 }
