@@ -284,4 +284,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 'Bug: iPhone yamato instability for unknown reason.'
-    
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: iPhone OOM (out of memory)
