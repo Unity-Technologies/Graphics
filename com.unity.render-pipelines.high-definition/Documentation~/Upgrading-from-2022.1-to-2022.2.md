@@ -21,8 +21,8 @@ Starting from HDRP 14.x, Alpha to Mask option have been removed. Alpha to Mask i
 Starting from HDRP 14.x, the default for the Gate Fit parameter on the Physical camera settings is Vertical as opposed to the old Horizontal default.
 ## Refraction
 
-Objects with Transparent Materials and with a Refraction Model enabled will now fall back to a higher quality default refraction behavior.
+Objects with Transparent Materials and a Refraction Model enabled now fall back to a higher quality default refraction behavior.
 
-Before, there was no refraction result in the Material unless a Reflection Probe was configured and the object was within the probe's extents.
+Previously, Materials did not contain a refraction result unless you configured a Reflection Probe and the GameObject was within the probe's extents.
 
-Now, the bounding box of an object will be used as a fallback approximation to compute the Refraction. For upgrading, be aware that refractive objects that are not within the extents of a Reflection Probe will now demonstrate this improved behavior.
+Unity now uses the bounding box of an object as a fallback approximation to compute the Refraction. When you upgrade a project, refractive objects that are not within the extents of a Reflection Probe demonstrate this improved behavior.
