@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -35,11 +36,25 @@ namespace UnityEditor.Rendering
         protected T Cast<T>(object o)
             where T : class
         {
+            if (o == null) throw new ArgumentNullException();
+
             if (o is T casted)
                 return casted;
 
-            string typeName = o == null ? "null" : o.GetType().ToString();
-            throw new InvalidCastException("Can't cast " + typeName + " to " + typeof(T));
+            StringBuilder info = new StringBuilder("Cast Exception:");
+            switch (o)
+            {
+                case DebugUI.Widget value:
+                    info.AppendLine($"Query Path : {value.queryPath}");
+                    break;
+                case DebugState state:
+                    info.AppendLine($"Query Path : {state.queryPath}");
+                    break;
+            }
+            info.AppendLine($"Object to Cast Type : {o.GetType().AssemblyQualifiedName}");
+            info.AppendLine($"Target Cast Type : {typeof(T).AssemblyQualifiedName}");
+
+            throw new InvalidCastException(info.ToString());
         }
 
         /// <summary>
