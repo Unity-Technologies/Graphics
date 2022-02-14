@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
                     if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                     {
-                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
+                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, null, false);
                     }
 
                     // Render gizmos that should be affected by post processes
@@ -951,6 +951,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                 return renderGraph.defaultResources.blackTextureXR;
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+            // For now disable this pass when path tracing is ON and denoising is active (the denoiser flushes the command buffer for syncing and invalidates the recorded RendererLists)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState() && m_PathTracingSettings.denoising.value != HDDenoiserType.None)
+                return renderGraph.defaultResources.blackTextureXR;
+#endif
+
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
             {
@@ -1354,6 +1360,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ResetCameraMipBias(hdCamera);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
+
+            // Render the under water if necessary
+            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer);
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
