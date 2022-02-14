@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal string previousBakingState;
 
-        public bool SetBakingState(string state, float transitionTime)
+        internal bool SetBakingState(string state, float transitionTime)
         {
             if (state == bakingState)
                 return false;

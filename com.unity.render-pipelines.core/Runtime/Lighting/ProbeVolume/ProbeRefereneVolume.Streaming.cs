@@ -19,12 +19,14 @@ namespace UnityEngine.Experimental.Rendering
 
         float m_TransitionTimeToLerpFactor;
         float m_BakingStateLerpFactor = 1.0f;
+        bool m_HasRemainingCellsToBlend = false;
         internal float stateTransitionTime
         {
             set
             {
                 m_TransitionTimeToLerpFactor = value > 0.0f ? 1.0f / value : 0.0f;
                 m_BakingStateLerpFactor = value > 0.0f ? 0.0f : 1.0f;
+                m_HasRemainingCellsToBlend = false;
                 // Abort any blending operation in progress
                 UnloadAllBlendingCells();
             }
@@ -224,13 +226,15 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ToBeLoadedBlendingCells.size == 0)
             {
-                bool unfinishedCells = false;
+                if (!m_HasRemainingCellsToBlend)
+                    return false;
+                if (m_BakingStateLerpFactor < 1.0f)
+                    return m_LoadedBlendingCells.size != 0;
+
                 for (int i = 0; i < m_LoadedBlendingCells.size; ++i)
-                {
-                    unfinishedCells |= (m_LoadedBlendingCells[i].blendingFactor < 1.0f);
                     m_LoadedBlendingCells[i].blendingFactor = m_BakingStateLerpFactor;
-                }
-                return unfinishedCells;
+                m_HasRemainingCellsToBlend = false;
+                return true;
             }
 
             ComputeStreamingScoreForBlending(m_ToBeLoadedBlendingCells, false);
@@ -298,6 +302,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ToBeLoadedBlendingCells.AddRange(m_TempBlendingCellToUnloadList);
             m_TempBlendingCellToUnloadList.Clear();
 
+            m_HasRemainingCellsToBlend = true;
             return true;
         }
     }

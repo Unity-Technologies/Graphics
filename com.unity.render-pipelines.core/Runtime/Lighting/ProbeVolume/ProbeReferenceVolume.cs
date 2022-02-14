@@ -929,6 +929,7 @@ namespace UnityEngine.Experimental.Rendering
                         m_ToBeLoadedCells.Remove(cellInfo);
                     }
 
+                    m_BlendingCellInfoPool.Release(cellInfo.blendingCell);
                     m_CellInfoPool.Release(cellInfo);
                 }
             }
@@ -948,9 +949,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else
                     m_ToBeLoadedBlendingCells.Remove(cellInfo.blendingCell);
-
-                m_BlendingCellInfoPool.Release(cellInfo.blendingCell);
-
 
                 if (cellInfo.flatIdxInCellIndices >= 0)
                     m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
@@ -1585,7 +1583,7 @@ namespace UnityEngine.Experimental.Rendering
                 return false;
 
             bool useState0 = m_BakingStateLerpFactor < 0.5f || !cell.hasTwoStates;
-            cellInfo.blendingCell.blendingFactor = useState0 ? 0.0f : 1.0f;
+            cellInfo.blendingCell.blendingFactor = m_BakingStateLerpFactor < 0.5f ? 0.0f : 1.0f;
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
