@@ -551,9 +551,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class TerrainUpgrader : MaterialUpgrader
+    public class TerrainUpgrader : MaterialUpgrader
     {
-        internal TerrainUpgrader(string oldShaderName)
+        public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
         }
@@ -574,9 +574,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class ParticleUpgrader : MaterialUpgrader
+    public class ParticleUpgrader : MaterialUpgrader
     {
-        internal ParticleUpgrader(string oldShaderName)
+        public ParticleUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -599,17 +599,17 @@ namespace UnityEditor.Rendering.Universal
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
         }
 
-        internal static void UpdateStandardSurface(Material material)
+        public static void UpdateStandardSurface(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        internal static void UpdateUnlit(Material material)
+        public static void UpdateUnlit(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        internal static void UpdateSurfaceBlendModes(Material material)
+        public static void UpdateSurfaceBlendModes(Material material)
         {
             switch (material.GetFloat("_Mode"))
             {
