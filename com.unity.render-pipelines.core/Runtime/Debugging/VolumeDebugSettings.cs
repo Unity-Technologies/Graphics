@@ -25,6 +25,24 @@ namespace UnityEngine.Rendering
             set => m_SelectedCamera = value;
         }
 
+        /// <summary>Selected camera index.</summary>
+        public int selectedCameraIndex
+        {
+            get
+            {
+                var index = -1;
+                var c = cameras.ToArray();
+                if (m_SelectedCamera != null && c.Any())
+                    index = Array.IndexOf(cameras.ToArray(), m_SelectedCamera);
+                return index;
+            }
+            set
+            {
+                var c = cameras.ToArray();
+                m_SelectedCamera = c.Any() ? c[Mathf.Clamp(value, 0, c.Length - 1)] : null;
+            }
+        }
+
         /// <summary>Returns the collection of registered cameras.</summary>
         public IEnumerable<Camera> cameras
         {
