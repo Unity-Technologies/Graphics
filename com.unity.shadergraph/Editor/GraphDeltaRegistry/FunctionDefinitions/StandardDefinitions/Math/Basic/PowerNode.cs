@@ -17,11 +17,11 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "Power, Exponentiation" },
-            { "Tooltip", "Power function" },
+            { "Name.Synonyms", "Exponentiation, ^" },
+            { "Tooltip", "multiplies Base by itself the number of times given by Exp" },
             { "Parameters.Base.Tooltip", "Base" },
             { "Parameters.Exp.Tooltip", "Exponent" },
-            { "Parameters.Out.Tooltip", "Base ^ Exp" }
+            { "Parameters.Out.Tooltip", "Base raised to the power of Exp" }
         };
     }
 }

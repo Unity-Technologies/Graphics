@@ -4,12 +4,12 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 namespace com.unity.shadergraph.defs
 {
 
-    internal class AddNode : IStandardNode
+    internal class ProjectionNode : IStandardNode
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
-            "Add", // Name
-            "Out = A + B;",
+            "Projection", // Name
+            "Out = B * dot(A, B) / dot(B, B);",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
             new ParameterDescriptor("B", TYPE.Any, Usage.In),
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
@@ -17,11 +17,11 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "Addition, Sum" },
-            { "Tooltip", "Addition Function" },
-            { "Parameters.In.Tooltip", "Input A" },
-            { "Parameters.Exp.Tooltip", "Input B" },
-            { "Parameters.Out.Tooltip", "A + B" }
+            { "Name.Synonyms", "" },
+            { "Tooltip", "returns the result of projecting A onto a straight line parallel to B" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
+            { "Parameters.Out.Tooltip", "the result of projecting A onto a straight line parallel to B" }
         };
     }
 }
