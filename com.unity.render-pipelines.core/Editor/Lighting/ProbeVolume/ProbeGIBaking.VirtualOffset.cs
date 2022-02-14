@@ -13,8 +13,9 @@ using Unity.Jobs;
 #if USE_BURST
     using Unity.Burst;
 #endif
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {

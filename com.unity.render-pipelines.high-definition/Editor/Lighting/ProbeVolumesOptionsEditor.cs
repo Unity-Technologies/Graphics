@@ -1,5 +1,5 @@
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
