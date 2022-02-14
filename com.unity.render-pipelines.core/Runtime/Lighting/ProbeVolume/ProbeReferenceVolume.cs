@@ -2,9 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 #if UNITY_EDITOR
 using System.Linq.Expressions;
@@ -12,7 +11,7 @@ using System.Reflection;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
 #if UNITY_EDITOR
 
@@ -715,12 +714,6 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeVolumeSHBands shBands => m_SHBands;
 
         internal bool clearAssetsOnVolumeClear = false;
-
-        /// <summary>Delegate for baking state change.</summary>
-        /// <param name="newState">The new baking state.</param>
-        public delegate void BakingStateChangedDelegate(string newState);
-        /// <summary>Delegate called when the baking state is changed. </summary>
-        public BakingStateChangedDelegate onBakingStateChanged;
 
         /// <summary>The currently selected baking state.</summary>
         public string bakingState

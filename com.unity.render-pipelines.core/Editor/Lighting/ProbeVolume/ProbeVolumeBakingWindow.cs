@@ -3,14 +3,13 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ProbeVolumeBakingWindow : EditorWindow
     {
@@ -82,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeSceneData sceneData => ProbeReferenceVolume.instance.sceneData;
 
-        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
+        [MenuItem("Window/Rendering/Probe Volume Settings")]
         static void OpenWindow()
         {
             // Get existing open window or if none, make a new one:
@@ -93,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             m_SearchField = new SearchField();
-            titleContent = new GUIContent("Probe Volume Settings (Experimental)");
+            titleContent = new GUIContent("Probe Volume Settings");
 
             RefreshSceneAssets();
             m_DrawHorizontalSplitter = typeof(EditorGUIUtility).GetMethod("DrawHorizontalSplitter", BindingFlags.NonPublic | BindingFlags.Static);

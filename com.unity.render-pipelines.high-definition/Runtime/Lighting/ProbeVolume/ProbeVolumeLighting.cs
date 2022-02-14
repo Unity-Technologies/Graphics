@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
