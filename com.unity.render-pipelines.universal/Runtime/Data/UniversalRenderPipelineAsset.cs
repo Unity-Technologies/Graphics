@@ -423,6 +423,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
+        [SerializeField] bool m_UseScreenCoordOverride = false;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -1236,6 +1237,14 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion
         {
             get { return m_UseFastSRGBLinearConversion; }
+        }
+
+        /// <summary>
+        /// Returns true if cameras may use Screen Coordinates Override.
+        /// </summary>
+        public bool useScreenCoordOverride
+        {
+            get { return m_UseScreenCoordOverride; }
         }
 
         /// <summary>

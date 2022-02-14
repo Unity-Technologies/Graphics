@@ -85,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
-        static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();
         static DynamicArray<byte> s_PackedValidity_locData = new DynamicArray<byte>();
 
         static DynamicArray<Color> s_L2_0_locData = null;
@@ -238,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        internal static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -343,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering
             s_L0L1Rx_locData.Resize(size);
             s_L1GL1Ry_locData.Resize(size);
             s_L1BL1Rz_locData.Resize(size);
-            s_Validity_locData.Resize(size);
             s_PackedValidity_locData.Resize(size);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -416,7 +414,7 @@ namespace UnityEngine.Experimental.Rendering
             return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
         }
 
-        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<float> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<uint> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
         {
             // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
             // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
@@ -433,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering
             ValidateTemporaryBuffers(loc, dstBands);
 
             var shL0L1Ptr = (float*)shL0L1Data.GetUnsafeReadOnlyPtr();
-            var validityPtr = (float*)validity.GetUnsafeReadOnlyPtr();
+            var validityPtr = (uint*)validity.GetUnsafeReadOnlyPtr();
             var shL2Ptr = (float*)(shL2Data.IsCreated ? shL2Data.GetUnsafeReadOnlyPtr() : default);
 
             for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
@@ -456,7 +454,6 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, kZZZH);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
-                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, 1.0f);
                                 SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, 0);
 
 
@@ -474,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
-                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, validityPtr[shidx]);
+                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityNeighMaskFromPacked(validityPtr[shidx]));
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -511,30 +508,6 @@ namespace UnityEngine.Experimental.Rendering
                         by = 0;
                         bz += kBrickProbeCountPerDim;
                         Debug.Assert(bz < loc.depth || brickIdx == (startIndex + count - kBrickProbeCountTotal), "Location depth exceeds data texture.");
-                    }
-                }
-            }
-
-            // This can be optimized later.
-            for (int x = 0; x < loc.width; ++x)
-            {
-                for (int y = 0; y < loc.height; ++y)
-                {
-                    for (int z = 0; z < loc.depth; ++z)
-                    {
-
-                        float[] validities = new float[8];
-                        for (int o = 0; o < 8; ++o)
-                        {
-                            Vector3Int off = GetSampleOffset(o);
-                            Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, loc.width - 1),
-                                                                  Mathf.Clamp(y + off.y, 0, loc.height - 1),
-                                                                  Mathf.Clamp(z + off.z, 0, kBrickProbeCountPerDim - 1));
-                            validities[o] = GetData(s_Validity_locData, samplePos.x, samplePos.y, samplePos.z, loc.width, loc.height);
-                        }
-
-                        int packedData = PackValidity(validities);
-                        SetPixel(s_PackedValidity_locData, x, y, z, loc.width, loc.height, Convert.ToByte(packedData));
                     }
                 }
             }

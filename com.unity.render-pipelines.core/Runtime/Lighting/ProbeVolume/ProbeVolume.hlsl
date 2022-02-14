@@ -13,7 +13,9 @@
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-#define _Weight _Weight_Padding.x
+#define _Weight _Weight_MinLoadedCell.x
+#define _MinLoadedCell _Weight_MinLoadedCell.yzw
+#define _MaxLoadedCell _MaxLoadedCell_Padding.xyz
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -178,6 +180,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int3 cellPos = floor(posWS / _CellInMeters);
     float3 topLeftCellWS = cellPos * _CellInMeters;
 
+    bool isALoadedCell = all(cellPos <= _MaxLoadedCell) && all(cellPos >= _MinLoadedCell);
+
     // Make sure we start from 0
     cellPos -= (int3)_MinCellPosition;
 
@@ -188,7 +192,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int chunkIdx = -1;
     bool isValidBrick = true;
     int locationInPhysicalBuffer = 0;
-    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+
+    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
         float3 residualPosWS = posWS - topLeftCellWS;
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
