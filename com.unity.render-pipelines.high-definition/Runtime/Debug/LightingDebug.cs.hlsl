@@ -68,8 +68,9 @@
 // UnityEngine.Rendering.HighDefinition.CapsuleTileDebugMode:  static fields
 //
 #define CAPSULETILEDEBUGMODE_NONE (0)
-#define CAPSULETILEDEBUGMODE_INDIRECT (1)
-#define CAPSULETILEDEBUGMODE_DIRECT (2)
+#define CAPSULETILEDEBUGMODE_DEPTH_RANGE (1)
+#define CAPSULETILEDEBUGMODE_INDIRECT (2)
+#define CAPSULETILEDEBUGMODE_DIRECT (3)
 
 //
 // UnityEngine.Rendering.HighDefinition.ExposureDebugMode:  static fields

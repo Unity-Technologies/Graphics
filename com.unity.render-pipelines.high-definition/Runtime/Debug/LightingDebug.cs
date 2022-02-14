@@ -182,6 +182,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No capsule tile debug.</summary>
         None,
+        /// <summary>Show the number of depth ranges per tile.</summary>
+        DepthRange,
         /// <summary>Show capsules used for indirect shadows.</summary>
         Indirect,
         /// <summary>Show capsules used for direct shadows.</summary>

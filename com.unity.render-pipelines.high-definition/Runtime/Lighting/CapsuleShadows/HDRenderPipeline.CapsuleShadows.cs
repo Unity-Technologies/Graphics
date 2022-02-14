@@ -287,9 +287,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_CapsuleOccluderDataBuffer);
         }
 
-        class RenderCapsuleShadowsPassData
+        class CapsuleShadowsPassData
         {
-            public ComputeShader capsuleCS;
+            public ComputeShader cs;
             public int kernel;
 
             public CapsuleShadowDirectionalLight directionalLight;
@@ -314,12 +314,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.defaultResources.blackTextureXR;
             }
 
-            using (var builder = renderGraph.AddRenderPass<RenderCapsuleShadowsPassData>("Capsule Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RenderCapsuleShadows)))
+            using (var builder = renderGraph.AddRenderPass<CapsuleShadowsPassData>("Capsule Shadows", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadows)))
             {
                 bool isFullResolution = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassFullResolution);
 
-                passData.capsuleCS = defaultResources.shaders.capsuleShadowsCS;
-                passData.kernel = passData.capsuleCS.FindKernel("CapsuleShadowMain");
+                passData.cs = defaultResources.shaders.capsuleShadowsCS;
+                passData.kernel = passData.cs.FindKernel("CapsuleShadowMain");
 
                 passData.directionalLight = m_DirectionalLight;
                 passData.isFullResolution = isFullResolution;
@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
                 builder.SetRenderFunc(
-                    (RenderCapsuleShadowsPassData data, RenderGraphContext ctx) =>
+                    (CapsuleShadowsPassData data, RenderGraphContext ctx) =>
                     {
                         RTHandle output = data.output;
                         Vector2Int size = output.GetScaledSize(output.rtHandleProperties.currentViewportSize);
@@ -366,19 +366,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
                         cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
 
-                        ConstantBuffer.Push(ctx.cmd, cb, data.capsuleCS, HDShaderIDs._ShaderVariablesCapsuleShadows);
+                        ConstantBuffer.Push(ctx.cmd, cb, data.cs, HDShaderIDs._ShaderVariablesCapsuleShadows);
 
-                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleShadowTexture, data.output);
-                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                        ctx.cmd.SetComputeBufferParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleOccluderDatas, data.capsuleOccluderDatas);
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowTexture, data.output);
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleOccluderDatas, data.capsuleOccluderDatas);
 
                         bool useTileDebug = (data.tileDebugMode != CapsuleTileDebugMode.None);
                         if (useTileDebug)
-                            ctx.cmd.SetComputeTextureParam(data.capsuleCS, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
-                        CoreUtils.SetKeyword(data.capsuleCS, "CAPSULE_TILE_DEBUG", useTileDebug);
+                            ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
+                        CoreUtils.SetKeyword(data.cs, "CAPSULE_TILE_DEBUG", useTileDebug);
 
-                        ctx.cmd.DispatchCompute(data.capsuleCS, data.kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), 1);
                     });
 
                 capsuleTileDebugTexture = passData.tileDebugOutput;

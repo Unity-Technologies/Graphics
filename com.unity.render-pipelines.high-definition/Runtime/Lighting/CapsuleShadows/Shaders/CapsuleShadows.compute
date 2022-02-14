@@ -23,9 +23,13 @@ RW_TEXTURE2D_X(float, _CapsuleTileDebug);
 
 #define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
 
-#define DEPTH_MIN_EMPTY 0xffffffffU
-groupshared uint s_depthMin;
-groupshared uint s_depthMax;
+#define DEPTH_MAX_EMPTY         0x00000001U
+#define DEPTH_MIN_EMPTY         0xffffffffU
+#define DEPTH_RANGE_COUNT       2
+groupshared uint s_depthMinU[DEPTH_RANGE_COUNT];
+groupshared uint s_depthMaxU[DEPTH_RANGE_COUNT];
+groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
+groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
 groupshared uint s_capsuleBits[2];
 
 #if USE_LEFT_HAND_CAMERA_SPACE
@@ -41,99 +45,56 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 
 #define TILE_SIZE   8
 
-[numthreads(TILE_SIZE,TILE_SIZE,1)]
-void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
+bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint capsuleIndex, float3 tileCenterWS, float tileRadiusWS)
 {
-    uint2 pixelCoord = dispatchThreadId.xy;
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
 
-    bool isHalfRes = _CapsuleDirectShadowIsHalfRes;
-    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
-    bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
+    float centerToCenterDistSq = dot(offsetWS, offsetWS);
 
-    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
-
-    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_OutputSize.zw, deviceDepth);
-
-    // TODO: handle orthographic/oblique
-    float4x4 invProj = UNITY_MATRIX_I_P;
-    float linearDepth = invProj._m23/(invProj._m32 * positionCS.z + invProj._m33);
-    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
-    float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
-
-    float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
-    float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
-
-    // TODO: handle scaled view matrix?
-    float absWorldFromViewScale = 1.f;
-
-    NormalData normalData;
-    DecodeFromNormalBuffer(normalBufferData, normalData);
-    float3 normalWS = normalData.normalWS;
-
-    if (flatThreadIndex == 0)
+    bool intersectsTile;
+    if (capsuleIndex < _CapsuleDirectShadowCount)
     {
-        s_depthMin = DEPTH_MIN_EMPTY;
-        s_depthMax = 0;
-    }
-    GroupMemoryBarrierWithGroupSync();
+        float offsetDotLight = dot(offsetWS, _CapsuleLightDir);
+        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, _CapsuleLightDir));
+        float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
+        float lightT = offsetDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius;   // farthest point along light axis
+        float tileRadiusTowardsCapsule = tileRadiusWS + lightT*_CapsuleLightTanTheta;
+        float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
+        float3 checkOffsetWS = offsetWS - offsetDotLight*_CapsuleLightDir;
+        bool intersectsPenumbra = (lightT > 0.f) && (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
 
-    if (!is_sky)
+        float directRangeWS = capsuleData.offset + capsuleData.radius + _CapsuleShadowRange;
+        bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
+
+        intersectsTile = intersectsPenumbra && intersectsRange;
+    }
+    else
     {
-        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
-        InterlockedMin(s_depthMin, asuint(depth));
-        InterlockedMax(s_depthMax, asuint(depth));
+        float indirectRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
+        intersectsTile = (centerToCenterDistSq < Sq(indirectRangeWS + tileRadiusWS));
     }
-    GroupMemoryBarrierWithGroupSync();
+    return intersectsTile;
+}
 
-    // early out if tile is all far clip
-    if (s_depthMin == DEPTH_MIN_EMPTY)
-    {
-#ifdef CAPSULE_TILE_DEBUG
-        if (flatThreadIndex == 0)
-            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0.f;
-#endif
-        return;
-    }
+void CapsuleShadowLoop(
+    float3 positionWS,
+    float3 normalWS,
+    uint flatThreadIndex,
+    bool useSecondDepthRange,
+    inout uint processedCapsuleCounter,
+    inout float directVisibility,
+    inout float indirectVisibility)
+{
+    float3 tileCenterWS0 = s_tileCenter[0];
+    float tileRadiusWS0 = asfloat(s_tileRadiusU[0]);
 
-    // TODO: splitting planes for froxel
-    // TODO: move work to setup pass to run as one tile per thread
-    // TODO: save/restore to LDS each pass to free up registers
-    // TODO: two depth ranges, to handle edges better
-    // for now just make a bounding sphere using all threads
-    float nearLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMin));
-    float farLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMax));
-
-    // build viewspace bounds
-    float midLinearDepth = 0.5f*(nearLinearDepth + farLinearDepth);
-    float3 tileCenterVS = ViewspaceFromXY(positionVS_XY, midLinearDepth);
-
-    // TODO: optimise
-    float tileRadiusSqVS = 0.f;
-    for (int i = 0; i < 8; ++i) {
-        float2 cornerVS_XY = positionVS_XY + float2((i & 1) != 0 ? 1.f : -1.f, (i & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_OutputSize.zw*TILE_SIZE;
-        float cornerLinearDepth = ((i & 4) != 0 ? nearLinearDepth : farLinearDepth);
-        float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - tileCenterVS;
-        tileRadiusSqVS = max(tileRadiusSqVS, dot(offsetVS, offsetVS));
-    }
-    float3 tileCenterWS = TransformViewToWorld(tileCenterVS);
-    float tileRadiusWS = sqrt(tileRadiusSqVS) * absWorldFromViewScale;
-
-    // loop over capsules in batches of 64
-    // TODO: make 32, check 2 depth ranges per capsule
-    float directVisibility = 1.f;
-    float indirectVisibility = 1.f;
-#ifdef CAPSULE_TILE_DEBUG
-    uint processedCapsuleCounter = 0;
-#endif
+    // loop over capsules in batches
     uint capsuleCount = _CapsuleDirectShadowCount + _CapsuleIndirectShadowCount;
     for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
     {
         // clear state
         if (flatThreadIndex < 2)
-        {
             s_capsuleBits[flatThreadIndex] = 0;
-        }
         GroupMemoryBarrierWithGroupSync();
 
         // use one thread per capsule to check against tile
@@ -144,33 +105,9 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
             {
                 CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
 
-                float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
-                float centerToCenterDistSq = dot(offsetWS, offsetWS);
-
-                bool intersectsTile = false;
-                if (capsuleIndex < _CapsuleDirectShadowCount)
-                {
-                    float offsetDotLight = dot(offsetWS, _CapsuleLightDir);
-                    float absAxisDotLight = abs(dot(capsuleData.axisDirWS, _CapsuleLightDir));
-                    float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
-                    float lightT = max(
-                        offsetDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius,   // farthest point along light axis
-                        0.f);
-                    float tileRadiusTowardsCapsule = tileRadiusWS + lightT*_CapsuleLightTanTheta;
-                    float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
-                    float3 checkOffsetWS = offsetWS - offsetDotLight*_CapsuleLightDir;
-                    bool intersectsPenumbra = (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
-
-                    float directRangeWS = capsuleData.offset + capsuleData.radius + _CapsuleShadowRange;
-                    bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
-
-                    intersectsTile = intersectsPenumbra && intersectsRange;
-                }
-                else
-                {
-                    float indirectRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
-                    intersectsTile = (centerToCenterDistSq < Sq(indirectRangeWS + tileRadiusWS));
-                }
+                bool intersectsTile = CapsuleIntersectsTile(capsuleData, capsuleIndex, tileCenterWS0, tileRadiusWS0);
+                if (useSecondDepthRange && !intersectsTile)
+                    intersectsTile = CapsuleIntersectsTile(capsuleData, capsuleIndex, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
 
                 if (intersectsTile)
                     InterlockedOr(s_capsuleBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
@@ -235,7 +172,157 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
             }
         }
     }
+}
 
+[numthreads(TILE_SIZE,TILE_SIZE,1)]
+void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
+{
+    uint2 pixelCoord = dispatchThreadId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    bool isHalfRes = _CapsuleDirectShadowIsHalfRes;
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
+    bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
+
+    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
+
+    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_OutputSize.zw, deviceDepth);
+
+    // TODO: handle orthographic/oblique
+    float4x4 invProj = UNITY_MATRIX_I_P;
+    float linearDepth = invProj._m23/(invProj._m32 * positionCS.z + invProj._m33);
+    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
+    float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+
+    float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
+    float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
+
+    // TODO: handle scaled view matrix?
+    float absWorldFromViewScale = 1.f;
+
+    NormalData normalData;
+    DecodeFromNormalBuffer(normalBufferData, normalData);
+    float3 normalWS = normalData.normalWS;
+
+    if (flatThreadIndex < DEPTH_RANGE_COUNT)
+    {
+        s_depthMinU[flatThreadIndex] = DEPTH_MIN_EMPTY;
+        s_depthMaxU[flatThreadIndex] = DEPTH_MAX_EMPTY;
+        s_tileRadiusU[flatThreadIndex] = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    if (!is_sky)
+    {
+        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
+        InterlockedMin(s_depthMinU[0], asuint(depth));
+        InterlockedMax(s_depthMaxU[1], asuint(depth));
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // early out if tile is all far clip
+    if (s_depthMinU[0] == DEPTH_MIN_EMPTY)
+    {
+#ifdef CAPSULE_TILE_DEBUG
+        if (flatThreadIndex == 0)
+            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0.f;
+#endif
+        return;
+    }
+
+    // split the depth range at the midpoint
+    if (!is_sky)
+    {
+        float mid = .5f*(asfloat(s_depthMinU[0]) + asfloat(s_depthMaxU[1]));
+        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
+        if (depth < mid)
+            InterlockedMax(s_depthMaxU[0], asuint(depth));
+        else
+            InterlockedMin(s_depthMinU[1], asuint(depth));
+    }
+    GroupMemoryBarrierWithGroupSync();
+    if (flatThreadIndex == 0)
+    {
+        uint depthMinU0 = s_depthMinU[0];
+        uint depthMinU1 = s_depthMinU[1];
+        uint depthMaxU0 = s_depthMaxU[0];
+        uint depthMaxU1 = s_depthMaxU[1];
+
+        // handle empty region either side of the split
+        if (depthMaxU0 == DEPTH_MAX_EMPTY)
+            depthMaxU0 = depthMinU0;
+        if (depthMinU1 == DEPTH_MIN_EMPTY)
+            depthMinU1 = depthMaxU1;
+
+        // revert back to a single depth range if we don't skip much space (for performance)
+        float totalDepthRange = asfloat(depthMaxU1) - asfloat(depthMinU0);
+        float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
+        float2 pixelHalfExtentXY = abs(viewFromClipScale*_OutputSize.zw);
+        float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*TILE_SIZE*asfloat(depthMaxU1);
+        if (skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
+        {
+            depthMaxU0 = depthMaxU1;
+            depthMinU1 = depthMinU0;
+        }
+
+        s_depthMinU[0] = depthMinU0;
+        s_depthMinU[1] = depthMinU1;
+        s_depthMaxU[0] = depthMaxU0;
+        s_depthMaxU[1] = depthMaxU1;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // TODO: splitting planes for froxel
+    // TODO: move work to setup pass to run as one tile per thread
+    // TODO: save/restore to LDS each pass to free up registers
+    if (flatThreadIndex < 2)
+    {
+        float nearLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMinU[flatThreadIndex]));
+        float farLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMaxU[flatThreadIndex]));
+        float midLinearDepth = 0.5f*(nearLinearDepth + farLinearDepth);
+        s_tileCenter[flatThreadIndex] = ViewspaceFromXY(positionVS_XY, midLinearDepth);
+    }
+
+    // get bounding sphere radius
+    {
+        // check one corner on each thread
+        uint depthRangeIndex = flatThreadIndex & 1;
+        uint cornerIndex = flatThreadIndex / 2;
+        float cornerLinearDepth0 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMinU[depthRangeIndex]));
+        float cornerLinearDepth1 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMaxU[depthRangeIndex]));
+        if (cornerIndex < 8)
+        {
+            float2 cornerVS_XY
+                = positionVS_XY
+                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_OutputSize.zw*TILE_SIZE;
+            float cornerLinearDepth = ((cornerIndex & 4) != 0 ? cornerLinearDepth1 : cornerLinearDepth0);
+            float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - s_tileCenter[depthRangeIndex];
+            float tileRadiusWS = sqrt(dot(offsetVS, offsetVS)) * absWorldFromViewScale;
+            InterlockedMax(s_tileRadiusU[depthRangeIndex], asuint(tileRadiusWS));
+        }
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // move the sphere center to world space
+    if (flatThreadIndex < 2)
+        s_tileCenter[flatThreadIndex] = TransformViewToWorld(s_tileCenter[flatThreadIndex]);
+    GroupMemoryBarrierWithGroupSync();
+
+    // optimise the loop separately depending on whether we are using one or two depth ranges
+    float directVisibility = 1.f, indirectVisibility = 1.f;
+    uint processedCapsuleCounter = 0;
+    bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
+#ifdef CAPSULE_TILE_DEBUG
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DEPTH_RANGE)
+        processedCapsuleCounter = useSecondDepthRange ? 16 : 4;
+#endif
+    [branch]
+    if (useSecondDepthRange)
+        CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, true, processedCapsuleCounter, directVisibility, indirectVisibility);
+    else
+        CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
+
+    // write results
     _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
