@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.Universal
             if (Application.platform == RuntimePlatform.WebGLPlayer)
                 return false;
 #endif
-            return GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
+            return !GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
         }
 
         private void RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
