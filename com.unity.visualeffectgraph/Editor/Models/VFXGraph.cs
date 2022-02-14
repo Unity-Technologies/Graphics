@@ -21,6 +21,10 @@ namespace UnityEditor.VFX
         {
             List<string> assetToReimport = null;
 
+#if VFX_HAS_TIMELINE
+            UnityEditor.VFX.Migration.ActivationToControlTrack.SanitizePlayable(importedAssets);
+#endif
+
             foreach (var assetPath in importedAssets)
             {
                 bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);

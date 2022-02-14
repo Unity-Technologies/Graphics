@@ -49,7 +49,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (!queriesHitBackBefore)
                     Physics.queriesHitBackfaces = false;
 
-                CleanupOccluders();
+                // We do not cleanup occluders here as it is done after the validity masks are processed.
+                //CleanupOccluders();
             }
         }
 
@@ -130,7 +131,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 // We need to set a known per-ray maxHits up-front since raycast command schedule reads this at schedule time. This is a bit annoying but it's a
                 // price we'll have to pay right now to be able to create commands from a job.
-                var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+                QueryParameters queryParams = new QueryParameters();
+                queryParams.hitBackfaces = true;
+                queryParams.layerMask = 0;
+                var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, queryParams, 0f);
                 for (var i = 0; i < maxPositionsPerBatch * kRayDirectionsPerPosition; ++i)
                     raycastCommands[0][i] = raycastCommands[1][i] = defaultRaycastCommand;
             }
@@ -208,13 +212,13 @@ namespace UnityEngine.Experimental.Rendering
 #if USE_JOBS
                     // Kick off jobs immediately
                     var createRayCastCommandsJobHandle = createRayCastCommandsJob.Schedule();
-                    var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, createRayCastCommandsJobHandle);
+                    var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, voSettings.maxHitsPerRay, createRayCastCommandsJobHandle);
                     jobHandles[nextBatchIdx] = pushOutGeometryJob.Schedule(raycastCommandsJobHandle);
                     JobHandle.ScheduleBatchedJobs();
 #else
                     // Run jobs in-place for easier debugging
                     createRayCastCommandsJob.Run();
-                    RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob).Complete();
+                    RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], voSettings.maxHitsPerRay, kMinCommandsPerJob).Complete();
                     pushOutGeometryJob.Run();
 #endif
                 }
@@ -277,6 +281,8 @@ namespace UnityEngine.Experimental.Rendering
 
             public void Execute()
             {
+                var queryParams = new QueryParameters(voSettings.collisionMask, true, QueryTriggerInteraction.UseGlobal, true);
+
                 var cmdIdx = 0;
                 for (var i = startIdx; i < endIdx; ++i)
                 {
@@ -289,55 +295,55 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             var direction = kRayDirections[j];
                             var origin = position + direction * voSettings.rayOriginBias;
-                            raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, searchDistance, voSettings.collisionMask, voSettings.maxHitsPerRay);
+                            raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, queryParams, searchDistance);
                         }
                     }
                     else
                     {
                         // Since there's no option to dispatch commands with a subset of an array, we fill up the commands buffer with no-op raycasts.
                         for (var j = 0; j < kRayDirectionsPerPosition; ++j)
-                            raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+                            raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
                     }
                 }
 
                 // Zero out any remainder of the raycast array
                 for (; cmdIdx < raycastCommands.Length;)
-                    raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+                    raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
             }
 
             // Typed out in a way Burst understands.
             const float k0 = 0, k1 = 1, k2 = (float)0.70710678118654752440084436210485, k3 = (float)0.57735026918962576450914878050196;
             static readonly Vector3[] kRayDirections =
             {
-                new(-k3, +k3, -k3),
-                new( k0, +k2, -k2),
-                new(+k3, +k3, -k3),
-                new(-k2, +k2,  k0),
-                new( k0, +k1,  k0),
-                new(+k2, +k2,  k0),
-                new(-k3, +k3, +k3),
-                new( k0, +k2, +k2),
-                new(+k3, +k3, +k3),
+                new(-k3, +k3, -k3), // -1  1 -1
+                new( k0, +k2, -k2), //  0  1 -1
+                new(+k3, +k3, -k3), //  1  1 -1
+                new(-k2, +k2,  k0), // -1  1  0
+                new( k0, +k1,  k0), //  0  1  0
+                new(+k2, +k2,  k0), //  1  1  0
+                new(-k3, +k3, +k3), // -1  1  1
+                new( k0, +k2, +k2), //  0  1  1
+                new(+k3, +k3, +k3), //  1  1  1
 
-                new(-k2,  k0, -k2),
-                new( k0,  k0, -k1),
-                new(+k2,  k0, -k2),
-                new(-k1,  k0,  k0),
+                new(-k2,  k0, -k2), // -1  0 -1
+                new( k0,  k0, -k1), //  0  0 -1
+                new(+k2,  k0, -k2), //  1  0 -1
+                new(-k1,  k0,  k0), // -1  0  0
                 // k0, k0, k0 - skip center position (which would be a zero-length ray)
-                new(+k1,  k0,  k0),
-                new(-k2,  k0, +k2),
-                new( k0,  k0, +k1),
-                new(+k2,  k0, +k2),
+                new(+k1,  k0,  k0), //  1  0  0
+                new(-k2,  k0, +k2), // -1  0  1
+                new( k0,  k0, +k1), //  0  0  1
+                new(+k2,  k0, +k2), //  1  0  1
 
-                new(-k3, -k3, -k3),
-                new( k0, -k2, -k2),
-                new(+k3, -k3, -k3),
-                new(-k2, -k2,  k0),
-                new( k0, -k1,  k0),
-                new(+k2, -k2,  k0),
-                new(-k3, -k3, +k3),
-                new( k0, -k2, +k2),
-                new(+k3, -k3, +k3),
+                new(-k3, -k3, -k3), // -1 -1 -1
+                new( k0, -k2, -k2), //  0 -1 -1
+                new(+k3, -k3, -k3), //  1 -1 -1
+                new(-k2, -k2,  k0), // -1 -1  0
+                new( k0, -k1,  k0), //  0 -1  0
+                new(+k2, -k2,  k0), //  1 -1  0
+                new(-k3, -k3, +k3), // -1 -1  1
+                new( k0, -k2, +k2), //  0 -1  1
+                new(+k3, -k3, +k3), //  1 -1  1
             };
         }
 
