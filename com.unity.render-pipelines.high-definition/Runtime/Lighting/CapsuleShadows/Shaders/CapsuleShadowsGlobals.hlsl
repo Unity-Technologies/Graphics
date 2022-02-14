@@ -16,6 +16,8 @@
 #define _CapsuleIndirectShadowIsHalfRes     ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_HALF_RES_BIT) != 0)
 #define _CapsuleIndirectInLightLoop         ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
 
+#define _FirstDepthMipOffset                uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
+
 uint GetCapsuleDirectOcclusionFlags()
 {
 #if 0

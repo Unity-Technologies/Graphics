@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
-TEXTURE2D_X(_CapsuleShadowTexture);
+TEXTURE2D_X(_CapsuleShadowsTexture);
 
 float EvaluateCapsuleDirectShadowLightLoop(
     float3 lightPosOrAxis,

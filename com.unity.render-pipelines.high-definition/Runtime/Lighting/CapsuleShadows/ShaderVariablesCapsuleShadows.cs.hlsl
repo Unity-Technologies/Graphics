@@ -7,13 +7,14 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleShadows
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleShadows)
-    float4 _OutputSize;
+    float4 _CapsuleRenderSize;
     float3 _CapsuleLightDir;
     float _CapsuleLightCosTheta;
     float _CapsuleLightTanTheta;
     float _CapsuleShadowRange;
     uint _CapsulePad0;
     uint _CapsulePad1;
+    float4 _DepthPyramidSize;
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;
     uint _CapsuleTileDebugMode;

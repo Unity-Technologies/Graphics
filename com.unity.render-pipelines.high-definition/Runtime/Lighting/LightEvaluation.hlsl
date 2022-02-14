@@ -316,10 +316,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
         else
         {
-            int2 coord = int2(posInput.positionSS);
-            if (_CapsuleDirectShadowIsHalfRes)
-                coord /= 2;
-            shadow *= 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowTexture, coord).x;
+            shadow *= 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowsTexture, posInput.positionSS).x;
         }
     }
 #endif

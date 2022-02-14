@@ -1,0 +1,54 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
+
+TEXTURE2D_X(_CapsuleShadowsRenderOutput);
+RW_TEXTURE2D_X(float2, _CapsuleShadowsTexture);
+
+float sumAcross(float4 v)
+{
+    return v.x + v.y + v.z + v.w;
+}
+
+[numthreads(8,8,1)]
+void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
+{
+    uint2 pixelCoord = dispatchThreadId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    float2 fullResPositionNDC = float2(pixelCoord) + .5f;
+    float2 halfResPositionNDC = .5f*fullResPositionNDC;
+
+    float2 t = frac(halfResPositionNDC + .5f);
+    float2 s = 1.f - t;
+    float4 bilinearWeight = float4(s.x, t.x, t.x, s.x)*float4(t.y, t.y, s.y, s.y);
+
+    float2 renderUV = ClampAndScaleUVForBilinear(halfResPositionNDC*_CapsuleRenderSize.zw, _CapsuleRenderSize.zw);
+    float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
+    float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
+
+    float2 depthUV = (float2(_FirstDepthMipOffset) + halfResPositionNDC)*_DepthPyramidSize.zw;
+    float4 gatherDeviceDepth = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, depthUV);
+
+    float targetDeviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x;
+
+    // TODO: handle orthographic/oblique
+    float4x4 invProj = UNITY_MATRIX_I_P;
+    float4 gatherLinearDepth = invProj._m23/(invProj._m32 * gatherDeviceDepth + invProj._m33);
+    float targetLinearDepth = invProj._m23/(invProj._m32 * targetDeviceDepth + invProj._m33);
+    float4 depthWeight = 1.f/(abs(gatherLinearDepth - targetLinearDepth) + .01f);
+
+    float4 combinedWeight = bilinearWeight*depthWeight;
+    combinedWeight /= sumAcross(combinedWeight);
+
+    _CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(dot(combinedWeight, gatherR), dot(combinedWeight, gatherG));
+    //_CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = SAMPLE_TEXTURE2D_X_LOD(_CapsuleShadowsRenderOutput, s_point_clamp_sampler, renderUV, 0.f);
+}

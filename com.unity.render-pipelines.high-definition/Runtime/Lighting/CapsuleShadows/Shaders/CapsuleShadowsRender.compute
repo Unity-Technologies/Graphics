@@ -3,7 +3,7 @@
 
 #pragma multi_compile_local _ CAPSULE_TILE_DEBUG
 
-#pragma kernel CapsuleShadowMain
+#pragma kernel Main
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -15,13 +15,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
 #endif
 
-RW_TEXTURE2D_X(float2, _CapsuleShadowTexture);
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+RW_TEXTURE2D_X(float2, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(float, _CapsuleTileDebug);
 #endif
-
-#define _FirstDepthMipOffset uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
 
 #define DEPTH_MAX_EMPTY         0x00000001U
 #define DEPTH_MIN_EMPTY         0xffffffffU
@@ -175,7 +173,7 @@ void CapsuleShadowLoop(
 }
 
 [numthreads(TILE_SIZE,TILE_SIZE,1)]
-void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
+void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
 {
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
@@ -186,7 +184,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
 
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
 
-    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_OutputSize.zw, deviceDepth);
+    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_CapsuleRenderSize.zw, deviceDepth);
 
     // TODO: handle orthographic/oblique
     float4x4 invProj = UNITY_MATRIX_I_P;
@@ -257,7 +255,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
         // revert back to a single depth range if we don't skip much space (for performance)
         float totalDepthRange = asfloat(depthMaxU1) - asfloat(depthMinU0);
         float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
-        float2 pixelHalfExtentXY = abs(viewFromClipScale*_OutputSize.zw);
+        float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleRenderSize.zw);
         float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*TILE_SIZE*asfloat(depthMaxU1);
         if (skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
         {
@@ -294,7 +292,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
         {
             float2 cornerVS_XY
                 = positionVS_XY
-                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_OutputSize.zw*TILE_SIZE;
+                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_CapsuleRenderSize.zw*TILE_SIZE;
             float cornerLinearDepth = ((cornerIndex & 4) != 0 ? cornerLinearDepth1 : cornerLinearDepth0);
             float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - s_tileCenter[depthRangeIndex];
             float tileRadiusWS = sqrt(dot(offsetVS, offsetVS)) * absWorldFromViewScale;
@@ -323,7 +321,7 @@ void CapsuleShadowMain(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatTh
         CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
 
     // write results
-    _CapsuleShadowTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
+    _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = (float)processedCapsuleCounter/(float)65535.f;
