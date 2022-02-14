@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SamplingNoise = Unpack(o.Find(x => x.samplingNoise));
             m_LeakReductionMode = Unpack(o.Find(x => x.leakReductionMode));
             m_MinValidDotProdValue = Unpack(o.Find(x => x.minValidDotProductValue));
-            m_AnimateNoise = Unpack(o.Find(x => x.animateSamplingNoiseWithTAA));
+            m_AnimateNoise = Unpack(o.Find(x => x.animateSamplingNoise));
 
             base.OnEnable();
         }
