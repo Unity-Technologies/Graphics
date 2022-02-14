@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/MaterialError"
+Shader "Hidden/HDRP/MaterialLoading"
 {
     SubShader
     {
@@ -7,9 +7,6 @@ Shader "Hidden/HDRP/MaterialError"
         Pass
         {
             HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
@@ -43,7 +40,7 @@ Shader "Hidden/HDRP/MaterialError"
 
             float4 frag (v2f i) : SV_Target
             {
-                return float4(1,0,1,1);
+                return float4(0,1,1,1);
             }
             ENDHLSL
         }
