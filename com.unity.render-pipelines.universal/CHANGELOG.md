@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 - Fixed some rendering inconsistencies when using Decals.
 - Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
+- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
 
 ## [13.1.5] - 2021-12-17
 
