@@ -1,5 +1,6 @@
 {
     "name": "Unity.ShaderGraph.StandardDefinitions",
+    "rootNamespace": "",
     "references": [
         "Unity.ShaderGraph.GraphDeltaRegistry"
     ],
@@ -10,7 +11,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }
