@@ -373,14 +373,6 @@ namespace UnityEngine.Experimental.Rendering
             debugData.offsetBuffers = offsetBuffers;
             debugData.props = props;
 
-            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
-            var touchupVolumesAndBounds = new List<(Bounds, ProbeTouchupVolume)>(touchupVolumes.Length);
-            foreach (var touchup in touchupVolumes)
-            {
-                if (touchup.isActiveAndEnabled)
-                    touchupVolumesAndBounds.Add((touchup.GetBounds(), touchup));
-            }
-
             int idxInBatch = 0;
             for (int i = 0; i < cell.probePositions.Length; i++)
             {
