@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering
             parameters.leakReductionMode = APVLeakReductionMode.None;
             parameters.occlusionWeightContribution = 0.0f;
             parameters.minValidNormalWeight = 0.0f;
+            parameters.frameIndexForNoise = 0;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

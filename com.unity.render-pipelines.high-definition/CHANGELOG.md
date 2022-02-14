@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added denoising for the path tracer.
 - Added an initial version of under water rendering for the water system.
 - Added Asymmetric projection and Screen Coordinates Override frame settings. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
+- Added option to animate APV sample noise to smooth it out when TAA is enabled.
 - Added default DOTS compatible loading shader (MaterialLoading.shader)
 - Add #pragma editor_sync_compilation directive to MaterialError.shader
 

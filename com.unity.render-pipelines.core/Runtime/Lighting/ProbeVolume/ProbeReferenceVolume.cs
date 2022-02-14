@@ -340,6 +340,10 @@ namespace UnityEngine.Rendering
         /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
         /// </summary>
         public float minValidNormalWeight;
+        /// <summary>
+        /// The frame index to be used to animate the sampling noise if requested.
+        /// </summary>
+        public int frameIndexForNoise;
 
     }
 
@@ -1474,7 +1478,7 @@ namespace UnityEngine.Rendering
             shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
             shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
-            shaderVars._MaxLoadedCell_Padding = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, 0.0f);
+            shaderVars._MaxLoadedCell_FrameIndex = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, parameters.frameIndexForNoise);
             shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
