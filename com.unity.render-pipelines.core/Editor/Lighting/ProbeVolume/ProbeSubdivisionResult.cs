@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using Unity.Collections;
 using System;
 using UnityEditor;
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ProbeSubdivisionResult
     {

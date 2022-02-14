@@ -1,10 +1,8 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="APVLeakReductionMode"/> value.
@@ -22,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Probe Volumes Options (Experimental)", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Probe Volumes Options", typeof(HDRenderPipeline))]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         /// <summary>
