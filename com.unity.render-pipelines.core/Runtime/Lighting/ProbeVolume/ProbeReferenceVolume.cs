@@ -1593,7 +1593,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
                 var shL0L1Data = useState0 ? cell.state0.shL0L1Data : cell.state1.shL0L1Data;
-                var shL2Data   = useState0 ? cell.state0.shL2Data : cell.state1.shL2Data;
+                var shL2Data = useState0 ? cell.state0.shL2Data : cell.state1.shL2Data;
 
                 ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
                     cell.shBands, shL0L1Data, shL2Data, cell.validity,

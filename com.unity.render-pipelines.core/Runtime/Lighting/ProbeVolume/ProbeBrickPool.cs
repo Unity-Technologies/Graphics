@@ -559,10 +559,11 @@ namespace UnityEngine.Experimental.Rendering
     internal class ProbeBrickBlendingPool : ProbeBrickPool
     {
         static ComputeShader stateBlendShader;
-        static int stateBlendKernel = -1, copyBufferKernel = -1;
+        static int stateBlendKernel = -1;
 
         static readonly int _ChunkDim_LerpFactor = Shader.PropertyToID("_ChunkDim_LerpFactor");
         static readonly int _ChunkMapping = Shader.PropertyToID("_ChunkMapping");
+        static readonly int _PoolDims = Shader.PropertyToID("_PoolDims");
 
         static readonly int _Input_L0_L1Rx = Shader.PropertyToID("_Input_L0_L1Rx");
         static readonly int _Input_L1G_L1Ry = Shader.PropertyToID("_Input_L1G_L1Ry");
@@ -656,10 +657,10 @@ namespace UnityEngine.Experimental.Rendering
 
             stateBlendShader.SetBuffer(stateBlendKernel, _ChunkMapping, m_ChunkMapping);
             stateBlendShader.SetVector(_ChunkDim_LerpFactor, new Vector4(chunkSize.x, chunkSize.y, chunkSize.z, factor));
-            stateBlendShader.SetVector("_PoolDims", poolDims);
+            stateBlendShader.SetVector(_PoolDims, poolDims);
 
             const int numthreads = 8, numthreadsZ = 4;
-            int threadX = DivRoundUp(m_Pool.width,  numthreads);
+            int threadX = DivRoundUp(m_Pool.width, numthreads);
             int threadY = DivRoundUp(m_Pool.height, numthreads);
             int threadZ = DivRoundUp(m_Pool.depth << 1, numthreadsZ);
             stateBlendShader.Dispatch(stateBlendKernel, threadX, threadY, threadZ);

@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering
         bool ResolvePerStateCellData()
         {
             string state0 = transitionState != null ? transitionState : currentState;
-            string state1 = transitionState != null ? currentState    : null;
+            string state1 = transitionState != null ? currentState : null;
             if (state0 == null || !states.TryGetValue(state0, out var data0))
                 return false;
             bool result = asset.ResolvePerStateCellData(0, data0.cellDataAsset, data0.cellOptionalDataAsset);

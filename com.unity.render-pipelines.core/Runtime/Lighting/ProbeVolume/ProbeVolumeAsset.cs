@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cells[i].hasTwoStates = hasTwoStates;
                 if (index == 0) cells[i].state0 = cellState;
-                else            cells[i].state1 = cellState;
+                else cells[i].state1 = cellState;
 
                 startCounts.Add(counts);
             }
