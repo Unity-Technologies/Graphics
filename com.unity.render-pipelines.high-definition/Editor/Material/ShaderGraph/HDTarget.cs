@@ -243,7 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public ScriptableObject GetMetadataObject(GraphData graph)
+        public ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
                 return subTargetHasMetaData.GetMetadataObject(graph);

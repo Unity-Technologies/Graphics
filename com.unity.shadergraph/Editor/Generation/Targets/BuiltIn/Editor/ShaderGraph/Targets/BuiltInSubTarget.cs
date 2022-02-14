@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         protected abstract ShaderID shaderID { get; }
 
         public virtual string identifier => GetType().Name;
-        public virtual ScriptableObject GetMetadataObject(GraphData graph)
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             var bultInMetadata = ScriptableObject.CreateInstance<BuiltInMetadata>();
             bultInMetadata.shaderID = shaderID;

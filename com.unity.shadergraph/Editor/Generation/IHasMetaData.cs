@@ -6,6 +6,6 @@ namespace UnityEditor.ShaderGraph
     interface IHasMetadata
     {
         string identifier { get; }
-        ScriptableObject GetMetadataObject(GraphData graph);
+        ScriptableObject GetMetadataObject(GraphDataReadOnly graph);
     }
 }

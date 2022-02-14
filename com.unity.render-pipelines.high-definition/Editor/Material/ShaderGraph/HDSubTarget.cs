@@ -67,22 +67,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public virtual string identifier => GetType().Name;
 
-        public virtual ScriptableObject GetMetadataObject(GraphData graph)
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
             hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
-            hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation;
-            if (!hdMetadata.hasVertexModificationInMotionVector)
-            {
-                var positionsNodes = graph.GetNodes<BlockNode>().Where(o => o.descriptor.control is PositionControl);
-                if (positionsNodes.SelectMany(o => o.GetInputSlots<MaterialSlot>()).Any(o => o.isConnected))
-                {
-                    hdMetadata.hasVertexModificationInMotionVector = true;
-                }
-            }
+            hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation || graph.AnyVertexAnimationActive();
             return hdMetadata;
         }
 
