@@ -24,7 +24,6 @@ namespace UnityEngine.Rendering
         }
 
         internal int volumeComponentEnumIndex;
-        internal int volumeCameraEnumIndex;
 
         static class Styles
         {
@@ -78,33 +77,14 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            public static DebugUI.EnumField CreateCameraSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<int>, int> refresh)
+            public static DebugUI.ObjectPopupField CreateCameraSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<Object>, Object> refresh)
             {
-                int componentIndex = 0;
-                var componentNames = new List<GUIContent>() { Styles.none };
-                var componentValues = new List<int>() { componentIndex++ };
-
-#if UNITY_EDITOR
-                componentNames.Add(Styles.editorCamera);
-                componentValues.Add(componentIndex++);
-#endif
-
-                foreach (var camera in data.volumeDebugSettings.cameras)
-                {
-                    componentNames.Add(new GUIContent() { text = camera.name });
-                    componentValues.Add(componentIndex++);
-                }
-
-                return new DebugUI.EnumField
+                return new DebugUI.ObjectPopupField
                 {
                     displayName = Strings.camera,
-                    getter = () => data.volumeDebugSettings.selectedCameraIndex,
-                    setter = value => data.volumeDebugSettings.selectedCameraIndex = value,
-                    enumNames = componentNames.ToArray(),
-                    enumValues = componentValues.ToArray(),
-                    getIndex = () => data.volumeCameraEnumIndex,
-                    setIndex = value => { data.volumeCameraEnumIndex = value; },
-                    isHiddenCallback = () => data.volumeComponentEnumIndex == 0,
+                    getter = () => data.volumeDebugSettings.selectedCamera,
+                    setter = value => data.volumeDebugSettings.selectedCamera = value as Camera,
+                    getObjects = () => data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };
             }
@@ -126,7 +106,7 @@ namespace UnityEngine.Rendering
                         hdr = p.hdr,
                         showAlpha = p.showAlpha,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
@@ -137,7 +117,7 @@ namespace UnityEngine.Rendering
                     {
                         displayName = name,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
@@ -222,35 +202,31 @@ namespace UnityEngine.Rendering
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
-                    children =
-                    {
-                        new DebugUI.Value()
-                        {
-                            displayName = Strings.interpolatedValue,
-                            getter = () => {
-                                // This getter is called first at each render
-                                // It is used to update the volumes
-                                if (Time.time - timer < refreshRate)
-                                    return string.Empty;
-                                timer = Time.deltaTime;
-                                if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                                {
-                                    var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                    if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                    {
-                                        for (int i = 0; i < newVolumes.Length; i++)
-                                        {
-                                            var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                            table.SetColumnVisibility(i + 1, visible);
-                                        }
-                                        return string.Empty;
-                                    }
-                                }
-                                DebugManager.instance.ReDrawOnScreenDebug();
-                                return string.Empty;
-                            }
-                        }
-                    }
+                    children = { new DebugUI.Value() {
+                                         displayName = Strings.interpolatedValue,
+                                         getter = () => {
+                                             // This getter is called first at each render
+                                             // It is used to update the volumes
+                                             if (Time.time - timer < refreshRate)
+                                                 return string.Empty;
+                                             timer = Time.deltaTime;
+                                             if (data.volumeDebugSettings.selectedCamera != null)
+                                             {
+                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
+                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                                                 {
+                                                     for (int i = 0; i < newVolumes.Length; i++)
+                                                     {
+                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                                         table.SetColumnVisibility(i + 1, visible);
+                                                     }
+                                                     return string.Empty;
+                                                 }
+                                             }
+                                             DebugManager.instance.ReDrawOnScreenDebug();
+                                             return string.Empty;
+                                         }
+                                     } }
                 };
 
                 // Second row, links to volume gameobjects
@@ -359,28 +335,34 @@ namespace UnityEngine.Rendering
             public SettingsPanel(DebugDisplaySettingsVolume data)
             {
                 m_Data = data;
-                AddWidget(WidgetFactory.CreateComponentSelector(m_Data, Refresh));
-                AddWidget(WidgetFactory.CreateCameraSelector(m_Data, Refresh));
+                AddWidget(WidgetFactory.CreateComponentSelector(m_Data, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateCameraSelector(m_Data, (_, __) => Refresh()));
             }
 
             DebugUI.Table m_VolumeTable = null;
-            void Refresh(DebugUI.Field<int> _, int __)
+            void Refresh()
             {
                 var panel = DebugManager.instance.GetPanel(PanelName);
                 if (panel == null)
                     return;
 
+                bool needsRefresh = false;
                 if (m_VolumeTable != null)
-                    panel.children.Remove(m_VolumeTable);
-
-                if (m_Data.volumeDebugSettings.selectedComponent > 0 && m_Data.volumeDebugSettings.selectedCameraIndex > 0)
                 {
+                    needsRefresh = true;
+                    panel.children.Remove(m_VolumeTable);
+                }
+
+                if (m_Data.volumeDebugSettings.selectedComponent > 0 && m_Data.volumeDebugSettings.selectedCamera != null)
+                {
+                    needsRefresh = true;
                     m_VolumeTable = WidgetFactory.CreateVolumeTable(m_Data);
                     AddWidget(m_VolumeTable);
                     panel.children.Add(m_VolumeTable);
                 }
 
-                DebugManager.instance.ReDrawOnScreenDebug();
+                if (needsRefresh)
+                    DebugManager.instance.ReDrawOnScreenDebug();
             }
         }
 
@@ -388,7 +370,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Checks whether ANY of the debug settings are currently active.
         /// </summary>
-        public bool AreAnySettingsActive => volumeCameraEnumIndex > 0 || volumeComponentEnumIndex > 0;
+        public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
         /// <summary>
         /// Checks whether the current state of these settings allows post-processing.
         /// </summary>

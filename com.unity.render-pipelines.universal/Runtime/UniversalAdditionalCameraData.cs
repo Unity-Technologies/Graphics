@@ -313,6 +313,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [SerializeField] bool m_UseScreenCoordOverride;
+        [SerializeField] Vector4 m_ScreenSizeOverride;
+        [SerializeField] Vector4 m_ScreenCoordScaleBias;
+
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -432,35 +436,6 @@ namespace UnityEngine.Rendering.Universal
             if (removedCamsCount != 0)
             {
                 Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
-            }
-        }
-
-        void OnEnable()
-        {
-            RegisterDebug();
-        }
-
-        void OnDisable()
-        {
-            UnRegisterDebug();
-        }
-
-        bool m_IsDebugRegistered = false;
-        void RegisterDebug()
-        {
-            if (!m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
-                m_IsDebugRegistered = true;
-            }
-        }
-
-        void UnRegisterDebug()
-        {
-            if (m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
-                m_IsDebugRegistered = false;
             }
         }
 
@@ -649,6 +624,33 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AllowXRRendering;
             set => m_AllowXRRendering = value;
+        }
+
+        /// <summary>
+        /// Returns true if the camera uses Screen Coordinates Override.
+        /// </summary>
+        public bool useScreenCoordOverride
+        {
+            get => m_UseScreenCoordOverride;
+            set => m_UseScreenCoordOverride = value;
+        }
+
+        /// <summary>
+        /// Screen size used when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenSizeOverride
+        {
+            get => m_ScreenSizeOverride;
+            set => m_ScreenSizeOverride = value;
+        }
+
+        /// <summary>
+        /// Transform applied to screen coordinates when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenCoordScaleBias
+        {
+            get => m_ScreenCoordScaleBias;
+            set => m_ScreenCoordScaleBias = value;
         }
 
         /// <inheritdoc/>

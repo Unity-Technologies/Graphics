@@ -17,49 +17,16 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
+        private Camera m_SelectedCamera;
+
         [NotNull]
         public abstract VolumeComponentArchetype archetype { get; }
-
-        /// <summary>
-        /// The current selected camera index
-        /// </summary>
-        protected int m_SelectedCameraIndex = 0;
-
-        /// <summary>Selected camera index.</summary>
-        public int selectedCameraIndex
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return 0;
-#else
-                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return 0;
-#endif
-                return m_SelectedCameraIndex;
-            }
-            set { m_SelectedCameraIndex = value; }
-        }
 
         /// <summary>Current camera to debug.</summary>
         public Camera selectedCamera
         {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return null;
-                if (m_SelectedCameraIndex == 1)
-                    return SceneView.lastActiveSceneView.camera;
-                else
-                    return additionalCameraDatas[m_SelectedCameraIndex - 2].GetComponent<Camera>();
-#else
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return null;
-                return additionalCameraDatas[m_SelectedCameraIndex - 1].GetComponent<Camera>();
-#endif
-            }
+            get => m_SelectedCamera ?? cameras.FirstOrDefault();
+            set => m_SelectedCamera = value;
         }
 
         /// <summary>Returns the collection of registered cameras.</summary>
@@ -67,9 +34,26 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                foreach (T additionalCameraData in additionalCameraDatas)
+
+#if UNITY_EDITOR
+                if (SceneView.lastActiveSceneView != null)
                 {
-                    yield return additionalCameraData.GetComponent<Camera>();
+                    var sceneCamera = SceneView.lastActiveSceneView.camera;
+                    if (sceneCamera != null)
+                        yield return sceneCamera;
+                }
+#endif
+                foreach (var camera in Camera.allCameras)
+                {
+                    if (camera == null)
+                        continue;
+
+                    if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
+                    {
+                        if (camera.TryGetComponent<T>(out T additionalData))
+                            yield return camera;
+                    }
+
                 }
             }
         }
@@ -99,31 +83,6 @@ namespace UnityEngine.Rendering
         /// Specifies the render pipeline for this volume settings
         /// </summary>
         public abstract Type targetRenderPipeline { get; }
-
-        /// <summary>
-        /// The list of the additional camera datas
-        /// </summary>
-        protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
-
-        /// <summary>
-        /// Register the camera for the Volume Debug.
-        /// </summary>
-        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
-        public static void RegisterCamera(T additionalCamera)
-        {
-            if (!additionalCameraDatas.Contains(additionalCamera))
-                additionalCameraDatas.Add(additionalCamera);
-        }
-
-        /// <summary>
-        /// Unregister the camera for the Volume Debug.
-        /// </summary>
-        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
-        public static void UnRegisterCamera(T additionalCamera)
-        {
-            if (additionalCameraDatas.Contains(additionalCamera))
-                additionalCameraDatas.Remove(additionalCamera);
-        }
 
         internal VolumeParameter GetParameter(VolumeComponent component, FieldInfo field)
         {

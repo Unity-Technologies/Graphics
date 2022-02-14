@@ -187,28 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class EndCameraXRPassData
-        {
-            public HDCamera hdCamera;
-        }
-
-        void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            if (hdCamera.xr.enabled)
-            {
-                using (var builder = renderGraph.AddRenderPass<EndCameraXRPassData>("End Camera", out var passData))
-                {
-                    passData.hdCamera = hdCamera;
-
-                    builder.SetRenderFunc(
-                        (EndCameraXRPassData data, RenderGraphContext ctx) =>
-                        {
-                            data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
-                        });
-                }
-            }
-        }
-
         class RenderOcclusionMeshesPassData
         {
             public HDCamera hdCamera;
@@ -231,7 +209,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                         {
-                            data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer, ClearFlag.None, data.clearColor, 0, CubemapFace.Unknown, -1);
+
+                            ctx.cmd.SetGlobalVector(HDShaderIDs._ClearColor, data.clearColor);
+
+                            data.hdCamera.xr.RenderOcclusionMesh(ctx.cmd);
                         });
                 }
             }

@@ -36,35 +36,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>Selected camera volume layer mask.</summary>
-        public override LayerMask selectedCameraLayerMask
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return (LayerMask)0;
-                if (m_SelectedCameraIndex == 1)
-                    return -1;
-                return additionalCameraDatas[m_SelectedCameraIndex - 2].volumeLayerMask;
-#else
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return (LayerMask)0;
-                return additionalCameraDatas[m_SelectedCameraIndex - 1].volumeLayerMask;
-#endif
-            }
-        }
+        public override LayerMask selectedCameraLayerMask => selectedCamera != null ? selectedCamera.GetComponent<UniversalAdditionalCameraData>().volumeLayerMask : (LayerMask)0;
 
         /// <summary>Selected camera volume position.</summary>
-        public override Vector3 selectedCameraPosition
-        {
-            get
-            {
-                Camera cam = selectedCamera;
-                if (cam == null)
-                    return Vector3.zero;
-
-                return cam.transform.position;
-            }
-        }
+        public override Vector3 selectedCameraPosition => selectedCamera != null ? selectedCamera.transform.position : Vector3.zero;
     }
 }

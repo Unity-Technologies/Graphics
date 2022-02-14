@@ -150,8 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + dirLightShadow.overrideState.GetHashCode();
                 hash = hash * 23 + rectLightShadow.overrideState.GetHashCode();
 #else
-                hash = hdriSky.value != null ? hash * 23 + hdriSky.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
+                hash = hash * 23 + hdriSky.GetHashCode();
+                hash = hash * 23 + flowmap.GetHashCode();
                 hash = hash * 23 + distortionMode.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + scrollOrientation.GetHashCode();

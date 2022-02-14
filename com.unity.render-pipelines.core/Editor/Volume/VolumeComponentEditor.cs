@@ -218,9 +218,14 @@ namespace UnityEditor.Rendering
             base.Repaint();
         }
 
+        internal static string GetAdditionalPropertiesPreferenceKey(Type type)
+        {
+            return $"UI_Show_Additional_Properties_{type}";
+        }
+
         internal void InitAdditionalPropertiesPreference()
         {
-            string key = $"UI_Show_Additional_Properties_{GetType()}";
+            string key = GetAdditionalPropertiesPreferenceKey(GetType());
             m_ShowAdditionalProperties = new EditorPrefBool(key);
         }
 

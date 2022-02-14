@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                         colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
@@ -1602,7 +1602,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier cameraTarget = cameraData.xr.renderTarget;
 
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top

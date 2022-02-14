@@ -64,11 +64,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             // This is a temporary workaround for Editor as not setting any depth here
             // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
 #if UNITY_EDITOR
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
-                ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+                ConfigureTarget(destination, destination);
             else
 #endif
-            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
+            ConfigureTarget(destination);
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -145,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
