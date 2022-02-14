@@ -43,9 +43,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
     public class TestReader : DataReader
     {
-        public TestReader(Element element) : base(element)
-        {
-        }
+        public TestReader(Element element) : base(element) { }
 
         public override IEnumerable<DataReader> GetChildren()
         {

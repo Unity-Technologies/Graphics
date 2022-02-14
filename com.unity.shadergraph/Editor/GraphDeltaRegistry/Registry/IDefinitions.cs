@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Registry.Defs
 {
@@ -18,15 +19,15 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
     internal interface INodeDefinitionBuilder : IRegistryEntry
     {
-        void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry);
+        void BuildNode(GraphDataHandler node, Registry registry);
+        ShaderFoundry.ShaderFunction GetShaderFunction(GraphDataHandler node, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 
     internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
-        void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
-        string GetInitializerList(IFieldReader data, Registry registry);
+        void BuildType(IFieldHandler field, Registry registry);
+        ShaderFoundry.ShaderType GetShaderType(GraphDataHandler field, ShaderFoundry.ShaderContainer container, Registry registry);
+        string GetInitializerList(GraphDataHandler field, Registry registry);
     }
 
     internal interface ICastDefinitionBuilder : IRegistryEntry
@@ -37,9 +38,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         // TypeConversionMapping represents the Types we can convert, but TypeDefinitions can represent templated concepts,
         // which may mean that incompatibilities within their data could be inconvertible. Types with static fields should
         // implement an ITypeConversion with itself to ensure that static concepts can be represented.
-        bool CanConvert(IFieldReader src, IFieldReader dst);
+        bool CanConvert(GraphDataHandler src, GraphDataHandler dst);
 
-        ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry);
+        ShaderFoundry.ShaderFunction GetShaderCast(GraphData src, GraphDataHandler dst, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 
 
@@ -63,12 +64,12 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        public void BuildNode(GraphDataHandler node, Registry registry)
         {
             // TODO: Correctly generate port type based on our reference type (how do we find that?).
         }
 
-        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(GraphDataHandler node, ShaderContainer container, Registry registry)
         {
             // Reference nodes are not processed through function generation.
             throw new NotImplementedException();
@@ -82,29 +83,31 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        public void BuildNode(GraphDataHandler node, Registry registry)
         {
-            userData.GetField<RegistryKey>("_contextDescriptor", out var contextKey);
+            var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
             {
-                var port = generatedData.AddPort<Types.GraphType>(userData, entry.fieldName, true, registry);
-                port.SetField(Types.GraphType.kHeight, entry.height);
-                port.SetField(Types.GraphType.kLength, entry.length);
-                port.SetField(Types.GraphType.kPrecision, entry.precision);
-                port.SetField(Types.GraphType.kPrimitive, entry.primitive);
-                port.SetField(Types.GraphType.kEntry, entry);
+                var port = node.AddPort(k_user, entry.fieldName, true, false);
+                port.SetMetadata("_RegistryKey", Registry.ResolveKey<Types.GraphType>());
+                var pw = port.GetWriter(k_concrete);
+                pw.AddChild(Types.GraphType.kHeight, entry.height).SetHeader(new FieldHeader());
+                pw.AddChild(Types.GraphType.kLength, entry.length).SetHeader(new FieldHeader());
+                pw.AddChild(Types.GraphType.kPrecision, entry.precision).SetHeader(new FieldHeader());
+                pw.AddChild(Types.GraphType.kPrimitive, entry.primitive).SetHeader(new FieldHeader());
+                pw.AddChild(Types.GraphType.kEntry, entry).SetHeader(new FieldHeader());
                 for (int i = 0; i < entry.length * entry.height; ++i)
-                    port.SetField($"c{i}", entry.initialValue[i]);
+                    pw.AddChild($"c{i}", entry.initialValue[i]).SetHeader(new FieldHeader());
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
-                    port.SetField("semantic", entry.interpolationSemantic);
-                port.SetField("isFlat", entry.isFlat);
+                    pw.AddChild("semantic", entry.interpolationSemantic).SetHeader(new FieldHeader());
+                pw.AddChild("isFlat", entry.isFlat).SetHeader(new FieldHeader());
             }
             // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
         }
 
-        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(GraphDataHandler data, ShaderContainer container, Registry registry)
         {
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.

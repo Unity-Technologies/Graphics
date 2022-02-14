@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Generation
     public static class Interpreter
     {
 
-        public static string GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(INodeHandler node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ToString();
         }
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(INodeHandler rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -39,15 +39,15 @@ namespace UnityEditor.ShaderGraph.Generation
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
 
-            bool isContext = rootNode.GetField("_contextDescriptor", out RegistryKey contextKey);
+            bool isContext = rootNode.HasMetadata("_contextDescriptor");
 
             if (isContext)
             {
                 foreach (var port in rootNode.GetPorts())
                 {
-                    if (port.IsHorizontal() && port.IsInput())
+                    if (port.IsHorizontal && port.IsInput)
                     {
-                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        var entry = port.GetField<IContextDescriptor.ContextEntry>(ShaderGraph.Registry.Types.GraphType.kEntry).GetData();
                         var varOutBuilder = new BlockVariable.Builder(container);
                         varOutBuilder.ReferenceName = entry.fieldName;
                         varOutBuilder.Type = EvaluateShaderType(entry, container);
@@ -239,20 +239,20 @@ namespace UnityEditor.ShaderGraph.Generation
 
         }
 
-        private static IEnumerable<INodeReader> GatherTreeLeafFirst(INodeReader rootNode)
+        private static IEnumerable<INodeHandler> GatherTreeLeafFirst(INodeHandler rootNode)
         {
-            Stack<INodeReader> stack = new Stack<INodeReader>();
-            HashSet<INodeReader> visited = new HashSet<INodeReader>();
+            Stack<INodeHandler> stack = new Stack<INodeHandler>();
+            HashSet<INodeHandler> visited = new HashSet<INodeHandler>();
             stack.Push(rootNode);
             while(stack.Count > 0)
             {
-                INodeReader check = stack.Peek();
+                INodeHandler check = stack.Peek();
                 bool isLeaf = true;
-                foreach(IPortReader port in check.GetInputPorts())
+                foreach(IPortHandler port in check.GetInputPorts())
                 {
-                    if(port.IsHorizontal())
+                    if(port.IsHorizontal)
                     {
-                        foreach(INodeReader connected in GetConnectedNodes(port))
+                        foreach(INodeHandler connected in GetConnectedNodes(port))
                         {
                             if (!visited.Contains(connected))
                             {
@@ -270,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        private static IEnumerable<INodeReader> GetConnectedNodes(IPortReader port)
+        private static IEnumerable<INodeHandler> GetConnectedNodes(IPortHandler port)
         {
             foreach(var connected in port.GetConnectedPorts())
             {

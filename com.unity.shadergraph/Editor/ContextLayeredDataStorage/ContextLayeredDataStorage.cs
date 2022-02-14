@@ -15,6 +15,17 @@ namespace UnityEditor.ContextLayeredDataStorage
         internal readonly LayerList m_layerList;
         [NonSerialized]
         protected Dictionary<string, Element> m_flatStructureLookup;
+        protected IEnumerable<(string layerName, Element root)> LayerList
+        {
+            get
+            {
+                foreach(var (_, data) in m_layerList)
+                {
+                    yield return (data.descriptor.layerName, data.element);
+                }
+            }
+        }
+
         public IEnumerable<(string, Element)> FlatStructureLookup
         {
             get
@@ -63,6 +74,39 @@ namespace UnityEditor.ContextLayeredDataStorage
             element.Header = header;
         }
 
+        protected Element GetLayerRoot(string layerName)
+        {
+            return m_layerList.GetLayerRoot(layerName);
+        }
+
+        protected Element GetElementFromLayer(string layerName, ElementID id)
+        {
+            Element root = GetLayerRoot(layerName);
+            if (root == null)
+            {
+                return null;
+            }
+            else
+            {
+                return SearchRelative(root, id);
+            }
+        }
+
+        protected Element AddElementToLayer(string layerName, ElementID id)
+        {
+            Element root = GetLayerRoot(layerName);
+            if (root == null)
+            {
+                return null;
+            }
+            else
+            {
+                AddData(root, id, out Element element);
+                return element;
+            }
+        }
+
+
         //AddData with no specified layer gets added to the topmost layer
         internal void AddData<T>(ElementID id, T data, out Element<T> elem)
         {
@@ -102,21 +146,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             return element.GetWriter();
         }
 
-        internal void AddData(LayerDescriptor layer, ElementID id, out Element elem)
-        {
-            elem = null;
-            Element root = m_layerList.GetLayerRoot(layer.layerName);
-            if(root != null)
-            {
-                AddData(root, id, out elem);
-            }
-        }
-
-        internal DataWriter AddData(LayerDescriptor layer, ElementID id)
-        {
-            AddData(layer, id, out Element element);
-            return element.GetWriter();
-        }
 
         internal void AddData<T>(Element elem, ElementID id, T data, out Element<T> output)
         {
@@ -187,6 +216,15 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
+        internal void RemoveData(Element elem, ElementID id)
+        {
+            var e = SearchRelative(elem, id);
+            if(e != null)
+            {
+                RemoveData(e);
+            }
+        }
+
         private void RemoveInternal(Element elem)
         {
             List<Element> childrenToRemove  = new List<Element>();
@@ -207,7 +245,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
-        internal void RemoveDataBranch(Element root)
+        protected void RemoveDataBranch(Element root)
         {
             GatherAll(root, out var elems);
             foreach(var elem in elems)
@@ -227,7 +265,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
 
         //Search layers in hierarchical order for the first element with the name lookup
-        internal Element SearchInternal(ElementID lookup)
+        protected Element SearchInternal(ElementID lookup)
         {
             foreach(var layer in m_layerList)
             {
@@ -240,7 +278,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             return null;
         }
 
-        internal Element SearchRelative(Element elem, ElementID lookup)
+        protected Element SearchRelative(Element elem, ElementID lookup)
         {
             if(elem.Children.Count > 0)
             {

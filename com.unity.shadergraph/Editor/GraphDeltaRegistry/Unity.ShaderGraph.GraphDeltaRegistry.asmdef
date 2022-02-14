@@ -6,10 +6,10 @@
         "Unity.ShaderFoundry.Editor",
         "Unity.ShaderGraph.Editor"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [
+    "includePlatforms": [
         "Editor"
     ],
+    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],

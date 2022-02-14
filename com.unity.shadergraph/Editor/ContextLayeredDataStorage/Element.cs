@@ -41,19 +41,9 @@ namespace UnityEditor.ContextLayeredDataStorage
             this.ID = id;
         }
 
-        public bool TryGetData<T>(out T data)
+        public T GetData<T>()
         {
-            var isDataHolder = this as Element<T>;
-            if (isDataHolder != null)
-            {
-                data = isDataHolder.Data;
-                return true;
-            }
-            else
-            {
-                data = default(T);
-                return false;
-            }
+            return (this as Element<T>).Data;
         }
 
         public DataReader GetReader()
@@ -75,7 +65,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
     public class Element<T> : Element
     {
-        public T Data { get; private set; }
+        internal T m_Data;
+        public ref readonly T Data => ref m_Data;
 
         [Serializable]
         internal struct DataBox
@@ -86,7 +77,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public Element(ElementID id, T data, ContextLayeredDataStorage owner) : base(id, owner)
         {
-            this.Data = data;
+            m_Data = data;
         }
 
 

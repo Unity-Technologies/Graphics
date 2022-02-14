@@ -2,8 +2,11 @@ using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.GraphDelta;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
+using UnityEditor.ShaderGraph.Registry;
 
-namespace UnityEditor.ShaderGraph.Registry
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     //public interface IRegistry
     //{
@@ -20,43 +23,31 @@ namespace UnityEditor.ShaderGraph.Registry
     public static class GraphDeltaExtensions
     {
 
+        public static IEnumerable<IPortHandler> GetConnectedPorts(this IPortHandler port)
+        {
+            return port.
+        }
+
         private const string kRegistryKeyName = "_RegistryKey";
-        public static RegistryKey GetRegistryKey(this GraphDelta.INodeReader node)
+        public static RegistryKey GetRegistryKey(this INodeHandler node)
         {
-            node.TryGetField(kRegistryKeyName, out var fieldReader);
-            fieldReader.TryGetValue<RegistryKey>(out var key);
-            return key;
+            return node.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static RegistryKey GetRegistryKey(this GraphDelta.IPortReader port)
+        public static RegistryKey GetRegistryKey(this IPortHandler port)
         {
-            port.TryGetField(kRegistryKeyName, out var fieldReader);
-            fieldReader.TryGetValue<RegistryKey>(out var key);
-            return key;
+            return port.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static RegistryKey GetRegistryKey(this GraphDelta.IFieldReader field)
+        public static RegistryKey GetRegistryKey(this IFieldHandler field)
         {
-            field.GetField(kRegistryKeyName, out RegistryKey key);
-            return key;
-
+            return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        // need more information-- this is just... idk, something?
-        public static IEnumerable<string> GetReferences(this GraphDelta.IGraphHandler handler)
+        public static void AddReferenceNode(this IGraphHandler handler, string nodeName, string referenceName, Registry.Registry registry)
         {
-            HashSet<string> references = new HashSet<string>();
-            foreach(var context in handler.GetNodes().Where(n => n.GetRegistryKey().Equals(Defs.ContextBuilder.kRegistryKey)))
-                foreach(var port in context.GetPorts())
-                    if (port.IsInput() && port.IsHorizontal())
-                        references.Add(port.GetName());
-            return references;
-        }
-
-        public static void AddReferenceNode(this GraphDelta.IGraphHandler handler, string nodeName, string referenceName, Registry registry)
-        {
-            var node = handler.AddNode<Defs.ReferenceNodeBuilder>(nodeName, registry);
-            node.SetField("_referenceName", referenceName);
+            var node = handler.AddNode<Registry.Defs.ReferenceNodeBuilder>(nodeName, registry);
+            node.SetMetadata("_referenceName", referenceName);
             // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.
             // We need stronger rules around references-- namely that a reference type must be consistent across all instances of that reference within however many context nodes.
 
@@ -64,31 +55,31 @@ namespace UnityEditor.ShaderGraph.Registry
             // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
         }
 
-        internal static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
+        internal static void SetupContext(this IGraphHandler handler, IEnumerable<Registry.Defs.IContextDescriptor> contexts, Registry.Registry registry)
         {
             // only safe to call right now.
-            GraphDelta.INodeWriter previousContextNode = null;
+            INodeHandler previousContextNode = null;
             foreach(var context in contexts)
             {
                 // Initialize the Context Node with information from the ContextDescriptor
                 var name = context.GetRegistryKey().Name + "_Context"; // Not like this...
-                var currentContextNode = handler.AddNode<Defs.ContextBuilder>(name, registry);
-                currentContextNode.SetField("_contextDescriptor", context.GetRegistryKey()); // initialize the node w/a reference to the context descriptor (so it can build itself).
+                var currentContextNode = handler.AddNode<Registry.Defs.ContextBuilder>(name, registry);
+                currentContextNode.SetMetadata("_contextDescriptor", context.GetRegistryKey()); // initialize the node w/a reference to the context descriptor (so it can build itself).
                 if(previousContextNode != null)
                 {
                     // Create the monadic connection if it should exist.
-                    previousContextNode.TryAddPort("Out", false, false, out var outPort);
-                    currentContextNode.TryAddPort("In", true, false, out var inPort);
-                    inPort.TryAddConnection(outPort);
+                    var outPort = previousContextNode.AddPort("Out", false, false);
+                    var inPort  = currentContextNode.AddPort("In", true, false);
+                    handler.AddEdge(outPort.ID, inPort.ID);
                 }
                 handler.ReconcretizeNode(name, registry);
                 previousContextNode = currentContextNode;
             }
 
-            var entryPoint = handler.AddNode<Defs.ContextBuilder>("EntryPoint", registry);
-            previousContextNode.TryAddPort("Out", false, false, out var toEnry);
-            entryPoint.TryAddPort("In", true, false, out var inEntry);
-            inEntry.TryAddConnection(toEnry);
+            var entryPoint = handler.AddNode<Registry.Defs.ContextBuilder>("EntryPoint", registry);
+            var toEntry = previousContextNode.AddPort("Out", false, false);
+            var inEntry = entryPoint.AddPort("In", true, false);
+            handler.AddEdge(toEntry.ID, inEntry.ID);
             handler.ReconcretizeNode("EntryPoint", registry);
         }
 
@@ -237,97 +228,77 @@ namespace UnityEditor.ShaderGraph.Registry
         //    funcBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
         //}
 
-        public static bool TestConnection(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static bool TestConnection(this IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
         {
-            var dstNodeReader = handler.GetNodeReader(dstNode);
-            dstNodeReader.TryGetPort(dstPort, out var dstPortReader);
-            handler.GetNodeReader(srcNode).TryGetPort(srcPort, out var srcPortReader);
-            return registry.CastExists(dstPortReader.GetRegistryKey(), srcPortReader.GetRegistryKey());
+            var dstNodeHandler = handler.GetNode(dstNode);
+            var dstPortHandler = dstNodeHandler.GetPort(dstPort);
+            var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
+            return registry.CastExists(dstPortHandler.GetRegistryKey(), srcPortHandler.GetRegistryKey());
         }
 
-        public static bool TryConnect(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static IEdgeHandler Connect(this IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
         {
-            var dstNodeWriter = handler.GetNodeWriter(dstNode);
-            var dstPortWriter = dstNodeWriter.GetPort(dstPort);
-            var srcPortWriter = handler.GetNodeWriter(srcNode).GetPort(srcPort);
-            return dstPortWriter.TryAddConnection(srcPortWriter);
+            var dstNodeHandler = handler.GetNode(dstNode);
+            var dstPortHandler = dstNodeHandler.GetPort(dstPort);
+            var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
+            return handler.AddEdge(srcPortHandler.ID, dstPortHandler.ID);
         }
 
 
-        public static void SetPortField<T>(this GraphDelta.INodeWriter node, string portName, string fieldName, T value)
+        public static void SetPortField<T>(this INodeHandler node, string portName, string fieldName, T value)
         {
-            if (!node.TryGetPort(portName, out var pw))
-                node.TryAddPort(portName, true, true, out pw);
-
+            var pw = node.GetPort(portName);
+            if(pw == null)
+            {
+                pw = node.AddPort(portName, true, true);
+            }
             pw.SetField(fieldName, value);
         }
 
-
-        public static void SetField<T>(this GraphDelta.INodeWriter node, string fieldName, T value)
+        internal static void SetField<T> (GraphDataHandler handler, string fieldName, T value)
         {
-            GraphDelta.IFieldWriter<T> fieldWriter;
-            if (!node.TryGetField(fieldName, out fieldWriter))
-                node.TryAddField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(value);
-        }
-        public static void SetField<T>(this GraphDelta.IPortWriter port, string fieldName, T value)
-        {
-            GraphDelta.IFieldWriter<T> fieldWriter;
-            if (!port.TryGetField(fieldName, out fieldWriter))
-                port.TryAddField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(value);
-        }
-        public static void SetField<T>(this GraphDelta.IFieldWriter field, string fieldName, T value)
-        {
-            GraphDelta.IFieldWriter<T> fieldWriter;
-            if (!field.TryGetSubField(fieldName, out fieldWriter))
-                field.TryAddSubField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(value);
-        }
-
-        public static bool GetField<T>(this GraphDelta.INodeReader node, string fieldName, out T value)
-        {
-            if (node.TryGetField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
+            IFieldHandler<T> fieldWriter = handler.GetField<T>(fieldName);
+            if (fieldWriter == null)
             {
-                return true;
+                handler.AddField(fieldName, value);
             }
-            value = default;
-            return false;
-        }
-        public static bool GetField<T>(this GraphDelta.IPortReader port, string fieldName, out T value)
-        {
-            if (port.TryGetField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
+            else
             {
-                return true;
+                fieldWriter.SetData(value);
             }
-            value = default;
-            return false;
-        }
-        public static bool GetField<T>(this GraphDelta.IFieldReader field, string fieldName, out T value)
-        {
-            if (field.TryGetSubField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
-            {
-                return true;
-            }
-            value = default;
-            return false;
+
         }
 
-        internal static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter node, GraphDelta.INodeReader userData, string name, bool isInput, Registry registry) where T : Defs.ITypeDefinitionBuilder
+        public static void SetField<T>(this INodeHandler node, string fieldName, T value) => SetField(node as GraphDataHandler, fieldName, value);
+        public static void SetField<T>(this IPortHandler port, string fieldName, T value) => SetField(port as GraphDataHandler, fieldName, value);
+        public static void SetField<T>(this IFieldHandler field, string fieldName, T value) => SetField(field as GraphDataHandler, fieldName, value);
+
+        public static T GetField<T>(this INodeHandler node, string fieldName)
         {
-            return AddPort(node, userData, name, isInput, Registry.ResolveKey<T>(), registry);
+            return node.GetField<T>(fieldName).GetData();
+        }
+        public static T GetField<T>(this IPortHandler port, string fieldName)
+        {
+            return port.GetField<T>(fieldName).GetData();
+        }
+        public static T GetField<T>(this IFieldHandler field, string fieldName)
+        {
+            return field.GetSubField<T>(fieldName).GetData();
         }
 
-        public static GraphDelta.IPortWriter AddPort(this GraphDelta.INodeWriter node, GraphDelta.INodeReader userData, string name, bool isInput, RegistryKey key, Registry registry)
+        internal static IPortHandler AddPort<T>(this INodeHandler node, string name, bool isInput, Registry.Registry registry) where T : Registry.Defs.ITypeDefinitionBuilder
         {
-            node.TryAddPort(name, isInput, true, out var portWriter);
-            portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
-            fieldWriter.TryWriteData(key);
-            userData.TryGetPort(name, out var userPort);
+            return AddPort(node, name, isInput, Registry.Registry.ResolveKey<T>(), registry);
+        }
+
+        public static IPortHandler AddPort(this INodeHandler node, string name, bool isInput, RegistryKey key, Registry.Registry registry)
+        {
+            var port = node.AddPort(name, isInput, true);
+            port.SetMetadata(kRegistryKeyName, key);
 
             var builder = registry.GetTypeBuilder(key);
-            builder.BuildType((GraphDelta.IFieldReader)userPort, (GraphDelta.IFieldWriter)portWriter, registry);
-            return portWriter;
+            builder.BuildType((IFieldHandler)port, registry);
+            return port;
         }
     }
 }

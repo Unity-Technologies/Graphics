@@ -1,20 +1,21 @@
 using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphDelta : IGraphHandler
     {
         internal readonly GraphStorage m_data;
-
-        public IEnumerable<INodeReader> ContextNodes
+        public IEnumerable<INodeHandler> ContextNodes
         {
             get
             {
-                foreach(string name in contextNodes)
+                foreach(var id in contextNodes)
                 {
-                    yield return m_data.GetNodeReader(name);
+                    yield return m_data.GetHandler(id);
                 }
             }
         }
@@ -25,15 +26,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data = new GraphStorage();
         }
 
-        private List<string> contextNodes = new List<string>();
+        private List<ElementID> contextNodes = new List<ElementID>();
 
-         INodeWriter IGraphHandler.AddNode<T>(string name, Registry.Registry registry) // where T : Registry.Defs.INodeDefinitionBuilder
+        INodeHandler IGraphHandler.AddNode<T>(ElementID id, Registry.Registry registry)//  where T : Registry.Defs.INodeDefinitionBuilder
         {
-            var key = Registry.Registry.ResolveKey<T>();
-            return AddNode(key, name, registry);
+           var key = Registry.Registry.ResolveKey<T>();
+           return AddNode(key, id, registry);
         }
 
-        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry)
+        public INodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry)
         {
             var builder = registry.GetNodeBuilder(key);
             if (builder is ContextBuilder cb)
@@ -41,50 +42,40 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return AddContextNode(key, registry);
             }
 
-            var nodeWriter = AddNodeToLayer(GraphStorage.k_user, name);
-            nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
-            fieldWriter.TryWriteData(key);
+            var nodeHandler = m_data.AddNodeHandler(k_user, id);
+            nodeHandler.SetMetadata(kRegistryKeyName, key);
 
             // Type nodes by default should have an output port of their own type.
             if (builder.GetRegistryFlags() == RegistryFlags.Type)
             {
-                nodeWriter.TryAddPort("Out", false, true, out var portWriter);
-                portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var portFieldWriter);
-                portFieldWriter.TryWriteData(key);
+                var portHandler = nodeHandler.AddPort("Out", false, true);
+                portHandler.SetMetadata(kRegistryKeyName, key);
             }
 
-            var nodeReader = GetNodeReader(name);
-            var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
-            builder.BuildNode(nodeReader, transientWriter, registry);
+            builder.BuildNode(nodeHandler, registry);
 
-            return nodeWriter;
+            return nodeHandler;
         }
 
-        public INodeWriter AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
+        public INodeHandler AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
         {
-            var nodeWriter = AddNodeToLayer(GraphStorage.k_user, contextDescriptorKey.Name);
+            var nodeHandler = m_data.AddNodeHandler(k_user, contextDescriptorKey.Name);
             var contextKey = Registry.Registry.ResolveKey<ContextBuilder>();
             var builder = registry.GetNodeBuilder(contextKey);
 
-            nodeWriter.TryAddField<RegistryKey>("_contextDescriptor", out var contextWriter);
-            contextWriter.TryWriteData(contextDescriptorKey);
+            nodeHandler.SetMetadata("_contextDescriptor", contextDescriptorKey);
 
-            nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
-            fieldWriter.TryWriteData(contextKey);
+            nodeHandler.SetMetadata(kRegistryKeyName, contextKey);
 
             // Type nodes by default should have an output port of their own type.
             if (builder.GetRegistryFlags() == RegistryFlags.Type)
             {
-                nodeWriter.TryAddPort("Out", false, true, out var portWriter);
-                portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var portFieldWriter);
-                portFieldWriter.TryWriteData(contextKey);
+                nodeHandler.AddPort("Out", false, true).SetMetadata(kRegistryKeyName, contextKey);
             }
 
-            var nodeReader = GetNodeReader(contextDescriptorKey.Name);
-            var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, contextDescriptorKey.Name);
-            builder.BuildNode(nodeReader, transientWriter, registry);
+            builder.BuildNode(nodeHandler, registry);
 
-            return nodeWriter;
+            return nodeHandler;
 
         }
 
@@ -98,99 +89,72 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry.Registry registry)
         {
-            var contextNodeWriter = AddContextNode(contextDescriptor.GetRegistryKey(), registry);
+            var contextNodeHandler = AddContextNode(contextDescriptor.GetRegistryKey(), registry);
 
-            HookupToContextList(contextNodeWriter, contextDescriptor.GetRegistryKey().Name);
-            ReconcretizeNode(contextDescriptor.GetRegistryKey().Name, registry);
+            HookupToContextList(contextNodeHandler);
+            ReconcretizeNode(contextNodeHandler.ID, registry);
         }
 
-        private void HookupToContextList(INodeWriter newContextNode, string name)
+        private void HookupToContextList(INodeHandler newContextNode)
         {
             if(contextNodes.Count == 0)
             {
-                contextNodes.Add(name);
+                contextNodes.Add(newContextNode.ID);
             }
             else
             {
                 var last = contextNodes[contextNodes.Count - 1];
-                var tailWriter = GetNodeWriter(last);
-                if(!tailWriter.TryGetPort("Out", out var lastOut))
-                {
-                    tailWriter.TryAddPort("Out", false, false, out lastOut);
-                }
-                newContextNode.TryAddPort("In", true, false, out var newLastIn);
-
-                lastOut.TryAddConnection(newLastIn);
-
+                var tailHandler = m_data.GetHandler(last);
+                tailHandler.AddPort("Out", false, false);
+                newContextNode.AddPort("In", true, false);
+                
             }
         }
 
-        public bool ReconcretizeNode(string name, Registry.Registry registry)
+        public bool ReconcretizeNode(ElementID id, Registry.Registry registry)
         {
-            var nodeReader = GetNodeReader(name);
-            var key = nodeReader.GetRegistryKey();
+            var nodeHandler = m_data.GetHandler(id);
+            var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
-
-            var transientWriter = GetNodeFromLayer(GraphStorage.k_concrete, name);
-            if(transientWriter != null)
-            {
-                transientWriter.TryRemove();
-            }
-            transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
-
-
-            builder.BuildNode(nodeReader, transientWriter, registry);
+            nodeHandler.ClearLayerData(k_concrete);
+            builder.BuildNode(nodeHandler, registry);
             return builder != null;
         }
 
-
-
-        public INodeWriter AddNode(string id)
+        public IEnumerable<INodeHandler> GetNodes()
         {
-            return m_data.AddNodeWriterToLayer(GraphStorage.k_user, id);
+            throw new System.NotImplementedException();
         }
 
-        internal INodeWriter AddNodeToLayer(string layerName, string id)
+        public INodeHandler GetNode(ElementID id)
         {
-            return m_data.AddNodeWriterToLayer(layerName, id);
+            return m_data.GetHandler(id);
         }
 
-        internal INodeWriter GetNodeFromLayer(string layerName, string id)
+        public void RemoveNode(ElementID id)
         {
-            return m_data.GetNodeWriterFromLayer(layerName, id);
+            m_data.RemoveHandler(k_user, id);
         }
 
-        public INodeReader GetNodeReader(string id)
+        public IEdgeHandler AddEdge(ElementID portA, ElementID portB)
         {
-            return m_data.GetNodeReader(id);
+            throw new System.NotImplementedException();
         }
 
-        public INodeWriter GetNodeWriter(string id)
+        public void RemoveEdge(ElementID portA, ElementID portB)
         {
-            return m_data.GetNodeWriterFromLayer(GraphStorage.k_user, id);
+            throw new System.NotImplementedException();
         }
 
-        public IEnumerable<INodeReader> GetNodes()
+        public IEnumerable<INodeHandler> GetConnectedNodes(ElementID node)
         {
-            throw new System.Exception();
+            throw new System.NotImplementedException();
         }
 
-
-        public void RemoveNode(string id)
+        public IEnumerable<IPortHandler> GetConnectedPorts(ElementID port)
         {
-            m_data.RemoveNode(id);
+            throw new System.NotImplementedException();
         }
 
-        /*
-        public void RemoveNode(INodeRef node)
-        {
-            node.Remove();
-        }
-
-        public bool TryMakeConnection(IPortRef output, IPortRef input)
-        {
-            return m_data.TryConnectPorts(output, input);
-        }
-        */
     }
 }

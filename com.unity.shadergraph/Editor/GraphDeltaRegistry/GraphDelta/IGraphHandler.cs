@@ -1,42 +1,20 @@
 using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IGraphHandler
     {
-        internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder;
-        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry);
-        public bool ReconcretizeNode(string name, Registry.Registry registry);
-        public INodeReader GetNodeReader(string name);
-        public INodeWriter GetNodeWriter(string name);
-        public void RemoveNode(string name);
-        public IEnumerable<INodeReader> GetNodes();
-
-        //public TargetRef AddTarget(TargetType targetType)
-
-        //public void RemoveTarget(TargetRef targetRef)
-
-        //public List<TargetSetting> GetTargetSettings(TargetRef targetRef)
-
-        //public INodeWriter AddNode(NodeType nodeType)
-
-        //public void RemoveNode(INodeRef nodeRef);
-
-        //public NodeType GetNodeType(NodeRef nodeRef)
-
-        //public IEnumerable<INodeReader> GetNodes();
-
-        //public IEnumerable<IPortReader> GetOutputPorts(INodeReader nodeRef);
-
-        //public bool CanConnect(PortRef outputPort, PortRef inputPort)
-
-        //public ConnectionRef Connect(PortRef outputPort, PortRef inputPort)
-
-        //public ConnectionRef ForceConnect(PortRef outputPort, PortRef inputPort)
-
-        //public List<ConnectionRef> GetConnections(PortRef portRef)
-
-        //public void RemoveConnection(ConnectionRef connectionRef)
+        public IEnumerable<INodeHandler> GetNodes();
+        public INodeHandler GetNode(ElementID id);
+        internal INodeHandler AddNode<T>(ElementID id, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder;
+        public INodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry);
+        public bool ReconcretizeNode(ElementID id, Registry.Registry registry);
+        public void RemoveNode(ElementID id);
+        public IEdgeHandler AddEdge(ElementID portA, ElementID portB);
+        public void RemoveEdge(ElementID portA, ElementID portB);
+        public IEnumerable<INodeHandler> GetConnectedNodes(ElementID node);
+        public IEnumerable<IPortHandler> GetConnectedPorts(ElementID port);
     }
 }
