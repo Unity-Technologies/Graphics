@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         private static ReorderableList vertexStreamList;
 
-        internal struct ParticleProperties
+        public struct ParticleProperties
         {
             // Surface Option Props
             public MaterialProperty colorMode;
