@@ -192,14 +192,14 @@ namespace UnityEditor.Rendering
     [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
     public sealed class DebugStateObject : DebugState<UnityEngine.Object>
     {
-        [NonSerialized]
-        public string[] arrayNames;
-        [NonSerialized]
-        public GUIContent[] arrayGUIContents;
-        [NonSerialized]
-        public int[] arrayIndices;
-        [NonSerialized]
-        public int selectedIndex;
+        /// <summary> Cache of names of the objects</summary>
+        [NonSerialized] public string[] arrayNames;
+        /// <summary> Cache of <see cref="GUIContent"/> to avoid trash memory </summary>
+        [NonSerialized] public GUIContent[] arrayGUIContents;
+        /// <summary> Cache of indices of the objects ( basically from 0 to count )</summary>
+        [NonSerialized] public int[] arrayIndices;
+        /// <summary> Cache of the selected index to avoid lookups </summary>
+        [NonSerialized] public int selectedIndex;
     }
 
     /// <summary>
