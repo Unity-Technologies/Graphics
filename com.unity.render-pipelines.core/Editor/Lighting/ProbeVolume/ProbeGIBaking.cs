@@ -5,14 +5,16 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering;
 
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
-using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
-using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
+
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
+using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     struct BakingCell
     {
@@ -672,14 +674,15 @@ namespace UnityEngine.Experimental.Rendering
                         var l0 = sh[j][rgb, 0];
 
                         if (l0 == 0.0f)
-                            continue;
-
-                        if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
+                        {
+                            shv[rgb, 0] = 0.0f;
+                            for (int k = 1; k < 9; ++k)
+                                shv[rgb, k] = 0.5f;
+                        }
+                        else if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
                         {
                             for (int k = 0; k < 9; ++k)
-                            {
-                                shv[rgb, k] = 0.0f;
-                            }
+                                shv[rgb, 0] = 0.0f;
                         }
                         else
                         {

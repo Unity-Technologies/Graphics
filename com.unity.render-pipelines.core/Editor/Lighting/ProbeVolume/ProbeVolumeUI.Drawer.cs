@@ -1,9 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
-// TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 

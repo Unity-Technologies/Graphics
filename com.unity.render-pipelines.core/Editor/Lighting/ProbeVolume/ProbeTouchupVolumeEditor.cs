@@ -4,11 +4,10 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
-using UnityEngine.Experimental.Rendering;
 using System;
 using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreferences;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     internal class ProbeTouchupColorPreferences
     {

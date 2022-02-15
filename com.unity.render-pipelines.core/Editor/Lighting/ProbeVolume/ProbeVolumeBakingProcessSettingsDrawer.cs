@@ -1,7 +1,6 @@
 using UnityEditor;
-using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [CustomPropertyDrawer(typeof(ProbeVolumeBakingProcessSettings))]
     class ProbeVolumeBakingProcessSettingsDrawer : PropertyDrawer
