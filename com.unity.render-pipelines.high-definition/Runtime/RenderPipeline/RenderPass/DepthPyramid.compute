@@ -44,6 +44,11 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Select the closest sample
     float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
 
+    // if the kept pixel is far clip, preserve the depth value exactly
+    float minDepthMasked = asfloat(asuint(minDepth) & ~0x3);
+    if (minDepthMasked == UNITY_RAW_FAR_CLIP_VALUE)
+        minDepth = minDepthMasked;
+
     _DepthMipChain[COORD_TEXTURE2D_X(dstOffset + dispatchThreadId.xy)] = minDepth;
 }
 
