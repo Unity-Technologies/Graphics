@@ -3,7 +3,17 @@ ${VFXBegin:VFXPassForward}"ForwardOnly"${VFXEnd}
 ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 
-${VFXBegin:VFXPassDepthDefine}#define SHADERPASS SHADERPASS_DEPTH_ONLY${VFXEnd}
+${VFXBegin:VFXPassDepthDefine}
+#define SHADERPASS SHADERPASS_DEPTH_ONLY
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+#define SCENESELECTIONPASS
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+#define SCENEPICKINGPASS
+#endif
+
+${VFXEnd}
+
 ${VFXBegin:VFXPassForwardDefine}#define SHADERPASS SHADERPASS_FORWARD_UNLIT${VFXEnd}
 ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
