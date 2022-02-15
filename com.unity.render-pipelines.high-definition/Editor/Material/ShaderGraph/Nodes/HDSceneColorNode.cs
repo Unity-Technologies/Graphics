@@ -83,7 +83,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             s.AppendLine("exposureMultiplier = 1.0;");
                         }
-                        s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
+                        s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS)" +
+                                     " && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT) && (SHADERPASS != SHADERPASS_PATH_TRACING)" +
+                                     " && (SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY) && (SHADERPASS != SHADERPASS_RAYTRACING_FORWARD)");
                         s.AppendLine("return SampleCameraColor(uv, lod) * exposureMultiplier;");
                         s.AppendLine("#endif");
                         s.AppendLine("return $precision3(0.0, 0.0, 0.0);");

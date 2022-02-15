@@ -184,6 +184,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
+        internal bool forceUpdate = false;
 
         /// <summary>
         /// The light's current type
@@ -194,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
             set
             {
                 if (m_LightType != value)
-                    UpdateMesh(true);
+                    UpdateMesh();
 
                 m_LightType = value;
                 Light2DManager.ErrorIfDuplicateGlobalLight(this);
@@ -285,6 +286,10 @@ namespace UnityEngine.Rendering.Universal
 
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
+        internal void MarkForUpdate()
+        {
+            forceUpdate = true;
+        }
 
         internal void CacheValues()
         {
@@ -322,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
             return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
-        internal void UpdateMesh(bool forceUpdate)
+        internal void UpdateMesh(bool forceUpdate = false)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
             var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
@@ -334,8 +339,9 @@ namespace UnityEngine.Rendering.Universal
             var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
                 parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+
             // Mesh Rebuilding
-            if (hashChanged && forceUpdate)
+            if (hashChanged || forceUpdate)
             {
                 switch (m_LightType)
                 {
@@ -414,8 +420,10 @@ namespace UnityEngine.Rendering.Universal
             if (m_LightType == LightType.Global)
                 return;
 
-            UpdateMesh(true);
+            UpdateMesh(forceUpdate);
             UpdateBoundingSphere();
+
+            forceUpdate = false;
         }
 
         public void OnBeforeSerialize()

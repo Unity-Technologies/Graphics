@@ -4,9 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.4] - 2021-12-07
+## [12.1.5] - 2022-01-14
+
 ### Fixed
-- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
 - Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 - Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
@@ -16,11 +16,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - No more exception raised when selecting all nodes with CTRL+A and then deleting them
 - Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
+- Resize custom operator (multiply, add...) to the minimum size when changing input types
+
+## [12.1.4] - 2021-12-07
+### Fixed
+- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
 
 ## [12.1.3] - 2021-11-17
 ### Fixed
 - Automatically offset contexts when a new node is inserted to avoid overlapping
-
 
 ## [12.1.2] - 2021-10-22
 ### Fixed

@@ -537,10 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedLightEntity.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
                 // Build a visible light
-                Color finalColor = lightComponent.color.linear * lightComponent.intensity;
-                if (additionalLightData.useColorTemperature)
-                    finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
-                visibleLight.finalColor = finalColor;
+                visibleLight.finalColor = LightUtils.EvaluateLightColor(lightComponent, additionalLightData);
                 visibleLight.range = lightComponent.range;
                 // This should be done explicitely, localtoworld matrix doesn't work here
                 localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);
@@ -621,7 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightClusterDebugKernel;
             public Vector3 clusterCellSize;
             public Material debugMaterial;
-            public ComputeBuffer lightCluster;
+            public ComputeBufferHandle lightCluster;
             public ComputeShader lightClusterDebugCS;
 
             public TextureHandle depthStencilBuffer;
@@ -631,6 +628,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EvaluateClusterDebugView(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle depthPyramid)
         {
+            // TODO: Investigate why this behavior causes a leak in player mode only.
+            if (FullScreenDebugMode.LightCluster != m_RenderPipeline.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+                return;
+
             TextureHandle debugTexture;
             using (var builder = renderGraph.AddRenderPass<LightClusterDebugPassData>("Debug Texture for the Light Cluster", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugCluster)))
             {
@@ -639,7 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
-                passData.lightCluster = m_LightCluster;
+                passData.lightCluster = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_LightCluster));
                 passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;

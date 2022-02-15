@@ -21,8 +21,10 @@ test_platforms:
     allow_cache: False
     name: Standalone_XR
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
-      - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      - [Win_DX11, Win_DX12, Win_Vulkan]:
+          <shared.platform.commands.turn_off_firewall>
+      - [Win_DX11, Win_DX12, Win_Vulkan]:
+          cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.call_utr>
     utr_flags:
@@ -178,7 +180,7 @@ jobs:
       - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
   - name: Nightly <PROJECT_NAME>
     dependencies:
-      - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
-#      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
+      # - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
+      #      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
       - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
       - .yamato/all-hdrp.yml#HDRP_<TRACK>
