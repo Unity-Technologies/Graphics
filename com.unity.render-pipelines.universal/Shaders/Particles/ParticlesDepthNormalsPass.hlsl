@@ -73,7 +73,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
         #endif
 
         albedo = MixParticleColor(albedo, vertexColor, colorAddSubDiff);
-        AlphaClip(albedo.a, _Cutoff);
+        AlphaDiscard(albedo.a, _Cutoff);
     #endif
 
     // Normals...

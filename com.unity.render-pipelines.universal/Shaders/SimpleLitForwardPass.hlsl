@@ -180,7 +180,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a, _Surface);
+    color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));
 
     return color;
 }

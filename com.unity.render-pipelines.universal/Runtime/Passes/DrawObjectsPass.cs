@@ -125,10 +125,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-                // Set a value that can be used by shaders to identify when Alpha-To-Coverage is active
+                // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
                 // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
-                float alphaToMaskEnabled = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && m_IsOpaque) ? 1.0f : 0.0f;
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, alphaToMaskEnabled);
+                float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && m_IsOpaque) ? 1.0f : 0.0f;
+                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Restore the state before leaving this function
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, 0.0f);
+                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, 0.0f);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

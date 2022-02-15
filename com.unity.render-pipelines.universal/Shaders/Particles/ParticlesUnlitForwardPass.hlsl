@@ -146,7 +146,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     #endif
 
     finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
-    finalColor.a = OutputAlpha(finalColor.a, _Surface);
+    finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent(_Surface));
 
     return finalColor;
 }

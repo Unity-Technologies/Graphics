@@ -38,9 +38,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #if defined(_SURFACE_TYPE_TRANSPARENT)
-    half surfaceType = 1.0;
+    bool isTransparent = true;
 #else
-    half surfaceType = 0.0;
+    bool isTransparent = false;
 #endif
 
 #if defined(_ALPHATEST_ON)
@@ -48,7 +48,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #elif defined(_SURFACE_TYPE_TRANSPARENT)
     half alpha = surfaceDescription.Alpha;
 #else
-    half alpha = 1.0;
+    half alpha = half(1.0);
 #endif
 
 #if defined(_ALPHAMODULATE_ON)
@@ -66,7 +66,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     half4 color = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
 
-    color.a = OutputAlpha(color.a, surfaceType);
+    color.a = OutputAlpha(color.a, isTransparent);
 
     return color;
 }

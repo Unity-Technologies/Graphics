@@ -57,10 +57,7 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
 
     half4 texColor = (half4) SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
     half alpha = texColor.a * _BaseColor.a;
-
-#if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, _Cutoff);
-#endif
+    AlphaDiscard(alpha, _Cutoff);
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

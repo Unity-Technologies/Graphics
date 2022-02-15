@@ -149,25 +149,50 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
+// Constants that represent material surface types
+//
+// These are expected to align with the commonly used "_Surface" material property
+static const half kSurfaceTypeOpaque = 0.0;
+static const half kSurfaceTypeTransparent = 1.0;
+
+// Returns true if the input value represents an opaque surface
+bool IsSurfaceTypeOpaque(half surfaceType)
+{
+    return (surfaceType == kSurfaceTypeOpaque);
+}
+
+// Returns true if the input value represents a transparent surface
+bool IsSurfaceTypeTransparent(half surfaceType)
+{
+    return (surfaceType == kSurfaceTypeTransparent);
+}
+
 // Only define the alpha clipping helpers when the alpha test define is present.
 // This should help identify usage errors early.
 #if defined(_ALPHATEST_ON)
-bool IsAlphaToMaskEnabled()
+// Returns true if AlphaToMask functionality is currently available
+// NOTE: This does NOT guarantee that AlphaToMask is enabled for the current draw. It only indicates that AlphaToMask functionality COULD be enabled for it.
+//       In cases where AlphaToMask COULD be enabled, we export a specialized alpha value from the shader.
+//       When AlphaToMask is enabled:     The specialized alpha value is combined with the sample mask
+//       When AlphaToMask is not enabled: The specialized alpha value is either written into the framebuffer or dropped entirely depending on the color write mask
+bool IsAlphaToMaskAvailable()
 {
-    return (_AlphaToMaskEnabled != 0.0);
+    return (_AlphaToMaskAvailable != 0.0);
 }
 
+// When AlphaToMask is available:     Returns a modified alpha value that should be exported from the shader so it can be combined with the sample mask
+// When AlphaToMask is not available: Terminates the current invocation if the alpha value is below the cutoff and returns the input alpha value otherwise
 half AlphaClip(half alpha, half cutoff)
 {
     // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
     half clippedAlpha = (alpha >= cutoff) ? alpha : 0.0;
 
-    // Calculate a "sharpened" alpha value that should be used when alpha-to-coverage is enabled
-    half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
+    // Calculate a specialized alpha value that should be used when alpha-to-coverage is enabled
+    half alphaToCoverageAlpha = SharpenAlpha(alpha, cutoff);
 
-    // When alpha-to-coverage is enabled: Use the sharpened value which will be exported from the shader and combined with the MSAA coverage mask.
-    // When alpha-to-coverage is disabled: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
-    alpha = IsAlphaToMaskEnabled() ? sharpenedAlpha : clippedAlpha;
+    // When alpha-to-coverage is available:     Use the specialized value which will be exported from the shader and combined with the MSAA coverage mask.
+    // When alpha-to-coverage is not available: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
+    alpha = IsAlphaToMaskAvailable() ? alphaToCoverageAlpha : clippedAlpha;
 
     // Terminate any threads that have an alpha value of 0.0 since we know they won't contribute anything to the final image
     clip(alpha - 0.0001);
@@ -176,9 +201,18 @@ half AlphaClip(half alpha, half cutoff)
 }
 #endif
 
-half OutputAlpha(half alpha, half surfaceType)
+// Terminates the current invocation if the input alpha value is below the specified cutoff value
+// If provided, the offset value is added to the cutoff value during the comparison logic
+void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
-    bool isTransparent = (surfaceType == 1.0);
+#ifdef _ALPHATEST_ON
+    if (IsAlphaDiscardEnabled())
+        AlphaClip(alpha, cutoff + offset);
+#endif
+}
+
+half OutputAlpha(half alpha, bool isTransparent)
+{
     if (isTransparent)
     {
         return alpha;
@@ -186,10 +220,8 @@ half OutputAlpha(half alpha, half surfaceType)
     else
     {
 #if defined(_ALPHATEST_ON)
-        // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
-        // TODO: This comment should be updated and the IsAlphaToMaskEnabled() stuff should be renamed to better reflect the actual conditions.
-        // (it really means is multisampling AND opaque, a2c is ALWAYS enabled for all opaque materials that use alpha clipping.)
-        return IsAlphaToMaskEnabled() ? alpha : 1.0;
+        // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is available
+        return IsAlphaToMaskAvailable() ? alpha : 1.0;
 #else
         return 1.0;
 #endif
