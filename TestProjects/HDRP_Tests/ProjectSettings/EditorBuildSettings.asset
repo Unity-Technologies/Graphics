@@ -299,7 +299,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2110_IndirectController.unity
     guid: 443ac92abc2bd6a4d94e9e673dbcc29f
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2120_APV_Baking.unity
     guid: fc784678bf952de4482e78aea61ccdc8
   - enabled: 1
@@ -842,4 +842,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9920_WaterSurface.unity
     guid: fa0d54c5ccbc8b143a8db100374e0f5e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9921_UnderWater.unity
+    guid: 642f1a1637886b84bbebc5374aa46f6f
+    path: Assets/GraphicTests/Scenes/9x_Other/9930-ScreenCoordOverride.unity
+    guid: dd3a50f35d082f84c84fe85bce8a792d
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9931-ScreenCoordOverrideCustomPostProcess.unity
+    guid: de4e06e4c791ada48819dfa7ae3a6287
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9932-ScreenCoordOverrideCustomPass.unity
+    guid: 7dc226b1df302974099dea1b528277a7
   m_configObjects: {}

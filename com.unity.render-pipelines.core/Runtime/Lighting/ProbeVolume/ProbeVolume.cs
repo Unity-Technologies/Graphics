@@ -1,18 +1,17 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume (Experimental)")]
+    [AddComponentMenu("Light/Probe Volume")]
     public class ProbeVolume : MonoBehaviour
     {
         /// <summary>
@@ -354,4 +353,4 @@ namespace UnityEngine.Experimental.Rendering
 
 #endif // UNITY_EDITOR
     }
-} // UnityEngine.Experimental.Rendering.HDPipeline
+} // UnityEngine.Rendering.HDPipeline
