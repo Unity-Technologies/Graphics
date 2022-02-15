@@ -9,7 +9,7 @@
     "com.unity.test-framework": "1.1.30",
     "com.unity.test-framework.build": "0.0.1-preview.14",
     "com.unity.test-framework.utp-reporter": "1.0.2-preview",
-    "com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git#ant/scarlett-to-gamecorexboxxeries",
+    "com.unity.testframework.graphics": "7.8.17-exp.4",
     "com.unity.testing.hdrp": "file:../../../com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
     "com.unity.ugui": "1.0.0",
