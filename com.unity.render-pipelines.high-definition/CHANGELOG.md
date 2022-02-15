@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make Vertical gate fit the default for physical camera.
 - Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
