@@ -24,34 +24,40 @@ namespace UnityEngine.Rendering.Tests
 
         public static readonly VolumeComponentType[] volumeComponentTypes = TestTypes.AllVolumeComponents
             .Select(VolumeComponentType.FromTypeUnsafe)
+            .Take(3)
             .ToArray();
 
-        public static readonly VolumeComponentType[][] volumeComponentTypesArray = Enumerable.Range(0, 19)
+        public static readonly VolumeComponentType[][] volumeComponentTypesArray = Enumerable.Range(0, 20)
             .RandomInitState(32456754)
             .Select(count =>
                 Enumerable.Range(0, count)
                     .Select(_ => volumeComponentTypes.RandomElement())
                     .ToArray()
-            ).ToArray();
+            )
+            .Take(3)
+            .ToArray();
 
-        public static readonly VolumeComponentType[][][] volumeComponentTypesArrayArray = Enumerable.Range(0, 19)
+        public static readonly VolumeComponentType[][][] volumeComponentTypesArrayArray = Enumerable.Range(0, 20)
             .RandomInitState(78963216)
             .Select(count =>
                 Enumerable.Range(0, count)
                     // For each item pick an entry randomly
                     .Select(_ => volumeComponentTypesArray.RandomElement())
                     .ToArray()
-            ).ToArray();
+            )
+            .Take(3)
+            .ToArray();
 
-        public static readonly Type[] types = TestTypes.AllVolumeComponents.Take(20)
+        public static readonly Type[] types = TestTypes.AllVolumeComponents.Take(3)
             .Union(new Type[] { null })
-            .Union(csharpTypes)
+            .Union(csharpTypes.Take(3))
             .ToArray();
 
         public static readonly VolumeComponentArchetype[] volumeComponentArchetypes = Enumerable.Range(0, 20)
             .RandomInitState(6531782)
             .Select(_ => volumeComponentTypes.RandomEnumeration().ToArray())
             .Select(VolumeComponentArchetype.FromTypes)
+            .Take(3)
             .ToArray();
     }
 }

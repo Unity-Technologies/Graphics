@@ -9,9 +9,8 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool OnlyAcceptsVolumeComponentTypes(
-                [ValueSource(typeof(TSet), nameof(TSet.types))] Type type
+                Type type
                 )
             {
                 var success = VolumeComponentType.FromType(type, out var volumeType);
@@ -24,13 +23,24 @@ namespace UnityEngine.Rendering.Tests
                 return mustBeValid && isValid || !mustBeValid && isInvalid;
             }
 
-            [Test(ExpectedResult = true)]
             public static bool CastToType(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType type
+                VolumeComponentType type
                 )
             {
                 return type.AsType() == (Type)type;
             }
         }
+
+        [Test]
+        public void OnlyAcceptsVolumeComponentTypes(
+            [ValueSource(typeof(TSet), nameof(TSet.types))]
+            Type type
+        ) => Assert.True(Properties.OnlyAcceptsVolumeComponentTypes(type));
+
+        [Test]
+        public void CastToType(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType type
+        ) => Assert.True(Properties.CastToType(type));
     }
 }

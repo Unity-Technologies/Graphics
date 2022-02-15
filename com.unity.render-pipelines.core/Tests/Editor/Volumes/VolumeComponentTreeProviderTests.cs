@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool ProvidedTreeContainsAllTypeExceptAlreadyContainedInProfile(
                 [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] profileTypes,
                 [ValueSource(typeof(TSet), nameof(TSet.volumeComponentArchetypes))] VolumeComponentArchetype treeArchetype
@@ -52,5 +51,13 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
         }
+
+        [Test]
+        public static void ProvidedTreeContainsAllTypeExceptAlreadyContainedInProfileProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] profileTypes,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentArchetypes))]
+            VolumeComponentArchetype treeArchetype
+        ) => Assert.True(Properties.ProvidedTreeContainsAllTypeExceptAlreadyContainedInProfile(profileTypes, treeArchetype));
     }
 }

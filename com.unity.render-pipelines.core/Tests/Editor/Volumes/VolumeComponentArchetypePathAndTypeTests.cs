@@ -11,9 +11,8 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool SkipObsoleteOrHiddenComponent(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types
+                VolumeComponentType[] types
             )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
@@ -30,9 +29,8 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
 
-            [Test(ExpectedResult = true)]
             public static bool PathIsProvidedByMenuAttribute(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types
+                VolumeComponentType[] types
             )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
@@ -53,5 +51,17 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
         }
+
+        [Test]
+        public void SkipObsoleteOrHiddenComponentProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] types
+        ) => Assert.True(Properties.SkipObsoleteOrHiddenComponent(types));
+
+        [Test]
+        public void PathIsProvidedByMenuAttributeProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] types
+        ) => Assert.True(Properties.PathIsProvidedByMenuAttribute(types));
     }
 }

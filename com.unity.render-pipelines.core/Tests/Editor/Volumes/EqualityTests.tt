@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Tests
     partial class EqualityTests
     {
 
-        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 49)
+        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 5)
             .RandomInitState(52089765)
             .Select(_ => (TestDataGenerationUtilities.RandomString(), TSet.volumeComponentTypes.RandomElement()))
             .ToArray();
@@ -61,10 +61,9 @@ namespace UnityEngine.Rendering.Tests
         #>
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool <#= test.testName #>(
-                <#= test.buildFromTypeAttribute #><#= test.buildFromType #> l,
-                <#= test.buildFromTypeAttribute #><#= test.buildFromType #> r
+                <#= test.buildFromType #> l,
+                <#= test.buildFromType #> r
             )
             {
                 var l2 = <#= string.Format(test.constructor, "l") #>;
@@ -75,6 +74,12 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void <#= test.testName #>(
+            <#= test.buildFromTypeAttribute #><#= test.buildFromType #> l,
+            <#= test.buildFromTypeAttribute #><#= test.buildFromType #> r
+        ) => Assert.True(Properties.<#= test.testName #>(l, r));
 <#+
     }
 

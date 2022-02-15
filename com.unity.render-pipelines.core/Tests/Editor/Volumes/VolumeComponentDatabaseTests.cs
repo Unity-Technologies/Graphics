@@ -10,9 +10,8 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool ContainsRequiredTypes(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                VolumeComponentType[] types
                 )
             {
                 var database = VolumeComponentDatabase.FromTypes(types);
@@ -23,6 +22,12 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
         }
+
+        [Test]
+        public void ContainsRequiredTypesProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] types
+        ) => Assert.True(Properties.ContainsRequiredTypes(types));
 
         [Test]
         public void HasAllComponentsInMemory()

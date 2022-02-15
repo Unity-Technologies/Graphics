@@ -10,10 +10,9 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool ReplaceDataResetStackVolumeComponents(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType[] types,
-                [ValueSource(typeof(TSet), nameof(TSet.intSeeds))] int seed
+                VolumeComponentType[] types,
+                int seed
             )
             {
                 void CallOnEnable(VolumeComponent volumeComponent)
@@ -86,5 +85,11 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
         }
+
+        [Test]
+        public static void ReplaceDataResetStackVolumeComponentsProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types,
+            [ValueSource(typeof(TSet), nameof(TSet.intSeeds))] int seed
+        ) => Assert.True(Properties.ReplaceDataResetStackVolumeComponents(types, seed));
     }
 }

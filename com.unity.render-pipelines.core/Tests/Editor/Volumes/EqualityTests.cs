@@ -11,17 +11,16 @@ namespace UnityEngine.Rendering.Tests
     partial class EqualityTests
     {
 
-        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 49)
+        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 5)
             .RandomInitState(52089765)
             .Select(_ => (TestDataGenerationUtilities.RandomString(), TSet.volumeComponentTypes.RandomElement()))
             .ToArray();
 
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool IsSupportedVolumeComponentFilterEquality(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+                VolumeComponentType l,
+                VolumeComponentType r
             )
             {
                 var l2 = IsSupportedVolumeComponentFilter.FromType(l.AsType());
@@ -55,12 +54,17 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void IsSupportedVolumeComponentFilterEquality(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+        ) => Assert.True(Properties.IsSupportedVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool IsExplicitlySupportedVolumeComponentFilterEquality(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+                VolumeComponentType l,
+                VolumeComponentType r
             )
             {
                 var l2 = IsExplicitlySupportedVolumeComponentFilter.FromType(l.AsType());
@@ -94,12 +98,17 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void IsExplicitlySupportedVolumeComponentFilterEquality(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+        ) => Assert.True(Properties.IsExplicitlySupportedVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool VolumeComponentTypeEquality(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+                VolumeComponentType l,
+                VolumeComponentType r
             )
             {
                 var l2 = l;
@@ -131,12 +140,17 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void VolumeComponentTypeEquality(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+        ) => Assert.True(Properties.VolumeComponentTypeEquality(l, r));
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool IsVisibleVolumeComponentFilterEquality(
-                [Values]bool l,
-                [Values]bool r
+                bool l,
+                bool r
             )
             {
                 var l2 = IsVisibleVolumeComponentFilter.FromIsVisible(l);
@@ -170,12 +184,17 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void IsVisibleVolumeComponentFilterEquality(
+            [Values]bool l,
+            [Values]bool r
+        ) => Assert.True(Properties.IsVisibleVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool VolumeComponentArchetypeEquality(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] l,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] r
+                VolumeComponentType[] l,
+                VolumeComponentType[] r
             )
             {
                 var l2 = VolumeComponentArchetype.FromTypes(l);
@@ -209,12 +228,17 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void VolumeComponentArchetypeEquality(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] r
+        ) => Assert.True(Properties.VolumeComponentArchetypeEquality(l, r));
         static partial class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool VolumeComponentArchetypeTreeProviderPathNodeEquality(
-                [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) l,
-                [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) r
+                (string name, VolumeComponentType type) l,
+                (string name, VolumeComponentType type) r
             )
             {
                 var l2 = new VolumeComponentArchetypeTreeProvider.PathNode(l.name, l.type);
@@ -248,6 +272,12 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
         }
+
+        [Test]
+        public static void VolumeComponentArchetypeTreeProviderPathNodeEquality(
+            [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) l,
+            [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) r
+        ) => Assert.True(Properties.VolumeComponentArchetypeTreeProviderPathNodeEquality(l, r));
 
         [Test]
         public void EverythingVolumeComponentFilterEquality()

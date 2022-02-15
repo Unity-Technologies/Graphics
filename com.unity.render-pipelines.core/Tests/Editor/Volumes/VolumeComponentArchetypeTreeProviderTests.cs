@@ -10,9 +10,8 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool TreeContainsAllTypes(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                VolumeComponentType[] types
                 )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
@@ -41,9 +40,8 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            [Test(ExpectedResult = true)]
             public static bool TreePathAreCorrect(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                VolumeComponentType[] types
                 )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
@@ -86,5 +84,17 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
         }
+
+        [Test]
+        public void TreeContainsAllTypesProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] types
+        ) => Assert.True(Properties.TreeContainsAllTypes(types));
+
+        [Test]
+        public void TreePathAreCorrectProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]
+            VolumeComponentType[] types
+        ) => Assert.True(Properties.TreePathAreCorrect(types));
     }
 }

@@ -10,19 +10,17 @@ namespace UnityEngine.Rendering.Tests
     {
         static class Properties
         {
-            [Test(ExpectedResult = true)]
             public static bool EverythingFilterAccepts(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType type
+                 VolumeComponentType type
                 )
             {
                 var filter = new EverythingVolumeComponentFilter();
                 return filter.IsAccepted(type);
             }
 
-            [Test(ExpectedResult = true)]
             public static bool IsExplicitlySupportedFilterAccepts(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType subject,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType target
+                VolumeComponentType subject,
+                VolumeComponentType target
                 )
             {
                 var filter = IsExplicitlySupportedVolumeComponentFilter.FromType(target.AsType());
@@ -31,10 +29,9 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            [Test(ExpectedResult = true)]
             public static bool IsSupportedFilterAccepts(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType subject,
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType target
+                VolumeComponentType subject,
+                VolumeComponentType target
                 )
             {
                 var filter = IsSupportedVolumeComponentFilter.FromType(target.AsType());
@@ -43,10 +40,9 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            [Test(ExpectedResult = true)]
             public static bool IsVisibleFilterAccepts(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType subject,
-                [Values] bool isVisible
+                VolumeComponentType subject,
+                bool isVisible
             )
             {
                 var filter = IsVisibleVolumeComponentFilter.FromIsVisible(isVisible);
@@ -56,9 +52,8 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            [Test(ExpectedResult = true)]
             public static bool IsVisibleIffNotObsoleteNotHideInInspector(
-                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]  VolumeComponentType subject
+                VolumeComponentType subject
                 )
             {
                 var isVisible = IsVisibleVolumeComponentFilter.IsVisible(subject);
@@ -67,5 +62,40 @@ namespace UnityEngine.Rendering.Tests
                 return isVisible == expected;
             }
         }
+
+        [Test]
+        public void EverythingFilterAcceptsProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType type
+        ) => Assert.True(Properties.EverythingFilterAccepts(type));
+
+        [Test]
+        public void IsExplicitlySupportedFilterAcceptsProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType subject,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType target
+        ) => Assert.True(Properties.IsExplicitlySupportedFilterAccepts(subject, target));
+
+        [Test]
+        public void IsSupportedFilterAcceptsProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType subject,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType target
+        ) => Assert.True(Properties.IsSupportedFilterAccepts(subject, target));
+
+        [Test]
+        public void IsVisibleFilterAcceptsProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType subject,
+            [Values] bool isVisible
+        ) => Assert.True(Properties.IsVisibleFilterAccepts(subject, isVisible));
+
+        [Test]
+        public void IsVisibleIffNotObsoleteNotHideInInspectorProperty(
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]
+            VolumeComponentType subject
+        ) => Assert.True(Properties.IsVisibleIffNotObsoleteNotHideInInspector(subject));
     }
 }
