@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering
 {
@@ -20,9 +18,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TList">The type of the input list</typeparam>
         /// <typeparam name="TValue">The value type stored on the list</typeparam>
         /// <returns>True if succeed, false otherwise</returns>
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        [MustUseReturnValue]
-        public static bool TryRemoveElementsInRange<TList, TValue>([DisallowNull] this TList list, int index, int count, [NotNullWhen(false)] out Exception error)
+        public static bool TryRemoveElementsInRange<TList, TValue>(this TList list, int index, int count, [NotNullWhen(false)] out Exception error)
             where TList : IList<TValue>
         {
             try
@@ -64,8 +60,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TValue">The value type stored on the list</typeparam>
         /// <exception cref="ArgumentOutOfRangeException">index is less than 0. or count is less than 0.</exception>
         /// <exception cref="ArgumentException">index and count do not denote a valid range of elements in the list</exception>
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        public static void RemoveElementsInRange<TList, TValue>([DisallowNull] this TList list, int index, int count)
+        public static void RemoveElementsInRange<TList, TValue>(this TList list, int index, int count)
             where TList : IList<TValue>
         {
             if (!TryRemoveElementsInRange<TList, TValue>(list, index, count, out var error))
@@ -83,8 +78,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TValue">The value type stored on the list</typeparam>
         /// <exception cref="ArgumentOutOfRangeException">index is less than 0. or count is less than 0.</exception>
         /// <exception cref="ArgumentException">index and count do not denote a valid range of elements in the list</exception>
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        public static void RemoveElementsInRange<TValue>([DisallowNull] this IList<TValue> list, int index, int count)
+        public static void RemoveElementsInRange<TValue>(this IList<TValue> list, int index, int count)
         {
             if (list is List<TValue> genericList)
             {
