@@ -13,7 +13,7 @@ To enable and customize Volumetric Lighting in an [HDRP Asset](HDRP-Asset.md):
 
 ### Quality
 
-To increase the resolution of the volumetrics, enable **High Quality**. Volumetric lighting is a resource intensive effect and this option can increase the resource intensity by up to eight times.
+To increase the resolution of the volumetrics, in the **Lighting** section of the Inspector, enable **High Quality**. Volumetric lighting is a resource intensive effect and this option can increase the resource intensity by up to eight times.
 
 If you want to enable reprojection support, go to **Edit** > **Project Settings** > **HDRP Global Settings** > **Frame Settings (Default Values)** >  **Lighting** and enable **Reprojection**. Reprojection improves the lighting quality in the Scene by taking previous frames into account when calculating the lighting for the current frame. This option isn't compatible with dynamic lights, so you might encounter ghosting artifacts behind moving Lights. Using high values for **Anisotropy** in the [Fog](Override-Fog.md) Volume override might cause flickering Shadows.
 
