@@ -699,7 +699,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool ValidRayTracingHistory(HDCamera hdCamera)
         {
             return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
-                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
+                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight
+                && ((int)hdCamera.GetCameraFrameCount() > 1);
         }
 
         internal static int RayTracingFrameIndex(HDCamera hdCamera)
