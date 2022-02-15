@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.Tests
 
         public static readonly VolumeComponentType[] volumeComponentTypes = TestTypes.AllVolumeComponents
             .Select(VolumeComponentType.FromTypeUnsafe)
-            .Take(3)
+            .Take(5)
+            .Union(new [] {VolumeComponentType.FromTypeUnsafe(typeof(TestTypes.TestVolumeComponent0167))})
             .ToArray();
 
         public static readonly VolumeComponentType[][] volumeComponentTypesArray = Enumerable.Range(0, 20)
@@ -34,7 +35,7 @@ namespace UnityEngine.Rendering.Tests
                     .Select(_ => volumeComponentTypes.RandomElement())
                     .ToArray()
             )
-            .Take(3)
+            .Take(5)
             .ToArray();
 
         public static readonly VolumeComponentType[][][] volumeComponentTypesArrayArray = Enumerable.Range(0, 20)
@@ -45,7 +46,7 @@ namespace UnityEngine.Rendering.Tests
                     .Select(_ => volumeComponentTypesArray.RandomElement())
                     .ToArray()
             )
-            .Take(3)
+            .Take(5)
             .ToArray();
 
         public static readonly Type[] types = TestTypes.AllVolumeComponents.Take(3)
@@ -57,7 +58,7 @@ namespace UnityEngine.Rendering.Tests
             .RandomInitState(6531782)
             .Select(_ => volumeComponentTypes.RandomEnumeration().ToArray())
             .Select(VolumeComponentArchetype.FromTypes)
-            .Take(3)
+            .Take(5)
             .ToArray();
     }
 }
