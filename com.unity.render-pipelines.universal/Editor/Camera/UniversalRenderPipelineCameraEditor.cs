@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Checking if the Base Camera and the overlay cameras are of the same type.
                 // If not, we report an error.
-                var overlayAdditionalData = cam.gameObject.GetComponent<UniversalAdditionalCameraData>();
+                var overlayAdditionalData = cam.GetUniversalAdditionalCameraData();
                 var type = overlayAdditionalData.renderType;
 
                 GUIContent errorContent = EditorGUIUtility.TrTextContent(type.GetName()); ;
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
                 // This can fail due to changing the renderer in the UI to a renderer that does not support overlay cameras
                 // The UI will not stop you from changing the renderer sadly so this will have to tell the user that the
                 // entry in the stack now is invalid.
-                else if ((renderer.SupportedCameraRenderTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                else if ((renderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
                 {
                     if (!m_NotSupportedOverlayCameras.Contains(cam))
                     {
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 // Printing if Post Processing is on or not.
-                var isPostActive = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderPostProcessing;
+                var isPostActive = cam.GetUniversalAdditionalCameraData().renderPostProcessing;
                 if (isPostActive)
                 {
                     Rect selectRect = new Rect(rect.width - 20, rect.y, 50, EditorGUIUtility.singleLineHeight);
@@ -208,7 +208,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
+                camera.GetUniversalAdditionalCameraData().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 m_TypeErrorCameras.Clear();
@@ -265,11 +265,11 @@ namespace UnityEditor.Rendering.Universal
             // Need to do clear the list here otherwise the menu just fills up with more and more entries
             validCameras.Clear();
             // Need to get the base renderer here first
-            var renderer = camera.GetComponent<UniversalAdditionalCameraData>().scriptableRenderer.GetType();
+            var renderer = camera.GetUniversalAdditionalCameraData().scriptableRenderer.GetType();
             var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
             {
-                var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
+                var component = camera.GetUniversalAdditionalCameraData();
                 if (component != null)
                 {
                     if (component.renderType == CameraRenderType.Overlay &&
@@ -346,7 +346,7 @@ namespace UnityEditor.Rendering.Universal
 
         private void UpdateStackCameraToOverlay()
         {
-            var additionalCameraData = selectedCameraInStack.GetComponent<UniversalAdditionalCameraData>();
+            var additionalCameraData = selectedCameraInStack.GetUniversalAdditionalCameraData();
             if (additionalCameraData == null)
                 return;
 
@@ -490,7 +490,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool cameraStackingAvailable = m_SerializedCamera
                 .camerasAdditionalData
-                .All(c => c.scriptableRenderer?.SupportsCameraRenderType(CameraRenderType.Base) ?? false);
+                .All(c => c.scriptableRenderer?.SupportsCameraStackingType(CameraRenderType.Base) ?? false);
 
             if (!cameraStackingAvailable)
             {

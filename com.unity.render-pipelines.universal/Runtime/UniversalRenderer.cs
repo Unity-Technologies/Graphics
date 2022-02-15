@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public override int SupportedCameraRenderTypes()
+        public override int SupportedCameraStackingTypes()
         {
             switch (m_RenderingMode)
             {

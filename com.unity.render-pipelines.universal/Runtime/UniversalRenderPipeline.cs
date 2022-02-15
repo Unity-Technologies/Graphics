@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.Universal
             // Renderer contains a stack if it has additional data and the renderer supports stacking
             // The renderer is checked if it supports Base camera. Since Base is the only relevant type at this moment.
             var renderer = baseCameraAdditionalData?.scriptableRenderer;
-            bool supportsCameraStacking = renderer != null && renderer.SupportsCameraRenderType(CameraRenderType.Base);
+            bool supportsCameraStacking = renderer != null && renderer.SupportsCameraStackingType(CameraRenderType.Base);
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
 
                         var overlayRenderer = data.scriptableRenderer;
                         // Checking if they are the same renderer type but just not supporting Overlay
-                        if ((overlayRenderer.SupportedCameraRenderTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                        if ((overlayRenderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
                         {
                             Debug.LogWarning($"The camera: {currCameraName} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.");
                             continue;

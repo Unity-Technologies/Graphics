@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
         /// <inheritdoc/>
-        public override int SupportedCameraRenderTypes()
+        public override int SupportedCameraStackingTypes()
         {
             return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
         }

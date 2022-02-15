@@ -414,7 +414,7 @@ namespace UnityEngine.Rendering.Universal
                     return null;
                 }
 
-                if (!scriptableRenderer.SupportsCameraRenderType(CameraRenderType.Base))
+                if (!scriptableRenderer.SupportsCameraStackingType(CameraRenderType.Base))
                 {
                     var camera = gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
