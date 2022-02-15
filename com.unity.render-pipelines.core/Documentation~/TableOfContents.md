@@ -1,7 +1,6 @@
 * [SRP Core](index.md)
 * [What's new](whats-new.md)
   * [12](whats-new-12.md)
-  * [13](whats-new-13.md)
 * Camera components
   * [Free Camera](Free-Camera.md)
   * [Camera Switcher](Camera-Switcher.md)
@@ -13,7 +12,6 @@
   * [RTHandle fundamentals](rthandle-system-fundamentals.md)
   * [Using the RTHandle system](rthandle-system-using.md)
 * [Custom Material Inspector](custom-material-inspector.md)
-* [Exposing Preferences](exposing-preferences.md)
 * [Synchronizing shader code and C#](generating-shader-includes.md)
 * [Look Dev](Look-Dev.md)
   * [Environment Library](Look-Dev-Environment-Library.md)
