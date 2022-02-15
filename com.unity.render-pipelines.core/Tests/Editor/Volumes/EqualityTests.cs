@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Tests
 {
     using TSet = VolumeComponentTestDataSet;
 
-    class SomeObject {}
+    class SomeObject { }
 
     partial class EqualityTests
     {
@@ -27,18 +27,15 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = IsSupportedVolumeComponentFilter.FromType(r.AsType());
 
                 var expectsAreEquals = l.AsType() == r.AsType();
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
@@ -57,8 +54,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void IsSupportedVolumeComponentFilterEquality(
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType r
         ) => Assert.True(Properties.IsSupportedVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
@@ -71,18 +68,15 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = IsExplicitlySupportedVolumeComponentFilter.FromType(r.AsType());
 
                 var expectsAreEquals = l.AsType() == r.AsType();
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
@@ -101,8 +95,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void IsExplicitlySupportedVolumeComponentFilterEquality(
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType r
         ) => Assert.True(Properties.IsExplicitlySupportedVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
@@ -115,19 +109,18 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = r;
 
                 var expectsAreEquals = l.AsType() == r.AsType();
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
+                r2 = null;
+                nullableTest = !l2.Equals(r2);
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
@@ -143,8 +136,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void VolumeComponentTypeEquality(
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType r
         ) => Assert.True(Properties.VolumeComponentTypeEquality(l, r));
         static partial class Properties
         {
@@ -157,18 +150,15 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = IsVisibleVolumeComponentFilter.FromIsVisible(r);
 
                 var expectsAreEquals = l == r;
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
@@ -187,8 +177,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void IsVisibleVolumeComponentFilterEquality(
-            [Values]bool l,
-            [Values]bool r
+            [Values] bool l,
+            [Values] bool r
         ) => Assert.True(Properties.IsVisibleVolumeComponentFilterEquality(l, r));
         static partial class Properties
         {
@@ -201,18 +191,15 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = VolumeComponentArchetype.FromTypes(r);
 
                 var expectsAreEquals = l.ToHashSet().SetEquals(r.ToHashSet());
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
@@ -231,8 +218,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void VolumeComponentArchetypeEquality(
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] l,
-            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] r
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] l,
+            [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] r
         ) => Assert.True(Properties.VolumeComponentArchetypeEquality(l, r));
         static partial class Properties
         {
@@ -245,18 +232,15 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = new VolumeComponentArchetypeTreeProvider.PathNode(r.name, r.type);
 
                 var expectsAreEquals = (l.name == r.name && l.type == r.type);
-                                var areEquals = l2 == r2;
+                var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
                 var areNotEquals4 = l2 != r2;
-
                 // The hashcode must be the same for identical values
                 var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
                     || !expectsAreEquals;
-
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
                 var nullableTest = false;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
@@ -275,8 +259,8 @@ namespace UnityEngine.Rendering.Tests
 
         [Test]
         public static void VolumeComponentArchetypeTreeProviderPathNodeEquality(
-            [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) l,
-            [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) r
+            [ValueSource(nameof(k_NameAndVolumeComponentType))] (string name, VolumeComponentType type) l,
+            [ValueSource(nameof(k_NameAndVolumeComponentType))] (string name, VolumeComponentType type) r
         ) => Assert.True(Properties.VolumeComponentArchetypeTreeProviderPathNodeEquality(l, r));
 
         [Test]
@@ -286,32 +270,28 @@ namespace UnityEngine.Rendering.Tests
             var r2 = new EverythingVolumeComponentFilter();
 
             var expectsAreEquals = true;
-                            var areEquals = l2 == r2;
-                var areEquals2 = l2.Equals(r2);
-                var areEquals3 = l2.Equals((object)r2);
-                var areNotEquals4 = l2 != r2;
-
-                // The hashcode must be the same for identical values
-                var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
-                    || !expectsAreEquals;
-
-                // Check equal to itself
-                var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
-                var nullableTest = false;
-                r2 = null;
-                nullableTest = !l2.Equals(r2);
-                var result = areEquals == areEquals2
-                    && areEquals == areEquals3
-                    && areEquals != areNotEquals4
-                    && hashCodeEquals
-                    && areEquals == expectsAreEquals
-                    && isEqual
-                    && !l2.Equals((object)null)
-                    && !l2.Equals((object)new SomeObject())
-                    && l2.Equals((object)l2);
+            var areEquals = l2 == r2;
+            var areEquals2 = l2.Equals(r2);
+            var areEquals3 = l2.Equals((object)r2);
+            var areNotEquals4 = l2 != r2;
+            // The hashcode must be the same for identical values
+            var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
+                || !expectsAreEquals;
+            // Check equal to itself
+            var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
+            var nullableTest = false;
+            r2 = null;
+            nullableTest = !l2.Equals(r2);
+            var result = areEquals == areEquals2
+                && areEquals == areEquals3
+                && areEquals != areNotEquals4
+                && hashCodeEquals
+                && areEquals == expectsAreEquals
+                && isEqual
+                && !l2.Equals((object)null)
+                && !l2.Equals((object)new SomeObject())
+                && l2.Equals((object)l2);
             Assert.True(result);
         }
     }
 }
-

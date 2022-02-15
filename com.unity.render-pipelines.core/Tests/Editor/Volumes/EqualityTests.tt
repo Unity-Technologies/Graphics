@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Tests
 {
     using TSet = VolumeComponentTestDataSet;
 
-    class SomeObject {}
+    class SomeObject { }
 
     partial class EqualityTests
     {
@@ -29,12 +29,15 @@ namespace UnityEngine.Rendering.Tests
             var r2 = new EverythingVolumeComponentFilter();
 
             var expectsAreEquals = true;
-            <# WriteEqualityCode(true); #>
+<#
+            PushIndent("            ");
+            WriteEqualityCode(true);
+            PopIndent();
+#>
             Assert.True(result);
         }
     }
 }
-
 <#+
     public struct EqualityTest
     {
@@ -70,15 +73,19 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = <#= string.Format(test.constructor, "r") #>;
 
                 var expectsAreEquals = <#= test.expectsAreEqual #>;
-                <#+ WriteEqualityCode(test.addNullableTests); #>
+<#+
+            PushIndent("                ");
+            WriteEqualityCode(true);
+            PopIndent();
+#>
                 return result;
             }
         }
 
         [Test]
         public static void <#= test.testName #>(
-            <#= test.buildFromTypeAttribute #><#= test.buildFromType #> l,
-            <#= test.buildFromTypeAttribute #><#= test.buildFromType #> r
+            <#= test.buildFromTypeAttribute #> <#= test.buildFromType #> l,
+            <#= test.buildFromTypeAttribute #> <#= test.buildFromType #> r
         ) => Assert.True(Properties.<#= test.testName #>(l, r));
 <#+
     }
@@ -86,37 +93,34 @@ namespace UnityEngine.Rendering.Tests
     public void WriteEqualityCode(bool addNullableTests)
     {
 #>
-                var areEquals = l2 == r2;
-                var areEquals2 = l2.Equals(r2);
-                var areEquals3 = l2.Equals((object)r2);
-                var areNotEquals4 = l2 != r2;
-
-                // The hashcode must be the same for identical values
-                var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
-                    || !expectsAreEquals;
-
-                // Check equal to itself
-                var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-
-                var nullableTest = false;
+var areEquals = l2 == r2;
+var areEquals2 = l2.Equals(r2);
+var areEquals3 = l2.Equals((object)r2);
+var areNotEquals4 = l2 != r2;
+// The hashcode must be the same for identical values
+var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
+    || !expectsAreEquals;
+// Check equal to itself
+var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
+var nullableTest = false;
 <#+
         if (addNullableTests)
         {
 #>
-                r2 = null;
-                nullableTest = !l2.Equals(r2);
+r2 = null;
+nullableTest = !l2.Equals(r2);
 <#+
         }
 #>
-                var result = areEquals == areEquals2
-                    && areEquals == areEquals3
-                    && areEquals != areNotEquals4
-                    && hashCodeEquals
-                    && areEquals == expectsAreEquals
-                    && isEqual
-                    && !l2.Equals((object)null)
-                    && !l2.Equals((object)new SomeObject())
-                    && l2.Equals((object)l2);
+var result = areEquals == areEquals2
+    && areEquals == areEquals3
+    && areEquals != areNotEquals4
+    && hashCodeEquals
+    && areEquals == expectsAreEquals
+    && isEqual
+    && !l2.Equals((object)null)
+    && !l2.Equals((object)new SomeObject())
+    && l2.Equals((object)l2);
 <#+
     }
 

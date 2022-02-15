@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Tests
             int seed)
             => RandomInitStateGeneric<TValue, IEnumerable<TValue>>(enumerable, seed);
 
-        static readonly char[] k_RandomCharsSet = {'a', 'b', 'c', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ' ', '-', '_', '=', '+', '!', '@', '$', '%', '&', '*', '#',};
+        static readonly char[] k_RandomCharsSet = { 'a', 'b', 'c', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ' ', '-', '_', '=', '+', '!', '@', '$', '%', '&', '*', '#', };
         public static string RandomString()
         {
             var length = Random.Range(0, k_RandomCharsSet.Length);
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         public struct RandomInitStateEnumerable<TValue, TEnumerable> : IEnumerable<TValue>
-            where TEnumerable: IEnumerable<TValue>
+            where TEnumerable : IEnumerable<TValue>
         {
             TEnumerable m_Enumerable;
             int m_Seed;

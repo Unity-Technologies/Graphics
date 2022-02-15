@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
             return (typeSet != null ? typeSet.Aggregate(0, (acc, v) => acc + v.AsType().GetHashCode()) : 0);
         }
 
-        public static bool operator ==(VolumeComponentArchetype l, VolumeComponentArchetype r) => l?.Equals(r) ?? ReferenceEquals(null, r) ;
+        public static bool operator ==(VolumeComponentArchetype l, VolumeComponentArchetype r) => l?.Equals(r) ?? ReferenceEquals(null, r);
         public static bool operator !=(VolumeComponentArchetype l, VolumeComponentArchetype r) => !(l?.Equals(r) ?? ReferenceEquals(null, r));
     }
 }

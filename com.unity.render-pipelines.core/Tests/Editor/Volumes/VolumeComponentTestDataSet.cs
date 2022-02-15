@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Tests
         public static readonly VolumeComponentType[] volumeComponentTypes = TestTypes.AllVolumeComponents
             .Select(VolumeComponentType.FromTypeUnsafe)
             .Take(5)
-            .Union(new [] {VolumeComponentType.FromTypeUnsafe(typeof(TestTypes.TestVolumeComponent0167))})
+            .Union(new[] { VolumeComponentType.FromTypeUnsafe(typeof(TestTypes.TestVolumeComponent0167)) })
             .ToArray();
 
         public static readonly VolumeComponentType[][] volumeComponentTypesArray = Enumerable.Range(0, 20)

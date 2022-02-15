@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Tests
             .Select(_ => GeneratedExtensions.AllTypes
                 // Associate a generated action kind
                 .Zip(Enumerable.Range(0, GeneratedExtensions.AllTypes.Length - 1)
-                    .Select(_ => Random.Range(0, Enum.GetValues(typeof(GetAndAddExtensionsTestAction.Kind)).Length - 1)), (l,r) => (l,r))
+                    .Select(_ => Random.Range(0, Enum.GetValues(typeof(GetAndAddExtensionsTestAction.Kind)).Length - 1)), (l, r) => (l, r))
                 // Transform to GetAndAddExtensionsTestAction
                 .Select(tuple => new GetAndAddExtensionsTestAction((GetAndAddExtensionsTestAction.Kind)tuple.Item2, tuple.Item1))
                 .ToArray())
