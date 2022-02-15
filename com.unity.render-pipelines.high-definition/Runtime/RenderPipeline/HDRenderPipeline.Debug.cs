@@ -830,9 +830,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Material debugCapsuleTilesMaterial;
             public TextureHandle capsuleTileDebugTexture;
+            public Vector4 capsuleTileDebugSize;
         }
 
-        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle capsuleTileDebugTexture)
+        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle capsuleTileDebugTexture, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode == CapsuleTileDebugMode.None)
                 return;
@@ -840,18 +841,26 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!capsuleTileDebugTexture.IsValid())
                 return;
 
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             using (var builder = renderGraph.AddRenderPass<CapsuleTilesOverlayPassData>("CapsuleTilesOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugCapsuleTiles)))
             {
+                Vector2 renderSize = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight);
+                if (capsuleShadows.pipeline == CapsuleShadowPipeline.PrePassHalfResolution)
+                    renderSize = 0.5f * renderSize;
+                renderSize = (1.0f/8.0f) * renderSize;
+
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.debugCapsuleTilesMaterial = m_DebugCapsuleTilesMaterial;
                 passData.capsuleTileDebugTexture = builder.ReadTexture(capsuleTileDebugTexture);
+                passData.capsuleTileDebugSize = new Vector4(renderSize.x, renderSize.y, 0.0f, 0.0f);
 
                 builder.SetRenderFunc(
                     (CapsuleTilesOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                         data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleTileDebug, data.capsuleTileDebugTexture);
-                         HDUtils.DrawFullScreen(ctx.cmd, data.debugCapsuleTilesMaterial, data.colorBuffer);
+                        data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleTileDebug, data.capsuleTileDebugTexture);
+                        data.debugCapsuleTilesMaterial.SetVector(HDShaderIDs._CapsuleTileDebugSize, data.capsuleTileDebugSize);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.debugCapsuleTilesMaterial, data.colorBuffer);
                     });
             }
         }
@@ -885,7 +894,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
-            RenderCapsuleTilesOverlay(renderGraph, colorBuffer, capsuleTileDebugTexture);
+            RenderCapsuleTilesOverlay(renderGraph, colorBuffer, capsuleTileDebugTexture, hdCamera);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)

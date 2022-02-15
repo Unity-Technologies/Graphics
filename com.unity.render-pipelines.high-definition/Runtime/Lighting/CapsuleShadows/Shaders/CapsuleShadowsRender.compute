@@ -18,7 +18,7 @@
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 RW_TEXTURE2D_X(float2, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
-RW_TEXTURE2D_X(float, _CapsuleTileDebug);
+RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
 #endif
 
 #define DEPTH_MAX_EMPTY         0x00000001U
@@ -239,7 +239,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     {
 #ifdef CAPSULE_TILE_DEBUG
         if (flatThreadIndex == 0)
-            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0.f;
+            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #endif
         return;
     }
@@ -273,7 +273,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
         float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleRenderSize.zw);
         float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*TILE_SIZE*asfloat(depthMaxU1);
-        if (skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
+        if (!_CapsuleSplitDepthRange || skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
         {
             depthMaxU0 = depthMaxU1;
             depthMinU1 = depthMinU0;
@@ -340,6 +340,6 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(PackCapsuleVisibility(directVisibility), PackCapsuleVisibility(indirectVisibility));
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
-        _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = (float)processedCapsuleCounter/(float)65535.f;
+        _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = processedCapsuleCounter;
 #endif
 }

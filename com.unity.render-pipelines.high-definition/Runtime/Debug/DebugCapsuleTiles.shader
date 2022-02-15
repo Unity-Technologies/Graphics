@@ -23,7 +23,8 @@ Shader "Hidden/HDRP/DebugCapsuleTiles"
             #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
-            TEXTURE2D_X(_CapsuleTileDebug);
+            TEXTURE2D_X_UINT(_CapsuleTileDebug);
+            float4 _CapsuleTileDebugSize;
 
             struct Attributes
             {
@@ -44,14 +45,14 @@ Shader "Hidden/HDRP/DebugCapsuleTiles"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.uv = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
+                output.uv = GetFullScreenTriangleTexCoord(input.vertexID) * _CapsuleTileDebugSize.xy;
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                uint n = (uint)(65535.f*SAMPLE_TEXTURE2D_X(_CapsuleTileDebug, s_point_clamp_sampler, input.uv) + .5f);
+                uint n = LOAD_TEXTURE2D_X(_CapsuleTileDebug, uint2(input.uv)).x;
 
                 float4 result = float4(0.f, 0.f, 0.f, 0.f);
                 if (n > 0)

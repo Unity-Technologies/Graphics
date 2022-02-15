@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         LightLoopBit = 0x01000000,
         HalfResBit = 0x02000000,
         FadeSelfShadowBit = 0x04000000,
+        SplitDepthRangeBit = 0x08000000,
     }
 
     [GenerateHLSL(needAccessors = false)]

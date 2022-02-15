@@ -9,6 +9,7 @@
 #define _CapsuleDirectShadowInLightLoop     ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
 #define _CapsuleDirectShadowIsHalfRes       ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_HALF_RES_BIT) != 0)
 #define _CapsuleFadeDirectSelfShadow        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_FADE_SELF_SHADOW_BIT) != 0)
+#define _CapsuleSplitDepthRange             ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_SPLIT_DEPTH_RANGE_BIT) != 0)
 
 #define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
 #define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)

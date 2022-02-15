@@ -48,6 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public CapsuleShadowTextureFormatParameter textureFormat = new CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat.U8);
 
         /// <summary>
+        /// Allow tiles that skip a lot of depth range to split their depth range (test capsules twice).
+        /// </summary>
+        public BoolParameter useSplitDepthRange = new BoolParameter(true);
+
+        /// <summary>
         /// When enabled, capsules cast shadows for supported lights.
         /// </summary>
         public BoolParameter enableDirectShadows = new BoolParameter(true);

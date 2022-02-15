@@ -263,6 +263,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
+            if (capsuleShadows.useSplitDepthRange.value)
+            {
+                directCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
+                indirectCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
+            }
+
             switch (capsuleShadows.indirectShadowMethod.value)
             {
                 case CapsuleIndirectShadowMethod.AmbientOcclusion:
@@ -335,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref TextureHandle capsuleTileDebugTexture,
             in CapsuleShadowParameters parameters)
         {
-           using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
+            using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
             {
                 var renderOutput = renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f), dynamicResolution: true, xrReady: true)
@@ -356,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.tileDebugOutput = builder.WriteTexture(renderGraph.CreateTexture(
                         new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f)/8.0f, dynamicResolution: true, xrReady: true)
                         {
-                            colorFormat = GraphicsFormat.R16_UNorm,
+                            colorFormat = GraphicsFormat.R16_UInt,
                             enableRandomWrite = true,
                             name = "Capsule Tile Debug"
                         }));
