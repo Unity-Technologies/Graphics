@@ -11,7 +11,7 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: d446683f861eb30478cc3a8dca534525, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ShaderKeywords: _ADD_CLOUDY_NOISE
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -52,24 +52,24 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ADD_CLOUDY_NOISE: 1
-    - _Clearing_Fade: 0.46
-    - _Clearing_Size: 0.114
-    - _Droplets_Blur: 4
+    - _ADD_CLOUDY_NOISE: 0
+    - _Clearing_Fade: 0.567
+    - _Clearing_Size: 0.149
+    - _Droplets_Blur: 5
     - _Fog_Blur: 5
-    - _Fog_Opacity: 0.708
+    - _Fog_Opacity: 1
     - _Fog_Spread: 1
     - _Fog_Tiling: 0.35
     - _Intensity: 1
     - _Lens_Fog: 1
-    - _Noise_Animation: 0.05
+    - _Noise_Animation: 0.1
     - _Noise_Scale: 15
     - _Normal_Strength: 0.5
-    - _Opacity: 0.2
+    - _Opacity: 1
     - _Refraction_Strength: 1
     - _Tiling: 2
     - _blur: 1
     m_Colors:
-    - _Clearing_Position: {r: 0.5, g: 0.42, b: 0, a: 0}
+    - _Clearing_Position: {r: 0.5, g: 0.36, b: 0, a: 0}
     - _Color: {r: 0.40888214, g: 0.48907146, b: 0.5377358, a: 0}
   m_BuildTextureStacks: []

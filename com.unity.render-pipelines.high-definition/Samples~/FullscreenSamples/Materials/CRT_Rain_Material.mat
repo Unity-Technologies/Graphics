@@ -32,9 +32,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Droplets_Intensity: 1
+    - _Droplets_Intensity: 5
     - _Droplets_Size: 2
-    - _Fading: 0.005
+    - _Fading: 0.01
     - _Gravity_Force: 0.1
     m_Colors: []
   m_BuildTextureStacks: []
