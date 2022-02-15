@@ -38,6 +38,9 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float p11 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))];
     float4 depths = float4(p00, p10, p01, p11);
 
+    // Use the low 2 bits of the mantissa to encode which pixel this depth belongs to
+    depths = asfloat((asuint(depths) & ~0x3) | uint4(0x0, 0x1, 0x2, 0x3));
+
     // Select the closest sample
     float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
 

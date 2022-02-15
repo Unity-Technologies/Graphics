@@ -190,11 +190,14 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     bool isHalfRes = _CapsuleDirectShadowIsHalfRes;
 
     // would like to load half res depth, but get shading errors when the depth doesn't match the normal
-    //float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
-    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord * (isHalfRes ? 2 : 1)).x;
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
     bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
 
-    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
+    uint2 normalCoord = pixelCoord;
+    if (isHalfRes) {
+        normalCoord = normalCoord*2 + ((asuint(deviceDepth) >> uint2(0, 1)) & 1);
+    }
+    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, normalCoord);
 
     float2 upscaledPosNDC = GetPositionNDC(pixelCoord, isHalfRes);
     float4 positionCS = ComputeClipSpacePosition(upscaledPosNDC, deviceDepth);
