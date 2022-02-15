@@ -1,11 +1,11 @@
 # My first Shader Graph
 
-Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started) for more information.
+Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started.md) for more information.
 
 ## Create a New Graph
 Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shader Graph** will display the various creation options.
 
-A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue.
+A **Blank Shader Graph** will create a Shader Graph with no selected active targets or [block nodes](Block-Node.md). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Tab.md) to continue.
 
 Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened.
 
@@ -78,7 +78,7 @@ This adds a new property in the Blackboard with the following options in the **N
 | **Reference**       | The property's name that appears in C# scripts. To change the **Reference** name, enter a new string. |
 | **Default**         | The default value of the property.                           |
 | **Mode**            | The mode of the property. Each property has different modes. For **Color**, you can select either **Default** or **HDR**. |
-| **Precision**       | The default [precision](Precision-Modes) of the property. |
+| **Precision**       | The default [precision](Precision-Modes.md) of the property. |
 | **Hybrid Instanced**| An experimental feature that enables this property to be instanced when using the Hybrid DOTS renderer. |
 
 

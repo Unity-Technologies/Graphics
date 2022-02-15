@@ -1,9 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
-// TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -119,21 +117,6 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
-            {
-                var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
-                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
-                }
-
-                return;
-            }
-
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
             bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
