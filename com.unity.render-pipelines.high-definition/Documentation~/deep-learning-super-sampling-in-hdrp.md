@@ -42,14 +42,13 @@ To use DLSS in your scene:
 
     1. Select the HDRP Asset you want to enable DLSS for and view it in the Inspector.
     2. Go to **Rendering** > **Dynamic Resolution** and select **Enable**.
-    3. In the dynamic resolution section, select the **Enable DLSS** property to expose other properties that you can use to customize DLSS. For information about these properties, see the [HDRP Asset](HDRP-Asset.md) documentation.
+    3. In the **Dynamic Resolution** section, select the **Enable DLSS** property to expose other properties that you can use to customize DLSS. For information about these properties, see the [HDRP Asset](HDRP-Asset.md) documentation.
 
 3. Enable DLSS for each Camera you want to use it with.
 
     1. In the Hierarchy or Scene view, select a Camera and view it in the Inspector.
     2. Select **Allow Dynamic Resolution** to expose the DLSS settings. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
-    3. Select **Allow DLSS**.
-    4. Enable **Allow DLSS** to expose other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
+    3. Enable **Allow DLSS** to expose other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
 
 4. Set the DLSS quality mode. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
