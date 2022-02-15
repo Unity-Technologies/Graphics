@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
             }
+
             void CollectUniqueStageElementProperties(TemplatePassStageElement stageElement)
             {
                 CollectUniqueProperties(stageElement.BlockInstance);
@@ -64,7 +65,7 @@ namespace UnityEditor.ShaderFoundry
                 }
                 foreach (var cpInst in templateInst.CustomizationPointInstances)
                 {
-                    foreach(var blockInst in cpInst.BlockInstances)
+                    foreach (var blockInst in cpInst.BlockInstances)
                         CollectUniqueProperties(blockInst);
                 }
             }

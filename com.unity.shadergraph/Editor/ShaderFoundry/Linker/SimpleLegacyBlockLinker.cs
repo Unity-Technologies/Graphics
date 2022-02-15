@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderFoundry
                     results.Add(currentGroup);
                 }
 
-                if(stageElement.BlockInstance.IsValid)
+                if (stageElement.BlockInstance.IsValid)
                     currentGroup.BlockInstances.Add(stageElement.BlockInstance);
             }
             // Now add fill out each group that has a customization point. To do this, we append the default block instances

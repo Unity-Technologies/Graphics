@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderFoundry
             var vertexContext = new PostFieldsContext();
             var fragmentContext = new PostFieldsContext();
             // To build the customization point interface, merge the interface of all passes together.
-            foreach(var legacyPass in subShaderDescriptor.passes)
+            foreach (var legacyPass in subShaderDescriptor.passes)
                 ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             vertexCustomizationPoint = BuildVertexCustomizationPoint(vertexContext);
@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderFoundry
 
             var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPassDescriptor);
             LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-            
+
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validVertexBlocks, vertexContext);
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
@@ -257,7 +257,7 @@ namespace UnityEditor.ShaderFoundry
                 builder.AddInput(CloneVariable(output));
             foreach (var input in postBlock.Inputs)
                 builder.AddOutput(CloneVariable(input));
-            foreach(var blockInstance in defaultBlockInstances)
+            foreach (var blockInstance in defaultBlockInstances)
                 builder.AddDefaultBlockInstance(blockInstance);
             return builder.Build();
         }
@@ -280,9 +280,9 @@ namespace UnityEditor.ShaderFoundry
             foreach (var fieldDescriptor in fieldDescriptors)
                 fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
             var nameMappingsByOutputName = new Dictionary<string, NameOverride>();
-            foreach(var mapping in nameMappings)
+            foreach (var mapping in nameMappings)
                 nameMappingsByOutputName[mapping.Destination] = mapping;
-            
+
             // Build the input/output type from the matching fields
             var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
             var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in postBlock.Inputs)
             {
                 // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
-                if(nameMappingsByOutputName.TryGetValue(output.Name, out var mapping))
+                if (nameMappingsByOutputName.TryGetValue(output.Name, out var mapping))
                 {
                     BlockOutput inputProp;
                     availableInputs.TryGetValue(mapping.Source, out inputProp);
@@ -301,7 +301,7 @@ namespace UnityEditor.ShaderFoundry
                     {
                         outputBuilder.AddField(output.Type, output.Name);
                         // Add the input if we haven't already declared it
-                        if(!declaredInputs.Contains(inputProp.Name))
+                        if (!declaredInputs.Contains(inputProp.Name))
                         {
                             inputBuilder.AddField(inputProp.Type, inputProp.Name);
                             declaredInputs.Add(inputProp.Name);
@@ -310,7 +310,7 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
                 // Next see if this is a manually set default value
-                else if(defaultVariableValues.TryGetValue(output.Name, out var defaultValue))
+                else if (defaultVariableValues.TryGetValue(output.Name, out var defaultValue))
                 {
                     variableExpressions[output.Name] = defaultValue;
                     outputBuilder.AddField(output.Type, output.Name);
@@ -339,9 +339,9 @@ namespace UnityEditor.ShaderFoundry
             fnBuilder.AddLine($"{outType.Name} output;");
 
             // Declare the expression for every output field
-            foreach(var field in outType.StructFields)
+            foreach (var field in outType.StructFields)
             {
-                if(variableExpressions.TryGetValue(field.Name, out var expression))
+                if (variableExpressions.TryGetValue(field.Name, out var expression))
                     fnBuilder.AddLine($"output.{field.Name} = {expression};");
             }
 
@@ -437,7 +437,7 @@ namespace UnityEditor.ShaderFoundry
                 var builder = new ShaderStringBuilder();
                 builder.Append(fieldType.Name);
                 builder.Append("(");
-                for(var i = 0; i < fieldType.VectorDimension; ++i)
+                for (var i = 0; i < fieldType.VectorDimension; ++i)
                 {
                     if (i != 0)
                         builder.Append(", ");
