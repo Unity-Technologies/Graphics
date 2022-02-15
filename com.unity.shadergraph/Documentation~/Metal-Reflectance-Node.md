@@ -71,3 +71,33 @@ float3 _MetalReflectance_Out = float3(0.662, 0.655, 0.634);
 ```
 float3 _MetalReflectance_Out = float3(0.672, 0.637, 0.585);
 ```
+
+**Brass**
+```
+float3 _MetalReflectance_Out = float3(0.888, 0.745, 0.451);
+```
+
+**Lead**
+```
+float3 _MetalReflectance_Out = float3(0.491, 0.558, 0.591);
+```
+
+**Tin**
+```
+float3 _MetalReflectance_Out = float3(0.723, 0.584, 0.479);
+```
+
+**Steel**
+```
+float3 _MetalReflectance_Out = float3(0.61, 0.546, 0.509);
+```
+
+**Bronze**
+```
+float3 _MetalReflectance_Out = float3(0.88, 0.591, 0.558);
+```
+
+**Tungsten**
+```
+float3 _MetalReflectance_Out = float3(0.503, 0.491, 0.479);
+```
