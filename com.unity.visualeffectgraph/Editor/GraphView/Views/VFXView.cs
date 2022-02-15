@@ -206,6 +206,7 @@ namespace UnityEditor.VFX.UI
         VisualElement m_NoAssetLabel;
         VisualElement m_LockedElement;
         Button m_BackButton;
+        Vector2 m_pastCenter;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -2321,7 +2322,11 @@ namespace UnityEditor.VFX.UI
                 controller.CreateLink(targetSlot, controller.dataEdges.First(t => t.input == sourceSlot).output);
         }
 
-        private Vector2 pasteCenter { get; set; }
+        internal Vector2 pasteCenter
+        {
+            get => contentViewContainer.WorldToLocal(m_pastCenter);
+            private set => m_pastCenter = value; // Should be used only for unit testing
+        }
 
         private bool VFXCanPaste(string data)
         {
@@ -2426,7 +2431,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnMouseMoveEvent(MouseMoveEvent evt)
         {
-            pasteCenter = contentViewContainer.WorldToLocal(evt.mousePosition);
+            pasteCenter = evt.mousePosition;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)
