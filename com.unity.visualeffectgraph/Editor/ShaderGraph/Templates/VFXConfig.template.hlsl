@@ -216,7 +216,12 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
         float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
         GetElementSize(element.attributes),
-        element.attributes.position);
+        element.attributes.position
+
+#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
+        +_WorldSpaceCameraPos
+#endif
+    );
 
 #if VFX_LOCAL_SPACE
     elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
@@ -233,6 +238,11 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         float3(element.attributes.pivotX,element.attributes.pivotY,element.attributes.pivotZ),
         GetElementSize(element.attributes),
         element.attributes.position
+
+#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
+        - _WorldSpaceCameraPos
+#endif
+
     );
 
 #if VFX_LOCAL_SPACE
