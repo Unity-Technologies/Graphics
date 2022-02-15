@@ -297,6 +297,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
+            public Vector2Int upscaledSize;
+            public Vector2Int renderSize;
             public TextureHandle renderOutput;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
@@ -310,8 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader cs;
             public int kernel;
 
-            public TextureHandle renderOutput;
+            public Vector2Int upscaledSize;
             public TextureHandle upscaleOutput;
+            public TextureHandle renderOutput;
             public TextureHandle depthPyramid;
         }
 
@@ -324,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref TextureHandle capsuleTileDebugTexture)
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop)
+            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0)
             {
                 capsuleTileDebugTexture = TextureHandle.nullHandle;
                 return renderGraph.defaultResources.blackTextureXR;
@@ -339,6 +342,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     name = "Capsule Shadows Render"
                 });
 
+            Vector2Int upscaledSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+            Vector2Int renderSize;
+            if (isFullResolution)
+                renderSize = upscaledSize;
+            else
+                renderSize = new Vector2Int(Mathf.RoundToInt(0.5f*upscaledSize.x), Mathf.RoundToInt(0.5f*upscaledSize.y));
+
             using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
             {
                 passData.cs = defaultResources.shaders.capsuleShadowsRenderCS;
@@ -346,6 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.directionalLight = m_DirectionalLight;
 
+                passData.renderSize = renderSize;
                 passData.renderOutput = builder.WriteTexture(renderOutput);
                 passData.tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode;
                 if (passData.tileDebugMode != CapsuleTileDebugMode.None)
@@ -361,6 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
+                passData.upscaledSize = upscaledSize;
                 passData.depthPyramidSize = depthMipInfo.textureSize;
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
@@ -369,18 +381,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Func<Vector2Int, Vector4> sizeAndRcp = (size) => { return new Vector4(size.x, size.y, 1.0f/size.x, 1.0f/size.y); };
 
-                        RTHandle renderOutput = data.renderOutput;
-                        Vector2Int renderSize = renderOutput.GetScaledSize(renderOutput.rtHandleProperties.currentViewportSize);
-
                         ShaderVariablesCapsuleShadows cb = new ShaderVariablesCapsuleShadows { };
-                        cb._CapsuleRenderSize = sizeAndRcp(renderSize);
+                        cb._CapsuleRenderSize = sizeAndRcp(data.renderSize);
 
-                        cb._CapsuleLightDir = passData.directionalLight.direction;
-                        cb._CapsuleLightCosTheta = passData.directionalLight.cosTheta;
+                        cb._CapsuleLightDir = data.directionalLight.direction;
+                        cb._CapsuleLightCosTheta = data.directionalLight.cosTheta;
 
-                        cb._CapsuleLightTanTheta = passData.directionalLight.tanTheta;
-                        cb._CapsuleShadowRange = passData.directionalLight.range;
+                        cb._CapsuleLightTanTheta = data.directionalLight.tanTheta;
+                        cb._CapsuleShadowRange = data.directionalLight.range;
 
+                        cb._CapsuleUpscaledSize = sizeAndRcp(data.upscaledSize);
                         cb._DepthPyramidSize = sizeAndRcp(data.depthPyramidSize);
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
@@ -398,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
                         CoreUtils.SetKeyword(data.cs, "CAPSULE_TILE_DEBUG", useTileDebug);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(renderSize.x, 8), HDUtils.DivRoundUp(renderSize.y, 8), 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.renderSize.x, 8), HDUtils.DivRoundUp(data.renderSize.y, 8), 1);
                     });
 
                 capsuleTileDebugTexture = passData.tileDebugOutput;
@@ -420,23 +430,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cs = defaultResources.shaders.capsuleShadowsUpscaleCS;
                 passData.kernel = passData.cs.FindKernel("Main");
 
-                passData.renderOutput = builder.ReadTexture(renderOutput);
+                passData.upscaledSize = upscaledSize;
                 passData.upscaleOutput = builder.WriteTexture(upscaleOutput);
+                passData.renderOutput = builder.ReadTexture(renderOutput);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
 
                 builder.SetRenderFunc(
                     (CapsuleShadowsUpscalePassData data, RenderGraphContext ctx) =>
                     {
-                        RTHandle upscaleOutput = data.upscaleOutput;
-                        Vector2Int upscaleSize = upscaleOutput.GetScaledSize(upscaleOutput.rtHandleProperties.currentViewportSize);
-
                         ConstantBuffer.Set<ShaderVariablesCapsuleShadows>(ctx.cmd, data.cs, HDShaderIDs._ShaderVariablesCapsuleShadows);
 
-                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsTexture, data.upscaleOutput);
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(upscaleSize.x, 8), HDUtils.DivRoundUp(upscaleSize.y, 8), 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.upscaledSize.x, 8), HDUtils.DivRoundUp(data.upscaledSize.y, 8), 1);
                     });
             }
 

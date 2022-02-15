@@ -14,6 +14,7 @@ CBUFFER_START(ShaderVariablesCapsuleShadows)
     float _CapsuleShadowRange;
     uint _CapsulePad0;
     uint _CapsulePad1;
+    float4 _CapsuleUpscaledSize;
     float4 _DepthPyramidSize;
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;

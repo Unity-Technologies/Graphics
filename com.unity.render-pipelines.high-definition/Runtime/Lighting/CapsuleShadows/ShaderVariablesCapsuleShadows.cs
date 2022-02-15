@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _CapsulePad0;
         public uint _CapsulePad1;
 
+        public Vector4 _CapsuleUpscaledSize;    // w, h, 1/w, 1/h
         public Vector4 _DepthPyramidSize;       // w, h, 1/w, 1/h
-
         public uint _FirstDepthMipOffsetX;
         public uint _FirstDepthMipOffsetY;
         public uint _CapsuleTileDebugMode;

@@ -172,6 +172,15 @@ void CapsuleShadowLoop(
     }
 }
 
+float2 GetPositionNDC(uint2 pixelCoord, bool isHalfRes)
+{
+    float2 upscaledPosSS = float2(pixelCoord) + .5f;
+    if (isHalfRes) {
+        upscaledPosSS *= 2.f;
+    }
+    return upscaledPosSS * _CapsuleUpscaledSize.zw;
+}
+
 [numthreads(TILE_SIZE,TILE_SIZE,1)]
 void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
 {
@@ -184,7 +193,8 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord * (isHalfRes ? 2 : 1));
 
-    float4 positionCS = ComputeClipSpacePosition((pixelCoord + .5f)*_CapsuleRenderSize.zw, deviceDepth);
+    float2 upscaledPosNDC = GetPositionNDC(pixelCoord, isHalfRes);
+    float4 positionCS = ComputeClipSpacePosition(upscaledPosNDC, deviceDepth);
 
     // TODO: handle orthographic/oblique
     float4x4 invProj = UNITY_MATRIX_I_P;
