@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -167,8 +168,7 @@ namespace UnityEngine.Rendering.Universal
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTargetId);
-            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
-                cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
+            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
@@ -177,6 +177,19 @@ namespace UnityEngine.Rendering.Universal
             var matrix = Matrix4x4.TRS(light.transform.position, light.transform.rotation, scale);
             cmd.DrawMesh(lightMesh, matrix, material);
         }
+
+
+        private static bool CanCastShadows(Light2D light, int layerToRender)
+        {
+            return light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender);
+        }
+
+        private static bool CanCastVolumetricShadows(Light2D light, int endLayerValue)
+        {
+            var topMostLayerValue = light.GetTopMostLitLayer();
+            return light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0 && topMostLayerValue == endLayerValue;
+        }
+
 
         private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
@@ -191,6 +204,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
+            NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
+
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
             while (lightIndex < lights.Count)
@@ -199,14 +214,19 @@ namespace UnityEngine.Rendering.Universal
                 var batchedLights = 0;
 
                 // Add lights to our batch until the number of shadow textures reach the maxShadowTextureCount
-                var shadowLightCount = 0;
+                int shadowLightCount = 0;
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
-                    var light = lights[lightIndex + batchedLights];
-                    if (light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender))
+                    int curLightIndex = lightIndex + batchedLights;
+                    var light = lights[curLightIndex];
+                    if (CanCastShadows(light, layerToRender))
                     {
-                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity);
-                        shadowLightCount++;
+                        doesLightAtIndexHaveShadows[curLightIndex] = false;
+                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity))
+                        {
+                            doesLightAtIndexHaveShadows[curLightIndex] = true;
+                            shadowLightCount++;
+                        }
                     }
                     batchedLights++;
                 }
@@ -240,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
                             continue;
 
                         // Set the shadow texture to read from
-                        if (light.shadowsEnabled && light.shadowIntensity > 0)
+                        if (doesLightAtIndexHaveShadows[lightIndex + lightIndexOffset])
                             ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
                         else
                             ShadowRendering.DisableGlobalShadowTexture(cmd);
@@ -272,6 +292,8 @@ namespace UnityEngine.Rendering.Universal
 
                 lightIndex += batchedLights;
             }
+
+            doesLightAtIndexHaveShadows.Dispose();
         }
 
         public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue,
@@ -279,6 +301,8 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferStoreAction finalStoreAction, bool requiresRTInit, List<Light2D> lights)
         {
             var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;  // Now encodes shadows into RGBA as well as seperate textures
+
+            NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
 
             // This case should never happen, but if it does it may cause an infinite loop later.
             if (maxShadowLightCount < 1)
@@ -312,13 +336,17 @@ namespace UnityEngine.Rendering.Universal
                 var shadowLightCount = 0;
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
-                    var light = lights[lightIndex + batchedLights];
+                    int curLightIndex = lightIndex + batchedLights;
+                    var light = lights[curLightIndex];
 
-                    var topMostLayerValue = light.GetTopMostLitLayer();
-                    if (light.renderVolumetricShadows && endLayerValue == topMostLayerValue)
+                    if (CanCastVolumetricShadows(light, endLayerValue))
                     {
-                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
-                        shadowLightCount++;
+                        doesLightAtIndexHaveShadows[curLightIndex] = false;
+                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity))
+                        {
+                            doesLightAtIndexHaveShadows[curLightIndex] = true;
+                            shadowLightCount++;
+                        }
                     }
                     batchedLights++;
                 }
@@ -350,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
                         var lightMesh = light.lightMesh;
 
                         // Set the shadow texture to read from.
-                        if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
+                        if (doesLightAtIndexHaveShadows[lightIndex + lightIndexOffset])
                             ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
                         else
                             ShadowRendering.DisableGlobalShadowTexture(cmd);
@@ -383,6 +411,8 @@ namespace UnityEngine.Rendering.Universal
 
                 lightIndex += batchedLights;
             }
+
+            doesLightAtIndexHaveShadows.Dispose();
         }
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
