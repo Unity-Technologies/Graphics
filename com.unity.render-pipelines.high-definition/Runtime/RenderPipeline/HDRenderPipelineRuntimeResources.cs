@@ -204,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader encodeBC6HCS;
             [Reload("Runtime/Core/CoreResources/CubeToPano.shader")]
             public Shader cubeToPanoPS;
+            [Reload("Runtime/Core/CoreResources/CubeToOct.shader")]
+            public Shader cubeToOctPS;
             [Reload("Runtime/Core/CoreResources/BlitCubeTextureFace.shader")]
             public Shader blitCubeTextureFacePS;
             [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]

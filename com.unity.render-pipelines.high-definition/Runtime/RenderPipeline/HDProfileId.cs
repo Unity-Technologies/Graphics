@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
+        ConvertReflectionProbeCubeToOct,
         PreIntegradeWardCookTorrance,
         FilterCubemapCharlie,
         FilterCubemapGGX,
