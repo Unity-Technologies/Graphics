@@ -211,6 +211,37 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ShaderGraph_Properties_With_Legacy_Format()
+        {
+            // This SG file has no category (even the default one for uncategorized properties)
+            var sg = GetShaderGraphFromTempFile("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest-legacy-format.shadergraph_1");
+
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            outputContext.SetSettingValue("shaderGraph", sg);
+
+            graph.AddChild(spawnerContext);
+            graph.AddChild(initContext);
+            graph.AddChild(updateContext);
+            graph.AddChild(outputContext);
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(updateContext);
+            updateContext.LinkTo(outputContext);
+
+            Assert.AreEqual(1, outputContext.inputSlots.Count);
+            CollectionAssert.AreEqual(new [] { "Color_test" }, outputContext.inputSlots.Select(x => x.name));
+
+            graph.GetResource().WriteAsset();
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(vfxPath);
+        }
+
+        [Test]
         public void Set_ShaderGraph_Null_No_Properties()
         {
             string vfxPath;
@@ -260,6 +291,11 @@ namespace UnityEditor.VFX.Test
             var extension = Path.GetExtension(tempFile);
             var sgPath = Path.Combine(VFXTestCommon.tempBasePath,  Path.GetFileName(tempFile).Replace(extension, ".shadergraph"));
             var sgContent = File.ReadAllText(tempFile);
+            if (!Directory.Exists(VFXTestCommon.tempBasePath))
+            {
+                Directory.CreateDirectory(VFXTestCommon.tempBasePath);
+            }
+
             File.WriteAllText(sgPath, sgContent);
             AssetDatabase.Refresh();
 
