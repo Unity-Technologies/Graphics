@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     {
         Schlick,
         Dielectric,
-        DielectricGeneric
+        Advanced
     };
 
     [Title("Math", "Advanced", "Fresnel Equation")]
@@ -25,9 +25,9 @@ namespace UnityEditor.ShaderGraph
 
         const string kDotVectorsInputSlotName = "Dot Vector";
         const string kF0InputSlotName = "F0";
-        const string kIORSourceInputSlotName = "IOR Source";
-        const string kIORMediumInputSlotName = "IOR Medium";
-        const string kIORMediumImInputSlotName = "IOR Medium K";
+        const string kIORSourceInputSlotName = "From Refractive Index";
+        const string kIORMediumInputSlotName = "To Refractive Index";
+        const string kIORMediumImInputSlotName = "Extinction Coefficient (k)";
 
         const string kFresnelOutputSlotName = "Fresnel";
 
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(iorMediumInputSlot);
                 addedSlots.Add(iorMediumInputSlot.id);
             }
-            else if (m_FresnelEquationMode == FresnelEquationMode.DielectricGeneric)
+            else if (m_FresnelEquationMode == FresnelEquationMode.Advanced)
             {
                 iorSourceInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f);
                 iorMediumInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f);
