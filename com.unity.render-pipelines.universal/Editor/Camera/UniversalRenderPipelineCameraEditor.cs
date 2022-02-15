@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
                 // This can fail due to changing the renderer in the UI to a renderer that does not support overlay cameras
                 // The UI will not stop you from changing the renderer sadly so this will have to tell the user that the
                 // entry in the stack now is invalid.
-                else if ((renderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                else if (!renderer.SupportsCameraStackingType(CameraRenderType.Overlay))
                 {
                     if (!m_NotSupportedOverlayCameras.Contains(cam))
                     {
