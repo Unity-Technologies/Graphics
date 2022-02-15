@@ -3,19 +3,25 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum CapsuleShadowPipeline
+    {
+        InLightLoop,
+        PrePassFullResolution,
+        PrePassHalfResolution,
+    }
+
+    public enum CapsuleShadowTextureFormat
+    {
+        U8,
+        U16,
+    }
+
     [GenerateHLSL]
     public enum CapsuleShadowMethod
     {
         FlattenThenClosestSphere,
         ClosestSphere,
         Ellipsoid
-    }
-
-    public enum CapsuleShadowPipeline
-    {
-        InLightLoop,
-        PrePassFullResolution,
-        PrePassHalfResolution,
     }
 
     [GenerateHLSL]

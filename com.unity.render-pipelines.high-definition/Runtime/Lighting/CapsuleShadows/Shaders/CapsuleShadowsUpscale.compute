@@ -32,9 +32,6 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float2 s = 1.f - t;
     float4 bilinearWeight = float4(s.x, t.x, t.x, s.x)*float4(t.y, t.y, s.y, s.y);
 
-    float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
-    float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
-
     float2 depthUV = (float2(_FirstDepthMipOffset) + halfResPositionSS)*_DepthPyramidSize.zw;
     float4 gatherDeviceDepth = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, depthUV);
 
@@ -52,6 +49,17 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float4 combinedWeight = bilinearWeight*depthWeight;
     combinedWeight /= sumAcross(combinedWeight);
 
-    _CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(dot(combinedWeight, gatherR), dot(combinedWeight, gatherG));
+    float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
+    float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
+
+#if 0
+    float upscaledR = PackCapsuleVisibility(dot(combinedWeight, UnpackCapsuleVisibility(gatherR)));
+    float upscaledG = PackCapsuleVisibility(dot(combinedWeight, UnpackCapsuleVisibility(gatherG)));
+#else
+    float upscaledR = dot(combinedWeight, gatherR);
+    float upscaledG = dot(combinedWeight, gatherG);
+#endif
+
+    _CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(upscaledR, upscaledG);
     //_CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = SAMPLE_TEXTURE2D_X_LOD(_CapsuleShadowsRenderOutput, s_point_clamp_sampler, renderUV, 0.f);
 }

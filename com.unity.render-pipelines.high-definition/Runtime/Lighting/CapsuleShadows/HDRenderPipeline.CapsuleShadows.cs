@@ -287,6 +287,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_CapsuleOccluderDataBuffer);
         }
 
+        struct CapsuleShadowParameters
+        {
+            public bool isFullResolution;
+            public GraphicsFormat textureFormat;
+            public Vector2Int upscaledSize;
+            public Vector2Int renderSize;
+            public CapsuleTileDebugMode tileDebugMode;
+        }
+
         class CapsuleShadowsRenderPassData
         {
             public ComputeShader cs;
@@ -318,61 +327,48 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
         }
 
-        internal TextureHandle RenderCapsuleShadows(
+        TextureHandle RenderCapsuleShadows(
             RenderGraph renderGraph,
-            HDCamera hdCamera,
             TextureHandle depthPyramid,
             TextureHandle normalBuffer,
             in HDUtils.PackedMipChainInfo depthMipInfo,
-            ref TextureHandle capsuleTileDebugTexture)
+            ref TextureHandle capsuleTileDebugTexture,
+            in CapsuleShadowParameters parameters)
         {
-            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0)
+           using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
             {
-                capsuleTileDebugTexture = TextureHandle.nullHandle;
-                return renderGraph.defaultResources.blackTextureXR;
-            }
+                var renderOutput = renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f), dynamicResolution: true, xrReady: true)
+                    {
+                        colorFormat = parameters.textureFormat,
+                        enableRandomWrite = true,
+                        name = "Capsule Shadows Render"
+                    });
 
-            bool isFullResolution = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassFullResolution);
-            var renderOutput = renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one * (isFullResolution ? 1.0f : 0.5f), dynamicResolution: true, xrReady: true)
-                {
-                    colorFormat = GraphicsFormat.R16G16_UNorm,
-                    enableRandomWrite = true,
-                    name = "Capsule Shadows Render"
-                });
-
-            Vector2Int upscaledSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
-            Vector2Int renderSize;
-            if (isFullResolution)
-                renderSize = upscaledSize;
-            else
-                renderSize = new Vector2Int(Mathf.RoundToInt(0.5f*upscaledSize.x), Mathf.RoundToInt(0.5f*upscaledSize.y));
-
-            using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
-            {
                 passData.cs = defaultResources.shaders.capsuleShadowsRenderCS;
                 passData.kernel = passData.cs.FindKernel("Main");
 
                 passData.directionalLight = m_DirectionalLight;
 
-                passData.renderSize = renderSize;
-                passData.renderOutput = builder.WriteTexture(renderOutput);
-                passData.tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode;
-                if (passData.tileDebugMode != CapsuleTileDebugMode.None)
+                passData.tileDebugMode = parameters.tileDebugMode;
+                if (parameters.tileDebugMode != CapsuleTileDebugMode.None)
                 {
                     passData.tileDebugOutput = builder.WriteTexture(renderGraph.CreateTexture(
-                        new TextureDesc(Vector2.one * (isFullResolution ? 1.0f : 0.5f)/8.0f, dynamicResolution: true, xrReady: true)
+                        new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f)/8.0f, dynamicResolution: true, xrReady: true)
                         {
                             colorFormat = GraphicsFormat.R16_UNorm,
                             enableRandomWrite = true,
                             name = "Capsule Tile Debug"
                         }));
+                    capsuleTileDebugTexture = passData.tileDebugOutput;
                 }
+
+                passData.renderSize = parameters.renderSize;
+                passData.upscaledSize = parameters.upscaledSize;
+                passData.renderOutput = builder.WriteTexture(renderOutput);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
-                passData.upscaledSize = upscaledSize;
                 passData.depthPyramidSize = depthMipInfo.textureSize;
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
@@ -411,26 +407,31 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.renderSize.x, 8), HDUtils.DivRoundUp(data.renderSize.y, 8), 1);
                     });
 
-                capsuleTileDebugTexture = passData.tileDebugOutput;
-            }
-
-            if (isFullResolution)
                 return renderOutput;
+            }
+        }
 
-            var upscaleOutput = renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, dynamicResolution: true, xrReady: true)
-                {
-                    colorFormat = GraphicsFormat.R16G16_UNorm,
-                    enableRandomWrite = true,
-                    name = "Capsule Shadows Upscale"
-                });
-
+        TextureHandle UpscaleCapsuleShadows(
+            RenderGraph renderGraph,
+            TextureHandle renderOutput,
+            TextureHandle depthPyramid,
+            in HDUtils.PackedMipChainInfo depthMipInfo,
+            in CapsuleShadowParameters parameters)
+        {
             using (var builder = renderGraph.AddRenderPass<CapsuleShadowsUpscalePassData>("Capsule Shadows Upscale", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsUpscale)))
             {
+                var upscaleOutput = renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one, dynamicResolution: true, xrReady: true)
+                    {
+                        colorFormat = parameters.textureFormat,
+                        enableRandomWrite = true,
+                        name = "Capsule Shadows Upscale"
+                    });
+
                 passData.cs = defaultResources.shaders.capsuleShadowsUpscaleCS;
                 passData.kernel = passData.cs.FindKernel("Main");
 
-                passData.upscaledSize = upscaledSize;
+                passData.upscaledSize = parameters.upscaledSize;
                 passData.upscaleOutput = builder.WriteTexture(upscaleOutput);
                 passData.renderOutput = builder.ReadTexture(renderOutput);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
@@ -446,9 +447,66 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.upscaledSize.x, 8), HDUtils.DivRoundUp(data.upscaledSize.y, 8), 1);
                     });
+
+                return upscaleOutput;
+            }
+        }
+
+        internal TextureHandle RenderCapsuleShadows(
+            RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle depthPyramid,
+            TextureHandle normalBuffer,
+            in HDUtils.PackedMipChainInfo depthMipInfo,
+            ref TextureHandle capsuleTileDebugTexture)
+        {
+            TextureHandle result;
+
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0)
+            {
+                result = renderGraph.defaultResources.blackTextureXR;
+            }
+            else
+            {
+                bool isFullResolution = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassFullResolution);
+                Vector2Int upscaledSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                Vector2Int renderSize;
+                if (isFullResolution)
+                    renderSize = upscaledSize;
+                else
+                    renderSize = new Vector2Int(Mathf.RoundToInt(0.5f*upscaledSize.x), Mathf.RoundToInt(0.5f*upscaledSize.y));
+
+                CapsuleShadowParameters parameters = new CapsuleShadowParameters()
+                {
+                    isFullResolution = isFullResolution,
+                    textureFormat = (capsuleShadows.textureFormat == CapsuleShadowTextureFormat.U16) ? GraphicsFormat.R16G16_UNorm : GraphicsFormat.R8G8_UNorm,
+                    upscaledSize = upscaledSize,
+                    renderSize = renderSize,
+                    tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode,
+                };
+
+                result = RenderCapsuleShadows(
+                    renderGraph,
+                    depthPyramid,
+                    normalBuffer,
+                    depthMipInfo,
+                    ref capsuleTileDebugTexture,
+                    in parameters);
+
+                if (!isFullResolution)
+                {
+                    result = UpscaleCapsuleShadows(
+                        renderGraph,
+                        result,
+                        depthPyramid,
+                        depthMipInfo,
+                        in parameters);
+                }
             }
 
-            return upscaleOutput;
+            PushFullScreenDebugTexture(m_RenderGraph, result, FullScreenDebugMode.CapsuleShadows);
+            return result;
         }
     }
 }

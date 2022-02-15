@@ -5,15 +5,21 @@ using UnityEngine;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    public sealed class CapsuleAmbientOcclusionMethodParameter : VolumeParameter<CapsuleAmbientOcclusionMethod>
-    {
-        public CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod value, bool overrideState = false) : base(value, overrideState) { }
-    }
-
-    [Serializable]
     public sealed class CapsuleShadowPipelineParameter : VolumeParameter<CapsuleShadowPipeline>
     {
         public CapsuleShadowPipelineParameter(CapsuleShadowPipeline value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
+    public sealed class CapsuleShadowTextureFormatParameter : VolumeParameter<CapsuleShadowTextureFormat>
+    {
+        public CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
+    public sealed class CapsuleShadowMethodParameter : VolumeParameter<CapsuleShadowMethod>
+    {
+        public CapsuleShadowMethodParameter(CapsuleShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     [Serializable]
@@ -23,9 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public sealed class CapsuleShadowMethodParameter : VolumeParameter<CapsuleShadowMethod>
+    public sealed class CapsuleAmbientOcclusionMethodParameter : VolumeParameter<CapsuleAmbientOcclusionMethod>
     {
-        public CapsuleShadowMethodParameter(CapsuleShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
+        public CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Capsule Shadows", typeof(HDRenderPipeline))]
@@ -35,6 +41,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Choose a pipeline for how capsule shadowing interacts with HDRP.
         /// </summary>
         public CapsuleShadowPipelineParameter pipeline = new CapsuleShadowPipelineParameter(CapsuleShadowPipeline.InLightLoop);
+
+        /// <summary>
+        /// Choose a texture format for capsule shadows to be resolved to.
+        /// </summary>
+        public CapsuleShadowTextureFormatParameter textureFormat = new CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat.U8);
 
         /// <summary>
         /// When enabled, capsules cast shadows for supported lights.

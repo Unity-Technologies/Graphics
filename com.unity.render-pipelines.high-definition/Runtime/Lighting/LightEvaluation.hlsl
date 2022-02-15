@@ -316,7 +316,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
         else
         {
-            shadow *= 1.f - LOAD_TEXTURE2D_X(_CapsuleShadowsTexture, posInput.positionSS).x;
+            shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_X(_CapsuleShadowsTexture, posInput.positionSS).x);
         }
     }
 #endif

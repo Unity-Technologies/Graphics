@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ContactShadowsFade,
         /// <summary>Display Screen Space Shadows.</summary>
         ScreenSpaceShadows,
+        /// <summary>Display shadowing from capsules.</summary>
+        CapsuleShadows,
         /// <summary>Displays the color pyramid before the refraction pass.</summary>
         PreRefractionColorPyramid,
         /// <summary>Display the Depth Pyramid.</summary>

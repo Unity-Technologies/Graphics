@@ -1,6 +1,7 @@
 #ifndef CAPSULE_SHADOWS_GLOBALS_DEF
 #define CAPSULE_SHADOWS_GLOBALS_DEF
 
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
 
 #define _CapsuleDirectShadowCount           (_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
@@ -56,5 +57,10 @@ uint GetCapsuleIndirectOcclusionFlags()
     // hardcoded (probably cheapest) shadow function
     return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
 }
+
+// store in gamma 2 to increase precision at the low end
+float PackCapsuleVisibility(float visibility)   { return 1.f - sqrt(max(0.f, visibility)); }
+float UnpackCapsuleVisibility(float texel)      { return Sq(1.f - texel); }
+float4 UnpackCapsuleVisibility(float4 texels)   { return Sq(1.f - texels); }
 
 #endif // ndef CAPSULE_SHADOWS_GLOBALS_DEF

@@ -337,7 +337,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
 
     // write results
-    _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(1.f - directVisibility, 1.f - indirectVisibility);
+    _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(PackCapsuleVisibility(directVisibility), PackCapsuleVisibility(indirectVisibility));
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = (float)processedCapsuleCounter/(float)65535.f;
