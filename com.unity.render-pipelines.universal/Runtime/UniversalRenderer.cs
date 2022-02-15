@@ -499,7 +499,7 @@ namespace UnityEngine.Rendering.Universal
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
             bool createDepthTexture = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !requiresDepthPrepass;
-            createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+            createDepthTexture |= !cameraData.resolveFinalTarget;
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
@@ -723,8 +723,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
+            // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            if (!requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }

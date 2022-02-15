@@ -112,6 +112,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a help button on material editor to show the shader documentation page
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
+- Depth Texture setting for Overlay Camera.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
