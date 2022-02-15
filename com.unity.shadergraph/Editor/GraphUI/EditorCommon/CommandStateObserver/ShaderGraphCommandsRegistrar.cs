@@ -25,8 +25,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             );
 
             // Shader Graph commands
-            commandDispatcher.RegisterCommandHandler<GraphViewStateComponent, AddRedirectNodeCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,
+                graphTool.UndoStateComponent,
                 graphView.GraphViewState
             );
 
