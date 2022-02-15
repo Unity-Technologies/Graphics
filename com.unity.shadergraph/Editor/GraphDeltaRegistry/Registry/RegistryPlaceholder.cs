@@ -1,7 +1,8 @@
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
 using System.Linq;
 using UnityEngine;
+using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -85,11 +86,11 @@ namespace UnityEditor.ShaderGraph.Registry
                 }
             }
 
-            internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(
+            internal static ShaderFunction MathNodeFunctionBuilder(
                 string OpName,
                 string Op,
                 INodeReader data,
-                ShaderFoundry.ShaderContainer container,
+                ShaderContainer container,
                 Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
@@ -100,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 string funcName = $"{OpName}{count}_{shaderType.Name}";
 
-                var builder = new ShaderFoundry.ShaderFunction.Builder(container, funcName);
+                var builder = new ShaderFunction.Builder(container, funcName);
                 string body = "";
                 bool firstOperand = true;
                 foreach (var port in data.GetPorts())
@@ -135,15 +136,12 @@ namespace UnityEditor.ShaderGraph.Registry
                 NodeHelpers.MathNodeDynamicResolver(userData, nodeWriter, registry);
             }
 
-            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
             {
                 return NodeHelpers.MathNodeFunctionBuilder("Add", "+", data, container, registry);
             }
         }
 
-        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic 
-        // description of what needs to be done to add nodes.
-        // CLEAN THIS DOC
         class PowNode : Defs.INodeDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Pow", Version = 1 };
@@ -165,12 +163,12 @@ namespace UnityEditor.ShaderGraph.Registry
 
             /**
              * GetShaderFunction defines the output of the built 
-             * ShaderFoundry.ShaderFunction that results from specific
+             * ShaderFunction that results from specific
              * node data.
              */
-            public ShaderFoundry.ShaderFunction GetShaderFunction(
+            public ShaderFunction GetShaderFunction(
                 INodeReader data,
-                ShaderFoundry.ShaderContainer container,
+                ShaderContainer container,
                 Registry registry)
             {
                 // Get the HLSL type to associate with our variables in the
@@ -183,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 var shaderType = registry.GetShaderType((IFieldReader)port, container);
 
                 // Get a builder from ShaderFoundry
-                var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, "Pow");
+                var shaderFunctionBuilder = new ShaderFunction.Builder(container, "Pow");
 
                 // Set up the vars in the shader function.
                 // Each var in this case is the same type.
@@ -214,15 +212,21 @@ namespace UnityEditor.ShaderGraph.Registry
             public const string kHeight = "Height";
             public const string kEntry = "_Entry";
 
-            public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
+            public void BuildType(IFieldHandler field, Registry registry)
+            //public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {
+                // TODO (Brett) This is going to change to accepting a layer
+
                 // default initialize to a float4.
-                typeWriter.SetField(kPrecision, Precision.Full);
-                typeWriter.SetField(kPrimitive, Primitive.Float);
-                typeWriter.SetField(kLength, 4);
-                typeWriter.SetField(kHeight, 1);
+                field.AddSubField(kPrecision, Precision.Full);
+                field.AddSubField(kPrimitive, Primitive.Float);
+                field.AddSubField(kLength, 4);
+                field.AddSubField(kHeight, 1);
+
+                //field.GetSubField<Precision>(kPrecision).GetData()
 
                 // read userdata and make sure we have enough fields.
+                int length = field.GetSubField(kLength);
                 if (!userData.GetField(kLength, out int length))
                     length = 4;
                 if (!userData.GetField(kHeight, out int height))
@@ -233,14 +237,16 @@ namespace UnityEditor.ShaderGraph.Registry
                     typeWriter.SetField<float>($"c{i}", 0);
             }
 
-            string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
+            string GetInitializerList(GraphDataHandler field, Registry registry)
+            //string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
+
                 data.GetField(kLength, out int length);
                 data.GetField(kHeight, out int height);
                 length = Mathf.Clamp(length, 1, 4);
                 height = Mathf.Clamp(height, 1, 4);
 
-                string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
+                string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderContainer(), registry).Name}" + "(";
                 for(int i = 0; i < length*height; ++i)
                 {
                     data.GetField($"c{i}", out float componentValue);
@@ -252,10 +258,11 @@ namespace UnityEditor.ShaderGraph.Registry
                 return result;
             }
 
-            ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            ShaderType GetShaderType(GraphDataHandler field, ShaderContainer container, Registry registry)
+            //ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderContainer container, Registry registry)
             {
-                data.GetField(kPrimitive, out Primitive primitive);
-                data.GetField(kPrecision, out Precision precision);
+                Primitive primitive = field.GetSubField(kPrimitive);
+                Precision precision = data.GetField(kPrecision, out Precision precision);
                 data.GetField(kLength, out int length);
                 data.GetField(kHeight, out int height);
                 length = Mathf.Clamp(length, 1, 4);
@@ -276,78 +283,78 @@ namespace UnityEditor.ShaderGraph.Registry
                         break;
                 }
 
-                var shaderType = ShaderFoundry.ShaderType.Scalar(container, name);
+                var shaderType = ShaderType.Scalar(container, name);
 
                 if (height != 1 && length != 1)
                 {
-                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, length, height);
+                    shaderType = ShaderType.Matrix(container, shaderType, length, height);
                 }
                 else
                 {
                     length = Mathf.Max(length, height);
-                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, length);
+                    shaderType = ShaderType.Vector(container, shaderType, length);
                 }
                 return shaderType;
             }
         }
 
-         internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
-        {
-            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
-            public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
-            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
-            public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
+        //internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
+        //{
+        //    public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
+        //    public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
+        //    public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
+        //    public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
 
 
-            private static string MatrixCompNameFromIndex(int i, int d)
-            {
-                return $"_mm{ i / d }{ i % d }";
-            }
-            private static string VectorCompNameFromIndex(int i)
-            {
-                switch(i)
-                {
-                    case 0: return "x";
-                    case 1: return "y";
-                    case 2: return "z";
-                    default: return "w";
-                }
-            }
+        //    private static string MatrixCompNameFromIndex(int i, int d)
+        //    {
+        //        return $"_mm{ i / d }{ i % d }";
+        //    }
+        //    private static string VectorCompNameFromIndex(int i)
+        //    {
+        //        switch(i)
+        //        {
+        //            case 0: return "x";
+        //            case 1: return "y";
+        //            case 2: return "z";
+        //            default: return "w";
+        //        }
+        //    }
 
 
-            ShaderFoundry.ShaderFunction Defs.ICastDefinitionBuilder.GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
-            {
-                // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data.
-                // We will get precision truncation warnings though...
-                var srcType = registry.GetTypeBuilder(src.GetRegistryKey()).GetShaderType(src, container, registry);
-                var dstType = registry.GetTypeBuilder(dst.GetRegistryKey()).GetShaderType(dst, container, registry);
+        //    ShaderFunction Defs.ICastDefinitionBuilder.GetShaderCast(IFieldReader src, IFieldReader dst, ShaderContainer container, Registry registry)
+        //    {
+        //        // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data.
+        //        // We will get precision truncation warnings though...
+        //        var srcType = registry.GetTypeBuilder(src.GetRegistryKey()).GetShaderType(src, container, registry);
+        //        var dstType = registry.GetTypeBuilder(dst.GetRegistryKey()).GetShaderType(dst, container, registry);
 
-                string castName = $"Cast{srcType.Name}_{dstType.Name}";
-                var builder = new ShaderFoundry.ShaderFunction.Builder(container, castName);
-                builder.AddInput(srcType, "In");
-                builder.AddOutput(dstType, "Out");
+        //        string castName = $"Cast{srcType.Name}_{dstType.Name}";
+        //        var builder = new ShaderFunction.Builder(container, castName);
+        //        builder.AddInput(srcType, "In");
+        //        builder.AddOutput(dstType, "Out");
 
-                var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
-                var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
+        //        var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
+        //        var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
 
-                string body = $"Out = {srcType.Name} {{ ";
+        //        string body = $"Out = {srcType.Name} {{ ";
 
-                for (int i = 0; i < dstSize; ++i)
-                {
-                    if (i < srcSize)
-                    {
-                        if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
-                        if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
-                        if (dstType.IsScalar) body += $"In";
-                    }
-                    else body += "0";
-                    if (i != dstSize - 1) body += ", ";
-                }
-                body += " };";
+        //        for (int i = 0; i < dstSize; ++i)
+        //        {
+        //            if (i < srcSize)
+        //            {
+        //                if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
+        //                if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
+        //                if (dstType.IsScalar) body += $"In";
+        //            }
+        //            else body += "0";
+        //            if (i != dstSize - 1) body += ", ";
+        //        }
+        //        body += " };";
 
-                builder.AddLine(body);
-                return builder.Build();
-            }
-        }
+        //        builder.AddLine(body);
+        //        return builder.Build();
+        //    }
+        //}
     }
 }

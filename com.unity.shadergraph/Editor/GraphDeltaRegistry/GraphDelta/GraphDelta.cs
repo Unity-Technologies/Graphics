@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphDelta : IGraphHandler
     {
+        public const string k_concrete = "Concrete";
+        public const string k_user = "User";
+
         internal readonly GraphStorage m_data;
         public IEnumerable<INodeHandler> ContextNodes
         {

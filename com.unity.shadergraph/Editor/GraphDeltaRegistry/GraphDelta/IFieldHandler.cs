@@ -1,8 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.ContextLayeredDataStorage;
-using UnityEngine;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -13,6 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IFieldHandler<T> GetSubField<T>(string localID);
         public IFieldHandler AddSubField(string localID);
         public IFieldHandler<T> AddSubField<T>(string localID, T value);
+        public IFieldHandler<T> AddSubField<T>(string layer, string localID, T value);
         public void RemoveSubField(string localID);
     }
 
