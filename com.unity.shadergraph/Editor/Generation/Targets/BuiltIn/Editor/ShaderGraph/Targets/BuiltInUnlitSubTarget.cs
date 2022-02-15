@@ -67,8 +67,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            base.GetActiveBlocks(ref context);
-
             context.AddBlock(BlockFields.SurfaceDescription.Alpha, (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip || target.allowMaterialOverride);
         }

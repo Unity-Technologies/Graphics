@@ -3,7 +3,6 @@
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_LWSampleSceneDepth(uv)
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_LWSampleSceneColor(uv)
-#define SHADERGRAPH_SAMPLE_SCENE_NORMAL(uv) shadergraph_LWSampleSceneNormal(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_LWBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_REFLECTION_PROBE(viewDir, normalOS, lod) shadergraph_LWReflectionProbe(viewDir, normalOS, lod)
 #define SHADERGRAPH_FOG(position, color, density) shadergraph_LWFog(position, color, density)
@@ -20,23 +19,10 @@
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #endif
 
-#if defined(REQUIRE_NORMAL_TEXTURE)
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/DeclareNormalTexture.hlsl"
-#endif
-
 float shadergraph_LWSampleSceneDepth(float2 uv)
 {
 #if defined(REQUIRE_DEPTH_TEXTURE)
     return SampleSceneDepth(uv);
-#else
-    return 0;
-#endif
-}
-
-float3 shadergraph_LWSampleSceneNormal(float2 uv)
-{
-#if defined(REQUIRE_NORMAL_TEXTURE)
-    return SampleSceneNormal(uv);
 #else
     return 0;
 #endif

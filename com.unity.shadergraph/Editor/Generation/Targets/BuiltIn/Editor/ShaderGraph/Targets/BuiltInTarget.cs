@@ -81,10 +81,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         List<string> m_SubTargetNames;
         int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
 
-        // Subtarget Data
-        [SerializeField]
-        List<JsonData<JsonObject>> m_SubTargetData = new List<JsonData<JsonObject>>();
-
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
@@ -126,7 +122,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
-            ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public string renderType
@@ -252,7 +247,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
             m_ActiveSubTarget.value.target = this;
-            ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.Setup(ref context);
 
             // Override EditorGUI
@@ -280,6 +274,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            // Core blocks
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
@@ -314,7 +314,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 registerUndo("Change Material");
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
-                ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
             });
 
@@ -424,68 +423,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 if (subTarget.GetType().Equals(subTargetType))
                 {
                     m_ActiveSubTarget = subTarget;
-                    ProcessSubTargetDatas(m_ActiveSubTarget);
                     return true;
                 }
             }
 
             return false;
-        }
-
-        void ProcessSubTargetDatas(SubTarget subTarget)
-        {
-            var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
-            foreach (var type in typeCollection)
-            {
-                if (type.IsGenericType)
-                    continue;
-
-                // Data requirement interfaces need generic type arguments
-                // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(BuiltInTarget).GetMethod(nameof(SetDataOnSubTarget));
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-                genericMethodInfo.Invoke(this, new object[] { subTarget });
-            }
-        }
-
-        void ClearUnusedData()
-        {
-            for (int i = 0; i < m_SubTargetData.Count; i++)
-            {
-                var data = m_SubTargetData[i];
-                var type = data.value.GetType();
-
-                // Data requirement interfaces need generic type arguments
-                // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(BuiltInTarget).GetMethod(nameof(ValidateDataForSubTarget));
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
-            }
-        }
-
-        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : JsonObject
-        {
-            if (!(subTarget is IRequiresData<T> requiresData))
-                return;
-
-            // Ensure data object exists in list
-            var data = m_SubTargetData.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
-            if (data == null)
-            {
-                data = Activator.CreateInstance(typeof(T)) as T;
-                m_SubTargetData.Add(data);
-            }
-
-            // Apply data object to SubTarget
-            requiresData.data = data;
-        }
-
-        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : JsonObject
-        {
-            if (!(subTarget is IRequiresData<T> requiresData))
-            {
-                m_SubTargetData.Remove(data);
-            }
         }
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
