@@ -23,15 +23,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             return bultInMetadata;
         }
 
-        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
-        {
-            // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-        }
-
         public override object saveContext
         {
             get
