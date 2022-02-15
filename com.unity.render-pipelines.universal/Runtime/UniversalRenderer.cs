@@ -127,7 +127,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
-        Material m_CoreBlitMaterial = null;
         Material m_CopyDepthMaterial = null;
         Material m_SamplingMaterial = null;
         Material m_StencilDeferredMaterial = null;
@@ -146,12 +145,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
-            // TODO: should merge shaders with HDRP into core, XR dependency for now.
-            // TODO: replace/merge URP blit into core blitter.
             Blitter.Initialize(data.shaders.coreBlitPS, data.shaders.coreBlitColorAndDepthPS);
 
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_CoreBlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
@@ -258,7 +254,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass.m_CopyResolvedDepth = RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents;
 
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_CoreBlitMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -270,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
 
             {
                 var postProcessParams = PostProcessParams.Create();
-                postProcessParams.blitMaterial = m_CoreBlitMaterial;
+                postProcessParams.blitMaterial = m_BlitMaterial;
                 postProcessParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 var asset = UniversalRenderPipeline.asset;
                 if (asset)
@@ -331,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
             m_MotionVectorDepth?.Release();
 
             CoreUtils.Destroy(m_BlitMaterial);
-            CoreUtils.Destroy(m_CoreBlitMaterial);
+            CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
