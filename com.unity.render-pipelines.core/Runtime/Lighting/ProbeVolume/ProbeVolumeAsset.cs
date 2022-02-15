@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering
 
             offset = 0;
             var shL2DataOld = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCountOld).Reinterpret<float>(1) : default;
-            offset += shL2DataByteCountOld;
+            offset += shL2DataByteCountOld + 3 * UnsafeUtility.SizeOf<float>();
             var shL2Data_0 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
             offset += shL2DataByteCount;
             var shL2Data_1 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
