@@ -101,11 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _FoamJacobianLambda;
 
-        public int _PaddinwW0;
         // Offsets used to guarantee the coherence between the different simulation resolutions
         public int _WaterRefSimRes;
         public float _WaterSpectrumOffset;
         public int _WaterSampleOffset;
+        public int _WaterBoundCount;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]

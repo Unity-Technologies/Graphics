@@ -1,3 +1,4 @@
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -91,15 +92,27 @@ namespace UnityEngine.Rendering.HighDefinition
         [BurstCompile]
         internal struct PhillipsSpectrumInitialization : IJobParallelFor
         {
-            // Input data
-            public int2 waterSampleOffset;
+            // Resolution at which the simulation will be evaluate
             public int simulationResolution;
+            // Offset applied to the noise pattern to guarantee the coherence independently from the resolution
+            public int2 waterSampleOffset;
+            // Maximal/Reference resolution
+            public float refSimResolution;
+            // Offset of this spectrum in the ref simulation resolution
+            public float spectrumOffset;
+            // Index of the current slice
             public int sliceIndex;
-            public float2 windDirection;
-            public float windSpeed;
-            public float patchSizeRatio;
-            public float directionDampner;
+            // Offset in the output buffer
             public int bufferOffset;
+
+            // Wind direction
+            public float2 windDirection;
+            // Wind speed scalar
+            public float windSpeed;
+            // Attenuation of the current based on the wind direction
+            public float directionDampner;
+            // Ratio between the current slice and the biggest slice
+            public float patchSizeRatio;
 
             [WriteOnly]
             [NativeDisableParallelForRestriction]
@@ -135,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float2 E = oneOverSqrt2 * new float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
                 // Second part of the Phillips spectrum term
-                float2 nDC = (new float2(x, y) / (float)simulationResolution - 0.5f) * 2.0f;
+                float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
                 float2 k = (Mathf.PI * 2.0f * nDC) * patchSizeRatio;
                 float P = Phillips(k, windDirection, windSpeed);
 
@@ -147,11 +160,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [BurstCompile]
         internal struct EvaluateDispersion : IJobParallelFor
         {
-            // Input data
+            // Resolution at which the simulation will be evaluate
             public int simulationResolution;
-            public float patchSizeRatio;
-            public float simulationTime;
+            // Maximal/Reference resolution
+            public float refSimResolution;
+            // Offset of this spectrum in the ref simulation resolution
+            public float spectrumOffset;
+            // Offset in the output buffer
             public int bufferOffset;
+
+            // Ratio between the current slice and the biggest slice
+            public float patchSizeRatio;
+            // Passed simulation time since the beginning of the simulation
+            public float simulationTime;
 
             [ReadOnly]
             [NativeDisableParallelForRestriction]
@@ -168,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int x = index % simulationResolution;
                 int y = index / simulationResolution;
 
-                float2 nDC = (new float2(x, y) / (float)simulationResolution - 0.5f) * 2.0f;
+                float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
                 float2 k = (Mathf.PI * 2.0f * nDC) * patchSizeRatio;
 
                 float kl = Mathf.Sqrt(k.x * k.x + k.y * k.y);
@@ -208,6 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int butterflyCount;
             public bool columnPass;
             public int bufferOffset;
+            public float compensationFactor;
 
             [ReadOnly]
             public NativeArray<float4> HtRealBufferInput;
@@ -372,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         float3 realValue = 0.0f;
                         ButterflyPassFinal((uint)(butterflyCount - 1), (uint)x, (int)currentTexIndices.x, (int)currentTexIndices.y, ppOffset, out realValue);
                         float sign_correction_and_normalization = ((x + y) & 0x01) != 0 ? -Mathf.PI * 2.0f : Mathf.PI * 2.0f;
-                        HtRealBufferOutput[(int)tapCoord + bufferOffset] = new float4(realValue * sign_correction_and_normalization, 0.0f);
+                        HtRealBufferOutput[(int)tapCoord + bufferOffset] = new float4(realValue * sign_correction_and_normalization * compensationFactor, 0.0f);
                     }
                     else
                     {
@@ -380,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         float3 imaginaryValue = 0.0f;
                         ButterflyPass((uint)(butterflyCount - 1), (uint)x, currentTexIndices.x, currentTexIndices.y, ppOffset, out realValue, out imaginaryValue);
                         HtRealBufferOutput[(int)tapCoord] = new float4(realValue.x, realValue.y, realValue.z, 0.0f);
-                        HtImaginaryBufferOutput[(int)tapCoord] = new float4(imaginaryValue.x, imaginaryValue.y, imaginaryValue.z, 0.0f);
+                        HtImaginaryBufferOutput[(int)tapCoord] = new float4(imaginaryValue * compensationFactor, 0.0f);
                     }
                 }
             }
@@ -394,8 +416,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch(resolution)
             {
-                case 512:
-                    return 9;
                 case 256:
                     return 8;
                 case 128:
@@ -404,6 +424,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 6;
                 default:
                     return 0;
+            }
+        }
+
+        internal float FFTCompensationFactor(WaterSimulationResolution simRes)
+        {
+            switch (simRes)
+            {
+                case WaterSimulationResolution.High256:
+                    return 1.0f;
+                case WaterSimulationResolution.Medium128:
+                    return 0.5f;
+                case WaterSimulationResolution.Low64:
+                    return 0.25f;
+                default:
+                    return 0.0f;
             }
         }
 
@@ -460,19 +495,27 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterSimulationCPU || !waterSurface.cpuSimulation)
                 return;
 
+            // Based on if the simulation has been flagged as half or full resolution
+            WaterSimulationResolution cpuSimResolution = waterSurface.GetSimulationResolutionCPU();
+
             // Number of pixels per band
-            uint numPixels = shaderVariablesWater._BandResolution * shaderVariablesWater._BandResolution;
+            uint numPixels = (uint)cpuSimResolution * (uint)cpuSimResolution;
+            int waterSampleOffset = EvaluateWaterNoiseSampleOffset(cpuSimResolution);
+            float waterSpectrumOffset = EvaluateFrequencyOffset(cpuSimResolution);
 
             // Re-evaluate the spectrum if needed.
             if (evaluateSpetrum)
             {
+                // To avoid re-evaluating
                 // If we get here, it means the spectrum is invalid and we need to go re-evaluate it
-                for (int bandIndex = 0; bandIndex < 2; ++bandIndex)
+                for (int bandIndex = 0; bandIndex < shaderVariablesWater._WaterBoundCount; ++bandIndex)
                 {
                     // Prepare the first band
                     WaterCPUSim.PhillipsSpectrumInitialization spectrumInit = new WaterCPUSim.PhillipsSpectrumInitialization();
-                    spectrumInit.waterSampleOffset = shaderVariablesWater._WaterSampleOffset;
-                    spectrumInit.simulationResolution = (int)shaderVariablesWater._BandResolution;
+                    spectrumInit.simulationResolution = (int)cpuSimResolution;
+                    spectrumInit.refSimResolution = shaderVariablesWater._WaterRefSimRes;
+                    spectrumInit.spectrumOffset = waterSpectrumOffset;
+                    spectrumInit.waterSampleOffset = waterSampleOffset;
                     spectrumInit.sliceIndex = bandIndex;
                     spectrumInit.windDirection = shaderVariablesWater._WindDirection;
                     spectrumInit.windSpeed = shaderVariablesWater._WindSpeed[bandIndex];
@@ -488,11 +531,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // For each band, we evaluate the dispersion then the two ifft passes
-            for (int bandIndex = 0; bandIndex < 2; ++bandIndex)
+            int cpuBoundCount = waterSurface.GetSimulationBandCountCPU();
+            for (int bandIndex = 0; bandIndex < cpuBoundCount; ++bandIndex)
             {
                 // Prepare the first band
                 WaterCPUSim.EvaluateDispersion dispersion = new WaterCPUSim.EvaluateDispersion();
-                dispersion.simulationResolution = (int)shaderVariablesWater._BandResolution;
+                dispersion.simulationResolution = (int)cpuSimResolution;
+                dispersion.refSimResolution = shaderVariablesWater._WaterRefSimRes;
+                dispersion.spectrumOffset = waterSpectrumOffset;
                 dispersion.patchSizeRatio = shaderVariablesWater._BandPatchSize[0] / shaderVariablesWater._BandPatchSize[bandIndex];
                 dispersion.bufferOffset = (int)(bandIndex * numPixels);
                 dispersion.simulationTime = shaderVariablesWater._SimulationTime;
@@ -510,10 +556,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Prepare the first band
                 WaterCPUSim.InverseFFT inverseFFT0 = new WaterCPUSim.InverseFFT();
-                inverseFFT0.simRes = (int)shaderVariablesWater._BandResolution;
+                inverseFFT0.simRes = (int)cpuSimResolution;
                 inverseFFT0.butterflyCount = ButterFlyCount(inverseFFT0.simRes);
                 inverseFFT0.bufferOffset = 0;
                 inverseFFT0.columnPass = false;
+                inverseFFT0.compensationFactor = FFTCompensationFactor(cpuSimResolution);
 
                 // Input buffers
                 inverseFFT0.HtRealBufferInput = htR0;
@@ -528,15 +575,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 inverseFFT0.HtImaginaryBufferOutput = htI1;
 
                 // Schedule the job with one Execute per index in the results array and only 1 item per processing batch
-                JobHandle ifft0Handle = inverseFFT0.Schedule((int)shaderVariablesWater._BandResolution, 1, dispersionHandle);
+                JobHandle ifft0Handle = inverseFFT0.Schedule((int)cpuSimResolution, 1, dispersionHandle);
                 ifft0Handle.Complete();
 
                 //  Second inverse FFT
                 WaterCPUSim.InverseFFT inverseFFT1 = new WaterCPUSim.InverseFFT();
-                inverseFFT1.simRes = (int)shaderVariablesWater._BandResolution;
+                inverseFFT1.simRes = (int)cpuSimResolution;
                 inverseFFT1.butterflyCount = ButterFlyCount(inverseFFT0.simRes);
                 inverseFFT1.bufferOffset = (int)(bandIndex * numPixels);
                 inverseFFT1.columnPass = true;
+                inverseFFT1.compensationFactor = FFTCompensationFactor(cpuSimResolution);
 
                 // Input buffers
                 inverseFFT1.HtRealBufferInput = htR1;
@@ -551,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 inverseFFT1.HtImaginaryBufferOutput = htR0;
 
                 // Schedule the job with one Execute per index in the results array and only 1 item per processing batch
-                JobHandle ifft1Handle = inverseFFT1.Schedule((int)shaderVariablesWater._BandResolution, 1, ifft0Handle);
+                JobHandle ifft1Handle = inverseFFT1.Schedule((int)cpuSimResolution, 1, ifft0Handle);
                 ifft1Handle.Complete();
             }
         }

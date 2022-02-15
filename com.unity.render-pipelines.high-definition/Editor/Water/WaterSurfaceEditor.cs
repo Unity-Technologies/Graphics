@@ -9,14 +9,17 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Geometry parameters
         SerializedProperty m_Infinite;
+        SerializedProperty m_HighBandCount;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
+
+        // CPU Simulation
         SerializedProperty m_CPUSimulation;
         SerializedProperty m_CPUFullResolution;
-
+        SerializedProperty m_CPUEvaluateAllBands;
+        
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
-        SerializedProperty m_HighBandCount;
         SerializedProperty m_Amplitude;
         SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
@@ -88,14 +91,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Geometry parameters
             m_Infinite = o.Find(x => x.infinite);
+            m_HighBandCount = o.Find(x => x.highBandCount);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
+
+            // CPU Simulation
             m_CPUSimulation = o.Find(x => x.cpuSimulation);
             m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
+            m_CPUEvaluateAllBands = o.Find(x => x.cpuEvaluateAllBands);
 
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
-            m_HighBandCount = o.Find(x => x.highBandCount);
             m_Amplitude = o.Find(x => x.amplitude);
             m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
@@ -162,8 +168,12 @@ namespace UnityEditor.Rendering.HighDefinition
             m_TransitionSize = o.Find(x => x.transitionSize);
             m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
-        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("CPU Simulation", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
-        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("CPU Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
+
+        // CPU Simulation
+        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
+        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
+        static public readonly GUIContent k_CPUEvaluateAllBands = EditorGUIUtility.TrTextContent("Evaluate all bands", "Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.");
+
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
@@ -208,9 +218,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
+            bool highBandCount = false;
             EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
+                EditorGUILayout.PropertyField(m_HighBandCount);
+                highBandCount = m_HighBandCount.boolValue;
+
                 EditorGUILayout.PropertyField(m_Infinite);
                 using (new IndentLevelScope())
                 {
@@ -221,8 +235,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUILayout.PropertyField(m_Geometry);
                     }
                 }
+            }
 
-                // Display the CPU simulation checkbox, but only make it available if the asset allows it
+            EditorGUILayout.LabelField("CPU Simulation", EditorStyles.boldLabel);
+            using (new IndentLevelScope())
+            {
+                // Display the CPU simulation check box, but only make it available if the asset allows it
                 bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
                 using (new EditorGUI.DisabledScope(!cpuSimSupported))
                 {
@@ -232,6 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (m_CPUSimulation.boolValue)
                         {
                             EditorGUILayout.PropertyField(m_CPUFullResolution, k_CPUFullResolution);
+                            EditorGUILayout.PropertyField(m_CPUEvaluateAllBands, k_CPUEvaluateAllBands);
                         }
                     }
                 }
@@ -245,15 +264,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            bool highBandCount = false;
             EditorGUILayout.LabelField("Simulation", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WaterMaxPatchSize);
                 m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 25.0f, 10000.0f);
 
-                EditorGUILayout.PropertyField(m_HighBandCount);
-                highBandCount = m_HighBandCount.boolValue;
                 using (new IndentLevelScope())
                 {
                     if (m_HighBandCount.boolValue)

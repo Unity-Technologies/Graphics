@@ -1,4 +1,4 @@
-using Unity.Collections;
+using System;
 using Unity.Mathematics;
 using System.Collections.Generic;
 
@@ -72,17 +72,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool infinite = true;
 
         /// <summary>
+        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// </summary>
+        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
+        public bool highBandCount = true;
+
+        /// <summary>
         /// Specifies the type of geometry used to render the water surface when non infinite.
         /// </summary>
         [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
         public WaterGeometryType geometryType = WaterGeometryType.Quad;
 
         /// <summary>
-        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.
+        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.
         /// </summary>
-        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
+        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.")]
         public Mesh geometry = null;
+        #endregion
 
+        #region Water CPU Simulation
         /// <summary>
         /// When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.
         /// </summary>
@@ -93,7 +101,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
         /// </summary>
         [Tooltip("Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.")]
-        public bool cpuFullResolution = true;
+        public bool cpuFullResolution = false;
+
+        /// <summary>
+        /// Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.
+        /// </summary>
+        [Tooltip("Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.")]
+        public bool cpuEvaluateAllBands = false;
         #endregion
 
         #region Water Simulation
@@ -102,12 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.")]
         public float waterMaxPatchSize = 500.0f;
-
-        /// <summary>
-        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
-        /// </summary>
-        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
-        public bool highBandCount = true;
 
         /// <summary>
         /// Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).
@@ -494,6 +502,16 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateSimulationData();
         }
 
+        public WaterSimulationResolution GetSimulationResolutionCPU()
+        {
+            return (WaterSimulationResolution)(cpuFullResolution ? simulation.simulationResolution : Math.Max(simulation.simulationResolution / 2, 64));
+        }
+
+        public int GetSimulationBandCountCPU()
+        {
+            return cpuEvaluateAllBands ? (highBandCount ? 4 : 2) : 2;
+        }
+
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
             // If a displacement buffer is available return it,
@@ -501,7 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 wsd.displacementData = simulation.cpuBuffers.displacementBufferCPU;
                 wsd.waterSurfacePosition = transform.position;
-                wsd.simulationRes = simulation.simulationResolution;
+                wsd.simulationRes = (int)GetSimulationResolutionCPU();
                 wsd.choppiness = choppiness;
                 wsd.amplitude = simulation.waveAmplitude;
                 wsd.patchSizes = simulation.patchSizes;

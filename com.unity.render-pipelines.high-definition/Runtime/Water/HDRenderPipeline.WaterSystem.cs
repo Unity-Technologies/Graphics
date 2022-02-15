@@ -307,6 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterRefSimRes = (int)WaterSimulationResolution.High256;
             cb._WaterSampleOffset = EvaluateWaterNoiseSampleOffset(m_WaterBandResolution);
             cb._WaterSpectrumOffset = EvaluateFrequencyOffset(m_WaterBandResolution);
+            cb._WaterBoundCount = currentWater.highBandCount ? 4 : 2;
         }
 
         void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid, ShaderVariablesWater shaderVariablesWater)
@@ -321,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int tileCount = (int)m_WaterBandResolution / 8;
 
             // Do we need to re-evaluate the Phillips spectrum?
-            if (true)
+            if (gpuResourcesInvalid)
             {
                 // Convert the noise to the Phillips spectrum
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, HDShaderIDs._H0BufferRW, currentWater.simulation.gpuBuffers.phillipsSpectrumBuffer);
