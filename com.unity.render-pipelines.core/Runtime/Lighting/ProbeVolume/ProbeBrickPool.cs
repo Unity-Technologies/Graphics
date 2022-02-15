@@ -301,21 +301,21 @@ namespace UnityEngine.Rendering
             int depth = locSize.z;
 
             DataLocation loc;
-            var primaryFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            var graphicFormat = compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
+            var L0Format = GraphicsFormat.R16G16B16A16_SFloat;
+            var L1L2Format = compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
 
             allocatedBytes = 0;
-            loc.TexL0_L1rx = CreateDataTexture(width, height, depth, primaryFormat, $"{name}_TexL0_L1rx", allocateRendertexture, ref allocatedBytes);
-            loc.TexL1_G_ry = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL1_G_ry", allocateRendertexture, ref allocatedBytes);
-            loc.TexL1_B_rz = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
+            loc.TexL0_L1rx = CreateDataTexture(width, height, depth, L0Format, $"{name}_TexL0_L1rx", allocateRendertexture, ref allocatedBytes);
+            loc.TexL1_G_ry = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_G_ry", allocateRendertexture, ref allocatedBytes);
+            loc.TexL1_B_rz = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
             loc.TexValidity = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_Validity", false, ref allocatedBytes) as Texture3D;
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
-                loc.TexL2_0 = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL2_0", allocateRendertexture, ref allocatedBytes);
-                loc.TexL2_1 = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL2_1", allocateRendertexture, ref allocatedBytes);
-                loc.TexL2_2 = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL2_2", allocateRendertexture, ref allocatedBytes);
-                loc.TexL2_3 = CreateDataTexture(width, height, depth, graphicFormat, $"{name}_TexL2_3", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_0 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_0", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_1 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_1", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_2 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_2", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_3 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_3", allocateRendertexture, ref allocatedBytes);
             }
             else
             {
@@ -682,10 +682,10 @@ namespace UnityEngine.Rendering
             stateBlendShader.SetVector(_ChunkDim_LerpFactor, chunkDim_LerpFactor);
             stateBlendShader.SetVector(_PoolDims, poolDims);
 
-            const int numthreads = 8, numthreadsZ = 4;
+            const int numthreads = 4;
             int threadX = DivRoundUp(GetPoolWidth(), numthreads);
             int threadY = DivRoundUp(GetPoolHeight(), numthreads);
-            int threadZ = DivRoundUp(GetPoolDepth(), numthreadsZ);
+            int threadZ = DivRoundUp(GetPoolDepth(), numthreads);
             stateBlendShader.Dispatch(stateBlendKernel, threadX, threadY, threadZ);
         }
 

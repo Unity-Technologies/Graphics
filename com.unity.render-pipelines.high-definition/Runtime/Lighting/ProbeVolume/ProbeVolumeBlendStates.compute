@@ -68,7 +68,7 @@ uint3 ChunkToLocation(uint3 chunk)
     return chunk * _ChunkDim;
 }
 
-[numthreads(8, 8, 4)]
+[numthreads(4, 4, 4)]
 void BlendStates(uint3 loc : SV_DispatchThreadID)
 {
     uint3 srcChunk = LocationToChunk(loc);

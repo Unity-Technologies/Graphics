@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering
                 var cellInfo = cells[i].cellInfo;
                 if (m_BakingStateLerpFactor >= 1.0f && cells[i].blendingFactor >= 1.0f) // Finished blending
                 {
-                    cells[i].streamingScore = int.MaxValue;
+                    cells[i].streamingScore = float.MaxValue;
                 }
                 else
                 {

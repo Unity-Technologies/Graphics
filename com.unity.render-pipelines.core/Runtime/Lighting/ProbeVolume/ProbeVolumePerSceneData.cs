@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering
 
         internal Dictionary<string, PerStateData> states = new();
 
+        bool assetLoaded = false;
         string currentState = null, transitionState = null;
 
         /// <summary>
@@ -142,14 +143,22 @@ namespace UnityEngine.Rendering
         bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
         bool ResolvePerStateCellData()
         {
+            int loadedCount = 0;
             string state0 = transitionState != null ? transitionState : currentState;
             string state1 = transitionState != null ? currentState : null;
-            if (state0 == null || !states.TryGetValue(state0, out var data0))
-                return false;
-            bool result = asset.ResolvePerStateCellData(0, data0.cellDataAsset, data0.cellOptionalDataAsset);
-            if (!(state1 == null || !states.TryGetValue(state1, out var data1)))
-                result = asset.ResolvePerStateCellData(1, data1.cellDataAsset, data1.cellOptionalDataAsset);
-            return result;
+            if (state0 != null && states.TryGetValue(state0, out var data0))
+            {
+                if (asset.ResolvePerStateCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
+                    loadedCount++;
+            }
+            if (state1 != null && states.TryGetValue(state1, out var data1))
+            {
+                if (asset.ResolvePerStateCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
+                    loadedCount++;
+            }
+            for (var i = 0; i < asset.cells.Length; ++i)
+                asset.cells[i].hasTwoStates = loadedCount == 2;
+            return loadedCount != 0;
         }
 
         internal void QueueAssetLoading()
@@ -159,6 +168,7 @@ namespace UnityEngine.Rendering
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.AddPendingAssetLoading(asset);
+            assetLoaded = true;
 #if UNITY_EDITOR
             if (refVol.sceneData != null)
                 refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
@@ -169,6 +179,7 @@ namespace UnityEngine.Rendering
         {
             if (asset != null)
                 ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+            assetLoaded = false;
         }
 
         void OnEnable()
@@ -210,7 +221,10 @@ namespace UnityEngine.Rendering
 
             currentState = state;
             transitionState = previousState;
-            ResolvePerStateCellData();
+            if (!assetLoaded)
+                QueueAssetLoading();
+            else if (!ResolvePerStateCellData())
+                QueueAssetRemoval();
         }
 
 #if UNITY_EDITOR
