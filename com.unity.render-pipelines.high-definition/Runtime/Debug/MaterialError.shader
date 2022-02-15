@@ -3,6 +3,7 @@ Shader "Hidden/HDRP/MaterialError"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
         Pass
         {
             HLSLPROGRAM
@@ -14,16 +15,19 @@ Shader "Hidden/HDRP/MaterialError"
             #pragma target 4.5
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma editor_sync_compilation
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-            struct appdata_t {
+            struct appdata_t
+            {
                 float4 vertex : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct v2f {
+            struct v2f
+            {
                 float4 vertex : SV_POSITION;
                 UNITY_VERTEX_OUTPUT_STEREO
             };

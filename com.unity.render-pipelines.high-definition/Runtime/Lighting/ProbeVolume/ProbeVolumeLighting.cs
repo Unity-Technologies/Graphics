@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.weight = weight;
                 parameters.leakReductionMode = hdCamera.camera.cameraType == CameraType.Reflection ? APVLeakReductionMode.None : probeVolumeOptions.leakReductionMode.value;
                 parameters.occlusionWeightContribution = 1.0f;
+                parameters.frameIndexForNoise = hdCamera.taaFrameIndex * (probeVolumeOptions.animateSamplingNoise.value ? 1 : 0);
 
                 parameters.minValidNormalWeight = probeVolumeOptions.minValidDotProductValue.value;
                 ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
