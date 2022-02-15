@@ -5,9 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using System;
 
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {

@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Geometry parameters
         SerializedProperty m_Infinite;
-        SerializedProperty m_EarthRadius;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
 
@@ -26,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Refraction parameters
         SerializedProperty m_MaxRefractionDistance;
-        SerializedProperty m_MaxAbsorptionDistance;
+        SerializedProperty m_AbsorptionDistance;
         SerializedProperty m_RefractionColor;
 
         // Scattering parameters
@@ -48,7 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Procedural caustics
         SerializedProperty m_CausticsTiling;
         SerializedProperty m_CausticsSpeed;
-        SerializedProperty m_CausticsPlaneOffset;
         SerializedProperty m_CausticsPlaneBlendDistance;
 
         // Water masking
@@ -74,13 +72,20 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DecalLayerMask;
         SerializedProperty m_LightLayerMask;
 
+        // Underwater
+        SerializedProperty m_UnderWater;
+        SerializedProperty m_VolumeBounds;
+        SerializedProperty m_VolumeDepth;
+        SerializedProperty m_VolumePriority;
+        SerializedProperty m_TransitionSize;
+        SerializedProperty m_AbsorbtionDistanceMultiplier;
+
         void OnEnable()
         {
             var o = new PropertyFetcher<WaterSurface>(serializedObject);
 
             // Geometry parameters
             m_Infinite = o.Find(x => x.infinite);
-            m_EarthRadius = o.Find(x => x.earthRadius);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
 
@@ -96,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WaterSmoothness = o.Find(x => x.waterSmoothness);
 
             // Refraction parameters
-            m_MaxAbsorptionDistance = o.Find(x => x.maxAbsorptionDistance);
+            m_AbsorptionDistance = o.Find(x => x.absorptionDistance);
             m_MaxRefractionDistance = o.Find(x => x.maxRefractionDistance);
             m_RefractionColor = o.Find(x => x.refractionColor);
 
@@ -120,7 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Procedural caustics
             m_CausticsTiling = o.Find(x => x.causticsTiling);
             m_CausticsSpeed = o.Find(x => x.causticsSpeed);
-            m_CausticsPlaneOffset = o.Find(x => x.causticsPlaneOffset);
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
@@ -145,6 +149,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Rendering
             m_DecalLayerMask = o.Find(x => x.decalLayerMask);
             m_LightLayerMask = o.Find(x => x.lightLayerMask);
+
+            // Underwater
+            m_UnderWater = o.Find(x => x.underWater);
+            m_VolumeBounds = o.Find(x => x.volumeBounds);
+            m_VolumeDepth = o.Find(x => x.volumeDepth);
+            m_VolumePriority = o.Find(x => x.volumePrority);
+            m_TransitionSize = o.Find(x => x.transitionSize);
+            m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
@@ -152,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
         static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
         static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
-        static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
+        static public readonly GUIContent k_AbsorptionDistance = EditorGUIUtility.TrTextContent("Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
 
         static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
         static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
@@ -203,11 +215,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
                             EditorGUILayout.PropertyField(m_Geometry);
                     }
-                    else
-                    {
-                        EditorGUILayout.PropertyField(m_EarthRadius);
-                        m_EarthRadius.floatValue = Mathf.Max(m_EarthRadius.floatValue, 500.0f);
-                    }
                 }
             }
 
@@ -240,7 +247,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 3.0f);
+                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 0.0f, 1.0f);
                 m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
             }
 
@@ -257,7 +264,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(m_RefractionColor);
                 m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
-                m_MaxAbsorptionDistance.floatValue = EditorGUILayout.Slider(k_MaxAbsorptionDistance, m_MaxAbsorptionDistance.floatValue, 0.0f, 100.0f);
+                m_AbsorptionDistance.floatValue = EditorGUILayout.Slider(k_AbsorptionDistance, m_AbsorptionDistance.floatValue, 0.0f, 100.0f);
             }
 
             EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
@@ -278,9 +285,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(m_CausticsIntensity);
                     m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
-
-                    EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
-                    m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
 
                     EditorGUILayout.PropertyField(m_CausticsPlaneBlendDistance);
                     m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(m_CausticsPlaneBlendDistance.floatValue, 0.0f);
@@ -389,6 +393,39 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
                         MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
                     EditorGUILayout.Space();
+                }
+            }
+
+            // Under Water Rendering
+            EditorGUILayout.LabelField("Underwater", EditorStyles.boldLabel);
+            using (new IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(m_UnderWater);
+                using (new IndentLevelScope())
+                {
+                    if (m_UnderWater.boolValue)
+                    {
+                        // Bounds data
+                        if (!m_Infinite.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(m_VolumeBounds);
+                            m_VolumeBounds.floatValue = Mathf.Max(m_VolumeBounds.floatValue, 0.0f);
+                        }
+                        else
+                            EditorGUILayout.PropertyField(m_VolumeDepth);
+
+                        // Priority
+                        EditorGUILayout.PropertyField(m_VolumePriority);
+                        m_VolumePriority.intValue = m_VolumePriority.intValue > 0 ? m_VolumePriority.intValue : 0;
+
+                        // Transition size
+                        EditorGUILayout.PropertyField(m_TransitionSize);
+                        m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
+
+                        // View distance
+                        EditorGUILayout.PropertyField(m_AbsorbtionDistanceMultiplier);
+                        m_AbsorbtionDistanceMultiplier.floatValue = Mathf.Max(m_AbsorbtionDistanceMultiplier.floatValue, 0.0f);
+                    }
                 }
             }
             serializedObject.ApplyModifiedProperties();

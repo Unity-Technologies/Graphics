@@ -97,6 +97,10 @@ half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
+// Screen coord override.
+float4 _ScreenCoordScaleBias;
+float4 _ScreenSizeOverride;
+
 #if USE_CLUSTERED_LIGHTING
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
