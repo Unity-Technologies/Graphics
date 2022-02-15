@@ -24,4 +24,4 @@ When you apply the import settings, the importer generates a [Light](Light-Compo
 | **Apply Light Attenuation**        | Specifies whether to take the distance to the light source into account for spot Lights to have correct light attenuation. |
 | **IES Compression**        | The compression Unity uses for the internal texture. |
 | **Use IES Maximum Intensity**        | Specifies whether to use the intensity stored in the IES File for the Prefab the importer generates. |
-| **Aim Axis Rotation**        | For IES with less symmetry, this parameter allows you to choose, which orientation to project the IES in the texture. |
+| **Aim Axis Rotation**        | You can use this parameter to determine which orientation Unity projects the IES in the texture. This is particularly useful for an IES that is less symmetrical. |
