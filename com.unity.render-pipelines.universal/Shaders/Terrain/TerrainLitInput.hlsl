@@ -89,6 +89,20 @@ void ClipHoles(float2 uv)
 }
 #endif
 
+#define SampleLayerAlbedo(i) (SAMPLE_TEXTURE2D(_Splat##i, sampler_Splat0, splat##i##uv) * half4(_DiffuseRemapScale##i.rgb, 1.0h))
+
+#ifdef _NORMALMAP
+    #define SampleLayerNormal(i) UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal##i, sampler_Normal0, splat##i##uv), _NormalScale##i)
+#else
+    #define SampleLayerNormal(i) half3(0.0, 0.0, 1.0)
+#endif
+
+#ifdef _MASKMAP
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * lerp(0.5h, SAMPLE_TEXTURE2D(_Mask##i, sampler_Mask0, splat##i##uv), _LayerHasMask##i));
+#else
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
+#endif
+
 half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 {
     half4 specGloss;

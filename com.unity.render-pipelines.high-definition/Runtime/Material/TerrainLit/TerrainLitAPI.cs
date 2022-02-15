@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
 
+            // check if it has 'kSpecularOcclusionMode', because a shadergraph of terrain doesn't have it.
+            // the terrain-shadergraph's specular occlusion option is handled on shadergraph's way
             if (material.HasInt(kSpecularOcclusionMode))
             {
                 int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);

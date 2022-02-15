@@ -93,13 +93,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var descs = context.blocks.Select(x => x.descriptor);
 
+            context.AddField(StructFields.SurfaceDescriptionInputs.uv1);
+            context.AddField(StructFields.SurfaceDescriptionInputs.uv2);
+
             // TerrainLit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(UniversalFields.NormalDropOffWS, normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(UniversalFields.Normal,          descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
-                descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
-                descs.Contains(BlockFields.SurfaceDescription.NormalWS));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // when target controlled, we can cull the unnecessary blocks
             context.AddBlock(BlockFields.SurfaceDescription.Specular,           target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.alphaClip) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
         }
 
@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // if using material control, add the material property to control workflow mode
             if (target.allowMaterialOverride)
             {
+                // force to set metallic workflow
                 collector.AddFloatProperty(Property.SpecularWorkflowMode, 1.0f);
                 collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
@@ -308,6 +309,64 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
+        static class UniversalTerrainStructs
+        {
+            public static StructDescriptor Varyings = new StructDescriptor()
+            {
+                name = "Varyings",
+                packFields = true,
+                populateWithCustomInterpolators = true,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Varyings.positionCS,
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    StructFields.Varyings.tangentWS,
+                    StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.texCoord1,
+                    StructFields.Varyings.texCoord2,
+                    StructFields.Varyings.texCoord3,
+                    StructFields.Varyings.color,
+                    StructFields.Varyings.screenPosition,
+                    UniversalStructFields.Varyings.uvSplat01,
+                    UniversalStructFields.Varyings.uvSplat23,
+                    UniversalStructFields.Varyings.staticLightmapUV,
+                    UniversalStructFields.Varyings.dynamicLightmapUV,
+                    UniversalStructFields.Varyings.sh,
+                    UniversalStructFields.Varyings.fogFactorAndVertexLight,
+                    UniversalStructFields.Varyings.shadowCoord,
+                    StructFields.Varyings.instanceID,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
+                    StructFields.Varyings.cullFace,
+                }
+            };
+        }
+
+        #region Template
+        static class TerrainLitTemplate
+        {
+            public static readonly string kPassTemplate = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPass.template";
+            public static readonly string[] kSharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories.Union(new []
+            {
+                "Packages/com.unity.render-pipelines.universal/Editor/Terrain/",
+            }).ToArray();
+        }
+        #endregion
+
+        #region StructCollections
+        static class TerrainStructCollections
+        {
+            public static readonly StructCollection Default = new StructCollection
+            {
+                { Structs.Attributes },
+                { UniversalTerrainStructs.Varyings },
+                { Structs.SurfaceDescriptionInputs },
+                { Structs.VertexDescriptionInputs },
+            };
+        }
+        #endregion
+
         #region SubShader
         static class SubShaders
         {
@@ -324,22 +383,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(LitPasses.Forward(target, blendModePreserveSpecular, CorePragmas.DOTSForward));
-                result.passes.Add(LitPasses.GBuffer(target, blendModePreserveSpecular));
+                result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular, CorePragmas.DOTSForward));
+                result.passes.Add(TerrainLitPasses.GBuffer(target, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), CorePragmas.DOTSInstanced));
 
-                result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(TerrainLitPasses.Meta(target), CorePragmas.DOTSInstanced));
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(TerrainLitPasses.SceneSelection(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(TerrainLitPasses.ScenePicking(target), CorePragmas.DOTSDefault));
 
                 return result;
             }
@@ -361,20 +420,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(LitPasses.Forward(target, blendModePreserveSpecular));
+                result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(CorePasses.ShadowCaster(target));
+                    result.passes.Add(TerrainLitPasses.ShadowCaster(target));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(CorePasses.DepthOnly(target));
-                result.passes.Add(CorePasses.DepthNormal(target));
-                result.passes.Add(LitPasses.Meta(target));
+                    result.passes.Add(TerrainLitPasses.DepthOnly(target));
+                result.passes.Add(TerrainLitPasses.DepthNormal(target));
+                result.passes.Add(TerrainLitPasses.Meta(target));
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(TerrainLitPasses.SceneSelection(target));
+                result.passes.Add(TerrainLitPasses.ScenePicking(target));
 
                 return result;
             }
@@ -382,7 +441,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Passes
-        static class LitPasses
+        static class TerrainLitPasses
         {
             static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
             {
@@ -403,15 +462,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = true,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validVertexBlocks = LitBlockMasks.Vertex,
                     validPixelBlocks = LitBlockMasks.FragmentLit,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
                     requiredFields = LitRequiredFields.Forward,
                     fieldDependencies = CoreFieldDependencies.Default,
 
@@ -420,13 +479,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
                     keywords = new KeywordCollection() { LitKeywords.Forward },
-                    includes = LitIncludes.Forward,
+                    includes = TerrainCoreIncludes.Forward,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                result.defines.Add(TerrainDefines.Terrain, 1);
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                result.keywords.Add(TerrainDefines.TerrainNormalmap);
+                result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
+                result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
@@ -445,15 +510,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = false,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validVertexBlocks = LitBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
                     requiredFields = CoreRequiredFields.DepthNormals,
                     fieldDependencies = CoreFieldDependencies.Default,
 
@@ -462,13 +527,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = TerrainCoreIncludes.DepthNormalsOnly,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                result.defines.Add(TerrainDefines.Terrain, 1);
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                result.keywords.Add(TerrainDefines.TerrainNormalmap);
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
@@ -486,15 +554,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     lightMode = "UniversalGBuffer",
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validVertexBlocks = LitBlockMasks.Vertex,
                     validPixelBlocks = LitBlockMasks.FragmentLit,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
                     requiredFields = LitRequiredFields.GBuffer,
                     fieldDependencies = CoreFieldDependencies.Default,
 
@@ -503,16 +571,102 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
-                    includes = LitIncludes.GBuffer,
+                    includes = TerrainCoreIncludes.GBuffer,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                result.defines.Add(TerrainDefines.Terrain, 1);
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                result.keywords.Add(TerrainDefines.TerrainNormalmap);
+                result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
+                result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+
+                return result;
+            }
+
+            public static PassDescriptor ShadowCaster(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "ShadowCaster",
+                    referenceName = "SHADERPASS_SHADOWCASTER",
+                    lightMode = "ShadowCaster",
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = CoreRequiredFields.ShadowCaster,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.ShadowCaster(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
+                    includes = TerrainCoreIncludes.ShadowCaster,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor DepthOnly(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthOnly",
+                    referenceName = "SHADERPASS_DEPTHONLY",
+                    lightMode = "DepthOnly",
+                    useInPreview = true,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection(),
+                    includes = TerrainCoreIncludes.DepthOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -527,15 +681,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     lightMode = "Meta",
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validVertexBlocks = LitBlockMasks.Vertex,
                     validPixelBlocks = LitBlockMasks.FragmentMeta,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
                     requiredFields = LitRequiredFields.Meta,
                     fieldDependencies = CoreFieldDependencies.Default,
 
@@ -544,13 +698,99 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
-                    includes = LitIncludes.Meta,
+                    includes = TerrainCoreIncludes.Meta,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                result.defines.Add(TerrainDefines.Terrain, 1);
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                result.keywords.Add(TerrainDefines.TerrainNormalmap);
+                result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
+                result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor SceneSelection(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "SceneSelectionPass",
+                    referenceName = "SHADERPASS_DEPTHONLY",
+                    lightMode = "SceneSelectionPass",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.SceneSelection(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                    keywords = new KeywordCollection(),
+                    includes = TerrainCoreIncludes.SceneSelection,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor ScenePicking(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "ScenePickingPass",
+                    referenceName = "SHADERPASS_DEPTHONLY",
+                    lightMode = "Picking",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.ScenePicking(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                    keywords = new KeywordCollection(),
+                    includes = TerrainCoreIncludes.ScenePicking,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
@@ -562,6 +802,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region PortMasks
         static class LitBlockMasks
         {
+            public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+            {
+                BlockFields.VertexDescription.Position,
+                BlockFields.VertexDescription.Normal,
+                BlockFields.VertexDescription.Tangent,
+            };
+
             public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
@@ -596,6 +843,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+                UniversalStructFields.Varyings.uvSplat01,
+                UniversalStructFields.Varyings.uvSplat23,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -610,6 +859,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+                UniversalStructFields.Varyings.uvSplat01,
+                UniversalStructFields.Varyings.uvSplat23,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -621,6 +872,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.positionOS,
                 StructFields.Attributes.normalOS,
+                UniversalStructFields.Varyings.uvSplat01,
+                UniversalStructFields.Varyings.uvSplat23,
                 StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            // needed for meta UVs
@@ -637,10 +890,64 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         static class TerrainDefines
         {
-            public static readonly KeywordDescriptor Terrain = new KeywordDescriptor()
+            public static readonly KeywordDescriptor TerrainEnabled = new KeywordDescriptor()
             {
                 displayName = "Universal Terrain",
                 referenceName = "UNIVERSAL_TERRAIN_ENABLED",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly KeywordDescriptor TerrainSplat01 = new KeywordDescriptor()
+            {
+                displayName = "Universal Terrain Splat01",
+                referenceName = "UNIVERSAL_TERRAIN_SPLAT01",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly KeywordDescriptor TerrainSplat23 = new KeywordDescriptor()
+            {
+                displayName = "Universal Terrain Splat23",
+                referenceName = "UNIVERSAL_TERRAIN_SPLAT23",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainNormalmap = new KeywordDescriptor()
+            {
+                displayName = "Terrain Normal Map",
+                referenceName = "_NORMALMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainMaskmap = new KeywordDescriptor()
+            {
+                displayName = "Terrain Mask Map",
+                referenceName = "_MASKMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly KeywordDescriptor MetallicSpecGlossMap = new KeywordDescriptor()
+            {
+                displayName = "Metallic SpecGloss Map",
+                referenceName = "_METALLICSPECGLOSSMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly KeywordDescriptor SmoothnessTextureAlbedoChannelA = new KeywordDescriptor()
+            {
+                displayName = "Smoothness Texture Albedo Channel A",
+                referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -678,6 +985,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
+                { CoreKeywordDescriptors.ReflectionProbeBlending },
+                { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
@@ -707,7 +1016,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Includes
-        static class LitIncludes
+        static class TerrainCoreIncludes
         {
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
@@ -715,7 +1024,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
-            const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
+            const string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
@@ -724,11 +1033,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kForwardPass, IncludeLocation.Postgraph },
             };
+
+            public static readonly IncludeCollection DepthOnly = CoreIncludes.DepthOnly;
+
+            public static readonly IncludeCollection DepthNormalsOnly = CoreIncludes.DepthNormalsOnly;
+
+            public static readonly IncludeCollection ShadowCaster = CoreIncludes.ShadowCaster;
 
             public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
@@ -737,6 +1053,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -750,22 +1067,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kMetaInput, IncludeLocation.Pregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kLightingMetaPass, IncludeLocation.Postgraph },
             };
 
-            public static readonly IncludeCollection _2D = new IncludeCollection
-            {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
+            public static readonly IncludeCollection SceneSelection = CoreIncludes.SceneSelection;
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { k2DPass, IncludeLocation.Postgraph },
-            };
+            public static readonly IncludeCollection ScenePicking = CoreIncludes.ScenePicking;
         }
         #endregion
     }

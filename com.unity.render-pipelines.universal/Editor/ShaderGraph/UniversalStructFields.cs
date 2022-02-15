@@ -7,6 +7,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public struct Varyings
         {
             public static string name = "Varyings";
+            public static FieldDescriptor uvSplat01 = new FieldDescriptor(Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD0", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor uvSplat23 = new FieldDescriptor(Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor staticLightmapUV = new FieldDescriptor(Varyings.name, "staticLightmapUV", "", ShaderValueType.Float2,
                 preprocessor: "defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor dynamicLightmapUV = new FieldDescriptor(Varyings.name, "dynamicLightmapUV", "", ShaderValueType.Float2,

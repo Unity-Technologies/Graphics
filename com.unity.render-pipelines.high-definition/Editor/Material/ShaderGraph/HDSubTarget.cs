@@ -194,7 +194,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 CollectPassKeywords(ref passDescriptor);
 
-
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 

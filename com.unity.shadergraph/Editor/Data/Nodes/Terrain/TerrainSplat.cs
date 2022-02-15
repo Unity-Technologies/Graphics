@@ -59,15 +59,24 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED)");
             else
                 sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)");
+            sb.AppendLine("    #ifndef SPLAT_CONTROL");
+            sb.AppendLine("    #define SPLAT_CONTROL");
+            sb.AppendLine("float2 splatUV = (IN.uv0.xy * (_Control_TexelSize.zw - 1.0) + 0.5) * _Control_TexelSize.xy;");
+            sb.AppendLine("half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);");
+            sb.AppendLine("    #endif // SPLAT_CONTROL");
+            sb.AppendLine("{0} {1} = splatControl.r;", controlRType, controlRValue);
+            sb.AppendLine("{0} {1} = splatControl.g;", controlGType, controlGValue);
+            sb.AppendLine("{0} {1} = splatControl.b;", controlBType, controlBValue);
+            sb.AppendLine("{0} {1} = splatControl.a;", controlAType, controlAValue);
             if (inputSplatIndex == 0)
                 sb.AppendLine("#elif defined(HD_TERRAIN_ENABLED)");
             else
                 sb.AppendLine("#elif defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)");
-            sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndexValue);
-            sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndexValue);
+            sb.AppendLine("    #ifndef SPLAT_CONTROL{0}", inputSplatIndexValue);
+            sb.AppendLine("    #define SPLAT_CONTROL{0}", inputSplatIndexValue);
             sb.AppendLine("float2 blendUV{0} = (IN.uv0.xy * (_Control{0}_TexelSize.zw - 1.0) + 0.5) * _Control{0}_TexelSize.xy;", inputSplatIndexValue);
             sb.AppendLine("float4 splatControl{0} = SAMPLE_TEXTURE2D(_Control{0}, sampler_Control0, blendUV{0});", inputSplatIndexValue);
-            sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndexValue);
+            sb.AppendLine("    #endif // SPLAT_CONTROL{0}", inputSplatIndexValue);
             sb.AppendLine("{0} {1} = splatControl{2}.r;", controlRType, controlRValue, inputSplatIndexValue);
             sb.AppendLine("{0} {1} = splatControl{2}.g;", controlGType, controlGValue, inputSplatIndexValue);
             sb.AppendLine("{0} {1} = splatControl{2}.b;", controlBType, controlBValue, inputSplatIndexValue);

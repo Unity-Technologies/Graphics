@@ -37,7 +37,7 @@ float GetSumHeight(float4 heights0, float4 heights1)
     return sumHeight;
 }
 
-float4 SampleAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float3 scale)
+float4 SampleLayerAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float3 scale)
 {
     float4 albedo = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
     albedo.xyz *= scale;
@@ -45,7 +45,7 @@ float4 SampleAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, fl
     return albedo;
 }
 
-float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
+float3 SampleLayerNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
 {
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
 #ifdef SURFACE_GRADIENT
@@ -63,12 +63,12 @@ float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, fl
 #endif
 }
 
-#define SampleAlbedo(i) SampleAlbedoGrad(_Splat##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _DiffuseRemapScale##i.xyz)
+#define SampleLayerAlbedo(i) SampleLayerAlbedoGrad(_Splat##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _DiffuseRemapScale##i.xyz)
 
 #ifdef _NORMALMAP
-    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _NormalScale##i)
+    #define SampleLayerNormal(i) SampleLayerNormalGrad(_Normal##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _NormalScale##i)
 #else
-    #define SampleNormal(i) float3(0, 0, 0)
+    #define SampleLayerNormal(i) float3(0, 0, 0)
 #endif
 
 #define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
@@ -79,12 +79,12 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
 }
 
 #ifdef _MASKMAP
-    #define MaskModeMasks(i) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv), _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-    #define SampleMasks(i)   lerp(DefaultMask(i), MaskModeMasks(i), _LayerHasMask##i)
-    #define NullMask(i)      float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
+    #define MaskModeMasks(i)    RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splat##i##uv, splat##i##dxuv, splat##i##dyuv), _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define SampleLayerMasks(i) lerp(DefaultMask(i), MaskModeMasks(i), _LayerHasMask##i)
+    #define NullLayerMask(i)    float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
-    #define SampleMasks(i)   DefaultMask(i)
-    #define NullMask(i)      float4(0, 1, 0, 0)
+    #define SampleLayerMasks(i) DefaultMask(i)
+    #define NullLayerMask(i)    float4(0, 1, 0, 0)
 #endif
 
 #define SampleResults(i, mask)                                                     \
@@ -93,15 +93,15 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
         float2 splat##i##uv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw; \
         float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                           \
         float2 splat##i##dyuv = dyuv * _Splat##i##_ST.y;                           \
-        albedo[i] = SampleAlbedo(i);                                               \
-        normal[i] = SampleNormal(i);                                               \
-        masks[i] = SampleMasks(i);                                                 \
+        albedo[i] = SampleLayerAlbedo(i);                                          \
+        normal[i] = SampleLayerNormal(i);                                          \
+        masks[i] = SampleLayerMasks(i);                                            \
     }                                                                              \
     else                                                                           \
     {                                                                              \
         albedo[i] = float4(0, 0, 0, 0);                                            \
         normal[i] = float3(0, 0, 0);                                               \
-        masks[i] = NullMask(i);                                                    \
+        masks[i] = NullLayerMask(i);                                                    \
     }
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME

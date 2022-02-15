@@ -116,14 +116,14 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, inout half3 mixedNormal)
+void NormalMapMix(float2 splat0uv, float2 splat1uv, float2 splat2uv, float2 splat3uv, inout half4 splatControl, inout half3 mixedNormal)
 {
     #if defined(_NORMALMAP)
         half3 nrm = half(0.0);
-        nrm += splatControl.r * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy), _NormalScale0);
-        nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
-        nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
-        nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
+        nrm += splatControl.r * SampleLayerNormal(0);
+        nrm += splatControl.g * SampleLayerNormal(1);
+        nrm += splatControl.b * SampleLayerNormal(2);
+        nrm += splatControl.a * SampleLayerNormal(3);
 
         // avoid risk of NaN when normalizing.
         #if HAS_HALF
@@ -136,14 +136,13 @@ void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, 
     #endif
 }
 
-void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, out half4 defaultSmoothness, inout half3 mixedNormal)
+void SplatmapMix(float4 uvMainAndLM, float2 splat0uv, float2 splat1uv, float2 splat2uv, float2 splat3uv, inout half4 splatControl, out half weight, out half4 mixedDiffuse, out half4 defaultSmoothness, inout half3 mixedNormal)
 {
     half4 diffAlbedo[4];
-
-    diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);
-    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, uvSplat01.zw);
-    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy);
-    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw);
+    diffAlbedo[0] = SampleLayerAlbedo(0);
+    diffAlbedo[1] = SampleLayerAlbedo(1);
+    diffAlbedo[2] = SampleLayerAlbedo(2);
+    diffAlbedo[3] = SampleLayerAlbedo(3);
 
     // This might be a bit of a gamble -- the assumption here is that if the diffuseMap has no
     // alpha channel, then diffAlbedo[n].a = 1.0 (and _DiffuseHasAlphaN = 0.0)
@@ -177,13 +176,13 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     splatControl /= (weight + HALF_MIN);
 #endif
 
-    mixedDiffuse = 0.0h;
-    mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
-    mixedDiffuse += diffAlbedo[1] * half4(_DiffuseRemapScale1.rgb * splatControl.ggg, 1.0h);
-    mixedDiffuse += diffAlbedo[2] * half4(_DiffuseRemapScale2.rgb * splatControl.bbb, 1.0h);
-    mixedDiffuse += diffAlbedo[3] * half4(_DiffuseRemapScale3.rgb * splatControl.aaa, 1.0h);
+    mixedDiffuse = half4(0.0, 0.0, 0.0, 1.0);
+    mixedDiffuse.rgb += diffAlbedo[0].rgb * splatControl.r;
+    mixedDiffuse.rgb += diffAlbedo[1].rgb * splatControl.g;
+    mixedDiffuse.rgb += diffAlbedo[2].rgb * splatControl.b;
+    mixedDiffuse.rgb += diffAlbedo[3].rgb * splatControl.a;
 
-    NormalMapMix(uvSplat01, uvSplat23, splatControl, mixedNormal);
+    NormalMapMix(splat0uv, splat1uv, splat2uv, splat3uv, splatControl, mixedNormal);
 }
 
 #endif
@@ -337,9 +336,17 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half occlusion = 1;
 #else
 
+    half2 splat0uv = IN.uvSplat01.xy;
+    half2 splat1uv = IN.uvSplat01.zw;
+    half2 splat2uv = IN.uvSplat23.xy;
+    half2 splat3uv = IN.uvSplat23.zw;
+
     half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
     half4 masks[4];
-    ComputeMasks(masks, hasMask, IN);
+    masks[0] = SampleLayerMasks(0);
+    masks[1] = SampleLayerMasks(1);
+    masks[2] = SampleLayerMasks(2);
+    masks[3] = SampleLayerMasks(3);
 
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
@@ -354,7 +361,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness;
-    SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
+    SplatmapMix(IN.uvMainAndLM, splat0uv, splat1uv, splat2uv, splat3uv, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
     half3 albedo = mixedDiffuse.rgb;
 
     half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);

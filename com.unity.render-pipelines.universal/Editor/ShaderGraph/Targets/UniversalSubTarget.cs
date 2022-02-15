@@ -33,7 +33,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ContextVFX = context;
             m_ContextDataVFX = data;
         }
-
 #endif
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)

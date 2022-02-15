@@ -107,7 +107,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
 
             #endif
 
-                SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
+                SplatmapMix(IN.uvMainAndLM, IN.uvSplat01.xy, IN.uvSplat01.zw, IN.uvSplat23.xy, IN.uvSplat23.zw, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
 
                 half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
 
@@ -186,7 +186,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
             #endif
 
             #endif
-                SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
+                SplatmapMix(IN.uvMainAndLM, IN.uvSplat01.xy, IN.uvSplat01.zw, IN.uvSplat23.xy, IN.uvSplat23.zw, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
 
                 half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
 

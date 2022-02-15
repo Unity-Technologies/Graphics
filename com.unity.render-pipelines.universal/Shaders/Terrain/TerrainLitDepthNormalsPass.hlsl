@@ -77,7 +77,7 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
     half3 normalTS = half3(0.0h, 0.0h, 1.0h);
-    NormalMapMix(IN.uvSplat01, IN.uvSplat23, splatControl, normalTS);
+    NormalMapMix(IN.uvSplat01.xy, IN.uvSplat01.zw, IN.uvSplat23.xy, IN.uvSplat23.zw, splatControl, normalTS);
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));

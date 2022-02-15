@@ -147,18 +147,12 @@ Pass
     int _PassValue;
     #endif
 
-    // -- Properties used by TerrainLitPass
+    // -- Properties used by TerrainPass
     #if HD_TERRAIN_ENABLED
     UNITY_TERRAIN_CB_VARS
         #ifdef UNITY_INSTANCING_ENABLED
     float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
     float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-        #endif
-        #ifdef DEBUG_DISPLAY
-    UNITY_TERRAIN_CB_DEBUG_VARS
-        #endif
-
-        #ifdef UNITY_INSTANCING_ENABLED
     TEXTURE2D(_TerrainHeightmapTexture);
     TEXTURE2D(_TerrainNormalmapTexture);
             #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -170,8 +164,11 @@ Pass
     TEXTURE2D(_TerrainHolesTexture);
     SAMPLER(sampler_TerrainHolesTexture);
         #endif
-    #endif // HD_TERRAIN_ENABLED
 
+        #ifdef DEBUG_DISPLAY
+    UNITY_TERRAIN_CB_DEBUG_VARS
+        #endif
+    #endif // HD_TERRAIN_ENABLED
 
     // Includes
     $splice(PreGraphIncludes)
