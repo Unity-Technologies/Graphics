@@ -9,12 +9,17 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Geometry parameters
         SerializedProperty m_Infinite;
+        SerializedProperty m_HighFrequencyBands;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
 
+        // CPU Simulation
+        SerializedProperty m_CPUSimulation;
+        SerializedProperty m_CPUFullResolution;
+        SerializedProperty m_CPUEvaluateAllBands;
+        
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
-        SerializedProperty m_HighBandCount;
         SerializedProperty m_Amplitude;
         SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
@@ -86,12 +91,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Geometry parameters
             m_Infinite = o.Find(x => x.infinite);
+            m_HighFrequencyBands = o.Find(x => x.highFrequencyBands);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
 
+            // CPU Simulation
+            m_CPUSimulation = o.Find(x => x.cpuSimulation);
+            m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
+            m_CPUEvaluateAllBands = o.Find(x => x.cpuEvaluateAllBands);
+
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
-            m_HighBandCount = o.Find(x => x.highBandCount);
             m_Amplitude = o.Find(x => x.amplitude);
             m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
@@ -159,12 +169,17 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
 
+        // CPU Simulation
+        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
+        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
+        static public readonly GUIContent k_CPUEvaluateAllBands = EditorGUIUtility.TrTextContent("Evaluate all bands", "Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.");
+
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
         static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
         static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
-        static public readonly GUIContent k_AbsorptionDistance = EditorGUIUtility.TrTextContent("Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
+        static public readonly GUIContent k_AbsorptionDistance = EditorGUIUtility.TrTextContent("Absorption Distance", "Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.");
 
         static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
         static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
@@ -203,9 +218,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            EditorGUILayout.LabelField("Geometry", EditorStyles.boldLabel);
+            bool highFrequencyBands = false;
+            EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
+                EditorGUILayout.PropertyField(m_HighFrequencyBands);
+                highFrequencyBands = m_HighFrequencyBands.boolValue;
+
                 EditorGUILayout.PropertyField(m_Infinite);
                 using (new IndentLevelScope())
                 {
@@ -218,18 +237,67 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            bool highBandCount = false;
+            EditorGUILayout.LabelField("CPU Simulation", EditorStyles.boldLabel);
+            using (new IndentLevelScope())
+            {
+                // Display the CPU simulation check box, but only make it available if the asset allows it
+                bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
+                using (new EditorGUI.DisabledScope(!cpuSimSupported))
+                {
+                    EditorGUILayout.PropertyField(m_CPUSimulation, k_CPUSimulation);
+                    using (new IndentLevelScope())
+                    {
+                        if (m_CPUSimulation.boolValue)
+                        {
+                            if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
+                            {
+                                using (new EditorGUI.DisabledScope(true))
+                                {
+                                    // When in 64, we always show that we are running the CPU simulation at full res. 
+                                    bool fakeToggle = true;
+                                    EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
+                                }
+                            }
+                            else
+                            {
+                                EditorGUILayout.PropertyField(m_CPUFullResolution, k_CPUFullResolution);
+                            }
+
+                            if (!highFrequencyBands)
+                            {
+                                using (new EditorGUI.DisabledScope(true))
+                                {
+                                    // When we only have 2 bands, we should evaluate all bands 
+                                    bool fakeToggle = true;
+                                    EditorGUILayout.Toggle(k_CPUEvaluateAllBands, fakeToggle);
+                                }
+                            }
+                            else
+                            {
+                                EditorGUILayout.PropertyField(m_CPUEvaluateAllBands, k_CPUEvaluateAllBands);
+                            }
+                        }
+                    }
+                }
+
+                // Redirect to the asset if disabled
+                if (!cpuSimSupported)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'CPU Simulation' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                    EditorGUILayout.Space();
+                }
+            }
+
             EditorGUILayout.LabelField("Simulation", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WaterMaxPatchSize);
                 m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 25.0f, 10000.0f);
 
-                EditorGUILayout.PropertyField(m_HighBandCount);
-                highBandCount = m_HighBandCount.boolValue;
                 using (new IndentLevelScope())
                 {
-                    if (m_HighBandCount.boolValue)
+                    if (m_HighFrequencyBands.boolValue)
                     {
                         EditorGUI.BeginChangeCheck();
                         m_Amplitude.vector4Value = EditorGUILayout.Vector4Field(k_Amplitude, m_Amplitude.vector4Value);
@@ -296,7 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new IndentLevelScope())
                         {
                             EditorGUILayout.PropertyField(m_CausticsResolution);
-                            m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBand, m_CausticsBand.intValue, 0, highBandCount ? 3 : 1);
+                            m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBand, m_CausticsBand.intValue, 0, highFrequencyBands ? 3 : 1);
 
                             EditorGUILayout.PropertyField(m_CausticsVirtualPlaneDistance);
                             m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(m_CausticsVirtualPlaneDistance.floatValue, 0.001f);

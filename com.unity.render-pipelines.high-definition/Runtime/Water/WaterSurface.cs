@@ -1,5 +1,6 @@
+using System;
+using Unity.Mathematics;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -71,16 +72,42 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool infinite = true;
 
         /// <summary>
+        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// </summary>
+        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
+        public bool highFrequencyBands = true;
+
+        /// <summary>
         /// Specifies the type of geometry used to render the water surface when non infinite.
         /// </summary>
         [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
         public WaterGeometryType geometryType = WaterGeometryType.Quad;
 
         /// <summary>
-        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.
+        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.
         /// </summary>
-        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
+        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.")]
         public Mesh geometry = null;
+        #endregion
+
+        #region Water CPU Simulation
+        /// <summary>
+        /// When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.
+        /// </summary>
+        [Tooltip("When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.")]
+        public bool cpuSimulation = false;
+
+        /// <summary>
+        /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
+        /// </summary>
+        [Tooltip("Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.")]
+        public bool cpuFullResolution = false;
+
+        /// <summary>
+        /// Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.
+        /// </summary>
+        [Tooltip("Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.")]
+        public bool cpuEvaluateAllBands = false;
         #endregion
 
         #region Water Simulation
@@ -89,12 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.")]
         public float waterMaxPatchSize = 500.0f;
-
-        /// <summary>
-        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
-        /// </summary>
-        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
-        public bool highBandCount = true;
 
         /// <summary>
         /// Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).
@@ -144,9 +165,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float maxRefractionDistance = 1.0f;
 
         /// <summary>
-        /// Controls the maximum distance in meters that the camera can perceive under the water surface.
+        /// Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.
         /// </summary>
-        [Tooltip("Controls the maximum distance in meters that the camera can perceive under the water surface.")]
+        [Tooltip("Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.")]
         public float absorptionDistance = 5.0f;
         #endregion
 
@@ -416,37 +437,127 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount)
+        internal void CheckResources(int bandResolution, int bandCount, bool cpuSimActive, out bool gpuBuffersValid, out bool cpuBuffersValid)
         {
-            bool needUpdate = false;
+            // By default we shouldn't need an update
+            gpuBuffersValid = true;
+            cpuBuffersValid = true;
+
+            // If the previously existing resources are not valid, just release them
+            if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
+            {
+                simulation.ReleaseSimulationResources();
+                simulation = null;
+            }
+
+            // Will we need to enable the CPU simulation?
+            bool cpuSimulationActive = cpuSimActive && cpuSimulation;
+
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
             {
+                // In this case the CPU buffers are invalid and we need to rebuild them
+                gpuBuffersValid = false;
+                cpuBuffersValid = false;
+
+                // Create the simulation resources 
                 simulation = new WaterSimulationResources();
-                simulation.AllocateSmmulationResources(bandResolution, bandCount);
-                needUpdate = true;
-            }
-            else if (!simulation.ValidResources(bandResolution, bandCount))
-            {
-                simulation.ReleaseSimulationResources();
-                simulation.AllocateSmmulationResources(bandResolution, bandCount);
-                needUpdate = true;
+
+                // Initialize for the allocation
+                simulation.InitializeSimulationResources(bandResolution, bandCount);
+
+                // GPU buffers should always be allocated
+                simulation.AllocateSimulationBuffersGPU();
+
+                // CPU buffers should be allocated only if required
+                if (cpuSimulationActive)
+                    simulation.AllocateSimulationBuffersCPU();
             }
 
+            // One more case that we need check here is that if the CPU became required
+            if (!cpuSimulationActive && simulation.cpuBuffers != null)
+            {
+                simulation.ReleaseSimulationBuffersCPU();
+                cpuBuffersValid = false;
+            }
+
+            // One more case that we need check here is that if the CPU became required
+            if (cpuSimulationActive && simulation.cpuBuffers == null)
+            {
+                simulation.AllocateSimulationBuffersCPU();
+                cpuBuffersValid = false;
+            }
+
+            // If the spectrum defining data changed, we need to invalidate the buffers
             if (simulation.windSpeed != windSpeed
                 || simulation.windOrientation != windOrientation
                 || simulation.windAffectCurrent != windAffectCurrent
                 || simulation.patchSizes.x != waterMaxPatchSize)
             {
-                needUpdate = true;
+                gpuBuffersValid = false;
+                cpuBuffersValid = false;
             }
 
-            // The simulation data are not valid, we need to re-evaluate the spectrum
-            if (needUpdate)
-                UpdateSimulationData();
+            gpuBuffersValid = false;
+            cpuBuffersValid = false;
 
-            return !needUpdate;
+            // Re-evaluate the simulation data
+            UpdateSimulationData();
         }
+
+        public WaterSimulationResolution GetSimulationResolutionCPU()
+        {
+            int resolution;
+            if (simulation.simulationResolution != 64)
+                resolution = cpuFullResolution ? simulation.simulationResolution : simulation.simulationResolution / 2;
+            else
+                resolution = simulation.simulationResolution;
+            return (WaterSimulationResolution)resolution;
+        }
+
+        public int GetSimulationBandCountCPU()
+        {
+            if (highFrequencyBands)
+                return cpuEvaluateAllBands ? 4 : 2;
+            else
+                return 2;
+        }
+
+        public bool FillWaterSearchData(ref WaterSimSearchData wsd)
+        {
+            // If a displacement buffer is available return it,
+            if (simulation != null && simulation.cpuBuffers != null)
+            {
+                wsd.displacementData = simulation.cpuBuffers.displacementBufferCPU;
+                wsd.waterSurfaceElevation = transform.position.y;
+                wsd.simulationRes = (int)GetSimulationResolutionCPU();
+                wsd.choppiness = choppiness;
+                wsd.amplitude = simulation.waveAmplitude;
+                wsd.patchSizes = simulation.patchSizes;
+                wsd.bandCount = GetSimulationBandCountCPU();
+                return true;
+            }
+            return false;
+        }
+
+        public bool FindWaterSurfaceHeight(WaterSearchParameters wsp, out WaterSearchResult wsr)
+        {
+            // Invalidate the search result in case the simulation data is not available
+            wsr.error = float.MaxValue;
+            wsr.height = 0;
+            wsr.candidateLocation = float3.zero;
+            wsr.stepCount = wsp.maxIteration;
+
+            // Try to do the 
+            WaterSimSearchData wsd = new WaterSimSearchData();
+            if (FillWaterSearchData(ref wsd))
+            {
+                HDRenderPipeline.FindWaterSurfaceHeight(wsd, wsp, out wsr);
+                return true;
+            }
+            return false;
+        }
+
         private void Start()
         {
             // Add this water surface to the internal surface management
@@ -478,6 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
             simulation.windAffectCurrent = windAffectCurrent;
             simulation.patchSizes = HDRenderPipeline.ComputeBandPatchSizes(waterMaxPatchSize);
             simulation.patchWindSpeed = HDRenderPipeline.ComputeWindSpeeds(simulation.windSpeed, simulation.patchSizes);
+            HDRenderPipeline.ComputeMaximumWaveHeight(amplitude, simulation.patchWindSpeed.x, highFrequencyBands, out simulation.waveAmplitude, out simulation.maxWaveHeight);
         }
 
         void OnDestroy()

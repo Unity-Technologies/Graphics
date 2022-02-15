@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added default DOTS compatible loading shader (MaterialLoading.shader)
 - Add #pragma editor_sync_compilation directive to MaterialError.shader
 - Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
+- Added an optional CPU simulation for the water system.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
