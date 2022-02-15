@@ -10,9 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
         ShaderGraphGraphTool m_GraphTool;
-
         PreviewManager m_PreviewManager;
-
         GraphViewStateObserver m_GraphViewStateObserver;
 
         [InitializeOnLoadMethod]
@@ -54,16 +52,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
 
-            // TODO (Brett) Command registration or state handler creation belongs here.
-            // Example: graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
-
             return shaderGraphView;
         }
 
         protected override BlankPage CreateBlankPage()
         {
-            var onboardingProviders = new List<OnboardingProvider>();
-            onboardingProviders.Add(new ShaderGraphOnboardingProvider());
+            var onboardingProviders = new List<OnboardingProvider>
+            {
+                new ShaderGraphOnboardingProvider()
+            };
             return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
         }
 
@@ -73,9 +70,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_PreviewManager.Initialize(graphModel);
 
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, graphModel, GraphTool.Dispatcher);
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(
+                    GraphTool,
+                    GraphView,
+                    m_PreviewManager,
+                    graphModel,
+                    GraphTool.Dispatcher
+                );
             }
-
             return asset is ShaderGraphAssetModel;
         }
 
@@ -87,7 +89,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void Update()
         {
             base.Update();
-
             m_PreviewManager.Update();
         }
 
