@@ -7,19 +7,28 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.hlsl"
 
-Texture3D<float4> _Input_L0_L1Rx;
-Texture3D<float4> _Input_L1G_L1Ry;
-Texture3D<float4> _Input_L1B_L1Rz;
+Texture3D<float4> _State0_L0_L1Rx;
+Texture3D<float4> _State0_L1G_L1Ry;
+Texture3D<float4> _State0_L1B_L1Rz;
+
+Texture3D<float4> _State1_L0_L1Rx;
+Texture3D<float4> _State1_L1G_L1Ry;
+Texture3D<float4> _State1_L1B_L1Rz;
 
 RWTexture3D<float4> _Out_L0_L1Rx;
 RWTexture3D<float4> _Out_L1G_L1Ry;
 RWTexture3D<float4> _Out_L1B_L1Rz;
 
 #ifdef PROBE_VOLUMES_L2
-Texture3D<float4> _Input_L2_0;
-Texture3D<float4> _Input_L2_1;
-Texture3D<float4> _Input_L2_2;
-Texture3D<float4> _Input_L2_3;
+Texture3D<float4> _State0_L2_0;
+Texture3D<float4> _State0_L2_1;
+Texture3D<float4> _State0_L2_2;
+Texture3D<float4> _State0_L2_3;
+
+Texture3D<float4> _State1_L2_0;
+Texture3D<float4> _State1_L2_1;
+Texture3D<float4> _State1_L2_2;
+Texture3D<float4> _State1_L2_3;
 
 RWTexture3D<float4> _Out_L2_0;
 RWTexture3D<float4> _Out_L2_1;
@@ -71,11 +80,12 @@ void BlendStates(uint3 loc : SV_DispatchThreadID)
     uint3 dstLoc = IndexToChunk(dstChunkIdx, _DstPoolDim) + (loc - ChunkToLocation(srcChunk));
 
     // Load
-    APVResources resources;
-    LOAD_APV_RES(resources, _Input);
+    APVResources resources0, resources1;
+    LOAD_APV_RES(resources0, _State0);
+    LOAD_APV_RES(resources1, _State1);
 
-    APVSample state0 = LoadAndDecodeAPV(resources, loc);
-    APVSample state1 = LoadAndDecodeAPV(resources, loc + uint3(0,0,_ChunkDim.z));
+    APVSample state0 = LoadAndDecodeAPV(resources0, loc);
+    APVSample state1 = LoadAndDecodeAPV(resources1, loc);
 
     // Blend
     state0 = BlendAPVSamples(state0, state1, _LerpFactor);
