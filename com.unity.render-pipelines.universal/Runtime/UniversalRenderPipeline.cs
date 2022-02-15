@@ -518,11 +518,10 @@ namespace UnityEngine.Rendering.Universal
 
                         // Checking if the base and the overlay camera is of the same renderer type.
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
-                        var currCameraName = currCamera.name;
                         if (currCameraRendererType != baseCameraRendererType)
                         {
                             Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
-                                             $"The camera: {currCameraName} are using the renderer {currCameraRendererType.Name}, " +
+                                             $"The camera: {currCamera.name} are using the renderer {currCameraRendererType.Name}, " +
                                              $"but the base camera: {baseCamera.name} are using {baseCameraRendererType.Name}. Will skip rendering");
                             continue;
                         }
@@ -531,13 +530,13 @@ namespace UnityEngine.Rendering.Universal
                         // Checking if they are the same renderer type but just not supporting Overlay
                         if ((overlayRenderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
                         {
-                            Debug.LogWarning($"The camera: {currCameraName} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.");
+                            Debug.LogWarning($"The camera: {currCamera.name} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.");
                             continue;
                         }
 
                         if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            Debug.LogWarning($"Stack can only contain Overlay cameras. The camera: {currCameraName} " +
+                            Debug.LogWarning($"Stack can only contain Overlay cameras. The camera: {currCamera.name} " +
                                              $"has a type {data.renderType} that is not supported. Will skip rendering.");
                             continue;
                         }
