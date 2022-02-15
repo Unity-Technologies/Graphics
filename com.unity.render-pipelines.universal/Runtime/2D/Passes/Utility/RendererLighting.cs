@@ -168,8 +168,7 @@ namespace UnityEngine.Rendering.Universal
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTargetId);
-            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
-                cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
+            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
