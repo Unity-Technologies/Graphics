@@ -14,7 +14,7 @@ If you want to keep using the old behavior in URP outside of object space, repla
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 3 | None | **View Direction** for the Mesh Vertex/Fragment. |
+| Out | Output      |    Vector 3 | None | View Vector for the Mesh Vertex/Fragment. |
 
 ## Controls
 

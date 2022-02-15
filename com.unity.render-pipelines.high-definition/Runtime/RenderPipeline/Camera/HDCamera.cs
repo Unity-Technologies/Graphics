@@ -327,9 +327,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector4 m_PostProcessScreenSize = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
         private Vector4 m_PostProcessRTScales = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         private Vector4 m_PostProcessRTScalesHistory = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        private Vector2Int m_PostProcessRTHistoryMaxReference = new Vector2Int(1, 1);
 
         internal Vector2 postProcessRTScales { get { return new Vector2(m_PostProcessRTScales.x, m_PostProcessRTScales.y); } }
-        internal Vector2 postProcessRTScalesHistory { get { return new Vector2(m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y); } }
+        internal Vector4 postProcessRTScalesHistory { get { return m_PostProcessRTScalesHistory; } }
+        internal Vector2Int postProcessRTHistoryMaxReference { get { return m_PostProcessRTHistoryMaxReference; } }
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usage
@@ -987,7 +989,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.SetReferenceSize(actualWidth, actualHeight);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
-            m_PostProcessRTScalesHistory = m_HistoryRTSystem.CalculateRatioAgainstMaxSize(actualWidth, actualHeight);
             SetPostProcessScreenSize(actualWidth, actualHeight);
 
             foreach (var aovHistory in m_AOVHistoryRTSystem)
@@ -1000,9 +1001,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetPostProcessScreenSize(int width, int height)
         {
             m_PostProcessScreenSize = new Vector4((float)width, (float)height, 1.0f / (float)width, 1.0f / (float)height);
-
             Vector2 scales = RTHandles.CalculateRatioAgainstMaxSize(width, height);
             m_PostProcessRTScales = new Vector4(scales.x, scales.y, m_PostProcessRTScales.x, m_PostProcessRTScales.y);
+        }
+
+        internal void SetPostProcessHistorySizeAndReference(int width, int height, int referenceWidth, int referenceHeight)
+        {
+            m_PostProcessRTHistoryMaxReference = new Vector2Int(Math.Max(referenceWidth, m_PostProcessRTHistoryMaxReference.x), Math.Max(referenceHeight, m_PostProcessRTHistoryMaxReference.y));
+            m_PostProcessRTScalesHistory = new Vector4((float)width / (float)m_PostProcessRTHistoryMaxReference.x, (float)height / (float)m_PostProcessRTHistoryMaxReference.y, m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -1124,6 +1130,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
+            var additionalCameraDataIsNull = m_AdditionalCameraData == null;
+
             cb._ViewMatrix = mainViewConstants.viewMatrix;
             cb._CameraViewMatrix = mainViewConstants.viewMatrix;
             cb._InvViewMatrix = mainViewConstants.invViewMatrix;
@@ -1180,10 +1188,18 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale = exposureMultiplierForProbes;
 
-            cb._DeExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
+            cb._DeExposureMultiplier = additionalCameraDataIsNull ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
+            // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
+            // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
+
+            cb._ScreenSizeOverride = additionalCameraDataIsNull ? cb._ScreenSize : m_AdditionalCameraData.screenSizeOverride;
+
+            // Default to identity scale-bias.
+            cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Vector4(1, 1, 0, 0) : m_AdditionalCameraData.screenCoordScaleBias;
         }
 
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)
@@ -1825,8 +1841,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            var useGenericMatrix = xr.enabled;
+            // In XR mode, or if explicitely required, use a more generic matrix to account for asymmetry in the projection
+            var useGenericMatrix = xr.enabled || frameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection);
 
             // Asymmetry is also possible from a user-provided projection, so we must check for it too.
             // Note however, that in case of physical camera, the lens shift term is the only source of

@@ -4,18 +4,23 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // TODO: xmldoc
+    /// <summary>
+    ///  Implement this interface on every post process volumes
+    /// </summary>
     public interface IPostProcessComponent
     {
+        /// <summary>
+        /// Tells if the post process needs to be rendered or not.
+        /// </summary>
+        /// <returns>True if the component is active, otherwise false.</returns>
         bool IsActive();
+
         bool IsTileCompatible();
     }
 }
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    // TODO: TAA
-    // TODO: Motion blur
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
@@ -104,6 +109,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Material m_BlitMaterial;
 
+        /// <summary>
+        /// Creates a new <c>PostProcessPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="data">The <c>PostProcessData</c> resources to use.</param>
+        /// <param name="blitMaterial">The <c>Material</c> to use when blitting.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="PostProcessData"/>
+        /// <seealso cref="Material"/>
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
@@ -155,14 +169,31 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.useNativeRenderPass = false;
         }
 
+        /// <summary>
+        /// Cleans up the Material Library used in the passes.
+        /// </summary>
         public void Cleanup() => m_Materials.Cleanup();
 
+        /// <summary>
+        /// Disposes used resources.
+        /// </summary>
         public void Dispose()
         {
             m_ScalingSetupTarget?.Release();
             m_UpscaledTarget?.Release();
         }
 
+        /// <summary>
+        /// Configures the pass.
+        /// </summary>
+        /// <param name="baseDescriptor"></param>
+        /// <param name="source"></param>
+        /// <param name="resolveToScreen"></param>
+        /// <param name="depth"></param>
+        /// <param name="internalLut"></param>
+        /// <param name="hasFinalPass"></param>
+        /// <param name="enableSRGBConversion"></param>
+        /// <param name="hasExternalPostPasses"></param>
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool hasExternalPostPasses)
         {
             m_Descriptor = baseDescriptor;
@@ -180,6 +211,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_hasExternalPostPasses = hasExternalPostPasses;
         }
 
+        /// <summary>
+        /// Configures the pass.
+        /// </summary>
+        /// <param name="baseDescriptor"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="depth"></param>
+        /// <param name="internalLut"></param>
+        /// <param name="hasFinalPass"></param>
+        /// <param name="enableSRGBConversion"></param>
+        /// <param name="hasExternalPostPasses"></param>
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool hasExternalPostPasses)
         {
             m_Descriptor = baseDescriptor;
@@ -196,6 +238,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_hasExternalPostPasses = hasExternalPostPasses;
         }
 
+        /// <summary>
+        /// Configures the Final pass.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="useSwapBuffer"></param>
+        /// <param name="hasExternalPostPasses"></param>
         public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false, bool hasExternalPostPasses = true)
         {
             m_Source = source;
@@ -578,7 +626,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                         colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
@@ -1554,7 +1602,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier cameraTarget = cameraData.xr.renderTarget;
 
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top

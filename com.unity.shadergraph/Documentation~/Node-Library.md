@@ -2,7 +2,7 @@
 
 ## Description
 
-The **Node Library** contains documentation for all the individual [Nodes](Node.md) in [Shader Graph](Shader-Graph.md); including descriptions, ports, parameters, shader code and example images. The [Nodes](Node.md) are organised in the same categories as found in the [Create Node Menu](Create-Node-Menu.md) for convenience.
+The **Node Library** contains documentation for all the individual [Nodes](Node.md) in Shader Graph; including descriptions, ports, parameters, shader code and example images. The [Nodes](Node.md) are organised in the same categories as found in the [Create Node Menu](Create-Node-Menu.md) for convenience.
 
 ## Graph Nodes
 
@@ -18,5 +18,5 @@ The **Node Library** contains documentation for all the individual [Nodes](Node.
 
 | | |
 |:-|:-|
-| [Built In](Built-In-Nodes.md) |  |
+| [Built In](Built-In-Blocks.md) |  |
 | Universal | High Definition |

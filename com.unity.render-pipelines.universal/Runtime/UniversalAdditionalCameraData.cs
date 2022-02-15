@@ -15,8 +15,19 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum CameraOverrideOption
     {
+        /// <summary>
+        /// Use this to disable regardless of what is set on the pipeline asset.
+        /// </summary>
         Off,
+
+        /// <summary>
+        /// Use this to enable regardless of what is set on the pipeline asset.
+        /// </summary>
         On,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         [InspectorName("Use settings from Render Pipeline Asset")]
         UsePipelineSettings,
     }
@@ -32,14 +43,27 @@ namespace UnityEngine.Rendering.Universal
     /// Holds information about the post-processing anti-aliasing mode.
     /// When set to <c>None</c> no post-processing anti-aliasing pass will be performed.
     /// When set to <c>Fast</c> a fast approximated anti-aliasing pass will render when resolving the camera to screen.
-    /// When set to <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass will render when resolving the camera to screen. You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>
+    /// When set to <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass will render when resolving the camera to screen.
+    /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
     /// </summary>
     public enum AntialiasingMode
     {
+        /// <summary>
+        /// Use this to have no post-processing anti-aliasing pass performed.
+        /// </summary>
         [InspectorName("No Anti-aliasing")]
         None,
+
+        /// <summary>
+        /// Use this to have a fast approximated anti-aliasing pass rendered when resolving the camera to screen
+        /// </summary>
         [InspectorName("Fast Approximate Anti-aliasing (FXAA)")]
         FastApproximateAntialiasing,
+
+        /// <summary>
+        /// Use this to have a <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass rendered when resolving the camera to screen
+        /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
+        /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
         //TemporalAntialiasing
@@ -52,17 +76,37 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum CameraRenderType
     {
+        /// <summary>
+        /// Use this to select the base camera render type.
+        /// Base rendering type allows the camera to render to either the screen or to a texture.
+        /// </summary>
         Base,
+
+        /// <summary>
+        /// Use this to select the overlay camera render type.
+        /// Overlay rendering type allows the camera to render on top of a previous camera output, thus compositing camera results.
+        /// </summary>
         Overlay,
     }
 
     /// <summary>
-    /// Controls SMAA anti-aliasing quality.
+    /// Controls <c>SubpixelMorphologicalAntiAliasing</c> SMAA anti-aliasing quality.
     /// </summary>
     public enum AntialiasingQuality
     {
+        /// <summary>
+        /// Use this to select the low <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         Low,
+
+        /// <summary>
+        /// Use this to select the medium <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         Medium,
+
+        /// <summary>
+        /// Use this to select the high <c>SubpixelMorphologicalAntiAliasing</c> SMAA quality
+        /// </summary>
         High
     }
 
@@ -269,6 +313,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [SerializeField] bool m_UseScreenCoordOverride;
+        [SerializeField] Vector4 m_ScreenSizeOverride;
+        [SerializeField] Vector4 m_ScreenCoordScaleBias;
+
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -388,35 +436,6 @@ namespace UnityEngine.Rendering.Universal
             if (removedCamsCount != 0)
             {
                 Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
-            }
-        }
-
-        void OnEnable()
-        {
-            RegisterDebug();
-        }
-
-        void OnDisable()
-        {
-            UnRegisterDebug();
-        }
-
-        bool m_IsDebugRegistered = false;
-        void RegisterDebug()
-        {
-            if (!m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
-                m_IsDebugRegistered = true;
-            }
-        }
-
-        void UnRegisterDebug()
-        {
-            if (m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
-                m_IsDebugRegistered = false;
             }
         }
 
@@ -605,6 +624,33 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AllowXRRendering;
             set => m_AllowXRRendering = value;
+        }
+
+        /// <summary>
+        /// Returns true if the camera uses Screen Coordinates Override.
+        /// </summary>
+        public bool useScreenCoordOverride
+        {
+            get => m_UseScreenCoordOverride;
+            set => m_UseScreenCoordOverride = value;
+        }
+
+        /// <summary>
+        /// Screen size used when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenSizeOverride
+        {
+            get => m_ScreenSizeOverride;
+            set => m_ScreenSizeOverride = value;
+        }
+
+        /// <summary>
+        /// Transform applied to screen coordinates when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenCoordScaleBias
+        {
+            get => m_ScreenCoordScaleBias;
+            set => m_ScreenCoordScaleBias = value;
         }
 
         /// <inheritdoc/>

@@ -56,9 +56,10 @@ FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS packedInput)
 }
 
 void Frag(PackedVaryingsToPS packedInput,
-    out uint2 outGBuffer0 : SV_Target0,
-    out uint4 outGBuffer1 : SV_Target1,
-    out uint2 outGBuffer2 : SV_Target2)
+    out float4 outGBuffer0 : SV_Target0,
+    out float4 outGBuffer1 : SV_Target1,
+    out float4 outGBuffer2 : SV_Target2,
+    out float4 outGBuffer3 : SV_Target3)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
@@ -90,6 +91,16 @@ void Frag(PackedVaryingsToPS packedInput,
     // Compute the BSDF Data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
+    // If the camera is in the underwater region of this surface and the the camera is under the surface
+    if (_CameraInUnderwaterRegion && _WaterCameraHeightBuffer[0] < 0.0)
+    {
+        // For now we simply flip the normals and kill the caustics
+        bsdfData.normalWS = -bsdfData.normalWS;
+        bsdfData.lowFrequencyNormalWS = -bsdfData.lowFrequencyNormalWS;
+        // TODO: This invalidation should happen earlier based on the CPU under water test
+        bsdfData.caustics = 0;
+    }
+
     // Encode the water into the gbuffer
-    EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2);
+    EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3);
 }

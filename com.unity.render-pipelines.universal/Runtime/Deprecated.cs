@@ -69,11 +69,23 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Previously contained the settings to control how many cascades to use. It is now deprecated.
+    /// </summary>
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
     public enum ShadowCascadesOption
     {
+        /// <summary>
+        /// No cascades used for the shadows
+        /// </summary>
         NoCascades,
+        /// <summary>
+        /// Two cascades used for the shadows
+        /// </summary>
         TwoCascades,
+        /// <summary>
+        /// Four cascades used for the shadows
+        /// </summary>
         FourCascades,
     }
 
@@ -92,6 +104,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_ShaderVariantLogLevel;
 
 #pragma warning disable 618 // Obsolete warning
+        /// <summary>
+        /// Previously returned the shader variant log level for this Render Pipeline Asset but is now deprecated.
+        /// </summary>
         [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", false)]
         public ShaderVariantLogLevel shaderVariantLogLevel
         {
@@ -104,6 +119,9 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
 
+        /// <summary>
+        /// Previously used insted of shadowCascadeCount. Please use that instead.
+        /// </summary>
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         public ShadowCascadesOption shadowCascadeOption
         {
@@ -154,6 +172,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Deprecated in 13.x.x
         [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
         public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }
 }
