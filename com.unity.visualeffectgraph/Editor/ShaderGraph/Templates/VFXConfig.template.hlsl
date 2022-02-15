@@ -218,8 +218,8 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         GetElementSize(element.attributes),
         element.attributes.position
 
-#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
-        +_WorldSpaceCameraPos
+#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
+        + _WorldSpaceCameraPos
 #endif
     );
 
@@ -239,7 +239,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         GetElementSize(element.attributes),
         element.attributes.position
 
-#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
+#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
         - _WorldSpaceCameraPos
 #endif
 

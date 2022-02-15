@@ -97,6 +97,9 @@ float4x4 ScenePickingGetCameraViewProjMatrix()
 #undef UNITY_SPACE_TRANSFORMS_INCLUDED
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
+#if defined(HAVE_VFX_MODIFICATION)
+#define VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX 1
+#endif
 
 #endif
 #endif
