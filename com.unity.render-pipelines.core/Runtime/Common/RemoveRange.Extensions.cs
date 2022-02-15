@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TList">The type of the input list</typeparam>
         /// <typeparam name="TValue">The value type stored on the list</typeparam>
         /// <returns>True if succeed, false otherwise</returns>
-        public static bool TryRemoveElementsInRange<TList, TValue>(this TList list, int index, int count, [NotNullWhen(false)] out Exception error)
+        public static bool TryRemoveElementsInRange<TList, TValue>(this TList list, int index, int count, out Exception error)
             where TList : IList<TValue>
         {
             try
