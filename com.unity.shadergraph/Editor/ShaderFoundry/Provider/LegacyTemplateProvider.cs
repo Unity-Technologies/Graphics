@@ -99,10 +99,7 @@ namespace UnityEditor.ShaderFoundry
                 ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             vertexCustomizationPoint = BuildVertexCustomizationPoint(vertexContext);
-            builder.AddCustomizationPoint(vertexCustomizationPoint);
-
             surfaceCustomizationPoint = BuildFragmentCustomizationPoint(fragmentContext);
-            builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
         CustomizationPoint BuildVertexCustomizationPoint(PostFieldsContext context)
