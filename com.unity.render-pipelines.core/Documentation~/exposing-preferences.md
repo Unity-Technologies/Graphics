@@ -1,6 +1,6 @@
 # Exposing preferences on the Core Render Pipeline Settings
 
-For exposing preferences on **Edit > Preferences > Core Render Pipeline**, you must specify classes that implement the interface `ICoreRenderPipelinePreferencesProvider`. Unity will automatically know what are the changes and will insert your preferences on the given page.
+For exposing preferences on **Edit > Preferences > Core Render Pipeline**, you must specify classes that implement the interface `ICoreRenderPipelinePreferencesProvider`. Unity will automatically insert your preferences on the given page.
 
 For example:
 
