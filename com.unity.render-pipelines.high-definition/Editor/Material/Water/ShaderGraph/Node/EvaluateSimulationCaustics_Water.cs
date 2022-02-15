@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateSimulationCaustics_Water (Preview)")]
-    class EvaluateSimulationCaustics_Water : AbstractMaterialNode, IGeneratesBodyCode
+    class EvaluateSimulationCaustics_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition
     {
         public EvaluateSimulationCaustics_Water()
         {
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector2MaterialSlot(kDistordedWaterNDCInputSlotId, kDistordedWaterNDCInputSlotName, kDistordedWaterNDCInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
 
             // Output
-            AddSlot(new Vector3MaterialSlot(kCausticsOutputSlotId, kCausticsOutputSlotName, kCausticsOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(kCausticsOutputSlotId, kCausticsOutputSlotName, kCausticsOutputSlotName, SlotType.Output, 0.0f));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -59,17 +59,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Evaluate the refraction parameters
                 string refractedPosWS = GetSlotValue(kRefractedPositionWSInputSlotId, generationMode);
                 string waterNDC = GetSlotValue(kDistordedWaterNDCInputSlotId, generationMode);
+                string positionAWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.Position)}";
 
-                sb.AppendLine("$precision3 {2} = EvaluateSimulationCaustics({0}, {1});",
+                sb.AppendLine("$precision {3} = EvaluateSimulationCaustics({0}, {1}, {2});",
                     refractedPosWS,
+                    positionAWS,
                     waterNDC,
                     GetVariableNameForSlot(kCausticsOutputSlotId)
                 );
             }
             else
             {
-                sb.AppendLine("$precision3 {0} = 0.0;", GetVariableNameForSlot(kCausticsOutputSlotId));
+                sb.AppendLine("$precision {0} = 0.0;", GetVariableNameForSlot(kCausticsOutputSlotId));
             }
+        }
+
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.Vertex)
+        {
+            return NeededCoordinateSpace.World;
         }
     }
 }

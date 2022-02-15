@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -106,25 +107,22 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Initialize the band data
             float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
-            maxWaveHeight = 0.01f;
 
             // Evaluate the wave height for each band (lower frequencies)
             b0 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.x * MaximumWaveHeightFunction(waterWindSpeed);
-            maxWaveHeight = Mathf.Max(b0, maxWaveHeight);
             b1 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.y * MaximumWaveHeightFunction(waterWindSpeed);
-            maxWaveHeight = Mathf.Max(b1, maxWaveHeight);
 
             // Evaluate the wave height for each band (higher frequencies)
             if (highBandCount)
             {
-                maxWaveHeight = Mathf.Max(b2, maxWaveHeight);
                 b2 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.z * MaximumWaveHeightFunction(waterWindSpeed);
-                maxWaveHeight = Mathf.Max(b3, maxWaveHeight);
                 b3 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.w * MaximumWaveHeightFunction(waterWindSpeed);
             }
 
             // Output the wave heights
             waveHeights = new Vector4(b0, b1, b2, b3);
+            // TODO have a better estimation for this
+            maxWaveHeight = k_MaxWaterSurfaceElevation;
         }
 
         // Function that evaluates the maximum wind speed given a patch size
@@ -198,6 +196,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 49;
             }
             return 1;
+        }
+
+        uint4 ShiftUInt(uint4 val, int numBits)
+        {
+            return new uint4(val.x >> 16, val.y >> 16, val.z >> 16, val.w >> 16);
+        }
+
+        uint4 WaterHashFunctionUInt4(uint3 coord)
+        {
+            uint4 x = coord.xyzz;
+            x = (ShiftUInt(x, 16) ^ x.yzxy) * 0x45d9f3bu;
+            x = (ShiftUInt(x, 16) ^ x.yzxz) * 0x45d9f3bu;
+            x = (ShiftUInt(x, 16) ^ x.yzxx) * 0x45d9f3bu;
+            return x;
+        }
+
+        float4 WaterHashFunctionFloat4(uint3 p)
+        {
+            uint4 hashed = WaterHashFunctionUInt4(p);
+            return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
         }
     }
 }

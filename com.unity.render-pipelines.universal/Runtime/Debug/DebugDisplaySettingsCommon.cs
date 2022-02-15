@@ -88,7 +88,8 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
-                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdrawMode(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMaxOverdrawCount(renderingSettingsData),
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
                     {

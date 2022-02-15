@@ -1126,7 +1126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
-            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 3)
             {
                 cb._SsrAccumulationAmount = 1.0f;
             }

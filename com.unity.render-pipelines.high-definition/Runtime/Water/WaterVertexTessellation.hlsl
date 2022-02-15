@@ -12,8 +12,9 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
     VaryingsMeshToDS output;
     ZERO_INITIALIZE(VaryingsMeshToDS, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
 
-    // Set up the instance data
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     // Scale the position by the size of the grid to get the position that will be used for sampling the simulation
@@ -84,7 +85,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     VaryingsMeshToPS output;
     ZERO_INITIALIZE(VaryingsMeshToPS, output);
 
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     // Restore the pre-vertex value to apply the actual deformation
