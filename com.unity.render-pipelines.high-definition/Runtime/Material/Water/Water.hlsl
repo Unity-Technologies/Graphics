@@ -294,6 +294,13 @@ void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
     normalData.perceptualRoughness = inGBuffer1.w;
 }
 
+void DecodeWaterSurfaceIndexFromGBuffer(uint2 positionSS, out uint surfaceIndex)
+{
+    float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
+    uint lower16Bits = ((uint)(inGBuffer3.z * 255.0f)) << 8 | ((uint)(inGBuffer3.w * 255.0f));
+    surfaceIndex = lower16Bits & 0xf;
+}
+
 //-----------------------------------------------------------------------------
 // PreLightData
 //
@@ -309,6 +316,8 @@ struct PreLightData
     float tipScatteringHeight;
     float bodyScatteringHeight;
     float maxRefractionDistance;
+    float3 scatteringColor;
+    bool aboveWater;
 
     // Refraction
     float3 transparencyColor;
@@ -346,6 +355,12 @@ void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, fl
     bsdfData.roughness = max(minRoughness, bsdfData.roughness);
 }
 
+bool CameraIsAboveWater(uint surfaceIndex)
+{
+    WaterSurfaceProfile profile = _WaterSurfaceProfiles[surfaceIndex];
+    return !profile.cameraUnderWater || _WaterCameraHeightBuffer[0] > 0.0;
+}
+
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
@@ -358,7 +373,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
     preLightData.maxRefractionDistance = profile.maxRefractionDistance;
     preLightData.transparencyColor = profile.transparencyColor;
+    preLightData.scatteringColor = profile.scatteringColor * UNDER_WATER_SCATTERING_ATTENUATION;
     preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
+    preLightData.aboveWater = !profile.cameraUnderWater || _WaterCameraHeightBuffer[0] > 0.0;
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -718,6 +735,15 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     reflectionHierarchyWeight = ssrLighting.a;
     lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
 
+    // If we are underwater, we don't want to use the fallback hierarchy
+    if (!preLightData.aboveWater)
+    {
+        float3 fallbackReflectionSignal = (1.0 - ssrLighting.a) * preLightData.scatteringColor * GetInverseCurrentExposureMultiplier();
+        lighting.specularReflected += fallbackReflectionSignal * preLightData.specularFGD;
+        reflectionHierarchyWeight = 1.0f;
+    }
+
+    // Note that we should have an attenuation here from the reflective surface to the intersection point, but for now we don't.
     return lighting;
 }
 
@@ -736,20 +762,21 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float refractedWaterDistance;
     float3 absorptionTint;
     ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionSS * _ScreenSize.zw, V,
+        posInput.positionSS * _ScreenSize.zw, V, preLightData.aboveWater,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
 
-    // Evaluate the color at the bed of the water surface (wrong absorption tint, but we accept it)
-    float3 waterBedColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy) * absorptionTint;
-
-    // Add the caustics's contribution
-    waterBedColor *= bsdfData.caustics;
+    // Read the camera color for the refracted ray
+    float3 cameraColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy);
+    if (preLightData.aboveWater)
+        lighting.specularTransmitted = absorptionTint * cameraColor * absorptionTint * bsdfData.caustics * (1 - saturate(bsdfData.foam));
+    else
+        lighting.specularTransmitted = absorptionTint == 0.0 ? preLightData.scatteringColor * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor;
 
     // Apply the additional attenuation, the fresnel and the exposure
-    lighting.specularTransmitted = waterBedColor * absorptionTint * (1.f - preLightData.specularFGD) * (1 - saturate(bsdfData.foam)) * GetInverseCurrentExposureMultiplier();
+    lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();
 
-    // Flag the hierarchy as complete
+    // Flag the hierarchy as complete, we should never be reading from the reflection probes or the sky for the refraction
     hierarchyWeight = 0;
 
     // we are done
@@ -789,12 +816,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // This intends to simulate indirect specular "multi bounce"
     // TODO change this when supporting non horizontal water
     float3 attenuation = 1.0f;
-    if (R.y < 0.0)
+    if (preLightData.aboveWater)
     {
-        float weight = saturate(-R.y * 2.0f);
-        attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+        if (R.y < 0.0)
+        {
+            float weight = saturate(-R.y * 2.0f);
+            attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+        }
+        R.y = abs(R.y) + 0.1;
+        R = normalize(R);
     }
-    R.y = abs(R.y);
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
