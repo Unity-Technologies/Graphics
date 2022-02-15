@@ -20,10 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static GUIContent materialType = new GUIContent("Material Type", "Allow to select the type of lighting model used with this Eye Material.");
             public static GUIContent irisNormalType = new GUIContent("Iris Normal", "Override the iris normal");
-            public static GUIContent irisHeight = new GUIContent("Iris Height", "Height/distance of iris surface");
-            public static GUIContent irisRadius = new GUIContent("Iris Radius", "Iris Radius in object space");
-            public static GUIContent causticIntensity = new GUIContent("Caustic Intensity", "Caustic intensity multiplier");
-            public static GUIContent causticBlend = new GUIContent("Caustic Blend", "Caustic blending factor with normal diffuse");
         }
 
         EyeData eyeData;
@@ -40,13 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Eye specific properties:
             AddProperty(subsurfaceEnableText, () => eyeData.subsurfaceScattering, (newValue) => eyeData.subsurfaceScattering = newValue);
             AddProperty(Styles.irisNormalType, () => eyeData.irisNormal, (newValue) => eyeData.irisNormal = newValue);
-            if (eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic)
-            {
-                AddProperty(Styles.irisHeight, () => eyeData.irisHeight, (newValue) => eyeData.irisHeight = newValue);
-                AddProperty(Styles.irisRadius, () => eyeData.irisRadius, (newValue) => eyeData.irisRadius = newValue);
-                AddProperty(Styles.causticIntensity, () => eyeData.causticIntensity, (newValue) => eyeData.causticIntensity = newValue);
-                AddProperty(Styles.causticBlend, () => eyeData.causticBlend, (newValue) => eyeData.causticBlend = newValue);
-            }
         }
     }
 }
