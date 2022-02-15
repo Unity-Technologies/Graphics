@@ -88,10 +88,10 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
 
             /// <summary>
-            /// Material Error shader.
+            /// Fallback loading shader.
             /// </summary>
-            [Reload("Shaders/Utils/MaterialError.shader")]
-            public Shader materialErrorPS;
+            [Reload("Shaders/Utils/FallbackLoading.shader")]
+            public Shader fallbackLoadingPS;
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
