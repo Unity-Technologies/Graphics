@@ -26,25 +26,32 @@ namespace UnityEngine.Rendering.Tests
             .Select(VolumeComponentType.FromTypeUnsafe)
             .ToArray();
 
+        public static readonly VolumeComponentType[][] volumeComponentTypesArray = Enumerable.Range(0, 19)
+            .RandomInitState(32456754)
+            .Select(count =>
+                Enumerable.Range(0, count)
+                    .Select(_ => volumeComponentTypes.RandomElement())
+                    .ToArray()
+            ).ToArray();
+
+        public static readonly VolumeComponentType[][][] volumeComponentTypesArrayArray = Enumerable.Range(0, 19)
+            .RandomInitState(78963216)
+            .Select(count =>
+                Enumerable.Range(0, count)
+                    // For each item pick an entry randomly
+                    .Select(_ => volumeComponentTypesArray.RandomElement())
+                    .ToArray()
+            ).ToArray();
+
         public static readonly Type[] types = TestTypes.AllVolumeComponents.Take(20)
             .Union(new Type[] { null })
             .Union(csharpTypes)
             .ToArray();
 
-        public static readonly VolumeComponentArchetype[] volumeComponentArchetypes = DefaultVolumeComponentArchetypes();
-        static VolumeComponentArchetype[] DefaultVolumeComponentArchetypes()
-        {
-            // Arbitrary, but fixed seed
-            Random.InitState(10653106);
-            // Generate n entries
-            var types = Enumerable.Range(0, 20)
-                // For each entries generate m VolumeComponentType
-                .Select(i => Enumerable.Range(0, Random.Range(0, volumeComponentTypes.Length - 1))
-                    .Select(typeIndex => volumeComponentTypes[typeIndex])
-                    .ToArray())
-                .Select(VolumeComponentArchetype.FromTypes)
-                .ToArray();
-            return types;
-        }
+        public static readonly VolumeComponentArchetype[] volumeComponentArchetypes = Enumerable.Range(0, 20)
+            .RandomInitState(6531782)
+            .Select(_ => volumeComponentTypes.RandomEnumeration().ToArray())
+            .Select(VolumeComponentArchetype.FromTypes)
+            .ToArray();
     }
 }

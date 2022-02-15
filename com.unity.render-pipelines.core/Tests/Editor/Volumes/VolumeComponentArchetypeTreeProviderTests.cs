@@ -1,23 +1,19 @@
 using System;
 using System.Linq;
-using FsCheck;
 using NUnit.Framework;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     public class VolumeComponentArchetypeTreeProviderTests
     {
-        [OneTimeSetUp]
-        public static void SetupFixture()
+        static class Properties
         {
-            ArbX.Register();
-        }
-
-        [Test]
-        public void TreeContainsAllTypes()
-        {
-            bool Property(VolumeComponentType[] types)
+            [Test(ExpectedResult = true)]
+            public static bool TreeContainsAllTypes(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
                 if (!archetype.GetOrAddTreeProvider(out var treeProvider))
@@ -45,15 +41,10 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
-        }
-
-
-
-        [Test]
-        public void TreePathAreCorrect()
-        {
-            bool Property(VolumeComponentType[] types)
+            [Test(ExpectedResult = true)]
+            public static bool TreePathAreCorrect(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                )
             {
                 var archetype = VolumeComponentArchetype.FromTypes(types);
                 if (!archetype.GetOrAddTreeProvider(out var treeProvider))
@@ -94,8 +85,6 @@ namespace UnityEngine.Rendering.Tests
                     return Traverse(treeProvider.root, null);
                 }
             }
-
-            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
     }
 }

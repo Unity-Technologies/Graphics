@@ -2,29 +2,27 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 
-#if FSCHECK
-using FsCheck;
-using UnityEngine.TestTools.FsCheckExtensions;
-#endif
-
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     class SomeObject {}
 
     partial class EqualityTests
     {
-#if FSCHECK
-        [OneTimeSetUp]
-        public static void SetupFixture()
-        {
-            ArbX.Register();
-        }
-#endif
 
-        [Test]
-        public void IsSupportedVolumeComponentFilterEquality()
+        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 49)
+            .RandomInitState(52089765)
+            .Select(_ => (TestDataGenerationUtilities.RandomString(), TSet.volumeComponentTypes.RandomElement()))
+            .ToArray();
+
+        static partial class Properties
         {
-            bool Property(VolumeComponentType l, VolumeComponentType r)
+            [Test(ExpectedResult = true)]
+            public static bool IsSupportedVolumeComponentFilterEquality(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            )
             {
                 var l2 = IsSupportedVolumeComponentFilter.FromType(l.AsType());
                 var r2 = IsSupportedVolumeComponentFilter.FromType(r.AsType());
@@ -56,21 +54,14 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
-        [Test]
-        public void IsExplicitlySupportedVolumeComponentFilterEquality()
+        static partial class Properties
         {
-            bool Property(VolumeComponentType l, VolumeComponentType r)
+            [Test(ExpectedResult = true)]
+            public static bool IsExplicitlySupportedVolumeComponentFilterEquality(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            )
             {
                 var l2 = IsExplicitlySupportedVolumeComponentFilter.FromType(l.AsType());
                 var r2 = IsExplicitlySupportedVolumeComponentFilter.FromType(r.AsType());
@@ -102,21 +93,14 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
-        [Test]
-        public void VolumeComponentTypeEquality()
+        static partial class Properties
         {
-            bool Property(VolumeComponentType l, VolumeComponentType r)
+            [Test(ExpectedResult = true)]
+            public static bool VolumeComponentTypeEquality(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType l,
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]VolumeComponentType r
+            )
             {
                 var l2 = l;
                 var r2 = r;
@@ -146,21 +130,14 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
-        [Test]
-        public void IsVisibleVolumeComponentFilterEquality()
+        static partial class Properties
         {
-            bool Property(bool l, bool r)
+            [Test(ExpectedResult = true)]
+            public static bool IsVisibleVolumeComponentFilterEquality(
+                [Values]bool l,
+                [Values]bool r
+            )
             {
                 var l2 = IsVisibleVolumeComponentFilter.FromIsVisible(l);
                 var r2 = IsVisibleVolumeComponentFilter.FromIsVisible(r);
@@ -192,21 +169,14 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<bool, bool>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<bool>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
-        [Test]
-        public void VolumeComponentArchetypeEquality()
+        static partial class Properties
         {
-            bool Property(VolumeComponentType[] l, VolumeComponentType[] r)
+            [Test(ExpectedResult = true)]
+            public static bool VolumeComponentArchetypeEquality(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] l,
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]VolumeComponentType[] r
+            )
             {
                 var l2 = VolumeComponentArchetype.FromTypes(l);
                 var r2 = VolumeComponentArchetype.FromTypes(r);
@@ -238,21 +208,14 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<VolumeComponentType[], VolumeComponentType[]>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<VolumeComponentType[]>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
-        [Test]
-        public void VolumeComponentArchetypeTreeProviderPathNodeEquality()
+        static partial class Properties
         {
-            bool Property((string name, VolumeComponentType type) l, (string name, VolumeComponentType type) r)
+            [Test(ExpectedResult = true)]
+            public static bool VolumeComponentArchetypeTreeProviderPathNodeEquality(
+                [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) l,
+                [ValueSource(nameof(k_NameAndVolumeComponentType))](string name, VolumeComponentType type) r
+            )
             {
                 var l2 = new VolumeComponentArchetypeTreeProvider.PathNode(l.name, l.type);
                 var r2 = new VolumeComponentArchetypeTreeProvider.PathNode(r.name, r.type);
@@ -284,16 +247,6 @@ namespace UnityEngine.Rendering.Tests
                     && l2.Equals((object)l2);
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<(string name, VolumeComponentType type), (string name, VolumeComponentType type)>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<(string name, VolumeComponentType type)>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
 
         [Test]

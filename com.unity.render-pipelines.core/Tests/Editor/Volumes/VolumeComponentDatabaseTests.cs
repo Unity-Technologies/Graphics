@@ -1,26 +1,19 @@
 using System;
 using System.Linq;
-using FsCheck;
 using NUnit.Framework;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     class VolumeComponentDatabaseTests
     {
-        class VolumeComponentWithStaticInit : VolumeComponent
+        static class Properties
         {
-            public static int initCount;
-            static void Init()
-            {
-                ++initCount;
-            }
-        }
-
-        [Test]
-        public void ContainsRequiredTypes()
-        {
-            bool Property(VolumeComponentType[] types)
+            [Test(ExpectedResult = true)]
+            public static bool ContainsRequiredTypes(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] types
+                )
             {
                 var database = VolumeComponentDatabase.FromTypes(types);
                 using (HashSetPool<VolumeComponentType>.Get(out var set))
@@ -29,8 +22,6 @@ namespace UnityEngine.Rendering.Tests
                     return set.SetEquals(database.componentTypes);
                 }
             }
-
-            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -54,5 +45,15 @@ namespace UnityEngine.Rendering.Tests
             });
             Assert.AreEqual(initCount + 1, VolumeComponentWithStaticInit.initCount);
         }
+
+        class VolumeComponentWithStaticInit : VolumeComponent
+        {
+            public static int initCount;
+            static void Init()
+            {
+                ++initCount;
+            }
+        }
+
     }
 }

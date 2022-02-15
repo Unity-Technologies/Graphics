@@ -6,24 +6,19 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 
-#if FSCHECK
-using FsCheck;
-using UnityEngine.TestTools.FsCheckExtensions;
-#endif
-
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     class SomeObject {}
 
     partial class EqualityTests
     {
-#if FSCHECK
-        [OneTimeSetUp]
-        public static void SetupFixture()
-        {
-            ArbX.Register();
-        }
-#endif
+
+        static readonly (string name, VolumeComponentType type)[] k_NameAndVolumeComponentType = Enumerable.Range(0, 49)
+            .RandomInitState(52089765)
+            .Select(_ => (TestDataGenerationUtilities.RandomString(), TSet.volumeComponentTypes.RandomElement()))
+            .ToArray();
 
 <# foreach (var test in equalityTests) Write(test); #>
 
@@ -45,14 +40,16 @@ namespace UnityEngine.Rendering.Tests
     {
         public string testName;
         public string buildFromType;
+        public string buildFromTypeAttribute;
         public string constructor;
         public string expectsAreEqual;
         public bool addNullableTests;
 
-        public EqualityTest(string testName, string buildFromType, string constructor, string expectsAreEqual, bool addNullableTests)
+        public EqualityTest(string testName, string buildFromType, string buildFromTypeAttribute, string constructor, string expectsAreEqual, bool addNullableTests)
         {
             this.testName = testName;
             this.buildFromType = buildFromType;
+            this.buildFromTypeAttribute = buildFromTypeAttribute;
             this.constructor = constructor;
             this.expectsAreEqual = expectsAreEqual;
             this.addNullableTests = addNullableTests;
@@ -62,10 +59,13 @@ namespace UnityEngine.Rendering.Tests
     public void Write(EqualityTest test)
     {
         #>
-        [Test]
-        public void <#= test.testName #>()
+        static partial class Properties
         {
-            bool Property(<#= test.buildFromType #> l, <#= test.buildFromType #> r)
+            [Test(ExpectedResult = true)]
+            public static bool <#= test.testName #>(
+                <#= test.buildFromTypeAttribute #><#= test.buildFromType #> l,
+                <#= test.buildFromTypeAttribute #><#= test.buildFromType #> r
+            )
             {
                 var l2 = <#= string.Format(test.constructor, "l") #>;
                 var r2 = <#= string.Format(test.constructor, "r") #>;
@@ -74,16 +74,6 @@ namespace UnityEngine.Rendering.Tests
                 <#+ WriteEqualityCode(test.addNullableTests); #>
                 return result;
             }
-
-#if FSCHECK
-            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).UnityQuickCheck();
-
-            // Enforce testing equality
-            var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-#else
-            throw new NotImplementedException();
-#endif
         }
 <#+
     }
@@ -132,6 +122,7 @@ namespace UnityEngine.Rendering.Tests
             => new EqualityTest($"" +
                 $"{className}Equality",
                 "VolumeComponentType",
+                "[ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]",
                 string.Format(constructor, className),
                 "l.AsType() == r.AsType()",
                 true);
@@ -143,21 +134,25 @@ namespace UnityEngine.Rendering.Tests
         Tests.VolumeComponentFilter("IsExplicitlySupportedVolumeComponentFilter", Tests.fromTypeConstructor),
         new EqualityTest("VolumeComponentTypeEquality",
             "VolumeComponentType",
+            "[ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]",
             "{0}",
             "l.AsType() == r.AsType()",
             false),
         new EqualityTest("IsVisibleVolumeComponentFilterEquality",
             "bool",
+            "[Values]",
             "IsVisibleVolumeComponentFilter.FromIsVisible({0})",
             "l == r",
             true),
         new EqualityTest("VolumeComponentArchetypeEquality",
             "VolumeComponentType[]",
+            "[ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))]",
             "VolumeComponentArchetype.FromTypes({0})",
             "l.ToHashSet().SetEquals(r.ToHashSet())",
             true),
         new EqualityTest("VolumeComponentArchetypeTreeProviderPathNodeEquality",
             "(string name, VolumeComponentType type)",
+            "[ValueSource(nameof(k_NameAndVolumeComponentType))]",
             "new VolumeComponentArchetypeTreeProvider.PathNode({0}.name, {0}.type)",
             "(l.name == r.name && l.type == r.type)",
             true),

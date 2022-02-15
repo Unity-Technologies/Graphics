@@ -1,22 +1,18 @@
 using System;
-using FsCheck;
 using NUnit.Framework;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     class VolumeComponentTypeTests
     {
-        [OneTimeSetUp]
-        public static void SetupFixture()
+        static class Properties
         {
-            ArbX.Register();
-        }
-
-        [Test]
-        public void OnlyAcceptsVolumeComponentTypes()
-        {
-            bool Property(Type type)
+            [Test(ExpectedResult = true)]
+            public static bool OnlyAcceptsVolumeComponentTypes(
+                [ValueSource(typeof(TSet), nameof(TSet.types))] Type type
+                )
             {
                 var success = VolumeComponentType.FromType(type, out var volumeType);
                 var isVolumeType = type?.IsSubclassOf(typeof(VolumeComponent));
@@ -28,18 +24,13 @@ namespace UnityEngine.Rendering.Tests
                 return mustBeValid && isValid || !mustBeValid && isInvalid;
             }
 
-            Prop.ForAll(ArbX.CreateTypeArbitrary(), Property).UnityQuickCheck();
-        }
-
-        [Test]
-        public void CastToType()
-        {
-            bool Property(VolumeComponentType type)
+            [Test(ExpectedResult = true)]
+            public static bool CastToType(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))] VolumeComponentType type
+                )
             {
                 return type.AsType() == (Type)type;
             }
-
-            Prop.ForAll<VolumeComponentType>(Property).UnityQuickCheck();
         }
     }
 }

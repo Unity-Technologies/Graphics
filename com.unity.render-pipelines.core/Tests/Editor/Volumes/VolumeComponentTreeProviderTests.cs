@@ -1,25 +1,22 @@
 using System;
 using System.Linq;
-using FsCheck;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Rendering;
-using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
+    using TSet = VolumeComponentTestDataSet;
+
     class VolumeComponentTreeProviderTests
     {
-        [OneTimeSetUp]
-        public static void SetupFixture()
+        static class Properties
         {
-            ArbX.Register();
-        }
-
-        [Test]
-        public void ProvidedTreeContainsAllTypeExceptAlreadyContainedInProfile()
-        {
-            bool Property(VolumeComponentType[] profileTypes, VolumeComponentArchetype treeArchetype)
+            [Test(ExpectedResult = true)]
+            public static bool ProvidedTreeContainsAllTypeExceptAlreadyContainedInProfile(
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypesArray))] VolumeComponentType[] profileTypes,
+                [ValueSource(typeof(TSet), nameof(TSet.volumeComponentArchetypes))] VolumeComponentArchetype treeArchetype
+                )
             {
                 // create volume profile
                 var profile = ScriptableObject.CreateInstance<VolumeProfile>();
@@ -54,8 +51,6 @@ namespace UnityEngine.Rendering.Tests
                     return expectedTypes.SetEquals(currentTypes);
                 }
             }
-
-            Prop.ForAll<VolumeComponentType[], VolumeComponentArchetype>(Property).UnityQuickCheck();
         }
     }
 }
