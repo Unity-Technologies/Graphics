@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {
@@ -205,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.leakReductionMode = APVLeakReductionMode.None;
             parameters.occlusionWeightContribution = 0.0f;
             parameters.minValidNormalWeight = 0.0f;
+            parameters.frameIndexForNoise = 0;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

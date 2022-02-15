@@ -6,7 +6,7 @@ using System.IO;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A component that stores baked probe volume state and data references. Normally hidden from the user.

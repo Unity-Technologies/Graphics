@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject

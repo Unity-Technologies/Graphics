@@ -26,6 +26,7 @@ MonoBehaviour:
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e, type: 3}
     materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}
+    materialLoading: {fileID: 4800000, guid: 392325671f122f540be9033ca5ae7a56, type: 3}
     clearDebugBufferCS: {fileID: 7200000, guid: 7fc6041d5cf70004aa33bb1ac64e3c06, type: 3}
     probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
     probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381, type: 3}
