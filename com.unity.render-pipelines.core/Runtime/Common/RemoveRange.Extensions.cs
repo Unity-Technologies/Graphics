@@ -23,22 +23,12 @@ namespace UnityEngine.Rendering
         {
             try
             {
-                // This branching is inlined at compilation
-                if (typeof(TList) == typeof(List<TValue>))
-                {
-                    // Reinterpret cast, this is safe because we checked the types before
-                    var castedList = __refvalue(__makeref(list), List<TValue>);
-                    castedList.RemoveRange(index, count);
-                }
-                else
-                {
-                    if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
-                    if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-                    if (list.Count - index < count) throw new ArgumentException("index and count do not denote a valid range of elements in the list");
+                if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
+                if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+                if (list.Count - index < count) throw new ArgumentException("index and count do not denote a valid range of elements in the list");
 
-                    for (var i = count; i > 0; --i)
-                        list.RemoveAt(index);
-                }
+                for (var i = count; i > 0; --i)
+                    list.RemoveAt(index);
             }
             catch (Exception e)
             {
