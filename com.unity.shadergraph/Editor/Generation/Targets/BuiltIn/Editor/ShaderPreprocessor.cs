@@ -66,7 +66,6 @@ namespace UnityEditor.Rendering.BuiltIn
         // Event callback to report shader stripping info. Form:
         // ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
         internal static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
-        private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_MainLightShadowsCascades = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
@@ -328,40 +327,38 @@ namespace UnityEditor.Rendering.BuiltIn
             if (rpAsset != null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            m_stripTimer.Start();
-
+            double stripTimeMs = 0.0;
             int prevVariantCount = compilerDataList.Count;
-            var inputShaderVariantCount = compilerDataList.Count;
-            for (int i = 0; i < inputShaderVariantCount;)
+            using (TimedScope.FromRef(ref stripTimeMs))
             {
-                bool removeInput = true;
-                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+                var inputShaderVariantCount = compilerDataList.Count;
+                for (int i = 0; i < inputShaderVariantCount;)
                 {
-                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    bool removeInput = true;
+                    foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
                     {
-                        removeInput = false;
-                        break;
+                        if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                        {
+                            removeInput = false;
+                            break;
+                        }
                     }
+
+                    // Remove at swap back
+                    if (removeInput)
+                        compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                    else
+                        ++i;
                 }
 
-                // Remove at swap back
-                if (removeInput)
-                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                if (compilerDataList is List<ShaderCompilerData> inputDataList)
+                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
                 else
-                    ++i;
+                {
+                    for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
+                        compilerDataList.RemoveAt(i);
+                }
             }
-
-            if (compilerDataList is List<ShaderCompilerData> inputDataList)
-                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-            else
-            {
-                for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
-                    compilerDataList.RemoveAt(i);
-            }
-
-            m_stripTimer.Stop();
-            double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
-            m_stripTimer.Reset();
 
             m_TotalVariantsInputCount += prevVariantCount;
             m_TotalVariantsOutputCount += compilerDataList.Count;

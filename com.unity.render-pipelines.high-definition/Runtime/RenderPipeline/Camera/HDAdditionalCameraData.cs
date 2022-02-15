@@ -39,7 +39,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(Camera.kMinAperture, Camera.kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+#pragma warning disable 0414
         [SerializeField] internal Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+#pragma warning restore 0414
 
         // Aperture shape
         [SerializeField] [Range(Camera.kMinBladeCount, Camera.kMaxBladeCount)] int m_BladeCount;
@@ -364,6 +366,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
 
+        /// <summary>Screen size used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenSizeOverride;
+
+        /// <summary>Transform used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenCoordScaleBias;
+
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
         public bool allowDeepLearningSuperSampling = true;
@@ -634,6 +642,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.fsrSharpness = fsrSharpness;
 
             data.materialMipBias = materialMipBias;
+
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;

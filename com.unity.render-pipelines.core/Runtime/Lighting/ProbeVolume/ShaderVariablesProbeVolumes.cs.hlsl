@@ -17,8 +17,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float4 _MinCellPos_Noise;
     float4 _IndicesDim_IndexChunkSize;
     float4 _Biases_CellInMinBrick_MinBrickSize;
-    float4 _Weight_Padding;
     float4 _LeakReductionParams;
+    float4 _Weight_MinLoadedCell;
+    float4 _MaxLoadedCell_FrameIndex;
 CBUFFER_END
 
 
