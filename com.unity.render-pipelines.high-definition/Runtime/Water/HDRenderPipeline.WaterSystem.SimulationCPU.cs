@@ -1,4 +1,3 @@
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -34,63 +33,99 @@ namespace UnityEngine.Rendering.HighDefinition
         public float choppiness;
 
         /// <summary>
-        /// Transformed wave amplitude for each patch.
+        /// Wave amplitude for each patch.
         /// </summary>
         public float4 amplitude;
 
         /// <summary>
-        /// Transformed wave amplitude.
+        /// Per band patch size.
         /// </summary>
         public float4 patchSizes;
 
-        // Number of bands that the simulation has
+        /// <summary>
+        /// Number of bands that the simulation has.
+        /// </summary>
         public int bandCount;
     }
 
+    /// <summary>
+    /// Structure that holds the input parameters of the search.
+    /// </summary>
     public struct WaterSearchParameters
     {
+        /// <summary>
+        /// Target position that the search needs to evaluate the height at.
+        /// </summary>
         public float3 targetPosition;
+
+        /// <summary>
+        /// Position that the search starts from. Can be used as a hint for the search algorithm.
+        /// </summary>
         public float3 startPosition;
+
+        /// <summary>
+        /// Target error value at which the algorithm should stop.
+        /// </summary>
         public float error;
-        public int maxIteration;
+
+        /// <summary>
+        /// Number of iterations of the search algorithm.
+        /// </summary>
+        public int maxIterations;
     }
 
+    /// <summary>
+    /// Structure that holds the output parameters of the search.
+    /// </summary>
     public struct WaterSearchResult
     {
+        /// <summary>
+        /// World space elevation of the input target elevation
+        /// </summary>
         public float height;
+
+        /// <summary>
+        /// Horizontal error value of the search algorithm.
+        /// </summary>
         public float error;
+
+        /// <summary>
+        /// Location of the 3D point that has been displaced to the target positions.
+        /// </summary>
         public float3 candidateLocation;
-        public int stepCount;
+
+        /// <summary>
+        /// Number of iterations of the search algorithm to find the height value.
+        /// </summary>
+        public int numIterations;
     }
 
-    internal class WaterCPUSim
+    internal class WaterCPUSimulation
     {
         // Simulation constants
         internal const float k_EarthGravity = 9.81f;
         internal const float k_PhillipsAmplitudeScalar = 10.0f;
-        internal const float oneOverSqrt2 = 0.70710678118f;
+        internal const float k_OneOverSqrt2 = 0.70710678118f;
 
-
-        internal static uint4 ShiftUInt(uint4 val, int numBits)
-        {
-            return new uint4(val.x >> 16, val.y >> 16, val.z >> 16, val.w >> 16);
-        }
-
+        // Function that generates a uint4 noise from a uint3
+        // Extracted from this Shader Toy: https://www.shadertoy.com/view/4tfyW4
         internal static uint4 WaterHashFunctionUInt4(uint3 coord)
         {
             uint4 x = coord.xyzz;
-            x = (ShiftUInt(x, 16) ^ x.yzxy) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxz) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxx) * 0x45d9f3bu;
+            x = ((x >> 16) ^ x.yzxy) * 0x45d9f3bu;
+            x = ((x >> 16) ^ x.yzxz) * 0x45d9f3bu;
+            x = ((x >> 16) ^ x.yzxx) * 0x45d9f3bu;
             return x;
         }
 
+        // Function that generates a float4 normalized noise from a uint3
         internal static float4 WaterHashFunctionFloat4(uint3 p)
         {
             uint4 hashed = WaterHashFunctionUInt4(p);
             return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
         }
 
+        // Gaussian distribution
         // http://www.dspguide.com/ch2/6.htm
         internal static float GaussianDis(float u, float v)
         {
@@ -132,6 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ratio between the current slice and the biggest slice
             public float patchSizeRatio;
 
+            // Output spectrum buffer
             [WriteOnly]
             [NativeDisableParallelForRestriction]
             public NativeArray<float2> H0Buffer;
@@ -163,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float4 rn = WaterHashFunctionFloat4(coords);
 
                 // First part of the Phillips spectrum term
-                float2 E = oneOverSqrt2 * new float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
+                float2 E = k_OneOverSqrt2 * new float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
                 // Second part of the Phillips spectrum term
                 float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
@@ -192,10 +228,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Passed simulation time since the beginning of the simulation
             public float simulationTime;
 
+            // Input spectrum buffer
             [ReadOnly]
-            [NativeDisableParallelForRestriction]
             public NativeArray<float2> H0Buffer;
 
+            // Output frequency spectrum (real and imaginary buffers)
             [WriteOnly]
             public NativeArray<float4> HtRealBuffer;
             [WriteOnly]
@@ -242,24 +279,31 @@ namespace UnityEngine.Rendering.HighDefinition
         [BurstCompile]
         internal struct InverseFFT : IJobParallelFor
         {
-            // Input data
-            public int simRes;
+            // Resolution at which the simulation will be evaluate
+            public int simulationResolution;
+            // Number of butterfly passes to run
             public int butterflyCount;
-            public bool columnPass;
+            // Offset when outputting the partially transformed ifft values
             public int bufferOffset;
+            // Compensation factor to ensure that the simulation is independent of the resolution (TODO: Fix).
             public float compensationFactor;
+            // Flag that defines if this is the column (second) ifft pass
+            public bool columnPass;
 
+            // Input frequency spectrum (real and imaginary buffers)
             [ReadOnly]
             public NativeArray<float4> HtRealBufferInput;
             [ReadOnly]
             public NativeArray<float4> HtImaginaryBufferInput;
 
             // The ping-pong array is used as read/write buffer
+            // These are mimicing the LDS on the shader side.
             [NativeDisableParallelForRestriction]
             public NativeArray<float3> pingPongArray;
             [NativeDisableParallelForRestriction]
             public NativeArray<uint4> textureIndicesArray;
 
+            // Output spectrum (real and imaginary buffers)
             [WriteOnly]
             [NativeDisableParallelForRestriction]
             public NativeArray<float4> HtRealBufferOutput;
@@ -296,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passIndex == 0)
                 {
                     uint2 reversedIndices = reversebits_uint2(indices.xy);
-                    indices = new uint2(reversedIndices.x >> (32 - butterflyCount) & (uint)(simRes - 1), reversedIndices.y >> (32 - butterflyCount) & (uint)(simRes - 1));
+                    indices = new uint2(reversedIndices.x >> (32 - butterflyCount) & (uint)(simulationResolution - 1), reversedIndices.y >> (32 - butterflyCount) & (uint)(simulationResolution - 1));
                 }
             }
 
@@ -306,11 +350,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 float2 weights;
                 GetButterflyValues(passIndex, x, out indices, out weights);
 
-                float3 inputR1 = pingPongArray[ppOffset + (int)t0 * simRes + (int)indices.x];
-                float3 inputI1 = pingPongArray[ppOffset + (int)t1 * simRes + (int)indices.x];
+                float3 inputR1 = pingPongArray[ppOffset + (int)t0 * simulationResolution + (int)indices.x];
+                float3 inputI1 = pingPongArray[ppOffset + (int)t1 * simulationResolution + (int)indices.x];
 
-                float3 inputR2 = pingPongArray[ppOffset + (int)t0 * simRes + (int)indices.y];
-                float3 inputI2 = pingPongArray[ppOffset + (int)t1 * simRes + (int)indices.y];
+                float3 inputR2 = pingPongArray[ppOffset + (int)t0 * simulationResolution + (int)indices.y];
+                float3 inputI2 = pingPongArray[ppOffset + (int)t1 * simulationResolution + (int)indices.y];
 
                 resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2) * 0.5f;
                 resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2) * 0.5f;
@@ -319,8 +363,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Execute(int index)
             {
                 // Compute the offset in the ping-pong array
-                int ppOffset = 4 * simRes * index;
-                for (int x = 0; x < simRes; ++x)
+                int ppOffset = 4 * simulationResolution * index;
+
+                // Load the real and imaginary numbers to the "LDS"
+                for (int x = 0; x < simulationResolution; ++x)
                 {
                     // Compute the coordinates of the current pixel to process
                     int y = index;
@@ -333,26 +379,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         texturePos = new uint2((uint)x, (uint)y);
 
                     // Load entire row or column into scratch array
-                    uint tapCoord = texturePos.x + texturePos.y * (uint)simRes;
-                    pingPongArray[ppOffset + 0 * simRes + x] = HtRealBufferInput[(int)tapCoord].xyz;
-                    pingPongArray[ppOffset + 1 * simRes + x] = HtImaginaryBufferInput[(int)tapCoord].xyz;
+                    uint tapCoord = texturePos.x + texturePos.y * (uint)simulationResolution;
+                    pingPongArray[ppOffset + 0 * simulationResolution + x] = HtRealBufferInput[(int)tapCoord].xyz;
+                    pingPongArray[ppOffset + 1 * simulationResolution + x] = HtImaginaryBufferInput[(int)tapCoord].xyz;
                 }
 
                 // Initialize the texture indices
-                for (int x = 0; x < simRes; ++x)
-                    textureIndicesArray[index * simRes + x] = new uint4(0, 1, 2, 3);
+                for (int x = 0; x < simulationResolution; ++x)
+                    textureIndicesArray[index * simulationResolution + x] = new uint4(0, 1, 2, 3);
 
                 // Do all the butterfly passes
                 for (int i = 0; i < butterflyCount - 1; i++)
                 {
                     // Having this loop inside this one, acts like a GroupMemoryBarrierWithGroupSync
-                    for (int x = 0; x < simRes; ++x)
+                    for (int x = 0; x < simulationResolution; ++x)
                     {
                         // Build the position
                         int2 position = new int2(x, index);
 
                         // Grab the texture index from last butterfly pass
-                        uint4 currentTexIndices = textureIndicesArray[index * simRes + x];
+                        uint4 currentTexIndices = textureIndicesArray[index * simulationResolution + x];
 
                         // Do the butterfly pass pass
                         float3 realValue;
@@ -360,19 +406,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         ButterflyPass((uint)i, (uint)x, currentTexIndices.x, currentTexIndices.y, ppOffset, out realValue, out imaginaryValue);
 
                         // Output the results back to the ping pong array
-                        pingPongArray[ppOffset + (int)currentTexIndices.z * simRes + position.x] = realValue;
-                        pingPongArray[ppOffset + (int)currentTexIndices.w * simRes + position.x] = imaginaryValue;
+                        pingPongArray[ppOffset + (int)currentTexIndices.z * simulationResolution + position.x] = realValue;
+                        pingPongArray[ppOffset + (int)currentTexIndices.w * simulationResolution + position.x] = imaginaryValue;
 
                         // Revert the indices
                         currentTexIndices.xyzw = currentTexIndices.zwxy;
 
                         // Save the indices for the next butterfly pass
-                        textureIndicesArray[index * simRes + position.x] = currentTexIndices;
+                        textureIndicesArray[index * simulationResolution + position.x] = currentTexIndices;
                     }
                 }
 
                 // Mimic the synchronization point here
-                for (int x = 0; x < simRes; ++x)
+                for (int x = 0; x < simulationResolution; ++x)
                 {
                     // Compute the coordinates of the current pixel to process
                     int y = index;
@@ -385,10 +431,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         texturePos = new uint2((uint)x, (uint)y);
 
                     // Load entire row or column into scratch array
-                    uint tapCoord = texturePos.x + texturePos.y * (uint)simRes;
+                    uint tapCoord = texturePos.x + texturePos.y * (uint)simulationResolution;
 
                     // Grab the texture indices
-                    uint4 currentTexIndices = textureIndicesArray[index * simRes + x];
+                    uint4 currentTexIndices = textureIndicesArray[index * simulationResolution + x];
 
                     // Output values of the ifft pass
                     float3 realValue;
@@ -415,15 +461,15 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Function that returns the number of butterfly passes depending on the resolution
-        internal int ButterFlyCount(int resolution)
+        internal int ButterFlyCount(WaterSimulationResolution simRes)
         {
-            switch(resolution)
+            switch(simRes)
             {
-                case 256:
+                case WaterSimulationResolution.High256:
                     return 8;
-                case 128:
+                case WaterSimulationResolution.Medium128:
                     return 7;
-                case 64:
+                case WaterSimulationResolution.Low64:
                     return 6;
                 default:
                     return 0;
@@ -515,7 +561,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int bandIndex = 0; bandIndex < shaderVariablesWater._WaterBandCount; ++bandIndex)
                 {
                     // Prepare the first band
-                    WaterCPUSim.PhillipsSpectrumInitialization spectrumInit = new WaterCPUSim.PhillipsSpectrumInitialization();
+                    WaterCPUSimulation.PhillipsSpectrumInitialization spectrumInit = new WaterCPUSimulation.PhillipsSpectrumInitialization();
                     spectrumInit.simulationResolution = (int)cpuSimResolution;
                     spectrumInit.refSimResolution = shaderVariablesWater._WaterRefSimRes;
                     spectrumInit.spectrumOffset = waterSpectrumOffset;
@@ -539,7 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int bandIndex = 0; bandIndex < cpuBoundCount; ++bandIndex)
             {
                 // Prepare the first band
-                WaterCPUSim.EvaluateDispersion dispersion = new WaterCPUSim.EvaluateDispersion();
+                WaterCPUSimulation.EvaluateDispersion dispersion = new WaterCPUSimulation.EvaluateDispersion();
                 dispersion.simulationResolution = (int)cpuSimResolution;
                 dispersion.refSimResolution = shaderVariablesWater._WaterRefSimRes;
                 dispersion.spectrumOffset = waterSpectrumOffset;
@@ -559,9 +605,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 dispersionHandle.Complete();
 
                 // Prepare the first band
-                WaterCPUSim.InverseFFT inverseFFT0 = new WaterCPUSim.InverseFFT();
-                inverseFFT0.simRes = (int)cpuSimResolution;
-                inverseFFT0.butterflyCount = ButterFlyCount(inverseFFT0.simRes);
+                WaterCPUSimulation.InverseFFT inverseFFT0 = new WaterCPUSimulation.InverseFFT();
+                inverseFFT0.simulationResolution = (int)cpuSimResolution;
+                inverseFFT0.butterflyCount = ButterFlyCount(cpuSimResolution);
                 inverseFFT0.bufferOffset = 0;
                 inverseFFT0.columnPass = false;
                 inverseFFT0.compensationFactor = FFTCompensationFactor(cpuSimResolution);
@@ -582,10 +628,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 JobHandle ifft0Handle = inverseFFT0.Schedule((int)cpuSimResolution, 1, dispersionHandle);
                 ifft0Handle.Complete();
 
-                //  Second inverse FFT
-                WaterCPUSim.InverseFFT inverseFFT1 = new WaterCPUSim.InverseFFT();
-                inverseFFT1.simRes = (int)cpuSimResolution;
-                inverseFFT1.butterflyCount = ButterFlyCount(inverseFFT0.simRes);
+                // Second inverse FFT
+                WaterCPUSimulation.InverseFFT inverseFFT1 = new WaterCPUSimulation.InverseFFT();
+                inverseFFT1.simulationResolution = (int)cpuSimResolution;
+                inverseFFT1.butterflyCount = ButterFlyCount(cpuSimResolution);
                 inverseFFT1.bufferOffset = (int)(bandIndex * numPixels);
                 inverseFFT1.columnPass = true;
                 inverseFFT1.compensationFactor = FFTCompensationFactor(cpuSimResolution);
@@ -728,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return data;
         }
 
-        public static void FindWaterSurfaceHeight(WaterSimSearchData wsd,
+        internal static void FindWaterSurfaceHeight(WaterSimSearchData wsd,
                                                     WaterSearchParameters wsp,
                                                     out WaterSearchResult sr)
         {
@@ -738,10 +784,10 @@ namespace UnityEngine.Rendering.HighDefinition
             sr.error = tapData.distance;
             sr.height = tapData.height;
             sr.candidateLocation = wsp.startPosition;
-            sr.stepCount = 0;
+            sr.numIterations = 0;
 
             // Go through the steps until we found a position that satisfies our constraints
-            while (sr.stepCount < wsp.maxIteration)
+            while (sr.numIterations < wsp.maxIterations)
             {
                 // Is the point close enough to target position?
                 if (sr.error < wsp.error)
@@ -765,49 +811,78 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!progress)
                     stepSize *= 0.5f;
 
-                sr.stepCount++;
+                sr.numIterations++;
             }
         }
     }
 
+    /// <summary>
+    /// C# Job that evaluate the height for a set of WaterSearchParameters and returns a set of WaterSearchResult (and stored them into native buffers).
+    /// </summary>
     [BurstCompile]
     public struct WaterSimulationSearchJob : IJobParallelFor
     {
-        // Simulation data data
+        /// <summary>
+        /// Input simulation search data produced by the water surface.
+        /// </summary>
         public WaterSimSearchData simSearchData;
 
-        // Input data
+        /// <summary>
+        /// Native array that holds the set of position that the job will need to evaluate the height for.
+        /// </summary>
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float3> targetPositionBuffer;
 
+        /// <summary>
+        /// Native array that holds the set of "hint" position that the algorithm starts from.
+        /// </summary>
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float3> startPositionBuffer;
 
-        // Number of max iterations for the search
-        public int maxIterations;
-
-        // Target error for the search
+        /// <summary>
+        /// Target error value at which the algorithm should stop.
+        /// </summary>
         public float error;
 
-        // Output buffers
+        /// <summary>
+        /// Number of iterations of the search algorithm.
+        /// </summary>
+        public int maxIterations;
+
+        /// <summary>
+        /// Output native array that holds the set of heights that were evaluated for each target position.
+        /// </summary>
         [WriteOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> heightBuffer;
 
+        /// <summary>
+        /// Output native array that holds the set of horizontal error for each target position.
+        /// </summary>
         [WriteOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> errorBuffer;
 
+        /// <summary>
+        /// Output native array that holds the set of positions that were used to generate the height value.
+        /// </summary>
         [WriteOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float3> candidateLocationBuffer;
 
+        /// <summary>
+        /// Output native array that holds the set of steps that were executed to find the height.
+        /// </summary>
         [WriteOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<int> stepCountBuffer;
 
+        /// <summary>
+        /// Function that evaluates the height for a given element in the input buffer.
+        /// </summary>
+        /// <param name="index">The index of the element that the function will process.</param>
         public void Execute(int index)
         {
             // Fill the search parameters
@@ -815,7 +890,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsp.targetPosition = targetPositionBuffer[index];
             wsp.startPosition = startPositionBuffer[index];
             wsp.error = error;
-            wsp.maxIteration = maxIterations;
+            wsp.maxIterations = maxIterations;
 
             // Do the search
             WaterSearchResult wsr = new WaterSearchResult();
@@ -825,7 +900,7 @@ namespace UnityEngine.Rendering.HighDefinition
             heightBuffer[index] = wsr.height;
             errorBuffer[index] = wsr.error;
             candidateLocationBuffer[index] = wsr.candidateLocation;
-            stepCountBuffer[index] = wsr.stepCount;
+            stepCountBuffer[index] = wsr.numIterations;
         }
     }
 }

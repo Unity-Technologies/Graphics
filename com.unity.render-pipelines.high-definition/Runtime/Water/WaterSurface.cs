@@ -498,13 +498,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cpuBuffersValid = false;
             }
 
-            gpuBuffersValid = false;
-            cpuBuffersValid = false;
-
             // Re-evaluate the simulation data
             UpdateSimulationData();
         }
 
+        /// <summary>
+        /// Function that returns the water surface CPU simulation resolution.
+        /// </summary>
+        /// <returns>A value of time WaterSimulationResolution that defines the current water surface CPU simulation resolution.</returns>
         public WaterSimulationResolution GetSimulationResolutionCPU()
         {
             int resolution;
@@ -515,6 +516,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return (WaterSimulationResolution)resolution;
         }
 
+        /// <summary>
+        /// Function that returns the number of frequency bands that the water surface CPU simulation evaluates.
+        /// </summary>
+        /// <returns>The number of bands that the water surface CPU simulation evaluates.</returns>
         public int GetSimulationBandCountCPU()
         {
             if (highFrequencyBands)
@@ -523,6 +528,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 2;
         }
 
+        /// <summary>
+        /// Function that fills a WaterSimSearchData with the data of the current water surface.
+        /// </summary>
+        /// <param name="wsd">The water simulation search data to fill.</param>
+        /// <returns>A boolean that defines if the function was able to fill the search data.</returns>
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
             // If a displacement buffer is available return it,
@@ -540,13 +550,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        /// <summary>
+        /// Function that attempts to evaluate the water surface height at a given location.
+        /// </summary>
+        /// <param name="wsp">The water simulation search parameters that defines the location we are targeting and additional parameters.</param>
+        /// <param name="wsr">The water simulation search result that contains the result height, error, etc.</param>
+        /// <returns>A boolean that defines if the function was able to execute the evaluation.</returns>
         public bool FindWaterSurfaceHeight(WaterSearchParameters wsp, out WaterSearchResult wsr)
         {
             // Invalidate the search result in case the simulation data is not available
             wsr.error = float.MaxValue;
             wsr.height = 0;
             wsr.candidateLocation = float3.zero;
-            wsr.stepCount = wsp.maxIteration;
+            wsr.numIterations = wsp.maxIterations;
 
             // Try to do the 
             WaterSimSearchData wsd = new WaterSimSearchData();
