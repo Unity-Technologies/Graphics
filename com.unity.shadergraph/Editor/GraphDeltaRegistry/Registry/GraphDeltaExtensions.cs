@@ -1,8 +1,4 @@
-using System;
-using System.Runtime.Serialization;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ShaderGraph.GraphDelta;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 using UnityEditor.ShaderGraph.Registry;
 
@@ -25,7 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static IEnumerable<IPortHandler> GetConnectedPorts(this IPortHandler port)
         {
-            return port.
+            // TODO (Liz) Implement
+            throw new System.NotImplementedException();
         }
 
         private const string kRegistryKeyName = "_RegistryKey";
