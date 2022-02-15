@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Modes for Debugging Probes
@@ -384,7 +383,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
                 probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = cell.validity[i];
+                validity[idxInBatch] = cell.GetValidity(i);
                 texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                 relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
                 if (offsets != null)

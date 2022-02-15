@@ -2,15 +2,16 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 #if UNITY_EDITOR
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
 #if UNITY_EDITOR
 
@@ -339,6 +340,10 @@ namespace UnityEngine.Experimental.Rendering
         /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
         /// </summary>
         public float minValidNormalWeight;
+        /// <summary>
+        /// The frame index to be used to animate the sampling noise if requested.
+        /// </summary>
+        public int frameIndexForNoise;
 
     }
 
@@ -373,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kTemporaryDataLocChunkCount = 8;
+        internal const int kTemporaryDataLocChunkCount = 8;
 
         [Serializable]
         internal class Cell
@@ -387,13 +392,49 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeVolumeSHBands shBands;
 
             public NativeArray<Brick> bricks { get; internal set; }
-
-            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
-            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
-            public NativeArray<float> validity { get; internal set; }
-
+            public NativeArray<uint> validity { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
+
+            // Per state data
+            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
+            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+
+            static internal uint PackValidityAndMask(float validity, byte mask)
+            {
+                // 24 bits for validity at the top of the uint, 8 bits for the mask at the bottom.
+                uint outValue = 0;
+                outValue = (mask & 255u);
+                uint packableValidity = 0;
+                uint maxInt = (1 << 24) - 1u;
+                packableValidity = (uint)(validity * maxInt + 0.5);
+                outValue |= packableValidity << 8;
+                return outValue;
+            }
+
+            internal float GetValidity(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityFromPacked(validity[probeIdx]);
+            }
+
+            internal static float GetValidityFromPacked(uint packedValidity)
+            {
+                uint extractionMask = (1 << 24) - 1;
+                return ((packedValidity >> 8) & extractionMask) / (float)(extractionMask);
+            }
+
+            internal static byte GetValidityNeighMaskFromPacked(uint packedValidity)
+            {
+                return Convert.ToByte(packedValidity & 255);
+            }
+
+            internal byte GetNeighbourhoodValidityMask(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityNeighMaskFromPacked(validity[probeIdx]); // TODO_FCC: TMP.
+            }
+
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -674,12 +715,6 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
-        /// <summary>Delegate for baking state change.</summary>
-        /// <param name="newState">The new baking state.</param>
-        public delegate void BakingStateChangedDelegate(string newState);
-        /// <summary>Delegate called when the baking state is changed. </summary>
-        public BakingStateChangedDelegate onBakingStateChanged;
-
         /// <summary>The currently selected baking state.</summary>
         public string bakingState
         {
@@ -867,12 +902,9 @@ namespace UnityEngine.Experimental.Rendering
         internal void UnloadAllCells()
         {
             for (int i = 0; i < m_LoadedCells.size; ++i)
-            {
-                CellInfo cellInfo = m_LoadedCells[i];
-                UnloadCell(cellInfo);
-                m_ToBeLoadedCells.Add(cellInfo);
-            }
+                UnloadCell(m_LoadedCells[i]);
 
+            m_ToBeLoadedCells.AddRange(m_LoadedCells);
             m_LoadedCells.Clear();
         }
 
@@ -1104,8 +1136,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            var path = asset.GetSerializedFullPath();
-
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
@@ -1255,11 +1285,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
+#endif
+
         ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
+
+#if UNITY_EDITOR
+            Type lightMappingType = typeof(Lightmapping);
+            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
+            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
+#endif
+
         }
 
         /// <summary>
@@ -1307,6 +1349,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
+                UnloadAllCells();
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
@@ -1435,7 +1478,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
             shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
-            shaderVars._MaxLoadedCell_Padding = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, 0.0f);
+            shaderVars._MaxLoadedCell_FrameIndex = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, parameters.frameIndexForNoise);
             shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);

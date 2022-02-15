@@ -5,11 +5,10 @@ using System.Collections;
 using System.Linq;
 using UnityEditor;
 
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ProbeSubdivisionContext
     {
@@ -144,7 +143,8 @@ namespace UnityEngine.Experimental.Rendering
             this.profile = profile;
             float cellSize = profile.cellSizeInMeters;
 
-            foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
+            var pvList = ProbeGIBaking.GetProbeVolumeList();
+            foreach (var pv in pvList)
             {
                 if (!pv.isActiveAndEnabled)
                     continue;

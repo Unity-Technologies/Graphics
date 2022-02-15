@@ -32,7 +32,7 @@ CBUFFER_END
 
 #define _SquaredDistanceWeight (_DilationParameters2.x > 0)
 
-StructuredBuffer<float> _ValidityBuffer;
+StructuredBuffer<int> _NeedDilating;
 StructuredBuffer<float3> _ProbePositionsBuffer;
 
 RWStructuredBuffer<DilatedProbe> _OutputProbes;
@@ -90,8 +90,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
     {
         int probeIdx = id.x;
 
-        float validity = _ValidityBuffer[probeIdx];
-        if (validity > _ValidityThreshold)
+        if (_NeedDilating[probeIdx] > 0)
         {
             float3 centralPosition = _ProbePositionsBuffer[probeIdx];
             DilatedProbe probe = (DilatedProbe)0;

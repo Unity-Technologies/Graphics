@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    internal static class BakedLitGUI
+    public static class BakedLitGUI
     {
         public struct BakedLitProperties
         {
