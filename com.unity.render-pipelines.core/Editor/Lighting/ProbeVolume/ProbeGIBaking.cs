@@ -348,10 +348,10 @@ namespace UnityEngine.Rendering
                 {
                     if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.bakingState.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.bakingScenario.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
 
                         if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(ref blackProbe, cell.bakingState.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                            WriteToShaderCoeffsL2(ref blackProbe, cell.bakingScenario.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                     }
                 }
             }
@@ -754,7 +754,7 @@ namespace UnityEngine.Rendering
                 if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene))
                 {
                     data.asset = ProbeVolumeAsset.CreateAsset(data);
-                    data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
+                    data.scenarios.TryAdd(ProbeReferenceVolume.instance.lightingScenario, default);
                     scene2Data[data.gameObject.scene] = data;
                 }
             }
@@ -831,7 +831,7 @@ namespace UnityEngine.Rendering
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
                 var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
-                window.UpdateBakingStatesStatuses(ProbeReferenceVolume.instance.bakingState);
+                window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
             // We are done with baking so we reset whether we need to bake only the active or not.
@@ -902,7 +902,7 @@ namespace UnityEngine.Rendering
             bc.sh = new SphericalHarmonicsL2[numberOfProbes];
             for (int probe = 0; probe < numberOfProbes; ++probe)
             {
-                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.bakingState.shL0L1Data, cell.bakingState.shL2Data, probe);
+                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, probe);
             }
 
             return bc;
@@ -1161,7 +1161,7 @@ namespace UnityEngine.Rendering
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);
 
-            data.states[ProbeReferenceVolume.instance.bakingState] = new ProbeVolumePerSceneData.PerStateData
+            data.scenarios[ProbeReferenceVolume.instance.lightingScenario] = new ProbeVolumePerSceneData.PerScenarioData
             {
                 sceneHash = sceneStateHash,
                 cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename),
@@ -1175,7 +1175,7 @@ namespace UnityEngine.Rendering
         static void WritebackModifiedCellsData(ProbeVolumePerSceneData data)
         {
             var asset = data.asset;
-            var stateData = data.states[ProbeReferenceVolume.instance.bakingState];
+            var stateData = data.scenarios[ProbeReferenceVolume.instance.lightingScenario];
             data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
             unsafe

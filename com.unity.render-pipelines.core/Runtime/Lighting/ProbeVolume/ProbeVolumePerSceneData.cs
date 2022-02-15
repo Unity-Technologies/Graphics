@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
     public class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [Serializable]
-        internal struct PerStateData
+        internal struct PerScenarioData
         {
             public int sceneHash;
             public TextAsset cellDataAsset; // Contains L0 L1 SH data
@@ -24,30 +24,30 @@ namespace UnityEngine.Rendering
         }
 
         [Serializable]
-        struct SerializablePerStateDataItem
+        struct SerializablePerScenarioDataItem
         {
-            public string state;
-            public PerStateData data;
+            public string scenario;
+            public PerScenarioData data;
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
         [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
-        [SerializeField] List<SerializablePerStateDataItem> serializedStates = new();
+        [SerializeField] List<SerializablePerScenarioDataItem> serializedScenarios = new();
 
-        internal Dictionary<string, PerStateData> states = new();
+        internal Dictionary<string, PerScenarioData> scenarios = new();
 
         bool assetLoaded = false;
-        string currentState = null, transitionState = null;
+        string currentScenario = null, transitionScenario = null;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
         /// </summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            states.Clear();
-            foreach (var stateData in serializedStates)
-                states.Add(stateData.state, stateData.data);
+            scenarios.Clear();
+            foreach (var scenarioData in serializedScenarios)
+                scenarios.Add(scenarioData.scenario, scenarioData.data);
         }
 
         /// <summary>
@@ -55,12 +55,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            serializedStates.Clear();
-            foreach (var kvp in states)
+            serializedScenarios.Clear();
+            foreach (var kvp in scenarios)
             {
-                serializedStates.Add(new SerializablePerStateDataItem()
+                serializedScenarios.Add(new SerializablePerScenarioDataItem()
                 {
-                    state = kvp.Key,
+                    scenario = kvp.Key,
                     data = kvp.Value,
                 });
             }
@@ -88,10 +88,10 @@ namespace UnityEngine.Rendering
                 DeleteAsset(asset);
                 DeleteAsset(cellSharedDataAsset);
                 DeleteAsset(cellSupportDataAsset);
-                foreach (var stateData in states.Values)
+                foreach (var scenarioData in scenarios.Values)
                 {
-                    DeleteAsset(stateData.cellDataAsset);
-                    DeleteAsset(stateData.cellOptionalDataAsset);
+                    DeleteAsset(scenarioData.cellDataAsset);
+                    DeleteAsset(scenarioData.cellOptionalDataAsset);
                 }
             }
             finally
@@ -102,68 +102,68 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            states.Clear();
+            scenarios.Clear();
         }
 
-        internal void RemoveBakingState(string state)
+        internal void RemoveScenario(string scenario)
         {
 #if UNITY_EDITOR
-            if (states.TryGetValue(state, out var stateData))
+            if (scenarios.TryGetValue(scenario, out var scenarioData))
             {
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellDataAsset));
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stateData.cellOptionalDataAsset));
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(scenarioData.cellDataAsset));
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(scenarioData.cellOptionalDataAsset));
                 EditorUtility.SetDirty(this);
             }
 #endif
-            states.Remove(state);
+            scenarios.Remove(scenario);
         }
 
-        internal void RenameBakingState(string state, string newState)
+        internal void RenameScenario(string scenario, string newName)
         {
-            if (!states.TryGetValue(state, out var stateData))
+            if (!scenarios.TryGetValue(scenario, out var data))
                 return;
-            states.Remove(state);
-            states.Add(newState, stateData);
+            scenarios.Remove(scenario);
+            scenarios.Add(newName, data);
 
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
-            var baseName = ProbeVolumeAsset.assetName + "-" + newState;
+            var baseName = ProbeVolumeAsset.assetName + "-" + newName;
             void RenameAsset(Object asset, string extension)
             {
                 var oldPath = AssetDatabase.GetAssetPath(asset);
                 AssetDatabase.RenameAsset(oldPath, baseName + extension);
             }
-            RenameAsset(stateData.cellDataAsset, ".CellData.bytes");
-            RenameAsset(stateData.cellOptionalDataAsset, ".CellOptionalData.bytes");
+            RenameAsset(data.cellDataAsset, ".CellData.bytes");
+            RenameAsset(data.cellOptionalDataAsset, ".CellOptionalData.bytes");
 #endif
         }
 
-        internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerStateCellData();
+        internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerScenarioCellData();
 
         bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
-        bool ResolvePerStateCellData()
+        bool ResolvePerScenarioCellData()
         {
             int loadedCount = 0;
-            string state0 = transitionState != null ? transitionState : currentState;
-            string state1 = transitionState != null ? currentState : null;
-            if (state0 != null && states.TryGetValue(state0, out var data0))
+            string state0 = transitionScenario != null ? transitionScenario : currentScenario;
+            string state1 = transitionScenario != null ? currentScenario : null;
+            if (state0 != null && scenarios.TryGetValue(state0, out var data0))
             {
-                if (asset.ResolvePerStateCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
+                if (asset.ResolvePerScenarioCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
                     loadedCount++;
             }
-            if (state1 != null && states.TryGetValue(state1, out var data1))
+            if (state1 != null && scenarios.TryGetValue(state1, out var data1))
             {
-                if (asset.ResolvePerStateCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
+                if (asset.ResolvePerScenarioCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
                     loadedCount++;
             }
             for (var i = 0; i < asset.cells.Length; ++i)
-                asset.cells[i].hasTwoStates = loadedCount == 2;
+                asset.cells[i].hasTwoScenarios = loadedCount == 2;
             return loadedCount != 0;
         }
 
         internal void QueueAssetLoading()
         {
-            if (asset == null || !ResolvePerStateCellData())
+            if (asset == null || !ResolvePerScenarioCellData())
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
         void OnDisable()
         {
             QueueAssetRemoval();
-            currentState = transitionState = null;
+            currentScenario = transitionScenario = null;
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
@@ -203,12 +203,12 @@ namespace UnityEngine.Rendering
             ResolveSharedCellData();
 
             QueueAssetRemoval();
-            currentState = ProbeReferenceVolume.instance.sceneData.bakingState;
-            transitionState = null;
+            currentScenario = ProbeReferenceVolume.instance.sceneData.lightingScenario;
+            transitionScenario = null;
             QueueAssetLoading();
         }
 
-        internal void UpdateBakingState(string state, string previousState)
+        internal void UpdateActiveScenario(string state, string previousState)
         {
             if (asset == null)
                 return;
@@ -219,18 +219,25 @@ namespace UnityEngine.Rendering
             // After that, it will always upload cells from current state
             // So gradually, all loaded cells, will be either blended towards new state, or replaced by streaming
 
-            currentState = state;
-            transitionState = previousState;
+            currentScenario = state;
+            transitionScenario = previousState;
             if (!assetLoaded)
                 QueueAssetLoading();
-            else if (!ResolvePerStateCellData())
+            else if (!ResolvePerScenarioCellData())
                 QueueAssetRemoval();
         }
 
 #if UNITY_EDITOR
+        internal string GetAssetPathSafe(Object asset)
+        {
+            if (asset != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
+                return AssetDatabase.GUIDToAssetPath(guid);
+            return "";
+        }
+
         internal void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
         {
-            var state = ProbeReferenceVolume.instance.bakingState;
+            var scenario = ProbeReferenceVolume.instance.lightingScenario;
             string basePath = Path.Combine(ProbeVolumeAsset.GetDirectory(gameObject.scene.path, gameObject.scene.name), ProbeVolumeAsset.assetName);
 
             string GetOrCreateFileName(Object o, string extension)
@@ -239,10 +246,29 @@ namespace UnityEngine.Rendering
                 if (string.IsNullOrEmpty(res)) res = basePath + extension;
                 return res;
             }
-            cellDataFilename = GetOrCreateFileName(states[state].cellDataAsset, "-" + state + ".CellData.bytes");
-            cellOptionalDataFilename = GetOrCreateFileName(states[state].cellOptionalDataAsset, "-" + state + ".CellOptionalData.bytes");
+            cellDataFilename = GetOrCreateFileName(scenarios[scenario].cellDataAsset, "-" + scenario + ".CellData.bytes");
+            cellOptionalDataFilename = GetOrCreateFileName(scenarios[scenario].cellOptionalDataAsset, "-" + scenario + ".CellOptionalData.bytes");
             cellSharedDataFilename = GetOrCreateFileName(cellSharedDataAsset, ".CellSharedData.bytes");
             cellSupportDataFilename = GetOrCreateFileName(cellSupportDataAsset, ".CellSupportData.bytes");
+        }
+
+        // Returns the file size in bytes
+        long GetFileSize(string path)
+        {
+            //path = Application.dataPath + "/" + path;
+            return File.Exists(path) ? new FileInfo(path).Length : 0;
+        }
+
+        internal long GetDiskSizeOfSharedData()
+        {
+            return GetFileSize(GetAssetPathSafe(cellSharedDataAsset)) + GetFileSize(GetAssetPathSafe(cellSupportDataAsset));
+        }
+
+        internal long GetDiskSizeOfScenarioData(string scenario)
+        {
+            if (scenario == null || !scenarios.TryGetValue(scenario, out var data))
+                return 0;
+            return GetFileSize(GetAssetPathSafe(data.cellDataAsset)) + GetFileSize(GetAssetPathSafe(data.cellOptionalDataAsset));
         }
 
         /// <summary>
