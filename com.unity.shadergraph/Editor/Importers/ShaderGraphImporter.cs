@@ -146,7 +146,7 @@ Shader ""Hidden/GraphErrorShader2""
                         primaryShader = shader;
 
                         // only the main shader gets a material created
-                        Material material = new Material(shader) { name = primaryShaderName + " Material" };
+                        Material material = new Material(shader) { name = "Material/" + primaryShaderName };
                         importContext.AddObjectToAsset("Material", material);
 
                         first = false;
