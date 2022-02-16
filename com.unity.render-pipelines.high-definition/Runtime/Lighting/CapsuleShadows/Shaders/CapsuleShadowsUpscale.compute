@@ -13,7 +13,7 @@
 TEXTURE2D_X(_CapsuleShadowsRenderOutput);
 RW_TEXTURE2D_X(float2, _CapsuleShadowsTexture);
 
-float sumAcross(float4 v)
+float SumElements(float4 v)
 {
     return v.x + v.y + v.z + v.w;
 }
@@ -44,20 +44,15 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float4 depthWeight = 1.f/max(abs(gatherLinearDepth - targetLinearDepth) - 8.f*pixelSizeAtTarget, + .01f);
 
     float4 combinedWeight = bilinearWeight*depthWeight;
-    combinedWeight /= sumAcross(combinedWeight);
+    combinedWeight /= SumElements(combinedWeight);
 
     float2 renderUV = halfResPositionSS*_CapsuleRenderTextureSize.zw;
     float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
     float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
 
-#if 0
-    float upscaledR = PackCapsuleVisibility(dot(combinedWeight, UnpackCapsuleVisibility(gatherR)));
-    float upscaledG = PackCapsuleVisibility(dot(combinedWeight, UnpackCapsuleVisibility(gatherG)));
-#else
+    // just blend packed values directly (blends in a gamma=2 space)
     float upscaledR = dot(combinedWeight, gatherR);
     float upscaledG = dot(combinedWeight, gatherG);
-#endif
 
     _CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(upscaledR, upscaledG);
-    //_CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = SAMPLE_TEXTURE2D_X_LOD(_CapsuleShadowsRenderOutput, s_point_clamp_sampler, renderUV, 0.f);
 }

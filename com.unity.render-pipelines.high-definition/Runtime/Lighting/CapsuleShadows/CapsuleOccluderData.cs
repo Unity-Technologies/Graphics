@@ -61,7 +61,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 axisDirWS;
         public float offset;
         public Vector3 indirectDirWS; // for CapsuleIndirectShadowMethod.DirectionAtCapsule
-        public uint lightLayers;
+        public uint packedData; // [23:16]=casterType, [15:8]=lightIndex, [7:0]=layerMask
+
+        void ReplacePackedData(uint value, uint mask)
+        {
+            packedData = (packedData & ~mask) | (value & mask);
+        }
+
+        internal uint casterType { set { ReplacePackedData(value << 16, 0xff0000); } }
+        internal uint lightIndex { set { ReplacePackedData(value << 8, 0xff00); } }
+        internal uint layerMask { set { ReplacePackedData(value, 0xff); } }
     }
 
     internal static class CapsuleOccluderExt
@@ -76,14 +85,14 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
             float radiusWS = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
 
-            return new CapsuleOccluderData { 
+            var occluderData = new CapsuleOccluderData { 
                 centerRWS = centerRWS,
                 radius = radiusWS,
                 axisDirWS = axisDirWS,
                 offset = offset,
-                indirectDirWS = Vector3.zero,
-                lightLayers = (uint)occluder.lightLayersMask,
             };
+            occluderData.layerMask = (uint)occluder.lightLayersMask;
+            return occluderData;
         }
     }
 }

@@ -308,7 +308,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
     if (_CapsuleDirectShadowCount != 0 && light.capsuleShadowRange != 0.f)
     {
-        if (_CapsuleDirectShadowInLightLoop)
+        if (_CapsuleShadowInLightLoop)
         {
             float cosTheta = light.capsuleShadowMaxCosTheta;
             float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);

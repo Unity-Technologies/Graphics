@@ -253,21 +253,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case CapsuleShadowPipeline.InLightLoop:
                     directCountAndFlags |= (uint)CapsuleShadowFlags.LightLoopBit;
-                    indirectCountAndFlags |= (uint)CapsuleShadowFlags.LightLoopBit;
                     break;
                 case CapsuleShadowPipeline.PrePassFullResolution:
                     break;
                 case CapsuleShadowPipeline.PrePassHalfResolution:
                     directCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
-                    indirectCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
                     break;
             }
 
             if (capsuleShadows.useSplitDepthRange.value)
-            {
                 directCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
-                indirectCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
-            }
 
             switch (capsuleShadows.indirectShadowMethod.value)
             {

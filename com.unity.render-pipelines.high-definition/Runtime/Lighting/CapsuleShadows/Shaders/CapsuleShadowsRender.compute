@@ -36,6 +36,11 @@ groupshared uint s_capsuleBits[2];
 #define PACK_UNPACK_POSITIVE_DEPTH(D)   (-(D))
 #endif
 
+float MaxElement(float2 v)
+{
+    return max(v.x, v.y);
+}
+
 float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 {
     return float3(posVS_XY * abs(linearDepth), linearDepth);
@@ -199,7 +204,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    bool isHalfRes = _CapsuleDirectShadowIsHalfRes;
+    bool isHalfRes = _CapsuleShadowIsHalfRes;
 
     // would like to load half res depth, but get shading errors when the depth doesn't match the normal
     float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
@@ -213,6 +218,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float linearDepth = invProj._m23/(invProj._m32 * positionCS.z + invProj._m33);
     float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
     float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+    float2 fullResPixelHalfExtentAtUnitDepth = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
 
     float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
     float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
@@ -278,10 +284,9 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         // revert back to a single depth range if we don't skip much space (for performance)
         float totalDepthRange = asfloat(depthMaxU1) - asfloat(depthMinU0);
         float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
-        float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
-        float tileSizeInPixels = TILE_SIZE * (isHalfRes ? 2 : 1);
-        float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*tileSizeInPixels*asfloat(depthMaxU1);
-        if (!_CapsuleSplitDepthRange || skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
+        float tileSizeAtUnitDepth = TILE_SIZE*(isHalfRes ? 2 : 1)*MaxElement(fullResPixelHalfExtentAtUnitDepth);
+        float tileSizeAtMaxDepth = tileSizeAtUnitDepth*asfloat(depthMaxU1);
+        if (!_CapsuleSplitDepthRange || skipDepthRange < tileSizeAtMaxDepth || skipDepthRange < .2f*totalDepthRange)
         {
             depthMaxU0 = depthMaxU1;
             depthMinU1 = depthMinU0;
@@ -314,10 +319,10 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         float cornerLinearDepth1 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMaxU[depthRangeIndex]));
         if (cornerIndex < 8)
         {
-            float tileSizeInPixels = TILE_SIZE * (isHalfRes ? 2 : 1);
+            float2 tileHalfExtentAtUnitDepth = TILE_SIZE*(isHalfRes ? 2 : 1)*fullResPixelHalfExtentAtUnitDepth;
             float2 cornerVS_XY
                 = positionVS_XY
-                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_CapsuleUpscaledSize.zw*tileSizeInPixels;
+                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*tileHalfExtentAtUnitDepth;
             float cornerLinearDepth = ((cornerIndex & 4) != 0 ? cornerLinearDepth1 : cornerLinearDepth0);
             float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - s_tileCenter[depthRangeIndex];
             float tileRadiusWS = sqrt(dot(offsetVS, offsetVS)) * absWorldFromViewScale;

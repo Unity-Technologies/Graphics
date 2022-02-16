@@ -46,7 +46,7 @@ struct CapsuleOccluderData
     float3 axisDirWS;
     float offset;
     float3 indirectDirWS;
-    uint lightLayers;
+    uint packedData;
 };
 
 

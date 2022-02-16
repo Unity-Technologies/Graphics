@@ -673,7 +673,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     if (_CapsuleIndirectShadowCount != 0)
     {
         float visibility = 1.f;
-        if (_CapsuleIndirectInLightLoop)
+        if (_CapsuleShadowInLightLoop)
         {
             uint method = _CapsuleIndirectShadowMethod;
             if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
