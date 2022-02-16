@@ -123,9 +123,16 @@ namespace UnityEditor.ShaderFoundry
             if (boolKeywordAttribute != null)
                 return HandleBoolKeywordType(context, boolKeywordAttribute, result);
 
+            string defaultValue = "0";
+            // Force the uniform type to be an integer. There seems to be a bug with the SRP batcher where using a boolean doesn't work correctly.
+            ShaderType uniformType = context.Container._int;
             var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
             context.ExtraAttributes = new List<string> { "[Toggle]" };
-            BuildSimpleProperty(context, displayType, "0", result);
+
+            UniformReadingData.BuildSimple(context, result);
+            UniformDeclarationData.BuildSimple(uniformType, context.UniformName, context.DataSource, result);
+            MaterialPropertyDeclarationData.BuildSimple(context, displayType, defaultValue, result);
+
             return true;
         }
 

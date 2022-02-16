@@ -73,7 +73,23 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator BoolProperty_MaterialColorSet_IsExpectedColor()
+        public IEnumerator BoolProperty_MaterialSetBoolFalse_IsExpectedColor()
+        {
+            var inputValue = 0;
+            var expectedColor = new Color(inputValue, 0, 0, 0);
+
+            var container = CreateContainer();
+
+            var propBuilder = BuildBoolWithNameOverrides("1");
+            var block = propBuilder.Build(container);
+
+            SetupMaterialDelegate materialSetupDelegate = m => { m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue); };
+            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator BoolProperty_MaterialSetBoolTrue_IsExpectedColor()
         {
             var inputValue = 1;
             var expectedColor = new Color(inputValue, 0, 0, 0);

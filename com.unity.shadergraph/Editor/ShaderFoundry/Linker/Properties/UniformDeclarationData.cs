@@ -10,14 +10,19 @@ namespace UnityEditor.ShaderFoundry
 
         internal static UniformDeclarationData BuildSimple(FieldPropertyContext context, FieldPropertyData resultProperty)
         {
-            if (context.DataSource == UniformDataSource.None)
+            return BuildSimple(context.FieldType, context.UniformName, context.DataSource, resultProperty);
+        }
+
+        internal static UniformDeclarationData BuildSimple(ShaderType uniformType, string uniformName, UniformDataSource dataSource, FieldPropertyData resultProperty)
+        {
+            if (dataSource == UniformDataSource.None)
                 return null;
 
             var uniformInfo = new UniformDeclarationData
             {
-                Type = context.FieldType,
-                Name = context.UniformName,
-                dataSource = context.DataSource
+                Type = uniformType,
+                Name = uniformName,
+                dataSource = dataSource,
             };
             resultProperty.UniformDeclarations.Add(uniformInfo);
             return uniformInfo;
