@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.UI
 
         public static bool CloseIfNotLast(VFXView vfxView)
         {
-            var noAssetWindows = s_VFXWindows.Where(x => x.graphView.controller?.graph == null).ToArray();
+            var noAssetWindows = s_VFXWindows.Where(x => x.graphView?.controller?.graph == null).ToArray();
             if (noAssetWindows.Length > 1)
             {
                 var window = noAssetWindows.Single(x => x.graphView == vfxView);

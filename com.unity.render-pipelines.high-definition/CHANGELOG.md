@@ -133,6 +133,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
 - Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
 - Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
 ## [14.0.0] - 2021-11-17
 

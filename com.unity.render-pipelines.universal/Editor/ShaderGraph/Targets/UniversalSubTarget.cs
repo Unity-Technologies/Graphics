@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public virtual string identifier => GetType().Name;
-        public virtual ScriptableObject GetMetadataObject()
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graphData)
         {
             var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
             urpMetadata.shaderID = shaderID;
