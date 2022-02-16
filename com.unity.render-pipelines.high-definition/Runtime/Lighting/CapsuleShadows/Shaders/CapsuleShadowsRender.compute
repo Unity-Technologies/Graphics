@@ -74,9 +74,11 @@ bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint capsuleIndex, f
     return intersectsTile;
 }
 
+#define INVALID_NORMAL_UINT     0xffffffffU
+
 void CapsuleShadowLoop(
+    uint2 fullResCoord,
     float3 positionWS,
-    float3 normalWS,
     uint flatThreadIndex,
     bool useSecondDepthRange,
     inout uint processedCapsuleCounter,
@@ -85,6 +87,7 @@ void CapsuleShadowLoop(
 {
     float3 tileCenterWS0 = s_tileCenter[0];
     float tileRadiusWS0 = asfloat(s_tileRadiusU[0]);
+    float3 normalWS = asfloat(uint3(fullResCoord, INVALID_NORMAL_UINT));
 
     // loop over capsules in batches
     uint capsuleCount = _CapsuleDirectShadowCount + _CapsuleIndirectShadowCount;
@@ -115,6 +118,15 @@ void CapsuleShadowLoop(
 
         // loop over set bits to do the shading
         uint remainingBits = s_capsuleBits[0];
+        if (asuint(normalWS.z) == INVALID_NORMAL_UINT && (remainingBits != 0 || s_capsuleBits[1] != 0))
+        {
+            uint2 coord = asuint(normalWS.yz);
+            float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, coord);
+
+            NormalData normalData;
+            DecodeFromNormalBuffer(normalBufferData, normalData);
+            normalWS = normalData.normalWS;
+        }
         bool secondPass = false;
         for (;;)
         {
@@ -193,12 +205,6 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord + (isHalfRes ? _FirstDepthMipOffset : 0)).x;
     bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
 
-    uint2 normalCoord = pixelCoord;
-    if (isHalfRes) {
-        normalCoord = normalCoord*2 + ((asuint(deviceDepth) >> uint2(0, 1)) & 1);
-    }
-    float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, normalCoord);
-
     float2 upscaledPosNDC = GetPositionNDC(pixelCoord, isHalfRes);
     float4 positionCS = ComputeClipSpacePosition(upscaledPosNDC, deviceDepth);
 
@@ -211,12 +217,13 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float2 positionVS_XY = viewFromClipScale*positionCS.xy + viewFromClipOffset;
     float3 positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
 
+    uint2 fullResCoord = pixelCoord;
+    if (isHalfRes) {
+        fullResCoord = fullResCoord*2 + ((asuint(deviceDepth) >> uint2(0, 1)) & 1);
+    }
+
     // TODO: handle scaled view matrix?
     float absWorldFromViewScale = 1.f;
-
-    NormalData normalData;
-    DecodeFromNormalBuffer(normalBufferData, normalData);
-    float3 normalWS = normalData.normalWS;
 
     if (flatThreadIndex < DEPTH_RANGE_COUNT)
     {
@@ -332,9 +339,9 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 #endif
     [branch]
     if (useSecondDepthRange)
-        CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, true, processedCapsuleCounter, directVisibility, indirectVisibility);
+        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, true, processedCapsuleCounter, directVisibility, indirectVisibility);
     else
-        CapsuleShadowLoop(positionWS, normalWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
+        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
 
     // write results
     _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(PackCapsuleVisibility(directVisibility), PackCapsuleVisibility(indirectVisibility));
