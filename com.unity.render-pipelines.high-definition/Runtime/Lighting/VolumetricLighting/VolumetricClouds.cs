@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [AdditionalProperty]
         [Tooltip("Controls the intensity of the wind-based altitude distortion of the clouds.")]
-        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.5f, -1.0f, 1.0f);
+        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.25f, -1.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.

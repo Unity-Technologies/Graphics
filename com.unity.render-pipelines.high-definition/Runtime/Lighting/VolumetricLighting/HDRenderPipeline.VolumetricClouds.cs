@@ -9,10 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
-        Texture2D m_SparsePresetMap;
-        Texture2D m_CloudyPresetMap;
-        Texture2D m_OvercastPresetMap;
-        Texture2D m_StormyPresetMap;
+        Texture2D m_CustomPresetMap;
         Texture2D m_CustomLutPresetMap;
         const int k_CustomLutMapResolution = 32;
         readonly Color[] m_CustomLutColorArray = new Color[k_CustomLutMapResolution];
@@ -106,22 +103,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void AllocatePresetTextures()
         {
-            // Build our default cloud map
-            m_SparsePresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Sparse Texture" };
-            m_SparsePresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.0625f, 1.0f));
-            m_SparsePresetMap.Apply();
-
-            m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
-            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.25f, 1.0f));
-            m_CloudyPresetMap.Apply();
-
-            m_OvercastPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Overcast Texture" };
-            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.25f, 1.0f));
-            m_OvercastPresetMap.Apply();
-
-            m_StormyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
-            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.85f, 1.0f));
-            m_StormyPresetMap.Apply();
+            m_CustomPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloud Map Texture" };
+            m_CustomPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.25f, 1.0f));
+            m_CustomPresetMap.Apply();
         }
 
         float Square(float x)
@@ -276,26 +260,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricClouds(hdCamera, in settings) && !settings.localClouds.value;
         }
 
-        Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
+        Texture2D GetPresetCloudMapTexture()
         {
             // Textures may become null if a new scene was loaded in the editor (and maybe other reasons).
-            if (m_SparsePresetMap == null || Object.ReferenceEquals(m_SparsePresetMap, null))
+            if (m_CustomPresetMap == null || Object.ReferenceEquals(m_CustomPresetMap, null))
                 AllocatePresetTextures();
-
-            switch (preset)
-            {
-                case VolumetricClouds.CloudPresets.Sparse:
-                    return m_SparsePresetMap;
-                case VolumetricClouds.CloudPresets.Cloudy:
-                    return m_CloudyPresetMap;
-                case VolumetricClouds.CloudPresets.Overcast:
-                    return m_OvercastPresetMap;
-                case VolumetricClouds.CloudPresets.Stormy:
-                    return m_StormyPresetMap;
-                case VolumetricClouds.CloudPresets.Custom:
-                    return m_CloudyPresetMap;
-            }
-            return Texture2D.blackTexture;
+            return m_CustomPresetMap;
         }
 
         internal enum TVolumetricCloudsCameraType
@@ -328,19 +298,12 @@ namespace UnityEngine.Rendering.HighDefinition
         CloudModelData GetCloudModelData(VolumetricClouds settings)
         {
             CloudModelData cloudModelData;
-            if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPreset.value != VolumetricClouds.CloudPresets.Custom)
-            {
-                GetPresetCloudMapValues(settings.cloudPreset.value, out cloudModelData);
-            }
-            else
-            {
-                cloudModelData.densityMultiplier = settings.densityMultiplier.value;
-                cloudModelData.shapeFactor = settings.shapeFactor.value;
-                cloudModelData.shapeScale = settings.shapeScale.value;
-                cloudModelData.erosionFactor = settings.erosionFactor.value;
-                cloudModelData.erosionScale = settings.erosionScale.value;
-                cloudModelData.erosionNoise = settings.erosionNoiseType.value;
-            }
+            cloudModelData.densityMultiplier = settings.densityMultiplier.value;
+            cloudModelData.shapeFactor = settings.shapeFactor.value;
+            cloudModelData.shapeScale = settings.shapeScale.value;
+            cloudModelData.erosionFactor = settings.erosionFactor.value;
+            cloudModelData.erosionScale = settings.erosionScale.value;
+            cloudModelData.erosionNoise = settings.erosionNoiseType.value;
             return cloudModelData;
         }
 
@@ -559,14 +522,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Static textures
             if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple)
             {
-                commonData.cloudMapTexture = GetPresetCloudMapTexture(settings.cloudPreset.value);
-                if (settings.cloudPreset.value == VolumetricClouds.CloudPresets.Custom)
-                {
-                    PrepareCustomLutData(settings);
-                    commonData.cloudLutTexture = m_CustomLutPresetMap;
-                }
-                else
-                    commonData.cloudLutTexture = m_Asset.renderPipelineResources.textures.cloudLutRainAO;
+                commonData.cloudMapTexture = GetPresetCloudMapTexture();
+                PrepareCustomLutData(settings);
+                commonData.cloudLutTexture = m_CustomLutPresetMap;
             }
             else if (settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced)
             {

@@ -167,6 +167,211 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
         static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
+        void AdvancedControlMode()
+        {
+            // Cumulus
+            PropertyField(m_CumulusMap);
+            PropertyField(m_CumulusMapMultiplier);
+
+            // Altostratus
+            PropertyField(m_AltoStratusMap);
+            PropertyField(m_AltoStratusMapMultiplier);
+
+            // Cumulonimbus
+            PropertyField(m_CumulonimbusMap);
+            PropertyField(m_CumulonimbusMapMultiplier);
+
+            // Rain
+            PropertyField(m_RainMap);
+
+            // Properties of the cloud map
+            PropertyField(m_CloudMapResolution);
+            PropertyField(m_CloudTiling, k_CloudMapTilingText);
+            PropertyField(m_CloudOffset, k_CloudMapOffsetText);
+
+            // Properties of the clouds
+            PropertyField(m_DensityMultiplier);
+            PropertyField(m_ShapeFactor);
+            PropertyField(m_ShapeScale);
+            PropertyField(m_ErosionFactor);
+            PropertyField(m_ErosionScale);
+            PropertyField(m_ErosionNoiseType);
+
+            // Layer properties
+            PropertyField(m_LowestCloudAltitude);
+            PropertyField(m_CloudThickness);
+        }
+
+        void ManualControlMode()
+        {
+            // Properties of the cloud map
+            PropertyField(m_CloudMap);
+            PropertyField(m_CloudLut);
+            PropertyField(m_CloudTiling, k_CloudMapTilingText);
+            PropertyField(m_CloudOffset, k_CloudMapOffsetText);
+
+            // Properties of the clouds
+            PropertyField(m_DensityMultiplier);
+            PropertyField(m_ShapeFactor);
+            PropertyField(m_ShapeScale);
+            PropertyField(m_ErosionFactor);
+            PropertyField(m_ErosionScale);
+            PropertyField(m_ErosionNoiseType);
+
+            // Layer properties
+            PropertyField(m_LowestCloudAltitude);
+            PropertyField(m_CloudThickness);
+        }
+
+        void LoadPresetValues(VolumetricClouds.CloudPresets preset)
+        {
+            switch (preset)
+            {
+                case VolumetricClouds.CloudPresets.Sparse:
+                {
+                    m_DensityMultiplier.value.floatValue = 0.4f;
+                    m_ShapeFactor.value.floatValue = 0.95f;
+                    m_ShapeScale.value.floatValue = 5.0f;
+                    m_ErosionFactor.value.floatValue = 0.8f;
+                    m_ErosionScale.value.floatValue = 107.0f;
+
+                    // Curves
+                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.75f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.5f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    m_LowestCloudAltitude.value.floatValue = 3000.0f;
+                    m_CloudThickness.value.floatValue = 1000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Cloudy:
+                {
+                    m_DensityMultiplier.value.floatValue = 0.4f;
+                    m_ShapeFactor.value.floatValue = 0.9f;
+                    m_ShapeScale.value.floatValue = 5.0f;
+                    m_ErosionFactor.value.floatValue = 0.8f;
+                    m_ErosionScale.value.floatValue = 107.0f;
+
+                    // Curves
+                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f));
+                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    m_LowestCloudAltitude.value.floatValue = 1200.0f;
+                    m_CloudThickness.value.floatValue = 2000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Overcast:
+                {
+                    m_DensityMultiplier.value.floatValue = 0.3f;
+                    m_ShapeFactor.value.floatValue = 0.5f;
+                    m_ShapeScale.value.floatValue = 5.0f;
+                    m_ErosionFactor.value.floatValue = 0.8f;
+                    m_ErosionScale.value.floatValue = 107.0f;
+
+                    // Curves
+                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.9f, 0.0f), new Keyframe(1.0f, 0.0f));
+                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    m_LowestCloudAltitude.value.floatValue = 1500.0f;
+                    m_CloudThickness.value.floatValue = 2500.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Stormy:
+                {
+                    m_DensityMultiplier.value.floatValue = 0.35f;
+                    m_ShapeFactor.value.floatValue = 0.85f;
+                    m_ShapeScale.value.floatValue = 5.0f;
+                    m_ErosionFactor.value.floatValue = 0.749f;
+                    m_ErosionScale.value.floatValue = 107.0f;
+
+                    // Curves
+                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.037f, 1.0f), new Keyframe(0.6f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.05f, 0.8f), new Keyframe(0.2438f, 0.9498f), new Keyframe(0.5f, 1.0f), new Keyframe(0.93f, 0.9268f), new Keyframe(1.0f, 1.0f));
+                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.1f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    m_LowestCloudAltitude.value.floatValue = 1000.0f;
+                    m_CloudThickness.value.floatValue = 5000.0f;
+                }
+                break;
+                default:
+                    break;
+            }
+        }
+
+        void SimpleControlMode()
+        {
+            // Start checking for changes
+            EditorGUI.BeginChangeCheck();
+
+            // Display the preset list
+            PropertyField(m_CloudPreset);
+            VolumetricClouds.CloudPresets controlPreset = (VolumetricClouds.CloudPresets)m_CloudPreset.value.enumValueIndex;
+
+            // Has the cloud preset property changed?
+            if (EditorGUI.EndChangeCheck())
+            {
+                // If it was changed to anything but custom, this means we need to load the values into the volume
+                if (controlPreset != VolumetricClouds.CloudPresets.Custom)
+                {
+                    LoadPresetValues(controlPreset);
+                }
+            }
+
+            // If we are in simple mode and the preset button is enabled, we need to enable all the
+            // subsidiary properties. This is different from the quality settings, all the properties need to be forced
+            // If a preset is selected and active.
+            m_DensityMultiplier.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_CustomDensityCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_ShapeFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_ShapeScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_ErosionFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_ErosionScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_ErosionNoiseType.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_CustomErosionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_CustomAmbientOcclusionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_LowestCloudAltitude.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            m_CloudThickness.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+
+            // Start checking for changes
+            EditorGUI.BeginChangeCheck();
+
+            // We can only touch the properties if the preset is overridden on this volume
+            using (new EditorGUI.DisabledScope(!(m_CloudPreset.overrideState.boolValue)))
+            {
+                using (new IndentLevelScope())
+                {
+                    PropertyField(m_DensityMultiplier);
+                    PropertyField(m_CustomDensityCurve);
+                    PropertyField(m_ShapeFactor);
+                    PropertyField(m_ShapeScale);
+                    PropertyField(m_ErosionFactor);
+                    PropertyField(m_ErosionScale);
+                    PropertyField(m_ErosionNoiseType);
+                    PropertyField(m_CustomErosionCurve);
+                    PropertyField(m_CustomAmbientOcclusionCurve);
+
+                    // Layer properties
+                    PropertyField(m_LowestCloudAltitude);
+                    PropertyField(m_CloudThickness);
+                }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Has the any of the properties have changed and we were not in the custom mode, it means we need to switch to the custom mode
+                if (controlPreset != VolumetricClouds.CloudPresets.Custom)
+                {
+                    m_CloudPreset.value.enumValueIndex = (int)VolumetricClouds.CloudPresets.Custom;
+                }
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             // This whole editor has nothing to display if the SSR feature is not supported
@@ -178,7 +383,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDRenderPipelineUI.Expandable.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
                 return;
             }
-
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
@@ -193,64 +397,20 @@ namespace UnityEditor.Rendering.HighDefinition
             bool hasCloudMap = true;
             using (new IndentLevelScope())
             {
-                bool needsIntendation = false;
                 if (controlMode == VolumetricClouds.CloudControl.Advanced)
-                {
-                    PropertyField(m_CumulusMap);
-                    PropertyField(m_CumulusMapMultiplier);
-                    PropertyField(m_AltoStratusMap);
-                    PropertyField(m_AltoStratusMapMultiplier);
-                    PropertyField(m_CumulonimbusMap);
-                    PropertyField(m_CumulonimbusMapMultiplier);
-                    PropertyField(m_RainMap);
-                    PropertyField(m_CloudMapResolution);
-                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
-                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
-                }
+                    AdvancedControlMode();
                 else if (controlMode == VolumetricClouds.CloudControl.Manual)
-                {
-                    PropertyField(m_CloudMap);
-                    PropertyField(m_CloudLut);
-                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
-                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
-                }
+                    ManualControlMode();
                 else
                 {
                     hasCloudMap = false;
-                    needsIntendation = true;
-                    PropertyField(m_CloudPreset);
+                    SimpleControlMode();
                 }
-
-                VolumetricClouds.CloudPresets controlPreset = (VolumetricClouds.CloudPresets)m_CloudPreset.value.enumValueIndex;
-                if ((controlMode != VolumetricClouds.CloudControl.Simple) || controlMode == VolumetricClouds.CloudControl.Simple && controlPreset == VolumetricClouds.CloudPresets.Custom)
-                {
-                    using (new IndentLevelScope(needsIntendation ? 16 : 0))
-                    {
-                        PropertyField(m_DensityMultiplier);
-                        if (controlMode == VolumetricClouds.CloudControl.Simple)
-                        {
-                            PropertyField(m_CustomDensityCurve);
-                        }
-                        PropertyField(m_ShapeFactor);
-                        PropertyField(m_ShapeScale);
-                        PropertyField(m_ShapeOffset);
-                        PropertyField(m_ErosionFactor);
-                        PropertyField(m_ErosionScale);
-                        PropertyField(m_ErosionNoiseType);
-                        if (controlMode == VolumetricClouds.CloudControl.Simple)
-                        {
-                            PropertyField(m_CustomErosionCurve);
-                            PropertyField(m_CustomAmbientOcclusionCurve);
-                        }
-                    }
-                }
-                else
-                    PropertyField(m_ShapeOffset);
             }
 
+            // Additional properties
+            PropertyField(m_ShapeOffset);
             PropertyField(m_EarthCurvature);
-            PropertyField(m_LowestCloudAltitude);
-            PropertyField(m_CloudThickness);
 
             DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed, k_GlobalHorizontalWindSpeedText);
