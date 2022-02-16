@@ -16,48 +16,59 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
-        private Camera m_SelectedCamera;
-
         /// <summary>Current camera to debug.</summary>
         public Camera selectedCamera
         {
-            get => m_SelectedCamera ?? cameras.FirstOrDefault();
-            set => m_SelectedCamera = value;
+            get
+            {
+                var c = cameras.ToList();
+
+                if (c.Count == 0)
+                    return null;
+
+                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex >= m_Cameras.Count)
+                    return c.FirstOrDefault();
+
+                return c[m_SelectedCameraIndex];
+            }
         }
+
+        protected int m_SelectedCameraIndex = -1;
 
         /// <summary>Selected camera index.</summary>
         public int selectedCameraIndex
         {
-            get
-            {
-                var index = -1;
-                var c = cameras.ToArray();
-                if (m_SelectedCamera != null && c.Any())
-                    index = Array.IndexOf(c, m_SelectedCamera);
-                return index;
-            }
-            set
-            {
-                var c = cameras.ToArray();
-                m_SelectedCamera = c.Any() ? c[Mathf.Clamp(value, 0, c.Length - 1)] : null;
-            }
+            get => m_SelectedCameraIndex;
+            set => m_SelectedCameraIndex = value;
         }
+
+        private Camera[] m_CamerasArray;
+        private List<Camera> m_Cameras = new List<Camera>();
 
         /// <summary>Returns the collection of registered cameras.</summary>
         public IEnumerable<Camera> cameras
         {
             get
             {
+                m_Cameras.Clear();
 
 #if UNITY_EDITOR
                 if (SceneView.lastActiveSceneView != null)
                 {
                     var sceneCamera = SceneView.lastActiveSceneView.camera;
                     if (sceneCamera != null)
-                        yield return sceneCamera;
+                        m_Cameras.Add(sceneCamera);
                 }
 #endif
-                foreach (var camera in Camera.allCameras)
+
+                if (m_CamerasArray == null || m_CamerasArray.Length != Camera.allCamerasCount)
+                {
+                    m_CamerasArray = new Camera[Camera.allCamerasCount];
+                }
+
+                Camera.GetAllCameras(m_CamerasArray);
+
+                foreach (var camera in m_CamerasArray)
                 {
                     if (camera == null)
                         continue;
@@ -65,10 +76,11 @@ namespace UnityEngine.Rendering
                     if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
                     {
                         if (camera.TryGetComponent<T>(out T additionalData))
-                            yield return camera;
+                           m_Cameras.Add(camera);
                     }
-
                 }
+
+                return m_Cameras;
             }
         }
 

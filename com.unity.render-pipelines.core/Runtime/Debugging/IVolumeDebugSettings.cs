@@ -19,8 +19,6 @@ namespace UnityEngine.Rendering
         /// <summary>Returns the collection of registered cameras.</summary>
         IEnumerable<Camera> cameras { get; }
 
-       protected int m_SelectedCameraIndex = 0;
-       
         /// <summary>Selected camera index.</summary>
         int selectedCameraIndex { get; set; }
 
