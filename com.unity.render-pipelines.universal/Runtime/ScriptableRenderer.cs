@@ -1404,7 +1404,6 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.xrUniversal.canMarkLateLatch = true;
 
                 cameraData.xr.StartSinglePass(cmd);
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1417,7 +1416,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cameraData.xr.StopSinglePass(cmd);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }

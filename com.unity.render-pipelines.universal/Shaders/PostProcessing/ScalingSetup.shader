@@ -2,7 +2,6 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 {
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_local_fragment _ _GAMMA_20
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

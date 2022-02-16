@@ -5,7 +5,6 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
         #pragma exclude_renderers gles
 
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
