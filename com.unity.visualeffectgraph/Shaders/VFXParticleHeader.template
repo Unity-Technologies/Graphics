@@ -32,12 +32,24 @@ StructuredBuffer<uint> stripDataBuffer;
 #if VFX_FEATURE_MOTION_VECTORS
 ByteAddressBuffer elementToVFXBufferPrevious;
 
-#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-#define VFX_FEATURE_MOTION_VECTORS_INTERPOLATION noperspective
-#else
-#define VFX_FEATURE_MOTION_VECTORS_INTERPOLATION
-#endif
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
 
+#define VFX_DECLARE_MOTION_VECTORS_STORAGE(coordA, coordB)\
+noperspective float4 cPosPreviousAndNonJiterred : TEXCOORD##coordA;
+
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS cPosPreviousAndNonJiterred.xy
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER cPosPreviousAndNonJiterred.zw
+
+#else
+
+#define VFX_DECLARE_MOTION_VECTORS_STORAGE(coordA, coordB)\
+float4 cPosPrevious : TEXCOORD##coordA;\
+float4 cPosNonJiterred : TEXCOORD##coordB;
+
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS cPosPrevious
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER cPosNonJiterred
+
+#endif
 #endif
 
 CBUFFER_START(outputParams)
