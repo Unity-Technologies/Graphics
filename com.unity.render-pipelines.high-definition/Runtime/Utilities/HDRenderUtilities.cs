@@ -373,7 +373,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
             rt.Create();
             return rt;
@@ -392,7 +393,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
             rt.Create();
             return rt;
