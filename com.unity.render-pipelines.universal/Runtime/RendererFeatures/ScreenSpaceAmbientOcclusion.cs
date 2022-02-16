@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.Universal
                         // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
                         CameraData cameraData = renderingData.cameraData;
                         bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
-                        bool yflip = !isGameViewFinalTarget;
+                        bool yflip = !isCameraColorFinalTarget;
                         float flipSign = yflip ? -1.0f : 1.0f;
                         scaleBiasRt = (flipSign < 0.0f)
                             ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
