@@ -16,21 +16,15 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 1
+  gridResolution:
+    m_OverrideState: 0
+    m_Value: 512
   gridSize:
     m_OverrideState: 0
     m_Value: 1000
   numLevelOfDetails:
     m_OverrideState: 0
     m_Value: 2
-  maxTessellationFactor:
-    m_OverrideState: 0
-    m_Value: 10
-  tessellationFactorFadeStart:
-    m_OverrideState: 0
-    m_Value: 150
-  tessellationFactorFadeRange:
-    m_OverrideState: 0
-    m_Value: 1850
   ambientProbeDimmer:
     m_OverrideState: 0
     m_Value: 1
@@ -128,7 +122,7 @@ MonoBehaviour:
     m_Value: 0.15
   m_SampleCount:
     m_OverrideState: 0
-    m_Value: 10
+    m_Value: 8
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -560,10 +554,10 @@ MonoBehaviour:
     m_Value: 0
   m_MaximumRadiusInPixels:
     m_OverrideState: 0
-    m_Value: 40
+    m_Value: 32
   m_BilateralUpsample:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
   m_DirectionCount:
     m_OverrideState: 0
     m_Value: 2
