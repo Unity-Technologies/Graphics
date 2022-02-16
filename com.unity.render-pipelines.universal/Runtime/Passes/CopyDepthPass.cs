@@ -136,49 +136,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
 
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
-                if (renderingData.cameraData.xr.enabled)
-                {
-                    // XR flip logic is not the same as non-XR case because XR uses draw procedure
-                    // and draw procedure does not need to take projection matrix yflip into account
-                    // We y-flip if
-                    // 1) we are bliting from render texture to back buffer and
-                    // 2) renderTexture starts UV at top
-                    // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
-                    bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                    float flipSign = (yflip) ? -1.0f : 1.0f;
-                    Vector4 scaleBiasRt = (flipSign < 0.0f)
-                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
-                }
-                else
-#endif
-                {
-                    // Blit has logic to flip projection matrix when rendering to render texture.
-                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // If you replace this Blit with a Draw* that sets projection matrix double check
-                    // to also update shader.
-                    // scaleBias.x = flipSign
-                    // scaleBias.y = scale
-                    // scaleBias.z = bias
-                    // scaleBias.w = unused
-                    // In game view final target acts as back buffer were target is not flipped
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
-                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
-                    float flipSign = yflip ? -1.0f : 1.0f;
-                    Vector4 scaleBiasRt = (flipSign < 0.0f)
-                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-                }
+                Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                // We y-flip if
+                // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
+                // 2) renderTexture starts UV at top
+                //bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
+                bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID;
+                bool yflip = !cameraData.IsCameraProjectionMatrixFlipped() && !isGameViewFinalTarget && SystemInfo.graphicsUVStartsAtTop;
+                Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, 1) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                Blitter.BlitTexture(cmd, source, scaleBias, m_CopyDepthMaterial, 0);
             }
         }
 
