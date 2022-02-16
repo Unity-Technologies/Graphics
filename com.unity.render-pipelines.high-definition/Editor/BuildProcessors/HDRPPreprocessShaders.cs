@@ -384,13 +384,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
                         Debug.LogException(error);
                 }
-
-                if (inputData is List<ShaderCompilerData> inputDataList)
-                    inputDataList.RemoveRange(inputShaderVariantCount,
-                        inputDataList.Count - inputShaderVariantCount);
-                else
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
             }
 
             ShaderStripping.reporter.OnShaderProcessed(shader, snippet, (uint)preStrippingCount, (uint)inputData.Count, stripTimeMs);

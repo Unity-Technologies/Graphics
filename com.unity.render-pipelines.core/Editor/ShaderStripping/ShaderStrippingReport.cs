@@ -146,8 +146,9 @@ namespace UnityEditor.Rendering
     class ShaderStrippingReportEmpty : IShaderStrippingReport
     {
         public void OnShaderProcessed<TShader, TShaderVariant>([DisallowNull] TShader shader, TShaderVariant shaderVariant, uint variantsIn, uint variantsOut, double stripTimeMs)
-            where TShader : UnityEngine.Object {}
-        public void DumpReport() {}
+            where TShader : UnityEngine.Object
+        { }
+        public void DumpReport() { }
     }
 
     /// <summary>
