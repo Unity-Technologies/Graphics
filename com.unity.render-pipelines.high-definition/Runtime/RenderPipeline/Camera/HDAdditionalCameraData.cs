@@ -336,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
-        [Obsolete("Physical camera properties have been migrated to Camera.")]
+        [Obsolete("Physical camera properties have been migrated to Camera.", false)]
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 
         /// <summary>Vertical flip mode.</summary>
