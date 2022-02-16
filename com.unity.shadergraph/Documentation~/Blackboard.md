@@ -1,15 +1,15 @@
 # Blackboard
 
 ## Description
-You can use the Blackboard to define, order, and categorize the [Properties](Property-Types) and [Keywords](Keywords) in a graph. From the Blackboard, you can also edit the path for the selected Shader Graph Asset or Sub Graph.
+You can use the Blackboard to define, order, and categorize the [Properties](Property-Types.md) and [Keywords](Keywords.md) in a graph. From the Blackboard, you can also edit the path for the selected Shader Graph Asset or Sub Graph.
 
 ![image](images/blackboardcategories1.png)
 
 ## Accessing the Blackboard
-The Blackboard is visible by default, and you cannot drag it off the graph and lose it. However, you are able to position it anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
+The Blackboard is visible by default, and you cannot drag it off the graph and lose it. However, you are able to position it anywhere in the [Shader Graph Window](Shader-Graph-Window.md). It always maintains the same distance from the nearest corner, even if you resize the window.
 
 ## Adding properties and keywords to the Blackboard
-To create a new property or keyword, click the **Add (+)** button on the Blackboard's title bar and select a type. For a full list of property types, see [Property Types](Property-Types).
+To create a new property or keyword, click the **Add (+)** button on the Blackboard's title bar and select a type. For a full list of property types, see [Property Types](Property-Types.md).
 
 ## Editing properties and keywords
 Select a property or keyword in the Blackboard or graph to modify its settings in the Node Settings Menu.
@@ -20,7 +20,7 @@ Select a property or keyword in the Blackboard or graph to modify its settings i
 | Name      |  The property's display name. The Editor strips quotation marks from display names and replaces them with underscores. Rename an item via the Blackboard by double-clicking on its name. |
 | Reference | The name that Shader Graph uses internally for this property.  Although the Editor populates this value by default, you can modify it. To revert to the original reference name, right-click on the word **Reference** (not the entry field) and select **Reset Reference** in the context menu. If the Reference Name contains any characters that HLSL does not support, the Editor replaces those characters with underscores. |
 | Default   | The default value of this property in any Material based on this Shader Graph. For example, if you have a Shader Graph for grass and expose the grass color as a property, you might set the default to Green.|
-| Precision | Set the precision mode for the property. See [Precision Modes](Precision-Modes). |
+| Precision | Set the precision mode for the property. See [Precision Modes](Precision-Modes.md). |
 | Exposed   | Enable this setting to make the property available for you to edit via the C# API. Enabled by default. |
 
 ## Modifying and selecting keywords and properties

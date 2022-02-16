@@ -183,7 +183,7 @@ void ShaderDebugPrint(uint tag, float3 value) PRINT3(ValueTypeFloat3, asuint(val
 void ShaderDebugPrint(uint tag, uint4  value) PRINT4(ValueTypeUint4,  value,         ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag, int4   value) PRINT4(ValueTypeInt4,   asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag, float4 value) PRINT4(ValueTypeFloat4, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(bool   value) PRINT1(ValueTypeUint,   uint(value),   0, ShaderDebugNoTag)
+void ShaderDebugPrint(bool   value) PRINT1(ValueTypeBool,   uint(value),   0, ShaderDebugNoTag)
 void ShaderDebugPrint(uint   value) PRINT1(ValueTypeUint,   value,         0, ShaderDebugNoTag)
 void ShaderDebugPrint(int    value) PRINT1(ValueTypeInt,    asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float  value) PRINT1(ValueTypeFloat,  asuint(value), 0, ShaderDebugNoTag)
@@ -217,8 +217,8 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
 // Print value for pixel under mouse cursor
 // pixelPos, screen pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
 //           NOTE: Any render target scaling (or offset) is NOT taken into account as that can be arbitrary. You must correct scaling manually.
-//                 (e.g. URP backbuffer correction: fragment.xy * _ScreenParams.xy / _ScaledScreenParams.xy)
-//           TIP: Light the fragment at mouse coords to debug scaling/offset.
+//                 (For example: fragment.xy * _ScreenParams.xy / _ScaledScreenParams.xy or similar)
+//           TIP: Color the pixel (or a box) at mouse coords to debug scaling/offset.
 // (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
 // value, to be printed
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, bool   value) PRINT_MOUSE_WITH_TAG(value, tag);

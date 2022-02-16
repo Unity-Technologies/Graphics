@@ -4,7 +4,7 @@
 
 #ifndef PROBEPLACEMENT_CS_HLSL
 #define PROBEPLACEMENT_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.ProbePlacement+GPUProbeVolumeOBB
+// Generated from UnityEngine.Rendering.ProbePlacement+GPUProbeVolumeOBB
 // PackingRules = Exact
 struct GPUProbeVolumeOBB
 {
@@ -15,7 +15,6 @@ struct GPUProbeVolumeOBB
     int minControllerSubdivLevel;
     int maxControllerSubdivLevel;
     int maxSubdivLevelInsideVolume;
-    float geometryDistanceOffset;
 };
 
 

@@ -123,7 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "MSAA Within Forward", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
         MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAAMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [Obsolete]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
@@ -158,6 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
         [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
         Water = 99,
+        /// <summary>When enabled, HDRP accounts for asymmetry in the projection matrix when evaluating the view direction based on pixel coordinates.</summary>
+        [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 107, tooltip: "When enabled HDRP will account for asymmetric projection when evaluating the view direction based on pixel coordinates.")]
+        AsymmetricProjection = 78,
+        /// <summary>When enabled, HDRP evaluates post effects using transformed screen space coordinates, this allows post effects to be compatible with Cluster Display for example.</summary>
+        [FrameSettingsField(0, displayedName: "Screen Coordinates Override", customOrderInGroup: 108, tooltip: "When enabled HDRP will use Screen Coordinates Override for post processing and custom passes. This allows post effects to be compatible with Cluster Display for example.")]
+        ScreenCoordOverride = 77,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
@@ -481,7 +488,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
-                (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
@@ -831,7 +837,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // Screen space shadows are not compatible with MSAA
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] & !msaa;

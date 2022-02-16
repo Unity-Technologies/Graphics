@@ -492,9 +492,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="properties">Optional Material Property block.</param>
         /// <param name="shaderPassId">Optional pass index to use.</param>
         /// <param name="depthSlice">Optional depth slice to render to.</param>
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
+        /// <param name="cubemapFace">Optional cubemap face to render to.</param>
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, cubemapFace, depthSlice);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -727,6 +728,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
                 graphicDevice == GraphicsDeviceType.PlayStation4 ||
                 graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5NGGC ||
                 graphicDevice == GraphicsDeviceType.XboxOne ||
                 graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                 graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
@@ -759,12 +761,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
+            bool editor = false;
+#if UNITY_EDITOR
+            editor = !UnityEditor.BuildPipeline.isBuildingPlayer;
+#endif
+
+            if (editor)  // In the editor we use the current graphics device instead of the list to avoid blocking the rendering if an invalid API is added but not enabled.
             {
-                if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                return HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType);
+            }
+            else
+            {
+                foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
                 {
-                    unsupportedGraphicDevice = graphicAPI;
-                    return false;
+                    if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                    {
+                        unsupportedGraphicDevice = graphicAPI;
+                        return false;
+                    }
                 }
             }
             return true;

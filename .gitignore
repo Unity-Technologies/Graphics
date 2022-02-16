@@ -33,6 +33,7 @@
 *.userprefs
 *.orig
 *.orig.meta
+*.bak
 .npmrc
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**

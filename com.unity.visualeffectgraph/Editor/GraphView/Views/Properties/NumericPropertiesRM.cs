@@ -44,8 +44,8 @@ namespace UnityEditor.VFX.UI
                 result = CreateSimpleField(out m_TextField);
                 if (m_TextField != null)
                 {
-                    m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
-                    m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
+                    m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
+                    m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
                 }
             }
             else

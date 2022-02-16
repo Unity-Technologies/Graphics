@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     public partial class ProbeReferenceVolume
     {
@@ -129,7 +126,10 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     if (pendingUnloadCount > 0)
+                    {
                         m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
+                        RecomputeMinMaxLoadedCellPos();
+                    }
                 }
             }
             else

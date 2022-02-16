@@ -1,9 +1,9 @@
 using System;
-using UnityEngine.Serialization;
+using System.IO;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
@@ -15,19 +15,22 @@ namespace UnityEngine.Experimental.Rendering
             AddProbeVolumesAtlasEncodingModes,
             PV2,
             ChunkBasedIndex,
+            BinaryRuntimeDebugSplit,
             Max,
             Current = Max - 1
         }
 
-        [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
-        [SerializeField] public int Version { get => m_Version; }
+        public int Version => m_Version;
 
-        [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
+        [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
+
+        [SerializeField] internal ProbeReferenceVolume.Cell[] cells;
+        [SerializeField] internal CellCounts[] cellCounts;
+        [SerializeField] internal CellCounts totalCellCounts;
 
         [SerializeField] internal Vector3Int maxCellPosition;
         [SerializeField] internal Vector3Int minCellPosition;
         [SerializeField] internal Bounds globalBounds;
-
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
@@ -35,8 +38,26 @@ namespace UnityEngine.Experimental.Rendering
 
         // Profile info
         [SerializeField] internal int cellSizeInBricks;
-        [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
+        [SerializeField] internal float minDistanceBetweenProbes;
+
+        [Serializable]
+        internal struct CellCounts
+        {
+            public int bricksCount;
+            public int probesCount;
+            public int offsetsCount;
+
+            public void Add(CellCounts o)
+            {
+                bricksCount += o.bricksCount;
+                probesCount += o.probesCount;
+                offsetsCount += o.offsetsCount;
+            }
+        }
+
+        internal const int kL0L1ScalarCoefficientsCount = 12;
+        internal const int kL2ScalarCoefficientsCount = 15;
 
         internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
@@ -45,41 +66,129 @@ namespace UnityEngine.Experimental.Rendering
         {
             return (maxSubdivision == otherAsset.maxSubdivision) && (minBrickSize == otherAsset.minBrickSize) && (cellSizeInBricks == otherAsset.cellSizeInBricks);
         }
+
         public string GetSerializedFullPath()
         {
             return m_AssetFullPath;
         }
 
-#if UNITY_EDITOR
-        internal static string GetFileName(Scene scene)
+
+        static int AlignUp16(int count)
         {
-            string assetName = "ProbeVolumeData";
+            var alignment = 16;
+            var remainder = count % alignment;
+            return count + (remainder == 0 ? 0 : alignment - remainder);
+        }
 
-            String scenePath = scene.path;
-            String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
-            String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+        // The unpacking in Resolve functions is the "inverse" of ProbeBakingGI.WriteBakingCells flattening
+        internal bool ResolveSharedCellData(TextAsset cellSharedDataAsset, TextAsset cellSupportDataAsset)
+        {
+            if (cellSharedDataAsset == null)
+                return false;
 
-            String assetPath = System.IO.Path.Combine(sceneDir, sceneName);
+            var cellSharedData = cellSharedDataAsset.GetData<byte>();
+            var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
+            var validityByteStart = AlignUp16(bricksByteCount);
+            var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            if ((validityByteStart + validityByteCount) != cellSharedData.Length)
+                return false;
+            var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
+            var validityData = cellSharedData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<uint>(1);
 
+            var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
+            var hasSupportData = cellSupportData.IsCreated;
+            var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
+            var offsetByteStart = AlignUp16(positionsByteCount);
+            var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
+            if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
+                return false;
+            var positionsData = hasSupportData ? cellSupportData.GetSubArray(0, positionsByteCount).Reinterpret<Vector3>(1) : default;
+            var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
+
+            var startCounts = new CellCounts();
+            for (var i = 0; i < cells.Length; ++i)
+            {
+                var cell = cells[i];
+                var counts = cellCounts[i];
+
+                cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
+                cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
+
+                if (hasSupportData)
+                {
+                    cell.probePositions = positionsData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                    cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
+                }
+
+                startCounts.Add(counts);
+            }
+
+            return true;
+        }
+
+        internal bool ResolvePerStateCellData(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset)
+        {
+            if (cellDataAsset == null)
+                return false;
+
+            var cellData = cellDataAsset.GetData<byte>();
+            var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
+            if (shL0L1DataByteCount != cellData.Length)
+                return false;
+            var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
+
+            var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
+            var hasOptionalData = cellOptionalData.IsCreated;
+            var shL2DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
+            if (hasOptionalData && (shL2DataByteCount + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
+                return false;
+            var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
+
+            var startCounts = new CellCounts();
+            for (var i = 0; i < cells.Length; ++i)
+            {
+                var cell = cells[i];
+                var counts = cellCounts[i];
+
+                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+
+                if (hasOptionalData)
+                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+
+                startCounts.Add(counts);
+            }
+
+            return true;
+        }
+
+#if UNITY_EDITOR
+        public void OnEnable()
+        {
+            m_AssetFullPath = UnityEditor.AssetDatabase.GetAssetPath(this);
+        }
+
+        internal const string assetName = "ProbeVolumeData";
+
+        public static string GetPath(Scene scene)
+            => Path.Combine(GetDirectory(scene.path, scene.name), assetName + ".asset");
+
+        public static string GetDirectory(string scenePath, string sceneName)
+        {
+            string sceneDir = Path.GetDirectoryName(scenePath);
+            string assetPath = Path.Combine(sceneDir, sceneName);
             if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            String assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
-
-            assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
-
-            return assetFileName;
+            return assetPath;
         }
 
-        public static ProbeVolumeAsset CreateAsset(Scene scene)
+        public static ProbeVolumeAsset CreateAsset(ProbeVolumePerSceneData data)
         {
-            ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
-            string assetFileName = GetFileName(scene);
+            ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
+            if (data.asset != null) asset.m_AssetFullPath = UnityEditor.AssetDatabase.GetAssetPath(data.asset);
+            if (string.IsNullOrEmpty(asset.m_AssetFullPath)) asset.m_AssetFullPath = GetPath(data.gameObject.scene);
 
-            UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-
-            asset.m_AssetFullPath = assetFileName;
-
+            UnityEditor.AssetDatabase.CreateAsset(asset, asset.m_AssetFullPath);
             return asset;
         }
 
@@ -89,15 +198,19 @@ namespace UnityEngine.Experimental.Rendering
             simplificationLevels = profile.simplificationLevels;
             minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
         }
-#endif
-    }
 
-#if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(ProbeVolumeAsset))]
-    class ProbeVolumeAssetEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {}
-    }
+        internal int GetBakingHashCode()
+        {
+            int hash = maxCellPosition.GetHashCode();
+            hash = hash * 23 + minCellPosition.GetHashCode();
+            hash = hash * 23 + globalBounds.GetHashCode();
+            hash = hash * 23 + bands.GetHashCode();
+            hash = hash * 23 + cellSizeInBricks.GetHashCode();
+            hash = hash * 23 + simplificationLevels.GetHashCode();
+            hash = hash * 23 + minDistanceBetweenProbes.GetHashCode();
+
+            return hash;
+        }
 #endif
+    }
 }
