@@ -1,9 +1,15 @@
 using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class NodeHandler : GraphDataHandler
     {
+        internal NodeHandler(ElementID elementID, GraphStorage owner)
+            : base(elementID, owner)
+        {
+        }
+
         public IEnumerable<PortHandler> GetPorts()
         {
             throw new System.Exception();

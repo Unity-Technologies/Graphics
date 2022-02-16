@@ -146,40 +146,27 @@ namespace UnityEditor.ShaderGraph.Registry
         class PowNode : Defs.INodeDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Pow", Version = 1 };
+
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            /**
-             * BuildNode defines the input and output ports of a node, along with
-             * the port types.
-             */
-            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            public void BuildNode(NodeHandler node, Registry registry)
             {
-                var portWriter = nodeWriter.AddPort<GraphType>(userData, "In", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
-                portWriter = nodeWriter.AddPort<GraphType>(userData, "Exp", true, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
-                portWriter = nodeWriter.AddPort<GraphType>(userData, "Out", false, registry);
-                portWriter.SetField<int>(GraphType.kLength, 1);
+                var port = node.AddPort("In", true, true);
+                port.AddField(GraphType.kLength, 1);
+                port = node.AddPort("Exp", true, true);
+                port.AddField(GraphType.kLength, 1);
+                port = node.AddPort("Out", false, true);
+                port.AddField(GraphType.kLength, 1);
             }
 
-            /**
-             * GetShaderFunction defines the output of the built 
-             * ShaderFunction that results from specific
-             * node data.
-             */
             public ShaderFunction GetShaderFunction(
-                INodeReader data,
+                NodeHandler node,
                 ShaderContainer container,
                 Registry registry)
             {
-                // Get the HLSL type to associate with our variables in the
-                // shader function we want to write.
+                FieldHandler field = node.GetField("Out");
 
-                // In this case, all the types are the same. We only ask for the
-                // type associated with the "Out" port/field.
-                data.TryGetPort("Out", out var port); // TODO (Brett) This should have some error checking
-
-                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+                var shaderType = registry.GetShaderType(field, container);
 
                 // Get a builder from ShaderFoundry
                 var shaderFunctionBuilder = new ShaderFunction.Builder(container, "Pow");
@@ -214,7 +201,6 @@ namespace UnityEditor.ShaderGraph.Registry
             public const string kEntry = "_Entry";
 
             public void BuildType(FieldHandler field, Registry registry)
-            //public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {
                 // default initialize to a float4
                 field.AddSubField(k_concrete, kPrecision, Precision.Full);
@@ -228,7 +214,6 @@ namespace UnityEditor.ShaderGraph.Registry
             }
 
             public string GetInitializerList(FieldHandler field, Registry registry)
-            //string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
                 var subField = field.GetSubField<int>(kLength);
                 int length = subField == null ? 0 : subField.GetData();
@@ -251,7 +236,6 @@ namespace UnityEditor.ShaderGraph.Registry
             }
 
             public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
-            //ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderContainer container, Registry registry)
             {
                 var primitiveSubField = field.GetSubField<Primitive>(kPrimitive);
                 Primitive primitive = Primitive.Float;
