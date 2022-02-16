@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering
                 // We cannot had the shutterSpeedState as this is not a serialized property but a global edition mode.
                 // This imply that it will never go bold nor can be reverted in prefab overrides
 
-                m_ShutterSpeedState.value = (ShutterSpeedUnit)EditorGUI.Popup(unitMenu, (int)m_ShutterSpeedState.value, k_ShutterSpeedUnitNames);
+                m_ShutterSpeedState.value = (ShutterSpeedUnit)EditorGUI.EnumPopup(unitMenu, m_ShutterSpeedState.value);
                 // Reset the indent level
                 EditorGUI.indentLevel = oldIndentLevel;
 
