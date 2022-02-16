@@ -2,15 +2,12 @@
 
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
 using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
 

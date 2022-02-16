@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Flag that allows us to track in which current unwater water volume we are
-        public int m_UnderWaterSurfaceIndex;
+        internal int m_UnderWaterSurfaceIndex;
 
         void EvaluateUnderWaterSurface(HDCamera hdCamera)
         {
