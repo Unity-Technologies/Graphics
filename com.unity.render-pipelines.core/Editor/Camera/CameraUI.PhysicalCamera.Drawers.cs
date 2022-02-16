@@ -139,15 +139,11 @@ namespace UnityEditor.Rendering
 
             enum ShutterSpeedUnit
             {
+                [InspectorName("Second")]
                 Second,
+                [InpsectorName("1 \u2215 Second")] // Don't use a slash here else Unity will auto-create a submenu...
                 OneOverSecond
             }
-
-            static readonly string[] k_ShutterSpeedUnitNames =
-            {
-                "Second",
-                "1 \u2215 Second" // Don't use a slash here else Unity will auto-create a submenu...
-            };
 
             public static void Drawer_PhysicalCamera_CameraBody_ShutterSpeed(ISerializedCamera p, Editor owner)
             {
