@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         internal DataLocation m_Pool; // internal to access it from blending pool only
         BrickChunkAlloc m_NextFreeChunk;
         Stack<BrickChunkAlloc> m_FreeList;
@@ -98,7 +97,6 @@ namespace UnityEngine.Rendering
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
-            m_MemoryBudget = memoryBudget;
             m_SHBands = shBands;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
@@ -602,10 +600,11 @@ namespace UnityEngine.Rendering
         internal int GetPoolDepth() { return m_State0.m_Pool.depth; }
 
 
-        internal ProbeBrickBlendingPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        internal ProbeBrickBlendingPool(ProbeVolumeBlendingTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
-            m_State0 = new ProbeBrickPool(memoryBudget, shBands);
-            m_State1 = new ProbeBrickPool(memoryBudget, shBands);
+            // Casting to other memory budget struct works cause it's caster to int in the end anyway
+            m_State0 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
+            m_State1 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
 
             m_IndexMapping = new List<uint>(MaxAvailablebrickCount);
             for (int i = 0; i < MaxAvailablebrickCount; i++)

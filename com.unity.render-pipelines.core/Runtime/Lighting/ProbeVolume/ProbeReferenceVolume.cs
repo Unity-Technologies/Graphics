@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The memory budget determining the size of the textures used for blending between scenarios.
         /// </summary>
-        public ProbeVolumeTextureMemoryBudget blendingMemoryBudget;
+        public ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
         /// The debug mesh used to draw probes in the debug view.
         /// </summary>
@@ -367,6 +367,20 @@ namespace UnityEngine.Rendering
         MemoryBudgetMedium = 1024,
         /// <summary>High Budget</summary>
         MemoryBudgetHigh = 2048,
+    }
+
+    /// <summary>
+    /// Possible values for the probe volume scenario blending memory budget (determines the size of the textures used).
+    /// </summary>
+    [Serializable]
+    public enum ProbeVolumeBlendingTextureMemoryBudget
+    {
+        /// <summary>Low Budget</summary>
+        MemoryBudgetLow = 128,
+        /// <summary>Medium Budget</summary>
+        MemoryBudgetMedium = 256,
+        /// <summary>High Budget</summary>
+        MemoryBudgetHigh = 512,
     }
 
     /// <summary>
@@ -755,7 +769,8 @@ namespace UnityEngine.Rendering
         private int m_NumberOfCellsLoadedPerFrame = 2;
 #endif
 
-        ProbeVolumeTextureMemoryBudget m_MemoryBudget, m_BlendingMemoryBudget;
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        ProbeVolumeBlendingTextureMemoryBudget m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
         float m_ProbeVolumesWeight;
 
@@ -1358,7 +1373,7 @@ namespace UnityEngine.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="shBands">Probe reference volume SH bands.</param>
-        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
+        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
         {
             var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
             var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
