@@ -214,28 +214,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-            if (globalSettings.supportProbeVolumes)
-            {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
-                int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
-                if (estimatedVMemCost == 0)
-                {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
-                }
+            int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
+            if (estimatedVMemCost == 0)
+            {
+                EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
             }
             else
             {
-                HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.",
-                    MessageType.Info, "supportProbeVolumes");
+                EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
             }
         }
 
