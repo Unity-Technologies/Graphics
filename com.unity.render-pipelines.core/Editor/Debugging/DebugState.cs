@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering
     /// Enums Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
-    public sealed class DebugStateEnum : DebugState<int>, ISerializationCallbackReceiver
+    public sealed class DebugStateEnum : DebugState<int>
     {
         DebugUI.EnumField m_EnumField;
 
@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering
             base.SetValue(value, field);
         }
 
-        void UpdateValue()
+        public override void OnEnable()
         {
             if (m_EnumField == null)
                 return;
@@ -161,16 +161,6 @@ namespace UnityEditor.Rendering
             m_EnumField.SetValue(value);
             base.SetValue(value, m_EnumField);
         }
-
-        /// <summary>
-        /// On Before Serialize Callback
-        /// </summary>
-        public void OnBeforeSerialize() => UpdateValue();
-
-        /// <summary>
-        /// On After Deserialize Callback
-        /// </summary>
-        public void OnAfterDeserialize() => UpdateValue();
     }
 
     /// <summary>

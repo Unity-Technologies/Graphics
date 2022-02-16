@@ -182,7 +182,6 @@ namespace UnityEditor.Rendering
                 var s = Cast<TState>(state);
                 Apply(w, s, value);
             }
-
         }
     }
 }

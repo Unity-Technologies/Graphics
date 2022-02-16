@@ -297,6 +297,9 @@ namespace UnityEditor.Rendering
     {
         protected override int DoGUI(Rect rect, GUIContent label, DebugUI.EnumField field, DebugStateEnum state)
         {
+            int index = Mathf.Max(0, field.currentIndex); // Fallback just in case, we may be handling sub/sectioned enums here
+            int value = field.GetValue();
+
             if (field.enumNames == null || field.enumValues == null)
             {
                 EditorGUI.LabelField(rect, label, "Can't draw an empty enumeration.");
@@ -307,11 +310,11 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                int index = EditorGUI.IntPopup(rect, label, field.currentIndex, field.enumNames, field.indexes);
-                return field.enumValues[index];
+                index = EditorGUI.IntPopup(rect, label, index, field.enumNames, field.indexes);
+                value = field.enumValues[index];
             }
 
-            return 0;
+            return value;
         }
     }
 
@@ -457,7 +460,6 @@ namespace UnityEditor.Rendering
             return true;
         }
     }
-
 
     /// <summary>
     /// Builtin Drawer for Foldout Debug Items.

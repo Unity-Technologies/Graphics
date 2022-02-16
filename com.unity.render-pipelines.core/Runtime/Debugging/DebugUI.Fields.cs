@@ -356,17 +356,18 @@ namespace UnityEngine.Rendering
             public override void SetValue(int value)
             {
                 Assert.IsNotNull(setter);
-                var v = ValidateValue(value);
+                var validValue = ValidateValue(value);
 
-                if (!v.Equals(getter()))
+                // There might be cases that the value does not map the index, look for the correct index
+                var newCurrentIndex = Array.IndexOf(enumValues, validValue);
+
+                if (currentIndex != newCurrentIndex && !validValue.Equals(getter()))
                 {
-                    setter(v);
+                    setter(validValue);
+                    onValueChanged?.Invoke(this, validValue);
 
-                    // There might be cases that the value does not map the index, look for the correct index
-                    var newCurrentIndex = Array.IndexOf(enumValues, v);
-                    if (currentIndex != newCurrentIndex)
+                    if (newCurrentIndex > -1)
                         currentIndex = newCurrentIndex;
-                    onValueChanged?.Invoke(this, v);
                 }
             }
         }
