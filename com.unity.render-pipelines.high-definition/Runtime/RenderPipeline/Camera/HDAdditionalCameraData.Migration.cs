@@ -82,19 +82,22 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.UpdatePhysicalCameraPropertiesToCore, (HDAdditionalCameraData data) =>
             {
                 var camera = data.GetComponent<Camera>();
+                if (camera == null) return;
                 var physicalProps = data.physicalParameters;
-                if (camera != null)
+                if (physicalProps == null)
                 {
-                    camera.iso = physicalProps.iso;
-                    camera.shutterSpeed = physicalProps.shutterSpeed;
-                    camera.aperture = physicalProps.aperture;
-                    camera.focusDistance = physicalProps.focusDistance;
-                    camera.gateFit = physicalProps.m_GateFit;
-                    camera.bladeCount = physicalProps.bladeCount;
-                    camera.curvature = physicalProps.curvature;
-                    camera.barrelClipping = physicalProps.barrelClipping;
-                    camera.anamorphism = physicalProps.anamorphism;
+                  Debug.Log($"Unable to execute migration step `{Version.UpdatePhysicalCameraPropertiesToCore}` migrate camera {camera.name} as the physicalParameters is null");
+                  return;
                 }
+                camera.iso = physicalProps.iso;
+                camera.shutterSpeed = physicalProps.shutterSpeed;
+                camera.aperture = physicalProps.aperture;
+                camera.focusDistance = physicalProps.focusDistance;
+                camera.gateFit = physicalProps.m_GateFit;
+                camera.bladeCount = physicalProps.bladeCount;
+                camera.curvature = physicalProps.curvature;
+                camera.barrelClipping = physicalProps.barrelClipping;
+                camera.anamorphism = physicalProps.anamorphism;
             })
         );
 
