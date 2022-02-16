@@ -498,7 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cpuBuffersValid = false;
             }
 
-			// TODO: Handle properly the change of resolution to be able to not do this every frame.
+            // TODO: Handle properly the change of resolution to be able to not do this every frame.
             cpuBuffersValid = false;
 
             // Re-evaluate the simulation data
