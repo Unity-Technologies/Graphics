@@ -5,28 +5,28 @@ namespace UnityEditor.ShaderFoundry
 {
     internal class AttributeParsing
     {
-        public delegate void ParseDelegate(ShaderAttributeParam attributeParam, int parameterIndex);
+        public delegate void ParseDelegate<TargetType>(ShaderAttributeParam attributeParam, int parameterIndex, TargetType target);
 
-        internal class ParameterDescription
+        internal class ParameterDescription<TargetType>
         {
             public string ParamName;
-            public ParseDelegate ParseCallback;
+            public ParseDelegate<TargetType> ParseCallback;
 
             public ParameterDescription() {}
-            public ParameterDescription(string paramName, ParseDelegate parseCallback)
+            public ParameterDescription(string paramName, ParseDelegate<TargetType> parseCallback)
             {
                 ParamName = paramName;
                 ParseCallback = parseCallback;
             }
         }
 
-        internal class SignatureDescription
+        internal class SignatureDescription<TargetType>
         {
-            public List<ParameterDescription> ParameterDescriptions;
-            public ParseDelegate UnknownParameterCallback;
+            public List<ParameterDescription<TargetType>> ParameterDescriptions;
+            public ParseDelegate<TargetType> UnknownParameterCallback;
         }
 
-        static internal void Parse(ShaderAttribute attribute, SignatureDescription signatureDescription)
+        static internal void Parse<TargetType>(ShaderAttribute attribute, SignatureDescription<TargetType> signatureDescription, TargetType target)
         {
             var index = 0;
             foreach (var attributeParam in attribute.Parameters)
@@ -34,40 +34,40 @@ namespace UnityEditor.ShaderFoundry
                 var paramDesc = signatureDescription.ParameterDescriptions.Find((p) => (p.ParamName == attributeParam.Name));
                 if (paramDesc != null)
                 {
-                    paramDesc.ParseCallback(attributeParam, index);
+                    paramDesc.ParseCallback(attributeParam, index, target);
                     continue;
                 }
                 else
                 {
                     if (signatureDescription.UnknownParameterCallback == null)
                         ErrorHandling.ReportError($"Unknown parameter {attributeParam.Name} at position {index}.");
-                    signatureDescription.UnknownParameterCallback(attributeParam, index);
+                    signatureDescription.UnknownParameterCallback(attributeParam, index, target);
                 }
 
                 ++index;
             }
         }
 
-        public static void StringParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref string result)
+        public static void ParseString(ShaderAttributeParam attributeParam, int parameterIndex, ref string result)
         {
             result = attributeParam.Value;
         }
 
-        public static void BoolParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref bool result)
+        public static void ParseBool(ShaderAttributeParam attributeParam, int parameterIndex, ref bool result)
         {
             if (!bool.TryParse(attributeParam.Value, out bool value))
-                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an boolean.");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be a boolean.");
             result = value;
         }
 
-        public static void IntParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
+        public static void ParseInt(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
             result = value;
         }
 
-        public static void IntRangeParseCallback(ShaderAttributeParam attributeParam, int parameterIndex, int rangeMin, int rangeMax, ref int result)
+        public static void ParseIntRange(ShaderAttributeParam attributeParam, int parameterIndex, int rangeMin, int rangeMax, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderFoundry
             result = value;
         }
 
-        public static void EnumParseCallback<EnumType>(ShaderAttributeParam attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
+        public static void ParseEnum<EnumType>(ShaderAttributeParam attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
         {
             if (!Enum.TryParse(attributeParam.Value, out EnumType value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at index {parameterIndex} with value {attributeParam.Value} must be a valid {typeof(EnumType).Name} enum value.");

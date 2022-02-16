@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderFoundry
 {
-    class PropertyDeclarations
+    static class PropertyDeclarations
     {
         static Dictionary<string, Func<FieldPropertyContext, FieldPropertyData, bool>> TypeHandlers = new Dictionary<string, Func<FieldPropertyContext, FieldPropertyData, bool>>
         {

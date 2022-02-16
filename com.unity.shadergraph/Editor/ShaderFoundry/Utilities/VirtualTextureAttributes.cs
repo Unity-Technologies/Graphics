@@ -26,26 +26,27 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
+        static AttributeParsing.SignatureDescription<VirtualTextureAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<VirtualTextureAttribute>()
+        {
+            ParameterDescriptions = new List<AttributeParsing.ParameterDescription<VirtualTextureAttribute>>
+            {
+                new AttributeParsing.ParameterDescription<VirtualTextureAttribute>(LayerCountParamName, (param, index, target) => AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount - 1, ref target.LayerCount)),
+            },
+            UnknownParameterCallback = (param, index, target) =>
+            {
+                if (index != 0)
+                    ErrorHandling.ReportError($"Attribute {AttributeName} only allows one argument.");
+                AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount - 1, ref target.LayerCount);
+            }
+        };
+
         internal static VirtualTextureAttribute TryParse(ShaderAttribute attribute)
         {
             if (attribute.Name != AttributeName)
                 return null;
 
             var result = new VirtualTextureAttribute();
-
-            var signature = new AttributeParsing.SignatureDescription();
-            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
-            {
-                new AttributeParsing.ParameterDescription(LayerCountParamName, (param, index) => AttributeParsing.IntRangeParseCallback(param, index, 0, MaxLayerCount - 1, ref result.LayerCount)),
-            };
-            signature.UnknownParameterCallback = (param, index) =>
-            {
-                if (index != 0)
-                    ErrorHandling.ReportError($"Attribtute {AttributeName} only allows one argument.");
-                AttributeParsing.IntRangeParseCallback(param, index, 0, MaxLayerCount - 1, ref result.LayerCount);
-            };
-            AttributeParsing.Parse(attribute, signature);
-
+            AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
     }
@@ -89,23 +90,26 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
+        static AttributeParsing.SignatureDescription<VirtualTextureLayerAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<VirtualTextureLayerAttribute>()
+        {
+            ParameterDescriptions = new List<AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>>
+            {
+                new AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>(IndexParamName, (param, index, target) => AttributeParsing.ParseInt(param, index, ref target.Index)),
+                new AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>(UniformNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.UniformName)),
+                new AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>(DisplayNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.DisplayName)),
+                new AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>(TextureNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.TextureName)),
+                new AttributeParsing.ParameterDescription<VirtualTextureLayerAttribute>(TextureTypeParamName, (param, index, target) => AttributeParsing.ParseEnum(param, index, ref target.TextureType)),
+            }
+        };
+
         internal static VirtualTextureLayerAttribute TryParse(ShaderAttribute attribute)
         {
             if (attribute.Name != AttributeName)
                 return null;
             var result = new VirtualTextureLayerAttribute();
 
-            var signature = new AttributeParsing.SignatureDescription();
-            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
-            {
-                new AttributeParsing.ParameterDescription(IndexParamName, (param, index) => AttributeParsing.IntParseCallback(param, index, ref result.Index)),
-                new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
-                new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
-                new AttributeParsing.ParameterDescription(TextureNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.TextureName)),
-                new AttributeParsing.ParameterDescription(TextureTypeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.TextureType)),
-            };
-            AttributeParsing.Parse(attribute, signature);
-
+            var signature = new AttributeParsing.SignatureDescription<VirtualTextureLayerAttribute>();
+            AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
     }

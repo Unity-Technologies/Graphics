@@ -75,6 +75,17 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
+        static AttributeParsing.SignatureDescription<BoolKeywordAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<BoolKeywordAttribute>()
+        {
+            ParameterDescriptions = new List<AttributeParsing.ParameterDescription<BoolKeywordAttribute>>
+            {
+                new AttributeParsing.ParameterDescription<BoolKeywordAttribute>(KeywordNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.KeywordName)),
+                new AttributeParsing.ParameterDescription<BoolKeywordAttribute>(KeywordModeParamName, (param, index, target) => AttributeParsing.ParseEnum(param, index, ref target.KeywordMode)),
+                new AttributeParsing.ParameterDescription<BoolKeywordAttribute>(ScopeParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.Scope)),
+                new AttributeParsing.ParameterDescription<BoolKeywordAttribute>(StageParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.Stage)),
+            }
+        };
+
         internal static BoolKeywordAttribute TryParse(ShaderAttribute attribute)
         {
             if (attribute.Name != AttributeName)
@@ -82,16 +93,8 @@ namespace UnityEditor.ShaderFoundry
 
             var result = new BoolKeywordAttribute();
 
-            var signature = new AttributeParsing.SignatureDescription();
-            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
-            {
-                new AttributeParsing.ParameterDescription(KeywordNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.KeywordName)),
-                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode)),
-                new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
-                new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),
-            };
-            AttributeParsing.Parse(attribute, signature);
-
+            var signature = new AttributeParsing.SignatureDescription<BoolKeywordAttribute>();
+            AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
     }
@@ -196,45 +199,51 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
+        static AttributeParsing.SignatureDescription<EnumKeywordAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<EnumKeywordAttribute>()
+        {
+            ParameterDescriptions = new List<AttributeParsing.ParameterDescription<EnumKeywordAttribute>>
+            {
+                new AttributeParsing.ParameterDescription<EnumKeywordAttribute>(KeywordModeParamName, (param, index, target) => AttributeParsing.ParseEnum(param, index, ref target.KeywordMode)),
+                new AttributeParsing.ParameterDescription<EnumKeywordAttribute>(AllowsNoneParamName, (param, index, target) => AttributeParsing.ParseBool(param, index, ref target.AllowsNone)),
+                new AttributeParsing.ParameterDescription<EnumKeywordAttribute>(ScopeParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.Scope)),
+                new AttributeParsing.ParameterDescription<EnumKeywordAttribute>(StageParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.Stage)),
+            },
+            // Any unknown parameter is an enum entry
+            UnknownParameterCallback = (param, index, target) => ParseEnumEntry(param, index, target),
+        };
+
+        static void ParseEnumEntry(ShaderAttributeParam param, int index, EnumKeywordAttribute target)
+        {
+            string enumName;
+            int enumValue = 0;
+
+            // If the enum has a name and value then use the value. If the enum doesn't have a name then the value is implicit.
+            // Note: attribute parameters of the form [Attribute(value)] are specifying a value, not a name, effectively a positional argument, not named.
+            if (!string.IsNullOrEmpty(param.Name))
+            {
+                enumName = param.Name;
+                AttributeParsing.ParseInt(param, index, ref enumValue);
+            }
+            else
+            {
+                // For an implicit enum, the value is the last enum's value + 1 (or 0 if there are no values)
+                enumName = param.Value;
+                if (target.EnumCount == 0)
+                    enumValue = 0;
+                else
+                    enumValue = target.GetEnum(target.EnumCount - 1).Value + 1;
+            }
+
+            target.AddEnum(enumName, enumValue);
+        }
+
         internal static EnumKeywordAttribute TryParse(ShaderAttribute attribute)
         {
             if (attribute.Name != AttributeName)
                 return null;
 
-            var currentNameValue = 0;
             var result = new EnumKeywordAttribute();
-
-            var signature = new AttributeParsing.SignatureDescription();
-            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
-            {
-                new AttributeParsing.ParameterDescription(KeywordModeParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.KeywordMode)),
-                new AttributeParsing.ParameterDescription(AllowsNoneParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.AllowsNone)),
-                new AttributeParsing.ParameterDescription(ScopeParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Scope)),
-                new AttributeParsing.ParameterDescription(StageParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.Stage)),
-            };
-            // Any unknown parameter is an enum value
-            signature.UnknownParameterCallback = (param, index) =>
-            {
-                string enumName;
-                int enumValue = currentNameValue;
-
-                // If the enum has a name and value then use the value. If the enum doesn't have a name then the value is implicit.
-                // Note: attribute parameters of the form [Attribute(value)] are specifying a value, not a name, effectively a positional argument, not named.
-                if (!string.IsNullOrEmpty(param.Name))
-                {
-                    enumName = param.Name;
-                    if (!int.TryParse(param.Value, out enumValue))
-                        ErrorHandling.ReportError($"Param {param.Name} value {param.Value} is not a valid integer.");
-                }
-                else
-                    enumName = param.Value;
-
-                result.AddEnum(enumName, enumValue);
-                ++currentNameValue;
-            };
-
-            AttributeParsing.Parse(attribute, signature);
-
+            AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
     }

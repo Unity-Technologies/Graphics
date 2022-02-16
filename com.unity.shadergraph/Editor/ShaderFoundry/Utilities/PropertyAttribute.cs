@@ -37,25 +37,26 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
+        static AttributeParsing.SignatureDescription<PropertyAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<PropertyAttribute>()
+        {
+            ParameterDescriptions = new List<AttributeParsing.ParameterDescription<PropertyAttribute>>
+            {
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(UniformNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.UniformName)),
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(DisplayNameParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.DisplayName)),
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(DefaultValueParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.DefaultValue)),
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(DataSourceParamName, (param, index, target) => AttributeParsing.ParseEnum(param, index, ref target.DataSource)),
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(CustomBufferParamName, (param, index, target) => AttributeParsing.ParseString(param, index, ref target.CustomBufferName)),
+                new AttributeParsing.ParameterDescription<PropertyAttribute>(ExposedParamName, (param, index, target) => AttributeParsing.ParseBool(param, index, ref target.Exposed)),
+            },
+        };
+
         internal static PropertyAttribute Parse(ShaderAttribute attribute)
         {
             if (!attribute.IsValid || attribute.Name != AttributeName)
                 return null;
 
             var result = new PropertyAttribute();
-
-            var signature = new AttributeParsing.SignatureDescription();
-            signature.ParameterDescriptions = new List<AttributeParsing.ParameterDescription>
-            {
-                new AttributeParsing.ParameterDescription(UniformNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.UniformName)),
-                new AttributeParsing.ParameterDescription(DisplayNameParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DisplayName)),
-                new AttributeParsing.ParameterDescription(DefaultValueParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.DefaultValue)),
-                new AttributeParsing.ParameterDescription(DataSourceParamName, (param, index) => AttributeParsing.EnumParseCallback(param, index, ref result.DataSource)),
-                new AttributeParsing.ParameterDescription(CustomBufferParamName, (param, index) => AttributeParsing.StringParseCallback(param, index, ref result.CustomBufferName)),
-                new AttributeParsing.ParameterDescription(ExposedParamName, (param, index) => AttributeParsing.BoolParseCallback(param, index, ref result.Exposed)),
-            };
-            AttributeParsing.Parse(attribute, signature);
-
+            AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
     }

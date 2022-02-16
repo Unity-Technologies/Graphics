@@ -33,7 +33,21 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator BoolProperty_DefaultPropertyValueUsed_IsExpectedColor()
+        public IEnumerator BoolProperty_DefaultPropertyValueIs0_IsExpectedColor()
+        {
+            var expectedColor = new Color(0, 0, 0, 0);
+            var container = new ShaderFoundry.ShaderContainer();
+
+            var propBuilder = BuildBoolWithNameOverrides("0");
+            var block = propBuilder.Build(container);
+
+            TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
+            yield break;
+
+        }
+
+        [UnityTest]
+        public IEnumerator BoolProperty_DefaultPropertyValueIs1_IsExpectedColor()
         {
             var expectedColor = new Color(1, 0, 0, 0);
             var container = new ShaderFoundry.ShaderContainer();

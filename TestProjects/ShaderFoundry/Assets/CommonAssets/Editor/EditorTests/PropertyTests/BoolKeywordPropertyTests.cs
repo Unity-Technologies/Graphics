@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             {
                 PropertyAttribute = new PropertyAttributeData
                 {
-                    DefaultValue = "1",
+                    DefaultValue = "0",
                 },
                 TrueValue = "float3(1, 0, 0)",
                 FalseValue = "float3(0, 0, 1)",
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             {
                 PropertyAttribute = new PropertyAttributeData
                 {
-                    DefaultValue = "0",
+                    DefaultValue = "1",
                 },
                 TrueValue = "float3(1, 0, 0)",
                 FalseValue = "float3(0, 0, 1)",

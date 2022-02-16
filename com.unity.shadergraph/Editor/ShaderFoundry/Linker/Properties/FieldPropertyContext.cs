@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderFoundry
         readonly internal IEnumerable<ShaderAttribute> Attributes;
         readonly PropertyAttribute propertyAttribute;
 
-        internal string UniformName;
-        internal string DisplayName;
+        readonly internal string UniformName;
+        readonly internal string DisplayName;
         internal bool Exposed => propertyAttribute.Exposed;
         internal UniformDataSource DataSource => propertyAttribute.DataSource;
         internal string DefaultValue => propertyAttribute.DefaultValue;

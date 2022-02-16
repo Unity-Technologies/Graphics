@@ -3,7 +3,7 @@ namespace UnityEditor.ShaderFoundry
     class UniformReadingData
     {
         internal string Rhs;
-        internal delegate void ReadUniformDelegate(ShaderFunction.Builder builder, VariableLinkInstance owningVariable);
+        internal delegate void ReadUniformDelegate(ShaderBuilder builder, VariableLinkInstance owningVariable);
         internal ReadUniformDelegate ReadUniformCallback = null;
 
         internal static UniformReadingData BuildSimple(FieldPropertyContext context, FieldPropertyData resultProperty)
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderFoundry
             return result;
         }
 
-        internal void Copy(ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
+        internal void Copy(ShaderBuilder builder, VariableLinkInstance owningVariable)
         {
             if (ReadUniformCallback != null)
                 ReadUniformCallback(builder, owningVariable);
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderFoundry
                 return name;
         }
 
-        static void ZeroInitializeVariable(ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
+        static void ZeroInitializeVariable(ShaderBuilder builder, VariableLinkInstance owningVariable)
         {
             var fieldType = owningVariable.Type;
             if (fieldType.IsVectorOrScalar || fieldType.IsMatrix || fieldType.IsArray)

@@ -384,7 +384,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void ExtractKeywordDescriptors(Block block, ref IEnumerable<UnityEditor.ShaderFoundry.KeywordDescriptor> shaderKeywords)
+        void ExtractKeywordDescriptors(Block block, List<UnityEditor.ShaderFoundry.KeywordDescriptor> shaderKeywords)
         {
             // Check all inputs for any keywords
             foreach (var input in block.Inputs)
@@ -398,11 +398,11 @@ namespace UnityEditor.ShaderFoundry
 
                 var boolKeywordAttribute = BoolKeywordAttribute.FindFirst(input.Attributes);
                 if (boolKeywordAttribute != null)
-                    shaderKeywords = shaderKeywords.Append(boolKeywordAttribute.BuildDescriptor(Container, uniformName));
+                    shaderKeywords.Add(boolKeywordAttribute.BuildDescriptor(Container, uniformName));
 
                 var enumKeywordAttribute = EnumKeywordAttribute.FindFirst(input.Attributes);
                 if (enumKeywordAttribute != null)
-                    shaderKeywords = shaderKeywords.Append(enumKeywordAttribute.BuildDescriptor(Container, uniformName));
+                    shaderKeywords.Add(enumKeywordAttribute.BuildDescriptor(Container, uniformName));
             }
         }
 
@@ -488,12 +488,12 @@ namespace UnityEditor.ShaderFoundry
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderProperties = Enumerable.Empty<BlockProperty>();
-            var shaderCommands = Enumerable.Empty<CommandDescriptor>();
-            var shaderDefines = Enumerable.Empty<DefineDescriptor>();
-            var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
-            var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
-            var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+            var shaderProperties = new List<BlockProperty>();
+            var shaderCommands = new List<CommandDescriptor>();
+            var shaderDefines = new List<DefineDescriptor>();
+            var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>();
+            var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>();
+            var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>();
 
             void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
@@ -504,13 +504,13 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockInstance.Block;
-                    shaderProperties = shaderProperties.Concat(block.Properties());
-                    shaderCommands = shaderCommands.Concat(block.Commands);
-                    shaderDefines = shaderDefines.Concat(block.Defines);
-                    shaderIncludes = shaderIncludes.Concat(block.Includes);
-                    shaderKeywords = shaderKeywords.Concat(block.Keywords);
-                    shaderPragmas = shaderPragmas.Concat(block.Pragmas);
-                    ExtractKeywordDescriptors(block, ref shaderKeywords);
+                    shaderProperties.AddRange(block.Properties());
+                    shaderCommands.AddRange(block.Commands);
+                    shaderDefines.AddRange(block.Defines);
+                    shaderIncludes.AddRange(block.Includes);
+                    shaderKeywords.AddRange(block.Keywords);
+                    shaderPragmas.AddRange(block.Pragmas);
+                    ExtractKeywordDescriptors(block, shaderKeywords);
                 }
             }
 
