@@ -11,9 +11,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the render pipeline for this volume settings
         /// </summary>
         public override Type targetRenderPipeline => typeof(HDRenderPipeline);
-        static VolumeStack s_DefaultStack = VolumeStack.FromArchetype(HDUtils.hdVolumeArchetype);
+        static VolumeStack s_DefaultStack = VolumeStack.FromArchetype(HDUtils.volumeArchetype);
 
-        public override VolumeComponentArchetype archetype => HDUtils.hdVolumeArchetype;
+        public override VolumeComponentArchetype archetype => HDUtils.volumeArchetype;
 
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack

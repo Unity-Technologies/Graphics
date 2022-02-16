@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [NotNull]
-        internal static VolumeComponentArchetype hdVolumeArchetype { get; } = VolumeComponentArchetype.FromFilterCached(IsExplicitlySupportedVolumeComponentFilter.FromType(typeof(HDRenderPipeline)));
+        internal static VolumeComponentArchetype volumeArchetype { get; } = VolumeComponentArchetype.FromFilterCached(IsExplicitlySupportedVolumeComponentFilter.FromType(typeof(HDRenderPipeline)));
 
         /// <summary>
         /// Default 1x1x1 3D RTHandle initialized with Color.clear.

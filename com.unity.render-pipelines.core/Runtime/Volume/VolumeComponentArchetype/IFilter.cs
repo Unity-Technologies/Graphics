@@ -4,9 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Implement this interface to create a volume component filter.
-    ///
-    /// Use it with <see cref="VolumeComponentArchetype.FromFilterCached{TFilter}"/> to create a <see cref="VolumeComponentArchetype"/>.
+    /// Implement this interface to create a filter of <typeparamref name="T"/>.
     /// </summary>
     public interface IFilter<T> : IEquatable<IFilter<T>>
     {
