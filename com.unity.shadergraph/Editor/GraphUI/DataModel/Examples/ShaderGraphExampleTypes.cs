@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
-            reader.GetField(Registry.Types.GraphType.kLength, out int len);
-            switch (len)
+            reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
+            switch ((int)len)
             {
                 case 1: return TypeHandle.Float;
                 case 2: return TypeHandle.Vector2;
