@@ -74,7 +74,7 @@ bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint capsuleIndex, f
     return intersectsTile;
 }
 
-#define INVALID_NORMAL_UINT     0xffffffffU
+#define INVALID_NORMAL_TAG  2.f
 
 void CapsuleShadowLoop(
     uint2 fullResCoord,
@@ -87,7 +87,7 @@ void CapsuleShadowLoop(
 {
     float3 tileCenterWS0 = s_tileCenter[0];
     float tileRadiusWS0 = asfloat(s_tileRadiusU[0]);
-    float3 normalWS = asfloat(uint3(fullResCoord, INVALID_NORMAL_UINT));
+    float3 normalWS = float3(fullResCoord.x, fullResCoord.y, INVALID_NORMAL_TAG);
 
     // loop over capsules in batches
     uint capsuleCount = _CapsuleDirectShadowCount + _CapsuleIndirectShadowCount;
@@ -118,9 +118,9 @@ void CapsuleShadowLoop(
 
         // loop over set bits to do the shading
         uint remainingBits = s_capsuleBits[0];
-        if (asuint(normalWS.z) == INVALID_NORMAL_UINT && (remainingBits != 0 || s_capsuleBits[1] != 0))
+        if (normalWS.z == INVALID_NORMAL_TAG && (remainingBits != 0 || s_capsuleBits[1] != 0))
         {
-            uint2 coord = asuint(normalWS.yz);
+            uint2 coord = uint2(normalWS.xy);
             float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, coord);
 
             NormalData normalData;
