@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
         /// <summary>
-        /// The memory budget determining the size of the textures used for blending between baking states.
+        /// The memory budget determining the size of the textures used for blending between scenarios.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
