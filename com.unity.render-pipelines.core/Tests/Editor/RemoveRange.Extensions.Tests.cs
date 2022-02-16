@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Tests
                 foreach (int integer in list)
                     copy.Add(integer);
 
-                if (list.TryRemoveElementsInRange<TList, int>(startIndex, count, out var exception))
+                if (list.TryRemoveElementsInRange(startIndex, count, out var exception))
                 {
                     copy.RemoveRange(startIndex, count);
                     return copy.SequenceEqual(list);
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.Tests
         Exception ExceptionsAreCorrect<TList>(TList list, int startIndex, int count)
             where TList : IList<int>
         {
-            list.TryRemoveElementsInRange<TList, int>(startIndex, count, out var error);
+            list.TryRemoveElementsInRange(startIndex, count, out var error);
             return error;
         }
 

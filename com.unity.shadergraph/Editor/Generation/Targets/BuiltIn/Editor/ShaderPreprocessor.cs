@@ -351,8 +351,8 @@ namespace UnityEditor.Rendering.BuiltIn
                         ++i;
                 }
 
-                compilerDataList.RemoveElementsInRange(inputShaderVariantCount, compilerDataList.Count - inputShaderVariantCount);
-
+                if(!compilerDataList.TryRemoveElementsInRange(inputShaderVariantCount, compilerDataList.Count - inputShaderVariantCount, out var error))
+                    Debug.LogException(error);
             }
 
             m_TotalVariantsInputCount += prevVariantCount;

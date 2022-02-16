@@ -375,7 +375,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             ++i;
                     }
 
-                    inputData.RemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount);
+                    if(!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
                 LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count, stripTimeMs);
@@ -537,7 +538,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             ++i;
                     }
 
-                    inputData.RemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount);
+                    if(!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
                 LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count, stripTimeMs);
