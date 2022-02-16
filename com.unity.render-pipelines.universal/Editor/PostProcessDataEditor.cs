@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     /// Editor script for a <c>PostProcessData</c> class.
     /// </summary>
     [CustomEditor(typeof(PostProcessData), true)]
-    internal class PostProcessDataEditor : Editor
+    public class PostProcessDataEditor : Editor
     {
         SerializedProperty m_Shaders;
         SerializedProperty m_Textures;

@@ -40,7 +40,8 @@ VertexNormalInputs GetVertexNormalInputs(float3 normalOS, float4 tangentOS)
 
 float4 GetScaledScreenParams()
 {
-    return _ScaledScreenParams;
+    // NOTE: Builtin does not use _ScaledScreenParams, so we simply return _ScreenParams instead
+    return _ScreenParams;
 }
 
 // Returns 'true' if the current view performs a perspective projection.

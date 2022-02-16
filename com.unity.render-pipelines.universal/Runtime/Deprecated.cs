@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Deprecated in 13.x.x
         [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
         public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }
 }
