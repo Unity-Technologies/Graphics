@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Modes for Debugging Probes
@@ -29,6 +28,10 @@ namespace UnityEngine.Experimental.Rendering
         /// Based on validity over a dilation threshold
         /// </summary>
         ValidityOverDilationThreshold,
+        /// <summary>
+        /// Show in red probes that have been made invalid by touchup volumes. Important to note that this debug view will only show result for volumes still present in the scene.
+        /// </summary>
+        InvalidatedByTouchupVolumes,
         /// <summary>
         /// Based on size
         /// </summary>
@@ -358,6 +361,7 @@ namespace UnityEngine.Experimental.Rendering
             Vector4[] texels = new Vector4[kProbesPerBatch];
             float[] validity = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
+            float[] touchupUpVolumeAction = cell.touchupVolumeInteraction.Length > 0 ? new float[kProbesPerBatch] : null;
             Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
             List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
@@ -387,6 +391,13 @@ namespace UnityEngine.Experimental.Rendering
                 validity[idxInBatch] = cell.GetValidity(i);
                 texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                 relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
+
+                if (touchupUpVolumeAction != null)
+                {
+                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[i];
+                }
+
+
                 if (offsets != null)
                 {
                     const float kOffsetThresholdSqr = 1e-6f;
@@ -414,6 +425,7 @@ namespace UnityEngine.Experimental.Rendering
                     MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
                     prop.SetFloatArray("_Validity", validity);
+                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
                     prop.SetFloatArray("_RelativeSize", relativeSize);
                     prop.SetVectorArray("_IndexInAtlas", texels);
 

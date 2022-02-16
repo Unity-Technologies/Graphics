@@ -12,8 +12,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal virtual void CacheValues()
         {
-            for (int i = 0; i < m_ShadowCasters.Count; i++)
-                m_ShadowCasters[i].CacheValues();
+            if (m_ShadowCasters != null)
+            {
+                for (int i = 0; i < m_ShadowCasters.Count; i++)
+                    m_ShadowCasters[i].CacheValues();
+            }
         }
 
         public List<ShadowCaster2D> GetShadowCasters() { return m_ShadowCasters; }

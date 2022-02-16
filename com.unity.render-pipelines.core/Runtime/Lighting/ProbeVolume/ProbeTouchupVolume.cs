@@ -6,13 +6,13 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume Touchup (Experimental)")]
+    [AddComponentMenu("Light/Probe Volume Touchup")]
     public class ProbeTouchupVolume : MonoBehaviour
     {
         internal float intensityScale = 1.0f;
@@ -53,4 +53,4 @@ namespace UnityEngine.Experimental.Rendering
         }
 #endif
     }
-} // UnityEngine.Experimental.Rendering.HDPipeline
+} // UnityEngine.Rendering.HDPipeline
