@@ -1221,7 +1221,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 passData.clearBuffer2DCS = m_ClearBuffer2DCS;
                                 passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
 
-#if true
                                 if (data.accumNeedClear || data.debugDisplaySpeed)
                                 {
                                     ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
@@ -1236,18 +1235,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
                                     ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                 }
-#else
-                                if (data.accumNeedClear || data.debugDisplaySpeed)
-                                {
-                                    ctx.cmd.SetRenderTarget(data.ssrAccum);
-                                    ctx.cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear, 0.0f, 0);
-                                }
-                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
-                                {
-                                    ctx.cmd.SetRenderTarget(data.ssrAccumPrev);
-                                    ctx.cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear, 0.0f, 0);
-                                }
-#endif
                             });
                     }
                 }
