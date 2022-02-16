@@ -81,14 +81,14 @@ namespace UnityEditor.ShaderGraph.Registry
             Register<Defs.ReferenceNodeBuilder>();
         }
 
-        internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
+        internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)
         {
             var graphTypeBuilder = this.GetTypeBuilder(GraphType.kRegistryKey);
             return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
+        public NodeHandler GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<Defs.ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 

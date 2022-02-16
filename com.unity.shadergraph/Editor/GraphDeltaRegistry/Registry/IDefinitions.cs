@@ -18,15 +18,15 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
     internal interface INodeDefinitionBuilder : IRegistryEntry
     {
-        void BuildNode(GraphDataHandler node, Registry registry);
-        ShaderFunction GetShaderFunction(GraphDataHandler node, ShaderContainer container, Registry registry);
+        void BuildNode(NodeHandler node, Registry registry);
+        ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry);
     }
 
     internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
         void BuildType(IFieldHandler field, Registry registry);
-        ShaderType GetShaderType(GraphDataHandler field, ShaderContainer container, Registry registry);
-        string GetInitializerList(GraphDataHandler field, Registry registry);
+        ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry);
+        string GetInitializerList(FieldHandler field, Registry registry);
     }
 
     internal interface ICastDefinitionBuilder : IRegistryEntry
@@ -63,12 +63,12 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(GraphDataHandler node, Registry registry)
+        public void BuildNode(NodeHandler node, Registry registry)
         {
             // TODO: Correctly generate port type based on our reference type (how do we find that?).
         }
 
-        public ShaderFunction GetShaderFunction(GraphDataHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
             // Reference nodes are not processed through function generation.
             throw new NotImplementedException();
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(GraphDataHandler node, Registry registry)
+        public void BuildNode(NodeHandler node, Registry registry)
         {
             var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
             var context = registry.GetContextDescriptor(contextKey);
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
         }
 
-        public ShaderFunction GetShaderFunction(GraphDataHandler data, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.

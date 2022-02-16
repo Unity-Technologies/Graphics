@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string k_user = "User";
 
         internal readonly GraphStorage m_data;
-        public IEnumerable<INodeHandler> ContextNodes
+        public IEnumerable<NodeHandler> ContextNodes
         {
             get
             {
@@ -30,13 +30,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private List<ElementID> contextNodes = new List<ElementID>();
 
-        INodeHandler IGraphHandler.AddNode<T>(ElementID id, Registry.Registry registry)//  where T : Registry.Defs.INodeDefinitionBuilder
+        NodeHandler IGraphHandler.AddNode<T>(ElementID id, Registry.Registry registry)//  where T : Registry.Defs.INodeDefinitionBuilder
         {
            var key = Registry.Registry.ResolveKey<T>();
            return AddNode(key, id, registry);
         }
 
-        public INodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry)
+        public NodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry)
         {
             var builder = registry.GetNodeBuilder(key);
             if (builder is ContextBuilder cb)
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeHandler;
         }
 
-        public INodeHandler AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
+        public NodeHandler AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
         {
             var nodeHandler = m_data.AddNodeHandler(k_user, contextDescriptorKey.Name);
             var contextKey = Registry.Registry.ResolveKey<ContextBuilder>();
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             ReconcretizeNode(contextNodeHandler.ID, registry);
         }
 
-        private void HookupToContextList(INodeHandler newContextNode)
+        private void HookupToContextList(NodeHandler newContextNode)
         {
             if(contextNodes.Count == 0)
             {
@@ -123,12 +123,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return builder != null;
         }
 
-        public IEnumerable<INodeHandler> GetNodes()
+        public IEnumerable<NodeHandler> GetNodes()
         {
             throw new System.NotImplementedException();
         }
 
-        public INodeHandler GetNode(ElementID id)
+        public NodeHandler GetNode(ElementID id)
         {
             return m_data.GetHandler(id);
         }
@@ -148,12 +148,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<INodeHandler> GetConnectedNodes(ElementID node)
+        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node)
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<IPortHandler> GetConnectedPorts(ElementID port)
+        public IEnumerable<PortHandler> GetConnectedPorts(ElementID port)
         {
             throw new System.NotImplementedException();
         }

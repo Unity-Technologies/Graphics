@@ -135,14 +135,14 @@ namespace UnityEditor.ContextLayeredDataStorage
                 int data;
                 elem = store.Search("a.b").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 13);
                 Assert.AreEqual(elem.ID.LocalPath, "b");
                 Assert.True(elem.Children.Count > 0);
                 float data2;
                 elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data2));
+                data2 = elem.GetData<float>();
                 Assert.AreEqual(data2, 35.4f);
                 Assert.AreEqual(elem.ID.LocalPath, "d");
                 Assert.AreEqual(elem.ID.FullPath, "a.b.c.d");
@@ -169,7 +169,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
                 elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 18);
                 Assert.AreEqual(elem.ID.LocalPath, "d");
                 Assert.False(elem.Children.Count > 0);
@@ -177,7 +177,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Assert.IsNull(store.Search("a.b"));
                 elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 18);
                 Assert.AreEqual(elem.ID.FullPath, "a.b.c.d");
                 Assert.False(elem.Children.Count > 0);

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Generation
     public static class Interpreter
     {
 
-        public static string GetShaderForNode(INodeHandler node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(NodeHandler node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ToString();
         }
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(INodeHandler rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph.Generation
             if(isContext)
             {
                 int varIndex = 0;
-                foreach(IPortReader port in rootNode.GetPorts())
+                foreach(PortReader port in rootNode.GetPorts())
                 {
                     if(port.IsHorizontal() && port.IsInput())
                     {
@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return true;
         }
 
-        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
+        private static void ProcessNode(NodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
@@ -220,14 +220,14 @@ namespace UnityEditor.ShaderGraph.Generation
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.FieldReader)port, registry);
                         }
                     }
                     else // this is an output port.
                     {
                         argument = $"SYNTAX_{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.FieldReader)port, registry);
                         mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
                     }
                     arguments += argument + ", ";
@@ -239,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
         }
 
-        private static IEnumerable<INodeHandler> GatherTreeLeafFirst(INodeHandler rootNode)
+        private static IEnumerable<NodeHandler> GatherTreeLeafFirst(INodeHandler rootNode)
         {
             Stack<INodeHandler> stack = new Stack<INodeHandler>();
             HashSet<INodeHandler> visited = new HashSet<INodeHandler>();
@@ -270,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        private static IEnumerable<INodeHandler> GetConnectedNodes(IPortHandler port)
+        private static IEnumerable<NodeHandler> GetConnectedNodes(IPortHandler port)
         {
             foreach(var connected in port.GetConnectedPorts())
             {
