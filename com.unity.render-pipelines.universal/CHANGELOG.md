@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Screen Coordinates Override feature. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
+- Added automatic Alpha-To-Coverage feature which improves visual quality for alpha-clipped opaque geometry when MSAA is enabled
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.

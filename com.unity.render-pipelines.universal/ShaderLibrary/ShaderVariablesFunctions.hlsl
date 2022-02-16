@@ -203,6 +203,7 @@ half AlphaClip(half alpha, half cutoff)
 
 // Terminates the current invocation if the input alpha value is below the specified cutoff value
 // If provided, the offset value is added to the cutoff value during the comparison logic
+// NOTE: When _ALPHATEST_ON is not defined, this function becomes a no-op.
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
 #ifdef _ALPHATEST_ON
