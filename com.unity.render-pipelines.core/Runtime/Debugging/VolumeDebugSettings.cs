@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
                 var index = -1;
                 var c = cameras.ToArray();
                 if (m_SelectedCamera != null && c.Any())
-                    index = Array.IndexOf(cameras.ToArray(), m_SelectedCamera);
+                    index = Array.IndexOf(c, m_SelectedCamera);
                 return index;
             }
             set
