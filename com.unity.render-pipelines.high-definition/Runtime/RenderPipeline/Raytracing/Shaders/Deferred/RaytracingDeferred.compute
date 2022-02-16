@@ -92,9 +92,23 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         // Try the APV if enabled
         if(_EnableProbeVolumes && _RayTracingAPVRayMiss)
         {
+            // Read the pixel normal
+            NormalData normalData;
+            DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+            BuiltinData apvBuiltinData;
+            ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
+
             // Read from the APV
-            float3 backBakeDiffuseLighting = 0.0;
-            EvaluateAdaptiveProbeVolume(sourcePosInput.positionWS, rayDirection, -rayDirection, 0.0, currentCoord, finalColor, backBakeDiffuseLighting);
+            EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(sourcePosInput.positionWS),
+                normalData.normalWS, -normalData.normalWS, 
+                GetWorldSpaceNormalizeViewDir(sourcePosInput.positionWS), 
+                sourcePosInput.positionSS, 
+                apvBuiltinData.bakeDiffuseLighting,
+                apvBuiltinData.backBakeDiffuseLighting); // Not used
+
+            // Propagate the value to the final color and set the weight to 1.0
+            finalColor = apvBuiltinData.bakeDiffuseLighting;
             weight = 1.0;
         }
         #endif
