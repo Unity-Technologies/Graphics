@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 private const string k_Name = nameof(ScriptableRenderPass);
                 public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderPass.Configure)}");
+
+                public static readonly ProfilingSampler setRenderPassAttachments = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetRenderPassAttachments)}");
             }
         }
 
@@ -222,6 +224,10 @@ namespace UnityEngine.Rendering.Universal
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
+            cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
+            cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
 
             //Set per camera matrices.
             SetCameraMatrices(cmd, ref cameraData, true);
@@ -749,6 +755,16 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
+
+                }
+
+                using (new ProfilingScope(null, Profiling.RenderPass.configure))
+                {
+                    foreach (var pass in activeRenderPassQueue)
+                        pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
                 }
 
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
@@ -1051,7 +1067,7 @@ namespace UnityEngine.Rendering.Universal
 
         private bool IsRenderPassEnabled(ScriptableRenderPass renderPass)
         {
-            return renderPass.useNativeRenderPass && useRenderPassEnabled;
+            return renderPass.useNativeRenderPass && renderPass.m_UsesRTHandles && useRenderPassEnabled;
         }
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
@@ -1066,15 +1082,8 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(null, Profiling.RenderPass.configure))
-            {
-                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                    ConfigureNativeRenderPass(cmd, renderPass, cameraData);
-                else
-                    renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-
+            using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
-            }
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
@@ -1327,10 +1336,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     DebugHandler.TryGetScreenClearColor(ref finalClearColor);
                 }
-
-                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
+                // Disabling Native RenderPass if not using RTHandles as we will be relying on info inside handles object
+                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera && renderPass.m_UsesRTHandles)
                 {
-                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment.nameID, passDepthAttachment.nameID, finalClearFlag, finalClearColor);
+                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment.handle, passDepthAttachment.handle, finalClearFlag, finalClearColor);
                 }
                 else
                 {

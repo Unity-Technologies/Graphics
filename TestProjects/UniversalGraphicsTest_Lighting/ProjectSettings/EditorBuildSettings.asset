@@ -137,4 +137,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/220_LightCookie_Baked.unity
     guid: 4cd2c01cabdfb47d5a3ac05309090490
+  - enabled: 1
+    path: Assets/Scenes/221_ShadowMask_ShaderGraph.unity
+    guid: c53e60919f143ad40b950bea9827efc5
   m_configObjects: {}

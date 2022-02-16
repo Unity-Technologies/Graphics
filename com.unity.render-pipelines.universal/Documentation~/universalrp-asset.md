@@ -85,6 +85,7 @@ If you disable some of these settings, the relevant [keywords](shader-stripping.
 | __Per Object Limit__  | This slider sets the limit for how many additional lights can affect each GameObject. |
 | __Cast Shadows__      | Check this box to make the additional lights cast shadows in your Scene. |
 | __Shadow Resolution__ | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| __Mixed Lighting__         | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) to configure the pipeline to include mixed lighting shader variants in the build. |
 
 ### Shadows
 
@@ -119,6 +120,7 @@ This section allows you to fine-tune global post-processing settings.
 | __Grading Mode__ | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<br />&#8226; __High Dynamic Range__: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.<br />&#8226; __Low Dynamic Range__: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping. |
 | __LUT Size__     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 | __Fast sRGB/Liner Conversions__ | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
+| __Screen Coordinates Override__ | Select this option to allow cameras to use Screen Coordinates Override.|
 | __Volume Update Mode__ | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.|
 
 

@@ -259,6 +259,7 @@ VFXContextUI.graphElement #user-label
 {
     flex-direction:column;
     align-items:stretch;
+    min-height: 27px;
 }
 
 VFXContextUI.graphElement #user-label:hover
@@ -272,34 +273,35 @@ TextField#user-title-textfield
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
-    margin-left: 1px;
-    margin-right:0;
-    margin-top: 2px;
-    margin-bottom:0;
+    margin-left: 11px;
+    margin-right:11px;
+    margin-top: 1px;
+    margin-bottom:1;
+    border-width: 1;
+    border-color: rgba(68,192,255, 0.5);
     background-color:rgba(0,0,0,0);
-    position: Absolute;
     min-height: 24px;
+    white-space: normal;
+    overflow: visible;
+    height: auto;
+    flex-direction: column;
 }
 
 TextField#user-title-textfield #unity-text-input
 {
-    padding-left:0;
-    padding-right:0;
-    padding-top:0;
-    padding-bottom:0;
-    margin-left: 1px;
-    margin-right:0;
-    margin-top: 2px;
-    margin-bottom:0;
+    padding: 0;
+    margin: 0;
+    border-width: 0 ;
     background-color:rgba(29,29,29,0.8);
     background-image:none;
-    min-height: 24px;
     font-size: 18px;
     white-space: normal;
 }
 
 #user-label
 {
+    overflow: hidden;
+    max-height: 120px;
 }
 
 VFXContextUI.inputTypespawnevent #user-label
@@ -313,6 +315,11 @@ VFXContextUI.inputTypeparticle #user-label
 VFXContextUI.inputTypeparticlestrip #user-label
 {
     color: #FFAA6B;
+}
+
+VFXContextUI.inputTypemesh #user-label
+{
+    color: #3b5e92;
 }
 
 #user-label.empty

@@ -13,7 +13,10 @@
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-#define _Weight _Weight_Padding.x
+#define _Weight _Weight_MinLoadedCell.x
+#define _MinLoadedCell _Weight_MinLoadedCell.yzw
+#define _MaxLoadedCell _MaxLoadedCell_FrameIndex.xyz
+#define _NoiseFrameIndex _MaxLoadedCell_FrameIndex.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -101,7 +104,16 @@ TEXTURE3D(_APVResValidity);
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
 // -------------------------------------------------------------
-
+float3 AddNoiseToSamplingPosition(float3 posWS, float2 positionSS)
+{
+    float3 outPos = posWS;
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, _NoiseFrameIndex) * 2.0f - 1.0f) * _PVSamplingNoise;
+        outPos += noise1D_0;
+    }
+    return outPos;
+}
 
 uint3 GetSampleOffset(uint i)
 {
@@ -178,6 +190,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int3 cellPos = floor(posWS / _CellInMeters);
     float3 topLeftCellWS = cellPos * _CellInMeters;
 
+    bool isALoadedCell = all(cellPos <= _MaxLoadedCell) && all(cellPos >= _MinLoadedCell);
+
     // Make sure we start from 0
     cellPos -= (int3)_MinCellPosition;
 
@@ -188,7 +202,8 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int chunkIdx = -1;
     bool isValidBrick = true;
     int locationInPhysicalBuffer = 0;
-    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+
+    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
         float3 residualPosWS = posWS - topLeftCellWS;
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
@@ -555,11 +570,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
 
@@ -603,11 +614,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -617,11 +624,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))
