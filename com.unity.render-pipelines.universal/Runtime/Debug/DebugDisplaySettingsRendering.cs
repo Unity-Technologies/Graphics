@@ -42,6 +42,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        bool m_Overdraw = false;
+
+        /// <summary>
+        /// Whether debug overdraw mode is active.
+        /// </summary>
+        [Obsolete("overdraw has been deprecated. Use overdrawMode instead.", false)]
+
+        public bool overdraw
+        {
+            get => m_Overdraw;
+            set
+            {
+                m_Overdraw = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
         DebugOverdrawMode m_OverdrawMode = DebugOverdrawMode.None;
 
         /// <summary>

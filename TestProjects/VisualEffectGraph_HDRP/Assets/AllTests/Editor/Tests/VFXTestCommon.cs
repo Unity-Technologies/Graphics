@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Test
 {
     class VFXTestCommon
     {
-        static readonly string tempBasePath = "Assets/TmpTests/";
+        public static readonly string tempBasePath = "Assets/TmpTests/";
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
 
@@ -60,14 +60,17 @@ namespace UnityEditor.VFX.Test
 
         public static void DeleteAllTemporaryGraph()
         {
-            foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
+            if (Directory.Exists(tempBasePath))
             {
-                try
+                foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
                 {
-                    AssetDatabase.DeleteAsset(file);
-                }
-                catch (System.Exception) // Don't stop if we fail to delete one asset
-                {
+                    try
+                    {
+                        AssetDatabase.DeleteAsset(file);
+                    }
+                    catch (System.Exception) // Don't stop if we fail to delete one asset
+                    {
+                    }
                 }
             }
         }
