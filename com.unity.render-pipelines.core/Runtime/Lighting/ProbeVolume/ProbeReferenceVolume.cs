@@ -894,7 +894,7 @@ namespace UnityEngine.Rendering
 
         // This one is internal for baking purpose only.
         // Calling this from "outside" will not properly update Loaded/ToBeLoadedCells arrays and thus will break the state of streaming.
-        internal void UnloadCell(CellInfo cellInfo)
+        internal void UnloadCell(CellInfo cellInfo, bool invalidateDebugData = false)
         {
             // Streaming might have never loaded the cell in the first place
             if (cellInfo.loaded)
@@ -906,15 +906,17 @@ namespace UnityEngine.Rendering
 
                 cellInfo.loaded = false;
                 cellInfo.updateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
+                if (invalidateDebugData)
+                    cellInfo.debugProbes = null;
 
                 ClearDebugData();
             }
         }
 
-        internal void UnloadAllCells()
+        internal void UnloadAllCells(bool invalidateDebugData = false)
         {
             for (int i = 0; i < m_LoadedCells.size; ++i)
-                UnloadCell(m_LoadedCells[i]);
+                UnloadCell(m_LoadedCells[i], invalidateDebugData);
 
             m_ToBeLoadedCells.AddRange(m_LoadedCells);
             m_LoadedCells.Clear();

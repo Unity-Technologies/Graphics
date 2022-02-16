@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering
                 setter = value =>
                 {
                     if (value != probeVolumeDebug.bricksUseGpuMapping)
-                        ProbeReferenceVolume.instance.UnloadAllCells();
+                        ProbeReferenceVolume.instance.UnloadAllCells(invalidateDebugData: true);
                     probeVolumeDebug.bricksUseGpuMapping = value;
                 }
             });
