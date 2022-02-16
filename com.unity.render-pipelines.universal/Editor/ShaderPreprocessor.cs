@@ -16,7 +16,7 @@ using UnityEditor.XR.Management;
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
-    enum ShaderFeatures : ulong
+    enum ShaderFeatures
     {
         None = 0,
         MainLight = (1 << 0),
