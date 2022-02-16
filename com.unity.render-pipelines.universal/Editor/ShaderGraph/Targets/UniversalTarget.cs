@@ -675,11 +675,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        ScriptableObject IHasMetadata.GetMetadataObject()
+        ScriptableObject IHasMetadata.GetMetadataObject(GraphDataReadOnly graph)
         {
             // defer to subtarget
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
             return null;
         }
 

@@ -22,6 +22,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         int m_SubTargetSpecificVersion; // eg subtarget-private versioning, used by plugin subtargets
 
+        [SerializeField]
+        bool m_HasVertexModificationInMotionVector;
+
         public HDShaderUtils.ShaderID shaderID
         {
             get => m_ShaderID;
@@ -56,6 +59,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_SubTargetSpecificVersion;
             set => m_SubTargetSpecificVersion = value;
+        }
+
+        public bool hasVertexModificationInMotionVector
+        {
+            get => m_HasVertexModificationInMotionVector;
+            set => m_HasVertexModificationInMotionVector = value;
         }
     }
 }
