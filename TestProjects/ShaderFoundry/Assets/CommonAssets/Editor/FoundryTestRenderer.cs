@@ -12,7 +12,7 @@ public class FoundryTestRenderer
     internal const int defaultResolution = 128;
     internal GraphicsFormat defaultFormat = GraphicsFormat.R8G8B8A8_SRGB;
 
-    internal PreviewSceneResources previewScene = new PreviewSceneResources();
+    static internal PreviewSceneResources previewScene = new PreviewSceneResources();
 
     internal delegate void SetupMaterialDelegate(Material m);
 
