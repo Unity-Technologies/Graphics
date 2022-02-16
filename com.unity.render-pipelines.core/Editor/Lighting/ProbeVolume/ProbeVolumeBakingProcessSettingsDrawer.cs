@@ -4,7 +4,7 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering
 {
     [CustomPropertyDrawer(typeof(ProbeVolumeBakingProcessSettings))]
-    internal class ProbeVolumeBakingProcessSettingsDrawer : PropertyDrawer
+    class ProbeVolumeBakingProcessSettingsDrawer : PropertyDrawer
     {
         static class Styles
         {

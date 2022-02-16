@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent probeVolumeProfile = new GUIContent("Probe Volume Profile");
             public static readonly GUIContent stats = new GUIContent("Stats");
             public static readonly GUIContent scenarioCostStat = new GUIContent("Active Scenario Size On Disk", "Size on disk used by the baked data of the currently selected lighting scenario.");
-            public static readonly GUIContent totalCostStat = new GUIContent("Baking Set Total Memory Cost", "Size on disk used by baked data of all lighting scenarios of the set.");
+            public static readonly GUIContent totalCostStat = new GUIContent("Baking Set Total Size On Disk", "Size on disk used by baked data of all lighting scenarios of the set.");
 
             public static readonly GUIContent invalidLabel = new GUIContent("Out of Date");
             public static readonly GUIContent emptyLabel = new GUIContent("Not Baked");

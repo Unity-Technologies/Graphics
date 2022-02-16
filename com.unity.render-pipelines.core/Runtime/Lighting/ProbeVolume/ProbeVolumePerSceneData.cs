@@ -253,11 +253,7 @@ namespace UnityEngine.Rendering
         }
 
         // Returns the file size in bytes
-        long GetFileSize(string path)
-        {
-            //path = Application.dataPath + "/" + path;
-            return File.Exists(path) ? new FileInfo(path).Length : 0;
-        }
+        long GetFileSize(string path) => File.Exists(path) ? new FileInfo(path).Length : 0;
 
         internal long GetDiskSizeOfSharedData()
         {
