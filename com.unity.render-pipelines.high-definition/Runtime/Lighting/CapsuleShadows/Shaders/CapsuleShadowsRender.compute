@@ -278,8 +278,9 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         // revert back to a single depth range if we don't skip much space (for performance)
         float totalDepthRange = asfloat(depthMaxU1) - asfloat(depthMinU0);
         float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
-        float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleRenderSize.zw);
-        float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*TILE_SIZE*asfloat(depthMaxU1);
+        float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
+        float tileSizeInPixels = TILE_SIZE * (isHalfRes ? 2 : 1);
+        float tileSizeAtMax = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*tileSizeInPixels*asfloat(depthMaxU1);
         if (!_CapsuleSplitDepthRange || skipDepthRange < tileSizeAtMax || skipDepthRange < .2f*totalDepthRange)
         {
             depthMaxU0 = depthMaxU1;
@@ -313,9 +314,10 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         float cornerLinearDepth1 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMaxU[depthRangeIndex]));
         if (cornerIndex < 8)
         {
+            float tileSizeInPixels = TILE_SIZE * (isHalfRes ? 2 : 1);
             float2 cornerVS_XY
                 = positionVS_XY
-                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_CapsuleRenderSize.zw*TILE_SIZE;
+                + float2((cornerIndex & 1) != 0 ? 1.f : -1.f, (cornerIndex & 2) != 0 ? 1.f : -1.f)*viewFromClipScale*_CapsuleUpscaledSize.zw*tileSizeInPixels;
             float cornerLinearDepth = ((cornerIndex & 4) != 0 ? cornerLinearDepth1 : cornerLinearDepth0);
             float3 offsetVS = ViewspaceFromXY(cornerVS_XY, cornerLinearDepth) - s_tileCenter[depthRangeIndex];
             float tileRadiusWS = sqrt(dot(offsetVS, offsetVS)) * absWorldFromViewScale;

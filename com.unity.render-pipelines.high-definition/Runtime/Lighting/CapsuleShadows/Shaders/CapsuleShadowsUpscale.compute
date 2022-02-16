@@ -24,15 +24,12 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float2 fullResPositionNDC = (float2(pixelCoord) + .5f)*_CapsuleUpscaledSize.zw;
-    float2 renderUV = ClampAndScaleUVForBilinear(fullResPositionNDC, _CapsuleUpscaledSize.zw);
-
-    float2 halfResPositionSS = 0.5f*(float2(pixelCoord) + .5f);
+    float2 halfResPositionSS = .5f*(float2(pixelCoord) + .5f);
     float2 t = frac(halfResPositionSS + .5f);
     float2 s = 1.f - t;
     float4 bilinearWeight = float4(s.x, t.x, t.x, s.x)*float4(t.y, t.y, s.y, s.y);
 
-    float2 depthUV = (float2(_FirstDepthMipOffset) + halfResPositionSS)*_DepthPyramidSize.zw;
+    float2 depthUV = (float2(_FirstDepthMipOffset) + halfResPositionSS)*_DepthPyramidTextureSize.zw;
     float4 gatherDeviceDepth = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, depthUV);
 
     float targetDeviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x;
@@ -42,13 +39,14 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     float4 gatherLinearDepth = invProj._m23/(invProj._m32 * gatherDeviceDepth + invProj._m33);
     float targetLinearDepth = invProj._m23/(invProj._m32 * targetDeviceDepth + invProj._m33);
     float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
-    float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleRenderSize.zw);
+    float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
     float pixelSizeAtTarget = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*targetLinearDepth;
-    float4 depthWeight = 1.f/max(abs(gatherLinearDepth - targetLinearDepth) - 4.f*pixelSizeAtTarget, + .01f);
+    float4 depthWeight = 1.f/max(abs(gatherLinearDepth - targetLinearDepth) - 8.f*pixelSizeAtTarget, + .01f);
 
     float4 combinedWeight = bilinearWeight*depthWeight;
     combinedWeight /= sumAcross(combinedWeight);
 
+    float2 renderUV = halfResPositionSS*_CapsuleRenderTextureSize.zw;
     float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
     float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
 

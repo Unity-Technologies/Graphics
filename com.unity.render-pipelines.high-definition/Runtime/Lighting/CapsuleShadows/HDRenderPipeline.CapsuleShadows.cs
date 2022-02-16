@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
             public ComputeBufferHandle capsuleOccluderDatas;
-            public Vector2Int depthPyramidSize;
+            public Vector2Int depthPyramidTextureSize;
             public Vector2Int firstDepthMipOffset;
         }
 
@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
-                passData.depthPyramidSize = depthMipInfo.textureSize;
+                passData.depthPyramidTextureSize = depthMipInfo.textureSize;
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
                 builder.SetRenderFunc(
@@ -383,8 +383,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Func<Vector2Int, Vector4> sizeAndRcp = (size) => { return new Vector4(size.x, size.y, 1.0f/size.x, 1.0f/size.y); };
 
+                        Texture renderTexture = data.renderOutput;
+                        Vector2Int renderTextureSize = new Vector2Int(renderTexture.width, renderTexture.height);
+
                         ShaderVariablesCapsuleShadows cb = new ShaderVariablesCapsuleShadows { };
-                        cb._CapsuleRenderSize = sizeAndRcp(data.renderSize);
+
+                        cb._CapsuleUpscaledSize = sizeAndRcp(data.upscaledSize);
 
                         cb._CapsuleLightDir = data.directionalLight.direction;
                         cb._CapsuleLightCosTheta = data.directionalLight.cosTheta;
@@ -392,8 +396,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._CapsuleLightTanTheta = data.directionalLight.tanTheta;
                         cb._CapsuleShadowRange = data.directionalLight.range;
 
-                        cb._CapsuleUpscaledSize = sizeAndRcp(data.upscaledSize);
-                        cb._DepthPyramidSize = sizeAndRcp(data.depthPyramidSize);
+                        cb._CapsuleRenderTextureSize = sizeAndRcp(renderTextureSize);
+                        cb._DepthPyramidTextureSize = sizeAndRcp(data.depthPyramidTextureSize);
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
                         cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
