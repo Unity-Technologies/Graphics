@@ -53,6 +53,8 @@ You can also right-click the Shader Graph shader, and select **Create > Material
 
 ![](images/MyFirstShaderGraph_05.png)
 
+A Material is also automatically generated as a subasset of the Shader Graph. You can assign it directly to an object in your scene. Modifying a property from the Blackboard on the Shader Graph will update this material in real time, which allows for quick visualization in the scene.
+
 ## Put the Material in the Scene
 
 Now that you have assigned your shader to a Material, you can apply it to objects in the Scene. Drag and drop the Material onto an object in the Scene. Alternatively, in the object's Inspector window, locate **Mesh Renderer > Materials**, and apply the Material to the **Element**.
