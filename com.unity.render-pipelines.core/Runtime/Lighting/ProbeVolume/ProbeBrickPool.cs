@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
-            m_AvailableChunkCount = m_Pool.width * m_Pool.height * m_Pool.depth / (kProbePoolChunkSize * kBrickProbeCountTotal);
+            m_AvailableChunkCount = (m_Pool.width / (kProbePoolChunkSize * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
 
             Profiler.EndSample();
         }
