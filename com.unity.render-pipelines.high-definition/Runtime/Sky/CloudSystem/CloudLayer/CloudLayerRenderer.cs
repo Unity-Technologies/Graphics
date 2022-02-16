@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
             if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)
-                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f;
+                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_FLOWMAP", cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap);
             if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
                 m_CloudLayerMaterial.SetTexture(_FlowmapA, cloudLayer.layerA.flowmap.value);
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_CLOUD_MOTION", cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None);
                 if (cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None)
-                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f;
+                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_FLOWMAP", cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap);
                 if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
                     m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
