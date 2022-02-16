@@ -214,6 +214,19 @@ namespace UnityEditor.VFX
             return sortingPriority;
         }
 
+        public override bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        {
+            var support = base.SupportsMotionVectorPerVertex(out vertsCount);
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
+            {
+                support = support && VFXLibrary.currentSRPBinder.GetSupportsMotionVectorPerVertex(shaderGraph, materialSettings);
+            }
+
+            return support;
+        }
+
         public BlendMode GetMaterialBlendMode()
         {
             var blendMode = BlendMode.Opaque;

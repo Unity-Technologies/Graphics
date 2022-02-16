@@ -215,11 +215,12 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
+            var graphDataReadOnly = new GraphDataReadOnly(graph);
             foreach (var target in graph.activeTargets)
             {
                 if (target is IHasMetadata iHasMetadata)
                 {
-                    var metadata = iHasMetadata.GetMetadataObject();
+                    var metadata = iHasMetadata.GetMetadataObject(graphDataReadOnly);
                     if (metadata == null)
                         continue;
 
