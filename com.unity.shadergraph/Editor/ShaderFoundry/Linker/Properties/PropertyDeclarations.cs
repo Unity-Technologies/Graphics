@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderFoundry
             {"VTPropertyWithTextureType", HandleVirtualTexture },
         };
 
+        // These process the valid ShaderLab attributes so we don't declare any extra attributes on the material property.
+        // This is not fully fleshed out yet, but more of a starting stub.
         static Dictionary<string, Action<ShaderAttribute, FieldPropertyContext>> AttributeHandlers = new Dictionary<string, Action<ShaderAttribute, FieldPropertyContext>>
         {
             {"Gamma", DefaultAttributeProcessor},

@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderFoundry
         internal UniformDataSource DataSource => propertyAttribute.DataSource;
         internal string DefaultValue => propertyAttribute.DefaultValue;
 
+        // Not all attributes on a field are valid ShaderLab attributes.
+        // These are the ones that we've preemptively processed as being valid to forward to ShaderLab.
         internal Dictionary<string, ShaderAttribute> ProcessedAttributes = new Dictionary<string, ShaderAttribute>();
         // Any extra attributes being added by a property that don't have backing ShaderAttributes.
         // Used to do things like add the [Toggle] attribute for booleans.
