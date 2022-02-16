@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that returns the number of butterfly passes depending on the resolution
         internal int ButterFlyCount(WaterSimulationResolution simRes)
         {
-            switch(simRes)
+            switch (simRes)
             {
                 case WaterSimulationResolution.High256:
                     return 8;

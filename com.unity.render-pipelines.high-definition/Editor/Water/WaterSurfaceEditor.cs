@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_CPUSimulation;
         SerializedProperty m_CPUFullResolution;
         SerializedProperty m_CPUEvaluateAllBands;
-        
+
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
         SerializedProperty m_Amplitude;
@@ -253,7 +253,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 using (new EditorGUI.DisabledScope(true))
                                 {
-                                    // When in 64, we always show that we are running the CPU simulation at full res. 
+                                    // When in 64, we always show that we are running the CPU simulation at full res.
                                     bool fakeToggle = true;
                                     EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
                                 }
@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 using (new EditorGUI.DisabledScope(true))
                                 {
-                                    // When we only have 2 bands, we should evaluate all bands 
+                                    // When we only have 2 bands, we should evaluate all bands
                                     bool fakeToggle = true;
                                     EditorGUILayout.Toggle(k_CPUEvaluateAllBands, fakeToggle);
                                 }

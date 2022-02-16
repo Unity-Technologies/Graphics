@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 gpuBuffersValid = false;
                 cpuBuffersValid = false;
 
-                // Create the simulation resources 
+                // Create the simulation resources
                 simulation = new WaterSimulationResources();
 
                 // Initialize for the allocation
@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsr.candidateLocation = float3.zero;
             wsr.numIterations = wsp.maxIterations;
 
-            // Try to do the 
+            // Try to to fill the search data and run the evaluation.
             WaterSimSearchData wsd = new WaterSimSearchData();
             if (FillWaterSearchData(ref wsd))
             {
