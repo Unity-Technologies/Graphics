@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEngine;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
@@ -48,9 +47,11 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (port.IsHorizontal && port.IsInput)
                     {
                         var entry = port.GetField<IContextDescriptor.ContextEntry>(ShaderGraph.Registry.Types.GraphType.kEntry).GetData();
-                        var varOutBuilder = new BlockVariable.Builder(container);
-                        varOutBuilder.ReferenceName = entry.fieldName;
-                        varOutBuilder.Type = EvaluateShaderType(entry, container);
+                        var varOutBuilder = new BlockVariable.Builder(container)
+                        {
+                            ReferenceName = entry.fieldName,
+                            Type = EvaluateShaderType(entry, container)
+                        };
                         var varOut = varOutBuilder.Build();
                         outputVariables.Add(varOut);
                     }
@@ -89,11 +90,11 @@ namespace UnityEditor.ShaderGraph.Generation
             if(isContext)
             {
                 int varIndex = 0;
-                foreach(PortReader port in rootNode.GetPorts())
+                foreach(PortHandler port in rootNode.GetPorts())
                 {
-                    if(port.IsHorizontal() && port.IsInput())
+                    if(port.IsHorizontal && port.IsInput)
                     {
-                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        port.GetField(Registry.Types.GraphType.kEntry, out IContextDescriptor.ContextEntry entry);
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
@@ -239,20 +240,20 @@ namespace UnityEditor.ShaderGraph.Generation
 
         }
 
-        private static IEnumerable<NodeHandler> GatherTreeLeafFirst(INodeHandler rootNode)
+        private static IEnumerable<NodeHandler> GatherTreeLeafFirst(NodeHandler rootNode)
         {
-            Stack<INodeHandler> stack = new Stack<INodeHandler>();
-            HashSet<INodeHandler> visited = new HashSet<INodeHandler>();
+            Stack<NodeHandler> stack = new();
+            HashSet<NodeHandler> visited = new();
             stack.Push(rootNode);
             while(stack.Count > 0)
             {
-                INodeHandler check = stack.Peek();
+                NodeHandler check = stack.Peek();
                 bool isLeaf = true;
-                foreach(IPortHandler port in check.GetInputPorts())
+                foreach(PortHandler port in check.GetInputPorts())
                 {
                     if(port.IsHorizontal)
                     {
-                        foreach(INodeHandler connected in GetConnectedNodes(port))
+                        foreach(NodeHandler connected in GetConnectedNodes(port))
                         {
                             if (!visited.Contains(connected))
                             {
@@ -270,7 +271,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        private static IEnumerable<NodeHandler> GetConnectedNodes(IPortHandler port)
+        private static IEnumerable<NodeHandler> GetConnectedNodes(PortHandler port)
         {
             foreach(var connected in port.GetConnectedPorts())
             {

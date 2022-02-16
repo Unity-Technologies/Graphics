@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.ShaderFoundry;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphDelta;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace UnityEditor.ShaderGraph.Registry
@@ -44,8 +43,7 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             // all common math operations can probably use the same resolver.
             //public static void MathNodeDynamicResolver(
-            //    INodeReader userData, INodeWriter nodeWriter, Registry registry)
-            public static void MathNodeDynamicResolver(NodeHandler node, Registry registry)
+            public static void MathNodeDynamicResolver(NodeHandler node)
             {
                 int operands = 0;
                 int resolvedLength = 4;
@@ -149,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
             public void BuildNode(NodeHandler node, Registry registry)
             {
-                NodeHelpers.MathNodeDynamicResolver(node, registry);
+                NodeHelpers.MathNodeDynamicResolver(node);
             }
 
             public ShaderFunction GetShaderFunction(

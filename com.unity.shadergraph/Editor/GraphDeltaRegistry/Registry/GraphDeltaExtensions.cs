@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -16,27 +15,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     //    RegistryFlags ResolveFlags<T>() where T : Defs.IRegistryEntry;
     //}
 
+    // TODO (Brett) I think we can remove this class.
+
     public static class GraphDeltaExtensions
     {
 
-        public static IEnumerable<IPortHandler> GetConnectedPorts(this IPortHandler port)
+        public static IEnumerable<PortHandler> GetConnectedPorts(this PortHandler port)
         {
             // TODO (Liz) Implement
             throw new System.NotImplementedException();
         }
 
         private const string kRegistryKeyName = "_RegistryKey";
-        public static RegistryKey GetRegistryKey(this INodeHandler node)
+        public static RegistryKey GetRegistryKey(this NodeHandler node)
         {
             return node.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static RegistryKey GetRegistryKey(this IPortHandler port)
+        public static RegistryKey GetRegistryKey(this PortHandler port)
         {
             return port.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static RegistryKey GetRegistryKey(this IFieldHandler field)
+        public static RegistryKey GetRegistryKey(this FieldHandler field)
         {
             return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
@@ -55,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal static void SetupContext(this IGraphHandler handler, IEnumerable<Registry.Defs.IContextDescriptor> contexts, Registry.Registry registry)
         {
             // only safe to call right now.
-            INodeHandler previousContextNode = null;
+            NodeHandler previousContextNode = null;
             foreach(var context in contexts)
             {
                 // Initialize the Context Node with information from the ContextDescriptor
@@ -242,59 +243,63 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
 
-        public static void SetPortField<T>(this INodeHandler node, string portName, string fieldName, T value)
-        {
-            var pw = node.GetPort(portName);
-            if(pw == null)
-            {
-                pw = node.AddPort(portName, true, true);
-            }
-            pw.SetField(fieldName, value);
-        }
+        //public static void SetPortField<T>(this NodeHandler node, string portName, string fieldName, T value)
+        //{
+        //    var pw = node.GetPort(portName);
+        //    if(pw == null)
+        //    {
+        //        pw = node.AddPort(portName, true, true);
+        //    }
+        //    pw.SetField(fieldName, value);
+        //}
 
-        internal static void SetField<T> (GraphDataHandler handler, string fieldName, T value)
-        {
-            IFieldHandler<T> fieldWriter = handler.GetField<T>(fieldName);
-            if (fieldWriter == null)
-            {
-                handler.AddField(fieldName, value);
-            }
-            else
-            {
-                fieldWriter.SetData(value);
-            }
+        //internal static void SetField<T> (GraphDataHandler handler, string fieldName, T value)
+        //{
+        //    FieldHandler<T> fieldWriter = handler.GetField<T>(fieldName);
+        //    if (fieldWriter == null)
+        //    {
+        //        handler.AddField(fieldName, value);
+        //    }
+        //    else
+        //    {
+        //        fieldWriter.SetData(value);
+        //    }
 
-        }
+        //}
 
-        public static void SetField<T>(this INodeHandler node, string fieldName, T value) => SetField(node as GraphDataHandler, fieldName, value);
-        public static void SetField<T>(this IPortHandler port, string fieldName, T value) => SetField(port as GraphDataHandler, fieldName, value);
-        public static void SetField<T>(this IFieldHandler field, string fieldName, T value) => SetField(field as GraphDataHandler, fieldName, value);
+        //public static void SetField<T>(this NodeHandler node, string fieldName, T value) => SetField(node as GraphDataHandler, fieldName, value);
+        //public static void SetField<T>(this PortHandler port, string fieldName, T value) => SetField(port as GraphDataHandler, fieldName, value);
+        //public static void SetField<T>(this FieldHandler field, string fieldName, T value) => SetField(field as GraphDataHandler, fieldName, value);
 
-        public static T GetField<T>(this INodeHandler node, string fieldName)
+        public static T GetField<T>(this NodeHandler node, string fieldName)
         {
             return node.GetField<T>(fieldName).GetData();
         }
-        public static T GetField<T>(this IPortHandler port, string fieldName)
+        public static T GetField<T>(this PortHandler port, string fieldName)
         {
             return port.GetField<T>(fieldName).GetData();
         }
-        public static T GetField<T>(this IFieldHandler field, string fieldName)
+        public static T GetField<T>(this FieldHandler field, string fieldName)
         {
             return field.GetSubField<T>(fieldName).GetData();
         }
 
-        internal static IPortHandler AddPort<T>(this INodeHandler node, string name, bool isInput, Registry.Registry registry) where T : Registry.Defs.ITypeDefinitionBuilder
+        internal static PortHandler AddPort<T>(this NodeHandler node, string name, bool isInput, Registry.Registry registry) where T : Registry.Defs.ITypeDefinitionBuilder
         {
             return AddPort(node, name, isInput, Registry.Registry.ResolveKey<T>(), registry);
         }
 
-        public static IPortHandler AddPort(this INodeHandler node, string name, bool isInput, RegistryKey key, Registry.Registry registry)
+        public static PortHandler AddPort(this NodeHandler node, string name, bool isInput, RegistryKey key, Registry.Registry registry)
         {
             var port = node.AddPort(name, isInput, true);
             port.SetMetadata(kRegistryKeyName, key);
 
             var builder = registry.GetTypeBuilder(key);
-            builder.BuildType((IFieldHandler)port, registry);
+
+            // TODO (Liz) Building the type with the port's localID doesn't seem
+            // like the right thing here. What is the right field to use for building
+            // the type?
+            builder.BuildType(port.GetField(name), registry);
             return port;
         }
     }
