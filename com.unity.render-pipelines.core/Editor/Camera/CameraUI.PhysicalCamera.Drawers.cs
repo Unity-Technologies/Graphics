@@ -123,12 +123,19 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(p.baseCameraSettings.lensShift, Styles.shift);
             }
 
+
+            /// <summary>Draws Focus Distance related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_PhysicalCamera_FocusDistance(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;
                 EditorGUILayout.PropertyField(cam.focusDistance, Styles.focusDistance);
             }
 
+            /// <summary>Draws ISO related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_PhysicalCamera_CameraBody_ISO(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;
@@ -141,10 +148,13 @@ namespace UnityEditor.Rendering
             {
                 [InspectorName("Second")]
                 Second,
-                [InpsectorName("1 \u2215 Second")] // Don't use a slash here else Unity will auto-create a submenu...
+                [InspectorName("1 \u2215 Second")] // Don't use a slash here else Unity will auto-create a submenu...
                 OneOverSecond
             }
 
+            /// <summary>Draws Shutter Speed related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_PhysicalCamera_CameraBody_ShutterSpeed(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;
@@ -182,6 +192,9 @@ namespace UnityEditor.Rendering
                 EditorGUI.EndProperty();
             }
 
+            /// <summary>Draws Lens Aperture related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_PhysicalCamera_Lens_Aperture(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;
@@ -236,6 +249,9 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.Space(EditorGUIUtility.singleLineHeight);
             }
 
+            /// <summary>Draws Aperture Shape related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_PhysicalCamera_ApertureShape(ISerializedCamera p, Editor owner)
             {
                 var cam = p.baseCameraSettings;

@@ -1994,7 +1994,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useMipSafePath;
         }
 
-        DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
+        DepthOfFieldParameters PrepareDoFParameters(HDCamera hdCamera)
         {
             DepthOfFieldParameters parameters = new DepthOfFieldParameters();
 
@@ -2040,14 +2040,14 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pbDoFCombineKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
             parameters.minMaxCoCTileSize = 8;
 
-            parameters.camera = camera;
+            parameters.camera = hdCamera;
             parameters.viewportSize = postProcessViewportSize;
-            parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
+            parameters.resetPostProcessingHistory = hdCamera.resetPostProcessingHistory;
 
             parameters.nearLayerActive = m_DepthOfField.IsNearLayerActive();
             parameters.farLayerActive = m_DepthOfField.IsFarLayerActive();
             parameters.highQualityFiltering = m_DepthOfField.highQualityFiltering;
-            parameters.useTiles = !camera.xr.singlePassEnabled;
+            parameters.useTiles = !hdCamera.xr.singlePassEnabled;
 
             parameters.resolution = m_DepthOfField.resolution;
 
@@ -2070,11 +2070,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.threadGroup8 = new Vector2Int(threadGroup8X, threadGroup8Y);
 
-            parameters.physicalCameraCurvature = camera.camera.curvature;
-            parameters.physicalCameraAnamorphism = camera.camera.anamorphism;
-            parameters.physicalCameraAperture = camera.camera.aperture;
-            parameters.physicalCameraBarrelClipping = camera.camera.barrelClipping;
-            parameters.physicalCameraBladeCount = camera.camera.bladeCount;
+            var camera = hdCamera.camera;
+            parameters.physicalCameraCurvature = camera.curvature;
+            parameters.physicalCameraAnamorphism = camera.anamorphism;
+            parameters.physicalCameraAperture = camera.aperture;
+            parameters.physicalCameraBarrelClipping = camera.barrelClipping;
+            parameters.physicalCameraBladeCount = camera.bladeCount;
 
             parameters.nearFocusStart = m_DepthOfField.nearFocusStart.value;
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
@@ -2084,7 +2085,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
                 parameters.focusDistance = m_DepthOfField.focusDistance.value;
             else
-                parameters.focusDistance = camera.camera.focusDistance;
+                parameters.focusDistance = hdCamera.camera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
@@ -2172,7 +2173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.resolution = DepthOfFieldResolution.Half;
             }
 
-            if (camera.msaaEnabled)
+            if (hdCamera.msaaEnabled)
             {
                 // When MSAA is enabled, DoF should use the min depth of the MSAA samples to avoid 1-pixel ringing around in-focus objects [case 1347291]
                 parameters.dofCoCCS.EnableKeyword("USE_MIN_DEPTH");
