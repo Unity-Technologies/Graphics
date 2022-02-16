@@ -132,10 +132,7 @@ namespace UnityEngine.Rendering
             {
                 // We need to set a known per-ray maxHits up-front since raycast command schedule reads this at schedule time. This is a bit annoying but it's a
                 // price we'll have to pay right now to be able to create commands from a job.
-                QueryParameters queryParams = new QueryParameters();
-                queryParams.hitBackfaces = true;
-                queryParams.layerMask = 0;
-                var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, queryParams, 0f);
+                var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
                 for (var i = 0; i < maxPositionsPerBatch * kRayDirectionsPerPosition; ++i)
                     raycastCommands[0][i] = raycastCommands[1][i] = defaultRaycastCommand;
             }
@@ -213,13 +210,13 @@ namespace UnityEngine.Rendering
 #if USE_JOBS
                     // Kick off jobs immediately
                     var createRayCastCommandsJobHandle = createRayCastCommandsJob.Schedule();
-                    var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, voSettings.maxHitsPerRay, createRayCastCommandsJobHandle);
+                    var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, createRayCastCommandsJobHandle);
                     jobHandles[nextBatchIdx] = pushOutGeometryJob.Schedule(raycastCommandsJobHandle);
                     JobHandle.ScheduleBatchedJobs();
 #else
                     // Run jobs in-place for easier debugging
                     createRayCastCommandsJob.Run();
-                    RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], voSettings.maxHitsPerRay, kMinCommandsPerJob).Complete();
+                    RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob).Complete();
                     pushOutGeometryJob.Run();
 #endif
                 }
@@ -282,8 +279,6 @@ namespace UnityEngine.Rendering
 
             public void Execute()
             {
-                var queryParams = new QueryParameters(voSettings.collisionMask, true, QueryTriggerInteraction.UseGlobal, true);
-
                 var cmdIdx = 0;
                 for (var i = startIdx; i < endIdx; ++i)
                 {
@@ -296,20 +291,20 @@ namespace UnityEngine.Rendering
                         {
                             var direction = kRayDirections[j];
                             var origin = position + direction * voSettings.rayOriginBias;
-                            raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, queryParams, searchDistance);
+                            raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, searchDistance, voSettings.collisionMask, voSettings.maxHitsPerRay);
                         }
                     }
                     else
                     {
                         // Since there's no option to dispatch commands with a subset of an array, we fill up the commands buffer with no-op raycasts.
                         for (var j = 0; j < kRayDirectionsPerPosition; ++j)
-                            raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
+                            raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
                     }
                 }
 
                 // Zero out any remainder of the raycast array
                 for (; cmdIdx < raycastCommands.Length;)
-                    raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
+                    raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
             }
 
             // Typed out in a way Burst understands.
