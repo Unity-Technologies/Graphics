@@ -47,7 +47,7 @@ uint GetCapsuleAmbientOcclusionFlags()
     return 0;
 #else
     uint flags = 0;
-    if (_CapsuleDirectShadowMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
+    if (_CapsuleIndirectShadowExtra == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
         flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
     return flags;
 #endif
