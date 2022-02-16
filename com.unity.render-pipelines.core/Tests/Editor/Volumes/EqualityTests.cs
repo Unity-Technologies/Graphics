@@ -36,13 +36,12 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
-                r2 = null;
-                nullableTest = !l2.Equals(r2);
+                var nullableTest = true;
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -77,13 +76,12 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
-                r2 = null;
-                nullableTest = !l2.Equals(r2);
+                var nullableTest = true;
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -118,13 +116,12 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
-                r2 = null;
-                nullableTest = !l2.Equals(r2);
+                var nullableTest = true;
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -159,13 +156,14 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
+                var nullableTest = true;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -200,13 +198,14 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
+                var nullableTest = true;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -241,13 +240,14 @@ namespace UnityEngine.Rendering.Tests
                     || !expectsAreEquals;
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-                var nullableTest = false;
+                var nullableTest = true;
                 r2 = null;
                 nullableTest = !l2.Equals(r2);
                 var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
+                    && nullableTest
                     && areEquals == expectsAreEquals
                     && isEqual
                     && !l2.Equals((object)null)
@@ -279,13 +279,14 @@ namespace UnityEngine.Rendering.Tests
                 || !expectsAreEquals;
             // Check equal to itself
             var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-            var nullableTest = false;
+            var nullableTest = true;
             r2 = null;
             nullableTest = !l2.Equals(r2);
             var result = areEquals == areEquals2
                 && areEquals == areEquals3
                 && areEquals != areNotEquals4
                 && hashCodeEquals
+                && nullableTest
                 && areEquals == expectsAreEquals
                 && isEqual
                 && !l2.Equals((object)null)

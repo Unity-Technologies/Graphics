@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
             m_ComputeAmbientProbeCloudsKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionClouds");
 
-            lightingOverrideVolumeStack = VolumeStack.FromArchetype(HDUtils.hdVolumeArchetype);
+            lightingOverrideVolumeStack = VolumeStack.FromArchetype(HDUtils.volumeArchetype);
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
 
             m_CubemapScreenSize = new Vector4((float)m_Resolution, (float)m_Resolution, 1.0f / (float)m_Resolution, 1.0f / (float)m_Resolution);

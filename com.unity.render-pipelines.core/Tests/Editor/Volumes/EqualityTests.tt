@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Tests
                 var expectsAreEquals = <#= test.expectsAreEqual #>;
 <#+
             PushIndent("                ");
-            WriteEqualityCode(true);
+            WriteEqualityCode(test.addNullableTests);
             PopIndent();
 #>
                 return result;
@@ -102,7 +102,7 @@ var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
     || !expectsAreEquals;
 // Check equal to itself
 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
-var nullableTest = false;
+var nullableTest = true;
 <#+
         if (addNullableTests)
         {
@@ -116,6 +116,7 @@ var result = areEquals == areEquals2
     && areEquals == areEquals3
     && areEquals != areNotEquals4
     && hashCodeEquals
+    && nullableTest
     && areEquals == expectsAreEquals
     && isEqual
     && !l2.Equals((object)null)
@@ -134,7 +135,7 @@ var result = areEquals == areEquals2
                 "[ValueSource(typeof(TSet), nameof(TSet.volumeComponentTypes))]",
                 string.Format(constructor, className),
                 "l.AsType() == r.AsType()",
-                true);
+                false);
     }
 
     EqualityTest[] equalityTests = new[]
