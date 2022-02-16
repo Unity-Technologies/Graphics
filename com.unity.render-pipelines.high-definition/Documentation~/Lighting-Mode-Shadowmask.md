@@ -6,24 +6,25 @@ The High Definition Render Pipelines (HDRP) supports the Shadowmask Lighting Mod
 
 To use shadowmasks in HDRP, you must set up your Project to support them. To do this:
 
-1. Enable Distance Shadowmask for every Quality Level in your Unity Project:
-   1. Open the Project Settings window (menu: **Edit** > **Project Setting**) and select the Quality tab.
-   2. Select a Level (for example, Medium) then, in the Shadows section, set the Shadowmask Mode to Distance Shadowmask.
-   3. Do this for every Quality Level.
-2. Enable the Shadowmask property in your Unity Project’s [HDRP Asset](HDRP-Asset.md):
+1. Enable **Shadowmask** for every Quality Level in your Unity Project:
+   1. Go to **Edit** > **Project Setting** > **Quality** > **HDRP**.
+   2. Select a Quality Level (for example, **HDRPMediumQuality**).
+   3. Go to **Lighting** > **Shadows** and enable **Shadowmask**.
+   4. Repeat these steps for every Quality Level.
+2. Enable the **Shadowmask** property in your Unity Project’s [HDRP Asset](HDRP-Asset.md):
    1. In the Project window, select an HDRP Asset to view in the Inspector.
-   2. Go to the Lighting section and then to Shadow.
-   3. Enable Shadowmask.
-3. Set up your Scene to use shadowmask and baked global illumination:
-   1. Open the Lighting window (menu: **Window** > **Rendering** > **Lighting Settings**).
-   2. In the Mixed Lighting section, enable Baked Global Illumination and set the Lighting Mode to Shadowmask.
+   2. Go to **Lighting** > **Shadow**.
+   3. Enable **Shadowmask**.
+3. Set up your Scene to use **Shadowmask** and **Baked Global Illumination**:
+   1. Open the Lighting window (menu: **Window** > **Rendering** > **Lighting**).
+   2. In the **Mixed Lighting** section, enable **Baked Global Illumination** and set the **Lighting Mode** to **Shadowmask**.
 4. Make your Cameras use shadowmasks when they render the Scene. To set this as the default behaviour for Cameras:
-   1. Open the Project Settings window (menu: **Edit** > **Project Settings**) and select the HDRP Default Settings tab.
-   2. In the Frame Settings section, set Default Frame Settings For to Camera.
-   3. In the Lighting section, enable Shadowmask.
-5. Optionally, you can make your [Reflection Probes](Reflection-Probes-Intro.md) use shadowmask for baked or real-time reflections. To do this, follow the same instructions as in step 3, but set Default Frame Settings For to Baked Or Custom Reflection or Realtime Reflection.
+   1. Open the Project Settings window (menu: **Edit** > **Project Settings**) and select the **HDRP Global Settings** tab.
+   2. Go to **Frame Settings (Default Values)** > **Camera** > **Lighting** and enable **Shadowmask**.
+5. Optionally, you can make your [Reflection Probes](Reflection-Probes-Intro.md) use shadowmask for baked or real-time reflections. To do this:
+   1. Go to **Frame Settings (Default Values)** > **Realtime Reflection** or **Baked or Custom Reflection** > **Lighting** and enable **Shadowmask**.
 
-Now, on a [Light](Light-Component.md), when you select the Mixed mode. The lightmapper precomputes Shadowmasks for static GameObject that the Light affects.
+Now, on a [Light](Light-Component.md), when you select the **Mixed** mode. The lightmapper precomputes Shadowmasks for static GameObject that the Light affects.
 
 ## Shadowmask mode
 
@@ -31,7 +32,7 @@ To allow for flexible lighting setups, HDRP lets you choose the behaviour of the
 
 1. Select a Light in your Scene to view it in the Inspector window.
 2. Go to **General** > **Mode** > **Mixed**.
-2. Go to **Shadows** > **Shadow Map** > **Shadowmask Mode**.
+2. Go to **Shadows** > **Shadow Map** > **Shadowmask Mode** and select one of the options.
 
 For information on the behavior of each Shadowmask Mode, see the following table:
 
