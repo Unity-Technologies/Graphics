@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     /// </summary>
     [CanEditMultipleObjects]
     [CustomEditor(typeof(UniversalAdditionalLightData))]
-    internal class UniversalAdditionLightDataEditor : Editor
+    public class UniversalAdditionLightDataEditor : Editor
     {
         /// <inheritdoc/>
         public override void OnInspectorGUI()

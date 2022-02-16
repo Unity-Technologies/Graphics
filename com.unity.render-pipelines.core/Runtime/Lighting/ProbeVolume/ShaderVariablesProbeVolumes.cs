@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering
         public Vector4 _Biases_CellInMinBrick_MinBrickSize;
         public Vector4 _LeakReductionParams;
         public Vector4 _Weight_MinLoadedCell;
-        public Vector4 _MaxLoadedCell_Padding;
+        public Vector4 _MaxLoadedCell_FrameIndex;
 
     }
 }
