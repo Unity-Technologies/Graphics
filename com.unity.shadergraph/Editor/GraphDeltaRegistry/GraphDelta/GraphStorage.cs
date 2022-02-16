@@ -26,13 +26,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     internal sealed partial class GraphStorage : CLDS
     {
-        public const string k_concrete = "Concrete";
-        public const string k_user = "User";
-
         protected override void AddDefaultLayers()
         {
-            AddLayer(0, k_concrete, false);
-            AddLayer(1, k_user,     true);
+            AddLayer(0, GraphDelta.k_concrete, false);
+            AddLayer(1, GraphDelta.k_user,     true);
         }
 
         internal GraphDataHandler GetHandler(ElementID elementID)

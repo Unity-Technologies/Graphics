@@ -2,6 +2,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphDelta;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Registry
@@ -199,11 +200,11 @@ namespace UnityEditor.ShaderGraph.Registry
 
         internal class GraphType : Defs.ITypeDefinitionBuilder
         {
-            public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
+            public static RegistryKey kRegistryKey => new() { Name = "GraphType", Version = 1 };
             public RegistryKey GetRegistryKey() => kRegistryKey;
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-            public enum Precision {Fixed, Half, Full };
+            public enum Precision { Fixed, Half, Full };
             public enum Primitive { Bool, Int, Float };
 
             public const string kPrimitive = "Primitive";
@@ -212,44 +213,35 @@ namespace UnityEditor.ShaderGraph.Registry
             public const string kHeight = "Height";
             public const string kEntry = "_Entry";
 
-            public void BuildType(IFieldHandler field, Registry registry)
+            public void BuildType(FieldHandler field, Registry registry)
             //public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {
-                // TODO (Brett) This is going to change to accepting a layer
+                // default initialize to a float4
+                field.AddSubField(k_concrete, kPrecision, Precision.Full);
+                field.AddSubField(k_concrete, kPrimitive, Primitive.Float);
+                field.AddSubField(k_concrete, kLength, 4);
+                field.AddSubField(k_concrete, kHeight, 1);
 
-                // default initialize to a float4.
-                field.AddSubField(kPrecision, Precision.Full);
-                field.AddSubField(kPrimitive, Primitive.Float);
-                field.AddSubField(kLength, 4);
-                field.AddSubField(kHeight, 1);
-
-                //field.GetSubField<Precision>(kPrecision).GetData()
-
-                // read userdata and make sure we have enough fields.
-                int length = field.GetSubField(kLength);
-                if (!userData.GetField(kLength, out int length))
-                    length = 4;
-                if (!userData.GetField(kHeight, out int height))
-                    height = 1;
-
-                // ensure that enough subfield values exist to represent userdata's current data.
-                for (int i = 0; i < length * height; ++i)
-                    typeWriter.SetField<float>($"c{i}", 0);
+                // ensure that enough subfield values exist to represent userdata's current data
+                for (int i = 0; i < 16; ++i)
+                    field.AddSubField<float>(k_concrete, $"c{i}", 0);
             }
 
-            string GetInitializerList(GraphDataHandler field, Registry registry)
+            public string GetInitializerList(FieldHandler field, Registry registry)
             //string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
-
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
+                var subField = field.GetSubField<int>(kLength);
+                int length = subField == null ? 0 : subField.GetData();
+                subField = field.GetSubField<int>(kHeight);
+                int height = subField == null ? 0 : subField.GetData();
                 length = Mathf.Clamp(length, 1, 4);
                 height = Mathf.Clamp(height, 1, 4);
 
-                string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderContainer(), registry).Name}" + "(";
-                for(int i = 0; i < length*height; ++i)
+                ShaderType shaderType = GetShaderType(field, new ShaderContainer(), registry);
+                string result = $"{shaderType.Name}" + "(";
+                for (int i = 0; i < length * height; ++i)
                 {
-                    data.GetField($"c{i}", out float componentValue);
+                    float componentValue = field.GetSubField<float>($"c{i}").GetData();
                     result += $"{componentValue}";
                     if (i != length * height - 1)
                         result += ", ";
@@ -258,27 +250,49 @@ namespace UnityEditor.ShaderGraph.Registry
                 return result;
             }
 
-            ShaderType GetShaderType(GraphDataHandler field, ShaderContainer container, Registry registry)
+            public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
             //ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderContainer container, Registry registry)
             {
-                Primitive primitive = field.GetSubField(kPrimitive);
-                Precision precision = data.GetField(kPrecision, out Precision precision);
-                data.GetField(kLength, out int length);
-                data.GetField(kHeight, out int height);
+                var primitiveSubField = field.GetSubField<Primitive>(kPrimitive);
+                Primitive primitive = Primitive.Float;
+                if (primitiveSubField != null)
+                {
+                    primitive = primitiveSubField.GetData();
+                }
+                var precisionSubField = field.GetSubField<Precision>(kPrecision);
+                Precision precision = Precision.Full;
+                if (precisionSubField != null)
+                {
+                    precision = precisionSubField.GetData();
+                }
+
+                var lengthSubField = field.GetSubField<int>(kLength);
+                int length = lengthSubField == null ? 0 : lengthSubField.GetData();
+                var heightSubField = field.GetSubField<int>(kHeight);
+                int height = heightSubField == null ? 0 : heightSubField.GetData();
+
                 length = Mathf.Clamp(length, 1, 4);
                 height = Mathf.Clamp(height, 1, 4);
 
                 string name = "float";
 
-                switch(primitive)
+                switch (primitive)
                 {
-                    case Primitive.Bool: name = "bool"; break;
-                    case Primitive.Int: name = "int"; break;
+                    case Primitive.Bool:
+                        name = "bool";
+                        break;
+                    case Primitive.Int:
+                        name = "int";
+                        break;
                     case Primitive.Float:
                         switch (precision)
                         {
-                            case Precision.Fixed: name = "fixed"; break;
-                            case Precision.Half: name = "half"; break;
+                            case Precision.Fixed:
+                                name = "fixed";
+                                break;
+                            case Precision.Half:
+                                name = "half";
+                                break;
                         }
                         break;
                 }

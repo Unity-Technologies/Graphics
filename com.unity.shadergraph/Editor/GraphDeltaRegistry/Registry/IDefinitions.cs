@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
     internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
-        void BuildType(IFieldHandler field, Registry registry);
+        void BuildType(FieldHandler field, Registry registry);
         ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry);
         string GetInitializerList(FieldHandler field, Registry registry);
     }
