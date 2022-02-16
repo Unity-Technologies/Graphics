@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_EnableHeightBlend",
-                displayName = "EnableHeightBlend",
+                displayName = "Enable Height Blend",
             });
 
             collector.AddShaderProperty(new Vector1ShaderProperty
@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_EnableInstancedPerPixelNormal",
-                displayName = "Instanced per pixel normal",
+                displayName = "Enable Instanced per Pixel Normal",
             });
 
             collector.AddShaderProperty(new Texture2DShaderProperty

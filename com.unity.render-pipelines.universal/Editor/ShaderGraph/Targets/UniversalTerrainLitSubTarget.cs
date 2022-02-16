@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEngine.Assertions;
@@ -19,12 +20,39 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override int latestVersion => 1;
 
         [SerializeField]
+        private bool m_EnableHeightBlend;
+
+        [SerializeField]
+        float m_HeightTransition;
+
+        [SerializeField]
+        bool m_EnableInstancedPerPixelNormal;
+
+        [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
         [SerializeField]
         bool m_BlendModePreserveSpecular = true;
 
         protected override ShaderID shaderID => ShaderID.SG_TerrainLit;
+
+        public bool enableHeightBlend
+        {
+            get => m_EnableHeightBlend;
+            set => m_EnableHeightBlend = value;
+        }
+
+        public float heightTransition
+        {
+            get => m_HeightTransition;
+            set => m_HeightTransition = value;
+        }
+
+        public bool enableInstancedPerPixelNormal
+        {
+            get => m_EnableInstancedPerPixelNormal;
+            set => m_EnableInstancedPerPixelNormal = value;
+        }
 
         public NormalDropOffSpace normalDropOffSpace
         {
@@ -51,8 +79,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             base.Setup(ref context);
 
             var universalRPType = typeof(UniversalRenderPipelineAsset);
-            //if (!context.HasCustomEditorForRenderPipeline(universalRPType))
-            //    context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainGUI).FullName, universalRPType);
+            if (!context.HasCustomEditorForRenderPipeline(universalRPType))
+                context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainLitGUI).FullName, universalRPType);
 
             context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
             context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
@@ -121,6 +149,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = enableHeightBlend,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_EnableHeightBlend",
+                displayName = "Enable Height Blend",
+            });
+
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                value = heightTransition,
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_HeightTransition",
+                displayName = "Height Transition",
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = enableInstancedPerPixelNormal,
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                displayName = "Enable Instanced per Pixel Normal",
+            });
+
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_TerrainHolesTexture",
+                displayName = "Holes Map (RGB)",
+                useTilingAndOffset = true,
+            });
+
             // if using material control, add the material property to control workflow mode
             if (target.allowMaterialOverride)
             {
@@ -380,7 +450,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
-                    passes = new PassCollection()
+                    passes = new PassCollection(),
+                    shaderDependencies = new List<ShaderDependency>(),
                 };
 
                 result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular, CorePragmas.DOTSForward));
@@ -400,6 +471,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(PassVariant(TerrainLitPasses.SceneSelection(target), CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(TerrainLitPasses.ScenePicking(target), CorePragmas.DOTSDefault));
 
+                result.shaderDependencies.Add(TerrainDependencies.AddPassShader());
+                result.shaderDependencies.Add(TerrainDependencies.BaseMapShader());
+                result.shaderDependencies.Add(TerrainDependencies.BaseMapGenShader());
+
                 return result;
             }
 
@@ -417,7 +492,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
-                    passes = new PassCollection()
+                    passes = new PassCollection(),
+                    shaderDependencies = new List<ShaderDependency>(),
                 };
 
                 result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular));
@@ -434,6 +510,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(TerrainLitPasses.SceneSelection(target));
                 result.passes.Add(TerrainLitPasses.ScenePicking(target));
+
+                result.shaderDependencies.Add(TerrainDependencies.AddPassShader());
+                result.shaderDependencies.Add(TerrainDependencies.BaseMapShader());
+                result.shaderDependencies.Add(TerrainDependencies.BaseMapGenShader());
 
                 return result;
             }
@@ -490,6 +570,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
+                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
@@ -537,6 +619,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat01, 1);
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
+                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
+                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
@@ -582,6 +666,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
+                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
@@ -707,8 +793,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.TerrainSplat01, 1);
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
-                result.keywords.Add(TerrainDefines.TerrainNormalmap);
-                result.keywords.Add(TerrainDefines.TerrainMaskmap);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
@@ -795,6 +879,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
+            }
+        }
+        #endregion
+
+        #region Dependencies
+        static class TerrainDependencies
+        {
+            public static ShaderDependency AddPassShader()
+            {
+                return new ShaderDependency()
+                {
+                    dependencyName = "AddPassShader",
+                    shaderName = "",
+                };
+            }
+            public static ShaderDependency BaseMapShader()
+            {
+                return new ShaderDependency()
+                {
+                    dependencyName = "BaseMapShader",
+                    shaderName = "",
+                };
+            }
+            public static ShaderDependency BaseMapGenShader()
+            {
+                return new ShaderDependency()
+                {
+                    dependencyName = "BaseMapGenShader",
+                    shaderName = "",
+                };
             }
         }
         #endregion
@@ -930,6 +1044,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 displayName = "Terrain Mask Map",
                 referenceName = "_MASKMAP",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment,
+            };
+
+            public static KeywordDescriptor TerrainBlendHeight = new KeywordDescriptor()
+            {
+                displayName = "Terrain Blend Height",
+                referenceName = "_TERRAIN_BLEND_HEIGHT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment,
+            };
+
+            public static KeywordDescriptor TerrainInstancedPerPixelNormal = new KeywordDescriptor()
+            {
+                displayName = "Instanced PerPixel Normal",
+                referenceName = "_TERRAIN_INSTANCED_PERPIXEL_NORMAL",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

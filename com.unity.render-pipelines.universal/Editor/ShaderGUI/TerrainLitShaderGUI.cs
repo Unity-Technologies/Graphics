@@ -1,12 +1,11 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class TerrainLitShaderGUI : UnityEditor.ShaderGUI, ITerrainLayerCustomUI
+    internal class TerrainLitShaderGUI : BaseShaderGUI, ITerrainLayerCustomUI
     {
         private class StylesLayer
         {
@@ -39,6 +38,8 @@ namespace UnityEditor.Rendering.Universal
 
         static StylesLayer s_Styles = null;
         private static StylesLayer styles { get { if (s_Styles == null) s_Styles = new StylesLayer(); return s_Styles; } }
+
+        protected override uint materialFilter => (uint)Expandable.SurfaceOptions;
 
         public TerrainLitShaderGUI()
         {
@@ -98,12 +99,16 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
+        public override void FindProperties(MaterialProperty[] properties)
         {
-            if (materialEditorIn == null)
-                throw new ArgumentNullException("materialEditorIn");
-
+            base.FindProperties(properties);
             FindMaterialProperties(properties);
+        }
+
+        public override void DrawSurfaceOptions(Material material)
+        {
+            if (materialEditor == null)
+                throw new ArgumentNullException("materialEditor");
 
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
@@ -111,18 +116,16 @@ namespace UnityEditor.Rendering.Universal
                 if (enableHeightBlend != null)
                 {
                     EditorGUI.indentLevel++;
-                    materialEditorIn.ShaderProperty(enableHeightBlend, styles.enableHeightBlend);
+                    materialEditor.ShaderProperty(enableHeightBlend, styles.enableHeightBlend);
                     if (enableHeightBlend.floatValue > 0)
                     {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.HelpBox(styles.warningHeightBasedBlending.text, MessageType.Info);
-                        materialEditorIn.ShaderProperty(heightTransition, styles.heightTransition);
+                        materialEditor.ShaderProperty(heightTransition, styles.heightTransition);
                         EditorGUI.indentLevel--;
                     }
                     EditorGUI.indentLevel--;
                 }
-
-                EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -137,21 +140,21 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
-                materialEditorIn.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
+                materialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
                 enablePerPixelNormalChanged = EditorGUI.EndChangeCheck();
                 EditorGUI.indentLevel--;
             }
 
             if (optionsChanged || enablePerPixelNormalChanged)
             {
-                foreach (var obj in materialEditorIn.targets)
+                foreach (var obj in materialEditor.targets)
                 {
                     SetupMaterialKeywords((Material)obj);
                 }
             }
 
             // We should always do this call at the end
-            materialEditorIn.serializedObject.ApplyModifiedProperties();
+            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
