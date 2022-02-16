@@ -20,3 +20,12 @@ HDRP can either extend the camera frustum, perform sphere culling or skip the cu
 ![](Images/RayTracingSettings_extended_frustum.gif)
 
 ## Updated
+
+### Cloud Layer
+
+When using the cloud layer in combination wiht the physically based sky, the sun light color will now correctly take atmospheric attenuation into account.
+Additionally, the sun light color will now always impact the color of the clouds, even if the raymarching is disabled.
+Improvements have also been made to the raymarching algorithm to improve scattering, and have more consistent results when changing the number of steps. Depending on your lightig conditions, you may have to tweak the density and exposure sliders to match the visuals with prior HDRP versions.
+In the UI, **thickness** and **distortion** fields have been renamed to **density** and **wind**.
+
+![](Images/cl-whats-new.png)
