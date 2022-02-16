@@ -17,8 +17,6 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             #pragma vertex Vert
             #pragma fragment FragBoxDownsample
 
-            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 

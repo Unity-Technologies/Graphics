@@ -1,8 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 {
     HLSLINCLUDE
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

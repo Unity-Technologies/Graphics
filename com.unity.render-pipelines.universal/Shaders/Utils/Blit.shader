@@ -16,7 +16,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma vertex Vert
             #pragma fragment Fragment
             #pragma multi_compile_fragment _ _LINEAR_TO_SRGB_CONVERSION
-            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             // Core.hlsl for XR dependencies
