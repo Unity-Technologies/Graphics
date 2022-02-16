@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Basic" },
             { "Name.Synonyms", "Exponentiation, ^" },
             { "Tooltip", "multiplies Base by itself the number of times given by Exp" },
             { "Parameters.Base.Tooltip", "Base" },

@@ -16,6 +16,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Advanced" },
             { "Name.Synonyms", "Unitize" },
             { "Tooltip", "adjusts the input vector to unit length" },
             { "Parameters.In.Tooltip", "Input" },

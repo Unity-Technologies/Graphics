@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Basic" },
             { "Name.Synonyms", "Addition, Sum, +, plus" },
             { "Tooltip", "returns the sum of A and B" },
             { "Parameters.A.Tooltip", "Input A" },

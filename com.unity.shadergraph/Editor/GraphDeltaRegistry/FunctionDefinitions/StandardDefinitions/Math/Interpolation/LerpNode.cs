@@ -18,6 +18,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "Category", "Math, Interpolation" },
             { "Name.Synonyms", "Mix, Blend, Interpolate, Extrapolate, Linear Interpolate" },
             { "Tooltip", "blends between A and B given the value of T" },
             { "Parameters.A.Tooltip", "Out will be this value when T is zero" },
