@@ -5,14 +5,9 @@ using UnityEngine.Rendering.Universal;
 
 public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 {
-    static class ShaderProperties
-    {
-        public static readonly int _SourceTex = Shader.PropertyToID("_SourceTex");
-        public static readonly int _TempTex = Shader.PropertyToID("_TempTex");
-    }
-
     const string k_CommandBufferName = "Screen Coord Override";
 
+    RTHandle m_TempTex;
     Material m_Material;
 
     public ScreenCoordOverrideRenderPass(RenderPassEvent renderPassEvent)
@@ -31,16 +26,13 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
         var target = renderingData.cameraData.renderer.cameraColorTargetHandle;
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
+        descriptor.depthBufferBits = 0;
+        RenderingUtils.ReAllocateIfNeeded(ref m_TempTex, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_TempTex");
 
         var cmd = CommandBufferPool.Get(k_CommandBufferName);
 
-        cmd.GetTemporaryRT(ShaderProperties._TempTex, descriptor);
-        cmd.SetRenderTarget(ShaderProperties._TempTex);
-        cmd.SetGlobalTexture(ShaderProperties._SourceTex, target);
-        cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
-        cmd.Blit(ShaderProperties._TempTex, target);
-        cmd.ReleaseTemporaryRT(ShaderProperties._TempTex);
+        Blitter.BlitCameraTexture(cmd, target, m_TempTex, m_Material, 0);
+        Blitter.BlitCameraTexture(cmd, m_TempTex, target);
 
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
@@ -48,6 +40,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
     public void Cleanup()
     {
+        m_TempTex?.Release();
         CoreUtils.Destroy(m_Material);
     }
 }
