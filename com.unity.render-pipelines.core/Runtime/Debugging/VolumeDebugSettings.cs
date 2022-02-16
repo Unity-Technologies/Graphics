@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
                     if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
                     {
                         if (camera.TryGetComponent<T>(out T additionalData))
-                           m_Cameras.Add(camera);
+                            m_Cameras.Add(camera);
                     }
                 }
 
