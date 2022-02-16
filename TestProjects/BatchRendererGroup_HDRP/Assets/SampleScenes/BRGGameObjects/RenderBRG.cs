@@ -32,7 +32,6 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
-    public int pickableObjectInstanceID;
 
     public bool Equals(DrawKey other)
     {
@@ -40,8 +39,7 @@ public struct DrawKey : IEquatable<DrawKey>
             meshID == other.meshID &&
             submeshIndex == other.submeshIndex &&
             material == other.material &&
-            shadows == other.shadows &&
-            pickableObjectInstanceID == other.pickableObjectInstanceID;
+            shadows == other.shadows;
     }
 }
 
@@ -271,11 +269,6 @@ public unsafe class RenderBRG : MonoBehaviour
                             sortingPosition = 0
                         };
 
-                        if (draws.drawCommandPickingInstanceIDs != null)
-                        {
-                            draws.drawCommandPickingInstanceIDs[outBatch] = drawBatches[remappedIndex].key.pickableObjectInstanceID;
-                        }
-
                         outBatch++;
                     }
 
@@ -342,9 +335,9 @@ public unsafe class RenderBRG : MonoBehaviour
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length *
-            splitCounts.Length * 10); // TODO: Multiplying the DrawCommand count by splitCount*10 is NOT an conservative upper bound. But in practice is enough. Sorting would give us a real conservative bound...
+            splitCounts.Length * 10 * 20); // TODO: Multiplying the DrawCommand count by splitCount*10 is NOT an conservative upper bound. But in practice is enough. Sorting would give us a real conservative bound...
 
-        drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);
+        drawCommands.drawCommandPickingInstanceIDs = null;
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 
         // Zero init: Culling job sets the values!
@@ -365,7 +358,7 @@ public unsafe class RenderBRG : MonoBehaviour
             planes = planes,
             splitCounts = splitCounts,
             renderers = m_renderers,
-            rendererVisibility = rendererVisibility
+            rendererVisibility = rendererVisibility,
         };
 
         var drawOutputJob = new DrawCommandOutputJob
@@ -382,37 +375,23 @@ public unsafe class RenderBRG : MonoBehaviour
         var jobHandleCulling = cullingJob.Schedule(visibilityLength, 8);
         var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
 
+        /*jobHandleCulling.Complete();
+        jobHandleOutput.Complete();
+
+        drawCommands = cullingOutput.drawCommands[0];
+
+        if (cullingContext.viewType == BatchCullingViewType.Light)
+        {
+            Debug.Log("Draw command count (" + cullingContext.viewType + ") : " + drawCommands.visibleInstanceCount);
+        }*/
+
         return jobHandleOutput;
     }
-
-#if UNITY_EDITOR
-    public static Material LoadPickingMaterial()
-    {
-        Shader shader = Shader.Find("Hidden/HDRP/BRGPicking");
-
-        if (shader == null) return null;
-
-        Material material = new Material(shader);
-
-        // Prevent Material unloading when switching scene
-        material.hideFlags = HideFlags.HideAndDontSave;
-
-        return material;
-    }
-
-    Material m_pickingMaterial;
-#endif
-
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
-
-#if UNITY_EDITOR
-        m_pickingMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
-#endif
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -502,13 +481,12 @@ public unsafe class RenderBRG : MonoBehaviour
             renderer.GetSharedMaterials(sharedMaterials);
 
             var shadows = renderer.shadowCastingMode;
-            int instanceID = renderer.gameObject.GetInstanceID();
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
@@ -680,10 +658,6 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instances.Dispose();
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
-
-#if UNITY_EDITOR
-            DestroyImmediate(m_pickingMaterial);
-#endif
         }
     }
 }
