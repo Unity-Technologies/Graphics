@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    [Obsolete("Properties have been migrated to Camera class")]
+    [Obsolete("Properties have been migrated to Camera class", false)]
     public struct HDPhysicalCamera
     {
         /// <summary>
