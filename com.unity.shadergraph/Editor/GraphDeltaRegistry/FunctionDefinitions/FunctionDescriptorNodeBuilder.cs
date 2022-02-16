@@ -65,7 +65,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrecision = readPrecision;
                     }
-                }    
+                }
                 if (field.TryGetSubField(kPrimitive, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Primitive readPrimitive);
@@ -73,7 +73,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrimitive = readPrimitive;
                     }
-                }                    
+                }
             }
 
             // If we didn't find a value for a type parameter in user data,
@@ -174,23 +174,22 @@ namespace com.unity.shadergraph.defs
             Registry registry)
         {
             // Get the ShaderType for the first output port we find.
-            string outPortName = null;
-            foreach (var param in m_functionDescriptor.Parameters)
-            {
-                if (param.Usage == Usage.Out)
-                {
-                    outPortName = param.Name;
-                    break;
-                }
-            }
-            if (outPortName == null)
-            {
-                // No out port was found.
-                throw new Exception("No output port found for ");
-            }
+            ////string outPortName = null;
+            ////foreach (var param in m_functionDescriptor.Parameters)
+            ////{
+            ////    if (param.Usage == Usage.Out)
+            ////    {
+            ////        outPortName = param.Name;
+            ////        break;
+            ////    }
+            ////}
+            //if (outPortName == null)
+            //{
+            //    // No out port was found.
+            //    throw new Exception("No output port found for ");
+            //}
 
-            data.TryGetPort(outPortName, out var port);
-            var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
 
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
@@ -198,6 +197,9 @@ namespace com.unity.shadergraph.defs
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
+                data.TryGetPort(param.Name, out var port);
+                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
                 if (param.Usage == Usage.In || param.Usage == Usage.Static)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
