@@ -304,31 +304,33 @@ namespace UnityEditor.Rendering
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.EnumField>(widget);
-            var s = Cast<DebugStateInt>(state);
+            var s = Cast<DebugStateEnum>(state);
 
             if (w.indexes == null)
                 w.InitIndexes();
 
             EditorGUI.BeginChangeCheck();
 
+            var rect = PrepareControlRect();
+
             int index = -1;
             int value = w.GetValue();
+
+            var label = EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip);
+
             if (w.enumNames == null || w.enumValues == null)
             {
-                EditorGUILayout.LabelField("Can't draw an empty enumeration.");
+                EditorGUI.LabelField(rect, label, "Can't draw an empty enumeration.");
+            }
+            else if (w.enumNames.Length != w.enumValues.Length)
+            {
+                EditorGUI.LabelField(rect, label, "Invalid data");
             }
             else
             {
-                var rect = PrepareControlRect();
-
-                index = w.currentIndex;
-
-                // Fallback just in case, we may be handling sub/sectionned enums here
-                if (index < 0)
-                    index = 0;
-
-                index = EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), index, w.enumNames, w.indexes);
-                value = w.enumValues[index];
+                index = value;
+                index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
+                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -336,6 +338,46 @@ namespace UnityEditor.Rendering
                 Apply(w, s, value);
                 if (index > -1)
                     w.currentIndex = index;
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for Object Popup Fields Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ObjectPopupField))]
+    public sealed class DebugUIDrawerObjectPopupField : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ObjectPopup DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>If the UI can be drawn</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ObjectPopupField>(widget);
+            var s = Cast<DebugStateObject>(state);
+
+            var rect = PrepareControlRect();
+            rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip));
+
+            var elements = w.getObjects();
+            if (elements?.Any() ?? false)
+            {
+                var selectedValue = w.GetValue();
+                var elementsArrayNames = elements.Select(e => e.name).ToArray();
+                var elementsArrayIndices = Enumerable.Range(0, elementsArrayNames.Length).ToArray();
+                var selectedIndex = selectedValue != null ? Array.IndexOf(elementsArrayNames, selectedValue.name) : 0;
+                var newSelectedIndex = EditorGUI.IntPopup(rect, selectedIndex, elementsArrayNames, elementsArrayIndices);
+                if (selectedIndex != newSelectedIndex)
+                    Apply(w, s, elements.ElementAt(newSelectedIndex));
+            }
+            else
+            {
+                EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
             }
 
             return true;
@@ -357,7 +399,7 @@ namespace UnityEditor.Rendering
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.HistoryEnumField>(widget);
-            var s = Cast<DebugStateInt>(state);
+            var s = Cast<DebugStateEnum>(state);
 
             if (w.indexes == null)
                 w.InitIndexes();
@@ -466,16 +508,15 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
 
-            EditorGUI.BeginChangeCheck();
             GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
             Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
             if (w.isHeader)
                 GUILayout.Space(k_HeaderVerticalMargin);
 
-            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
+            bool value = EditorGUI.Foldout(rect, (bool)s.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             if (w.contextMenuItems != null)
@@ -655,7 +696,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectField"/> items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectField))]
     public sealed class DebugUIDrawerObjectField : DebugUIDrawer
@@ -663,7 +704,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for Object DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -683,7 +724,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"/> Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
     public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
@@ -691,7 +732,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for ObjectList DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -907,10 +948,11 @@ namespace UnityEditor.Rendering
                         {
                             rowRect.x += rowRect.width;
                             rowRect.width = columns[visible[c]].width;
-                            DisplayChild(rowRect, row.children[visible[c] - 1]);
+                            if (!row.isHidden)
+                                DisplayChild(rowRect, row.children[visible[c] - 1]);
                         }
+                        rowRect.y += rowRect.height;
                     }
-                    rowRect.y += rowRect.height;
                 }
             }
             GUI.EndScrollView(false);
@@ -954,30 +996,38 @@ namespace UnityEditor.Rendering
         {
             rect.xMin += 2;
             rect.xMax -= 2;
-            if (child.GetType() == typeof(DebugUI.Value))
+
+            if (child.isHidden)
             {
-                var widget = Cast<DebugUI.Value>(child);
-                EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                EditorGUI.LabelField(rect, "-");
             }
-            else if (child.GetType() == typeof(DebugUI.ColorField))
+            else
             {
-                var widget = Cast<DebugUI.ColorField>(child);
-                EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
-            }
-            else if (child.GetType() == typeof(DebugUI.BoolField))
-            {
-                var widget = Cast<DebugUI.BoolField>(child);
-                EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
-            }
-            else if (child.GetType() == typeof(DebugUI.ObjectField))
-            {
-                var widget = Cast<DebugUI.ObjectField>(child);
-                EditorGUI.ObjectField(rect, GUIContent.none, widget.GetValue(), widget.type, true);
-            }
-            else if (child.GetType() == typeof(DebugUI.ObjectListField))
-            {
-                var widget = Cast<DebugUI.ObjectListField>(child);
-                DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
+                if (child.GetType() == typeof(DebugUI.Value))
+                {
+                    var widget = Cast<DebugUI.Value>(child);
+                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                }
+                else if (child.GetType() == typeof(DebugUI.ColorField))
+                {
+                    var widget = Cast<DebugUI.ColorField>(child);
+                    EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
+                }
+                else if (child.GetType() == typeof(DebugUI.BoolField))
+                {
+                    var widget = Cast<DebugUI.BoolField>(child);
+                    EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
+                }
+                else if (child.GetType() == typeof(DebugUI.ObjectField))
+                {
+                    var widget = Cast<DebugUI.ObjectField>(child);
+                    EditorGUI.ObjectField(rect, GUIContent.none, widget.GetValue(), widget.type, true);
+                }
+                else if (child.GetType() == typeof(DebugUI.ObjectListField))
+                {
+                    var widget = Cast<DebugUI.ObjectListField>(child);
+                    DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
+                }
             }
         }
     }

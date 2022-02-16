@@ -1,3 +1,8 @@
+#if UNITY_EDITOR
+//#define ENABLE_PICKING
+#endif
+//#define ENABLE_ERROR_LOADING_MATERIALS
+
 using System;
 using System.Collections.Generic;
 using Unity.Burst;
@@ -7,7 +12,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
-using FrustumPlanes = Unity.Rendering.FrustumPlanes;
+using FrustumPlanes = Unity.Rendering.FrustumPlanes.FrustumPlanes;
 
 public struct RangeKey : IEquatable<RangeKey>
 {
@@ -33,16 +38,21 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
+
+#if ENABLE_PICKING
     public int pickableObjectInstanceID;
+#endif
 
     public bool Equals(DrawKey other)
     {
         return
+#if ENABLE_PICKING
+            pickableObjectInstanceID == other.pickableObjectInstanceID &&
+#endif
             meshID == other.meshID &&
             submeshIndex == other.submeshIndex &&
             material == other.material &&
-            shadows == other.shadows &&
-            pickableObjectInstanceID == other.pickableObjectInstanceID;
+            shadows == other.shadows;
     }
 }
 
@@ -104,6 +114,8 @@ struct SHProperties
 
 public unsafe class RenderBRG : MonoBehaviour
 {
+    public bool SetFallbackMaterialsOnStart = true;
+
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
 
@@ -146,6 +158,10 @@ public unsafe class RenderBRG : MonoBehaviour
         [ReadOnly]
         public NativeArray<FrustumPlanes.PlanePacket4> planes;
 
+        [DeallocateOnJobCompletion]
+        [ReadOnly]
+        public NativeArray<int> splitCounts;
+
         [ReadOnly]
         public NativeArray<DrawRenderer> renderers;
 
@@ -154,15 +170,15 @@ public unsafe class RenderBRG : MonoBehaviour
 
         public void Execute(int index)
         {
-            // Each invocation is culling 64 renderers (64 bit bitfield)
-            int start = index * 64;
-            int end = math.min(start + 64, renderers.Length);
+            // Each invocation is culling 8 renderers (8 split bits * 8 renderers = 64 bit bitfield)
+            int start = index * 8;
+            int end = math.min(start + 8, renderers.Length);
 
             ulong visibleBits = 0;
             for (int i = start; i < end; i++)
             {
-                ulong bit = FrustumPlanes.Intersect2NoPartial(planes, renderers[i].bounds) == FrustumPlanes.IntersectResult.In ? 1ul : 0ul;
-                visibleBits |= bit << (i - start);
+                ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                visibleBits |= splitMask << (8 * (i - start));
             }
 
             rendererVisibility[index] = visibleBits;
@@ -208,20 +224,48 @@ public unsafe class RenderBRG : MonoBehaviour
             int internalDraw = 0;
             int rangeStartIndex = 0;
 
+            uint visibleMaskPrev = 0;
+
             for (int i = 0; i < instanceIndices.Length; i++)
             {
+                var remappedIndex = drawIndices[activeBatch];   // DrawIndices remap to get DrawCommands ordered by DrawRange
                 var rendererIndex = instanceIndices[i];
-                bool visible = (rendererVisibility[rendererIndex / 64] & (1ul << (rendererIndex % 64))) != 0;
+                uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
 
-                if (visible)
+                if (visibleMask != 0)
                 {
+                    // Emit extra DrawCommand if visible mask changes
+                    // TODO: Sort draws by visibilityMask in batch first to minimize the number of DrawCommands
+                    if (visibleMask != visibleMaskPrev)
+                    {
+                        var visibleCount = outIndex - batchStartIndex;
+                        if (visibleCount > 0)
+                        {
+                            draws.drawCommands[outBatch] = new BatchDrawCommand
+                            {
+                                visibleOffset = (uint)batchStartIndex,
+                                visibleCount = (uint)visibleCount,
+                                batchID = batchID,
+                                materialID = drawBatches[remappedIndex].key.material,
+                                meshID = drawBatches[remappedIndex].key.meshID,
+                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                splitVisibilityMask = (ushort)visibleMaskPrev,
+                                flags = BatchDrawCommandFlags.None,
+                                sortingPosition = 0
+                            };
+                            outBatch++;
+                        }
+                        batchStartIndex = outIndex;
+                    }
+                    visibleMaskPrev = visibleMask;
+
+                    // Insert the visible instance to the array
                     draws.visibleInstances[outIndex] = instanceIndices[i];
                     outIndex++;
                 }
                 internalIndex++;
 
                 // Next draw batch?
-                var remappedIndex = drawIndices[activeBatch];   // DrawIndices remap to get DrawCommands ordered by DrawRange
                 if (internalIndex == drawBatches[remappedIndex].instanceCount)
                 {
                     var visibleCount = outIndex - batchStartIndex;
@@ -234,19 +278,21 @@ public unsafe class RenderBRG : MonoBehaviour
                             batchID = batchID,
                             materialID = drawBatches[remappedIndex].key.material,
                             meshID = drawBatches[remappedIndex].key.meshID,
-                            submeshIndex = drawBatches[remappedIndex].key.submeshIndex,
+                            submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                            splitVisibilityMask = (ushort)visibleMaskPrev,
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
-
+#if ENABLE_PICKING
                         if (draws.drawCommandPickingInstanceIDs != null)
                         {
                             draws.drawCommandPickingInstanceIDs[outBatch] = drawBatches[remappedIndex].key.pickableObjectInstanceID;
                         }
-
+#endif
                         outBatch++;
                     }
 
+                    visibleMaskPrev = 0;
                     batchStartIndex = outIndex;
                     internalIndex = 0;
                     activeBatch++;
@@ -297,13 +343,28 @@ public unsafe class RenderBRG : MonoBehaviour
             return new JobHandle();
         }
 
-        var planes = FrustumPlanes.BuildSOAPlanePackets(cullingContext.cullingPlanes, Allocator.TempJob);
+#if ENABLE_PICKING
+        bool isPickingCulling = cullingContext.viewType == BatchCullingViewType.Picking;
+#endif
+
+        var splitCounts = new NativeArray<int>(cullingContext.cullingSplits.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+        for (int i = 0; i < splitCounts.Length; ++i)
+        {
+            var split = cullingContext.cullingSplits[i];
+            splitCounts[i] = split.cullingPlaneCount;
+        }
+
+        var planes = FrustumPlanes.BuildSOAPlanePacketsMulti(cullingContext.cullingPlanes, splitCounts, Allocator.TempJob);
 
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
-        drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length);
-        drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);
+        drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length *
+            splitCounts.Length * 10); // TODO: Multiplying the DrawCommand count by splitCount*10 is NOT an conservative upper bound. But in practice is enough. Sorting would give us a real conservative bound...
+
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
+#if ENABLE_PICKING
+        drawCommands.drawCommandPickingInstanceIDs = isPickingCulling ? Malloc<int>(m_drawBatches.Length) : null;
+#endif
 
         // Zero init: Culling job sets the values!
         drawCommands.drawRangeCount = 0;
@@ -315,12 +376,13 @@ public unsafe class RenderBRG : MonoBehaviour
 
         cullingOutput.drawCommands[0] = drawCommands;
 
-        var visibilityLength = (m_renderers.Length + 63) / 64;
+        var visibilityLength = (m_renderers.Length + 7) / 8;
         var rendererVisibility = new NativeArray<ulong>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
         var cullingJob = new CullingJob
         {
             planes = planes,
+            splitCounts = splitCounts,
             renderers = m_renderers,
             rendererVisibility = rendererVisibility
         };
@@ -336,16 +398,15 @@ public unsafe class RenderBRG : MonoBehaviour
             drawCommands = cullingOutput.drawCommands
         };
 
-        var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
+        var jobHandleCulling = cullingJob.Schedule(visibilityLength, 8);
         var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
 
         return jobHandleOutput;
     }
 
-#if UNITY_EDITOR
-    public static Material LoadPickingMaterial()
+    static Material LoadMaterialWithHideAndDontSave(string name)
     {
-        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking");
+        Shader shader = Shader.Find(name);
 
         if (shader == null) return null;
 
@@ -357,19 +418,29 @@ public unsafe class RenderBRG : MonoBehaviour
         return material;
     }
 
-    Material m_pickingMaterial;
-
-#endif
-
+    Material m_PickingMaterial;
+    Material m_ErrorMaterial;
+    Material m_LoadingMaterial;
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-#if UNITY_EDITOR
-        m_pickingMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
+#if ENABLE_PICKING
+        m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/BRGPicking");
+        m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
+#endif
+
+#if ENABLE_ERROR_LOADING_MATERIALS
+        if (SetFallbackMaterialsOnStart)
+        {
+            m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackError");
+            m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
+
+            m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackLoading");
+            m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
+        }
 #endif
 
         // Create a batch...
@@ -461,13 +532,17 @@ public unsafe class RenderBRG : MonoBehaviour
             renderer.GetSharedMaterials(sharedMaterials);
 
             var shadows = renderer.shadowCastingMode;
-            int instanceID = renderer.gameObject.GetInstanceID();
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
+
+#if ENABLE_PICKING
+                key.pickableObjectInstanceID = renderer.gameObject.GetInstanceID();
+#endif
+
                 var drawBatch = new DrawBatch
                 {
                     key = key,
@@ -640,9 +715,11 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
-#if UNITY_EDITOR
-            DestroyImmediate(m_pickingMaterial);
+#if ENABLE_PICKING
+            DestroyImmediate(m_PickingMaterial);
 #endif
+            DestroyImmediate(m_ErrorMaterial);
+            DestroyImmediate(m_LoadingMaterial);
         }
     }
 }

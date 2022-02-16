@@ -5,7 +5,22 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
 // We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
+// AmbientProbe Data is fetch directly from a compute buffer to remain on GPU and is preconvolved with clamped cosinus
 real3 EvaluateAmbientProbe(real3 normalWS)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = _AmbientProbeData[0];
+    SHCoefficients[1] = _AmbientProbeData[1];
+    SHCoefficients[2] = _AmbientProbeData[2];
+    SHCoefficients[3] = _AmbientProbeData[3];
+    SHCoefficients[4] = _AmbientProbeData[4];
+    SHCoefficients[5] = _AmbientProbeData[5];
+    SHCoefficients[6] = _AmbientProbeData[6];
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
+
+real3 EvaluateLightProbe(real3 normalWS)
 {
     real4 SHCoefficients[7];
     SHCoefficients[0] = unity_SHAr;
@@ -18,9 +33,6 @@ real3 EvaluateAmbientProbe(real3 normalWS)
 
     return SampleSH9(SHCoefficients, normalWS);
 }
-
-// Alias to make code less confusing as the same code is used to evaluate Ambient Probe and also to evaluate builtin light probe (which include ambient probe + local lights)
-#define EvaluateLightProbe EvaluateAmbientProbe
 
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
@@ -69,6 +81,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #if defined(SHADER_STAGE_FRAGMENT) || defined(SHADER_STAGE_RAY_TRACING)
 
     #ifdef LIGHTMAP_ON
+    {
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
             TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
@@ -78,9 +91,11 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
+    }
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
+    {
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
             TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
@@ -90,7 +105,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
-#endif
+    }
+    #endif
+
 #endif
 }
 

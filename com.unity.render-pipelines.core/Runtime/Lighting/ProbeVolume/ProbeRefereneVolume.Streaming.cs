@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     public partial class ProbeReferenceVolume
     {
@@ -50,8 +47,14 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
+        /// <summary>
+        /// Updates the cell streaming for a <see cref="Camera"/>
+        /// </summary>
+        /// <param name="camera">The <see cref="Camera"/></param>
         public void UpdateCellStreaming(Camera camera)
         {
+            if (!isInitialized) return;
+
             var cameraPosition = camera.transform.position;
             if (!debugDisplay.freezeStreaming)
             {
@@ -123,7 +126,10 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     if (pendingUnloadCount > 0)
+                    {
                         m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
+                        RecomputeMinMaxLoadedCellPos();
+                    }
                 }
             }
             else

@@ -1,9 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
-// TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -23,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
+            bool performFittingOnlyOnScene = false;
             bool performFittingOnlyOnSelection = false;
 
             bool ContributesToGI(Renderer renderer)
@@ -43,12 +42,16 @@ namespace UnityEditor.Experimental.Rendering
                     bounds.Encapsulate(currBound);
                 }
             }
-
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene"), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to all Scenes", "Fits the Probe Volume's boundary to all open Scenes"), EditorStyles.miniButton))
             {
                 performFitting = true;
             }
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection"), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fits the Probe Volume's boundary to the Scene it belongs to."), EditorStyles.miniButton))
+            {
+                performFitting = true;
+                performFittingOnlyOnScene = true;
+            }
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits the Probe Volume's boundary to the selected GameObjects. Lock the Probe Volume's Inspector to allow for the selection of other GameObjects."), EditorStyles.miniButton))
             {
                 performFitting = true;
                 performFittingOnlyOnSelection = true;
@@ -86,12 +89,15 @@ namespace UnityEditor.Experimental.Rendering
 
                     foreach (Renderer renderer in renderers)
                     {
+                        bool useRendererToExpand = false;
                         bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
 
                         if (contributeGI)
-                        {
+                            useRendererToExpand = performFittingOnlyOnScene ? (renderer.gameObject.scene == pv.gameObject.scene) : true;
+
+                        if (useRendererToExpand)
                             ExpandBounds(renderer.bounds);
-                        }
+
                     }
                 }
 
@@ -111,21 +117,6 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
-            {
-                var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
-                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
-                }
-
-                return;
-            }
-
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
             bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
@@ -179,9 +170,12 @@ namespace UnityEditor.Experimental.Rendering
             if (serialized.highestSubdivisionLevelOverride.intValue < 0)
                 serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
 
-            serialized.highestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
-            serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
-            serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                serialized.highestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
+                serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
+                serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
+            }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
@@ -206,10 +200,14 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
-            EditorGUILayout.PropertyField(serialized.geometryDistanceOffset, Styles.s_GeometryDistanceOffset);
-            EditorGUI.indentLevel--;
+            EditorGUILayout.PropertyField(serialized.overrideRendererFilters, Styles.s_OverrideRendererFilters);
+            if (serialized.overrideRendererFilters.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
+                EditorGUILayout.PropertyField(serialized.minRendererVolumeSize, Styles.s_MinRendererVolumeSize);
+                EditorGUI.indentLevel--;
+            }
         }
     }
 }

@@ -38,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+#pragma warning disable 0414
+        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+#pragma warning restore 0414
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
@@ -146,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             val.curvature = new Vector2(2f, 11f);
             val.barrelClipping = 0.25f;
             val.anamorphism = 0;
+            val.m_GateFit = Camera.GateFitMode.Vertical;
 
             return val;
         }
@@ -360,6 +364,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
 
+        /// <summary>Screen size used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenSizeOverride;
+
+        /// <summary>Transform used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenCoordScaleBias;
+
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
         public bool allowDeepLearningSuperSampling = true;
@@ -388,6 +398,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
         [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
+
+        /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
+        public bool fsrOverrideSharpness = false;
+
+        /// <summary>Sets this camera's sharpness value for AMD FidelityFX Super Resolution.</summary>
+        [Tooltip("Sets this camera's sharpness value for AMD FidelityFX Super Resolution 1.0 (FSR).")]
+        [Range(0, 1)]
+        public float fsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
@@ -618,7 +637,13 @@ namespace UnityEngine.Rendering.HighDefinition
             data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
             data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
 
+            data.fsrOverrideSharpness = fsrOverrideSharpness;
+            data.fsrSharpness = fsrSharpness;
+
             data.materialMipBias = materialMipBias;
+
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
@@ -656,7 +681,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
-                    HDVolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -670,7 +694,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    HDVolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
@@ -689,6 +712,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_Camera.allowHDR = false;
+
+            // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
+            // Wrong data is registered to the undo system because it did not get the chance to be updated once.
+            FrameSettings dummy = new FrameSettings();
+            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
 
             RegisterDebug();
 

@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent volumetricCloudsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Clouds");
-            public static readonly GUIContent probeVolumeSubTitle = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)");
+            public static readonly GUIContent probeVolumeSubTitle = EditorGUIUtility.TrTextContent("Probe Volumes");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
+            public static readonly GUIContent limitNearBlur = EditorGUIUtility.TrTextContent("Limit Manual Range Near Blur");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
             // SSAO
@@ -109,6 +110,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent SSGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
             public static readonly GUIContent SSGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
             public static readonly GUIContent SSGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
+
+            // Water rendering
+            public static readonly GUIContent waterSubTitle = EditorGUIUtility.TrTextContent("Water");
+            public static readonly GUIContent supportWaterContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the water surfaces simulation and rendering. This allows you to use decals in your Unity Project.");
+            public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
@@ -239,6 +245,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
             public const string DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
             public const string DLSSSwitchTarget64Button = "Fix";
+
+            public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
+            public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by AMD FidelityFX Super Resolution.");
+
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
@@ -258,6 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent XRSinglePass = EditorGUIUtility.TrTextContent("Single Pass", "When enabled, XR views are rendered simultaneously and the render loop is processed only once. This setting will improve CPU and GPU performance but will use more GPU memory.");
             public static readonly GUIContent XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");
             public static readonly GUIContent XRCameraJitter = EditorGUIUtility.TrTextContent("Camera Jitter", "When enabled, jitter will be added to the camera to provide more samples for temporal effects. This is usually not required in VR due to micro variations from the tracking.");
+            public static readonly GUIContent XRMotionBlur = EditorGUIUtility.TrTextContent("Allow Motion Blur", "When enabled, motion blur can be used in XR. When this option is disabled, regardless of the settings, motion blur will be turned off when in XR.");
 
             public static readonly GUIContent lutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
             public static readonly GUIContent lutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");

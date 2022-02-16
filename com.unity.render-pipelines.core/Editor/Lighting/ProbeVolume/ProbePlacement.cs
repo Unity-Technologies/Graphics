@@ -2,15 +2,12 @@
 
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
 using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
 
@@ -32,7 +29,6 @@ namespace UnityEngine.Experimental.Rendering
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
             public int maxSubdivLevelInsideVolume;
-            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -621,7 +617,6 @@ namespace UnityEngine.Experimental.Rendering
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         maxSubdivLevelInsideVolume = subdivLevel,
-                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

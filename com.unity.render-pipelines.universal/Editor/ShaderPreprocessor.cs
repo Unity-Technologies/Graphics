@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
+        ScreenCoordOverride = (1 << 31),
     }
 
     [Flags]
@@ -77,7 +78,6 @@ namespace UnityEditor.Rendering.Universal
         // Event callback to report shader stripping info. Form:
         // ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
         internal static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
-        private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
         LocalKeyword m_MainLightShadows;
         LocalKeyword m_MainLightShadowsCascades;
@@ -128,6 +128,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapACES;
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
+        LocalKeyword m_ScreenCoordOverride;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -201,6 +202,8 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
+
+            m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -503,6 +506,9 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
+            if (stripTool.StripMultiCompile(m_ScreenCoordOverride, ShaderFeatures.ScreenCoordOverride))
+                return true;
+
             return false;
         }
 
@@ -649,20 +655,27 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, int prevVariantsCount, int currVariantsCount, double stripTimeMs)
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount, double stripTimeMs)
         {
-            if (logLevel == ShaderVariantLogLevel.AllShaders || shader.name.Contains("Universal Render Pipeline"))
-            {
-                float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
-                float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
+            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.Disabled)
+                return;
 
-                string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                    " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
-                    shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                    prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                    percentageTotal, stripTimeMs);
-                Debug.Log(result);
-            }
+            m_TotalVariantsInputCount += prevVariantsCount;
+            m_TotalVariantsOutputCount += currVariantsCount;
+
+            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.OnlySRPShaders &&
+                !shader.name.Contains("Universal Render Pipeline"))
+                return;
+
+            float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
+            float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
+
+            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
+                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
+                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                percentageTotal, stripTimeMs);
+            Debug.Log(result);
         }
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
@@ -675,58 +688,49 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            m_stripTimer.Start();
-
-            InitializeLocalShaderKeywords(shader);
-
             int prevVariantCount = compilerDataList.Count;
-            var inputShaderVariantCount = compilerDataList.Count;
-            for (int i = 0; i < inputShaderVariantCount;)
-            {
-                bool removeInput = true;
 
-                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+            double stripTimeMs = 0;
+            using (TimedScope.FromRef(ref stripTimeMs))
+            {
+                InitializeLocalShaderKeywords(shader);
+
+                var inputShaderVariantCount = compilerDataList.Count;
+                for (int i = 0; i < inputShaderVariantCount;)
                 {
-                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    bool removeInput = true;
+
+                    foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
                     {
-                        removeInput = false;
-                        break;
+                        if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                        {
+                            removeInput = false;
+                            break;
+                        }
                     }
+
+                    if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
+                    {
+                        if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader,
+                            snippetData, compilerDataList[i]))
+                        {
+                            removeInput = true;
+                        }
+                    }
+
+                    // Remove at swap back
+                    if (removeInput)
+                        compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                    else
+                        ++i;
                 }
 
-                if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
-                {
-                    if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
-                    {
-                        removeInput = true;
-                    }
-                }
+                if (!compilerDataList.TryRemoveElementsInRange(inputShaderVariantCount, compilerDataList.Count - inputShaderVariantCount, out var error))
+                    Debug.LogException(error);
 
-                // Remove at swap back
-                if (removeInput)
-                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
-                else
-                    ++i;
             }
 
-            if (compilerDataList is List<ShaderCompilerData> inputDataList)
-                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-            else
-            {
-                for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
-                    compilerDataList.RemoveAt(i);
-            }
-
-            m_stripTimer.Stop();
-            double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
-            m_stripTimer.Reset();
-
-            if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
-            {
-                m_TotalVariantsInputCount += prevVariantCount;
-                m_TotalVariantsOutputCount += compilerDataList.Count;
-                LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count, stripTimeMs);
-            }
+            LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count, stripTimeMs);
 
 #if PROFILE_BUILD
             Profiler.EndSample();
@@ -924,6 +928,9 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
 
+            if (pipelineAsset.useScreenCoordOverride)
+                shaderFeatures |= ShaderFeatures.ScreenCoordOverride;
+
             if (pipelineAsset.supportsLightLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
 
@@ -940,7 +947,7 @@ namespace UnityEditor.Rendering.Universal
                 if (renderer is UniversalRenderer)
                 {
                     UniversalRenderer universalRenderer = (UniversalRenderer)renderer;
-                    if (universalRenderer.renderingMode == RenderingMode.Deferred)
+                    if (universalRenderer.renderingModeRequested == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
                         accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;

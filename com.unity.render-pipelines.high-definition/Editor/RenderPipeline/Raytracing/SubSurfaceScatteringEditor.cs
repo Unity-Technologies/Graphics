@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(SubSurfaceScattering))]
+    [CustomEditor(typeof(SubSurfaceScattering))]
     class SubSurfaceScatteringEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RayTracing;

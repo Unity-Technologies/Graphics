@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering
     public abstract class DebugDisplaySettings<T> : IDebugDisplaySettings
         where T : IDebugDisplaySettings, new()
     {
+        /// <summary>
+        /// The set of <see cref="IDebugDisplaySettingsData"/> containing the settings for this debug display
+        /// </summary>
         protected readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
 
         private static readonly Lazy<T> s_Instance = new Lazy<T>(() =>
@@ -46,7 +49,17 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Checks whether the current state of these settings allows post-processing.
         /// </summary>
-        public virtual bool IsPostProcessingAllowed { get; }
+        public virtual bool IsPostProcessingAllowed
+        {
+            get
+            {
+                // Only enable post-processing if we aren't using certain debug-views.
+                bool postProcessingAllowed = true;
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                    postProcessingAllowed &= setting.IsPostProcessingAllowed;
+                return postProcessingAllowed;
+            }
+        }
 
         /// <summary>
         /// Returns true if lighting is active for current state of debug settings.
@@ -63,6 +76,12 @@ namespace UnityEngine.Rendering
         }
         #endregion
 
+        /// <summary>
+        /// Adds a new <see cref="TData"/> to this settings
+        /// </summary>
+        /// <typeparam name="TData">The type of <see cref="TData"/> to be added</typeparam>
+        /// <param name="newData">The <see cref="TData"/> to be added</param>
+        /// <returns>The type of <see cref="TData"/> that has been added</returns>
         protected TData Add<TData>(TData newData) where TData : IDebugDisplaySettingsData
         {
             m_Settings.Add(newData);

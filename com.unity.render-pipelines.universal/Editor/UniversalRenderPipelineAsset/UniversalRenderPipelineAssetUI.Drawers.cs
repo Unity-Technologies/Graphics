@@ -139,7 +139,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.srpBatcher, Styles.srpBatcher);
             EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
             EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
-            EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
@@ -148,6 +147,21 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
+            if (serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR)
+            {
+                ++EditorGUI.indentLevel;
+
+                EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                if (serialized.fsrOverrideSharpness.boolValue)
+                {
+                    serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                }
+
+                --EditorGUI.indentLevel;
+            }
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -462,6 +476,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+
+            EditorGUILayout.PropertyField(serialized.useScreenCoordOverride, Styles.useScreenCoordOverride);
         }
 
         static void DrawPostProcessingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

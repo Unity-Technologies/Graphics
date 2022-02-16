@@ -11,7 +11,7 @@ URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: URP_2D on Android_OpenGLES3_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::samsung
-        model: s10e-eu
+        model: s21-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -31,7 +31,7 @@ URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -88,7 +88,7 @@ URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_2D on Android_OpenGLES3_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::samsung
-        model: s10e-eu
+        model: s21-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -108,7 +108,7 @@ URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:

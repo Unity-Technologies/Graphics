@@ -66,6 +66,18 @@ EditorBuildSettings:
     path: Assets/Scenes/104_BokehDepthOfField.unity
     guid: 25cb76fbf82e5924f817e3466acb803a
   - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Auto.unity
+    guid: b0e4c7327ffa0d7449aea7cad66edd24
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Linear.unity
+    guid: 0a9a60e2b67587149a02d9fdb55fd832
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Point.unity
+    guid: 4634b21ca67fa1b4bab24ec37f196b4b
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_FSR.unity
+    guid: 39df0b33bc51d7f40b6ee02863991adf
+  - enabled: 1
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
   - enabled: 1
@@ -92,4 +104,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/240_DepthPriming.unity
     guid: 06d3d04c77b97ba40969b415bc9a25dd
+  - enabled: 1
+    path: Assets/Scenes/250_ScreenCoordOverrideRenderPass.unity
+    guid: 730b87866923e784fb8f8eb057d3ddcb
+  - enabled: 1
+    path: Assets/Scenes/251_ScreenCoordOverridePostProcess.unity
+    guid: edebe9dafa8a5764185b64def86b98a7
   m_configObjects: {}

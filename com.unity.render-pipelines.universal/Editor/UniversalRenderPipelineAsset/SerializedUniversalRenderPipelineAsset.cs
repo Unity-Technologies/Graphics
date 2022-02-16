@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
+        public SerializedProperty upscalingFilter { get; }
+        public SerializedProperty fsrOverrideSharpness { get; }
+        public SerializedProperty fsrSharpness { get; }
 
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
@@ -54,12 +57,13 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportsLightLayers { get; }
         public SerializedProperty debugLevelProp { get; }
 
-        public SerializedProperty shaderVariantLogLevel { get; }
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
         public SerializedProperty colorGradingMode { get; }
         public SerializedProperty colorGradingLutSize { get; }
         public SerializedProperty useFastSRGBLinearConversion { get; }
+
+        public SerializedProperty useScreenCoordOverride { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -82,6 +86,9 @@ namespace UnityEditor.Rendering.Universal
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
+            upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
+            fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
+            fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
@@ -120,7 +127,6 @@ namespace UnityEditor.Rendering.Universal
             supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
-            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
@@ -129,6 +135,8 @@ namespace UnityEditor.Rendering.Universal
             colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
             useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
+
+            useScreenCoordOverride = serializedObject.FindProperty("m_UseScreenCoordOverride");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

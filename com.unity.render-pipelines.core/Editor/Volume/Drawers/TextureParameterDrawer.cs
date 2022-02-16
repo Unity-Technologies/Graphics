@@ -106,7 +106,10 @@ namespace UnityEditor.Rendering
             if (value.propertyType != SerializedPropertyType.ObjectReference)
                 return false;
 
-            TextureParameterHelper.DoObjectField(value, title, typeof(Texture2D), typeof(RenderTexture), validator);
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, title, value);
+            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Texture2D), typeof(RenderTexture), validator);
+            EditorGUI.EndProperty();
             return true;
         }
     }
@@ -132,7 +135,10 @@ namespace UnityEditor.Rendering
             if (value.propertyType != SerializedPropertyType.ObjectReference)
                 return false;
 
-            TextureParameterHelper.DoObjectField(value, title, typeof(Texture3D), typeof(RenderTexture), validator);
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, title, value);
+            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Texture3D), typeof(RenderTexture), validator);
+            EditorGUI.EndProperty();
             return true;
         }
     }
@@ -157,7 +163,10 @@ namespace UnityEditor.Rendering
             if (value.propertyType != SerializedPropertyType.ObjectReference)
                 return false;
 
-            TextureParameterHelper.DoObjectField(value, title, typeof(Cubemap), typeof(RenderTexture), validator);
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, title, value);
+            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Cubemap), typeof(RenderTexture), validator);
+            EditorGUI.EndProperty();
             return true;
         }
 

@@ -17,6 +17,10 @@ If you experience texture sampling errors while using this node in a graph which
 | Texture | Input | Texture 2D  | None | Texture 2D to sample |
 | UV      | Input | Vector 2    |   UV  | UV coordinates |
 | Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
+| LOD | Input | Float | LOD | Available when mip sampling mode is LOD. The actual mip to sample from. |
+| Bias | Input | Float | Bias | Available when mip sampling mode is Bias. A bias on top of the current global mip bias to sample from. |
+| DDX | Input | Float | DDX | Only available when mip sampling mode is Gradient. The uv derivative with respect to the X axis. |
+| DDY | Input | Float | DDY | Only available when mip sampling mode is Gradient. The uv derivative with respect to the Y axis. |
 | RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
 | R     | Output    | Float     | None  | red (x) component of RGBA output |
 | G     | Output    | Float     | None  | green (y) component of RGBA output |
@@ -29,7 +33,8 @@ If you experience texture sampling errors while using this node in a graph which
 |:------------------------ |:---------|:----------------|:-------------------------|
 |  Type                    | Dropdown | Default, Normal | Selects the texture type |
 |  Space                   | Dropdown | Tangent, Object | Selects the space of the normal map. If Type is not Normal, this control is ignored. |
-|  Enable Global Mip Bias  | Toggle   | On, Off         | Enables the automatic global mip bias imposed by the runtime. This bias is set during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+|  Use Global Mip Bias  | Toggle   | On, Off         | Enables the automatic global mip bias imposed by the runtime. This bias is set during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias mode applies an offset bias to regular texture sampling. If "Use Global Mip Bias" is enabled, this bias gets added to the Global Mip Bias. Gradient utilizes explicit gradients for the UVs. |
 
 ## Generated Code Example
 

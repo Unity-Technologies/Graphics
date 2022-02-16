@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // check that the generated shader is the same after versioning twice
                 // this is important to ensure we're not importing shaders non-deterministically when they are out-of-date on disk
                 string fileNameNoExtension = Path.GetFileNameWithoutExtension(fullPath);
-                var generator = new Generator(graphData, graphData.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
+                var generator = new Generator(graphData, graphData.outputNode, GenerationMode.ForReals, fileNameNoExtension);
                 string shader = generator.generatedShader;
 
                 // version again
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 MultiJson.Deserialize(graphData2, fileContents);
                 graphData2.OnEnable();
                 graphData2.ValidateGraph();
-                var generator2 = new Generator(graphData2, graphData2.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
+                var generator2 = new Generator(graphData2, graphData2.outputNode, GenerationMode.ForReals, fileNameNoExtension);
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");

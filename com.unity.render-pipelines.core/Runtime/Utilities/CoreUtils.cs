@@ -944,7 +944,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -1193,6 +1193,16 @@ namespace UnityEngine.Rendering
 #else
             return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
 #endif
+        }
+
+        /// <summary>
+        /// Safely release a Graphics Buffer.
+        /// </summary>
+        /// <param name="buffer">Graphics Buffer that needs to be released.</param>
+        public static void SafeRelease(GraphicsBuffer buffer)
+        {
+            if (buffer != null)
+                buffer.Release();
         }
 
         /// <summary>

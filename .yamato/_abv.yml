@@ -69,6 +69,14 @@ General_Checks_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_trunk
          rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_core
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp_config
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_vfx_graph
+         rerun: on_new_revision
 Safety_net_trunk:
     name: Safety net on trunk
     variables:
@@ -184,6 +192,14 @@ General_Checks_CUSTOM-REVISION:
       -  path: .yamato/_formatting.yml#formatting
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_core
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp_config
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_vfx_graph
          rerun: on_new_revision
 Safety_net_CUSTOM-REVISION:
     name: Safety net on CUSTOM-REVISION

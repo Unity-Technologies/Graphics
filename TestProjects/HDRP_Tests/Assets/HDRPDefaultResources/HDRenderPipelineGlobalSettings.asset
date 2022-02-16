@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 139549384114013
-      data2: 4539628434053070872
+      data2: 4539628468412809240
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -73,6 +73,7 @@ MonoBehaviour:
   - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses:
   - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   lightLayerName0: Light Layer default
@@ -113,12 +114,30 @@ MonoBehaviour:
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
-  supportProbeVolumes: 0
+  supportProbeVolumes: 1
   supportRuntimeDebugDisplay: 0
   apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
     serializedProfiles: []
     serializedBakeSettings: []
-    serializedBakingSets: []
+    serializedBakingSets:
+    - name: Default
+      sceneGUIDs:
+      - fc784678bf952de4482e78aea61ccdc8
+      settings:
+        dilationSettings:
+          enableDilation: 1
+          dilationDistance: 1
+          dilationValidityThreshold: 0.25
+          dilationIterations: 1
+          squaredDistWeighting: 1
+        virtualOffsetSettings:
+          useVirtualOffset: 1
+          outOfGeoOffset: 0.01
+          searchMultiplier: 0.2
+      profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
+      bakingStates:
+      - Default
+    m_BakingState: Default
   m_Version: 3

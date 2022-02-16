@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(FilmGrain))]
+    [CustomEditor(typeof(FilmGrain))]
     sealed class FilmGrainEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Type;

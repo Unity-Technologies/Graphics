@@ -204,6 +204,11 @@ public class DocChecker : EditorWindow
                 Debug.Log(errorMessage);
             File.WriteAllText(undocumentedEntitiesFilePath, errorMessage);
         }
+        else
+        {
+            if (File.Exists(undocumentedEntitiesFilePath))
+                File.Delete(undocumentedEntitiesFilePath);
+        }
 
         if (responseFilePath != null)
             File.Delete(responseFilePath);

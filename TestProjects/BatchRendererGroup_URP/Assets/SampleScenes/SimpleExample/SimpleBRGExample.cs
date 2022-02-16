@@ -203,6 +203,7 @@ public class SimpleBRGExample : MonoBehaviour
         drawCommands->drawCommands = (BatchDrawCommand*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawCommand>(), alignment, Allocator.TempJob);
         drawCommands->drawRanges = (BatchDrawRange*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawRange>(), alignment, Allocator.TempJob);
         drawCommands->visibleInstances = (int*)UnsafeUtility.Malloc(kNumInstances * sizeof(int), alignment, Allocator.TempJob);
+        drawCommands->drawCommandPickingInstanceIDs = null;
 
         drawCommands->drawCommandCount = 1;
         drawCommands->drawRangeCount = 1;
@@ -221,6 +222,7 @@ public class SimpleBRGExample : MonoBehaviour
         drawCommands->drawCommands[0].materialID = m_MaterialID;
         drawCommands->drawCommands[0].meshID = m_MeshID;
         drawCommands->drawCommands[0].submeshIndex = 0;
+        drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
         drawCommands->drawCommands[0].flags = 0;
         drawCommands->drawCommands[0].sortingPosition = 0;
 

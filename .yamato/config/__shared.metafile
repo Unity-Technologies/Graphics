@@ -49,14 +49,13 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
-    allow_cache: True
+    allow_cache: False
     disable_split_build_run_for: [OSX_Metal, OSX_Apple_Silicon_Metal]
     utr_flags:
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
-      - [all]: --zero-tests-are-ok=1
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -153,15 +152,14 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       # - [all]: --reruncount=2
@@ -201,14 +199,13 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       # - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -255,7 +252,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -356,7 +353,7 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - chmod +x utr
-          - command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+          - command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
             retries: 2
           - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
             retries: 2
@@ -378,6 +375,7 @@ platforms:
             retries: 2
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
             retries: 2
+          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
         log_parser:
           - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
@@ -440,6 +438,9 @@ platforms:
           - brew install unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
           - rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
+        log_parser:
+          - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   Linux:
     name: Linux
@@ -502,7 +503,7 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::samsung
-        model: s10e-eu
+        model: s21-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:

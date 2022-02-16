@@ -203,7 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderRayTracingDepthPrepass(renderGraph, cullingResults, hdCamera, result.depthBuffer);
 
-
                 ApplyCameraMipBias(hdCamera);
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
@@ -225,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
                 }
 
-                PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
+                PreRenderSky(renderGraph, hdCamera, result.depthBuffer, result.normalBuffer);
 
                 PreRenderVolumetricClouds(renderGraph, hdCamera);
 
@@ -250,6 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Only on consoles is safe to read and write from/to the depth atlas
                 bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5NGGC ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
@@ -474,9 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward)
                 {
-                    RenderStateBlock? stateBlock = null;
-                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
-                        stateBlock = m_AlphaToMaskBlock;
+                    RenderStateBlock? stateBlock = hdCamera.msaaEnabled ? null : m_AlphaToMaskBlock;
 
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                         CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
@@ -542,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
-                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.msaaEnabled)
                     stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
@@ -930,6 +928,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5NGGC ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
