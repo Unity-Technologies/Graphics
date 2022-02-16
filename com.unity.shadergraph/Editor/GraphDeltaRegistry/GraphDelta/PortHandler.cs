@@ -1,9 +1,19 @@
 using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class PortHandler : GraphDataHandler
     {
+        public string LocalID { get; private set; }
+        public bool IsInput { get; }
+        public bool IsHorizontal { get; }
+
+        internal PortHandler(ElementID elementID, GraphStorage owner)
+            : base(elementID, owner)
+        {
+        }
+
         public IEnumerable<FieldHandler> GetFields()
         {
             throw new System.Exception();
@@ -28,9 +38,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             throw new System.Exception();
         }
-        public bool IsInput { get; }
-        public bool IsHorizontal { get; }
-
     }
 }
 

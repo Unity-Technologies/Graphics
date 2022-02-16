@@ -1,9 +1,15 @@
 using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class FieldHandler : GraphDataHandler
     {
+        internal FieldHandler(ElementID elementID, GraphStorage owner)
+            : base(elementID, owner)
+        {
+        }
+
         public IEnumerable<FieldHandler> GetSubFields()
         {
             throw new System.Exception();
@@ -36,6 +42,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     public class FieldHandler<T> : FieldHandler
     {
+        internal FieldHandler(ElementID elementID, GraphStorage owner)
+            : base(elementID, owner)
+        {
+        }
+
         public T GetData()
         {
             throw new System.Exception();
