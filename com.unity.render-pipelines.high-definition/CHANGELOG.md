@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make Vertical gate fit the default for physical camera.
 - Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -132,6 +133,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
 - Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
 - Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
 ## [14.0.0] - 2021-11-17
 

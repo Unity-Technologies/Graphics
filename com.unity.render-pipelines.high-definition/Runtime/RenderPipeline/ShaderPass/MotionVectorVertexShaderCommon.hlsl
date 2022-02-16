@@ -123,6 +123,12 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     if (forceNoMotion)
     {
 #ifdef TESSELLATION_ON
@@ -134,85 +140,117 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
     }
     else
     {
-        bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
+        bool previousPositionCSComputed = false;
+        float3 effectivePositionOS = (float3)0.0f;
+        float3 previousPositionRWS = (float3)0.0f;
 
 #if defined(HAVE_VFX_MODIFICATION)
         GetMeshAndElementIndex(inputMesh, inputElement);
-#endif
-
-        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
-
-
-
-    // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
-#if defined(HAVE_MESH_MODIFICATION)
-        AttributesMesh previousMesh = inputMesh;
-        previousMesh.positionOS = effectivePositionOS;
-
-        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
-    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
-            , varyingsType.vmesh
-    #endif
-    #ifdef HAVE_VFX_MODIFICATION
-            , inputElement
-    #endif
-            );
-
-#if defined(HAVE_VFX_MODIFICATION)
-        // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
-        previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
-#endif
-
-#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
-        // Note that to fetch custom velocity here we must use the inputMesh and not the previousMesh
-        // in the case the custom velocity depends on the positionOS
-        // otherwise it will apply two times the modifications.
-        // However the vertex animation will still be perform correctly as we used previousMesh position
-        // where we could ahve trouble is if time is used to drive custom velocity, this will not work
-        previousMesh.positionOS -= GetCustomVelocity(inputMesh);
-#endif
-
-#if defined(_ADD_PRECOMPUTED_VELOCITY)
-        previousMesh.positionOS -= inputPass.precomputedVelocity;
-#endif
-
-        float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
+        effectivePositionOS = inputMesh.positionOS; //no skin or morph target in vfx
 #else
-
-#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
-        effectivePositionOS -= GetCustomVelocity(inputMesh);
+        bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
+        effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #endif
 
-#if defined(_ADD_PRECOMPUTED_VELOCITY)
-        effectivePositionOS -= inputPass.precomputedVelocity;
-#endif
-
-        float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
-#endif
-
-#ifdef ATTRIBUTES_NEED_NORMAL
-        float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
-#else
-        float3 normalWS = float3(0.0, 0.0, 0.0);
-#endif
-
-#if defined(HAVE_VERTEX_MODIFICATION)
-        ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTimeParameters.xyz);
-#endif
-
+        // See _TransparentCameraOnlyMotionVectors in HDCamera.cs
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
         if (_TransparentCameraOnlyMotionVectors > 0)
         {
             previousPositionRWS = varyingsType.vmesh.positionRWS.xyz;
+            varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+            previousPositionCSComputed = true;
         }
 #endif
+
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+#if defined(HAVE_VERTEX_MODIFICATION) || defined(_ADD_CUSTOM_VELOCITY) || defined(TESSELLATION_ON) || defined(_ADD_PRECOMPUTED_VELOCITY)
+#error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
+#endif
+        if (!previousPositionCSComputed)
+        {
+            // previousPositionRWS is only needed for TESSELLATION_ON
+            varyingsType.vpass.previousPositionCS = VFXGetPreviousClipPosition(inputMesh, inputElement);
+            previousPositionCSComputed = true;
+        }
+#endif
+
+        if (!previousPositionCSComputed)
+        {
+            // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
+#if defined(HAVE_MESH_MODIFICATION)
+            AttributesMesh previousMesh = inputMesh;
+            previousMesh.positionOS = effectivePositionOS;
+
+            previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+                , varyingsType.vmesh
+#endif
+#ifdef HAVE_VFX_MODIFICATION
+                , inputElement
+#endif
+            );
+
+#if defined(HAVE_VFX_MODIFICATION)
+            // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
+            previousMesh = VFXTransformMeshToPreviousElement(previousMesh, inputElement);
+#endif
+
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+            // Note that to fetch custom velocity here we must use the inputMesh and not the previousMesh
+            // in the case the custom velocity depends on the positionOS
+            // otherwise it will apply two times the modifications.
+            // However the vertex animation will still be perform correctly as we used previousMesh position
+            // where we could ahve trouble is if time is used to drive custom velocity, this will not work
+            previousMesh.positionOS -= GetCustomVelocity(inputMesh
+#ifdef HAVE_VFX_MODIFICATION
+                , inputElement
+#endif
+            );
+#endif
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+            previousMesh.positionOS -= inputPass.precomputedVelocity;
+#endif
+
+            previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
+#else
+
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+            effectivePositionOS -= GetCustomVelocity(inputMesh
+#ifdef HAVE_VFX_MODIFICATION
+                , inputElement
+#endif
+            );
+#endif
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+            effectivePositionOS -= inputPass.precomputedVelocity;
+#endif
+
+            previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
+#endif
+
+#ifdef ATTRIBUTES_NEED_NORMAL
+            float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
+#else
+            float3 normalWS = float3(0.0, 0.0, 0.0);
+#endif
+
+#if defined(HAVE_VERTEX_MODIFICATION)
+            ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTimeParameters.xyz);
+#endif
+        }
 
 #ifdef TESSELLATION_ON
         // With tessellation we will apply the tessellation modification on top of previousPositionRWS
         // so don't convert to CS yet.
         varyingsType.vpass.previousPositionRWS = previousPositionRWS;
 #else
-        varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+        // Final computation from previousPositionRWS (if not already done)
+        if (!previousPositionCSComputed)
+        {
+            varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+        }
 #endif
     }
 
@@ -234,6 +272,12 @@ PackedVaryingsToPS MotionVectorTessellation(VaryingsToPS output, VaryingsToDS in
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     if (forceNoMotion)
     {
         output.vpass.previousPositionCS = float4(0.0, 0.0, 0.0, 1.0);
