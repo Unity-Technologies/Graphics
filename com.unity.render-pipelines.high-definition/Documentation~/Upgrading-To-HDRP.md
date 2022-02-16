@@ -38,11 +38,11 @@ To upgrade the Materials in your Scene to HDRP-compatible Materials:
     * **Convert Selected Built-in Materials to HDRP**: Converts every compatible Material currently selected in the Project window to an HDRP Material.
     * **Convert Scene Terrains to HDRP Terrains**: Replaces the built-in default standard terrain Material in every [Terrain](https://docs.unity3d.com/Manual/script-Terrain.html) in the scene with HDRP default Terrain Material.
 
-### Limitations 
+### Limitations
 
 The automatic upgrade options described above can't upgrade all Materials to HDRP correctly:
 
-* You can't automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). 
+* You can't automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion).
 * Height mapped Materials might look incorrect. This is because HDRP supports more height map displacement techniques and decompression options than the Built-in Render Pipeline. To upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Render Pipeline version.
 * You can't upgrade particle shaders. HDRP doesn't support particle shaders, but it does provide Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
@@ -83,7 +83,7 @@ To set up lighting in your HDRP Project:
     4. Optionally, if you don't want Unity to re-bake the Scene's lighting when you make the rest of the changes in this section, you can disable the **Auto Generate** checkbox at the bottom of the window.
 
 3. Currently, the shadows are low quality. To increase the shadow quality:
-    
+
     1. Create a new **Global Volume** GameObject (menu: **GameObject** > **Volume** > **Global Volume**) and name it **Global Settings**.
     2. To create a new Volume Profile for this Global Volume:
 
@@ -96,12 +96,12 @@ To set up lighting in your HDRP Project:
         2. Enable **Max Distance**.
         3. Set **Max Distance** to 50.
 
-4. Configure your Sun Light GameObject. 
+4. Configure your Sun Light GameObject.
 
     1. Select your Light GameObject that represents the Sun in your Scene to view it in the Inspector.
     2. Go to **Emmision** and set the **Intensity** to **100000**.
     3. Set **Light Appearance** to **Color**.
-    4. Set **Color** to white. 
+    4. Set **Color** to white.
     5. To see the sun in the sky, go to **Shape** and set **Angular Diameter** to **3**.
 
 5. The Scene is now over-exposed. To fix this:
@@ -112,22 +112,22 @@ To set up lighting in your HDRP Project:
     4. To refresh the exposure, go to the Scene view and enable **Always Refresh**.
 
     ![](Images/UpgradingToHDRP2.png)
-    
+
 7. HDRP supports colored light cookies, whereas the Built-in light cookies use a texture format that only contains alpha. To correct the Light cookie:
-   
+
     1. In the Project window, select your Light cookie from your **Assets** folder.
     2. In the Inspector, change the import type from **Cookie** to **Default**.
     3. Set the **Wrap Mode** to **Clamp**.
 
 8. Correct spot lights:
-   
+
     1. In the Hierarchy, select a Spot Light and view the Light component in the Inspector.
     2. Go to **Emission** and set **Intensity** to 17000 **Lumen** to represent two 8500 Lumen light bulbs.
     3. In the **Emission**, select the More menu (&#8942;) and enable [additional properties](More-Options.md).
     4. Enable **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 
 9. Make the light bulb Material emissive:
-   
+
     1. In the Project window, select **Assets/ExampleAssets/Materials/Lightbulb_Mat.mat**.
     2. In the Inspector, go to **Emission Inputs** and enable **Use Emission Intensity**.
     3. Set **Emissive Color** to white, and set the **Emission Intensity** to **8500 Luminance**.
@@ -194,9 +194,9 @@ If your Project uses the Post Processing package's Scripting API to edit post-pr
             1. Enable **Start** and set it to **2**.
             2. Enable **End** and set it to **10**. This effect is only visible in the Game view.
 
-8. Select the **Global Settings** GameObject to view it in the Inspector. 
+8. Select the **Global Settings** GameObject to view it in the Inspector.
 
 9. In the Volume component, add an **Ambient** **Occlusion** override:
-    
+
     1. Go to **Add Override** > **Lighting** > **Ambient Occlusion**.
     2. Enable **Intensity** and set it to **0.5**.
