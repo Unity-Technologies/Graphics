@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        internal const string k_ShaderTagName = "UniversalPipeline";
+        public const string k_ShaderTagName = "UniversalPipeline";
 
         static readonly Vector4 k_IndentityScaleBias = new Vector4(1, 1, 0, 0);
 
