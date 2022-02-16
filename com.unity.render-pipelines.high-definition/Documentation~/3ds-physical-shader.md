@@ -1,6 +1,6 @@
 # 3DS Physical Material shader
 
-The 3DS Physical Material shader replicates the 3DS Physical Material shader available in Autodesk® 3DsMax for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's 3DS Physical Material shader, it applies HDRP's 3DS Physical Material shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly. 
+The 3DS Physical Material shader replicates the 3DS Physical Material shader available in Autodesk® 3DsMax for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's 3DS Physical Material shader, it applies HDRP's 3DS Physical Material shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly.
 
 **Note**: There are slight differences between what you see in Autodesk® 3DsMax and what you see in HDRP. HDRP doesn't support some material features.
 
