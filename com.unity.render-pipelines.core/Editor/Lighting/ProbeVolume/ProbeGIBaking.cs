@@ -259,8 +259,6 @@ namespace UnityEngine.Rendering
                 var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
                 Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
 
-                data.SetBakingState(ProbeReferenceVolume.instance.bakingState);
-
                 if (i == 0)
                 {
                     m_BakingProfile = profile;
@@ -292,6 +290,9 @@ namespace UnityEngine.Rendering
 
             // Get min/max
             CellCountInDirections(out minCellPosition, out maxCellPosition, m_BakingProfile.cellSizeInMeters);
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.Initialize();
 
             RunPlacement();
         }
@@ -347,10 +348,10 @@ namespace UnityEngine.Rendering
                 {
                     if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.bakingState.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
 
                         if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(ref blackProbe, cell.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                            WriteToShaderCoeffsL2(ref blackProbe, cell.bakingState.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                     }
                 }
             }
@@ -901,7 +902,7 @@ namespace UnityEngine.Rendering
             bc.sh = new SphericalHarmonicsL2[numberOfProbes];
             for (int probe = 0; probe < numberOfProbes; ++probe)
             {
-                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
+                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.bakingState.shL0L1Data, cell.bakingState.shL2Data, probe);
             }
 
             return bc;

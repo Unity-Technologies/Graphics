@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering
 
             var cell = cellInfo.cell;
 
-            if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
+            if (!cell.bricks.IsCreated || cell.bricks.Length == 0 || !cellInfo.loaded)
                 return null;
 
             List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
