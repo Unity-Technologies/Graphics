@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
+#define USE_OCTAHEDRAL_ENV_MAP
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
@@ -151,7 +152,18 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
+            #if defined(USE_OCTAHEDRAL_ENV_MAP) 
+                // Apply atlas scale and offset
+                float2 scale = _EnvOctAtlasScaleOffset[index].xy;
+                float2 offset = _EnvOctAtlasScaleOffset[index].zw;
+                float2 texCoordOct = saturate(PackNormalOctQuadEncode(texCoord) * 0.5 + 0.5);
+                float2 atlasCoords = texCoordOct;// RemapUVForPlanarAtlas(texCoordOct, scale, lod);
+                atlasCoords = atlasCoords * scale + offset;
+
+                color.rgb = SAMPLE_TEXTURE2D_LOD(_EnvOctahedralTextures, s_trilinear_clamp_sampler, atlasCoords, lod).rgb;
+            #else
+                color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
+            #endif
         }
 
         // Planar and Reflection Probes aren't pre-expose, so best to clamp to max16 here in case of inf
@@ -165,7 +177,6 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
         color.rgb = ClampToFloat16Max(color.rgb);
     }
-
 
     return color;
 }

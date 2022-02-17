@@ -19,7 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ProbeSize;
         IBLFilterGGX m_IBLFilterGGX;
         PowerOfTwoTextureAtlas m_TextureAtlas;
-        RenderTexture m_TempRenderTexture = null;
         RenderTexture m_ConvolutionTargetTexture;
         Dictionary<Vector4, ProbeFilteringState> m_ProbeBakingState = new Dictionary<Vector4, ProbeFilteringState>();
         Material m_ConvertTextureMaterial;
@@ -69,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             m_TextureAtlas.Release();
-            CoreUtils.Destroy(m_TempRenderTexture);
             CoreUtils.Destroy(m_ConvolutionTargetTexture);
 
             m_ProbeBakingState = null;

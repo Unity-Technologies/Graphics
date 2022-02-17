@@ -14,8 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ProbeSize;
         int m_CacheSize;
         IBLFilterBSDF[] m_IBLFilterBSDF;
-        //TextureCacheCubemap m_TextureCache;
-        TextureCacheOctmap m_TextureCache;
+        TextureCacheCubemap m_TextureCache;
         RenderTexture m_TempRenderTexture;
         RenderTexture[] m_ConvolutionTargetTextureArray;
         ProbeFilteringState[] m_ProbeBakingState;
@@ -35,13 +34,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.B10G11R11_UFloatPack32 || probeFormat == GraphicsFormat.R16G16B16A16_SFloat,
                 "Reflection Probe Cache format for HDRP can only be BC6H, FP16 or R11G11B10.");
 
-            probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
-
             m_ProbeFormat = probeFormat;
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
-            m_TextureCache = new TextureCacheOctmap("ReflectionProbe", iblFilterBSDFArray.Length);
+            m_TextureCache = new TextureCacheCubemap("ReflectionProbe", iblFilterBSDFArray.Length);
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeFormat, isMipmaped, m_CubeToPano);
             m_IBLFilterBSDF = iblFilterBSDFArray;
 

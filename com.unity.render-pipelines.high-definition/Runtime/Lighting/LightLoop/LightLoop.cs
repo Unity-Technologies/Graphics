@@ -279,6 +279,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
+        const bool USE_OCTAHEDRAL_ENV_MAP = true;
+
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
         internal const int k_MaxDirectionalLightsOnScreen = 512;
         internal const int k_MaxPunctualLightsOnScreen = 2048;
@@ -319,10 +321,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Structure for cookies used by directional and spotlights
             public LightCookieManager lightCookieManager { get; private set; }
             public ReflectionProbeCache reflectionProbeCache { get; private set; }
+            public ReflectionProbeCache2D reflectionProbeCache2D { get; private set; }
             public PlanarReflectionProbeCache reflectionPlanarProbeCache { get; private set; }
             public List<Matrix4x4> env2DCaptureVP { get; private set; }
             public List<Vector4> env2DCaptureForward { get; private set; }
             public List<Vector4> env2DAtlasScaleOffset { get; private set; } = new List<Vector4>();
+            public List<Vector4> envOctAtlasScaleOffset { get; private set; } = new List<Vector4>();
 
             public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iBLFilterBSDFArray)
             {
@@ -337,6 +341,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     env2DCaptureVP.Add(Matrix4x4.identity);
                     env2DCaptureForward.Add(Vector4.zero);
                     env2DAtlasScaleOffset.Add(Vector4.zero);
+                }
+                for (int i = 0, c = Mathf.Max(1, lightLoopSettings.maxEnvLightsOnScreen); i < c; ++i)
+                {
+                    envOctAtlasScaleOffset.Add(Vector4.zero);
                 }
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
@@ -355,6 +363,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution, iBLFilterBSDFArray.Length);
                 reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
 
+                reflectionProbeCache2D = new ReflectionProbeCache2D(defaultResources, iBLFilterBSDFArray, 2048, probeCacheFormat);
+
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
                 GraphicsFormat planarProbeCacheFormat = (GraphicsFormat)hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
                 int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionAtlasSize;
@@ -364,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Cleanup()
             {
                 reflectionProbeCache.Release();
+                reflectionProbeCache2D.Release();
                 reflectionPlanarProbeCache.Release();
                 lightCookieManager.Release();
             }
@@ -372,6 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lightCookieManager.NewFrame();
                 reflectionProbeCache.NewFrame();
+                reflectionProbeCache2D.NewFrame();
                 reflectionPlanarProbeCache.NewFrame();
             }
         }
@@ -1231,10 +1243,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case HDAdditionalReflectionData reflectionData:
                 {
-                    uint textureHash = reflectionData.GetTextureHash();
-                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture, textureHash);
-                    // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                    envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                    if (!USE_OCTAHEDRAL_ENV_MAP)
+                    {
+                        uint textureHash = reflectionData.GetTextureHash();
+                        envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture, textureHash);
+                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                        envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                    }
+                    else
+                    {
+                        var scaleOffset = m_TextureCaches.reflectionProbeCache2D.FetchSlice(cmd, probe.texture, out int fetchIndex);
+
+                        envIndex = scaleOffset == Vector4.zero ? int.MinValue : (fetchIndex + 1);
+
+                        // If the max number of reflection probes on screen is reached
+                        if (fetchIndex >= m_MaxEnvLightsOnScreen)
+                        {
+                            Debug.LogWarning("Maximum reflection probe on screen reached. To fix this error, increase the maximum number of reflections on screen in the HDRP asset.");
+                            break;
+                        }
+
+                        m_TextureCaches.envOctAtlasScaleOffset[fetchIndex] = scaleOffset;
+                    }
 
                     // Calculate settings to use for the probe
                     var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
@@ -1858,6 +1888,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Because we don't support baking planar reflection probe, we can clear the atlas.
                 // Every visible probe will be blitted again.
                 m_TextureCaches.reflectionPlanarProbeCache.ClearAtlasAllocator();
+                m_TextureCaches.reflectionProbeCache2D.ClearAtlasAllocator();
 
                 m_ScreenSpaceShadowIndex = 0;
                 m_ScreenSpaceShadowChannelSlot = 0;
@@ -2066,6 +2097,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
             cb._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
+            //cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache2D.GetEnvSliceSize();
 
             // Planar reflections
             for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen; ++i)
@@ -2078,6 +2110,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int j = 0; j < 4; ++j)
                     cb._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
+            }
+
+            // Reflection Probes
+            for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                    cb._EnvOctAtlasScaleOffset[i * 4 + j] = m_TextureCaches.envOctAtlasScaleOffset[i][j];
             }
 
             // Light info
@@ -2134,9 +2173,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
             }
 
-
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
+            cmd.SetGlobalTexture(HDShaderIDs._EnvOctahedralTextures, m_TextureCaches.reflectionProbeCache2D.GetTexCache());
             cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
 
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
