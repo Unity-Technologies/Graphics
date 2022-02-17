@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         public ObjectNode()
         {
             name = "Object";
-            synonyms = new string[] { "position", "scale", "bounds", "size"};
+            synonyms = new string[] { "position", "scale", "bounds", "size" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector3MaterialSlot(OutputSlot2Id, kOutputSlot2Name, kOutputSlot2Name, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OutputSlot3Id, kOutputSlot3Name, kOutputSlot3Name, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OutputSlot4Id, kOutputSlot4Name, kOutputSlot4Name, SlotType.Output, Vector3.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId, OutputSlot1Id, OutputSlot2Id, OutputSlot3Id, OutputSlot4Id});
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, OutputSlot1Id, OutputSlot2Id, OutputSlot3Id, OutputSlot4Id });
         }
 
         public override string GetVariableNameForSlot(int slotId)
