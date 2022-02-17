@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
 - Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
 - Reduce GC.Allocs in the SceneViewGUICallback. [Case 1305929](https://issuetracker.unity3d.com/product/unity/issues/guid/1305929/)
+- Fix Motion vectors in XR. [Case 14003636](https://issuetracker.unity3d.com/product/unity/issues/guid/14003636/)
 
 ## [14.0.0] - 2021-11-17
 
