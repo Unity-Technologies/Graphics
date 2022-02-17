@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Temporary to preview UIs
             PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
             PartList.InsertPartBefore("node-preview", new ColorPart("temp-color", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new GradientPart("temp-gradient", Model, this, ussClassName));
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
