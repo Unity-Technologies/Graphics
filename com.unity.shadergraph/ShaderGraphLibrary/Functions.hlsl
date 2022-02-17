@@ -83,6 +83,13 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_OBJECT_POSITION UNITY_MATRIX_M._m03_m13_m23
 #endif
 
+#ifndef SHADERGRAPH_RENDERER_BOUNDS_MIN
+    #define SHADERGRAPH_RENDERER_BOUNDS_MIN float3(0, 0, 0)
+#endif
+#ifndef SHADERGRAPH_RENDERER_BOUNDS_MAX
+    #define SHADERGRAPH_RENDERER_BOUNDS_MAX float3(0, 0, 0)
+#endif
+
 float shadergraph_SampleSceneDepth(float2 uv)
 {
     return 1;

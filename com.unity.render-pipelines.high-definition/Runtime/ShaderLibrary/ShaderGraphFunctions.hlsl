@@ -67,5 +67,24 @@ float3 shadergraph_HDMainLightDirection()
 #endif
 #define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_HDMainLightDirection
 
+#ifdef SHADERGRAPH_RENDERER_BOUNDS_MIN
+#undef SHADERGRAPH_RENDERER_BOUNDS_MIN
+#endif
+#define SHADERGRAPH_RENDERER_BOUNDS_MIN shadergraph_RendererBoundsWS_Min()
+
+float3 shadergraph_RendererBoundsWS_Min()
+{
+    return GetCameraRelativePositionWS(unity_RendererBounds_Min.xyz);
+}
+
+#ifdef SHADERGRAPH_RENDERER_BOUNDS_MAX
+#undef SHADERGRAPH_RENDERER_BOUNDS_MAX
+#endif
+#define SHADERGRAPH_RENDERER_BOUNDS_MAX shadergraph_RendererBoundsWS_Max()
+
+float3 shadergraph_RendererBoundsWS_Max()
+{
+    return GetCameraRelativePositionWS(unity_RendererBounds_Max.xyz);
+}
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED
