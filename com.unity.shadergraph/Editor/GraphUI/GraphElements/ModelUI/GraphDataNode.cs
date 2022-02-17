@@ -13,17 +13,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartList();
 
-            var shouldShowPreview = m_GraphDataNodeModel.existsInGraphData;
-
             // TODO (Brett) This should only happen if m_GraphDataNodeMode.HasPreview
-            if(shouldShowPreview)
-                m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
+            m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
             PartList.AppendPart(m_NodePreviewPart);
 
             // TODO: Build out fields from node definition
 
             // TODO: Temporary to preview UIs
             PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new ColorPart("temp-color", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new GradientPart("temp-gradient", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new ObjectPart("temp-object", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new IntPart("temp-int", Model, this, ussClassName));
+            PartList.InsertPartBefore("node-preview", new FloatPart("temp-float", Model, this, ussClassName));
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
