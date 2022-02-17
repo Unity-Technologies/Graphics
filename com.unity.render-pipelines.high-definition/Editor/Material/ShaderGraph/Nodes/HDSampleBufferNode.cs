@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("NormalData normalData;");
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.AppendLine("return IsSky(pixelCoords) ? 0 : RoughnessToPerceptualSmoothness(PerceptualRoughnessToRoughness(normalData.perceptualRoughness));");
+                                s.AppendLine("return IsSky(pixelCoords) ? 1 : RoughnessToPerceptualSmoothness(PerceptualRoughnessToRoughness(normalData.perceptualRoughness));");
                                 break;
                             case BufferType.MotionVectors:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
