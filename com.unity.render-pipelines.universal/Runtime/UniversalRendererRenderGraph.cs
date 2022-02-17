@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.Universal
                 //RunCustomPasses(RenderPassEvent.AfterRenderingOpaques)
 
                 RenderGraphSkyboxTestPass.PassData testPassData = RenderGraphSkyboxTestPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth);
+
+                m_RenderTransparentForwardPass.Render(camera, renderGraph, frameResources.backBuffer, frameResources.depth, ref renderingData);
             }
             else if (renderPassBlock == RenderPassBlock.MainRenderingTransparent)
             {
