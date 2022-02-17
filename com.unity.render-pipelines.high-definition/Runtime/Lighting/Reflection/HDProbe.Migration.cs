@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.ProbeSettings, (HDProbe p) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                p.m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume = !p.m_ObsoleteInfiniteProjection;
                 p.m_ProbeSettings.influence = new InfluenceVolume();
                 if (p.m_ObsoleteInfluenceVolume != null)
                     // We must create a copy here, otherwise the serialization will write the same memory destination
