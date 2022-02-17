@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 - Added public API for Diffusion Profile Override volume Component.
 - Added time slicing support for realtime reflection probes.
+- Added denoising for the path tracer.
+- Added an initial version of under water rendering for the water system.
+- Added Asymmetric projection and Screen Coordinates Override frame settings. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
+- Added option to animate APV sample noise to smooth it out when TAA is enabled.
+- Added default DOTS compatible loading shader (MaterialLoading.shader)
+- Add #pragma editor_sync_compilation directive to MaterialError.shader
+- Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
+- Added an optional CPU simulation for the water system.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -39,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled volumetric clouds in lens flares sample indoor scene.
 - Make Vertical gate fit the default for physical camera.
 - Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
+- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -101,7 +111,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
 - Fixed reflection probe rendering order when visible in multiple cameras.
 - Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
-- Fixed the list of included HDRP asset used for stripping in the build process.
 - Fixed Show/Hide all Additional Properties
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
 - Fixed custom pass name being cut when too long in the inspector.
@@ -114,6 +123,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed couple bugs in the volumetric clouds shader code.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed HDRP camera debug panel rendering foldout.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed various issues with render graph viewer when entering playmode.
+- Fixed Probe Debug view misbehaving with fog.
+- Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
+- Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
 ## [14.0.0] - 2021-11-17
 
@@ -168,7 +191,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 - Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
-- 
+
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
