@@ -1,11 +1,10 @@
 # Decal Renderer Feature
 
-With the Decal Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene. The decals interact with the Scene’s lighting and wrap around Meshes.
+With the Decal Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene. The decals interact with the Scene's lighting and wrap around Meshes.
 
 ![Sample scene without decals](Images/decal/decal-sample-without.png)<br/>*Sample scene without decals*
 
-![Sample scene with decals](Images/decal/decal-sample-with.png)<br/>*Sample scene with decals used for added details and for hiding seams in material differences*
-
+![Sample scene with decals](Images/decal/decal-sample-with.png)<br/>*Sample scene with decals. The decals hide the seams between materials and add artistic details.*
 
 ## How to use the feature
 
@@ -140,9 +139,12 @@ This section describes the Decal Projector component properties.
 | __Start Fade__          | Use the slider to set the distance from the Camera at which the projector begins to fade out the decal. Values from 0 to 1 represent a fraction of the __Draw Distance__. With a value of 0.9, Unity starts fading the decal out at 90% of the __Draw Distance__ and finishes fading it out at the __Draw Distance__. |
 | __Angle Fade__          | Use the slider to set the fade out range of the decal based on the angle between the decal's backward direction and the vertex normal of the receiving surface. |
 
-### Performance
-It’s not uncommon to see a large amount of decal projectors in a scene. This motivates drawing decals with as few draw calls as possible to save CPU time. Decals do not support the SRP batcher by design as they use material property blocks. Instead decals can be batched together using GPU instancing. If the decals in your Scene use the same Material, and if the Material has the **Enable GPU Instancing** property turned on, URP instances the Materials and reduces the draw calls.
+## Performance
 
-In order to keep material counts low, users are encouraged to atlas their decals. Decal atlasing means to layout texture content such that data that isn't neceserally part of the same decal is kept in the same texture. Which part of the atlas to display is then controlled using the per decal UV offset properties on the decal projector.
+Decals do not support the **SRP Batcher** by design because they use Material property blocks. To reduce the number of draw calls, decals can be batched together using GPU instancing. If the decals in your Scene use the same Material, and if the Material has the **Enable GPU Instancing** property turned on, Unity instances the Materials and reduces the number of draw calls.
 
-![Decal Atlas](Images/decal/decal-atlas.png) </br> *To the left is a decal atlas with four distinct decals. To the right, a decal projector is displaying only one of them. If the matarial has GPU instancing enabled, any instance of these four decals will render in a single instanced draw call.*
+To reduce the number of Materials necessary for decals, put multiple decal textures into one texture (atlas). Use the UV offset properties on the decal projector to determine which part of the atlas to display.
+
+The following image shows an example of a decal atlas.
+
+![Decal Atlas](Images/decal/decal-atlas.png) </br> *left: decal atlas with four decals. Right: a decal projector is projecting one of them. If the decal Material has GPU instancing enabled, any instance of the four decals is rendered in a single instanced draw call.*

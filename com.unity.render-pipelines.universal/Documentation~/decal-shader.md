@@ -4,7 +4,7 @@ The [Decal Projector](renderer-feature-decal.md#decal-projector-component) compo
 
 ![Shader Graph with the Decal Material type](Images/decal/decal-shader-graph-material-type.png)<br/>*Shader Graph with the Decal Material type*
 
-Users are encouraged to [make their own Shader Graphs](#making-decal-shaders) when using decals but URP also contains the pre-built Decal Shader (`Shader Graphs/Decal`).
+URP contains the pre-built Decal Shader (`Shader Graphs/Decal`).
 
 ![Decal Material properties.](Images/decal/decal-material-properties.png)<br/>*Decal Material properties and advanced options.*
 
@@ -18,7 +18,11 @@ The pre-built Decal Shader has the following properties:
 
 * **Normal Blend**: this property defines the proportion in which the the normal texture selected in the Normal Map property blends with the normal map of the Material that the decal is projected on. 0: the decal does not affect the Material it's projected on. 1: the normal map of the decal replaces the normal map of the Material it's projected on.
 
-The above properties are defined in the shader graph and therefore would vary for any custom decal shader graph. Some properties however are common to any decal shader. These properties reside in the **Advanced Options** section of the material insepctor.
+You can [create your own Shader Graphs](#create-decal-shaders) that render decals in a way that suits your project best.
+
+The Decal Material properties above are defined in the pre-built Shader Graph. Custom decal Material properties depend on a custom Shader Graph.
+
+The following table describes the properties in the **Advanced Options** section. These properties are common for all decal shaders. 
 
 | __Property__ | __Description__ |
 |---|---|
@@ -28,23 +32,28 @@ The above properties are defined in the shader graph and therefore would vary fo
 | _View Bias_         | A world-space bias (in meters). When drawing the Decal GameObject, Unity shifts each pixel of the GameObject by this value along the view vector. A positive value shifts pixels closer to the Camera, so that Unity draws the Decal GameObject on top of the overlapping Mesh, which prevents z-fighting. Decal Projectors ignore this property. |
 | _Depth Bias_        | When drawing the Decal GameObject, Unity changes the depth value of each pixel of the GameObject by this value. A negative value shifts pixels closer to the Camera, so that Unity draws the Decal GameObject on top of the overlapping Mesh, which prevents z-fighting. Decal Projectors ignore this property. |
 
-## Making Decal Shaders
-The provided `Shader Graphs/Decal` shader is meant to be simple and doesn’t expose all of the features supported by decals in URP. In order to take full advantage of decals, users can create custom decal shaders using Shader Graph and the decal subtarget.
+## <a name="create-decal-shaders"></a>Create custom Decal shaders
 
-A main configuration needed for the decal subtarget is to decide which surface properties the decal effects. Enabling these properties will effectively “override” the equivalent Lit Shader property on the surface.
+The pre-built `Shader Graphs/Decal` shader serves as a simple example. You can create your own decal shaders that render decals in a way that suits your project best.
 
-![Affecting properties](Images/decal/decal-affect-properties.png)
+To create a custom decal Shader Graph, select the **Decal** value in Material property of the shader target.
+
+![Shader Graph, Decal Material](Images/decal/decal-shader-graph-material-type.png)
+
+Enabling one of the following properties override the equivalent Lit Shader property on the surface of the Material.
 
 | __Property__ | __Description__ |
 |---|---|
-|__Affect BaseColor__ | Affecting base color is useful on almost all cases. An exception is surface damage were you often want to manipulate other properties like normals ![Decal Color](Images/decal/decal-color.png)</br>*From left to right: Only affecting color, affecting everything, not affecting color*|
-|__Affect Normal__ | Affecting normal is often used for adding damage to materials like bullet holes or in this case cracks in a road. Normals will give depth to the decal and if carefully authored can even make it seem like the projected object is lying on top like leaves on a forest road or garbage on a street. Blending is used to mask the overriden normal. If the decal normal is not blended, the decal will override the normal all over the projected surface ![Decal Normal](Images/decal/decal-normal.png)</br>*From left to right: No normals, normals without blend, normals with blend* |
-|__Affect MAOS__ | MOAS is short for Metallic, Ambient Occlusion and Smoothness. To save memory these properties have been grouped together. The values of the properties can still be set invidually but they can only be blended with a single common alpha value. Overriding smoothness is useful for puddles or wet paint. Overriding a metallic surface with a lower metallic value is useful for rust. Overriding AO is often used to give the decal more depth. ![Decal MAOS](Images/decal/decal-maos.png) </br>*Difference in decal affecting and not affecing MAOS*|
-|__Affect Emission__ | Affecting emission is useful for either making surfaces seem like they are emitting light, or to make surfaces seem like they are being lit by light. ![Decal Emission](Images/decal/decal-emission.png) </br>*Decal with Affect Emission turned off an on*|
+| __Affect&#160;BaseColor__ | When enabled, the shader affects the base color. Most decals make use of this option. An exception is a surface damage effect, were you might want to manipulate other properties, such as normals.<br/>![Decal Color](Images/decal/decal-color.png)</br>*From left to right: shader affecting only the color, affecting all properties, affecting all properties but color.*|
+| __Affect Normal__ | When enabled, the shader affects normals. Use cases:  adding damage effects to materials, for example, bullet holes or cracks. Use the **Blend** property to blend the normals of the decal with the normals of the surface it's projected to. If the **Blend** property is disabled, the decal overrides the normals all over the surface it's projected to.<br/>![Decal Normal](Images/decal/decal-normal.png)</br>*From left to right: Affect Normal is off; Affect Normal is on, Blend is off; Affect Normal and Blend are on.* |
+| __Affect MAOS__ | MOAS stands for Metallic, Ambient Occlusion, and Smoothness. These properties are grouped together to save memory. You can change values of each property separately in the shader, but all properties are blended with a single common alpha value.<br/>Use cases:<br/>Override smoothness to highlight puddles or wet paint. Override metallic values with lower values to render rust. Override AO to give the decal more depth.<br/>![Decal MAOS](Images/decal/decal-maos.png)</br>*Left: the decal does not affect MAOS. Right: the decal affects MAOS.* |
+| __Affect&#160;Emission__ | Use cases: you can affect the emission values to make surfaces seem like they are emitting light, or to make surfaces seem like they are being lit by light.<br/>![Decal Emission](Images/decal/decal-emission.png) </br>*Left: Affect Emission is off. Right: Affect Emission is on.*|
 
-Even though a decal shader affects a lot of property, it doesn't mean that a texture map is needed for each. Depending on the use case it might make sense to pack data into textures such that less samples are needed and less textures need to be stored. In this example graph, a normal map and mask map are used to drive all properties in the shader. The decal is used for damaged tarmac so a hardcoded roughness of 0 will do.
+To improve performance, pack data for different surface properties into a single texture. This way the shader performs fewer samples and Unity stores fewer textures.
+
+For example, the following Shader Graph uses a normal map and a mask map to drive all properties in the shader. This decal is used for the damaged tarmac effect, and a hardcoded roughness value of 0 suites the use case.
 
 ![Decal Graph](Images/decal/decal-graph.png)
 
-The shader samples the mask and uses the color for setting the Ambient Occlusion (Red Channel), smoothness (Green Channel), Emission intensity (Blue Channel) and alpha for the entire decal. Decals are ofte blended using single alpha values for all properties. The mask map for the examplem tarmac cracks looks like this
-![Decal Mask](Images/decal/decal-mask.png)</br>*Exampe of mask map that packs Ambient Occlusion, Smoothness, Emission and aAlpha of a decal atlas into a single texture*
+The shader samples the mask and uses the color for setting the Ambient Occlusion values (Red channel), smoothness values (Green channel), Emission intensity values (Blue channel), and alpha values for the entire decal. Decals are often blended using single alpha values for all properties. The following image shows the mask map for the example tarmac cracks:<br/>
+![Decal Mask](Images/decal/decal-mask.png)</br>*Example of mask map that packs Ambient Occlusion, Smoothness, Emission, and alpha values of a decal atlas into a single texture.*
