@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendAction("Show Generated Shader", action =>
             {
                 Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
-
                 // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
                 // https://jira.unity3d.com/browse/GSG-780
             });
@@ -57,7 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendAction("Show Preview Code", action =>
             {
                 Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
-
                 // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
                 // https://jira.unity3d.com/browse/GSG-780
             });
