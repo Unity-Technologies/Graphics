@@ -1,0 +1,39 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
+
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderData;
+StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
+RWStructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes;
+RWStructuredBuffer<uint> _CapsuleShadowCounters;
+
+uint _CapsuleOccluderCount;
+uint _CapsuleCasterCount;
+
+[numthreads(64,1,1)]
+void Main(uint dispatchThreadId : SV_DispatchThreadID)
+{
+	uint casterIndex = dispatchThreadId/_CapsuleOccluderCount;
+	uint occluderIndex = dispatchThreadId - casterIndex*_CapsuleOccluderCount;
+	if (casterIndex > _CapsuleCasterCount)
+		return;
+
+	// TODO: cull against frustum, write out compactly
+	// TODO: precompute some clipping planes for the tiling pass
+
+	CapsuleShadowVolume volume;
+	volume.occluder = _CapsuleOccluderData[occluderIndex];
+	volume.caster = _CapsuleShadowCasters[casterIndex];
+	_CapsuleShadowVolumes[dispatchThreadId] = volume;
+
+	if (dispatchThreadId == 0)
+		_CapsuleShadowCounters[0] = _CapsuleOccluderCount*_CapsuleCasterCount;
+}

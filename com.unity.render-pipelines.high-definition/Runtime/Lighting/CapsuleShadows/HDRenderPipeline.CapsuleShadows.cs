@@ -74,7 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!lightData.enableCapsuleShadows || lightData.capsuleShadowRange == 0.0f)
                 return false;
 
-
             switch (light.type)
             {
                 case LightType.Directional:
@@ -109,18 +108,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildCapsuleShadowCasterList(HDCamera hdCamera, CullingResults cullResults)
+        void BuildCapsuleShadowCasterList(HDCamera hdCamera, CullingResults cullResults, CapsuleShadowsVolumeComponent capsuleShadows)
         {
-            Vector3 originWS = Vector3.zero;
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                originWS = hdCamera.camera.transform.position;
-
-            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
-            CapsuleShadowCaster shadowCasterTemp = new CapsuleShadowCaster();
-            for (int i = 0; i < cullResults.visibleLights.Length; ++i)
+            if (capsuleShadows.enableIndirectShadows.value && capsuleShadows.indirectRangeFactor.value > 0.0f)
             {
-                if (ConvertLightToShadowCaster(originWS, lightEntities, cullResults.visibleLights[i], ref shadowCasterTemp))
-                    m_CapsuleShadowCasters.Add(shadowCasterTemp);
+                m_CapsuleShadowCasters.Add(new CapsuleShadowCaster()
+                {
+                    casterType = (uint)CapsuleShadowCasterType.AmbientOcclusion,
+                    // TODO: other fields
+                });
+            }
+            if (capsuleShadows.enableDirectShadows.value)
+            {                
+                Vector3 originWS = Vector3.zero;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    originWS = hdCamera.camera.transform.position;
+
+                HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+                CapsuleShadowCaster shadowCasterTemp = new CapsuleShadowCaster();
+                for (int i = 0; i < cullResults.visibleLights.Length; ++i)
+                {
+                    if (ConvertLightToShadowCaster(originWS, lightEntities, cullResults.visibleLights[i], ref shadowCasterTemp))
+                        m_CapsuleShadowCasters.Add(shadowCasterTemp);
+                }
             }
         }
 
@@ -130,19 +140,42 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_CameraRelativeRendering != 0)
                 originWS = hdCamera.camera.transform.position;
 
-            bool optimiseBoundsForLight = (m_CapsuleShadowCasters.Count == 1) && m_CapsuleShadowCasters[0].isDirectional;
-            Vector3 singleCasterDir = m_CapsuleShadowCasters[0].directionWS;
-            float singleCasterRange = m_CapsuleShadowCasters[0].shadowRange;
-            float singleCasterTanTheta = m_CapsuleShadowCasters[0].tanTheta;
+            bool enableDirectShadows = false;
+            bool enableIndirectShadows = false;
+            Vector3 singleCasterDir = Vector3.up;
+            float singleCasterRange = 0.0f;
+            float singleCasterTanTheta = 0.0f;
+            for (int i = 0; i < m_CapsuleShadowCasters.Count; ++i)
+            {
+                if (m_CapsuleShadowCasters[i].isIndirect)
+                {
+                    enableIndirectShadows = true;
+                }
+                else
+                {
+                    enableDirectShadows = true;
+                    if (m_CapsuleShadowCasters[i].isDirectional && singleCasterRange == 0.0f)
+                    {
+                        singleCasterDir = m_CapsuleShadowCasters[i].directionWS;
+                        singleCasterRange = m_CapsuleShadowCasters[i].shadowRange;
+                        singleCasterTanTheta  = m_CapsuleShadowCasters[i].tanTheta;
+                    }
+                    else
+                    {
+                        // not a single directional light, cannot optimise bounds
+                        singleCasterRange = -1.0f;
+                    }
+                }
+            }
+            bool optimiseBoundsForLight = (singleCasterRange > 0.0f);
+
             m_CapsuleOccluders.directUsesSphereBounds = !optimiseBoundsForLight;
 
             float maxRange = 0.0f;
             for (int i = 0; i < m_CapsuleShadowCasters.Count; ++i)
                 maxRange = Mathf.Max(maxRange, m_CapsuleShadowCasters[i].shadowRange);
 
-            bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
             float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
-            bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
             using (ListPool<OrientedBBox>.Get(out List<OrientedBBox> indirectBounds))
             using (ListPool<CapsuleOccluderData>.Get(out List<CapsuleOccluderData> indirectOccluders))
             {
@@ -252,44 +285,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_CameraRelativeRendering != 0)
                 originWS = hdCamera.camera.transform.position;
 
-            bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
-            float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
-            bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
             foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
             {
-                CapsuleOccluderData data = occluder.GetOccluderData(originWS);
-
-                if (enableDirectShadows)
-                {
-                    for (int casterIndex = 0 ; casterIndex < m_CapsuleShadowCasters.Count && m_CapsuleOccluders.directCount < k_MaxDirectShadowCapsulesOnScreen; ++casterIndex)
-                    {
-                        CapsuleShadowCaster caster = m_CapsuleShadowCasters[casterIndex];
-
-                        float length = 2.0f * (data.offset + data.radius + caster.shadowRange);
-                        OrientedBBox bounds = new OrientedBBox(
-                            Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
-                        if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
-                        {
-                            data.casterType = (CapsuleShadowCasterType)caster.casterType;
-                            data.casterIndex = (uint)casterIndex;
-                            m_CapsuleOccluders.occluders.Add(data);
-                            m_CapsuleOccluders.directCount += 1;
-                        }
-                    }
-                }
-
-                if (enableIndirectShadows && m_CapsuleOccluders.indirectCount < k_MaxIndirectShadowCapsulesOnScreen)
-                {
-                    float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
-                    OrientedBBox bounds = new OrientedBBox(
-                        Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
-                    if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
-                    {
-                        data.casterType = CapsuleShadowCasterType.AmbientOcclusion;
-                        m_CapsuleOccluders.occluders.Add(data);
-                        m_CapsuleOccluders.indirectCount += 1;
-                    }    
-                }
+                if (m_CapsuleOccluders.occluders.Count >= k_MaxDirectShadowCapsulesOnScreen)
+                    break;
+                m_CapsuleOccluders.occluders.Add(occluder.GetOccluderData(originWS));
             }
         }
 
@@ -307,8 +307,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!enableDirectShadows && !enableIndirectShadows)
                 return;
 
-            BuildCapsuleShadowCasterList(hdCamera, cullResults);
-            if (m_CapsuleShadowCasters.Count == 0 && !enableIndirectShadows)
+            BuildCapsuleShadowCasterList(hdCamera, cullResults, capsuleShadows);
+            if (m_CapsuleShadowCasters.Count == 0)
                 return;
 
             if (m_CapsuleOccluders.inLightLoop)
@@ -339,20 +339,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 = (uint)m_CapsuleOccluders.indirectCount
                 | ((uint)capsuleShadows.indirectShadowMethod.value << (int)CapsuleShadowFlags.MethodShift);
 
-            switch (capsuleShadows.pipeline.value)
-            {
-                case CapsuleShadowPipeline.InLightLoop:
-                    directCountAndFlags |= (uint)CapsuleShadowFlags.LightLoopBit;
-                    break;
-                case CapsuleShadowPipeline.PrePassFullResolution:
-                    break;
-                case CapsuleShadowPipeline.PrePassHalfResolution:
-                    directCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
-                    break;
-            }
+            if (m_CapsuleOccluders.indirectCount != 0)
+                directCountAndFlags |= (uint)CapsuleShadowFlags.IndirectEnabledBit;
 
-            if (capsuleShadows.useSplitDepthRange.value)
-                directCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
+            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop)
+            { 
+                directCountAndFlags |= (uint)CapsuleShadowFlags.LightLoopBit;
+                if (m_CapsuleOccluders.directCount != 0)
+                    directCountAndFlags |= (uint)CapsuleShadowFlags.DirectEnabledBit;
+                if (m_CapsuleOccluders.indirectCount != 0)
+                    directCountAndFlags |= (uint)CapsuleShadowFlags.IndirectEnabledBit;
+            }
+            else
+            {
+                if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassHalfResolution)
+                    directCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
+                if (m_CapsuleOccluders.occluders.Count > 0)
+                {
+                    for (int i = 0; i < m_CapsuleShadowCasters.Count; ++i)
+                    {
+                        if (m_CapsuleShadowCasters[i].isIndirect)
+                            directCountAndFlags |= (uint)CapsuleShadowFlags.IndirectEnabledBit;
+                        else 
+                            directCountAndFlags |= (uint)CapsuleShadowFlags.DirectEnabledBit;
+                    }
+                }
+
+                if (capsuleShadows.useSplitDepthRange.value)
+                    directCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
+            }
 
             switch (capsuleShadows.indirectShadowMethod.value)
             {
@@ -387,6 +402,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public CapsuleTileDebugMode tileDebugMode;
         }
 
+        class BuildCapsuleShadowVolumesPassData
+        {
+            public ComputeShader cs;
+            public int kernel;
+
+            public int occluderCount;
+            public int casterCount;
+            public ComputeBufferHandle occluders;
+            public ComputeBufferHandle casters;
+            public ComputeBufferHandle volumes;
+            public ComputeBufferHandle counters;
+        }
+
         class CapsuleShadowsRenderPassData
         {
             public ComputeShader cs;
@@ -395,13 +423,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
+            public ComputeBufferHandle volumes;
+            public ComputeBufferHandle counters;
             public Vector2Int upscaledSize;
             public Vector2Int renderSize;
             public TextureHandle renderOutput;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
-            public ComputeBufferHandle capsuleOccluderData;
-            public ComputeBufferHandle capsuleShadowCasters;
             public Vector2Int depthPyramidTextureSize;
             public Vector2Int firstDepthMipOffset;
         }
@@ -417,11 +445,59 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
         }
 
+        struct CapsuleBuildVolumeOutput
+        {
+            public ComputeBufferHandle volumes;
+            public ComputeBufferHandle counters;
+        }
+
+        CapsuleBuildVolumeOutput BuildCapsuleShadowVolumes(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddRenderPass<BuildCapsuleShadowVolumesPassData>("Capsule Shadow Build Volumes", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsBuildVolumes)))
+            {
+                int occluderCount = m_CapsuleOccluders.occluders.Count;
+                int casterCount = m_CapsuleShadowCasters.Count;
+                int sizePerVolume = Marshal.SizeOf(typeof(CapsuleOccluderData)) + Marshal.SizeOf(typeof(CapsuleShadowCaster));
+
+                CapsuleBuildVolumeOutput volumeOutput = new CapsuleBuildVolumeOutput()
+                {
+                    volumes = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(occluderCount * casterCount, sizePerVolume)),
+                    counters = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, 4)),
+                };
+
+                passData.cs = defaultResources.shaders.capsuleShadowsBuildVolumesCS;
+                passData.kernel = passData.cs.FindKernel("Main");
+
+                passData.occluderCount = occluderCount;
+                passData.casterCount = casterCount;
+                passData.occluders = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
+                passData.casters = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleShadowCastersBuffer));
+                passData.volumes = builder.WriteComputeBuffer(volumeOutput.volumes);
+                passData.counters = builder.WriteComputeBuffer(volumeOutput.counters);
+
+                builder.SetRenderFunc(
+                    (BuildCapsuleShadowVolumesPassData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleOccluderData, data.occluders);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCasters, data.casters);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowVolumes, data.volumes);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCounters, data.counters);
+                        ctx.cmd.SetComputeIntParam(data.cs, HDShaderIDs._CapsuleOccluderCount, data.occluderCount);
+                        ctx.cmd.SetComputeIntParam(data.cs, HDShaderIDs._CapsuleCasterCount, data.casterCount);
+
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.occluderCount * data.casterCount, 64), 1, 1);
+                    });
+
+                return volumeOutput;
+            }
+        }
+
         TextureHandle RenderCapsuleShadows(
             RenderGraph renderGraph,
             TextureHandle depthPyramid,
             TextureHandle normalBuffer,
             in HDUtils.PackedMipChainInfo depthMipInfo,
+            in CapsuleBuildVolumeOutput volumeOutput,
             ref TextureHandle capsuleTileDebugTexture,
             in CapsuleShadowParameters parameters)
         {
@@ -451,13 +527,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     capsuleTileDebugTexture = passData.tileDebugOutput;
                 }
 
+                passData.volumes = builder.ReadComputeBuffer(volumeOutput.volumes);
+                passData.counters = builder.ReadComputeBuffer(volumeOutput.counters);
                 passData.renderSize = parameters.renderSize;
                 passData.upscaledSize = parameters.upscaledSize;
                 passData.renderOutput = builder.WriteTexture(renderOutput);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.capsuleOccluderData = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
-                passData.capsuleShadowCasters = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleShadowCastersBuffer));
                 passData.depthPyramidTextureSize = depthMipInfo.textureSize;
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
@@ -481,8 +557,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleOccluderData, data.capsuleOccluderData);
-                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCasters, data.capsuleShadowCasters);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowVolumes, data.volumes);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCounters, data.counters);
 
                         bool useTileDebug = (data.tileDebugMode != CapsuleTileDebugMode.None);
                         if (useTileDebug)
@@ -548,7 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle result;
 
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0)
+            if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0 || m_CapsuleShadowCasters.Count == 0)
             {
                 result = renderGraph.defaultResources.blackTextureXR;
             }
@@ -571,11 +647,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode,
                 };
 
+                var volumeOutput = BuildCapsuleShadowVolumes(renderGraph);
+
                 result = RenderCapsuleShadows(
                     renderGraph,
                     depthPyramid,
                     normalBuffer,
                     depthMipInfo,
+                    volumeOutput,
                     ref capsuleTileDebugTexture,
                     in parameters);
 

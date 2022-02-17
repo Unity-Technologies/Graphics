@@ -306,7 +306,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (_CapsuleDirectShadowCount != 0 && light.capsuleShadowRange != 0.f)
+    if (_CapsuleDirectShadowsEnabled && light.capsuleShadowRange != 0.f)
     {
         if (_CapsuleShadowInLightLoop)
         {
@@ -505,7 +505,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (_CapsuleDirectShadowCount != 0 && light.capsuleShadowRange != 0.f)
+    if (_CapsuleDirectShadowsEnabled && light.capsuleShadowRange != 0.f)
     {
         float radius = light.size.x;
         float sinTheta = radius/length(posInput.positionWS - light.positionRWS);

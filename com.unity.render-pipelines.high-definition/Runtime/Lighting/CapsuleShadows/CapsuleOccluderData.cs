@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
         HalfResBit = 0x02000000,
         FadeSelfShadowBit = 0x04000000,
         SplitDepthRangeBit = 0x08000000,
+        DirectEnabledBit = 0x10000000,
+        IndirectEnabledBit = 0x20000000,
     }
 
     [GenerateHLSL(needAccessors = false)]
@@ -61,19 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 axisDirWS;
         public float offset;
         public Vector3 indirectDirWS; // for CapsuleIndirectShadowMethod.DirectionAtCapsule
-        public uint packedData; // [23:16]=casterType, [15:8]=casterIndex, [7:0]=layerMask
-
-        void ReplacePackedData(uint value, uint mask)
-        {
-            packedData = (packedData & ~mask) | (value & mask);
-        }
-
-        internal CapsuleShadowCasterType casterType {
-            get { return (CapsuleShadowCasterType)((packedData & 0xff0000) >> 16); }
-            set { ReplacePackedData((uint)value << 16, 0xff0000); }
-        }
-        internal uint casterIndex { set { ReplacePackedData(value << 8, 0xff00); } }
-        internal uint layerMask { set { ReplacePackedData(value, 0xff); } }
+        public uint layerMask;
     }
 
     [GenerateHLSL]
@@ -102,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float radiusWS;          // point/spot light
 
         internal bool isDirectional { get { return casterType == (uint)CapsuleShadowCasterType.Directional; } }
+
+        internal bool isIndirect {  get {  return casterType == (uint)CapsuleShadowCasterType.AmbientOcclusion; } }
     }
 
     internal static class CapsuleOccluderExt
@@ -116,14 +108,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
             float radiusWS = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
 
-            var occluderData = new CapsuleOccluderData { 
+            return new CapsuleOccluderData { 
                 centerRWS = centerRWS,
                 radius = radiusWS,
                 axisDirWS = axisDirWS,
                 offset = offset,
+                layerMask = (uint)occluder.lightLayersMask,
             };
-            occluderData.layerMask = (uint)occluder.lightLayersMask;
-            return occluderData;
         }
     }
 }

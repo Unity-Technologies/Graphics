@@ -196,6 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int ShaderVariablesCapsuleShadows = Shader.PropertyToID("ShaderVariablesCapsuleShadows");
         public static readonly int _CapsuleOccluderData = Shader.PropertyToID("_CapsuleOccluderData");
         public static readonly int _CapsuleShadowCasters = Shader.PropertyToID("_CapsuleShadowCasters");
+        public static readonly int _CapsuleShadowVolumes = Shader.PropertyToID("_CapsuleShadowVolumes");
+        public static readonly int _CapsuleOccluderCount = Shader.PropertyToID("_CapsuleOccluderCount");
+        public static readonly int _CapsuleCasterCount = Shader.PropertyToID("_CapsuleCasterCount");
+        public static readonly int _CapsuleShadowCounters = Shader.PropertyToID("_CapsuleShadowCounters");
         public static readonly int _CapsuleShadowsRenderOutput = Shader.PropertyToID("_CapsuleShadowsRenderOutput");
         public static readonly int _CapsuleShadowsTexture = Shader.PropertyToID("_CapsuleShadowsTexture");
         public static readonly int _CapsuleTileDebug = Shader.PropertyToID("_CapsuleTileDebug");

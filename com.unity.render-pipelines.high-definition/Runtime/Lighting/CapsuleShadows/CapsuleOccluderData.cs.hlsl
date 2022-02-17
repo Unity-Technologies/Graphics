@@ -36,6 +36,8 @@
 #define CAPSULESHADOWFLAGS_HALF_RES_BIT (33554432)
 #define CAPSULESHADOWFLAGS_FADE_SELF_SHADOW_BIT (67108864)
 #define CAPSULESHADOWFLAGS_SPLIT_DEPTH_RANGE_BIT (134217728)
+#define CAPSULESHADOWFLAGS_DIRECT_ENABLED_BIT (268435456)
+#define CAPSULESHADOWFLAGS_INDIRECT_ENABLED_BIT (536870912)
 
 //
 // UnityEngine.Rendering.HighDefinition.CapsuleShadowCasterType:  static fields
@@ -54,7 +56,7 @@ struct CapsuleOccluderData
     float3 axisDirWS;
     float offset;
     float3 indirectDirWS;
-    uint packedData;
+    uint layerMask;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleShadowCaster

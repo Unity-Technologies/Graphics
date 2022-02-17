@@ -11,6 +11,8 @@
 #define _CapsuleShadowInLightLoop           ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_LIGHT_LOOP_BIT) != 0)
 #define _CapsuleShadowIsHalfRes             ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_HALF_RES_BIT) != 0)
 #define _CapsuleSplitDepthRange             ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_SPLIT_DEPTH_RANGE_BIT) != 0)
+#define _CapsuleDirectShadowsEnabled        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_DIRECT_ENABLED_BIT) != 0)
+#define _CapsuleIndirectShadowsEnabled      ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_INDIRECT_ENABLED_BIT) != 0)
 
 #define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
 #define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)
@@ -57,9 +59,12 @@ uint GetCapsuleIndirectOcclusionFlags()
     return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
 }
 
-uint GetCasterType(CapsuleOccluderData capsuleData) { return (capsuleData.packedData >> 16) & 0xffU; }
-uint GetLightIndex(CapsuleOccluderData capsuleData) { return (capsuleData.packedData >> 8) & 0xffU; }
-uint GetLayerMask(CapsuleOccluderData capsuleData)  { return capsuleData.packedData & 0xffU; }
+struct CapsuleShadowVolume
+{
+    CapsuleOccluderData occluder;
+    CapsuleShadowCaster caster;
+    // TODO: precompute culling planes
+};
 
 // store in gamma 2 to increase precision at the low end
 float PackCapsuleVisibility(float visibility)   { return 1.f - sqrt(max(0.f, visibility)); }

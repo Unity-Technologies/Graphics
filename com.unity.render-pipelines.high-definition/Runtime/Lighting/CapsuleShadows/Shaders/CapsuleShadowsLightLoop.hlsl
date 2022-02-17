@@ -68,7 +68,7 @@ float EvaluateCapsuleDirectShadowLightLoop(
         {
             v_capsuleListOffset++;
 
-            if (IsMatchingLightLayer(GetLayerMask(s_capsuleData), renderLayer))
+            if (IsMatchingLightLayer(s_capsuleData.layerMask, renderLayer))
             {
                 float occlusion = EvaluateCapsuleOcclusion(
                     flags,

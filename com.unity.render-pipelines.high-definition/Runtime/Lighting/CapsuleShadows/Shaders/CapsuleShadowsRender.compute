@@ -15,8 +15,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
 #endif
 
-StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderData;
-StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
+StructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes; // TODO: could be constant buffer (need to write array from earlier pass)
+StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_X(float2, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
@@ -30,7 +30,7 @@ groupshared uint s_depthMinU[DEPTH_RANGE_COUNT];
 groupshared uint s_depthMaxU[DEPTH_RANGE_COUNT];
 groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
 groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
-groupshared uint s_capsuleBits[2];
+groupshared uint s_intersectionBits[2];
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 #define PACK_UNPACK_POSITIVE_DEPTH(D)   (D)
@@ -50,18 +50,19 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 
 #define TILE_SIZE   8
 
-bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, float3 tileCenterWS, float tileRadiusWS)
+bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, float tileRadiusWS)
 {
-    float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
+    CapsuleOccluderData capsuleData = volume.occluder;
 
+    float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
     float centerToCenterDistSq = dot(offsetWS, offsetWS);
 
     bool intersectsTile;
-    if (GetCasterType(capsuleData) == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+    if (volume.caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
     {
-        float3 casterDirectionWS = _CapsuleShadowCasters[0].directionWS;
-        float casterTanTheta = _CapsuleShadowCasters[0].tanTheta;
-        float casterShadowRange = _CapsuleShadowCasters[0].shadowRange;
+        float3 casterDirectionWS = volume.caster.directionWS;
+        float casterTanTheta = volume.caster.tanTheta;
+        float casterShadowRange = volume.caster.shadowRange;
 
         float offsetDotLight = dot(offsetWS, casterDirectionWS);
         float absAxisDotLight = abs(dot(capsuleData.axisDirWS, casterDirectionWS));
@@ -101,35 +102,35 @@ void CapsuleShadowLoop(
     float3 normalWS = float3(fullResCoord.x, fullResCoord.y, INVALID_NORMAL_TAG);
 
     // loop over capsules in batches
-    uint capsuleCount = _CapsuleDirectShadowCount + _CapsuleIndirectShadowCount;
-    for (uint capsuleBaseIndex = 0; capsuleBaseIndex < capsuleCount; capsuleBaseIndex += 64)
+    uint volumeCount = _CapsuleShadowCounters[0];
+    for (uint volumeBaseIndex = 0; volumeBaseIndex < volumeCount; volumeBaseIndex += 64)
     {
         // clear state
         if (flatThreadIndex < 2)
-            s_capsuleBits[flatThreadIndex] = 0;
+            s_intersectionBits[flatThreadIndex] = 0;
         GroupMemoryBarrierWithGroupSync();
 
         // use one thread per capsule to check against tile
         // TODO: check if any pixels still visible?
         {
-            uint capsuleIndex = capsuleBaseIndex + flatThreadIndex;
-            if (capsuleIndex < capsuleCount)
+            uint volumeIndex = volumeBaseIndex + flatThreadIndex;
+            if (volumeIndex < volumeCount)
             {
-                CapsuleOccluderData capsuleData = _CapsuleOccluderData[capsuleIndex];
+                CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
 
-                bool intersectsTile = CapsuleIntersectsTile(capsuleData, tileCenterWS0, tileRadiusWS0);
+                bool intersectsTile = CapsuleIntersectsTile(volume, tileCenterWS0, tileRadiusWS0);
                 if (useSecondDepthRange && !intersectsTile)
-                    intersectsTile = CapsuleIntersectsTile(capsuleData, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
+                    intersectsTile = CapsuleIntersectsTile(volume, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
 
                 if (intersectsTile)
-                    InterlockedOr(s_capsuleBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
+                    InterlockedOr(s_intersectionBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
             }
         }
         GroupMemoryBarrierWithGroupSync();
 
         // loop over set bits to do the shading
-        uint remainingBits = s_capsuleBits[0];
-        if (normalWS.z == INVALID_NORMAL_TAG && (remainingBits != 0 || s_capsuleBits[1] != 0))
+        uint remainingBits = s_intersectionBits[0];
+        if (normalWS.z == INVALID_NORMAL_TAG && (remainingBits != 0 || s_intersectionBits[1] != 0))
         {
             uint2 coord = uint2(normalWS.xy);
             float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, coord);
@@ -143,7 +144,7 @@ void CapsuleShadowLoop(
         {
             if (remainingBits == 0 && !secondPass)
             {
-                remainingBits = s_capsuleBits[1];
+                remainingBits = s_intersectionBits[1];
                 secondPass = true;
             }
             if (remainingBits == 0)
@@ -152,22 +153,21 @@ void CapsuleShadowLoop(
             int bitIndex = firstbitlow(remainingBits);
             remainingBits &= ~(1U << bitIndex);
 
-            uint capsuleIndex = capsuleBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
+            uint volumeIndex = volumeBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
-            CapsuleOccluderData capsuleData = _CapsuleOccluderData[capsuleIndex];
-            if (GetCasterType(capsuleData) == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+            CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
+            if (volume.caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
             {
-                CapsuleShadowCaster caster = _CapsuleShadowCasters[0];
                 float occlusion = EvaluateCapsuleOcclusion(
                     GetCapsuleDirectOcclusionFlags(),
-                    caster.directionWS,
+                    volume.caster.directionWS,
                     false,
-                    caster.cosTheta,
-                    capsuleData.centerRWS - positionWS,
-                    capsuleData.axisDirWS,
-                    capsuleData.offset,
-                    capsuleData.radius,
-                    caster.shadowRange,
+                    volume.caster.cosTheta,
+                    volume.occluder.centerRWS - positionWS,
+                    volume.occluder.axisDirWS,
+                    volume.occluder.offset,
+                    volume.occluder.radius,
+                    volume.caster.shadowRange,
                     normalWS);
                 directVisibility *= max(1.f - occlusion, 0.0f);
 #ifdef CAPSULE_TILE_DEBUG
@@ -180,11 +180,11 @@ void CapsuleShadowLoop(
                 uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
                 float occlusion = EvaluateCapsuleAmbientOcclusion(
                     GetCapsuleAmbientOcclusionFlags(),
-                    capsuleData.centerRWS - positionWS,
-                    capsuleData.axisDirWS,
-                    capsuleData.offset,
-                    capsuleData.radius,
-                    capsuleData.radius*_CapsuleIndirectRangeFactor,
+                    volume.occluder.centerRWS - positionWS,
+                    volume.occluder.axisDirWS,
+                    volume.occluder.offset,
+                    volume.occluder.radius,
+                    volume.occluder.radius*_CapsuleIndirectRangeFactor,
                     normalWS);
                 indirectVisibility *= max(1.f - occlusion, 0.f);
 #ifdef CAPSULE_TILE_DEBUG
