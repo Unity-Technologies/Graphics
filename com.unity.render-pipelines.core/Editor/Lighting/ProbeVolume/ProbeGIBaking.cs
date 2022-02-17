@@ -198,22 +198,6 @@ namespace UnityEngine.Rendering
             var activeScene = SceneManager.GetActiveScene();
             var activeSet = sceneData.GetBakingSetForScene(activeScene);
 
-            // We assume that all the bounds for all the scenes in the set have been set. However we also update the scenes that are currently loaded anyway for security.
-            // and to have a new trigger to update the bounds we have.
-            int openedScenesCount = SceneManager.sceneCount;
-            for (int i = 0; i < openedScenesCount; ++i)
-            {
-                var scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded)
-                    continue;
-                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
-                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
-                {
-                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
-                }
-            }
-
-
             hasFoundBounds = false;
 
             foreach (var sceneGUID in activeSet.sceneGUIDs)
@@ -274,9 +258,34 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static void EnsurePerSceneDataInOpenScenes()
+        {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
+            var activeScene = SceneManager.GetActiveScene();
+            var activeSet = sceneData.GetBakingSetForScene(activeScene);
+
+            // We assume that all the per scene data for all the scenes in the set have been set with the scene been saved at least once. However we also update the scenes that are currently loaded anyway for security.
+            // and to have a new trigger to update the bounds we have.
+            int openedScenesCount = SceneManager.sceneCount;
+            for (int i = 0; i < openedScenesCount; ++i)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded)
+                    continue;
+                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
+                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
+                {
+                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
+                }
+            }
+        }
+
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
+
+            EnsurePerSceneDataInOpenScenes();
+
             if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
 
             var sceneDataList = GetPerSceneDataList();
