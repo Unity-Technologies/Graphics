@@ -437,15 +437,15 @@ namespace UnityEngine.Rendering.Universal
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
-        internal const int k_MinLutSize = 16;
-        internal const int k_MaxLutSize = 65;
+        public const int k_MinLutSize = 16;
+        public const int k_MaxLutSize = 65;
 
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
 
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
         [NonSerialized]
