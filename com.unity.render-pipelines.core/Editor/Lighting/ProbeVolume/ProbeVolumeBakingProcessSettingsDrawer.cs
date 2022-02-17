@@ -26,6 +26,10 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent virtualOffsetSettingsTitle = EditorGUIUtility.TrTextContent("Virtual Offset Settings");
         }
 
+        // PropertyDrawer are not made to use GUILayout, so it will try to reserve a rect before calling OnGUI
+        // Tell we have a height of 0 so it doesn't interfere with our usage of GUILayout
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => 0;
+
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -38,9 +42,10 @@ namespace UnityEngine.Rendering
 
             property.serializedObject.Update();
 
+            EditorGUI.FloatField(position, 100f);
+
             if (ProbeVolumeBakingWindow.Foldout(Styles.dilationSettingsTitle, ProbeVolumeBakingWindow.Expandable.Dilation))
                 DrawDilationSettings(dilationSettings);
-            EditorGUILayout.Space();
             EditorGUILayout.Space();
             if (ProbeVolumeBakingWindow.Foldout(Styles.virtualOffsetSettingsTitle, ProbeVolumeBakingWindow.Expandable.VirtualOffset))
                 DrawVirtualOffsetSettings(virtualOffsetSettings);

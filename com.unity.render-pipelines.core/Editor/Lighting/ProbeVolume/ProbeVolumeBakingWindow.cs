@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
             public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets");
             public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
-            public static readonly GUIContent probeVolumeProfile = new GUIContent("Probe Volume Profile");
             public static readonly GUIContent stats = new GUIContent("Stats");
             public static readonly GUIContent scenarioCostStat = new GUIContent("Active Scenario Size On Disk", "Size on disk used by the baked data of the currently selected lighting scenario.");
             public static readonly GUIContent totalCostStat = new GUIContent("Baking Set Total Size On Disk", "Size on disk used by baked data of all lighting scenarios of the set.");
@@ -70,7 +69,7 @@ namespace UnityEngine.Rendering
         MethodInfo m_DrawHorizontalSplitter;
         [NonSerialized] ReorderableList m_BakingSets = null;
         [NonSerialized] ReorderableList m_Scenarios = null;
-        ScenariosStatus[] scenariosStatuses = null;
+        ScenariosStatus[] scenariosStatuses = new ScenariosStatus[0];
         Vector2 m_LeftScrollPosition;
         Vector2 m_RightScrollPosition;
         ReorderableList m_ScenesInSet;
@@ -88,13 +87,12 @@ namespace UnityEngine.Rendering
 
         internal enum Expandable
         {
-            ProbeVolumeProfile = 1 << 0,
+            RendererFilterSettings = 1 << 0,
             Dilation = 1 << 1,
             VirtualOffset = 1 << 2,
-            Stats = 1 << 3,
         };
 
-        static readonly Expandable k_ExpandableDefault = Expandable.Dilation | Expandable.VirtualOffset | Expandable.Stats;
+        static readonly Expandable k_ExpandableDefault = 0;
         static ExpandedState<Expandable, ProbeVolumeBakingProcessSettings> k_Foldouts;
 
         internal static bool Foldout(GUIContent label, Expandable expandable, GUIStyle style = null)
@@ -250,9 +248,9 @@ namespace UnityEngine.Rendering
                 var bakingSet = GetCurrentBakingSet();
 
                 // Status
-                var status = scenariosStatuses[index];
-                if (status != ScenariosStatus.Valid)
+                if (index < scenariosStatuses.Length && scenariosStatuses[index] != ScenariosStatus.Valid)
                 {
+                    var status = scenariosStatuses[index];
                     var label = Styles.scenariosStatusLabel[(int)status];
                     var style = status == ScenariosStatus.OutOfDate ? Styles.labelRed : EditorStyles.label;
                     Rect invalidRect = new Rect(rect) { xMin = rect.xMax - style.CalcSize(label).x - 3 };
@@ -263,7 +261,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Label for active scene
-                if (active)
+                if (active && bakingSet.sceneGUIDs.Count != 0)
                 {
                     Rect labelRect = new Rect(rect) { xMin = infoLabelX };
                     EditorGUI.LabelField(labelRect, Styles.activeScenarioLabel);
@@ -725,30 +723,29 @@ namespace UnityEngine.Rendering
                 if (m_ProbeVolumeProfileEditor.target != set.profile)
                     Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
-                if (Foldout(Styles.probeVolumeProfile, Expandable.ProbeVolumeProfile))
-                {
-                    EditorGUI.indentLevel++;
-                    m_ProbeVolumeProfileEditor.OnInspectorGUI();
-                    EditorGUI.indentLevel--;
-                }
-
                 var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
                 var probeVolumeBakingSettings = serializedSet.FindPropertyRelative("settings");
+
+                EditorGUILayout.LabelField("Probe Placement", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                m_ProbeVolumeProfileEditor.OnInspectorGUI();
+                EditorGUILayout.Space(3, true);
                 EditorGUILayout.PropertyField(probeVolumeBakingSettings);
+                EditorGUI.indentLevel--;
 
                 // Clamp to make sure minimum we set for dilation distance is min probe distance
                 set.settings.dilationSettings.dilationDistance = Mathf.Max(set.profile.minDistanceBetweenProbes, set.settings.dilationSettings.dilationDistance);
 
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
-                if (Foldout(Styles.stats, Expandable.Stats))
+                EditorGUILayout.LabelField(Styles.stats, EditorStyles.boldLabel);
                 {
-                    var dataList = ProbeReferenceVolume.instance.perSceneDataList;
+                    EditorGUI.indentLevel++;
                     if (AllSetScenesAreLoaded())
                     {
                         long sharedCost = 0, scenarioCost = 0;
-                        foreach (var data in dataList)
+                        foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                         {
                             if (!set.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
                                 continue;
@@ -759,13 +756,12 @@ namespace UnityEngine.Rendering
                                 sharedCost += data.GetDiskSizeOfScenarioData(scenario);
                         }
 
-                        EditorGUI.indentLevel++;
                         EditorGUILayout.LabelField(Styles.scenarioCostStat, EditorGUIUtility.TrTextContent((scenarioCost / (float)(1000 * 1000)).ToString("F1")  + " MB"));
                         EditorGUILayout.LabelField(Styles.totalCostStat, EditorGUIUtility.TrTextContent((sharedCost  / (float)(1000 * 1000)).ToString("F1") + " MB"));
-                        EditorGUI.indentLevel--;
                     }
                     else
                         EditorGUILayout.HelpBox("Somes scenes of the set are not currently loaded. Stats can't be displayed", MessageType.Info);
+                    EditorGUI.indentLevel--;
                 }
             }
             else
