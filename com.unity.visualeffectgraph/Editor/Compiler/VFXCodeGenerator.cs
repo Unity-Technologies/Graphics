@@ -716,6 +716,11 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
             }
 
+            //< Detect needed pragma require
+            var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
+            var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
+            ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
+
             foreach (var addionalReplacement in context.additionalReplacements)
             {
                 ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
