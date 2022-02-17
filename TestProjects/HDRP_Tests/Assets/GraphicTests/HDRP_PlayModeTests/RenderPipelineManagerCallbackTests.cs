@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -13,19 +14,22 @@ public class RenderPipelineManagerCallbackTests
 
     int begin = 0;
     int end = 0;
+    Camera currentCamera;
 
-    public Camera SetupTest()
+    public IEnumerator SetupTest()
     {
         begin = 0;
         end = 0;
 
         GameObject go = new GameObject();
-        var camera = go.AddComponent<Camera>();
+        currentCamera = go.AddComponent<Camera>();
+
+        // Skip a few frame for the rp to stability
+        for (int i = 0; i < 5; i++)
+            yield return new WaitForEndOfFrame();
 
         RenderPipelineManager.beginCameraRendering += CountBeginCameraRender;
         RenderPipelineManager.endCameraRendering += CountEndCameraRender;
-
-        return camera;
     }
 
     void CountBeginCameraRender(ScriptableRenderContext context, Camera camera) => begin++;
@@ -37,50 +41,50 @@ public class RenderPipelineManagerCallbackTests
         RenderPipelineManager.beginCameraRendering -= CountBeginCameraRender;
         RenderPipelineManager.endCameraRendering -= CountEndCameraRender;
 
+        Assert.AreEqual(expectedValue, begin);
         Assert.AreEqual(begin, end);
-        Assert.AreEqual(begin, expectedValue);
     }
 
-    [Test]
-    public void BeginAndEndCameraRenderingCallbackMatch_Camera()
+    [UnityTest]
+    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_Camera()
     {
-        var camera = SetupTest();
+        yield return SetupTest();
         for (int i = 0; i < k_RenderCount; i++)
-            camera.Render();
+            currentCamera.Render();
         CheckResult(k_RenderCount);
     }
 
-    [Test]
-    public void BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
+    [UnityTest]
+    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
     {
-        var camera = SetupTest();
-        camera.targetTexture = new RenderTexture(1, 1, 32, RenderTextureFormat.ARGB32);
-        camera.targetTexture.Create();
+        yield return SetupTest();
+        currentCamera.targetTexture = new RenderTexture(1, 1, 32, RenderTextureFormat.ARGB32);
+        currentCamera.targetTexture.Create();
         for (int i = 0; i < k_RenderCount; i++)
-            camera.Render();
+            currentCamera.Render();
         CheckResult(k_RenderCount);
     }
 
-    [Test]
-    public void BeginAndEndCameraRenderingCallbackMatch_CustomRender()
+    [UnityTest]
+    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_CustomRender()
     {
-        var camera = SetupTest();
-        var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+        yield return SetupTest();
+        var additionalData = currentCamera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.customRender += (_, _) => { };
         for (int i = 0; i < k_RenderCount; i++)
-            camera.Render();
+            currentCamera.Render();
         CheckResult(k_RenderCount);
     }
 
-    [Test]
-    public void BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
+    [UnityTest]
+    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
     {
-        var camera = SetupTest();
-        var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+        yield return SetupTest();
+        var additionalData = currentCamera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.fullscreenPassthrough = true;
         additionalData.customRender += (_, _) => { };
         for (int i = 0; i < k_RenderCount; i++)
-            camera.Render();
+            currentCamera.Render();
         // Fullscreen passthrough don't trigger begin/end camera rendering
         CheckResult(0);
     }
