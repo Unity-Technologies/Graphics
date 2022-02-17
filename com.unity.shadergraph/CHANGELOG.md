@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+ - Added access to the objects bounds through the **Object** node.
 
 ### Fixed
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
