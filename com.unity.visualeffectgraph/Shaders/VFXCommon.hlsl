@@ -113,7 +113,7 @@ float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFX
 float3 GetViewOrRayDirection()
 {
 #if defined(SHADER_STAGE_RAY_TRACING)
-    return -1.0f * normalize(ObjectRayDirection());
+    return normalize(ObjectRayDirection());
 #else
     return GetVFXToViewRotMatrix()[2];
 #endif

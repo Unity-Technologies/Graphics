@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Block
             {
                 if (mode != Mode.Advanced)
                     yield return "axes";
-                if (mode != Mode.FaceCameraPlane)
+                if (mode != Mode.FaceCameraPlane || !((VFXAbstractParticleOutput)m_Parent).isRayTraced)
                     yield return "faceRay";
             }
         }
