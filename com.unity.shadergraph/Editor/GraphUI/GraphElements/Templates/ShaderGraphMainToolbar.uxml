@@ -1,0 +1,32 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vsui="UnityEditor.UIElements">
+    <vsui:ToolbarButton name="saveButton" tooltip="Save Asset">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="saveAsButton" tooltip="Save As">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="showInProjectButton" tooltip="Show In Project">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="checkOutButton" tooltip="Check Out">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+
+    <vsui:ToolbarSpacer class="unity-toolbar-spacer--flexible" name="flexibleSpacer"/>
+
+    <vsui:EnumField name="colorModeDropdown" tooltip="Color Mode">
+    </vsui:EnumField>
+
+    <vsui:ToolbarButton name="toggleBlackboardButton" tooltip="Show Blackboard">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+
+    <vsui:ToolbarButton name="toggleGraphInspectorButton" tooltip="Show Graph Inspector">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+
+    <vsui:ToolbarButton name="toggleMainPreviewButton" tooltip="Show Main Preview">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+
+</UXML>
