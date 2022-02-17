@@ -586,8 +586,6 @@ namespace UnityEngine.Rendering.Universal
                 if (m_Destination == k_CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
 
-                RTHandle targetDestination = m_UseSwapBuffer ? destination : m_Destination;
-
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
                 RenderTargetIdentifier cameraTargetID = BuiltinRenderTextureType.CameraTarget;
@@ -595,46 +593,51 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                     cameraTargetID = cameraData.xr.renderTarget;
 #endif
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
-                // Create RTHandle alias to use RTHandle apis
-                if (m_CameraTargetHandle != cameraTarget)
+
+                if (!m_UseSwapBuffer)
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || m_Destination.nameID == cameraTargetID || m_HasFinalPass == true;
+
+                if (m_UseSwapBuffer || m_ResolveToScreen)
                 {
-                    m_CameraTargetHandle?.Release();
-                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                    // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
+                    bool isRenderToBackBufferTarget = m_UseSwapBuffer ? m_ResolveToScreen : m_Destination.nameID == cameraTargetID;
+
+                    RTHandle finalBlitDestination;
+                    if (isRenderToBackBufferTarget)
+                    {
+                        // Create RTHandle alias to use RTHandle apis
+                        RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
+                        if (m_CameraTargetHandle != cameraTarget)
+                        {
+                            m_CameraTargetHandle?.Release();
+                            m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                        }
+                        finalBlitDestination = m_CameraTargetHandle;
+                    }
+                    else if (m_UseSwapBuffer)
+                    {
+                        finalBlitDestination = destination;
+                    }
+                    else
+                    {
+                        finalBlitDestination = m_Destination;
+                    }
+
+                    RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, GetSource(), finalBlitDestination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    if (m_UseSwapBuffer && !m_ResolveToScreen)
+                    {
+                        renderer.SwapColorBuffer(cmd);
+                    }
                 }
-
-                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                RTHandle cameraTargetHandle = m_UseSwapBuffer ? targetDestination : m_Destination;
-                bool isRenderToBackBufferTarget;
-                if (m_UseSwapBuffer)
-                {
-                    isRenderToBackBufferTarget = m_ResolveToScreen;
-                }
-                else
-                {
-                    isRenderToBackBufferTarget = m_Destination.nameID == BuiltinRenderTextureType.CameraTarget;
-                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
-                }
-
-                if (isRenderToBackBufferTarget)
-                    cameraTargetHandle = m_CameraTargetHandle;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    isRenderToBackBufferTarget = cameraTargetHandle == cameraData.xr.renderTarget;
-#endif
-                RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                 // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                 // in the pipeline to avoid this extra blit.
-                if (!m_ResolveToScreen && !m_UseSwapBuffer)
-                    Blitter.BlitCameraTexture(cmd, cameraTargetHandle, m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, m_Source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
-
-                if (m_UseSwapBuffer && !m_ResolveToScreen)
+                else
                 {
-                    renderer.SwapColorBuffer(cmd);
+                    var firstSource = GetSource();
+                    Blitter.BlitCameraTexture(cmd, firstSource, m_Destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, firstSource.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    Blitter.BlitCameraTexture(cmd, destination, m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, destination.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
                 }
 
                 // Cleanup
