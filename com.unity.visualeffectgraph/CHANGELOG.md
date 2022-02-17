@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exception when setting when changing the space of a shape to world (https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
 - Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
 - Fix Motion vectors in XR. [Case 14003636](https://issuetracker.unity3d.com/product/unity/issues/guid/14003636/)
+- HDRP Decals are not in experimental.
 
 ## [13.1.5] - 2021-12-17
 
