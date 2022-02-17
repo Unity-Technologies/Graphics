@@ -251,9 +251,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // Override EditorGUI
             if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, "");
         }
 
         public override void OnAfterMultiDeserialize(string json)
@@ -464,11 +462,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             }
         }
 
-        ScriptableObject IHasMetadata.GetMetadataObject()
+        ScriptableObject IHasMetadata.GetMetadataObject(GraphDataReadOnly graph)
         {
             // defer to subtarget
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
             return null;
         }
 

@@ -226,7 +226,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
         // Specular setup
         reflectivity = ReflectivitySpecular(specular);
         oneMinusReflectivity = 1.0h - reflectivity;
-        brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+        brdfDiffuse = albedo * oneMinusReflectivity;
         brdfSpecular = specular;
     }
     else

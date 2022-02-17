@@ -53,7 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum CustomBufferFormat
         {
             /// <summary>Regular R8G8B8A8 format.</summary>
-            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            [InspectorName("Signed R8G8B8A8")]
+            SignedR8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            /// <summary>Regular R8G8B8A8 format.</summary>
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_UNorm,
             /// <summary>R16G16B16A16 high quality HDR format.</summary>
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             /// <summary>R11G11B10 medium quality HDR format.</summary>
@@ -103,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTerrainHole = false,
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
+                waterCPUSimulation = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -187,6 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
+        /// <summary>Enable water CPU simulation.</summary>
+        public bool waterCPUSimulation;
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0

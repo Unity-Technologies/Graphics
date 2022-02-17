@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -264,7 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public int callbackOrder { get { return 0; } }
 
-        void LogShaderVariants(ComputeShader shader, string kernelName, uint prevVariantsCount, uint currVariantsCount)
+        void LogShaderVariants(ComputeShader shader, string kernelName, uint prevVariantsCount, uint currVariantsCount, double stripTimeMs)
         {
             if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
                 return;
@@ -276,10 +277,10 @@ namespace UnityEditor.Rendering.HighDefinition
             float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
 
             string result = string.Format("STRIPPING: {0} (kernel: {1}) -" +
-                " Remaining shader variants = {2}/{3} = {4}% - Total = {5}/{6} = {7}%",
+                " Remaining shader variants = {2}/{3} = {4}% - Total = {5}/{6} = {7}% - Time={8}Ms",
                 shader.name, kernelName, currVariantsCount,
                 prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal);
+                percentageTotal, stripTimeMs);
             Debug.Log(result);
         }
 
@@ -341,9 +342,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!ShaderBuildPreprocessor.playerNeedRaytracing && ShaderBuildPreprocessor.computeShaderCache.TryGetValue(shader.GetInstanceID(), out unused))
                 return;
 
-            Stopwatch shaderStripingWatch = new Stopwatch();
-            shaderStripingWatch.Start();
-
             using (new ExportComputeShaderStrip("Temp/compute-shader-strip.json", shader, kernelName, inputData, this))
             {
                 var inputShaderVariantCount = inputData.Count;
@@ -354,37 +352,34 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 uint preStrippingCount = (uint)inputData.Count;
 
-                for (int i = 0; i < inputShaderVariantCount;)
+                double stripTimeMs = 0;
+                using (TimedScope.FromRef(ref stripTimeMs))
                 {
-                    ShaderCompilerData input = inputData[i];
-
-                    bool removeInput = true;
-                    foreach (var hdAsset in hdPipelineAssets)
+                    for (int i = 0; i < inputShaderVariantCount;)
                     {
-                        if (!StripShader(hdAsset, shader, kernelName, input))
+                        ShaderCompilerData input = inputData[i];
+
+                        bool removeInput = true;
+                        foreach (var hdAsset in hdPipelineAssets)
                         {
-                            removeInput = false;
-                            break;
+                            if (!StripShader(hdAsset, shader, kernelName, input))
+                            {
+                                removeInput = false;
+                                break;
+                            }
                         }
+
+                        if (removeInput)
+                            inputData[i] = inputData[--inputShaderVariantCount];
+                        else
+                            ++i;
                     }
 
-                    if (removeInput)
-                        inputData[i] = inputData[--inputShaderVariantCount];
-                    else
-                        ++i;
+                    if(!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
-                if (inputData is List<ShaderCompilerData> inputDataList)
-                {
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-                }
-                else
-                {
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
-                }
-
-                LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count);
+                LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count, stripTimeMs);
             }
         }
     }
@@ -402,14 +397,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public HDRPreprocessShaders()
         {
-            // TODO: Grab correct configuration/quality asset.
             if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
                 return;
 
             shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount)
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount, double stripTimeMs)
         {
             if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
                 return;
@@ -424,10 +418,10 @@ namespace UnityEditor.Rendering.HighDefinition
             float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
 
             string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
+                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% - Time={9}Ms",
                 shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
                 prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal);
+                percentageTotal, stripTimeMs);
             Debug.Log(result);
         }
 
@@ -492,9 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
                 return;
 
-            Stopwatch shaderStripingWatch = new Stopwatch();
-            shaderStripingWatch.Start();
-
+            double stripTimeMs = 0;
             using (new ExportShaderStrip("Temp/shader-strip.json", shader, snippet, inputData, this))
             {
                 // TODO: Grab correct configuration/quality asset.
@@ -504,58 +496,56 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 uint preStrippingCount = (uint)inputData.Count;
-
-                // Test if striping is enabled in any of the found HDRP assets.
-                if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
-                    return;
-
-                var inputShaderVariantCount = inputData.Count;
-                for (int i = 0; i < inputShaderVariantCount;)
+                using (TimedScope.FromRef(ref stripTimeMs))
                 {
-                    ShaderCompilerData input = inputData[i];
+                    // Test if striping is enabled in any of the found HDRP assets.
+                    if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
+                        return;
 
-                    // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                    bool removeInput = true;
-
-                    foreach (var hdAsset in hdPipelineAssets)
+                    var inputShaderVariantCount = inputData.Count;
+                    for (int i = 0; i < inputShaderVariantCount;)
                     {
-                        var strippedByPreprocessor = false;
+                        ShaderCompilerData input = inputData[i];
 
-                        // Call list of strippers
-                        // Note that all strippers cumulate each other, so be aware of any conflict here
-                        foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                        // Remove the input by default, until we find a HDRP Asset in the list that needs it.
+                        bool removeInput = true;
+
+                        foreach (var hdAsset in hdPipelineAssets)
                         {
-                            if (shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input))
+                            var strippedByPreprocessor = false;
+
+                            // Call list of strippers
+                            // Note that all strippers cumulate each other, so be aware of any conflict here
+                            foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                             {
-                                strippedByPreprocessor = true;
+                                if (shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input))
+                                {
+                                    strippedByPreprocessor = true;
+                                    break;
+                                }
+                            }
+
+                            if (!strippedByPreprocessor)
+                            {
+                                removeInput = false;
                                 break;
                             }
                         }
 
-                        if (!strippedByPreprocessor)
-                        {
-                            removeInput = false;
-                            break;
-                        }
+                        if (removeInput)
+                            inputData[i] = inputData[--inputShaderVariantCount];
+                        else
+                            ++i;
                     }
 
-                    if (removeInput)
-                        inputData[i] = inputData[--inputShaderVariantCount];
-                    else
-                        ++i;
+                    if (!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
-                if (inputData is List<ShaderCompilerData> inputDataList)
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-                else
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
-
-                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count);
+                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count, stripTimeMs);
             }
 
-            shaderStripingWatch.Stop();
-            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, stripTimeMs);
         }
     }
 
@@ -571,7 +561,7 @@ namespace UnityEditor.Rendering.HighDefinition
             get
             {
                 if (_hdrpAssets == null || _hdrpAssets.Count == 0)
-                    GetAllValidHDRPAssets();
+                    GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
                 return _hdrpAssets;
             }
         }
@@ -620,7 +610,59 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void GetAllValidHDRPAssets()
+        static bool TryGetRenderPipelineAssetsForBuildTarget<T>(BuildTarget buildTarget, List<T> srpAssets) where T : RenderPipelineAsset
+        {
+            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
+            if (qualitySettings == null)
+                return false;
+
+            var property = qualitySettings.FindProperty("m_QualitySettings");
+            if (property == null)
+                return false;
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+
+            var allQualityLevelsAreOverriden = true;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                bool isExcluded = false;
+
+                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
+                if (excludedTargetPlatforms == null)
+                    return false;
+
+                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
+                {
+                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
+                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
+                    {
+                        isExcluded = true;
+                        break;
+                    }
+                }
+
+                if (!isExcluded)
+                {
+                    var asset = QualitySettings.GetRenderPipelineAssetAt(i) as T;
+                    if (asset != null)
+                        srpAssets.Add(asset);
+                    else
+                        allQualityLevelsAreOverriden = false;
+                }
+            }
+
+            if (!allQualityLevelsAreOverriden)
+            {
+                // We need to check the fallback cases
+                if (GraphicsSettings.defaultRenderPipeline is T srpAsset)
+                    srpAssets.Add(srpAsset);
+            }
+
+            return true;
+        }
+
+        static void GetAllValidHDRPAssets(BuildTarget buildTarget)
         {
             s_PlayerNeedRaytracing = false;
 
@@ -632,34 +674,13 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 _hdrpAssets = new List<HDRenderPipelineAsset>();
 
-            using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
-            {
-                // Here we want the HDRP Assets that are actually used at runtime.
-                // An SRP asset is included if:
-                // 1. It is set in a quality level
-                // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
-                //   AND at least one quality level does not have SRP override
-
-                // Fetch all SRP overrides in all quality levels
-                // Note: QualitySettings contains only quality levels that are valid for the current platform.
-                var allQualityLevelsAreOverriden = true;
-                for (int i = 0, c = QualitySettings.names.Length; i < c; ++i)
-                {
-                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp)
-                        tmpAssets.Add(hdrp);
-                    else
-                        allQualityLevelsAreOverriden = false;
-                }
-
-                if (!allQualityLevelsAreOverriden)
-                {
-                    // We need to check the fallback cases
-                    if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp)
-                        tmpAssets.Add(hdrp);
-                }
-
-                _hdrpAssets.AddRange(tmpAssets);
-            }
+            // Here we want the HDRP Assets that are actually used at runtime.
+            // An SRP asset is included if:
+            // 1. It is set in an enabled quality level
+            // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
+            //   AND at least one quality level does not have SRP override
+            // Fetch all SRP overrides in all enabled quality levels for this platform
+            TryGetRenderPipelineAssetsForBuildTarget(buildTarget, _hdrpAssets);
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
@@ -683,10 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add the HDRP assets that are in the Resources folders.
-            _hdrpAssets.AddRange(
-                Resources.FindObjectsOfTypeAll<HDRenderPipelineAsset>()
-                    .Where(a => !_hdrpAssets.Contains(a))
-            );
+            _hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
 
             // Add the HDRP assets that are labeled to be included
             _hdrpAssets.AddRange(
@@ -726,21 +744,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            /*
-            Debug.Log(string.Format("{0} HDRP assets in build:{1}",
+
+            Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,
                 _hdrpAssets
                     .Select(a => a.name)
-                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}" )
+                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}")
                 ));
-            // */
+
         }
 
         public int callbackOrder { get { return 0; } }
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            GetAllValidHDRPAssets();
+            GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
         }
     }
 }

@@ -376,6 +376,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Pretty print parameters for debug purposes.
         /// </summary>
+        /// <returns>A string containing debug information</returns>
         // NOTE: Separate from ToString on purpose.
         public string String()
         {
