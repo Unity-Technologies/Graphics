@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTerrainHole = false,
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
+                waterCPUSimulation = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -202,6 +203,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
+        /// <summary>Enable water CPU simulation.</summary>
+        public bool waterCPUSimulation;
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
