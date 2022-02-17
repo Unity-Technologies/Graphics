@@ -37,7 +37,8 @@ public class RenderPipelineManagerCallbackTests
         RenderPipelineManager.beginCameraRendering -= CountBeginCameraRender;
         RenderPipelineManager.endCameraRendering -= CountEndCameraRender;
 
-        Assert.IsTrue(begin == end && begin == expectedValue);
+        Assert.AreEqual(begin, end);
+        Assert.AreEqual(begin, expectedValue);
     }
 
     [Test]
