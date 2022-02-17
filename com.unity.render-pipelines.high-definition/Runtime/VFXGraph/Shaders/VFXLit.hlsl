@@ -91,9 +91,11 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #endif
     #endif
     builtinData.emissiveColor *= opacity;
-
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    PostInitBuiltinData(-WorldRayDirection(),posInputs,surfaceData, builtinData);
+    #else
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
-
+    #endif
     return builtinData;
 }
 

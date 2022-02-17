@@ -58,6 +58,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<string> defines { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
         public IEnumerable<VFXAttributeInfo> mergedAttributes

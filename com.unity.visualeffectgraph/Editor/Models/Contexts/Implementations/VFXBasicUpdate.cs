@@ -171,21 +171,9 @@ namespace UnityEditor.VFX
                 VFXDataParticle particleData = GetData() as VFXDataParticle;
                 if (particleData && (particleData.NeedsComputeBounds() || particleData.NeedsSharedAabbBuffer()))
                 {
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                    foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                        yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
                 }
 
                 if (GetData().IsAttributeUsed(VFXAttribute.Alive))
@@ -310,7 +298,6 @@ namespace UnityEditor.VFX
                             "AABB Buffer is generated but Decimation Factor hasn't been set.");
                     yield return "VFX_RT_DECIMATION_FACTOR " + rayTracingDecimationFactor;
                 }
-
             }
         }
     }

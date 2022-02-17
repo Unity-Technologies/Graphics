@@ -623,6 +623,14 @@ namespace UnityEditor.VFX
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
 
+            // Per-block defines
+            var defines = Enumerable.Empty<string>();
+            foreach (var block in context.activeFlattenedChildrenWithImplicit)
+                defines = defines.Concat(block.defines);
+            var uniqueDefines = new HashSet<string>(defines);
+            foreach (var define in uniqueDefines)
+                perPassIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
+
             // Per-block includes
             var includes = Enumerable.Empty<string>();
             foreach (var block in context.activeFlattenedChildrenWithImplicit)
