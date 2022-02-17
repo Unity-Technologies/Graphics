@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
 
         public static readonly VFXAttribute[] AllAttributeAffectingAABB = new VFXAttribute[]
         {
-             Position, PivotX, PivotY, PivotZ, Size, ScaleX, ScaleY, ScaleZ
+            Position, PivotX, PivotY, PivotZ, Size, ScaleX, ScaleY, ScaleZ, AxisX, AxisY, AxisZ, AngleX, AngleY, AngleZ,
         };
 
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();

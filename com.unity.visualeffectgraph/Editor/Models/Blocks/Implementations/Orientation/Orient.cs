@@ -28,7 +28,6 @@ namespace UnityEditor.VFX.Block
             AlongVelocity, // non strips only
             CustomZ, // strips only
             CustomY, // strips only
-            FaceCameraPlaneOrRay, //Can be merged with FaceCameraPlane maybe? In case the user specifically wanted camera and not ray.
         }
 
         public enum AxesPair
@@ -46,12 +45,17 @@ namespace UnityEditor.VFX.Block
 
         [VFXSetting, Tooltip("Specifies which two axes to use for the particle orientation.")]
         public AxesPair axes = AxesPair.ZY;
+
+        [VFXSetting, Tooltip("Specifies if the particles faces the ray in Ray-Traced effects.")]
+        public bool faceRay = true;
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
                 if (mode != Mode.Advanced)
                     yield return "axes";
+                if (mode != Mode.FaceCameraPlane)
+                    yield return "faceRay";
             }
         }
 
@@ -62,7 +66,6 @@ namespace UnityEditor.VFX.Block
                 if (hasStrips)
                 {
                     yield return (int)Mode.FaceCameraPlane;
-                    yield return (int)Mode.FaceCameraPlaneOrRay;
                     yield return (int)Mode.FixedAxis;
                     yield return (int)Mode.AlongVelocity;
                 }
@@ -89,7 +92,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
-                if (mode != Mode.Advanced && (mode != Mode.FaceCameraPlane && mode != Mode.FaceCameraPlaneOrRay))
+                if (mode != Mode.Advanced && (mode != Mode.FaceCameraPlane))
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 if (mode == Mode.AlongVelocity)
                     yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
@@ -148,27 +151,34 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<string> defines
+        {
+            get
+            {
+                if (faceRay)
+                    yield return "VFX_FACE_RAY";
+            }
+        }
+
         public override string source
         {
             get
             {
                 switch (mode)
                 {
-                    case Mode.FaceCameraPlaneOrRay:
                     case Mode.FaceCameraPlane:
                         if (canTestStrips && hasStrips)
                             throw new NotImplementedException("This orient mode (FaceCameraPlane) is not available for strips");
                         string sourceCode = @"
 float3x3 viewRot = GetVFXToViewRotMatrix();";
 
-                        if (mode == Mode.FaceCameraPlane)
+                        if (!faceRay)
                             sourceCode += @"
 axisX = viewRot[0].xyz;
 axisY = viewRot[1].xyz;
 axisZ =  -viewRot[2].xyz;";
                         else
                             sourceCode += @"
-
 axisZ = -GetViewOrRayDirection();
 axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX) ;";
@@ -345,7 +355,6 @@ axisY = cross(axisZ, axisX);
             if (hasStrips)
                 hasInvalidMode =
                     mode == Mode.FaceCameraPlane ||
-                    mode == Mode.FaceCameraPlaneOrRay ||
                     mode == Mode.FixedAxis ||
                     mode == Mode.AlongVelocity;
             else

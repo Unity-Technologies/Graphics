@@ -70,6 +70,18 @@ float GetBoundingRadius2D_VFX(VFXAttributes attributes, float3 size3, out float3
     return ComputeBoundingRadius2DFromMatrix(elementToVFX, vfxPos);
 }
 
+float3 GetTightBoundingExtents_VFX(VFXAttributes attributes, float3 size3, out float3 vfxPos)
+{
+    float4x4 mat = GetElementToVFX(attributes, size3);
+    vfxPos = mat._m03_m13_m23;
+    float3 extents;
+    extents.x  = max(abs(mat._m00), abs(mat._m01));
+    extents.y  = max(abs(mat._m10), abs(mat._m11));
+    extents.z  = max(abs(mat._m20), abs(mat._m21));
+
+    return extents;
+}
+
 #if VFX_COMPUTE_BOUNDS
 RWBuffer<uint> boundsBuffer; // 3 uint for min, 3 uint for max
 
@@ -179,9 +191,16 @@ void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, int deci
         if (attributes.alive)
         {
             float3 vfxPos;
-            float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
-            aabb.boxMin = vfxPos - float3(radius, radius, radius);
-            aabb.boxMax = vfxPos + float3(radius, radius, radius);
+            #if VFX_FACE_RAY
+                float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
+                aabb.boxMin = vfxPos - float3(radius, radius, radius);
+                aabb.boxMax = vfxPos + float3(radius, radius, radius);
+            #else
+                float3 extents = GetTightBoundingExtents_VFX(attributes, size3, vfxPos);
+                aabb.boxMin = vfxPos - float3(extents.x, extents.y, extents.z);
+                aabb.boxMax = vfxPos + float3(extents.x, extents.y, extents.z);
+            #endif
+
             aabbBuffer[aabbIndex] = aabb;
         }
         else
