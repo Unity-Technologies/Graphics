@@ -21,6 +21,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PartList.AppendPart(m_NodePreviewPart);
 
             // TODO: Build out fields from node definition
+
+            // TODO: Temporary to preview UIs
+            PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
@@ -49,6 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendAction("Show Generated Shader", action =>
             {
                 Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
+
                 // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
                 // https://jira.unity3d.com/browse/GSG-780
             });
@@ -56,6 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendAction("Show Preview Code", action =>
             {
                 Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
+
                 // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
                 // https://jira.unity3d.com/browse/GSG-780
             });

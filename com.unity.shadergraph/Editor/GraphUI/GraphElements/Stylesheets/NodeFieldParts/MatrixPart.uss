@@ -1,0 +1,12 @@
+.sg-matrix-container {
+    flex-direction: column;
+}
+
+.sg-matrix-row {
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.sg-matrix-element {
+    flex: 1;
+}
