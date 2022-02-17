@@ -12,7 +12,8 @@
 #pragma kernel OITSort_Swap
 #pragma kernel OITSort_Network_4
 #pragma kernel OITSort_Network_8
-#pragma kernel OITSort_GroupShared_Wave
+#pragma kernel OITSort_Network_16
+#pragma kernel OITSort_Network_32
 #pragma kernel OITSort_GroupShared
 
 // BUG: For some reason, the binding system refuses to work unless the visibility buffer resource is provided as read/write instead of read only.
@@ -43,17 +44,19 @@ void OITSort_Init()
     // Set up indirect args
     // This part is unfortunately still manual since the shaders have different thread group sizes
 
-    uint sum2     = _OITSortMemoryBuffer[kSorting_SumsOffset + 0];
-    uint sum4     = _OITSortMemoryBuffer[kSorting_SumsOffset + 1];
-    uint sum8     = _OITSortMemoryBuffer[kSorting_SumsOffset + 2];
-    uint sumMed   = _OITSortMemoryBuffer[kSorting_SumsOffset + 3];
-    uint sumBig   = _OITSortMemoryBuffer[kSorting_SumsOffset + 4];
+    uint sum2   = _OITSortMemoryBuffer[kSorting_SumsOffset + 0];
+    uint sum4   = _OITSortMemoryBuffer[kSorting_SumsOffset + 1];
+    uint sum8   = _OITSortMemoryBuffer[kSorting_SumsOffset + 2];
+    uint sum16  = _OITSortMemoryBuffer[kSorting_SumsOffset + 3];
+    uint sum32  = _OITSortMemoryBuffer[kSorting_SumsOffset + 4];
+    uint sumBig = _OITSortMemoryBuffer[kSorting_SumsOffset + 5];
 
-    uint3 numGroups2     = uint3((sum2 + 63) / 64, 1, 1);
-    uint3 numGroups4     = uint3((sum4 + 63) / 64, 1, 1);
-    uint3 numGroups8     = uint3((sum8 + 63) / 64, 1, 1);
-    uint3 numGroupsMed   = uint3(sumMed, 1, 1);
-    uint3 numGroupsBig   = uint3(sumBig, 1, 1);
+    uint3 numGroups2   = uint3((sum2 + 63) / 64, 1, 1);
+    uint3 numGroups4   = uint3((sum4 + 63) / 64, 1, 1);
+    uint3 numGroups8   = uint3((sum8 + 63) / 64, 1, 1);
+    uint3 numGroups16  = uint3((sum16 + 63) / 64, 1, 1);
+    uint3 numGroups32  = uint3((sum32 + 63) / 64, 1, 1);
+    uint3 numGroupsBig = uint3(sumBig, 1, 1);
 
     _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 0]  = numGroups2.x;
     _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 1]  = numGroups2.y;
@@ -67,13 +70,17 @@ void OITSort_Init()
     _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 7]  = numGroups8.y;
     _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 8]  = numGroups8.z;
 
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 9]  = numGroupsMed.x;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 10] = numGroupsMed.y;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 11] = numGroupsMed.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 9]  = numGroups16.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 10] = numGroups16.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 11] = numGroups16.z;
 
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 12] = numGroupsBig.x;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 13] = numGroupsBig.y;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 14] = numGroupsBig.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 12] = numGroups32.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 13] = numGroups32.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 14] = numGroups32.z;
+
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 15] = numGroupsBig.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 16] = numGroupsBig.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 17] = numGroupsBig.z;
 }
 
 [numthreads(8, 8, 1)]
@@ -170,6 +177,8 @@ uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
 #define CSWAP(a, b) if (a < b) SwapUint(a, b)
 #define MAX_NETWORK_INPUTS_4 4
 #define MAX_NETWORK_INPUTS_8 8
+#define MAX_NETWORK_INPUTS_16 16
+#define MAX_NETWORK_INPUTS_32 32
 
 [numthreads(64, 1, 1)]
 void OITSort_Network_4(int3 dispatchThreadId : SV_DispatchThreadID)
@@ -287,92 +296,375 @@ void OITSort_Network_8(int3 dispatchThreadId : SV_DispatchThreadID)
     }
 }
 
-groupshared uint sSums[16];
-groupshared uint sKeys[256];
-
-[numthreads(32, 1, 1)]
-void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
+[numthreads(64, 1, 1)]
+void OITSort_Network_16(int3 dispatchThreadId : SV_DispatchThreadID)
 {
-    uint threadIndex = groupThreadId.x;
-
-    // Load pixel index
+    uint threadIndex = dispatchThreadId.x;
 
     uint sortVariantOffset = 3;
     uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
-    uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + groupId.x;
-    uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+    // Load pixel index
+    uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
 
-    uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
-    uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+    uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
 
-    uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
-
-    // Flip the key so the depth is in the LSBs since we only sort the bottom 16-bits
-    // Also flip the depth key value so we get a descending order sort
-    sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
-
-    sKeys[threadIndex] = sortKey;
-
-    // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
-    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    if (threadIndex < numPixels)
     {
-        sortKey = sKeys[threadIndex];
+        uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + threadIndex;
+        uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
 
-        // Initialize the sum bins to 0
-        if (threadIndex < 16)
+        uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+        uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+        // Generate sort keys from depth
+        uint sortKeys[MAX_NETWORK_INPUTS_16];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS_16; ++sortKeyIndex)
         {
-            sSums[threadIndex] = 0;
+            sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
         }
 
-        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
+        // Sort the keys
+        CSWAP(sortKeys[0], sortKeys[1]);
+        CSWAP(sortKeys[2], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[5]);
+        CSWAP(sortKeys[6], sortKeys[7]);
+        CSWAP(sortKeys[8], sortKeys[9]);
+        CSWAP(sortKeys[10], sortKeys[11]);
+        CSWAP(sortKeys[12], sortKeys[13]);
+        CSWAP(sortKeys[14], sortKeys[15]);
+        CSWAP(sortKeys[0], sortKeys[2]);
+        CSWAP(sortKeys[1], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[6]);
+        CSWAP(sortKeys[5], sortKeys[7]);
+        CSWAP(sortKeys[8], sortKeys[10]);
+        CSWAP(sortKeys[9], sortKeys[11]);
+        CSWAP(sortKeys[12], sortKeys[14]);
+        CSWAP(sortKeys[13], sortKeys[15]);
+        CSWAP(sortKeys[1], sortKeys[2]);
+        CSWAP(sortKeys[5], sortKeys[6]);
+        CSWAP(sortKeys[0], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[7]);
+        CSWAP(sortKeys[9], sortKeys[10]);
+        CSWAP(sortKeys[13], sortKeys[14]);
+        CSWAP(sortKeys[8], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[15]);
+        CSWAP(sortKeys[1], sortKeys[5]);
+        CSWAP(sortKeys[2], sortKeys[6]);
+        CSWAP(sortKeys[9], sortKeys[13]);
+        CSWAP(sortKeys[10], sortKeys[14]);
+        CSWAP(sortKeys[0], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[15]);
+        CSWAP(sortKeys[1], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[6]);
+        CSWAP(sortKeys[9], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[14]);
+        CSWAP(sortKeys[2], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[5]);
+        CSWAP(sortKeys[10], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[13]);
+        CSWAP(sortKeys[1], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[14]);
+        CSWAP(sortKeys[3], sortKeys[4]);
+        CSWAP(sortKeys[11], sortKeys[12]);
+        CSWAP(sortKeys[1], sortKeys[8]);
+        CSWAP(sortKeys[2], sortKeys[10]);
+        CSWAP(sortKeys[5], sortKeys[13]);
+        CSWAP(sortKeys[7], sortKeys[14]);
+        CSWAP(sortKeys[3], sortKeys[11]);
+        CSWAP(sortKeys[2], sortKeys[8]);
+        CSWAP(sortKeys[4], sortKeys[12]);
+        CSWAP(sortKeys[7], sortKeys[13]);
+        CSWAP(sortKeys[3], sortKeys[10]);
+        CSWAP(sortKeys[5], sortKeys[12]);
+        CSWAP(sortKeys[3], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[12]);
+        CSWAP(sortKeys[3], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[12]);
+        CSWAP(sortKeys[5], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[10]);
+        CSWAP(sortKeys[4], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[11]);
+        CSWAP(sortKeys[5], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[10]);
+        CSWAP(sortKeys[6], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[9]);
+        CSWAP(sortKeys[7], sortKeys[8]);
 
-        GroupMemoryBarrierWithGroupSync();
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
 
-        // Increment the bin associated with the current value to sort
-        uint localOffset;
-        InterlockedAdd(sSums[binIndex], 1, localOffset);
-
-        GroupMemoryBarrierWithGroupSync();
-
-        // Do a dumb exclusive prefix sum (replace this with a parallel version)
-        if (threadIndex == 0)
+        for (uint storeIndex = 0; storeIndex < MAX_NETWORK_INPUTS_16; ++storeIndex)
         {
-            uint previousSum = 0;
+            uint sortedIndex = (sortKeys[storeIndex] & 0xFF);
+            uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
 
-            for (uint binIndex = 0; binIndex < 16; ++binIndex)
+            if (storeIndex < listCount)
             {
-                uint currentSum = sSums[binIndex];
-                sSums[binIndex] = previousSum;
-                previousSum += currentSum;
+                _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
             }
         }
-
-        GroupMemoryBarrierWithGroupSync();
-
-        uint newKeyIndex = sSums[binIndex] + localOffset;
-        sKeys[newKeyIndex] = sortKey;
-
-        GroupMemoryBarrierWithGroupSync();
-    }
-
-    // Load the final sort key for the current thread
-    sortKey = sKeys[threadIndex];
-
-    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
-    uint sortIndexAddr = sortIndicesBaseAddr + threadIndex;
-
-    uint sortedIndex = ((sortKey >> 16) & 0xFF);
-
-    if (threadIndex < listCount)
-    {
-        _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
     }
 }
 
-// TODO: Remove this once the serialized reorder step of radix sort is removed
-groupshared uint sOutputKeys[256];
+[numthreads(64, 1, 1)]
+void OITSort_Network_32(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadIndex = dispatchThreadId.x;
+
+    uint sortVariantOffset = 4;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    // Load pixel index
+    uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
+
+    uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
+
+    if (threadIndex < numPixels)
+    {
+        uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + threadIndex;
+        uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+        uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+        uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+        // Generate sort keys from depth
+        uint sortKeys[MAX_NETWORK_INPUTS_32];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS_32; ++sortKeyIndex)
+        {
+            sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
+        }
+
+        // Sort the keys
+        CSWAP(sortKeys[0], sortKeys[1]);
+        CSWAP(sortKeys[2], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[5]);
+        CSWAP(sortKeys[6], sortKeys[7]);
+        CSWAP(sortKeys[8], sortKeys[9]);
+        CSWAP(sortKeys[10], sortKeys[11]);
+        CSWAP(sortKeys[12], sortKeys[13]);
+        CSWAP(sortKeys[14], sortKeys[15]);
+        CSWAP(sortKeys[16], sortKeys[17]);
+        CSWAP(sortKeys[18], sortKeys[19]);
+        CSWAP(sortKeys[20], sortKeys[21]);
+        CSWAP(sortKeys[22], sortKeys[23]);
+        CSWAP(sortKeys[24], sortKeys[25]);
+        CSWAP(sortKeys[26], sortKeys[27]);
+        CSWAP(sortKeys[28], sortKeys[29]);
+        CSWAP(sortKeys[30], sortKeys[31]);
+        CSWAP(sortKeys[0], sortKeys[2]);
+        CSWAP(sortKeys[1], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[6]);
+        CSWAP(sortKeys[5], sortKeys[7]);
+        CSWAP(sortKeys[8], sortKeys[10]);
+        CSWAP(sortKeys[9], sortKeys[11]);
+        CSWAP(sortKeys[12], sortKeys[14]);
+        CSWAP(sortKeys[13], sortKeys[15]);
+        CSWAP(sortKeys[16], sortKeys[18]);
+        CSWAP(sortKeys[17], sortKeys[19]);
+        CSWAP(sortKeys[20], sortKeys[22]);
+        CSWAP(sortKeys[21], sortKeys[23]);
+        CSWAP(sortKeys[24], sortKeys[26]);
+        CSWAP(sortKeys[25], sortKeys[27]);
+        CSWAP(sortKeys[28], sortKeys[30]);
+        CSWAP(sortKeys[29], sortKeys[31]);
+        CSWAP(sortKeys[1], sortKeys[2]);
+        CSWAP(sortKeys[5], sortKeys[6]);
+        CSWAP(sortKeys[0], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[7]);
+        CSWAP(sortKeys[9], sortKeys[10]);
+        CSWAP(sortKeys[13], sortKeys[14]);
+        CSWAP(sortKeys[8], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[15]);
+        CSWAP(sortKeys[17], sortKeys[18]);
+        CSWAP(sortKeys[21], sortKeys[22]);
+        CSWAP(sortKeys[16], sortKeys[20]);
+        CSWAP(sortKeys[19], sortKeys[23]);
+        CSWAP(sortKeys[25], sortKeys[26]);
+        CSWAP(sortKeys[29], sortKeys[30]);
+        CSWAP(sortKeys[24], sortKeys[28]);
+        CSWAP(sortKeys[27], sortKeys[31]);
+        CSWAP(sortKeys[1], sortKeys[5]);
+        CSWAP(sortKeys[2], sortKeys[6]);
+        CSWAP(sortKeys[9], sortKeys[13]);
+        CSWAP(sortKeys[10], sortKeys[14]);
+        CSWAP(sortKeys[0], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[15]);
+        CSWAP(sortKeys[17], sortKeys[21]);
+        CSWAP(sortKeys[18], sortKeys[22]);
+        CSWAP(sortKeys[25], sortKeys[29]);
+        CSWAP(sortKeys[26], sortKeys[30]);
+        CSWAP(sortKeys[16], sortKeys[24]);
+        CSWAP(sortKeys[23], sortKeys[31]);
+        CSWAP(sortKeys[1], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[6]);
+        CSWAP(sortKeys[9], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[14]);
+        CSWAP(sortKeys[17], sortKeys[20]);
+        CSWAP(sortKeys[19], sortKeys[22]);
+        CSWAP(sortKeys[25], sortKeys[28]);
+        CSWAP(sortKeys[27], sortKeys[30]);
+        CSWAP(sortKeys[0], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[31]);
+        CSWAP(sortKeys[2], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[5]);
+        CSWAP(sortKeys[10], sortKeys[12]);
+        CSWAP(sortKeys[11], sortKeys[13]);
+        CSWAP(sortKeys[1], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[14]);
+        CSWAP(sortKeys[18], sortKeys[20]);
+        CSWAP(sortKeys[19], sortKeys[21]);
+        CSWAP(sortKeys[26], sortKeys[28]);
+        CSWAP(sortKeys[27], sortKeys[29]);
+        CSWAP(sortKeys[17], sortKeys[25]);
+        CSWAP(sortKeys[22], sortKeys[30]);
+        CSWAP(sortKeys[3], sortKeys[4]);
+        CSWAP(sortKeys[11], sortKeys[12]);
+        CSWAP(sortKeys[1], sortKeys[8]);
+        CSWAP(sortKeys[2], sortKeys[10]);
+        CSWAP(sortKeys[5], sortKeys[13]);
+        CSWAP(sortKeys[7], sortKeys[14]);
+        CSWAP(sortKeys[19], sortKeys[20]);
+        CSWAP(sortKeys[27], sortKeys[28]);
+        CSWAP(sortKeys[17], sortKeys[24]);
+        CSWAP(sortKeys[18], sortKeys[26]);
+        CSWAP(sortKeys[21], sortKeys[29]);
+        CSWAP(sortKeys[23], sortKeys[30]);
+        CSWAP(sortKeys[3], sortKeys[11]);
+        CSWAP(sortKeys[2], sortKeys[8]);
+        CSWAP(sortKeys[4], sortKeys[12]);
+        CSWAP(sortKeys[7], sortKeys[13]);
+        CSWAP(sortKeys[19], sortKeys[27]);
+        CSWAP(sortKeys[18], sortKeys[24]);
+        CSWAP(sortKeys[20], sortKeys[28]);
+        CSWAP(sortKeys[23], sortKeys[29]);
+        CSWAP(sortKeys[1], sortKeys[17]);
+        CSWAP(sortKeys[14], sortKeys[30]);
+        CSWAP(sortKeys[3], sortKeys[10]);
+        CSWAP(sortKeys[5], sortKeys[12]);
+        CSWAP(sortKeys[19], sortKeys[26]);
+        CSWAP(sortKeys[21], sortKeys[28]);
+        CSWAP(sortKeys[1], sortKeys[16]);
+        CSWAP(sortKeys[2], sortKeys[18]);
+        CSWAP(sortKeys[13], sortKeys[29]);
+        CSWAP(sortKeys[15], sortKeys[30]);
+        CSWAP(sortKeys[3], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[12]);
+        CSWAP(sortKeys[19], sortKeys[25]);
+        CSWAP(sortKeys[22], sortKeys[28]);
+        CSWAP(sortKeys[2], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[29]);
+        CSWAP(sortKeys[3], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[12]);
+        CSWAP(sortKeys[5], sortKeys[9]);
+        CSWAP(sortKeys[6], sortKeys[10]);
+        CSWAP(sortKeys[19], sortKeys[24]);
+        CSWAP(sortKeys[23], sortKeys[28]);
+        CSWAP(sortKeys[21], sortKeys[25]);
+        CSWAP(sortKeys[22], sortKeys[26]);
+        CSWAP(sortKeys[4], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[11]);
+        CSWAP(sortKeys[20], sortKeys[24]);
+        CSWAP(sortKeys[23], sortKeys[27]);
+        CSWAP(sortKeys[3], sortKeys[19]);
+        CSWAP(sortKeys[12], sortKeys[28]);
+        CSWAP(sortKeys[5], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[10]);
+        CSWAP(sortKeys[21], sortKeys[24]);
+        CSWAP(sortKeys[23], sortKeys[26]);
+        CSWAP(sortKeys[3], sortKeys[18]);
+        CSWAP(sortKeys[4], sortKeys[20]);
+        CSWAP(sortKeys[11], sortKeys[27]);
+        CSWAP(sortKeys[13], sortKeys[28]);
+        CSWAP(sortKeys[6], sortKeys[8]);
+        CSWAP(sortKeys[7], sortKeys[9]);
+        CSWAP(sortKeys[22], sortKeys[24]);
+        CSWAP(sortKeys[23], sortKeys[25]);
+        CSWAP(sortKeys[3], sortKeys[17]);
+        CSWAP(sortKeys[5], sortKeys[21]);
+        CSWAP(sortKeys[10], sortKeys[26]);
+        CSWAP(sortKeys[14], sortKeys[28]);
+        CSWAP(sortKeys[7], sortKeys[8]);
+        CSWAP(sortKeys[23], sortKeys[24]);
+        CSWAP(sortKeys[3], sortKeys[16]);
+        CSWAP(sortKeys[5], sortKeys[20]);
+        CSWAP(sortKeys[6], sortKeys[22]);
+        CSWAP(sortKeys[9], sortKeys[25]);
+        CSWAP(sortKeys[11], sortKeys[26]);
+        CSWAP(sortKeys[15], sortKeys[28]);
+        CSWAP(sortKeys[7], sortKeys[23]);
+        CSWAP(sortKeys[6], sortKeys[20]);
+        CSWAP(sortKeys[4], sortKeys[16]);
+        CSWAP(sortKeys[5], sortKeys[17]);
+        CSWAP(sortKeys[8], sortKeys[24]);
+        CSWAP(sortKeys[11], sortKeys[25]);
+        CSWAP(sortKeys[14], sortKeys[26]);
+        CSWAP(sortKeys[15], sortKeys[27]);
+        CSWAP(sortKeys[7], sortKeys[22]);
+        CSWAP(sortKeys[5], sortKeys[16]);
+        CSWAP(sortKeys[6], sortKeys[18]);
+        CSWAP(sortKeys[9], sortKeys[24]);
+        CSWAP(sortKeys[13], sortKeys[25]);
+        CSWAP(sortKeys[15], sortKeys[26]);
+        CSWAP(sortKeys[7], sortKeys[21]);
+        CSWAP(sortKeys[6], sortKeys[16]);
+        CSWAP(sortKeys[10], sortKeys[24]);
+        CSWAP(sortKeys[15], sortKeys[25]);
+        CSWAP(sortKeys[7], sortKeys[20]);
+        CSWAP(sortKeys[11], sortKeys[24]);
+        CSWAP(sortKeys[7], sortKeys[19]);
+        CSWAP(sortKeys[12], sortKeys[24]);
+        CSWAP(sortKeys[7], sortKeys[18]);
+        CSWAP(sortKeys[13], sortKeys[24]);
+        CSWAP(sortKeys[11], sortKeys[19]);
+        CSWAP(sortKeys[12], sortKeys[20]);
+        CSWAP(sortKeys[7], sortKeys[17]);
+        CSWAP(sortKeys[14], sortKeys[24]);
+        CSWAP(sortKeys[10], sortKeys[18]);
+        CSWAP(sortKeys[13], sortKeys[21]);
+        CSWAP(sortKeys[7], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[24]);
+        CSWAP(sortKeys[9], sortKeys[17]);
+        CSWAP(sortKeys[11], sortKeys[18]);
+        CSWAP(sortKeys[13], sortKeys[20]);
+        CSWAP(sortKeys[14], sortKeys[22]);
+        CSWAP(sortKeys[8], sortKeys[16]);
+        CSWAP(sortKeys[11], sortKeys[17]);
+        CSWAP(sortKeys[15], sortKeys[23]);
+        CSWAP(sortKeys[14], sortKeys[20]);
+        CSWAP(sortKeys[9], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[22]);
+        CSWAP(sortKeys[13], sortKeys[17]);
+        CSWAP(sortKeys[14], sortKeys[18]);
+        CSWAP(sortKeys[10], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[21]);
+        CSWAP(sortKeys[11], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[20]);
+        CSWAP(sortKeys[12], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[19]);
+        CSWAP(sortKeys[13], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[18]);
+        CSWAP(sortKeys[14], sortKeys[16]);
+        CSWAP(sortKeys[15], sortKeys[17]);
+        CSWAP(sortKeys[15], sortKeys[16]);
+
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
+        for (uint storeIndex = 0; storeIndex < MAX_NETWORK_INPUTS_32; ++storeIndex)
+        {
+            uint sortedIndex = (sortKeys[storeIndex] & 0xFF);
+            uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
+
+            if (storeIndex < listCount)
+            {
+                _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+            }
+        }
+    }
+}
+
+groupshared uint sRadixScratch[256];
 
 [numthreads(256, 1, 1)]
 void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
@@ -381,7 +673,7 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
 
     // Load pixel index
 
-    uint sortVariantOffset = 4;
+    uint sortVariantOffset = 5;
     uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
@@ -397,70 +689,57 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     // Also flip the depth key value so we get a descending order sort
     sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
 
-    sKeys[threadIndex] = sortKey;
-
     // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
-    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    for (uint radixPassIndex = 0; radixPassIndex < 2; ++radixPassIndex)
     {
-        sortKey = sKeys[threadIndex];
-
         // Initialize the sum bins to 0
-        if (threadIndex < 16)
-        {
-            sSums[threadIndex] = 0;
-        }
+        sRadixScratch[threadIndex] = 0;
 
-        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
+        uint binIndex = ((sortKey >> (radixPassIndex * 8)) & 0xFF);
 
         GroupMemoryBarrierWithGroupSync();
 
         // Increment the bin associated with the current value to sort
-        uint localOffset;
-        InterlockedAdd(sSums[binIndex], 1, localOffset);
+        InterlockedAdd(sRadixScratch[binIndex], 1);
 
         GroupMemoryBarrierWithGroupSync();
 
-        // Do a dumb inclusive prefix sum (replace this with a parallel version)
-        if (threadIndex == 0)
+        // Compute an inclusive prefix sum on the sum buckets
+        for (uint offset = 1; offset < 256; offset <<= 1)
         {
-            uint previousSum = sSums[0];
-
-            for (uint binIndex = 1; binIndex < 16; ++binIndex)
+            uint sum = 0;
+            if (threadIndex >= offset)
             {
-                uint currentSum = previousSum + sSums[binIndex];
-                previousSum = currentSum;
-
-                sSums[binIndex] = currentSum;
+                sum = sRadixScratch[threadIndex - offset];
             }
+
+            GroupMemoryBarrierWithGroupSync();
+
+            sRadixScratch[threadIndex] += sum;
+
+            GroupMemoryBarrierWithGroupSync();
         }
 
-        GroupMemoryBarrierWithGroupSync();
-
-        // This is even worse than the prefix sum above! :(
-        if (threadIndex == 0)
+        // Perform awful serial reorder step
+        // TODO: Replace this with a parallel version
+        uint outputIndex = 0;
+        for (uint i = 0; i < 256; ++i)
         {
-            uint i = 0;
-            for (i = 0; i < 256; ++i)
+            if (threadIndex == (255 - i))
             {
-                uint val = sKeys[255 - i];
-                uint localBinIndex = ((val >> (radixPassIndex * 4)) & 0xF);
-                uint index = sSums[localBinIndex] - 1;
-                sOutputKeys[index] = val;
-                sSums[localBinIndex] = index;
-                GroupMemoryBarrier();
+                outputIndex = sRadixScratch[binIndex] - 1;
+                sRadixScratch[binIndex] -= 1;
             }
 
-            for (i = 0; i < 256; ++i)
-            {
-                sKeys[i] = sOutputKeys[i];
-            }
+            GroupMemoryBarrierWithGroupSync();
         }
 
+        sRadixScratch[outputIndex] = sortKey;
+
         GroupMemoryBarrierWithGroupSync();
+
+        sortKey = sRadixScratch[threadIndex];
     }
-
-    // Load the final sort key for the current thread
-    sortKey = sKeys[threadIndex];
 
     uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
     uint sortIndexAddr = sortIndicesBaseAddr + threadIndex;
