@@ -65,9 +65,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ShowInProjectButton.ChangeClickEvent(OnShowInProjectButton);
             Add(m_ShowInProjectButton);
 
-            m_CheckOutButton = this.MandatoryQ<ToolbarButton>(CheckOutButton);
-            m_CheckOutButton.ChangeClickEvent(OnCheckOutButton);
-            Add(m_CheckOutButton);
+            //m_CheckOutButton = this.MandatoryQ<ToolbarButton>(CheckOutButton);
+            //m_CheckOutButton.ChangeClickEvent(OnCheckOutButton);
+            //Add(m_CheckOutButton);
 
             Add(new ToolbarSpacer());
 
@@ -76,36 +76,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var flexibleSpacer = this.MandatoryQ<ToolbarSpacer>(Spacer);
             Add(flexibleSpacer);
 
-            Add(new Label("Color Mode"));
+            //Add(new Label("Color Mode"));
 
-            m_ColorModeDropdown = this.MandatoryQ<EnumField>(ColorModeDropdown);
-            m_ColorModeDropdown.RegisterCallback<ChangeEvent<Enum>>(OnColorModeChanged);
-            m_ColorModeDropdown.Init(ColorMode.None);
-            Add(m_ColorModeDropdown);
-
-            m_ToggleBlackboardButton = this.MandatoryQ<ToolbarButton>(ToggleBlackboardButton);
-            m_ToggleBlackboardButton.ChangeClickEvent(OnToggleBlackboardButton);
-            Add(m_ToggleBlackboardButton);
-
-            m_ToggleInspectorButton = this.MandatoryQ<ToolbarButton>(ToggleGraphInspectorButton);
-            m_ToggleInspectorButton.ChangeClickEvent(OnToggleInspectorButton);
-            Add(m_ToggleInspectorButton);
-
-            m_ToggleMainPreviewButton = this.MandatoryQ<ToolbarButton>(ToggleMainPreviewButton);
-            m_ToggleMainPreviewButton.ChangeClickEvent(OnTogglePreviewButton);
-            Add(m_ToggleMainPreviewButton);
+            //m_ColorModeDropdown = this.MandatoryQ<EnumField>(ColorModeDropdown);
+            //m_ColorModeDropdown.RegisterCallback<ChangeEvent<Enum>>(OnColorModeChanged);
+            //m_ColorModeDropdown.Init(ColorMode.None);
+            //Add(m_ColorModeDropdown);
+            //
+            //m_ToggleBlackboardButton = this.MandatoryQ<ToolbarButton>(ToggleBlackboardButton);
+            //m_ToggleBlackboardButton.ChangeClickEvent(OnToggleBlackboardButton);
+            //Add(m_ToggleBlackboardButton);
+            //
+            //m_ToggleInspectorButton = this.MandatoryQ<ToolbarButton>(ToggleGraphInspectorButton);
+            //m_ToggleInspectorButton.ChangeClickEvent(OnToggleInspectorButton);
+            //Add(m_ToggleInspectorButton);
+            //
+            //m_ToggleMainPreviewButton = this.MandatoryQ<ToolbarButton>(ToggleMainPreviewButton);
+            //m_ToggleMainPreviewButton.ChangeClickEvent(OnTogglePreviewButton);
+            //Add(m_ToggleMainPreviewButton);
 
             Add(m_OptionsButton);
         }
 
         void OnSaveButton()
         {
-            Debug.Log("Save Button Clicked");
         }
 
         void OnSaveAsButton()
         {
-            Debug.Log("Save As Button Clicked");
         }
 
         void OnShowInProjectButton()
@@ -117,27 +115,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnCheckOutButton()
         {
-            Debug.Log("Check Out Button Clicked");
         }
 
         void OnColorModeChanged(ChangeEvent<Enum> evt)
         {
-
         }
 
         void OnToggleBlackboardButton()
         {
-
         }
 
         void OnToggleInspectorButton()
         {
-
         }
 
         void OnTogglePreviewButton()
         {
-
         }
 
         protected override void BuildOptionMenu(GenericMenu menu)
