@@ -182,20 +182,25 @@ namespace UnityEngine.Rendering.Universal
         internal static void FinalBlit(
             CommandBuffer cmd,
             CameraData cameraData,
-            bool isRenderToBackBufferTarget,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
             RenderBufferStoreAction storeAction,
             Material material, int passIndex)
         {
+            bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    isRenderToBackBufferTarget = destination == cameraData.xr.renderTarget;
+#endif
+
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
 
             // We y-flip if
             // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
             // 2) renderTexture starts UV at top
             bool yflip = isRenderToBackBufferTarget && cameraData.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
-            Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, 1) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+            Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
             CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);

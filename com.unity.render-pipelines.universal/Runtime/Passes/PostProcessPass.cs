@@ -597,47 +597,32 @@ namespace UnityEngine.Rendering.Universal
                 if (!m_UseSwapBuffer)
                     m_ResolveToScreen = cameraData.resolveFinalTarget || m_Destination.nameID == cameraTargetID || m_HasFinalPass == true;
 
-                if (m_UseSwapBuffer || m_ResolveToScreen)
+                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
+                if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
-                    // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                    bool isRenderToBackBufferTarget = m_UseSwapBuffer ? m_ResolveToScreen : m_Destination.nameID == cameraTargetID;
-
-                    RTHandle finalBlitDestination;
-                    if (isRenderToBackBufferTarget)
-                    {
-                        // Create RTHandle alias to use RTHandle apis
-                        RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
-                        if (m_CameraTargetHandle != cameraTarget)
-                        {
-                            m_CameraTargetHandle?.Release();
-                            m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
-                        }
-                        finalBlitDestination = m_CameraTargetHandle;
-                    }
-                    else if (m_UseSwapBuffer)
-                    {
-                        finalBlitDestination = destination;
-                    }
-                    else
-                    {
-                        finalBlitDestination = m_Destination;
-                    }
-
-                    RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, GetSource(), finalBlitDestination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    if (m_UseSwapBuffer && !m_ResolveToScreen)
-                    {
-                        renderer.SwapColorBuffer(cmd);
-                    }
+                    Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    renderer.SwapColorBuffer(cmd);
                 }
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                 // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                 // in the pipeline to avoid this extra blit.
-                else
+                else if (!m_UseSwapBuffer)
                 {
                     var firstSource = GetSource();
-                    Blitter.BlitCameraTexture(cmd, firstSource, m_Destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, firstSource.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    Blitter.BlitCameraTexture(cmd, firstSource, m_Destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                     Blitter.BlitCameraTexture(cmd, destination, m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, destination.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
+                }
+                else if (m_ResolveToScreen)
+                {
+                    // Create RTHandle alias to use RTHandle apis
+                    RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
+                    if (m_CameraTargetHandle != cameraTarget)
+                    {
+                        m_CameraTargetHandle?.Release();
+                        m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                    }
+                    RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                 }
 
                 // Cleanup
@@ -1498,12 +1483,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle?.Release();
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
-            bool isRenderToBackBufferTarget = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                isRenderToBackBufferTarget = m_CameraTargetHandle == cameraData.xr.renderTarget;
-#endif
-            RenderingUtils.FinalBlit(cmd, cameraData, isRenderToBackBufferTarget, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
         }
 
         #endregion
