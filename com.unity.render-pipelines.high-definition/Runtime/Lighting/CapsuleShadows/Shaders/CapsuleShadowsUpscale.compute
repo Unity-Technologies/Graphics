@@ -10,8 +10,8 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
-TEXTURE2D_X(_CapsuleShadowsRenderOutput);
-RW_TEXTURE2D_X(float2, _CapsuleShadowsTexture);
+TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput);
+RW_TEXTURE2D_ARRAY(float2, _CapsuleShadowsTexture);
 
 float SumElements(float4 v)
 {
@@ -47,12 +47,10 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     combinedWeight /= SumElements(combinedWeight);
 
     float2 renderUV = halfResPositionSS*_CapsuleRenderTextureSize.zw;
-    float4 gatherR = GATHER_RED_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
-    float4 gatherG = GATHER_GREEN_TEXTURE2D_X(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV);
-
-    // just blend packed values directly (blends in a gamma=2 space)
-    float upscaledR = dot(combinedWeight, gatherR);
-    float upscaledG = dot(combinedWeight, gatherG);
-
-    _CapsuleShadowsTexture[COORD_TEXTURE2D_X(pixelCoord)] = float2(upscaledR, upscaledG);
+    for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
+    {
+        float4 gatherR = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex);
+        float upscaledR = dot(combinedWeight, gatherR);
+        _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaledR;
+    }
 }

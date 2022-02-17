@@ -17,10 +17,12 @@
 
 StructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes; // TODO: could be constant buffer (need to write array from earlier pass)
 StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
-RW_TEXTURE2D_X(float2, _CapsuleShadowsRenderOutput);
+RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
 #endif
+
+#define TILE_SIZE               8
 
 #define MIN_LINEAR_DEPTH        asfloat(0x00800000)
 #define DEPTH_MAX_EMPTY         0x00000000U
@@ -31,6 +33,9 @@ groupshared uint s_depthMaxU[DEPTH_RANGE_COUNT];
 groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
 groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
 groupshared uint s_intersectionBits[2];
+
+#define MAX_SLICES_PER_PASS     4
+groupshared uint s_packedVisibility[TILE_SIZE*TILE_SIZE*MAX_SLICES_PER_PASS/2]; // UNORM16 per slice per pixel
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 #define PACK_UNPACK_POSITIVE_DEPTH(D)   (D)
@@ -47,8 +52,6 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 {
     return float3(posVS_XY * abs(linearDepth), linearDepth);
 }
-
-#define TILE_SIZE   8
 
 bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, float tileRadiusWS)
 {
@@ -88,14 +91,50 @@ bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, floa
 
 #define INVALID_NORMAL_TAG  2.f
 
+void UpdateVisibility(uint flatThreadIndex, uint casterIndex, float occlusion)
+{
+    // stored as slices per pixel
+    uint entryIndex = (casterIndex/2)*TILE_SIZE*TILE_SIZE + flatThreadIndex;
+    uint packedValue = s_packedVisibility[entryIndex];
+
+    uint visibilityUnorm;
+    if ((casterIndex & 1) == 0)
+        visibilityUnorm = packedValue & 0xffffU;
+    else
+        visibilityUnorm = packedValue >> 16;
+
+    float visibility = (float)visibilityUnorm; // keep 0-65535
+    visibility *= (1.f - occlusion);
+    visibilityUnorm = min((uint)visibility, 0xffffU);
+
+    if ((casterIndex & 1) == 0)
+        packedValue = (packedValue & 0xffff0000) | visibilityUnorm;
+    else
+        packedValue = (packedValue & 0x0000ffff) | (visibilityUnorm << 16);
+
+    s_packedVisibility[entryIndex] = packedValue;
+}
+
+float ReadVisibility(uint flatThreadIndex, uint casterIndex)
+{
+    uint entryIndex = (casterIndex/2)*TILE_SIZE*TILE_SIZE + flatThreadIndex;
+    uint packedValue = s_packedVisibility[entryIndex];
+
+    uint visibilityUnorm;
+    if ((casterIndex & 1) == 0)
+        visibilityUnorm = packedValue & 0xffffU;
+    else
+        visibilityUnorm = packedValue >> 16;
+
+    return (float)visibilityUnorm*(1.f/65535.f);
+}
+
 void CapsuleShadowLoop(
     uint2 fullResCoord,
     float3 positionWS,
     uint flatThreadIndex,
     bool useSecondDepthRange,
-    inout uint processedCapsuleCounter,
-    inout float directVisibility,
-    inout float indirectVisibility)
+    inout uint processedCapsuleCounter)
 {
     float3 tileCenterWS0 = s_tileCenter[0];
     float tileRadiusWS0 = asfloat(s_tileRadiusU[0]);
@@ -156,9 +195,10 @@ void CapsuleShadowLoop(
             uint volumeIndex = volumeBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
             CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
+            float occlusion;
             if (volume.caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
             {
-                float occlusion = EvaluateCapsuleOcclusion(
+                occlusion = EvaluateCapsuleOcclusion(
                     GetCapsuleDirectOcclusionFlags(),
                     volume.caster.directionWS,
                     false,
@@ -169,7 +209,6 @@ void CapsuleShadowLoop(
                     volume.occluder.radius,
                     volume.caster.shadowRange,
                     normalWS);
-                directVisibility *= max(1.f - occlusion, 0.0f);
 #ifdef CAPSULE_TILE_DEBUG
                 if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT)
                     ++processedCapsuleCounter;
@@ -178,7 +217,7 @@ void CapsuleShadowLoop(
             else
             {
                 uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
-                float occlusion = EvaluateCapsuleAmbientOcclusion(
+                occlusion = EvaluateCapsuleAmbientOcclusion(
                     GetCapsuleAmbientOcclusionFlags(),
                     volume.occluder.centerRWS - positionWS,
                     volume.occluder.axisDirWS,
@@ -186,12 +225,12 @@ void CapsuleShadowLoop(
                     volume.occluder.radius,
                     volume.occluder.radius*_CapsuleIndirectRangeFactor,
                     normalWS);
-                indirectVisibility *= max(1.f - occlusion, 0.f);
 #ifdef CAPSULE_TILE_DEBUG
                 if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_INDIRECT)
                     ++processedCapsuleCounter;
 #endif
             }
+            UpdateVisibility(flatThreadIndex, volume.caster.sliceIndex, occlusion);
         }
     }
 }
@@ -244,6 +283,8 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         s_depthMaxU[flatThreadIndex] = DEPTH_MAX_EMPTY;
         s_tileRadiusU[flatThreadIndex] = 0;
     }
+    for (uint packedIndex = 0; packedIndex < MAX_SLICES_PER_PASS/2; ++packedIndex)
+        s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU; // 1.0
     GroupMemoryBarrierWithGroupSync();
 
     // TODO: ignore depths beyond the max possible capsule shadow extent from camera
@@ -345,7 +386,6 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     GroupMemoryBarrierWithGroupSync();
 
     // optimise the loop separately depending on whether we are using one or two depth ranges
-    float directVisibility = 1.f, indirectVisibility = 1.f;
     uint processedCapsuleCounter = 0;
     bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
 #ifdef CAPSULE_TILE_DEBUG
@@ -354,12 +394,13 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 #endif
     [branch]
     if (useSecondDepthRange)
-        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, true, processedCapsuleCounter, directVisibility, indirectVisibility);
+        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, true, processedCapsuleCounter);
     else
-        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, false, processedCapsuleCounter, directVisibility, indirectVisibility);
+        CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, false, processedCapsuleCounter);
 
     // write results
-    _CapsuleShadowsRenderOutput[COORD_TEXTURE2D_X(pixelCoord)] = float2(PackCapsuleVisibility(directVisibility), PackCapsuleVisibility(indirectVisibility));
+    for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
+        _CapsuleShadowsRenderOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(ReadVisibility(flatThreadIndex, casterIndex));
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = processedCapsuleCounter;

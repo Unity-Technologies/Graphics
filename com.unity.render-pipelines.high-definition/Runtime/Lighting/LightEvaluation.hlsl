@@ -316,7 +316,9 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
         else
         {
-            shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_X(_CapsuleShadowsTexture, posInput.positionSS).x);
+            // TODO: get slice index from light
+            uint sliceIndex = _CapsuleIndirectShadowsEnabled ? 1 : 0;
+            shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, sliceIndex).x);
         }
     }
 #endif
