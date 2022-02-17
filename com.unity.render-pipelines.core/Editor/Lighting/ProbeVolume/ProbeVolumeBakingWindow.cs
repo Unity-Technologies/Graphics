@@ -237,6 +237,14 @@ namespace UnityEngine.Rendering
             OnBakingSetSelected(m_BakingSets);
         }
 
+        void SetActiveScenatio(string scenario)
+        {
+            if (scenario == ProbeReferenceVolume.instance.lightingScenario)
+                return;
+            ProbeReferenceVolume.instance.lightingScenario = scenario;
+            EditorUtility.SetDirty(sceneData.parentAsset);
+        }
+
         void InitializeScenarioList()
         {
             m_Scenarios = new ReorderableList(GetCurrentBakingSet().lightingScenarios, typeof(string), true, true, true, true);
@@ -305,7 +313,7 @@ namespace UnityEngine.Rendering
                                         data.RenameScenario(scenarioName, name);
                                 }
                                 bakingSet.lightingScenarios[index] = name;
-                                ProbeReferenceVolume.instance.lightingScenario = name;
+                                SetActiveScenatio(name);
                             }
                             finally
                             {
@@ -320,7 +328,7 @@ namespace UnityEngine.Rendering
 
             m_Scenarios.onSelectCallback = (ReorderableList list) =>
             {
-                ProbeReferenceVolume.instance.lightingScenario = GetCurrentBakingSet().lightingScenarios[list.index];
+                SetActiveScenatio(GetCurrentBakingSet().lightingScenarios[list.index]);
                 SceneView.RepaintAll();
                 Repaint();
             };
@@ -361,7 +369,7 @@ namespace UnityEngine.Rendering
                 finally
                 {
                     AssetDatabase.StopAssetEditing();
-                    ProbeReferenceVolume.instance.lightingScenario = set.lightingScenarios[0];
+                    SetActiveScenatio(set.lightingScenarios[0]);
                     UpdateScenariosStatuses();
                 }
             };
@@ -378,7 +386,7 @@ namespace UnityEngine.Rendering
                 string sceneGUID = sceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                    ProbeReferenceVolume.instance.lightingScenario = set.lightingScenarios[0];
+                    SetActiveScenatio(set.lightingScenarios[0]);
             }
             UpdateScenariosStatuses();
         }

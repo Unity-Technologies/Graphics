@@ -510,6 +510,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+        [DebuggerDisplay("Index = {cellInfo.index} Factor = {blendingFactor}")]
         internal class BlendingCellInfo : IComparable<BlendingCellInfo>
         {
             public CellInfo cellInfo;
@@ -781,26 +782,25 @@ namespace UnityEngine.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
-        /// <summary>The current lighting scenario.</summary>
+        /// <summary>The active lighting scenario.</summary>
         public string lightingScenario
         {
             get => sceneData.lightingScenario;
-            set => SetLightingScenario(value, 0.0f);
+            set => sceneData.SetActiveScenario(value);
         }
-        /// <summary>The lerp factor when transitioning from between two scenarios. 1 means active scenario is fully active.</summary>
-        public float lightingScenarioLerp => m_ScenarioLerpFactor;
 
-        /// <summary>Set the active lighting scenario.</summary>
-        /// <param name="scenario">The name of the scenario to load.</param>
-        /// <param name="transitionTime">The time in seconds to smoothly transition from the current scenario to the new scenario.</param>
-        public void SetLightingScenario(string scenario, float transitionTime)
+        /// <summary>The blending factor currently used to blend probe data. A value of 0 means blending is not active.</summary>
+        public float scenarioBlendingFactor
         {
-            bool changedState = sceneData.SetLightingScenario(scenario, transitionTime);
-#if UNITY_EDITOR
-            if (changedState)
-                EditorUtility.SetDirty(sceneData.parentAsset);
-#endif
+            get => sceneData.m_ScenarioBlendingFactor;
+            set => sceneData.BlendLightingScenario(sceneData.m_OtherScenario, value);
         }
+
+        /// <summary>Allows smooth transitions between two lighting scenarios. This only affects the runtime data used for lighting.</summary>
+        /// <param name="otherScenario">The name of the scenario to load.</param>
+        /// <param name="blendingFactor">The factor used to interpolate between the active scenario and otherScenario. Accepted values range from 0 to 1 and will progressively blend from the active scenario to otherScenario.</param>
+        public void BlendLightingScenario(string otherScenario, float blendingFactor)
+            => sceneData.BlendLightingScenario(otherScenario, blendingFactor);
 
         internal static string defaultLightingScenario = "Default";
 
@@ -991,7 +991,6 @@ namespace UnityEngine.Rendering
                 blendingCell.chunkList.Clear();
                 blendingCell.blending = false;
             }
-            blendingCell.blendingFactor = m_ScenarioLerpFactor;
         }
 
         internal void UnloadAllCells()
@@ -1522,8 +1521,8 @@ namespace UnityEngine.Rendering
             int chunkSize = ProbeBrickPool.GetChunkSize();
             blendingCell.chunkList.Clear();
 
-            // If transition if finished, bypass the blending pool and directly udpate uploaded cells
-            bool bypassBlending = (m_ScenarioLerpFactor >= 1.0f) || !cell.hasTwoScenarios;
+            // If no blending is needed, bypass the blending pool and directly udpate uploaded cells
+            bool bypassBlending = sceneData.m_OtherScenario == null || !cell.hasTwoScenarios;
 
             // Try to allocate texture space
             if (!bypassBlending && !m_BlendingPool.Allocate(ProbeBrickPool.GetChunkCount(bricks.Length), blendingCell.chunkList))
@@ -1539,15 +1538,14 @@ namespace UnityEngine.Rendering
 
                 if (bypassBlending)
                 {
+                    if (blendingCell.blendingFactor == scenarioBlendingFactor)
+                        continue;
+
                     // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
                     // no index or chunk data must change, so only probe values need to be updated
 
-                    bool useState0 = !cell.hasTwoScenarios;
-                    var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
-                    var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
-
                     ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
-                        cell.shBands, shL0L1Data, shL2Data, cell.validity,
+                        cell.shBands, cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validity,
                         chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         m_SHBands);
@@ -1580,7 +1578,7 @@ namespace UnityEngine.Rendering
             }
 
             blendingCell.blending = true;
-            blendingCell.blendingFactor = bypassBlending ? 1.0f : m_ScenarioLerpFactor;
+            blendingCell.blendingFactor = cell.hasTwoScenarios ? scenarioBlendingFactor : 0.0f;
 
             Profiler.EndSample();
 
@@ -1603,8 +1601,10 @@ namespace UnityEngine.Rendering
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
-            bool useState0 = m_ScenarioLerpFactor < 0.5f || !cell.hasTwoScenarios;
-            cellInfo.blendingCell.blendingFactor = m_ScenarioLerpFactor < 0.5f ? 0.0f : 1.0f;
+            // Queue this cell for blending
+            bool useState0 = scenarioBlendingFactor < 0.5f || !cell.hasTwoScenarios;
+            cellInfo.blendingCell.blendingFactor = useState0 ? 0.0f : 1.0f;
+            m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
@@ -1630,7 +1630,6 @@ namespace UnityEngine.Rendering
             }
 
             m_BricksLoaded = true;
-            m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
 
             // Build index
             m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
