@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera motion vector pass reading last frame depth texture
 - Fixed issue with shader graph custom velocity and VFX (case 1388149)
 - Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
+- Fixed fog not appearing on reflections from the visual environment sky (case 1357622).
 
 ## [14.0.0] - 2021-11-17
 
