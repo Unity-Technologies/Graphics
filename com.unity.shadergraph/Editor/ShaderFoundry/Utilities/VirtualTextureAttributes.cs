@@ -106,9 +106,8 @@ namespace UnityEditor.ShaderFoundry
         {
             if (attribute.Name != AttributeName)
                 return null;
-            var result = new VirtualTextureLayerAttribute();
 
-            var signature = new AttributeParsing.SignatureDescription<VirtualTextureLayerAttribute>();
+            var result = new VirtualTextureLayerAttribute();
             AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }

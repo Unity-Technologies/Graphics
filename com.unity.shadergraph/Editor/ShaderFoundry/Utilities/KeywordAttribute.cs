@@ -92,8 +92,6 @@ namespace UnityEditor.ShaderFoundry
                 return null;
 
             var result = new BoolKeywordAttribute();
-
-            var signature = new AttributeParsing.SignatureDescription<BoolKeywordAttribute>();
             AttributeParsing.Parse(attribute, AttributeSignature, result);
             return result;
         }
