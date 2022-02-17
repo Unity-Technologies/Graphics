@@ -153,6 +153,9 @@ namespace UnityEditor.Rendering
             base.SetValue(value, field);
         }
 
+        /// <summary>
+        /// On Enable method from <see cref="ScriptableObject"/>
+        /// </summary>
         public override void OnEnable()
         {
             if (m_EnumField == null)

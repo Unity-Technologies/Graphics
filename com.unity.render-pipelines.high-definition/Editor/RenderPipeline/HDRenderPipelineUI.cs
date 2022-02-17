@@ -716,6 +716,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWater.boolValue))
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterSimulationResolution, Styles.waterSimulationResolutionContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCPUSimulation, Styles.cpuSimulationContent);
             }
         }
 

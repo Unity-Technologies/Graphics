@@ -123,8 +123,11 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Debug Item Field Drawer
+    /// Common class to help drawing fields
     /// </summary>
+    /// <typeparam name="TValue">The internal value of the field</typeparam>
+    /// <typeparam name="TField">The type of the field widget</typeparam>
+    /// <typeparam name="TState">The state of the field</typeparam>
     public abstract class DebugUIFieldDrawer<TValue, TField, TState> : DebugUIDrawer
         where TField : DebugUI.Field<TValue>
         where TState : DebugState
