@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 - Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
+- Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed various issues with render graph viewer when entering playmode.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed HDRP camera debug panel rendering foldout.
 
 ## [12.1.4] - 2021-12-07
 
@@ -106,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [12.1.3] - 2021-11-17
 
