@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
             ShowAfterPostProcessPass = 1 << 10,
-            /// <summary>This field has no effect.</summary>
+            /// <summary>Obsolete - This field has no effect - Do not used.</summary>
             AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass = 1 << 12,
