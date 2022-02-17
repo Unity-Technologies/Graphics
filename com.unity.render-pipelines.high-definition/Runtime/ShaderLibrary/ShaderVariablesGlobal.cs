@@ -263,9 +263,5 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _GlobalTessellationFactorMultiplier;
         public float _SpecularOcclusionBlend;
         public float _DeExposureMultiplier;
-
-        // See ScreenCoordOverride.hlsl for details.
-        public Vector4 _ScreenSizeOverride;
-        public Vector4 _ScreenCoordScaleBias;
     }
 }
