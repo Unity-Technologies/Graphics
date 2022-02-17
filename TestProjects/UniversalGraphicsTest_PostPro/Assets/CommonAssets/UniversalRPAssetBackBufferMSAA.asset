@@ -67,6 +67,7 @@ MonoBehaviour:
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
   m_UseFastSRGBLinearConversion: 0
+  m_UseScreenCoordOverride: 1
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512
