@@ -15,13 +15,15 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
 #endif
 
-StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderData;
+StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
 RW_TEXTURE2D_X(float2, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
 #endif
 
-#define DEPTH_MAX_EMPTY         0x00000001U
+#define MIN_LINEAR_DEPTH        asfloat(0x00800000)
+#define DEPTH_MAX_EMPTY         0x00000000U
 #define DEPTH_MIN_EMPTY         0xffffffffU
 #define DEPTH_RANGE_COUNT       2
 groupshared uint s_depthMinU[DEPTH_RANGE_COUNT];
@@ -48,25 +50,29 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 
 #define TILE_SIZE   8
 
-bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint capsuleIndex, float3 tileCenterWS, float tileRadiusWS)
+bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, float3 tileCenterWS, float tileRadiusWS)
 {
     float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
 
     float centerToCenterDistSq = dot(offsetWS, offsetWS);
 
     bool intersectsTile;
-    if (capsuleIndex < _CapsuleDirectShadowCount)
+    if (GetCasterType(capsuleData) == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
     {
-        float offsetDotLight = dot(offsetWS, _CapsuleLightDir);
-        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, _CapsuleLightDir));
+        float3 casterDirectionWS = _CapsuleShadowCasters[0].directionWS;
+        float casterTanTheta = _CapsuleShadowCasters[0].tanTheta;
+        float casterShadowRange = _CapsuleShadowCasters[0].shadowRange;
+
+        float offsetDotLight = dot(offsetWS, casterDirectionWS);
+        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, casterDirectionWS));
         float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
         float lightT = offsetDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius;   // farthest point along light axis
-        float tileRadiusTowardsCapsule = tileRadiusWS + lightT*_CapsuleLightTanTheta;
+        float tileRadiusTowardsCapsule = tileRadiusWS + min(lightT, casterShadowRange)*casterTanTheta;
         float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
-        float3 checkOffsetWS = offsetWS - offsetDotLight*_CapsuleLightDir;
+        float3 checkOffsetWS = offsetWS - offsetDotLight*casterDirectionWS;
         bool intersectsPenumbra = (lightT > 0.f) && (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
 
-        float directRangeWS = capsuleData.offset + capsuleData.radius + _CapsuleShadowRange;
+        float directRangeWS = capsuleData.offset + capsuleData.radius + casterShadowRange;
         bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
 
         intersectsTile = intersectsPenumbra && intersectsRange;
@@ -109,11 +115,11 @@ void CapsuleShadowLoop(
             uint capsuleIndex = capsuleBaseIndex + flatThreadIndex;
             if (capsuleIndex < capsuleCount)
             {
-                CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
+                CapsuleOccluderData capsuleData = _CapsuleOccluderData[capsuleIndex];
 
-                bool intersectsTile = CapsuleIntersectsTile(capsuleData, capsuleIndex, tileCenterWS0, tileRadiusWS0);
+                bool intersectsTile = CapsuleIntersectsTile(capsuleData, tileCenterWS0, tileRadiusWS0);
                 if (useSecondDepthRange && !intersectsTile)
-                    intersectsTile = CapsuleIntersectsTile(capsuleData, capsuleIndex, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
+                    intersectsTile = CapsuleIntersectsTile(capsuleData, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
 
                 if (intersectsTile)
                     InterlockedOr(s_capsuleBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
@@ -148,19 +154,20 @@ void CapsuleShadowLoop(
 
             uint capsuleIndex = capsuleBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
-            CapsuleOccluderData capsuleData = _CapsuleOccluderDatas[capsuleIndex];
-            if (capsuleIndex < _CapsuleDirectShadowCount)
+            CapsuleOccluderData capsuleData = _CapsuleOccluderData[capsuleIndex];
+            if (GetCasterType(capsuleData) == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
             {
+                CapsuleShadowCaster caster = _CapsuleShadowCasters[0];
                 float occlusion = EvaluateCapsuleOcclusion(
                     GetCapsuleDirectOcclusionFlags(),
-                    _CapsuleLightDir,
+                    caster.directionWS,
                     false,
-                    _CapsuleLightCosTheta,
+                    caster.cosTheta,
                     capsuleData.centerRWS - positionWS,
                     capsuleData.axisDirWS,
                     capsuleData.offset,
                     capsuleData.radius,
-                    _CapsuleShadowRange,
+                    caster.shadowRange,
                     normalWS);
                 directVisibility *= max(1.f - occlusion, 0.0f);
 #ifdef CAPSULE_TILE_DEBUG
@@ -239,9 +246,10 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     }
     GroupMemoryBarrierWithGroupSync();
 
+    // TODO: ignore depths beyond the max possible capsule shadow extent from camera
     if (!is_sky)
     {
-        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
+        float depth = max(MIN_LINEAR_DEPTH, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
         InterlockedMin(s_depthMinU[0], asuint(depth));
         InterlockedMax(s_depthMaxU[1], asuint(depth));
     }
@@ -257,12 +265,12 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         return;
     }
 
-    // split the depth range at the midpoint
+    // split the depth range at the midpoint in log-linear space directly (the sign bit is 0 so this does not overflow)
+    float depthSplit = asfloat((s_depthMinU[0] + s_depthMaxU[1])/2);
     if (!is_sky)
     {
-        float mid = .5f*(asfloat(s_depthMinU[0]) + asfloat(s_depthMaxU[1]));
-        float depth = max(0.f, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
-        if (depth < mid)
+        float depth = max(MIN_LINEAR_DEPTH, PACK_UNPACK_POSITIVE_DEPTH(linearDepth));
+        if (depth < depthSplit)
             InterlockedMax(s_depthMaxU[0], asuint(depth));
         else
             InterlockedMin(s_depthMinU[1], asuint(depth));
@@ -279,14 +287,14 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         if (depthMaxU0 == DEPTH_MAX_EMPTY)
             depthMaxU0 = depthMinU0;
         if (depthMinU1 == DEPTH_MIN_EMPTY)
-            depthMinU1 = depthMaxU1;
+            depthMinU1 = depthMaxU0;
 
         // revert back to a single depth range if we don't skip much space (for performance)
         float totalDepthRange = asfloat(depthMaxU1) - asfloat(depthMinU0);
         float skipDepthRange = asfloat(depthMinU1) - asfloat(depthMaxU0);
-        float tileSizeAtUnitDepth = TILE_SIZE*(isHalfRes ? 2 : 1)*MaxElement(fullResPixelHalfExtentAtUnitDepth);
+        float tileSizeAtUnitDepth = TILE_SIZE*(isHalfRes ? 4 : 2)*MaxElement(fullResPixelHalfExtentAtUnitDepth);
         float tileSizeAtMaxDepth = tileSizeAtUnitDepth*asfloat(depthMaxU1);
-        if (!_CapsuleSplitDepthRange || skipDepthRange < tileSizeAtMaxDepth || skipDepthRange < .2f*totalDepthRange)
+        if (!_CapsuleSplitDepthRange || skipDepthRange < 4.f*tileSizeAtMaxDepth)
         {
             depthMaxU0 = depthMaxU1;
             depthMinU1 = depthMinU0;

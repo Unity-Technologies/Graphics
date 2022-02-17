@@ -4,15 +4,6 @@ namespace UnityEngine.Rendering.HighDefinition
     unsafe struct ShaderVariablesCapsuleShadows
     {
         public Vector4 _CapsuleUpscaledSize;        // w, h, 1/w, 1/h
-
-        public Vector3 _CapsuleLightDir;
-        public float _CapsuleLightCosTheta;
-
-        public float _CapsuleLightTanTheta;
-        public float _CapsuleShadowRange;
-        public uint _CapsulePad0;
-        public uint _CapsulePad1;
-
         public Vector4 _CapsuleRenderTextureSize;  // w, h, 1/w, 1/h
         public Vector4 _DepthPyramidTextureSize;   // w, h, 1/w, 1/h
         public uint _FirstDepthMipOffsetX;

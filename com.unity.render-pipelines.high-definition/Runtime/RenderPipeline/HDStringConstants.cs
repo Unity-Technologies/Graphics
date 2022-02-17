@@ -174,7 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _AmbientProbeData = Shader.PropertyToID("_AmbientProbeData");
-        public static readonly int _CapsuleOccluderDatas = Shader.PropertyToID("_CapsuleOccluderDatas");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -194,7 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SliceIndex = Shader.PropertyToID("_SliceIndex");
         public static readonly int _DebugContactShadowLightIndex = Shader.PropertyToID("_DebugContactShadowLightIndex");
 
-        public static readonly int _ShaderVariablesCapsuleShadows = Shader.PropertyToID("ShaderVariablesCapsuleShadows");
+        public static readonly int ShaderVariablesCapsuleShadows = Shader.PropertyToID("ShaderVariablesCapsuleShadows");
+        public static readonly int _CapsuleOccluderData = Shader.PropertyToID("_CapsuleOccluderData");
+        public static readonly int _CapsuleShadowCasters = Shader.PropertyToID("_CapsuleShadowCasters");
         public static readonly int _CapsuleShadowsRenderOutput = Shader.PropertyToID("_CapsuleShadowsRenderOutput");
         public static readonly int _CapsuleShadowsTexture = Shader.PropertyToID("_CapsuleShadowsTexture");
         public static readonly int _CapsuleTileDebug = Shader.PropertyToID("_CapsuleTileDebug");

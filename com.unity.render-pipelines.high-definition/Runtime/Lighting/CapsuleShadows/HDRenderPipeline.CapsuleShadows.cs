@@ -34,205 +34,295 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        struct CapsuleShadowDirectionalLight
-        {
-            public Vector3 direction;
-            public float cosTheta;
-            public float tanTheta;
-            public float range;
-
-            public CapsuleShadowDirectionalLight(Vector3 _direction, float _theta, float _range)
-            {
-                direction = _direction;
-                cosTheta = Mathf.Cos(_theta);
-                tanTheta = Mathf.Tan(_theta);
-                range = _range;
-            }
-        }
-
         internal const int k_MaxDirectShadowCapsulesOnScreen = 1024;
         internal const int k_MaxIndirectShadowCapsulesOnScreen = 1024;
+        internal const int k_MaxCapsuleShadowCasters = 4;
 
         CapsuleOccluderList m_CapsuleOccluders;
         ComputeBuffer m_CapsuleOccluderDataBuffer;
-        CapsuleShadowDirectionalLight m_DirectionalLight;
+        List<CapsuleShadowCaster> m_CapsuleShadowCasters;
+        ComputeBuffer m_CapsuleShadowCastersBuffer;
 
         internal void InitializeCapsuleShadows()
         {
             m_CapsuleOccluders.bounds = new List<OrientedBBox>();
             m_CapsuleOccluders.occluders = new List<CapsuleOccluderData>();
             m_CapsuleOccluderDataBuffer = new ComputeBuffer(k_MaxDirectShadowCapsulesOnScreen + k_MaxIndirectShadowCapsulesOnScreen, Marshal.SizeOf(typeof(CapsuleOccluderData)));
+            m_CapsuleShadowCasters = new List<CapsuleShadowCaster>();
+            m_CapsuleShadowCastersBuffer = new ComputeBuffer(k_MaxCapsuleShadowCasters, Marshal.SizeOf(typeof(CapsuleShadowCaster)));
         }
 
         internal void CleanupCapsuleShadows()
         {
+            CoreUtils.SafeRelease(m_CapsuleShadowCastersBuffer);
+            m_CapsuleShadowCasters = null;
             CoreUtils.SafeRelease(m_CapsuleOccluderDataBuffer);
             m_CapsuleOccluders.occluders = null;
             m_CapsuleOccluders.bounds = null;
         }
 
-        internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, CullingResults cullResults)
+        bool ConvertLightToShadowCaster(Vector3 originWS, HDLightRenderDatabase lightEntities, VisibleLight visibleLight, ref CapsuleShadowCaster shadowCaster)
         {
-            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+            Light light = visibleLight.light;
 
+            int dataIndex = lightEntities.FindEntityDataIndex(light);
+            if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                return false;
+
+            HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
+
+            if (!lightData.enableCapsuleShadows || lightData.capsuleShadowRange == 0.0f)
+                return false;
+
+
+            switch (light.type)
+            {
+                case LightType.Directional:
+                {
+                    float theta = Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
+
+                    shadowCaster = new CapsuleShadowCaster();
+                    shadowCaster.casterType = (uint)CapsuleShadowCasterType.Directional;
+                    shadowCaster.shadowRange = lightData.capsuleShadowRange;
+                    shadowCaster.tanTheta = Mathf.Tan(theta);
+                    shadowCaster.directionWS = -visibleLight.GetForward().normalized;
+                    shadowCaster.cosTheta = Mathf.Cos(theta);
+                    return true;
+                }
+
+                case LightType.Point:
+                case LightType.Spot:
+                {
+                    float minTheta = lightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f;
+
+                    shadowCaster = new CapsuleShadowCaster();
+                    shadowCaster.casterType = (uint)CapsuleShadowCasterType.Point;
+                    shadowCaster.shadowRange = Mathf.Min(lightData.capsuleShadowRange, light.range);
+                    shadowCaster.cosTheta = Mathf.Cos(minTheta);
+                    shadowCaster.positionRWS = visibleLight.GetPosition() - originWS;
+                    shadowCaster.radiusWS = lightData.shapeRadius;
+                    return true;
+                }
+
+                default:
+                    return false;
+            }
+        }
+
+        void BuildCapsuleShadowCasterList(HDCamera hdCamera, CullingResults cullResults)
+        {
             Vector3 originWS = Vector3.zero;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
                 originWS = hdCamera.camera.transform.position;
 
-            // if there is a single light with capsule shadows, build optimised bounds
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
-            CapsuleShadowDirectionalLight singleLight = new CapsuleShadowDirectionalLight { };
-            bool optimiseBoundsForLight = false;
-            float maxRange = 0.0f;
+            CapsuleShadowCaster shadowCasterTemp = new CapsuleShadowCaster();
             for (int i = 0; i < cullResults.visibleLights.Length; ++i)
             {
-                VisibleLight visibleLight = cullResults.visibleLights[i];
-                Light light = visibleLight.light;
-
-                int dataIndex = lightEntities.FindEntityDataIndex(light);
-                if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
-                    continue;
-
-                HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
-                if (lightData.enableCapsuleShadows)
-                {
-                    maxRange = Mathf.Max(maxRange, lightData.capsuleShadowRange);
-
-                    if (light.type == LightType.Directional && !optimiseBoundsForLight)
-                    {
-                        // optimise for this light, continue checking through the visible list
-                        optimiseBoundsForLight = true;
-                        singleLight = new CapsuleShadowDirectionalLight(
-                            -visibleLight.GetForward().normalized,
-                            Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f,
-                            lightData.capsuleShadowRange);
-                    }
-                    else
-                    {
-                        // cannot optimise for a single directional light, disable and early out
-                        singleLight = new CapsuleShadowDirectionalLight { };
-                        optimiseBoundsForLight = false;
-                        break;
-                    }
-                }
+                if (ConvertLightToShadowCaster(originWS, lightEntities, cullResults.visibleLights[i], ref shadowCasterTemp))
+                    m_CapsuleShadowCasters.Add(shadowCasterTemp);
             }
-            m_DirectionalLight = singleLight;
+        }
 
-            m_CapsuleOccluders.Clear();
+        void BuildCapsuleOccluderListForLightLoop(HDCamera hdCamera, CullingResults cullResults, CapsuleShadowsVolumeComponent capsuleShadows)
+        {
+            Vector3 originWS = Vector3.zero;
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                originWS = hdCamera.camera.transform.position;
+
+            bool optimiseBoundsForLight = (m_CapsuleShadowCasters.Count == 1) && m_CapsuleShadowCasters[0].isDirectional;
+            Vector3 singleCasterDir = m_CapsuleShadowCasters[0].directionWS;
+            float singleCasterRange = m_CapsuleShadowCasters[0].shadowRange;
+            float singleCasterTanTheta = m_CapsuleShadowCasters[0].tanTheta;
             m_CapsuleOccluders.directUsesSphereBounds = !optimiseBoundsForLight;
-            m_CapsuleOccluders.inLightLoop = capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop;
+
+            float maxRange = 0.0f;
+            for (int i = 0; i < m_CapsuleShadowCasters.Count; ++i)
+                maxRange = Mathf.Max(maxRange, m_CapsuleShadowCasters[i].shadowRange);
 
             bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
             float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
             bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
-            if (enableDirectShadows || enableIndirectShadows)
+            using (ListPool<OrientedBBox>.Get(out List<OrientedBBox> indirectBounds))
+            using (ListPool<CapsuleOccluderData>.Get(out List<CapsuleOccluderData> indirectOccluders))
             {
-                using (ListPool<OrientedBBox>.Get(out List<OrientedBBox> indirectBounds))
-                using (ListPool<CapsuleOccluderData>.Get(out List<CapsuleOccluderData> indirectOccluders))
+                bool scalePenumbraAlongX = (capsuleShadows.directShadowMethod == CapsuleShadowMethod.Ellipsoid);
+                foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
                 {
-                    bool scalePenumbraAlongX = (capsuleShadows.directShadowMethod == CapsuleShadowMethod.Ellipsoid);
-                    var occluders = CapsuleOccluderManager.instance.occluders;
-                    foreach (CapsuleOccluder occluder in occluders)
+                    CapsuleOccluderData data = occluder.GetOccluderData(originWS);
+
+                    if (enableDirectShadows && m_CapsuleOccluders.directCount < k_MaxDirectShadowCapsulesOnScreen)
                     {
-                        CapsuleOccluderData data = occluder.GetOccluderData(originWS);
-
-                        if (enableDirectShadows && m_CapsuleOccluders.directCount < k_MaxDirectShadowCapsulesOnScreen)
+                        OrientedBBox bounds;
+                        if (optimiseBoundsForLight)
                         {
-                            OrientedBBox bounds;
-                            if (optimiseBoundsForLight)
-                            {
-                                // align local X with the capsule axis
-                                Vector3 localZ = singleLight.direction;
-                                Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
-                                Vector3 localX = Vector3.Cross(localY, localZ);
+                            // align local X with the capsule axis
+                            Vector3 localZ = singleCasterDir;
+                            Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
+                            Vector3 localX = Vector3.Cross(localY, localZ);
 
-                                // capsule bounds, extended along light direction
-                                Vector3 centerRWS = data.centerRWS;
-                                Vector3 halfExtentLS = new Vector3(
-                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
-                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
-                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
-                                halfExtentLS.z += 0.5f * singleLight.range;
-                                centerRWS -= (0.5f * singleLight.range) * localZ;
+                            // capsule bounds, extended along light direction
+                            Vector3 centerRWS = data.centerRWS;
+                            Vector3 halfExtentLS = new Vector3(
+                                Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
+                                Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
+                                Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
+                            halfExtentLS.z += 0.5f * singleCasterRange;
+                            centerRWS -= (0.5f * singleCasterRange) * localZ;
 
-                                // expand by max penumbra
-                                float penumbraSize = Mathf.Tan(singleLight.tanTheta) * singleLight.range;
-                                halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
-                                halfExtentLS.y += penumbraSize;
+                            // expand by max penumbra
+                            float penumbraSize = singleCasterTanTheta * singleCasterRange;
+                            halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
+                            halfExtentLS.y += penumbraSize;
 
-                                bounds = new OrientedBBox(new Matrix4x4(
-                                    2.0f * halfExtentLS.x * localX,
-                                    2.0f * halfExtentLS.y * localY,
-                                    2.0f * halfExtentLS.z * localZ,
-                                    centerRWS));
-                            }
-                            else
-                            {
-                                // max distance from *surface* of capsule
-                                float length = 2.0f * (data.offset + data.radius + maxRange);
-                                bounds = new OrientedBBox(
-                                    Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
-                            }
-
-                            // Frustum cull on the CPU for now.
-                            if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
-                            {
-                                m_CapsuleOccluders.bounds.Add(bounds);
-                                m_CapsuleOccluders.occluders.Add(data);
-                                m_CapsuleOccluders.directCount += 1;
-                            }
+                            bounds = new OrientedBBox(new Matrix4x4(
+                                2.0f * halfExtentLS.x * localX,
+                                2.0f * halfExtentLS.y * localY,
+                                2.0f * halfExtentLS.z * localZ,
+                                centerRWS));
+                        }
+                        else
+                        {
+                            // max distance from *surface* of capsule
+                            float length = 2.0f * (data.offset + data.radius + maxRange);
+                            bounds = new OrientedBBox(
+                                Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                         }
 
-                        if (enableIndirectShadows && m_CapsuleOccluders.indirectCount < k_MaxIndirectShadowCapsulesOnScreen)
+                        // Frustum cull on the CPU for now.
+                        if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
                         {
-                            float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
-                            OrientedBBox bounds = new OrientedBBox(
-                                 Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
-                            if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
-                            {
-                                indirectBounds.Add(bounds);
-                                indirectOccluders.Add(data);
-                                m_CapsuleOccluders.indirectCount += 1;
-                            }    
+                            m_CapsuleOccluders.bounds.Add(bounds);
+                            m_CapsuleOccluders.occluders.Add(data);
+                            m_CapsuleOccluders.directCount += 1;
                         }
                     }
 
-                    if (capsuleShadows.indirectShadowMethod.value == CapsuleIndirectShadowMethod.DirectionAtCapsule)
+                    if (enableIndirectShadows && m_CapsuleOccluders.indirectCount < k_MaxIndirectShadowCapsulesOnScreen)
                     {
-                        int count = indirectOccluders.Count;
-                        var positions = new Vector3[count];
-                        var lighting = new SphericalHarmonicsL2[count];
-
-                        for (int i = 0; i < count; ++i)
-                            positions[i] = indirectOccluders[i].centerRWS + originWS;
-
-                        LightProbes.CalculateInterpolatedLightAndOcclusionProbes(positions, lighting, null);
-
-                        Vector3 luma = new Vector3(0.2126729f, 0.7151522f, 0.0721750f);
-                        const int R = 0, G = 1, B = 2;
-                        const int X = 3, Y = 1, Z = 2;
-                        Vector3 directionBias = capsuleShadows.indirectDirectionBias.value;
-                        for (int i = 0; i < count; ++i)
+                        float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
+                        OrientedBBox bounds = new OrientedBBox(
+                            Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                        if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
                         {
-                            SphericalHarmonicsL2 probe = lighting[i];
-                            Vector3 L1_X = new Vector3(probe[R, X], probe[G, X], probe[B, X]);
-                            Vector3 L1_Y = new Vector3(probe[R, Y], probe[G, Y], probe[B, Y]);
-                            Vector3 L1_Z = new Vector3(probe[R, Z], probe[G, Z], probe[B, Z]);
-                            Vector3 L1_Vec = new Vector3(Vector3.Dot(L1_X, luma), Vector3.Dot(L1_Y, luma), Vector3.Dot(L1_Z, luma));
+                            indirectBounds.Add(bounds);
+                            indirectOccluders.Add(data);
+                            m_CapsuleOccluders.indirectCount += 1;
+                        }    
+                    }
+                }
 
-                            CapsuleOccluderData data = indirectOccluders[i];
-                            data.indirectDirWS = (L1_Vec.normalized + directionBias).normalized;
-                            indirectOccluders[i] = data;
+                if (capsuleShadows.indirectShadowMethod.value == CapsuleIndirectShadowMethod.DirectionAtCapsule)
+                {
+                    int count = indirectOccluders.Count;
+                    var positions = new Vector3[count];
+                    var lighting = new SphericalHarmonicsL2[count];
+
+                    for (int i = 0; i < count; ++i)
+                        positions[i] = indirectOccluders[i].centerRWS + originWS;
+
+                    LightProbes.CalculateInterpolatedLightAndOcclusionProbes(positions, lighting, null);
+
+                    Vector3 luma = new Vector3(0.2126729f, 0.7151522f, 0.0721750f);
+                    const int R = 0, G = 1, B = 2;
+                    const int X = 3, Y = 1, Z = 2;
+                    Vector3 directionBias = capsuleShadows.indirectDirectionBias.value;
+                    for (int i = 0; i < count; ++i)
+                    {
+                        SphericalHarmonicsL2 probe = lighting[i];
+                        Vector3 L1_X = new Vector3(probe[R, X], probe[G, X], probe[B, X]);
+                        Vector3 L1_Y = new Vector3(probe[R, Y], probe[G, Y], probe[B, Y]);
+                        Vector3 L1_Z = new Vector3(probe[R, Z], probe[G, Z], probe[B, Z]);
+                        Vector3 L1_Vec = new Vector3(Vector3.Dot(L1_X, luma), Vector3.Dot(L1_Y, luma), Vector3.Dot(L1_Z, luma));
+
+                        CapsuleOccluderData data = indirectOccluders[i];
+                        data.indirectDirWS = (L1_Vec.normalized + directionBias).normalized;
+                        indirectOccluders[i] = data;
+                    }
+                }
+
+                m_CapsuleOccluders.bounds.AddRange(indirectBounds);
+                m_CapsuleOccluders.occluders.AddRange(indirectOccluders);
+            }
+        }
+
+        void BuildCapsuleOccluderListForPrePass(HDCamera hdCamera, CullingResults cullResults, CapsuleShadowsVolumeComponent capsuleShadows)
+        {
+            Vector3 originWS = Vector3.zero;
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                originWS = hdCamera.camera.transform.position;
+
+            bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
+            float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
+            bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
+            foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
+            {
+                CapsuleOccluderData data = occluder.GetOccluderData(originWS);
+
+                if (enableDirectShadows)
+                {
+                    for (int casterIndex = 0 ; casterIndex < m_CapsuleShadowCasters.Count && m_CapsuleOccluders.directCount < k_MaxDirectShadowCapsulesOnScreen; ++casterIndex)
+                    {
+                        CapsuleShadowCaster caster = m_CapsuleShadowCasters[casterIndex];
+
+                        float length = 2.0f * (data.offset + data.radius + caster.shadowRange);
+                        OrientedBBox bounds = new OrientedBBox(
+                            Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                        if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
+                        {
+                            data.casterType = (CapsuleShadowCasterType)caster.casterType;
+                            data.casterIndex = (uint)casterIndex;
+                            m_CapsuleOccluders.occluders.Add(data);
+                            m_CapsuleOccluders.directCount += 1;
                         }
                     }
+                }
 
-                    m_CapsuleOccluders.bounds.AddRange(indirectBounds);
-                    m_CapsuleOccluders.occluders.AddRange(indirectOccluders);
+                if (enableIndirectShadows && m_CapsuleOccluders.indirectCount < k_MaxIndirectShadowCapsulesOnScreen)
+                {
+                    float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
+                    OrientedBBox bounds = new OrientedBBox(
+                        Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                    if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
+                    {
+                        data.casterType = CapsuleShadowCasterType.AmbientOcclusion;
+                        m_CapsuleOccluders.occluders.Add(data);
+                        m_CapsuleOccluders.indirectCount += 1;
+                    }    
                 }
             }
+        }
 
+        void BuildCapsuleCasterAndOccluderLists(HDCamera hdCamera, CullingResults cullResults)
+        {
+            m_CapsuleShadowCasters.Clear();
+            m_CapsuleOccluders.Clear();
+
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+            m_CapsuleOccluders.inLightLoop = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop);
+
+            bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
+            float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
+            bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
+            if (!enableDirectShadows && !enableIndirectShadows)
+                return;
+
+            BuildCapsuleShadowCasterList(hdCamera, cullResults);
+            if (m_CapsuleShadowCasters.Count == 0 && !enableIndirectShadows)
+                return;
+
+            if (m_CapsuleOccluders.inLightLoop)
+                BuildCapsuleOccluderListForLightLoop(hdCamera, cullResults, capsuleShadows);
+            else
+                BuildCapsuleOccluderListForPrePass(hdCamera, cullResults, capsuleShadows);
+        }
+
+        internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CullingResults cullResults)
+        {
+            BuildCapsuleCasterAndOccluderLists(hdCamera, cullResults);
             m_CapsuleOccluderDataBuffer.SetData(m_CapsuleOccluders.occluders);
-
+            if (!m_CapsuleOccluders.inLightLoop)
+                m_CapsuleShadowCastersBuffer.SetData(m_CapsuleShadowCasters);
             return m_CapsuleOccluders;
         }
 
@@ -285,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
         {
-            cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_CapsuleOccluderDataBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderData, m_CapsuleOccluderDataBuffer);
         }
 
         struct CapsuleShadowParameters
@@ -302,8 +392,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader cs;
             public int kernel;
 
-            public CapsuleShadowDirectionalLight directionalLight;
-
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
@@ -312,7 +400,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle renderOutput;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
-            public ComputeBufferHandle capsuleOccluderDatas;
+            public ComputeBufferHandle capsuleOccluderData;
+            public ComputeBufferHandle capsuleShadowCasters;
             public Vector2Int depthPyramidTextureSize;
             public Vector2Int firstDepthMipOffset;
         }
@@ -349,8 +438,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cs = defaultResources.shaders.capsuleShadowsRenderCS;
                 passData.kernel = passData.cs.FindKernel("Main");
 
-                passData.directionalLight = m_DirectionalLight;
-
                 passData.tileDebugMode = parameters.tileDebugMode;
                 if (parameters.tileDebugMode != CapsuleTileDebugMode.None)
                 {
@@ -369,7 +456,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.renderOutput = builder.WriteTexture(renderOutput);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.capsuleOccluderDatas = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
+                passData.capsuleOccluderData = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
+                passData.capsuleShadowCasters = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleShadowCastersBuffer));
                 passData.depthPyramidTextureSize = depthMipInfo.textureSize;
                 passData.firstDepthMipOffset = depthMipInfo.mipLevelOffsets[1];
 
@@ -382,27 +470,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector2Int renderTextureSize = new Vector2Int(renderTexture.width, renderTexture.height);
 
                         ShaderVariablesCapsuleShadows cb = new ShaderVariablesCapsuleShadows { };
-
                         cb._CapsuleUpscaledSize = sizeAndRcp(data.upscaledSize);
-
-                        cb._CapsuleLightDir = data.directionalLight.direction;
-                        cb._CapsuleLightCosTheta = data.directionalLight.cosTheta;
-
-                        cb._CapsuleLightTanTheta = data.directionalLight.tanTheta;
-                        cb._CapsuleShadowRange = data.directionalLight.range;
-
                         cb._CapsuleRenderTextureSize = sizeAndRcp(renderTextureSize);
                         cb._DepthPyramidTextureSize = sizeAndRcp(data.depthPyramidTextureSize);
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
                         cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
-
-                        ConstantBuffer.Push(ctx.cmd, cb, data.cs, HDShaderIDs._ShaderVariablesCapsuleShadows);
+                        ConstantBuffer.Push(ctx.cmd, cb, data.cs, HDShaderIDs.ShaderVariablesCapsuleShadows);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleOccluderDatas, data.capsuleOccluderDatas);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleOccluderData, data.capsuleOccluderData);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCasters, data.capsuleShadowCasters);
 
                         bool useTileDebug = (data.tileDebugMode != CapsuleTileDebugMode.None);
                         if (useTileDebug)
@@ -444,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (CapsuleShadowsUpscalePassData data, RenderGraphContext ctx) =>
                     {
-                        ConstantBuffer.Set<ShaderVariablesCapsuleShadows>(ctx.cmd, data.cs, HDShaderIDs._ShaderVariablesCapsuleShadows);
+                        ConstantBuffer.Set<ShaderVariablesCapsuleShadows>(ctx.cmd, data.cs, HDShaderIDs.ShaderVariablesCapsuleShadows);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsTexture, data.upscaleOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);

@@ -2168,7 +2168,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 LocalVolumetricFogList localVolumetricFog = PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // Capsule Occluders
-                CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cmd, cullingResults);
+                CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cullingResults);
 
                 // do AdaptiveProbeVolume stuff
                 BindAPVRuntimeResources(cmd, hdCamera);

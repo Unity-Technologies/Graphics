@@ -37,6 +37,14 @@
 #define CAPSULESHADOWFLAGS_FADE_SELF_SHADOW_BIT (67108864)
 #define CAPSULESHADOWFLAGS_SPLIT_DEPTH_RANGE_BIT (134217728)
 
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowCasterType:  static fields
+//
+#define CAPSULESHADOWCASTERTYPE_NONE (0)
+#define CAPSULESHADOWCASTERTYPE_DIRECTIONAL (1)
+#define CAPSULESHADOWCASTERTYPE_POINT (2)
+#define CAPSULESHADOWCASTERTYPE_AMBIENT_OCCLUSION (3)
+
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData
@@ -47,6 +55,20 @@ struct CapsuleOccluderData
     float offset;
     float3 indirectDirWS;
     uint packedData;
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.CapsuleShadowCaster
+// PackingRules = Exact
+struct CapsuleShadowCaster
+{
+    uint casterType;
+    float shadowRange;
+    float tanTheta;
+    uint padUnused;
+    float3 directionWS;
+    float cosTheta;
+    float3 positionRWS;
+    float radiusWS;
 };
 
 
