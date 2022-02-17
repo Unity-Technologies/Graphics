@@ -22,7 +22,7 @@ You can [create your own Shader Graphs](#create-decal-shaders) that render decal
 
 The Decal Material properties above are defined in the pre-built Shader Graph. Custom decal Material properties depend on a custom Shader Graph.
 
-The following table describes the properties in the **Advanced Options** section. These properties are common for all decal shaders. 
+The following table describes the properties in the **Advanced Options** section. These properties are common for all decal shaders.
 
 | __Property__ | __Description__ |
 |---|---|
