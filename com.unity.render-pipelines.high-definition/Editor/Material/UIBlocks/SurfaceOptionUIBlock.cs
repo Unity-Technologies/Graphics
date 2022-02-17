@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Displays the preserve specular lighting field.</summary>
             PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask  | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
             Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
