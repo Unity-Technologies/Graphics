@@ -280,7 +280,7 @@ namespace UnityEditor.VFX
 
                 if (addPragmaRequireCubeArray)
                 {
-                    overridenPragmas.Add(new PragmaDescriptor() {value = "require cubearray"});
+                    overridenPragmas.Add(new PragmaDescriptor() { value = "require cubearray" });
                 }
 
                 return overridenPragmas;
