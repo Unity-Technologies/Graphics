@@ -33,6 +33,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// The selected camera index, use the property for better handling
+        /// </summary>
         protected int m_SelectedCameraIndex = -1;
 
         /// <summary>Selected camera index.</summary>
