@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -35,15 +36,25 @@ namespace UnityEditor.Rendering
         protected T Cast<T>(object o)
             where T : class
         {
-            var casted = o as T;
+            if (o == null) return null;
 
-            if (casted == null)
+            if (o is T casted)
+                return casted;
+
+            StringBuilder info = new StringBuilder("Cast Exception:");
+            switch (o)
             {
-                string typeName = o == null ? "null" : o.GetType().ToString();
-                throw new InvalidOperationException("Can't cast " + typeName + " to " + typeof(T));
+                case DebugUI.Widget value:
+                    info.AppendLine($"Query Path : {value.queryPath}");
+                    break;
+                case DebugState state:
+                    info.AppendLine($"Query Path : {state.queryPath}");
+                    break;
             }
+            info.AppendLine($"Object to Cast Type : {o.GetType().AssemblyQualifiedName}");
+            info.AppendLine($"Target Cast Type : {typeof(T).AssemblyQualifiedName}");
 
-            return casted;
+            throw new InvalidCastException(info.ToString());
         }
 
         /// <summary>
@@ -81,7 +92,7 @@ namespace UnityEditor.Rendering
         /// <param name="value">Input value.</param>
         protected void Apply(DebugUI.IValueField widget, DebugState state, object value)
         {
-            Undo.RegisterCompleteObjectUndo(state, $"Debug Property '{state.queryPath}' Change");
+            Undo.RegisterCompleteObjectUndo(state, $"'{state.queryPath}': {state.GetValue()} -> {value}");
             state.SetValue(value, widget);
             widget.SetValue(value);
             EditorUtility.SetDirty(state);
@@ -108,6 +119,69 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.labelWidth = fullWidth ? rect.width : rect.width / 2f;
 
             return rect;
+        }
+    }
+
+    /// <summary>
+    /// Debug Item Field Drawer
+    /// </summary>
+    public abstract class DebugUIFieldDrawer<TValue, TField, TState> : DebugUIDrawer
+        where TField : DebugUI.Field<TValue>
+        where TState : DebugState
+    {
+        private TValue value { get; set; }
+
+        /// <summary>
+        /// Implement this to execute processing before UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void Begin(DebugUI.Widget widget, DebugState state)
+        {
+            EditorGUI.BeginChangeCheck();
+        }
+
+        /// <summary>
+        /// Implement this to execute UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>Returns the state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            value = DoGUI(
+                PrepareControlRect(),
+                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                Cast<TField>(widget),
+                Cast<TState>(state)
+            );
+
+            return true;
+        }
+
+        /// <summary>
+        /// Does the field of the given type
+        /// </summary>
+        /// <param name="rect">The rect to draw the field</param>
+        /// <param name="label">The label for the field</param>
+        /// <param name="field">The field</param>
+        /// <param name="state">The state</param>
+        /// <returns>The current value from the UI</returns>
+        protected abstract TValue DoGUI(Rect rect, GUIContent label, TField field, TState state);
+
+        /// <summary>
+        /// Implement this to execute processing after UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void End(DebugUI.Widget widget, DebugState state)
+        {
+            if (EditorGUI.EndChangeCheck())
+            {
+                var w = Cast<TField>(widget);
+                var s = Cast<TState>(state);
+                Apply(w, s, value);
+            }
         }
     }
 }

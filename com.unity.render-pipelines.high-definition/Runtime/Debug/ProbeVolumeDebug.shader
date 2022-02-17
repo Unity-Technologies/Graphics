@@ -38,6 +38,16 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             {
                 return float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_INVALIDATED_BY_TOUCHUP_VOLUMES)
+            {
+                float4 defaultCol = float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
+                float touchupAction = UNITY_ACCESS_INSTANCED_PROP(Props, _TouchupedByVolume);
+                if (touchupAction > 0 && touchupAction < 1)
+                {
+                    return float4(1, 0, 0, 1);
+                }
+                return defaultCol;
+            }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
             {
                 float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
