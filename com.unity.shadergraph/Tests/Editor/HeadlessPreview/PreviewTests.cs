@@ -519,17 +519,22 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
+            FunctionDescriptor truncate = new FunctionDescriptor(1, "Truncate",
+                "Out = In.x;",
+                new ParameterDescriptor("Out", TYPE.Float, Types.GraphType.Usage.Out),
+                new ParameterDescriptor("In", TYPE.Vector, Types.GraphType.Usage.In));
+
             FunctionDescriptor make = new FunctionDescriptor(1, "Make",
                 "Out.x = X; Out.y = Y;",
                 new ParameterDescriptor("Out", TYPE.Vec2, Types.GraphType.Usage.Out),
                 new ParameterDescriptor("X", TYPE.Float, Types.GraphType.Usage.In),
                 new ParameterDescriptor("Y", TYPE.Float, Types.GraphType.Usage.In));
 
-        FunctionDescriptor append = new FunctionDescriptor(1, "Append",
-            "Out.xy = In; Out.z = Z;",
-            new ParameterDescriptor("Out", TYPE.Vec3, Types.GraphType.Usage.Out),
-            new ParameterDescriptor("In", TYPE.Vec2, Types.GraphType.Usage.In),
-            new ParameterDescriptor("Z", TYPE.Float, Types.GraphType.Usage.In));
+            FunctionDescriptor append = new FunctionDescriptor(1, "Append",
+                "Out.xy = In; Out.z = Z;",
+                new ParameterDescriptor("Out", TYPE.Vec3, Types.GraphType.Usage.Out),
+                new ParameterDescriptor("In", TYPE.Vec2, Types.GraphType.Usage.In),
+                new ParameterDescriptor("Z", TYPE.Float, Types.GraphType.Usage.In));
 
 
             var graphHandler = GraphUtil.CreateGraph();
@@ -540,30 +545,35 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             registry.Register<Types.GraphTypeAssignment>();
             var makeKey = registry.Register(make);
             var appendKey = registry.Register(append);
+            var scalarKey = registry.Register(truncate);
 
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
 
+            var scalarWriter = graphHandler.AddNode(scalarKey, "TruncateNodeInstance", registry);
             var makeWriter = graphHandler.AddNode(makeKey, "MakeNodeInstance", registry);
             var appendWriter = graphHandler.AddNode(appendKey, "AppendNodeInstance", registry);
 
-            // Yellow
-            makeWriter.SetPortField("X", "c0", 1f);
-            makeWriter.SetPortField("Y", "c0", 1f);
-            previewMgr.SetLocalProperty("MakeNodeInstance", "X", 1f);
-            previewMgr.SetLocalProperty("MakeNodeInstance", "Y", 1f);
+            // White, float output duplicates across all components
+            scalarWriter.SetPortField("In", "c0", 1f);
+            previewMgr.SetLocalProperty("TruncateNodeInstance", "In", 1f);
+            var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("TruncateNodeInstance");
+            Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
 
-            var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("MakeNodeInstance");
+            // Yellow, X set to 1, Y comes from the output of the truncate node.
+            makeWriter.SetPortField("X", "c0", 1f);
+            previewMgr.SetLocalProperty("MakeNodeInstance", "X", 1f);
+            graphHandler.TryConnect("TruncateNodeInstance", "Out", "MakeNodeInstance", "Y", registry);
+            previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
+            nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("MakeNodeInstance");
             Assert.AreEqual(new Color(1,1,0,1), SampleMaterialColor(nodePreviewMaterial));
 
-
-            // White
+            // White, Z is set to 1, XY comes from the vec2 output of the make node.
             appendWriter.SetPortField("Z", "c0", 1f);
             previewMgr.SetLocalProperty("AppendNodeInstance", "Z", 1f);
             graphHandler.TryConnect("MakeNodeInstance","Out","AppendNodeInstance", "In", registry);
             previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
-
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
         }
