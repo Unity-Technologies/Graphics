@@ -306,20 +306,15 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (_CapsuleDirectShadowsEnabled && light.capsuleShadowRange != 0.f)
+    if (_CapsuleDirectShadowsEnabled && _CapsuleShadowInLightLoop && light.capsuleShadowRange != 0.f)
     {
-        if (_CapsuleShadowInLightLoop)
-        {
-            float cosTheta = light.capsuleShadowMaxCosTheta;
-            float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
-            shadow *= capsuleShadow;
-        }
-        else
-        {
-            // TODO: get slice index from light
-            uint sliceIndex = _CapsuleIndirectShadowsEnabled ? 1 : 0;
-            shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, sliceIndex).x);
-        }
+        float cosTheta = light.capsuleShadowMaxCosTheta;
+        float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
+        shadow *= capsuleShadow;
+    }
+    if (_CapsuleDirectShadowsEnabled && !_CapsuleShadowInLightLoop && light.capsuleCasterIndex != -1)
+    {
+        shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, light.capsuleCasterIndex).x);
     }
 #endif
 
@@ -507,7 +502,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (_CapsuleDirectShadowsEnabled && light.capsuleShadowRange != 0.f)
+    if (_CapsuleDirectShadowsEnabled && _CapsuleShadowInLightLoop && light.capsuleShadowRange != 0.f)
     {
         float radius = light.size.x;
         float sinTheta = radius/length(posInput.positionWS - light.positionRWS);

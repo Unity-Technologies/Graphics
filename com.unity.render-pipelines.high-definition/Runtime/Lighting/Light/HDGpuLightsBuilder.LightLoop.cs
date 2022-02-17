@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProcessedVisibleLightsBuilder visibleLights,
             HDLightRenderDatabase lightEntities,
             in HDShadowInitParameters shadowInitParams,
+            CapsuleShadowAllocator capsuleShadowAllocator,
             DebugDisplaySettings debugDisplaySettings)
         {
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
                 StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities);
                 CompleteGpuLightDataJob();
-                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings);
+                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, capsuleShadowAllocator, debugDisplaySettings);
             }
 
             //Sanity check
@@ -401,6 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities,
             HDShadowSettings hdShadowSettings,
             in HDShadowInitParameters shadowInitParams,
+            CapsuleShadowAllocator capsuleShadowAllocator,
             DebugDisplaySettings debugDisplaySettings)
         {
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
@@ -467,6 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CalculateDirectionalLightDataTextureInfo(
                         ref lightData, cmd, light, lightComponent, additionalLightData,
                         hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                    lightData.capsuleCasterIndex = capsuleShadowAllocator.AllocateCaster(lightComponent, additionalLightData, hdCamera);
                 }
                 else
                 {
@@ -477,6 +480,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
                         hdCamera, contactShadowScalableSetting,
                         lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex);
+                    lightData.capsuleCasterIndex = capsuleShadowAllocator.AllocateCaster(lightComponent, additionalLightData, hdCamera);
                 }
             }
         }

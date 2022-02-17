@@ -2179,8 +2179,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
                 // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
-                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, capsuleOccluderList, localVolumetricFog, m_CurrentDebugDisplaySettings, aovRequest);
+                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CapsuleShadowAllocator, capsuleOccluderList, localVolumetricFog, m_CurrentDebugDisplaySettings, aovRequest);
 
+                WriteCapsuleOccluderDataAfterLightsPrepared(hdCamera);
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
                 // Do the same for ray tracing if allowed

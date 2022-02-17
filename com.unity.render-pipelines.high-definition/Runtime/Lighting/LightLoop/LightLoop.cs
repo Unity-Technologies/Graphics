@@ -1646,13 +1646,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
+        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, CapsuleShadowAllocator capsuleShadowAllocator)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareGPULightdata)))
             {
                 // 2. Go through all lights, convert them to GPU format.
                 // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings);
+                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, capsuleShadowAllocator, m_CurrentDebugDisplaySettings);
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
@@ -1864,7 +1864,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults,
-            CapsuleOccluderList capsuleOccluderList,
+            CapsuleShadowAllocator capsuleShadowAllocator,
+            in CapsuleOccluderList capsuleOccluderList,
             LocalVolumetricFogList localVolumetricFogList,
             DebugDisplaySettings debugDisplaySettings,
             AOVRequestData aovRequest)
@@ -1912,8 +1913,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
                 m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
-                m_CapsuleDirectShadowCount = capsuleOccluderList.inLightLoop ? capsuleOccluderList.directCount : 0;
-                m_CapsuleIndirectShadowCount = capsuleOccluderList.inLightLoop ? capsuleOccluderList.indirectCount : 0;
+                m_CapsuleDirectShadowCount = capsuleOccluderList.directCount;
+                m_CapsuleIndirectShadowCount = capsuleOccluderList.indirectCount;
 
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
@@ -1929,7 +1930,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_RayTracingSupported)
                         ReserveRayTracingCookieAtlasSlots();
 
-                    PrepareGPULightdata(cmd, hdCamera, cullResults);
+                    PrepareGPULightdata(cmd, hdCamera, cullResults, capsuleShadowAllocator);
 
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
@@ -1968,39 +1969,36 @@ namespace UnityEngine.Rendering.HighDefinition
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
 
-                    if (capsuleOccluderList.inLightLoop)
+                    if (capsuleOccluderList.directUsesSphereBounds)
                     {
-                        if (capsuleOccluderList.directUsesSphereBounds)
-                        {
-                            for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
-                            {
-                                // Capsule Occluders volumes are not lights and therefore should not affect light classification.
-                                LightFeatureFlags featureFlags = 0;
-                                CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-
-                                m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
-                            {
-                                // Capsule Occluders volumes are not lights and therefore should not affect light classification.
-                                LightFeatureFlags featureFlags = 0;
-                                CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-
-                                m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
-                            }
-                        }
-
-                        for (int i = 0, offset = capsuleOccluderList.directCount, n = capsuleOccluderList.indirectCount; i < n; i++)
+                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
                         {
                             // Capsule Occluders volumes are not lights and therefore should not affect light classification.
                             LightFeatureFlags featureFlags = 0;
-                            CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[offset + i], LightCategory.CapsuleIndirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                            CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
 
                             m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                         }
+                    }
+                    else
+                    {
+                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
+                        {
+                            // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                            LightFeatureFlags featureFlags = 0;
+                            CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+
+                            m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                        }
+                    }
+
+                    for (int i = 0, offset = capsuleOccluderList.directCount, n = capsuleOccluderList.indirectCount; i < n; i++)
+                    {
+                        // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[offset + i], LightCategory.CapsuleIndirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+
+                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                     }
 
                     for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)

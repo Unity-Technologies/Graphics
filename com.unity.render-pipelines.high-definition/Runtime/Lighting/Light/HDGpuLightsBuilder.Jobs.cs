@@ -339,6 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.nonLightMappedOnly = 0;
                 }
 
+                lightData.capsuleCasterIndex = -1;
                 lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
                 lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * lightRenderData.capsuleShadowMinimumAngle * 0.5f);
             }
@@ -695,6 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
+                lightData.capsuleCasterIndex = -1;
                 lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
                 lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * Mathf.Max(lightRenderData.angularDiameter, lightRenderData.capsuleShadowMinimumAngle) * 0.5f);
 

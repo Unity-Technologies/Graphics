@@ -111,9 +111,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float flareCosOuter;
         public float __unused__;
 
+        public int capsuleCasterIndex; // -1 means no capsule shadows
         public float capsuleShadowRange; // 0 if no capsule shadows
         public float capsuleShadowMaxCosTheta;
-        public Vector2 capsulePadding; // unused
+        public float capsulePadding; // unused
 
         public Vector3 flareTint;
         public float flareSize;               // Units: radians
@@ -179,9 +180,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float specularDimmer;
         public float __unused;
 
+        public int capsuleCasterIndex; // -1 means no capsule shadows
         public float capsuleShadowRange; // 0 if no capsule shadows
         public float capsuleShadowMaxCosTheta;
-        public Vector2 capsulePadding; // unused
+        public float capsulePadding; // unused
 
         public Vector2 padding;
         public float isRayTracedContactShadow;

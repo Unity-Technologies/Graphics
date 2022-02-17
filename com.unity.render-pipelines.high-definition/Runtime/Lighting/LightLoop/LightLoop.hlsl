@@ -707,7 +707,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
         else
         {
-            visibility = UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, 0).x);
+            uint casterIndex = 0; // always zero for indirect term
+            visibility = UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, casterIndex).x);
         }
         aggregateLighting.indirect.shadow = lerp(1.f - _CapsuleIndirectMinimumVisibility, 0.f, visibility);
     }
