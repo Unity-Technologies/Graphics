@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var templateInst in shaderInst.TemplateInstances)
             {
                 var template = templateInst.Template;
-                var linker = container.GetTemplateLinker(template.Linker);
+                var linker = template.Linker;
                 linker.Link(builder, container, templateInst);
             }
         }

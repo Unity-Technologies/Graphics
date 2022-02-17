@@ -62,15 +62,13 @@ namespace UnityEditor.ShaderFoundry
 
         Template BuildTemplate(SubShaderDescriptor subShaderDescriptor, int subShaderIndex)
         {
-            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}");
+            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
+            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
+            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}", legacyLinker);
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
             var result = builder.Build();
-
-            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
-            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
-            builder.SetLinker(legacyLinker);
 
             var subPassIndex = 0;
             foreach (var pass in subShaderDescriptor.passes)
