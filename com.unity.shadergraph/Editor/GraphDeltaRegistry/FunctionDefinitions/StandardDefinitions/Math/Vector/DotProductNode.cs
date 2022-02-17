@@ -19,10 +19,7 @@ namespace com.unity.shadergraph.defs
         {
             { "DisplayName", "Dot Product" },
             { "Category", "Math, Vector" },
-            { "Name.Synonyms", "" },
             { "Tooltip", "returns the dot product between two vectors" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the dot product of A and B" }
         };
     }

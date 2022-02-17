@@ -20,8 +20,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Vector" },
             { "Name.Synonyms", "length" },
             { "Tooltip", "returns the distance between A and B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the distance between A and B" }
         };
     }

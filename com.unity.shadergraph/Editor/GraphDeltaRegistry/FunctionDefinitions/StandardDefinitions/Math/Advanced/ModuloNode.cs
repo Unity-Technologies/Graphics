@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Modulo", // Name
             "Out = fmod(A, B);",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
+            new ParameterDescriptor("B", TYPE.Any, Usage.In), //defaults to 1
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
@@ -20,8 +20,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Advanced" },
             { "Name.Synonyms", "fmod, %" },
             { "Tooltip", "returns the remainder of dividing A by B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the remainder of dividing input A by input B" }
         };
     }

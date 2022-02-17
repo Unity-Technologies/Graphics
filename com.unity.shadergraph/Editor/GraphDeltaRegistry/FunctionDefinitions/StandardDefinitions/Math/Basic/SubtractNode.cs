@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Subtract", // Name
             "Out = A - B;",
-            new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
+            new ParameterDescriptor("A", TYPE.Any, Usage.In), //defaults to 1
+            new ParameterDescriptor("B", TYPE.Any, Usage.In), //defaults to 1
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
@@ -20,8 +20,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Basic" },
             { "Name.Synonyms", "subtraction, remove, -, minus" },
             { "Tooltip", "removes the value of B from A" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "A minus B" }
         };
     }

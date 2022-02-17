@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Posterize", // Name
             "Out = floor(In / (1 / Steps)) * (1 / Steps);",
             new ParameterDescriptor("In", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Steps", TYPE.Any, Usage.In),
+            new ParameterDescriptor("Steps", TYPE.Any, Usage.In), //defaults to 4
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 

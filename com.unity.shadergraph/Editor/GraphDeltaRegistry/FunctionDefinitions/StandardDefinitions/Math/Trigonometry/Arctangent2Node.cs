@@ -20,8 +20,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Trigonometry" },
             { "Name.Synonyms", "atan2" },
             { "Tooltip", "returns the arctangent of A divided by B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the arctangent of A divided by B" }
         };
     }

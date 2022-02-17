@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Divide", // Name
             "Out = A / B;",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
+            new ParameterDescriptor("B", TYPE.Any, Usage.In), //defaults to 2
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 

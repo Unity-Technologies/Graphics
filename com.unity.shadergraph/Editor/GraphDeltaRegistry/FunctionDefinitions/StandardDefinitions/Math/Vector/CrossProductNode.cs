@@ -21,8 +21,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Vector" },
             { "Name.Synonyms", "perpendicular" },
             { "Tooltip", "returns a vector that is perpendicular to the two input vectors" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "a vector that is perpendicular to the two input vectors" }
         };
     }
