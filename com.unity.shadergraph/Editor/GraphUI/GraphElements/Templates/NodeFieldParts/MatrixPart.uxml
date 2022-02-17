@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="unity-base-field">
+        <!--
+            Uncomment to add a left-hand label
+        <ui:Label text="Label" name="sg-matrix-label" class="unity-base-field__label"/>
+        -->
+        <ui:VisualElement name="sg-matrix-container" class="sg-matrix-container unity-base-field__input">
+            <!--
+                MatrixPart populates this element based on the required dimensions.
+                Rows are VisualElements w/ class sg-matrix-row, each containing the same number of elements.
+                Elements are FloatField w/ class sg-matrix-element.
+            -->
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
