@@ -40,7 +40,7 @@ void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
     float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
     // Second part of the phillips spectrum term
-    float2 nDC = (thread.xy / (float)_BandResolution - 0.5f) * 2.0f;
+    float2 nDC = (thread.xy / (float)_WaterRefSimRes - _WaterSpectrumOffset) * 2.0f;
     float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[thread.z];
     float P = Phillips(k, _WindDirection, _WindSpeed[thread.z]);
 
@@ -56,8 +56,8 @@ RWTexture2DArray<float4> _HtImaginaryBufferRW;
 [numthreads(8, 8, 1)]
 void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
 {
-    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5) * 2.0;
-    float2 k = (TWO_PI * nDC) / _BandPatchSize[currentThread.z] * _BandPatchSize[0];
+    float2 nDC = (currentThread.xy / (float)_WaterRefSimRes - _WaterSpectrumOffset) * 2.0;
+    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[currentThread.z];
 
     float  kl = length(k);
     float  w = sqrt(EARTH_GRAVITY * kl);
