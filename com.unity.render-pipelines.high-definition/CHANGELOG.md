@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added public API for Diffusion Profile Override volume Component.
 - Added time slicing support for realtime reflection probes.
 - Added denoising for the path tracer.
+- Added an initial version of under water rendering for the water system.
+- Added Asymmetric projection and Screen Coordinates Override frame settings. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
+- Added option to animate APV sample noise to smooth it out when TAA is enabled.
+- Added default DOTS compatible loading shader (MaterialLoading.shader)
+- Add #pragma editor_sync_compilation directive to MaterialError.shader
+- Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -41,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make Vertical gate fit the default for physical camera.
 - Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -123,6 +130,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP camera debug panel rendering foldout.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 - Fixed various issues with render graph viewer when entering playmode.
+- Fixed Probe Debug view misbehaving with fog.
+- Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
+- Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
 ## [14.0.0] - 2021-11-17
 

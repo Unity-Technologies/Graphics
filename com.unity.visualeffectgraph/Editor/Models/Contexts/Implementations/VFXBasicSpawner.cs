@@ -85,6 +85,7 @@ namespace UnityEditor.VFX
             var resource = referenceContext.GetResource();
             GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
 
+            DisplayName(referenceContext);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LoopDurationProperty);
             EditorGUILayout.PropertyField(m_LoopCountProperty);
@@ -155,6 +156,12 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+        }
+
+        private void DisplayName(VFXContext context)
+        {
+            var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
+            GUILayout.Label(label, VFXSlotContainerEditor.Styles.spawnStyle);
         }
     }
 

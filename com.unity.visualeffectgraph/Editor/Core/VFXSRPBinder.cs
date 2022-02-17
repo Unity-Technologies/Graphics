@@ -48,6 +48,8 @@ namespace UnityEditor.VFX
             return VFXAbstractRenderedOutput.BlendMode.Opaque;
         }
 
+        public virtual bool GetSupportsMotionVectorPerVertex(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings) => true;
+
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;

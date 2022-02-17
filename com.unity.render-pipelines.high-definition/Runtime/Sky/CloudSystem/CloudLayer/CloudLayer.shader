@@ -14,6 +14,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
     #pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
     #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
     #pragma multi_compile_local _ USE_SECOND_FLOWMAP
+    #pragma multi_compile_local _ PHYSICALLY_BASED_SUN
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
