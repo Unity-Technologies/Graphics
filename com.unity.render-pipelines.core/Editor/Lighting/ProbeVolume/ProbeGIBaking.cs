@@ -25,7 +25,9 @@ namespace UnityEngine.Rendering
         public Vector3[] probePositions;
         public SphericalHarmonicsL2[] sh;
         public uint[] validity;
+
         public Vector3[] offsetVectors;
+        public float[] touchupVolumeInteraction;
 
         public int minSubdiv;
         public int indexChunkCount;
@@ -603,6 +605,7 @@ namespace UnityEngine.Rendering
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new uint[numProbes];
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
+                cell.touchupVolumeInteraction = new float[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 // Find the subset of touchup volumes that will be considered for this cell.
@@ -637,6 +640,9 @@ namespace UnityEngine.Rendering
                             if (touchupVolume.invalidateProbes)
                             {
                                 invalidatedProbe = true;
+                                // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
+                                cell.touchupVolumeInteraction[i] = 0.5f;
+
                                 if (validity[j] < 0.05f) // We just want to add probes that were not already invalid or close to.
                                 {
                                     s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
@@ -644,6 +650,9 @@ namespace UnityEngine.Rendering
                             }
                             else if (touchupVolume.overrideDilationThreshold)
                             {
+                                // The 1 + is used to determine the action (debug shader tests above 1), then we add the threshold to be able to retrieve it in debug phase.
+                                cell.touchupVolumeInteraction[i] = 1.0f + touchupVolume.overriddenDilationThreshold;
+
                                 s_CustomDilationThresh.Add(i, touchupVolume.overriddenDilationThreshold);
                             }
                             break;
@@ -881,6 +890,7 @@ namespace UnityEngine.Rendering
                 probePositions = cell.probePositions.ToArray(),
                 validity = cell.validity.ToArray(),
                 offsetVectors = cell.offsetVectors.ToArray(),
+                touchupVolumeInteraction = cell.touchupVolumeInteraction.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
@@ -1065,6 +1075,7 @@ namespace UnityEngine.Rendering
 
             // CellSupportData
             using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var touchupVolumeInteraction = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
@@ -1097,6 +1108,7 @@ namespace UnityEngine.Rendering
                 validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
 
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
+                touchupVolumeInteraction.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.touchupVolumeInteraction);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
                 startCounts.Add(cellCounts);
@@ -1105,6 +1117,12 @@ namespace UnityEngine.Rendering
             // Need to save here because the forced import below discards the changes.
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
+
+            // Explicitly make sure the binary output files are writable since we write them using the C# file API (i.e. check out Perforce files if applicable)
+            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellSupportDataFilename });
+            if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2) outputPaths.Add(cellOptionalDataFilename);
+            if (!AssetDatabase.MakeEditable(outputPaths.ToArray()))
+                Debug.LogWarning($"Failed to make one or more probe volume output file(s) writable. This could result in baked data not being properly written to disk. {string.Join(",", outputPaths)}");
 
             unsafe
             {
@@ -1126,6 +1144,8 @@ namespace UnityEngine.Rendering
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteraction.GetUnsafeReadOnlyPtr(), touchupVolumeInteraction.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
                 }

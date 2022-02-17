@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Linear version of function that sets FSR RCAS shader constants
 - `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
 - Add probe volume influence weight parameter
+- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
 - Added support for multiple Baking States to Prove Volumes.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
 - Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.

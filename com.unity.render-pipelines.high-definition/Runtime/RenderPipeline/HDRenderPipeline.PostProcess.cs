@@ -486,7 +486,8 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle afterPostProcessBuffer,
             TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
-            HDCamera hdCamera)
+            HDCamera hdCamera,
+            CubemapFace cubemapFace)
         {
             bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             TextureHandle dest = postPRocessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
@@ -607,7 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
             }
 
-            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess);
+            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace);
 
             bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
@@ -4948,9 +4949,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle alphaTexture;
             public TextureHandle uiBuffer;
             public TextureHandle destination;
+
+            public CubemapFace cubemapFace;
         }
 
-        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY)
+        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY, CubemapFace cubemapFace)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -4986,6 +4989,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.alphaTexture = builder.ReadTexture(alphaTexture);
                 passData.destination = builder.WriteTexture(finalRT);
                 passData.uiBuffer = builder.ReadTexture(uiBuffer);
+                passData.cubemapFace = cubemapFace;
 
                 passData.outputColorSpace = 0;
                 if (HDROutputIsActive())
@@ -5157,7 +5161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
                         }
 
-                        HDUtils.DrawFullScreen(ctx.cmd, backBufferRect, finalPassMaterial, data.destination);
+                        HDUtils.DrawFullScreen(ctx.cmd, backBufferRect, finalPassMaterial, data.destination, cubemapFace: data.cubemapFace);
                     });
             }
         }
