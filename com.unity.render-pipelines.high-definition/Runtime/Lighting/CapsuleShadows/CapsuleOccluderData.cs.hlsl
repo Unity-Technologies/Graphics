@@ -64,9 +64,9 @@ struct CapsuleOccluderData
 struct CapsuleShadowCaster
 {
     uint casterType;
+    uint sliceIndex;
     float shadowRange;
     float tanTheta;
-    uint padUnused;
     float3 directionWS;
     float cosTheta;
     float3 positionRWS;

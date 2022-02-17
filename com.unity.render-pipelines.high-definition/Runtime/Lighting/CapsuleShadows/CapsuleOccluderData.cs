@@ -81,9 +81,9 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct CapsuleShadowCaster
     {
         public uint casterType;
+        public uint sliceIndex;
         public float shadowRange;
         public float tanTheta;          // directional light only
-        public uint padUnused;
 
         public Vector3 directionWS;     // directional light, or spot axis
         public float cosTheta;          // directional light, or maxCosTheta for point/spot

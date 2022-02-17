@@ -61,60 +61,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CapsuleOccluders.bounds = null;
         }
 
-        bool ConvertLightToShadowCaster(Vector3 originWS, HDLightRenderDatabase lightEntities, VisibleLight visibleLight, ref CapsuleShadowCaster shadowCaster)
-        {
-            Light light = visibleLight.light;
-
-            int dataIndex = lightEntities.FindEntityDataIndex(light);
-            if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
-                return false;
-
-            HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
-
-            if (!lightData.enableCapsuleShadows || lightData.capsuleShadowRange == 0.0f)
-                return false;
-
-            switch (light.type)
-            {
-                case LightType.Directional:
-                {
-                    float theta = Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
-
-                    shadowCaster = new CapsuleShadowCaster();
-                    shadowCaster.casterType = (uint)CapsuleShadowCasterType.Directional;
-                    shadowCaster.shadowRange = lightData.capsuleShadowRange;
-                    shadowCaster.tanTheta = Mathf.Tan(theta);
-                    shadowCaster.directionWS = -visibleLight.GetForward().normalized;
-                    shadowCaster.cosTheta = Mathf.Cos(theta);
-                    return true;
-                }
-
-                case LightType.Point:
-                case LightType.Spot:
-                {
-                    float minTheta = lightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f;
-
-                    shadowCaster = new CapsuleShadowCaster();
-                    shadowCaster.casterType = (uint)CapsuleShadowCasterType.Point;
-                    shadowCaster.shadowRange = Mathf.Min(lightData.capsuleShadowRange, light.range);
-                    shadowCaster.cosTheta = Mathf.Cos(minTheta);
-                    shadowCaster.positionRWS = visibleLight.GetPosition() - originWS;
-                    shadowCaster.radiusWS = lightData.shapeRadius;
-                    return true;
-                }
-
-                default:
-                    return false;
-            }
-        }
-
         void BuildCapsuleShadowCasterList(HDCamera hdCamera, CullingResults cullResults, CapsuleShadowsVolumeComponent capsuleShadows)
         {
             if (capsuleShadows.enableIndirectShadows.value && capsuleShadows.indirectRangeFactor.value > 0.0f)
             {
                 m_CapsuleShadowCasters.Add(new CapsuleShadowCaster()
                 {
-                    casterType = (uint)CapsuleShadowCasterType.AmbientOcclusion,
+                    casterType = (uint)CapsuleShadowCasterType.AmbientOcclusion, // TODO: other indirect types
+                    sliceIndex = 0,
                     // TODO: other fields
                 });
             }
@@ -125,11 +79,55 @@ namespace UnityEngine.Rendering.HighDefinition
                     originWS = hdCamera.camera.transform.position;
 
                 HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
-                CapsuleShadowCaster shadowCasterTemp = new CapsuleShadowCaster();
-                for (int i = 0; i < cullResults.visibleLights.Length; ++i)
+                for (int i = 0; i < cullResults.visibleLights.Length && m_CapsuleShadowCasters.Count < k_MaxCapsuleShadowCasters; ++i)
                 {
-                    if (ConvertLightToShadowCaster(originWS, lightEntities, cullResults.visibleLights[i], ref shadowCasterTemp))
-                        m_CapsuleShadowCasters.Add(shadowCasterTemp);
+                    var visibleLight = cullResults.visibleLights[i];
+                    Light light = visibleLight.light;
+
+                    int dataIndex = lightEntities.FindEntityDataIndex(light);
+                    if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                        continue;
+
+                    HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
+                    if (!lightData.enableCapsuleShadows || lightData.capsuleShadowRange == 0.0f)
+                        continue;
+
+                    switch (light.type)
+                    {
+                        case LightType.Directional:
+                        {
+                            float theta = Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
+                            m_CapsuleShadowCasters.Add(new CapsuleShadowCaster()
+                            {
+                                casterType = (uint)CapsuleShadowCasterType.Directional,
+                                sliceIndex = (uint)m_CapsuleShadowCasters.Count,
+                                shadowRange = lightData.capsuleShadowRange,
+                                tanTheta = Mathf.Tan(theta),
+                                directionWS = -visibleLight.GetForward().normalized,
+                                cosTheta = Mathf.Cos(theta),
+                            });
+                            break;
+                        }
+
+                        case LightType.Point:
+                        case LightType.Spot:
+                        {
+                            float minTheta = lightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f;
+                            m_CapsuleShadowCasters.Add(new CapsuleShadowCaster()
+                            {
+                                casterType = (uint)CapsuleShadowCasterType.Point,
+                                sliceIndex = (uint)m_CapsuleShadowCasters.Count,
+                                shadowRange = Mathf.Min(lightData.capsuleShadowRange, light.range),
+                                cosTheta = Mathf.Cos(minTheta),
+                                positionRWS = visibleLight.GetPosition() - originWS,
+                                radiusWS = lightData.shapeRadius,
+                            });
+                            break;
+                        }
+
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -300,12 +298,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             m_CapsuleOccluders.inLightLoop = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop);
-
-            bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
-            float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
-            bool enableIndirectShadows = (capsuleShadows.enableIndirectShadows.value && indirectRangeFactor > 0.0f);
-            if (!enableDirectShadows && !enableIndirectShadows)
-                return;
 
             BuildCapsuleShadowCasterList(hdCamera, cullResults, capsuleShadows);
             if (m_CapsuleShadowCasters.Count == 0)
