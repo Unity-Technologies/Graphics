@@ -46,6 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
             ShowAfterPostProcessPass = 1 << 10,
+            /// <summary>Obsolete - This field has no effect - Do not used.</summary>
+            AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass = 1 << 12,
             /// <summary>Displays the depth offset field.</summary>
@@ -53,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Displays the preserve specular lighting field.</summary>
             PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask  | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
             Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
