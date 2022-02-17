@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Better node position when created by dragging an edge
 - Fixed an exception when setting when changing the space of a shape to world [Case 1389076](https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
 - Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
+- In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
 - Picking and Selection passes [Case 1382788](https://issuetracker.unity3d.com/product/unity/issues/guid/1382788/), [Case 1402283](https://issuetracker.unity3d.com/product/unity/issues/guid/1402283/)
 
 ## [14.0.0] - 2021-11-17

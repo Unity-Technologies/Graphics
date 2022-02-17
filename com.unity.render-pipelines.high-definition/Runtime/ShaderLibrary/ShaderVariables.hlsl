@@ -76,6 +76,10 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBb;
     float4 unity_SHC;
 
+    // Renderer bounding box.
+    float4 unity_RendererBounds_Min;
+    float4 unity_RendererBounds_Max;
+
     // x = Disabled(0)/Enabled(1)
     // y = Computation are done in global space(0) or local space(1)
     // z = Texel size on U texture coordinate
@@ -453,6 +457,29 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 
 // There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
+
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = unity_RendererBounds_Min.xyz;
+    maxBounds = unity_RendererBounds_Max.xyz;
+}
+
+void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    minBounds -= _WorldSpaceCameraPos.xyz;
+    maxBounds -= _WorldSpaceCameraPos.xyz;
+#endif
+}
+
+float3 GetRendererExtents()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return (maxBounds - minBounds) * 0.5;
+}
 
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
