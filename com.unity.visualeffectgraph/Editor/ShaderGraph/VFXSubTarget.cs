@@ -268,15 +268,12 @@ namespace UnityEditor.VFX
 
                     if (shaderGraphSRPInfo.pragmasReplacement != null)
                     {
-                        var replacements = shaderGraphSRPInfo.pragmasReplacement.Where(o => o.oldDesc.value == pragma.descriptor.value);
-                        if (replacements.Any())
-                        {
-                            var replacement = replacements.First();
-                            if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
-                                continue; //Skip this irrelevant pragmas
+                        var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
+                        if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                            continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
 
+                        if (!string.IsNullOrEmpty(replacement.newDesc.value))
                             currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
-                        }
                     }
                     overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
                 }

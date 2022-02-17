@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
     {
         public struct ShaderGraphBinder
         {
-            public static readonly PragmaDescriptor kPragmaDescriptorNone = new PragmaDescriptor() { value = null };
+            public static readonly PragmaDescriptor kPragmaDescriptorNone = new () { value = "None" };
 
             public StructCollection structs;
             public DependencyCollection fieldDependencies;
