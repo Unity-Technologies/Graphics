@@ -380,11 +380,14 @@ namespace UnityEngine.Rendering
         /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
+        /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
         /// <param name="_FlareData1">ShaderID for the FlareData1</param>
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
@@ -396,8 +399,9 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
+            Texture sunOcclusionTexture,
             bool taaEnabled,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
+            int _FlareSunOcclusionTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
 
@@ -506,6 +510,8 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                if (sunOcclusionTexture != null)
+                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
@@ -561,11 +567,13 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from volumetric cloud on HDRP of null</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
         /// <param name="_FlareData1">ShaderID for the FlareData1</param>
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
@@ -579,8 +587,9 @@ namespace UnityEngine.Rendering
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
             Rendering.RenderTargetIdentifier colorBuffer,
+            Texture sunOcclusionTexture,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            int _FlareSunOcclusionTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
             Vector2 vScreenRatio;
@@ -708,6 +717,8 @@ namespace UnityEngine.Rendering
 
                 if (occlusionRT != null)
                     cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+                if (sunOcclusionTexture != null)
+                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
 
                 cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion + 0.5f / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion, 0.5f, 0, 0));
 

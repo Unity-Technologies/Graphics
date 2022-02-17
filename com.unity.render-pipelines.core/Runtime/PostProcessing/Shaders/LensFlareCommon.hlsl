@@ -43,6 +43,11 @@ TEXTURE2D_X(_FlareOcclusionTex);
 SAMPLER(sampler_FlareOcclusionTex);
 #endif
 
+#if defined(FLARE_COMPUTE_OCCLUSION) || defined(FLARE_OCCLUSION)
+TEXTURE2D_X(_FlareSunOcclusionTex);
+SAMPLER(sampler_FlareSunOcclusionTex);
+#endif
+
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
@@ -173,6 +178,9 @@ VaryingsLensFlare vertOcclusion(AttributesLensFlare input, uint instanceID : SV_
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
 
+    float2 fullUV = output.positionCS.xy * rcp(_ScreenSize.xy);
+    occlusion *= SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, fullUV, 0).w;
+
     output.occlusion = occlusion;
 
     return output;
@@ -227,6 +235,10 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
+
+    float2 fullUV = output.positionCS.xy * rcp(_ScreenSize.xy);
+    occlusion *= SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, fullUV, 0).w;
+
 #else
     float occlusion = 1.0f;
 #endif
