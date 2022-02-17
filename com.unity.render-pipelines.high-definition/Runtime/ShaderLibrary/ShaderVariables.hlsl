@@ -292,7 +292,7 @@ float SampleCustomDepth(float2 uv)
 bool IsSky(uint2 pixelCoord)
 {
     float deviceDepth = LoadCameraDepth(pixelCoord);
-    return deviceDepth == 0; // We assume the sky is the part of the depth buffer that haven't been written.
+    return deviceDepth == UNITY_RAW_FAR_CLIP_VALUE; // We assume the sky is the part of the depth buffer that haven't been written.
 }
 
 bool IsSky(float2 uv)
