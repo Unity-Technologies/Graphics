@@ -1024,9 +1024,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 true,
                 camera.transform.position,
                 gpuVP,
-                cmd, source,
+                cmd, source, null,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
-                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
+                -1, ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
