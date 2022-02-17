@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEngine;
 using Types = UnityEditor.ShaderGraph.Registry.Types;
+using com.unity.shadergraph.defs;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 {
@@ -509,6 +510,62 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             ShaderUtil.allowAsyncCompilation = tmp;
             var rt = DrawShaderToTexture(shaderObject);
             Assert.AreEqual(input.expectedColor, rt.GetPixel(0, 0));
+        }
+
+
+
+
+
+        [Test]
+        public void FunctionDescriptor_PreviewOutputTypes()
+        {
+            FunctionDescriptor make = new FunctionDescriptor(1, "Make",
+                "Out.x = X; Out.y = Y;",
+                new ParameterDescriptor("Out", TYPE.Vec2, Types.GraphType.Usage.Out),
+                new ParameterDescriptor("X", TYPE.Float, Types.GraphType.Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, Types.GraphType.Usage.In));
+
+        FunctionDescriptor append = new FunctionDescriptor(1, "Append",
+            "Out.xy = In; Out.z = Z;",
+            new ParameterDescriptor("Out", TYPE.Vec3, Types.GraphType.Usage.Out),
+            new ParameterDescriptor("In", TYPE.Vec2, Types.GraphType.Usage.In),
+            new ParameterDescriptor("Z", TYPE.Float, Types.GraphType.Usage.In));
+
+
+            var graphHandler = GraphUtil.CreateGraph();
+            var registry = new Registry.Registry();
+            var previewMgr = new HeadlessPreviewManager();
+
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.GraphTypeAssignment>();
+            var makeKey = registry.Register(make);
+            var appendKey = registry.Register(append);
+
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+
+            var makeWriter = graphHandler.AddNode(makeKey, "MakeNodeInstance", registry);
+            var appendWriter = graphHandler.AddNode(appendKey, "AppendNodeInstance", registry);
+
+            // Yellow
+            makeWriter.SetPortField("X", "c0", 1f);
+            makeWriter.SetPortField("Y", "c0", 1f);
+            previewMgr.SetLocalProperty("MakeNodeInstance", "X", 1f);
+            previewMgr.SetLocalProperty("MakeNodeInstance", "Y", 1f);
+
+            var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("MakeNodeInstance");
+            Assert.AreEqual(new Color(1,1,0,1), SampleMaterialColor(nodePreviewMaterial));
+
+
+            // White
+            appendWriter.SetPortField("Z", "c0", 1f);
+            previewMgr.SetLocalProperty("AppendNodeInstance", "Z", 1f);
+            graphHandler.TryConnect("MakeNodeInstance","Out","AppendNodeInstance", "In", registry);
+            previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
+
+            nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
+            Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
         }
     }
 }
