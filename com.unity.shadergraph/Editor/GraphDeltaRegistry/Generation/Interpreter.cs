@@ -11,6 +11,22 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
+        public static string GetFunctionCode(INodeReader node, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
+            builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
+
+        public static string GetBlockCode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
+            foreach (var func in block.Functions)
+                builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
 
         public static string GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
