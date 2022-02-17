@@ -54,7 +54,7 @@ The automatic upgrade options described above can't upgrade all Materials to HDR
 
 ### Converting Materials manually
 
-HDRP uses ultiple processes to automatically convert Built-in Standard and Unlit Materials to HDRP Lit and Unlit Materials respectively. These processes use an overlay function to blend the color channels together, similar to the process you would use in image editing software like Adobe Photoshop. 
+HDRP uses ultiple processes to automatically convert Built-in Standard and Unlit Materials to HDRP Lit and Unlit Materials respectively. These processes use an overlay function to blend the color channels together, similar to the process you would use in image editing software like Adobe Photoshop.
 
 To help you convert custom Materials manually, this section describes the maps that the converter creates from the Built-in Materials.
 
