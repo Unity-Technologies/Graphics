@@ -74,12 +74,3 @@ Last but not least, volumetric scattering now takes the fog color into account, 
 ### Custom Pass
 
 Added new functions that sample the custom buffer in custom passes that deals with scaling automatically, it's recommended to use them over the standard texture sampling. Learn more about the **CustomPassSampleCustomColor** and **CustomPassLoadCustomColor** function in the [Creating a Custom Pass](Custom-Pass-Creating.md) documentation.
-
-### Fullscreen Shader Graph
-
-![](Images/HDRP-Fullscreen-Frost-Effect.png)
-
-HDRP 13.0 introduces a new material type in ShaderGraph to create fullscreen effects.
-Shaders of the fullscreen type can be used in fullscreen custom passes, custom post processes and C# scripting.
-
-For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
