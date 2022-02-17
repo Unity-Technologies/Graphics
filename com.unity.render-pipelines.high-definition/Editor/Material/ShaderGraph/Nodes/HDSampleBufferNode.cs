@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum BufferType
         {
             NormalWorldSpace,
-            Roughness,
+            Smoothness,
             MotionVectors,
             IsSky,
             PostProcessInput,
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector", "roughness", "postprocessinput", "blit", "issky" };
+            synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "blit", "issky" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AddSlot(new Vector3MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector3.zero, ShaderStageCapability.Fragment));
                     channelCount = 3;
                     break;
-                case BufferType.Roughness:
+                case BufferType.Smoothness:
                     AddSlot(new Vector1MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
                     channelCount = 1;
                     break;
@@ -131,14 +131,15 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
                                 s.AppendLine("return normalData.normalWS;");
                                 break;
-                            case BufferType.Roughness:
+                            case BufferType.Smoothness:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("NormalData normalData;");
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.AppendLine("return IsSky(pixelCoords) ? 0 : PerceptualRoughnessToRoughness(normalData.perceptualRoughness);");
+                                s.AppendLine("return IsSky(pixelCoords) ? 0 : RoughnessToPerceptualSmoothness(PerceptualRoughnessToRoughness(normalData.perceptualRoughness));");
                                 break;
                             case BufferType.MotionVectors:
-                                s.AppendLine($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine($"float4 motionVecBufferSample = LOAD_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, pixelCoords, 0);");
                                 s.AppendLine("float2 motionVec;");
                                 s.AppendLine("DecodeMotionVector(motionVecBufferSample, motionVec);");
                                 s.AppendLine("return motionVec;");
@@ -147,7 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("return IsSky(uv) ? 1 : 0;");
                                 break;
                             case BufferType.PostProcessInput:
-                                s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("return LOAD_TEXTURE2D_X_LOD(_CustomPostProcessInput, pixelCoords, 0);");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");
@@ -171,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             case BufferType.MotionVectors:
                                 s.AppendLine("return uv * 2 - 1;");
                                 break;
-                            case BufferType.Roughness:
+                            case BufferType.Smoothness:
                                 s.AppendLine("return uv.x;");
                                 break;
                             case BufferType.PostProcessInput:

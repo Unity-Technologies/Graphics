@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         protected virtual Type GetDefaultShaderGUI() => typeof(FullscreenShaderGUI);
 
         public virtual string identifier => GetType().Name;
-        public virtual ScriptableObject GetMetadataObject()
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             var bultInMetadata = ScriptableObject.CreateInstance<FullscreenMetaData>();
             bultInMetadata.fullscreenMode = fullscreenData.fullscreenMode;
@@ -220,60 +220,76 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             return result;
         }
 
-        public static Blend BlendModeToBlend(BlendMode mode) => mode switch
+        public static Blend BlendModeToBlend(BlendMode mode)
         {
-            BlendMode.Zero => Blend.Zero,
-            BlendMode.One => Blend.One,
-            BlendMode.DstColor => Blend.DstColor,
-            BlendMode.SrcColor => Blend.SrcColor,
-            BlendMode.OneMinusDstColor => Blend.OneMinusDstColor,
-            BlendMode.SrcAlpha => Blend.SrcAlpha,
-            BlendMode.OneMinusSrcColor => Blend.OneMinusSrcColor,
-            BlendMode.DstAlpha => Blend.DstAlpha,
-            BlendMode.OneMinusDstAlpha => Blend.OneMinusDstAlpha,
-            BlendMode.SrcAlphaSaturate => Blend.SrcAlpha,
-            BlendMode.OneMinusSrcAlpha => Blend.OneMinusSrcAlpha,
-            _ => Blend.Zero
-        };
+            switch (mode)
+            {
+                case BlendMode.Zero: return Blend.Zero;
+                case BlendMode.One: return Blend.One;
+                case BlendMode.DstColor: return Blend.DstColor;
+                case BlendMode.SrcColor: return Blend.SrcColor;
+                case BlendMode.OneMinusDstColor: return Blend.OneMinusDstColor;
+                case BlendMode.SrcAlpha: return Blend.SrcAlpha;
+                case BlendMode.OneMinusSrcColor: return Blend.OneMinusSrcColor;
+                case BlendMode.DstAlpha: return Blend.DstAlpha;
+                case BlendMode.OneMinusDstAlpha: return Blend.OneMinusDstAlpha;
+                case BlendMode.SrcAlphaSaturate: return Blend.SrcAlpha;
+                case BlendMode.OneMinusSrcAlpha: return Blend.OneMinusSrcAlpha;
+                default: return Blend.Zero;
+            }
+            ;
+        }
 
-        public static ZTest CompareFunctionToZTest(CompareFunction mode) => mode switch
+        public static ZTest CompareFunctionToZTest(CompareFunction mode)
         {
-            CompareFunction.Equal => ZTest.Equal,
-            CompareFunction.NotEqual => ZTest.NotEqual,
-            CompareFunction.Greater => ZTest.Greater,
-            CompareFunction.Less => ZTest.Less,
-            CompareFunction.GreaterEqual => ZTest.GEqual,
-            CompareFunction.LessEqual => ZTest.LEqual,
-            CompareFunction.Always => ZTest.Always,
-            CompareFunction.Disabled => ZTest.Always,
-            _ => ZTest.Always
-        };
+            switch (mode)
+            {
+                case CompareFunction.Equal: return ZTest.Equal;
+                case CompareFunction.NotEqual: return ZTest.NotEqual;
+                case CompareFunction.Greater: return ZTest.Greater;
+                case CompareFunction.Less: return ZTest.Less;
+                case CompareFunction.GreaterEqual: return ZTest.GEqual;
+                case CompareFunction.LessEqual: return ZTest.LEqual;
+                case CompareFunction.Always: return ZTest.Always;
+                case CompareFunction.Disabled: return ZTest.Always;
+                default: return ZTest.Always;
+            }
+            ;
+        }
 
-        public static string CompareFunctionToStencilString(CompareFunction compare) => compare switch
+        public static string CompareFunctionToStencilString(CompareFunction compare)
         {
-            CompareFunction.Never => "Never",
-            CompareFunction.Equal => "Equal",
-            CompareFunction.NotEqual => "NotEqual",
-            CompareFunction.Greater => "Greater",
-            CompareFunction.Less => "Less",
-            CompareFunction.GreaterEqual => "GEqual",
-            CompareFunction.LessEqual => "LEqual",
-            CompareFunction.Always => "Always",
-            _ => "Always"
-        };
+            switch (compare)
+            {
+                case CompareFunction.Never: return "Never";
+                case CompareFunction.Equal: return "Equal";
+                case CompareFunction.NotEqual: return "NotEqual";
+                case CompareFunction.Greater: return "Greater";
+                case CompareFunction.Less: return "Less";
+                case CompareFunction.GreaterEqual: return "GEqual";
+                case CompareFunction.LessEqual: return "LEqual";
+                case CompareFunction.Always: return "Always";
+                default: return "Always";
+            }
+            ;
+        }
 
-        public static string StencilOpToStencilString(StencilOp op) => op switch
+        public static string StencilOpToStencilString(StencilOp op)
         {
-            StencilOp.Keep => "Keep",
-            StencilOp.Zero => "Zero",
-            StencilOp.Replace => "Replace",
-            StencilOp.IncrementSaturate => "IncrSat",
-            StencilOp.DecrementSaturate => "DecrSat",
-            StencilOp.Invert => "Invert",
-            StencilOp.IncrementWrap => "IncrWrap",
-            StencilOp.DecrementWrap => "DecrWrap",
-            _ => "Keep"
-        };
+            switch (op)
+            {
+                case StencilOp.Keep: return "Keep";
+                case StencilOp.Zero: return "Zero";
+                case StencilOp.Replace: return "Replace";
+                case StencilOp.IncrementSaturate: return "IncrSat";
+                case StencilOp.DecrementSaturate: return "DecrSat";
+                case StencilOp.Invert: return "Invert";
+                case StencilOp.IncrementWrap: return "IncrWrap";
+                case StencilOp.DecrementWrap: return "DecrWrap";
+                default: return "Keep";
+            }
+            ;
+        }
 
         public virtual SubShaderDescriptor GenerateSubShader()
         {
@@ -754,34 +770,34 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 context.globalIndentLevel++;
 
                 context.AddProperty("Reference", new IntegerField { value = fullscreenData.stencilReference, isDelayed = true }, (evt) =>
-                 {
-                     if (Equals(fullscreenData.stencilReference, evt.newValue))
-                         return;
+                {
+                    if (Equals(fullscreenData.stencilReference, evt.newValue))
+                        return;
 
-                     registerUndo("Change Stencil Reference");
-                     fullscreenData.stencilReference = evt.newValue;
-                     onChange();
-                 });
+                    registerUndo("Change Stencil Reference");
+                    fullscreenData.stencilReference = evt.newValue;
+                    onChange();
+                });
 
                 context.AddProperty("Read Mask", new IntegerField { value = fullscreenData.stencilReadMask, isDelayed = true }, (evt) =>
-                 {
-                     if (Equals(fullscreenData.stencilReadMask, evt.newValue))
-                         return;
+                {
+                    if (Equals(fullscreenData.stencilReadMask, evt.newValue))
+                        return;
 
-                     registerUndo("Change Stencil Read Mask");
-                     fullscreenData.stencilReadMask = evt.newValue;
-                     onChange();
-                 });
+                    registerUndo("Change Stencil Read Mask");
+                    fullscreenData.stencilReadMask = evt.newValue;
+                    onChange();
+                });
 
                 context.AddProperty("Write Mask", new IntegerField { value = fullscreenData.stencilWriteMask, isDelayed = true }, (evt) =>
-                 {
-                     if (Equals(fullscreenData.stencilWriteMask, evt.newValue))
-                         return;
+                {
+                    if (Equals(fullscreenData.stencilWriteMask, evt.newValue))
+                        return;
 
-                     registerUndo("Change Stencil Write Mask");
-                     fullscreenData.stencilWriteMask = evt.newValue;
-                     onChange();
-                 });
+                    registerUndo("Change Stencil Write Mask");
+                    fullscreenData.stencilWriteMask = evt.newValue;
+                    onChange();
+                });
 
                 context.AddProperty("Comparison", new EnumField(fullscreenData.stencilCompareFunction) { value = fullscreenData.stencilCompareFunction }, (evt) =>
                 {
