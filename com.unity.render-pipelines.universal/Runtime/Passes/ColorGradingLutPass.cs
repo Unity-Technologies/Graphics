@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))
                 m_HdrLutFormat = GraphicsFormat.R16G16B16A16_SFloat;
             else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, kFlags))
+                // Precision can be too low, if FP16 primary renderTarget is requested by the user.
+                // But it's better than falling back to R8G8B8A8_UNorm in the worst case.
                 m_HdrLutFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             else
                 // Obviously using this for log lut encoding is a very bad idea for precision but we

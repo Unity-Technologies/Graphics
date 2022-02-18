@@ -382,10 +382,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 const string kValid = "Baked reflection probe normalization data is valid.";
                 const string kInvalid = "Baked reflection probe normalization data is invalid." + kResolution;
 
-                var globalSettings = HDRenderPipelineGlobalSettings.instance;
-                if (globalSettings == null || !globalSettings.supportProbeVolumes)
-                    return;
-
                 var spMode = serialized.serializedObject.FindProperty("m_ProbeSettings.mode");
                 var spValid = serialized.serializedObject.FindProperty("m_HasValidSHForNormalization");
 
