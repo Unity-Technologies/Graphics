@@ -142,7 +142,7 @@ real OpticalDepthHeightFog(real baseExtinction, real baseHeight, real2 heightExp
     real H          = heightExponents.y;
     real rcpH       = heightExponents.x;
     real Z          = cosZenith;
-    real absZ       = max(abs(cosZenith), REAL_EPS);
+    real absZ       = max(abs(cosZenith), 0.001f);
     real rcpAbsZ    = rcp(absZ);
 
     real endHeight  = startHeight + intervalLength * Z;

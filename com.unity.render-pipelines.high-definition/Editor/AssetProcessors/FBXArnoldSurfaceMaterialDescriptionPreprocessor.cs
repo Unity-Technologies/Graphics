@@ -10,17 +10,18 @@ using UnityEditor.Experimental.AssetImporters;
 
 
 namespace UnityEditor.Rendering.HighDefinition
-{ 
+{
     class FBXArnoldSurfaceMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 2;
-        static readonly int k_Order = 4;
+        static readonly uint k_Version = 3;
+        static readonly int k_Order = -960;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Arnold/ArnoldStandardSurface.shadergraph";
 
         public override uint GetVersion()
         {
             return k_Version;
         }
+
         public override int GetPostprocessOrder()
         {
             return k_Order;
@@ -32,19 +33,21 @@ namespace UnityEditor.Rendering.HighDefinition
             description.TryGetProperty("TypeId", out typeId);
             return typeId == 1138001;
         }
+
         static bool Is3DsMaxArnoldStandardSurfaceMaterial(MaterialDescription description)
         {
             float classIdA;
             float classIdB;
+            string originalMtl;
             description.TryGetProperty("ClassIDa", out classIdA);
             description.TryGetProperty("ClassIDb", out classIdB);
-            return classIdA == 2121471519 && classIdB == 1660373836;
+            description.TryGetProperty("ORIGINAL_MTL", out originalMtl);
+            return classIdA == 2121471519 && classIdB == 1660373836 && originalMtl != "PHYSICAL_MTL";
         }
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (HDRenderPipeline.currentAsset == null)
                 return;
 
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
@@ -63,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Vector4 vectorProperty;
             TexturePropertyDescription textureProperty;
 
-            
+
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(k_ShaderPath);
 
             if (shader == null)
@@ -94,20 +97,20 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (hasOpacityMap)
                 {
-                    material.SetTexture("_OPACITY_MAP",opacityMap.texture);
+                    material.SetTexture("_OPACITY_MAP", opacityMap.texture);
                     material.SetFloat("_OPACITY", 1.0f);
                 }
                 else
                 {
                     material.SetFloat("_OPACITY", opacity);
                 }
-                
+
                 material.SetInt("_SrcBlend", 1);
                 material.SetInt("_DstBlend", 10);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
                 material.renderQueue = 3000;
             }
@@ -153,15 +156,13 @@ namespace UnityEditor.Rendering.HighDefinition
             remapPropertyFloatOrTexture(description, material, "specularRotation", "_SPECULAR_ROTATION");
 
             remapPropertyTexture(description, material, "normalCamera", "_NORMAL_MAP");
-            
+
             remapPropertyFloat(description, material, "coat", "_COAT_WEIGHT");
             remapPropertyColorOrTexture(description, material, "coatColor", "_COAT_COLOR");
             remapPropertyFloatOrTexture(description, material, "coatRoughness", "_COAT_ROUGHNESS");
             remapPropertyFloatOrTexture(description, material, "coatIOR", "_COAT_IOR");
             remapPropertyTexture(description, material, "coatNormal", "_COAT_NORMAL");
         }
-
-       
 
         void CreateFrom3DsMaxArnoldStandardSurfaceMaterial(MaterialDescription description, Material material, AnimationClip[] clips)
         {
@@ -170,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
             TexturePropertyDescription textureProperty;
 
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(k_ShaderPath);
-            
+
             if (shader == null)
                 return;
 
@@ -210,9 +211,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_SrcBlend", 1);
                 material.SetInt("_DstBlend", 10);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
                 material.renderQueue = 3000;
             }
@@ -289,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void remapPropertyColorOrTexture3DsMax(MaterialDescription description, Material material, string inPropName, string outPropName,float multiplier = 1.0f)
+        static void remapPropertyColorOrTexture3DsMax(MaterialDescription description, Material material, string inPropName, string outPropName, float multiplier = 1.0f)
         {
             if (description.TryGetProperty(inPropName + ".shader", out TexturePropertyDescription textureProperty))
             {
@@ -317,7 +318,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void remapPropertyColorOrTexture(MaterialDescription description, Material material, string inPropName, string outPropName,float multiplier = 1.0f)
+        static void remapPropertyColorOrTexture(MaterialDescription description, Material material, string inPropName, string outPropName, float multiplier = 1.0f)
         {
             if (description.TryGetProperty(inPropName, out TexturePropertyDescription textureProperty))
             {
@@ -330,6 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetColor(outPropName, vectorProperty * multiplier);
             }
         }
+
         static void remapPropertyFloatOrTexture(MaterialDescription description, Material material, string inPropName, string outPropName)
         {
             if (description.TryGetProperty(inPropName, out TexturePropertyDescription textureProperty))

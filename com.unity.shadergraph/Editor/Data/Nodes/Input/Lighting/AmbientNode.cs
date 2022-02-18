@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph
         public AmbientNode()
         {
             name = "Ambient";
+            synonyms = new string[] { "scene color" };
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

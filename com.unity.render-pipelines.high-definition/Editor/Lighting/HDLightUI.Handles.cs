@@ -187,12 +187,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shadowPlaneDistance > 0)
             {
-                var shadowDiscRadius = shadowPlaneDistance * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
-                var shadowDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle / 2) * shadowPlaneDistance;
-                Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
+                var shadowDiscRadius = shadowPlaneDistance * Mathf.Tan(outerAngle * Mathf.Deg2Rad * 0.5f);
+                Handles.DrawWireDisc(Vector3.forward * shadowPlaneDistance, Vector3.forward, shadowDiscRadius);
             }
         }
-        
+
         static void DrawConeWireframe(float radius, float height)
         {
             var rangeCenter = Vector3.forward * height;
@@ -243,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return new Vector2(halfWidth * 2f, halfHeight * 2f);
         }
-        
+
         //copy of CoreLightEditorUtilities
         static Vector3[] GetFrustrumProjectedRectAngles(float distance, float aspect, float tanFOV)
         {
@@ -275,7 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //TODO: decompose arguments (or tuples) + put back to CoreLightEditorUtilities
         // Same as Gizmo.DrawFrustum except that when aspect is below one, fov represent fovX instead of fovY
         // Use to match our light frustum pyramid behavior
-        static void DrawSpherePortionWireframe(Vector4 aspectFovMaxRangeMinRange, float distanceTruncPlane = 0f)
+        static void DrawSpherePortionWireframe(Vector4 aspectFovMaxRangeMinRange, float distanceTruncPlane = 0f, bool drawApex = true)
         {
             float aspect = aspectFovMaxRangeMinRange.x;
             float fov = aspectFovMaxRangeMinRange.y;
@@ -293,6 +292,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawLine(startAngles[3], startAngles[0]);
             }
 
+            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
+
             if (distanceTruncPlane > 0f)
             {
                 var truncAngles = GetFrustrumProjectedRectAngles(distanceTruncPlane, aspect, tanfov);
@@ -300,12 +301,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawLine(truncAngles[1], truncAngles[2]);
                 Handles.DrawLine(truncAngles[2], truncAngles[3]);
                 Handles.DrawLine(truncAngles[3], truncAngles[0]);
+
+                if (!drawApex)
+                {
+                    Handles.DrawLine(truncAngles[0], endAngles[0]);
+                    Handles.DrawLine(truncAngles[1], endAngles[1]);
+                    Handles.DrawLine(truncAngles[2], endAngles[2]);
+                    Handles.DrawLine(truncAngles[3], endAngles[3]);
+                }
             }
 
-            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
             var planProjectedCrossNormal0 = new Vector3(endAngles[0].y, -endAngles[0].x, 0).normalized;
             var planProjectedCrossNormal1 = new Vector3(endAngles[1].y, -endAngles[1].x, 0).normalized;
-            Vector3[] faceNormals = new[] {
+            Vector3[] faceNormals = new[]
+            {
                 Vector3.right - Vector3.Dot((endAngles[3] + endAngles[0]).normalized, Vector3.right) * (endAngles[3] + endAngles[0]).normalized,
                 Vector3.up    - Vector3.Dot((endAngles[0] + endAngles[1]).normalized, Vector3.up)    * (endAngles[0] + endAngles[1]).normalized,
                 Vector3.left  - Vector3.Dot((endAngles[1] + endAngles[2]).normalized, Vector3.left)  * (endAngles[1] + endAngles[2]).normalized,
@@ -315,7 +324,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 planProjectedCrossNormal1 - Vector3.Dot((endAngles[0] + endAngles[2]).normalized, planProjectedCrossNormal1)  * (endAngles[0] + endAngles[2]).normalized,
             };
 
-            float[] faceAngles = new[] {
+            float[] faceAngles = new[]
+            {
                 Vector3.Angle(endAngles[3], endAngles[0]),
                 Vector3.Angle(endAngles[0], endAngles[1]),
                 Vector3.Angle(endAngles[1], endAngles[2]),
@@ -331,12 +341,15 @@ namespace UnityEditor.Rendering.HighDefinition
             Handles.DrawWireArc(Vector3.zero, faceNormals[4], endAngles[0], faceAngles[4], maxRange);
             Handles.DrawWireArc(Vector3.zero, faceNormals[5], endAngles[1], faceAngles[5], maxRange);
 
-            Handles.DrawLine(startAngles[0], endAngles[0]);
-            Handles.DrawLine(startAngles[1], endAngles[1]);
-            Handles.DrawLine(startAngles[2], endAngles[2]);
-            Handles.DrawLine(startAngles[3], endAngles[3]);
+            if (drawApex)
+            {
+                Handles.DrawLine(startAngles[0], endAngles[0]);
+                Handles.DrawLine(startAngles[1], endAngles[1]);
+                Handles.DrawLine(startAngles[2], endAngles[2]);
+                Handles.DrawLine(startAngles[3], endAngles[3]);
+            }
         }
-        
+
         static Vector3[] GetSphericalProjectedRectAngles(float distance, float aspect, float tanFOV)
         {
             var angles = GetFrustrumProjectedRectAngles(distance, aspect, tanFOV);
@@ -526,6 +539,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void DrawHandles(HDAdditionalLightData additionalData, Editor owner)
         {
             Light light = additionalData.legacyLight;
+            float shadowNearPlane = light.shadows != LightShadows.None ? additionalData.shadowNearPlane : 0.0f;
 
             Color wireframeColorAbove = (owner as HDLightEditor).legacyLightColor;
             Color handleColorAbove = GetLightHandleColor(wireframeColorAbove);
@@ -548,10 +562,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
-                                DrawSpotlightWireframe(outterAngleInnerAngleRange, additionalData.shadowNearPlane);
+                                DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
-                                DrawSpotlightWireframe(outterAngleInnerAngleRange, additionalData.shadowNearPlane);
+                                DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
@@ -576,10 +590,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
-                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
-                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
@@ -604,10 +618,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Vector4 widthHeightMaxRangeMinRange = new Vector4(additionalData.shapeWidth, additionalData.shapeHeight, light.range);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
-                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, additionalData.shadowNearPlane);
+                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
-                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, additionalData.shadowNearPlane);
+                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
@@ -623,7 +637,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     light.range = widthHeightMaxRangeMinRange.z;
                                 }
 
-                                // Handles.color reseted at end of scope
+                                // Handles.color reset at end of scope
                             }
                             break;
                     }
@@ -638,22 +652,47 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
                                 float range = light.range;
+                                float aspect = additionalData.shapeWidth / additionalData.shapeHeight;
+                                float angle = additionalData.areaLightShadowCone;
+                                float offset = -Mathf.Min(additionalData.shapeWidth, additionalData.shapeHeight) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
+                                Vector4 aspectFovMaxRangeMinRange = new Vector4(aspect, angle, range - offset);
+                                Matrix4x4 shadowFrustumMatrix = Matrix4x4.TRS(light.transform.position + light.transform.forward * offset, light.transform.rotation, Vector3.one);
+                                float nearPlane = additionalData.shadowNearPlane - offset;
+
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
                                 DrawAreaLightWireframe(widthHeight);
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                if (light.shadows != LightShadows.None)
+                                {
+                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                                }
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
                                 DrawAreaLightWireframe(widthHeight);
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                if (light.shadows != LightShadows.None)
+                                {
+                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                                }
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = handleColorAbove;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
+                                widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
@@ -665,7 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     light.range = range;
                                 }
 
-                                // Handles.color reseted at end of scope
+                                // Handles.color reset at end of scope
                             }
                             break;
                         case AreaLightShape.Disc:
@@ -715,7 +754,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Evaluate the half dimensions of the rectangular area light
                     float halfWidth = src.shapeWidth * 0.5f;
                     float halfHeight = src.shapeHeight * 0.5f;
-                    
+
                     // Evaluate the dimensions of the extended area light
                     float extendedWidth = Mathf.Tan(angle) * depth + halfWidth;
                     float extendedHeight = Mathf.Tan(angle) * depth + halfHeight;

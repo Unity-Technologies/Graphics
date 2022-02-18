@@ -2,7 +2,7 @@
 
 Contexts are the main element of the Visual Effect Graph's **processing** (vertical) workflow and determine how particles spawn and simulate. The way you organize Contexts on the graph defines order of operation for the processing workflow. For information on the processing workflow, see [Visual Effect Graph Logic](GraphLogicAndPhilosophy.md). Every Context defines one stage of computation. For example a Context can:
 
-* Calculate how many particles the effect should spawn.
+* Calculate how many particles the effect spawns.
 * Create new particles.
 * Update all living particles.
 
@@ -30,12 +30,12 @@ Not all Contexts can connect to one another. To keep a consistent workflow, the 
 * Only one **Initialize** Context can connect to one **Update** Context.
 * You can connect an **Output** Context to an **Initialize** or **Update** Context.
 
-For a breakdown of context compatibility, see the table below.
+For a breakdown of Context compatibility, see the table below.
 
 | Context            | Input Data Type                      | Output Data Type | Specific Comments                                            |
 | ---------------------- | --------------------------------------------- | ------------------- | ------------------------------------------------------------ |
 | **Event**              | **None**                                      | **SpawnEvent** (1+) | **None**                                                     |
-| **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** context respectively. |
+| **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** Context respectively. |
 | **GPU Event**          | **None**                                      | **SpawnEvent**      | Outputs to **Initialize** Context                            |
 | **Output Event** | **SpawnEvent (1+)** |  | Outputs a CPU SpawnEvent back to the Visual Effect component. |
 | **Initialize**         | **SpawnEvent** (1+) or **GPUSpawnEvent** (1+) | **Particle** (1)    | Input types are either **SpawnEvent** or **GPUSpawnEvent**. These input types are mutually exclusive.<br/>Can output to **Particle Update** or **Particle Output**. |
@@ -112,7 +112,7 @@ For example: If a Spawn Context states that the effect should create 200 new par
 
 To customize **Initialize **Contexts, you can add compatible **Blocks** to them.
 
-Initialize contexts are the entry point of new systems. As such, they display the following information and configuration details in their header:
+Initialize Contexts are the entry point of new systems. As such, they display the following information and configuration details in their header:
 
 | Property/Setting   | Description                                 |
 | ---------------------- | -------------------------------------------- |

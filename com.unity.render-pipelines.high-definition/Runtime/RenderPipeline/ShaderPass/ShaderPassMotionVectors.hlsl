@@ -11,9 +11,14 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
-
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -21,15 +26,8 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
-
     output.vmesh = VertMeshTesselation(input.vmesh);
-
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
@@ -72,7 +70,7 @@ void Frag(  PackedVaryingsToPS packedInput
             #endif
 
             #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
             #endif
         )
 {
@@ -109,8 +107,13 @@ void Frag(  PackedVaryingsToPS packedInput
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
 
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     // Setting the motionVector to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
-    // a value of >1 can never happen naturally, unless explicitely set. 
+    // a value of >1 can never happen naturally, unless explicitely set.
     if (forceNoMotion)
         outMotionVector = float4(2.0, 0.0, 0.0, 0.0);
 
@@ -119,10 +122,8 @@ void Frag(  PackedVaryingsToPS packedInput
     // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
     depthColor = packedInput.vmesh.positionCS.z;
 
-    #ifdef _ALPHATOMASK_ON
     // Alpha channel is used for alpha to coverage
     depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-    #endif
 #endif
 
 // Normal Buffer Processing

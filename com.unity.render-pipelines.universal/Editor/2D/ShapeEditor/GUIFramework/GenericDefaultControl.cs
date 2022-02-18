@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class GenericDefaultControl : DefaultControl
     {
@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         {
             if (userData != null)
                 return userData(guiState);
-            
+
             return base.GetUserData(guiState, index);
         }
     }

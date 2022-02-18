@@ -1,11 +1,11 @@
 Shader "Hidden/HDRP/DebugLightCluster"
 {
     SubShader
-    {   
-        Tags { "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
-        
+    {
+        Tags { "RenderPipeline" = "HDRenderPipeline"  "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
+
         HLSLINCLUDE
-        #pragma only_renderers d3d11
+        #pragma only_renderers d3d11 ps5
 
         static const float3 cubeVertices[24] =
         {
@@ -91,7 +91,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
         };
 
         ENDHLSL
-        
+
         Pass
         {
             Cull Back
@@ -106,10 +106,9 @@ Shader "Hidden/HDRP/DebugLightCluster"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
-           
+
             struct AttributesDefault
             {
-                float3 positionOS : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -134,19 +133,13 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionOS *= clusterCellSize;
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
-                // Move to true world space
-                float3 positionWS = GetAbsolutePositionWS(positionRWS);
-
                 // Compute the grid coordinates of this cell
                 int width = instanceID % 64;
                 int height = (instanceID / 64) % 64;
                 int depth = instanceID / 4096;
 
                 // Compute the world space coordinate of this cell
-                positionWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + positionWS;
-
-                // Convert this position back to camera relative
-                positionRWS = GetCameraRelativePositionWS(positionWS);
+                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
@@ -186,7 +179,6 @@ Shader "Hidden/HDRP/DebugLightCluster"
 
             struct AttributesDefault
             {
-                float3 positionOS : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -211,19 +203,13 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionOS *= clusterCellSize;
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
-                // Move to true world space
-                float3 positionWS = GetAbsolutePositionWS(positionRWS);
-
                 // Compute the grid coordinates of this cell
                 int width = instanceID % 64;
                 int height = (instanceID / 64) % 64;
                 int depth = instanceID / 4096;
 
                 // Compute the world space coordinate of this cell
-                positionWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + positionWS;
-
-                // Convert this position back to camera relative
-                positionRWS = GetCameraRelativePositionWS(positionWS);
+                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);

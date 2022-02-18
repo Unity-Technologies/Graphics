@@ -14,14 +14,14 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class VFXTarget : Target, ILegacyTarget
+    sealed class VFXTarget : Target, ILegacyTarget, IMaySupportVFX
     {
         [SerializeField]
         bool m_Lit;
 
         [SerializeField]
         bool m_AlphaTest = false;
-        
+
         public VFXTarget()
         {
             displayName = "Visual Effect";
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
         }
@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
+            if (!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
                 return false;
 
             lit = vfxMasterNode.m_Lit;
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
 
             blockMap.Add(BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId);
 
-            if(alphaTest)
+            if (alphaTest)
             {
                 blockMap.Add(BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId);
             }
@@ -143,6 +143,9 @@ namespace UnityEditor.ShaderGraph
         {
             return GraphicsSettings.currentRenderPipeline != null && scriptableRenderPipeline?.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
         }
+
+        public bool SupportsVFX() => true;
+        public bool CanSupportVFX() => true;
     }
 }
 #endif

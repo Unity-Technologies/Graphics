@@ -12,18 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed partial class HDReflectionProbeEditor : HDProbeEditor<HDProbeSettingsProvider, SerializedHDReflectionProbe>
     {
         #region Context Menu
-        [MenuItem("CONTEXT/ReflectionProbe/Remove Component", false, 0)]
-        static void RemoveReflectionProbe(MenuCommand menuCommand)
-        {
-            GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Undo.SetCurrentGroupName("Remove HD Reflection Probe");
-            Undo.DestroyObjectImmediate(go.GetComponent<ReflectionProbe>());
-            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalReflectionData>());
-        }
-
         [MenuItem("CONTEXT/ReflectionProbe/Reset", false, 0)]
         static void ResetReflectionProbe(MenuCommand menuCommand)
         {
@@ -44,6 +32,19 @@ namespace UnityEditor.Rendering.HighDefinition
             // Note: we can't call this code inside the HDAdditionalReflectionData, thus why we don't wrap it in Reset() function
             EditorUtility.CopySerialized(HDUtils.s_DefaultHDAdditionalReflectionData, reflectionProbeAdditionalData);
         }
+
+        [MenuItem("CONTEXT/ReflectionProbe/Show All Additional Properties...", false, 100)]
+        static void ShowAllAdditionalProperties(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
+
+        [MenuItem("CONTEXT/PlanarReflectionProbe/Show All Additional Properties...", false, 700)]
+        static void ShowAllAdditionalPropertiesPlanar(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
+
         #endregion
 
         protected override void OnEnable()

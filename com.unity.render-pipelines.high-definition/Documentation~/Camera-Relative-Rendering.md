@@ -2,11 +2,11 @@
 
 Camera-relative rendering allows the High Definition Render Pipeline (HDRP) to render distant GameObjects (with large world space coordinates) in a more robust and numerically stable way compared to the built-in render pipeline.
 
-Absolute precision of floating point numbers decreases as numbers become larger. This means that GameObject coordinates become increasingly less precise the further the GameObject is from the origin of the Scene. The Mesh faces of distant GameObjects that are close to one another may appear in the same place and produce z-fighting artifacts. To fix this issue, camera-relative rendering replaces the world origin with the position of the Camera.
+Absolute precision of floating point numbers decreases as numbers become larger. This means that GameObject coordinates become increasingly less precise the further the GameObject is from the origin of the Scene. The Mesh faces of distant GameObjects that are close to one another may appear in the same place and produce [z-fighting](Glossary.md#ZFighting) artifacts. To fix this issue, camera-relative rendering replaces the world origin with the position of the Camera.
 
 ## Using Camera-relative rendering
 
-Camera-relative rendering is enabled by default in the ShaderConfig.cs file (in your Project window go to **Packages > Runtime > ShaderLibrary** and click on **ShaderConfig.cs**). To disable this feature, set `CameraRelativeRendering` to `0`, and then generate Shader includes to update the ShaderConfig.cs.hlsl file (menu: **Edit > Render Pipeline** and click **Generate Shader Includes)**.
+Camera-relative rendering is enabled by default in the ShaderConfig.cs file (in your Project window go to **Packages > High Definition RP Config > Runtime > ShaderLibrary** and click on **ShaderConfig.cs**). To disable this feature, set `CameraRelativeRendering` to `0`, and then generate Shader includes to update the ShaderConfig.cs.hlsl file (menu: **Edit > Render Pipeline** and click **Generate Shader Includes)**.
 
 ## How Camera-relative rendering works
 
@@ -27,5 +27,3 @@ If you enable Camera-relative rendering:
 If you disable Camera-relative rendering:
 
 - `GetAbsolutePositionWS()` and `GetCameraRelativePositionWS()` return the position you pass into them without any modification.
-
- 

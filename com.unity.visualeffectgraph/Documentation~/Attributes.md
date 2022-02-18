@@ -1,6 +1,6 @@
 # Attributes
 
-An Attribute is a piece of data attached to elements in a System. For example, the color of a particle, a particle's position, or the amount of particles that a spawn System should create are all Attributes.
+An Attribute is a piece of data attached to elements in a System. For example, the color of a particle, a particle's position, or the amount of particles that a spawn System creates are all Attributes.
 
 Systems can read from, or write to, Attributes in order to perform custom behavior and differentiate between elements.
 

@@ -5,7 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjectsPass : ScriptableRenderPass
+    public class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;
@@ -65,20 +65,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
-                m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             }
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_CameraSettings = cameraSettings;
-
         }
 
         internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
-        : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
+            : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
         {
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
@@ -94,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // In case of camera stacking we need to take the viewport rect from base camera
             Rect pixelRect = renderingData.cameraData.pixelRect;
-            float cameraAspect = (float) pixelRect.width / (float) pixelRect.height;
+            float cameraAspect = (float)pixelRect.width / (float)pixelRect.height;
 
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
@@ -121,11 +120,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
+                {
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock,
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        {
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        });
+                }
+                else
+                {
+                    // Ensure we flush our command-buffer before we render...
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                    ref m_RenderStateBlock);
+                    // Render the objects...
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                }
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)
                 {

@@ -20,18 +20,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdrpAsset.defaultLookDevProfile == null)
-                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
-
-            int newHashCode = hdrpAsset.defaultLookDevProfile.GetHashCode();
+            var lookDevVolumeProfile = m_GlobalSettings.GetOrAssignLookDevVolumeProfile();
+            int newHashCode = lookDevVolumeProfile.GetHashCode();
             if (newHashCode != volumeProfileHash)
             {
                 VolumeProfile oldProfile = volume.sharedProfile;
 
                 volumeProfileHash = newHashCode;
 
-                VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
+                VolumeProfile profile = ScriptableObject.Instantiate(lookDevVolumeProfile);
                 profile.hideFlags = HideFlags.HideAndDontSave;
                 volume.sharedProfile = profile;
 
@@ -75,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
         }
+
 #endif
 
         /// <summary>
@@ -203,15 +201,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         IEnumerable<string> IDataProvider.supportedDebugModes
             => new[]
-            {
-                "Albedo",
-                "Normal",
-                "Smoothness",
-                "AmbientOcclusion",
-                "Metal",
-                "Specular",
-                "Alpha"
-            };
+        {
+            "Albedo",
+            "Normal",
+            "Smoothness",
+            "AmbientOcclusion",
+            "Metal",
+            "Specular",
+            "Alpha"
+        };
 
         /// <summary>
         /// This hook allows HDRP to update the debug mode used while requested in the LookDev.

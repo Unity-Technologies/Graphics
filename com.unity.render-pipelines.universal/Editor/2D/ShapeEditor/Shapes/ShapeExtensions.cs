@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal static class ShapeExtensions
     {
         public static Polygon ToPolygon(this Vector3[] points, bool isOpenEnded)
         {
-           return new Polygon()
-           {
-               isOpenEnded = isOpenEnded,
-               points = points
+            return new Polygon()
+            {
+                isOpenEnded = isOpenEnded,
+                points = points
             };
         }
 
@@ -25,13 +25,13 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 if (isOpenEnded)
                 {
                     while (pointList.Count % 3 != 1)
-                        pointList.RemoveAt(pointList.Count-1);
+                        pointList.RemoveAt(pointList.Count - 1);
 
                     points = pointList.ToArray();
                 }
                 else
                 {
-                    var last = pointList[pointList.Count-1];
+                    var last = pointList[pointList.Count - 1];
                     var first = pointList[0];
                     var v = first - last;
 
@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     points = pointList.ToArray();
                 }
             }
-            
+
             if (!points.IsSpline(isOpenEnded))
                 throw new Exception("The provided control point array can't conform a Spline.");
 

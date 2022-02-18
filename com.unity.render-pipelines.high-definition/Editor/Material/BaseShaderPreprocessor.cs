@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         ShaderKeyword ShadowLow;
         ShaderKeyword ShadowMedium;
         ShaderKeyword ShadowHigh;
+        ShaderKeyword ShadowVeryHigh;
 
         public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
 
@@ -20,12 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition
             ShadowLow = new ShaderKeyword("SHADOW_LOW");
             ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
             ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
+            ShadowVeryHigh = new ShaderKeyword("SHADOW_VERY_HIGH");
 
             ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
             {
                 {HDShadowFilteringQuality.Low, ShadowLow},
                 {HDShadowFilteringQuality.Medium, ShadowMedium},
                 {HDShadowFilteringQuality.High, ShadowHigh},
+                {HDShadowFilteringQuality.VeryHigh, ShadowVeryHigh},
             };
         }
     }
@@ -52,8 +55,17 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_SubsurfaceScattering;
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
+        protected ShaderKeyword m_ProbeVolumesL1;
+        protected ShaderKeyword m_ProbeVolumesL2;
+        protected ShaderKeyword m_DecalSurfaceGradient;
+        protected ShaderKeyword m_EditorVisualization;
 
         protected ShadowKeywords m_ShadowKeywords;
+
+#if !ENABLE_SENSOR_SDK
+        protected ShaderKeyword m_SensorEnableLidar;
+        protected ShaderKeyword m_SensorOverrideReflectance;
+#endif
 
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
@@ -82,8 +94,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
             m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
             m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
-
+            m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
+            m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
+            m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
+            m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_ShadowKeywords = new ShadowKeywords();
+
+#if !ENABLE_SENSOR_SDK
+            m_SensorEnableLidar = new ShaderKeyword("SENSORSDK_ENABLE_LIDAR");
+            m_SensorOverrideReflectance = new ShaderKeyword("SENSORSDK_OVERRIDE_REFLECTANCE");
+#endif
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

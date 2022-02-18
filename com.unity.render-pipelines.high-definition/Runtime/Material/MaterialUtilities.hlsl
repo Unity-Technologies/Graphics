@@ -37,3 +37,21 @@ void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 
 
 #endif // SURFACE_GRADIENT
 }
+
+// This function takes a world space src normal + applies a correction to the normal if it is not pointing towards the near plane.
+void GetNormalWS_SrcWS(FragInputs input, float3 srcNormalWS, out float3 normalWS, float3 doubleSidedConstants)
+{
+#ifdef _DOUBLESIDED_ON
+    srcNormalWS = (!input.isFrontFace && doubleSidedConstants.z < 0) ? srcNormalWS + 2 * input.tangentToWorld[2] * max(0, -dot(input.tangentToWorld[2], srcNormalWS)) : srcNormalWS;
+    normalWS = (!input.isFrontFace && doubleSidedConstants.x < 0) ? reflect(-srcNormalWS, input.tangentToWorld[2]) : srcNormalWS;
+#else
+    normalWS = srcNormalWS;
+#endif
+}
+
+// This function converts an object space normal to world space + applies a correction to the normal if it is not pointing towards the near plane.
+void GetNormalWS_SrcOS(FragInputs input, float3 srcNormalOS, out float3 normalWS, float3 doubleSidedConstants)
+{
+    float3 srcNormalWS = TransformObjectToWorldNormal(srcNormalOS);
+    GetNormalWS_SrcWS(input, srcNormalWS, normalWS, doubleSidedConstants);
+}

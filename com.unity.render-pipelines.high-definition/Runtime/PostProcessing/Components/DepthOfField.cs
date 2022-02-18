@@ -17,11 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Uses the physical Camera to set focusing properties.
         /// </summary>
+        [InspectorName("Physical Camera")]
         UsePhysicalCamera,
 
         /// <summary>
         /// Uses custom distance values to set the focus.
         /// </summary>
+        [InspectorName("Manual Ranges")]
         Manual
     }
 
@@ -48,10 +50,26 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Options for the source of the focus distance HDRP uses in the depth of field calculations.
+    /// </summary>
+    public enum FocusDistanceMode
+    {
+        /// <summary>
+        /// Uses the focus distance from the Volume component.
+        /// </summary>
+        Volume,
+
+        /// <summary>
+        /// Uses the focus distance from the physical camera.
+        /// </summary>
+        Camera
+    }
+
+    /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Depth-of-Field" + Documentation.endURL)]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -66,10 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
         //
 
         /// <summary>
-        /// Sets the distance to the focus point from the Camera.
+        /// The distance to the focus plane from the Camera.
         /// </summary>
-        [Tooltip("Sets the distance to the focus point from the Camera.")]
+        [Tooltip("The distance to the focus plane from the Camera.")]
         public MinFloatParameter focusDistance = new MinFloatParameter(10f, 0.1f);
+
+        /// <summary>
+        /// Specifies where to read the focus distance from.
+        /// </summary>
+        [Tooltip("Specifies where to read the focus distance from..")]
+        public FocusDistanceModeParameter focusDistanceMode = new FocusDistanceModeParameter(FocusDistanceMode.Volume);
 
         // -------------------------------------------
         // Manual settings
@@ -80,6 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance from the Camera at which the near field blur begins to decrease in intensity.
         /// </summary>
+        [Header("Near Range")]
         [Tooltip("Sets the distance from the Camera at which the near field blur begins to decrease in intensity.")]
         public MinFloatParameter nearFocusStart = new MinFloatParameter(0f, 0f);
 
@@ -92,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance from the Camera at which the far field starts blurring.
         /// </summary>
+        [Header("Far Range")]
         [Tooltip("Sets the distance from the Camera at which the far field starts blurring.")]
         public MinFloatParameter farFocusStart = new MinFloatParameter(10f, 0f);
 
@@ -226,6 +252,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Adjust near blur CoC based on depth distance when manual, non-physical mode is used.
+        /// </summary>
+        public bool limitManualRangeNearBlur
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_LimitManualRangeNearBlur.value;
+
+                return GetPostProcessingQualitySettings().LimitManualRangeNearBlur[quality.levelAndOverride.level];
+            }
+            set => m_LimitManualRangeNearBlur.value = value;
+        }
+
+        /// <summary>
         /// Specifies the resolution at which HDRP processes the depth of field effect.
         /// </summary>
         /// <seealso cref="DepthOfFieldResolution"/>
@@ -250,6 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
+        [Header("Near Blur")]
         [Tooltip("Sets the number of samples to use for the near field.")]
         [SerializeField, FormerlySerializedAs("nearSampleCount")]
         ClampedIntParameter m_NearSampleCount = new ClampedIntParameter(5, 3, 8);
@@ -258,6 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the maximum radius the near blur can reach.")]
         ClampedFloatParameter m_NearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
 
+        [Header("Far Blur")]
         [Tooltip("Sets the number of samples to use for the far field.")]
         [SerializeField, FormerlySerializedAs("farSampleCount")]
         ClampedIntParameter m_FarSampleCount = new ClampedIntParameter(7, 3, 16);
@@ -269,17 +312,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // -------------------------------------------
         // Advanced settings
         //
-
-        [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
-        [SerializeField, FormerlySerializedAs("highQualityFiltering")]
-        BoolParameter m_HighQualityFiltering = new BoolParameter(true);
-
+        [Header("Advanced Tweaks")]
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("resolution")]
         DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
+        [AdditionalProperty]
+        [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
+        [SerializeField, FormerlySerializedAs("highQualityFiltering")]
+        BoolParameter m_HighQualityFiltering = new BoolParameter(true);
+
+        [AdditionalProperty]
+        [Tooltip("When enabled, HDRP uses a more accurate but slower physically based algorithm to compute the depth of field effect.")]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
+
+        [AdditionalProperty]
+        [Tooltip("Adjust near blur CoC based on depth distance when manual, non-physical mode is used.")]
+        [SerializeField]
+        BoolParameter m_LimitManualRangeNearBlur = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
@@ -331,5 +383,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class FocusDistanceModeParameter : VolumeParameter<FocusDistanceMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FocusDistanceModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FocusDistanceModeParameter(FocusDistanceMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

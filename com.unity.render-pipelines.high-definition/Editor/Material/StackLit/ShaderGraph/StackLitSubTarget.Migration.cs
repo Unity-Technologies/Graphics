@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is StackLitMasterNode1 stackLitMasterNode))
+            if (!(masterNode is StackLitMasterNode1 stackLitMasterNode))
                 return false;
 
             m_MigrateFromOldSG = true;
@@ -44,7 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.distortionDepthTest = stackLitMasterNode.m_DistortionDepthTest;
             builtinData.addPrecomputedVelocity = stackLitMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = stackLitMasterNode.m_depthOffset;
-            builtinData.alphaToMask = stackLitMasterNode.m_AlphaToMask;
 
             lightingData.normalDropOffSpace = stackLitMasterNode.m_NormalDropOffSpace;
             lightingData.blendPreserveSpecular = stackLitMasterNode.m_BlendPreserveSpecular;
@@ -70,14 +69,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stackLitData.screenSpaceSpecularOcclusionAOConeSize = (StackLitData.SpecularOcclusionAOConeSize)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionAOConeSize;
             stackLitData.screenSpaceSpecularOcclusionAOConeDir = (StackLitData.SpecularOcclusionAOConeDir)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionAOConeDir;
             stackLitData.dataBasedSpecularOcclusionAOConeSize = (StackLitData.SpecularOcclusionAOConeSize)stackLitMasterNode.m_DataBasedSpecularOcclusionAOConeSize;
-            stackLitData.specularOcclusionConeFixupMethod = (StackLitData.SpecularOcclusionConeFixupMethod)stackLitMasterNode.m_SpecularOcclusionConeFixupMethod;      
+            stackLitData.specularOcclusionConeFixupMethod = (StackLitData.SpecularOcclusionConeFixupMethod)stackLitMasterNode.m_SpecularOcclusionConeFixupMethod;
             stackLitData.anisotropyForAreaLights = stackLitMasterNode.m_AnisotropyForAreaLights;
             stackLitData.recomputeStackPerLight = stackLitMasterNode.m_RecomputeStackPerLight;
             stackLitData.honorPerLightMinRoughness = stackLitMasterNode.m_HonorPerLightMinRoughness;
             stackLitData.shadeBaseUsingRefractedAngles = stackLitMasterNode.m_ShadeBaseUsingRefractedAngles;
             stackLitData.debug = stackLitMasterNode.m_Debug;
             stackLitData.devMode = stackLitMasterNode.m_DevMode;
-            
+
             target.customEditorGUI = stackLitMasterNode.m_OverrideEnabled ? stackLitMasterNode.m_ShaderGUIOverride : "";
 
             // Set blockmap
@@ -86,24 +85,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap.Add(BlockFields.VertexDescription.Normal, StackLitMasterNode1.VertexNormalSlotId);
             blockMap.Add(BlockFields.VertexDescription.Tangent, StackLitMasterNode1.VertexTangentSlotId);
 
-            // Handle mapping of Normal block specifically
+            // Handle mapping of Normal and Tangent block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
             blockMap.Add(normalBlock, StackLitMasterNode1.NormalSlotId);
 
             blockMap.Add(HDBlockFields.SurfaceDescription.BentNormal, StackLitMasterNode1.BentNormalSlotId);
-            blockMap.Add(HDBlockFields.SurfaceDescription.Tangent, StackLitMasterNode1.TangentSlotId);
+            blockMap.Add(tangentBlock, StackLitMasterNode1.TangentSlotId);
             blockMap.Add(BlockFields.SurfaceDescription.BaseColor, StackLitMasterNode1.BaseColorSlotId);
 
             if (stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic)
@@ -143,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (stackLitData.coat)
             {
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatIor, StackLitMasterNode1.CoatIorSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatThickness, StackLitMasterNode1.CoatThicknessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatExtinction, StackLitMasterNode1.CoatExtinctionSlotId);
@@ -153,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormalTS, StackLitMasterNode1.CoatNormalSlotId);
                 }
 
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
             }
 
             if (stackLitData.dualSpecularLobe)

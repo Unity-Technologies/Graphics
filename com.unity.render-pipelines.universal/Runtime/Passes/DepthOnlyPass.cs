@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -10,45 +11,67 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class DepthOnlyPass : ScriptableRenderPass
     {
-        int kDepthBufferBits = 32;
+        private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
 
-        private RenderTargetHandle depthAttachmentHandle { get; set; }
-        internal RenderTextureDescriptor descriptor { get; private set; }
+        private RTHandle destination { get; set; }
+        private GraphicsFormat depthStencilFormat;
+        internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         FilteringSettings m_FilteringSettings;
-        ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
-        /// Create the DepthOnlyPass
+        /// Creates a new <c>DepthOnlyPass</c> instance.
         /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="RenderQueueRange"/>
+        /// <seealso cref="LayerMask"/>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
+            useNativeRenderPass = false;
         }
 
         /// <summary>
-        /// Configure the pass
+        /// Configures the pass.
         /// </summary>
+        /// <param name="baseDescriptor">The <c>RenderTextureDescriptor</c> used for the depthStencilFormat.</param>
+        /// <param name="depthAttachmentHandle">The <c>RTHandle</c> used to render to.</param>
+        /// <seealso cref="RenderTextureDescriptor"/>
+        /// <seealso cref="RTHandle"/>
+        /// <seealso cref="GraphicsFormat"/>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle)
+            RTHandle depthAttachmentHandle)
         {
-            this.depthAttachmentHandle = depthAttachmentHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = kDepthBufferBits;
-
-            // Depth-Only pass don't use MSAA
-            baseDescriptor.msaaSamples = 1;
-            descriptor = baseDescriptor;
+            this.destination = depthAttachmentHandle;
+            this.depthStencilFormat = baseDescriptor.depthStencilFormat;
+            this.shaderTagId = k_ShaderTagId;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1));
-            ConfigureClear(ClearFlag.All, Color.black);
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+
+            // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
+            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTargetHandle);
+                // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
+                ConfigureClear(ClearFlag.Depth, Color.black);
+            }
+            // When not using depth priming the camera target should be set to our non MSAA depth target.
+            else
+            {
+                useNativeRenderPass = true;
+                ConfigureTarget(destination);
+                ConfigureClear(ClearFlag.All, Color.black);
+            }
         }
 
         /// <inheritdoc/>
@@ -63,27 +86,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);
-                depthAttachmentHandle = RenderTargetHandle.CameraTarget;
-            }
         }
     }
 }

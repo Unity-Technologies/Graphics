@@ -1,44 +1,70 @@
 project:
   name: URPUpdate
-  folder: URP-Update-Testing
+  folder: URP-Update-Testing/URP-Update-Testing
+  variables:
+    TEMPLATE_UPDATE_PROJECT_BRANCH: master
+    TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
+
+reuse_blocks:
+  setup_with_utr:
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $TEMPLATE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+        retries: 3
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+        retries: 3
+
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $TEMPLATE_UPDATE_PROJECT_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_UPDATE_PROJECT_REVISION%
+
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.shadergraph" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.shadergraph" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [all]: <shared.platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+    - [all]: <shared.platform.commands.call_utr>
+
 test_platforms:
   - type: playmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
   - type: editmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
+
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 #  - name: OSX
 #    apis:
-#      - OpenGLCore
-#      - Metal
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono_apiNet2
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
-#    - project: URPUpdate_BoatAttack
-#      all: true
-    - project: URPUpdate_Top_Asset_Store
-      all: true  
+#      - name: OpenGLCore
+#      - name: Metal
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

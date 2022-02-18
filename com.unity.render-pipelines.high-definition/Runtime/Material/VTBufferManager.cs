@@ -7,9 +7,9 @@ namespace  UnityEngine.Rendering.HighDefinition
 {
     class VTBufferManager
     {
-        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
+        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
-
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -20,7 +20,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback"
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
 #if UNITY_2020_2_OR_NEWER
                     ,
                     fastMemoryDesc = colorFastMemDesc
@@ -33,39 +33,20 @@ namespace  UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public RTHandle FeedbackBuffer { get; private set; }
-        public RTHandle FeedbackBufferMsaa { get; private set; }
-        public static int AdditionalForwardRT = 1;
-
         const int kResolveScaleFactor = 16;
 
         VirtualTexturing.Resolver   m_Resolver = new VirtualTexturing.Resolver();
         VirtualTexturing.Resolver   m_ResolverMsaa = new VirtualTexturing.Resolver();
         Vector2                     m_ResolverScale = new Vector2(1.0f / (float)kResolveScaleFactor, 1.0f / (float)kResolveScaleFactor);
         RTHandle                    m_LowresResolver;
-        ComputeShader               m_DownSampleCS;
+        ComputeShader               m_DownSampleCS = null;
         int                         m_DownsampleKernel;
         int                         m_DownsampleKernelMSAA;
 
-        public VTBufferManager(HDRenderPipelineAsset asset)
+        public VTBufferManager()
         {
-            m_DownSampleCS = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
-            m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
-            m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
-
             // This texture needs to be persistent because we do async gpu readback on it.
             m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
-        }
-
-        public void CreateBuffers(RenderPipelineSettings settings)
-        {
-            FeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "VTFeedbackForward");
-            if (settings.supportMSAA)
-            {
-                // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
-                FeedbackBufferMsaa = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
-                    enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
-            }
         }
 
         public void Cleanup()
@@ -83,30 +64,30 @@ namespace  UnityEngine.Rendering.HighDefinition
             {
                 int width = hdCamera.actualWidth;
                 int height = hdCamera.actualHeight;
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                bool msaa = hdCamera.msaaEnabled;
                 GetResolveDimensions(ref width, ref height);
+
                 if (msaa)
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_ResolverMsaa);
                     m_ResolverMsaa.UpdateSize(width, height);
+                }
                 else
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_Resolver);
                     m_Resolver.UpdateSize(width, height);
-            }
-        }
-
-        public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
-            {
-                var parameters = PrepareResolveVTParameters(hdCamera);
-                var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
-
-                ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
+                }
             }
         }
 
         class ResolveVTData
         {
-            public ResolveVTParameters parameters;
+            public int width, height;
+            public int lowresWidth, lowresHeight;
+            public VirtualTexturing.Resolver resolver;
+            public ComputeShader downsampleCS;
+            public int downsampleKernel;
+
             public TextureHandle input;
             public TextureHandle lowres;
         }
@@ -115,69 +96,58 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData))
+                if (m_DownSampleCS == null)
+                {
+                    m_DownSampleCS = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
+                    m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
+                }
+
+                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
                 {
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
 
-                    passData.parameters = PrepareResolveVTParameters(hdCamera);
+                    bool msaa = hdCamera.msaaEnabled;
+                    passData.width = hdCamera.actualWidth;
+                    passData.height = hdCamera.actualHeight;
+                    passData.lowresWidth = passData.width;
+                    passData.lowresHeight = passData.height;
+                    GetResolveDimensions(ref passData.lowresWidth, ref passData.lowresHeight);
+                    passData.resolver = msaa ? m_ResolverMsaa : m_Resolver;
+                    passData.downsampleCS = m_DownSampleCS;
+                    passData.downsampleKernel = msaa ? m_DownsampleKernelMSAA : m_DownsampleKernel;
+
                     passData.input = builder.ReadTexture(input);
                     passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
 
                     builder.SetRenderFunc(
-                    (ResolveVTData data, RenderGraphContext ctx) =>
-                    {
-                        ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
-                        VirtualTexturing.System.Update();
-                    });
+                        (ResolveVTData data, RenderGraphContext ctx) =>
+                        {
+                            RTHandle lowresBuffer = data.lowres;
+                            RTHandle buffer = data.input;
+
+                            Debug.Assert(data.lowresWidth <= data.resolver.CurrentWidth && data.lowresHeight <= data.resolver.CurrentHeight);
+                            Debug.Assert(data.lowresWidth <= lowresBuffer.referenceSize.x && data.lowresHeight <= lowresBuffer.referenceSize.y);
+
+                            int inputID = (buffer.isMSAAEnabled) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
+
+                            ctx.cmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, inputID, buffer);
+                            ctx.cmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, HDShaderIDs._OutputTexture, lowresBuffer);
+                            var resolveCounter = 0;
+                            var startOffsetX = (resolveCounter % kResolveScaleFactor);
+                            var startOffsetY = (resolveCounter / kResolveScaleFactor) % kResolveScaleFactor;
+                            ctx.cmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/ -1));
+                            ctx.cmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params1, new Vector4(data.width, data.height, data.lowresWidth, data.lowresHeight));
+                            var TGSize = 8; //Match shader
+                            ctx.cmd.DispatchCompute(data.downsampleCS, data.downsampleKernel, ((int)data.lowresWidth + (TGSize - 1)) / TGSize, ((int)data.lowresHeight + (TGSize - 1)) / TGSize, 1);
+
+                            data.resolver.Process(ctx.cmd, lowresBuffer, 0, data.lowresWidth, 0, data.lowresHeight, 0, 0);
+
+                            VirtualTexturing.System.Update();
+                        });
                 }
             }
-        }
-
-        struct ResolveVTParameters
-        {
-            public int width, height;
-            public int lowresWidth, lowresHeight;
-            public VirtualTexturing.Resolver resolver;
-            public ComputeShader downsampleCS;
-            public int downsampleKernel;
-        }
-
-        ResolveVTParameters PrepareResolveVTParameters(HDCamera hdCamera)
-        {
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var parameters = new ResolveVTParameters();
-            parameters.width = hdCamera.actualWidth;
-            parameters.height = hdCamera.actualHeight;
-            parameters.lowresWidth = parameters.width;
-            parameters.lowresHeight = parameters.height;
-            GetResolveDimensions(ref parameters.lowresWidth, ref parameters.lowresHeight);
-            parameters.resolver = msaa ? m_ResolverMsaa : m_Resolver;
-            parameters.downsampleCS = m_DownSampleCS;
-            parameters.downsampleKernel = msaa ? m_DownsampleKernelMSAA : m_DownsampleKernel;
-
-            return parameters;
-        }
-
-        static void ResolveVTDispatch(in ResolveVTParameters parameters, CommandBuffer cmd, RTHandle buffer, RTHandle lowresBuffer)
-        {
-            Debug.Assert(parameters.lowresWidth <= parameters.resolver.CurrentWidth && parameters.lowresHeight <= parameters.resolver.CurrentHeight);
-            Debug.Assert(parameters.lowresWidth <= lowresBuffer.referenceSize.x && parameters.lowresHeight <= lowresBuffer.referenceSize.y);
-
-            string mainFunction = (buffer.isMSAAEnabled) ? "KMainMSAA" : "KMain";
-            int inputID = (buffer.isMSAAEnabled) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
-
-            cmd.SetComputeTextureParam(parameters.downsampleCS, parameters.downsampleKernel, inputID, buffer.nameID);
-            cmd.SetComputeTextureParam(parameters.downsampleCS, parameters.downsampleKernel, HDShaderIDs._OutputTexture, lowresBuffer);
-            var resolveCounter = 0;
-            var startOffsetX = (resolveCounter % kResolveScaleFactor);
-            var startOffsetY = (resolveCounter / kResolveScaleFactor) % kResolveScaleFactor;
-            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/-1));
-            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params1, new Vector4(parameters.width, parameters.height, parameters.lowresWidth, parameters.lowresHeight));
-            var TGSize = 8; //Match shader
-            cmd.DispatchCompute(parameters.downsampleCS, parameters.downsampleKernel, ((int)parameters.lowresWidth + (TGSize - 1)) / TGSize, ((int)parameters.lowresHeight + (TGSize - 1)) / TGSize, 1);
-
-            parameters.resolver.Process(cmd, lowresBuffer, 0, parameters.lowresWidth, 0, parameters.lowresHeight, 0, 0);
         }
 
         void GetResolveDimensions(ref int w, ref int h)
@@ -186,12 +156,19 @@ namespace  UnityEngine.Rendering.HighDefinition
             h = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.y * h), 1);
         }
 
-        public void DestroyBuffers()
+        void CalculateResolverDimensions(ref int w, ref int h, VirtualTexturing.Resolver resolver)
         {
-            RTHandles.Release(FeedbackBuffer);
-            RTHandles.Release(FeedbackBufferMsaa);
-            FeedbackBuffer = null;
-            FeedbackBufferMsaa = null;
+            //RT handles don't downscale in the editor but render with subrects.
+#if UNITY_EDITOR
+            int currentWidth = resolver.CurrentWidth;
+            int currentHeight = resolver.CurrentHeight;
+
+            if (currentWidth < w || currentHeight < h)
+            {
+                w = currentWidth < w ? w : currentWidth;
+                h = currentHeight < h ? h : currentHeight;
+            }
+#endif
         }
     }
 }

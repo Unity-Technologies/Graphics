@@ -4,10 +4,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using Object = System.Object;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/Map", variantProvider = typeof(AttributeVariantReadWritable))]
+    class AttributeFromMapProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
+            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            var sampleModes = Enum.GetValues(typeof(AttributeFromMap.AttributeMapSampleMode)).OfType<AttributeFromMap.AttributeMapSampleMode>().ToArray();
+
+            foreach (var attribute in attributes)
+            {
+                foreach (var composition in compositions)
+                {
+                    foreach (var sampleMode in sampleModes)
+                    {
+                        yield return new Variant(
+                            new[]
+                            {
+                                new KeyValuePair<string, object>("attribute", attribute),
+                                new KeyValuePair<string, object>("Composition", composition),
+                                new KeyValuePair<string, object>("SampleMode", sampleMode)
+                            },
+                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
+                    }
+                }
+            }
+        }
+    }
+
+    [VFXInfo(category = "Attribute/{0}/Map/{1}", variantProvider = typeof(AttributeFromMapProvider))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -35,25 +64,20 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        public override string libraryName
-        {
-            get
-            {
-                return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute));
-            }
-        }
+        public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)} from Map ({ObjectNames.NicifyVariableName(SampleMode.ToString())})";
 
         public override string name
         {
             get
             {
-                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels.ToString() : "";
-                return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute) + variadicName);
+                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels : "";
+                return $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute) + variadicName} from Map";
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override VFXContextType compatibleContexts { get; } = VFXContextType.InitAndUpdateAndOutput;
+        public override VFXDataType compatibleData { get; } = VFXDataType.Particle;
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -71,9 +95,12 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(attrib, attributeMode);
                 }
 
-                if (SampleMode == AttributeMapSampleMode.Sequential) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
-                if (SampleMode == AttributeMapSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (SampleMode == AttributeMapSampleMode.RandomConstantPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                if (SampleMode == AttributeMapSampleMode.Sequential)
+                    yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                if (SampleMode == AttributeMapSampleMode.Random)
+                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                if (SampleMode == AttributeMapSampleMode.RandomConstantPerParticle)
+                    yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
             }
         }
 
@@ -89,9 +116,11 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (string setting in base.filteredOutSettings) yield return setting;
+                foreach (string setting in base.filteredOutSettings)
+                    yield return setting;
                 var attrib = VFXAttribute.Find(attribute);
-                if (attrib.variadic == VFXVariadic.False) yield return "channels";
+                if (attrib.variadic == VFXVariadic.False)
+                    yield return "channels";
             }
         }
 
@@ -147,16 +176,79 @@ namespace UnityEditor.VFX.Block
                     switch (count)
                     {
                         default:
-                        case 1: scaleInputPropertiesType = "InputPropertiesScaleFloat"; break;
-                        case 2: scaleInputPropertiesType = "InputPropertiesScaleFloat2"; break;
-                        case 3: scaleInputPropertiesType = "InputPropertiesScaleFloat3"; break;
-                        case 4: scaleInputPropertiesType = "InputPropertiesScaleFloat4"; break;
+                        case 1:
+                            scaleInputPropertiesType = "InputPropertiesScaleFloat";
+                            break;
+                        case 2:
+                            scaleInputPropertiesType = "InputPropertiesScaleFloat2";
+                            break;
+                        case 3:
+                            scaleInputPropertiesType = "InputPropertiesScaleFloat3";
+                            break;
+                        case 4:
+                            scaleInputPropertiesType = "InputPropertiesScaleFloat4";
+                            break;
                     }
 
                     properties = properties.Concat(PropertiesFromType(scaleInputPropertiesType));
                 }
 
                 return properties;
+            }
+        }
+
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                foreach (var param in base.parameters)
+                    yield return param;
+                if (SampleMode == AttributeMapSampleMode.Sample2DLOD || SampleMode == AttributeMapSampleMode.Sample3DLOD)
+                {
+                    //Do nothing
+                }
+                else
+                {
+                    var particleIdExpr = new VFXAttributeExpression(VFXAttribute.ParticleId);
+                    var attribMapExpr = GetExpressionsFromSlots(this).First(o => o.name == "attributeMap").exp;
+                    var height = new VFXExpressionTextureHeight(attribMapExpr);
+                    var width = new VFXExpressionTextureWidth(attribMapExpr);
+                    var countExpr = height * width;
+                    VFXExpression samplePos = VFXValue.Constant(0);
+
+                    switch (SampleMode)
+                    {
+                        case AttributeMapSampleMode.IndexRelative:
+                            var relativePosExpr = GetExpressionsFromSlots(this).First(o => o.name == "relativePos").exp;
+                            samplePos = VFXOperatorUtility.Clamp(new VFXExpressionCastFloatToUint(relativePosExpr) * countExpr,
+                                VFXOperatorUtility.ZeroExpression[VFXValueType.Uint32],
+                                countExpr - VFXOperatorUtility.OneExpression[VFXValueType.Uint32], false);
+                            break;
+                        case AttributeMapSampleMode.Index:
+                            var indexExpr = GetExpressionsFromSlots(this).First(o => o.name == "index").exp;
+                            samplePos = VFXOperatorUtility.Modulo(indexExpr, countExpr);
+                            break;
+                        case AttributeMapSampleMode.Sequential:
+                            samplePos = VFXOperatorUtility.Modulo(particleIdExpr, countExpr);
+                            break;
+                        case AttributeMapSampleMode.Random:
+                            var randExpr = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this));
+                            samplePos = new VFXExpressionCastFloatToUint(randExpr * new VFXExpressionCastUintToFloat(countExpr));
+                            break;
+                        case AttributeMapSampleMode.RandomConstantPerParticle:
+                            var seedExpr = GetExpressionsFromSlots(this).First(o => o.name == "Seed").exp;
+                            var randFixedExpr = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, true, new RandId(this), seedExpr);
+                            samplePos = new VFXExpressionCastFloatToUint(randFixedExpr * new VFXExpressionCastUintToFloat(countExpr));
+                            break;
+                    }
+                    var y = samplePos / width;
+                    var x = samplePos - (y * width);
+                    var outputType = VFXExpression.TypeToType(currentAttribute.type);
+                    var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
+                    var outputExpr = Activator.CreateInstance(type, new object[] { attribMapExpr, x, y });
+
+                    yield return new VFXNamedExpression((VFXExpression)outputExpr, "value");
+                }
             }
         }
 
@@ -176,9 +268,15 @@ namespace UnityEditor.VFX.Block
                     loopCount = channels.ToString().Length;
                     switch (loopCount)
                     {
-                        case 1: valueType = VFXValueType.Float; break;
-                        case 2: valueType = VFXValueType.Float2; break;
-                        case 3: valueType = VFXValueType.Float3; break;
+                        case 1:
+                            valueType = VFXValueType.Float;
+                            break;
+                        case 2:
+                            valueType = VFXValueType.Float2;
+                            break;
+                        case 3:
+                            valueType = VFXValueType.Float3;
+                            break;
                         default:
                             break;
                     }
@@ -193,26 +291,7 @@ namespace UnityEditor.VFX.Block
                 }
                 else // All other SampleModes
                 {
-                    string samplePos = "0";
-                    switch (SampleMode)
-                    {
-                        case AttributeMapSampleMode.IndexRelative: samplePos = "clamp(relativePos * count,  0u, count - 1u)"; break;
-                        case AttributeMapSampleMode.Index: samplePos = "index % count"; break;
-                        case AttributeMapSampleMode.Sequential: samplePos = "particleId % count"; break;
-                        case AttributeMapSampleMode.Random: samplePos = "RAND * count"; break;
-                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(Seed) * count"; break;
-                    }
-
-                    output += string.Format(@"
-uint width, height;
-attributeMap.t.GetDimensions(width, height);
-uint count = width * height;
-uint id = {0};
-uint y = id / width;
-uint x = id - y * width;
-{1} value = ({1})attributeMap.t.Load(int3(x, y, 0));
-{2}
-", samplePos, GetCompatTypeString(valueType), biasScale);
+                    output += biasScale;
                 }
 
                 for (int i = 0; i < loopCount; i++)
@@ -221,7 +300,7 @@ uint x = id - y * width;
                     string attributePostfix = (attrib.variadic == VFXVariadic.True) ? char.ToUpper(channels.ToString()[i]).ToString() : "";
 
                     if (Composition != AttributeCompositionMode.Blend)
-                        output +=  VFXBlockUtility.GetComposeString(Composition, attributeName + attributePostfix, "value" + paramPostfix);
+                        output += VFXBlockUtility.GetComposeString(Composition, attributeName + attributePostfix, "value" + paramPostfix);
                     else
                         output += VFXBlockUtility.GetComposeString(Composition, attributeName + attributePostfix, "value" + paramPostfix, "blend");
 

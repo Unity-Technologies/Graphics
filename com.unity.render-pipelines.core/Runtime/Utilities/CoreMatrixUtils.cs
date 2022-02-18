@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     {
         /// <summary>
         /// This function provides the equivalent of multiplying matrix parameter inOutMatrix with a translation matrix defined by the parameter translation.
-        /// The order of the equivalent multiplication is inOutMatrix * translation. 
+        /// The order of the equivalent multiplication is inOutMatrix * translation.
         /// </summary>
         /// <param name="inOutMatrix">Matrix to multiply with translation.</param>
         /// <param name="translation">Translation component to multiply to the matrix.</param>
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// This function provides the equivalent of multiplying a translation matrix defined by the parameter translation with the matrix specified by the parameter inOutMatrix.
-        /// The order of the equivalent multiplication is translation * inOutMatrix. 
+        /// The order of the equivalent multiplication is translation * inOutMatrix.
         /// </summary>
         /// <param name="inOutMatrix">Matrix to multiply with translation.</param>
         /// <param name="translation">Translation component to multiply to the matrix.</param>
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Multiplies a matrix with a perspective matrix. This function is faster than performing the full matrix multiplication.
-        /// The operation order is perspective * rhs. 
+        /// The operation order is perspective * rhs.
         /// </summary>
         /// <param name="perspective">The perspective matrix to multiply with rhs.</param>
         /// <param name="rhs">A matrix to be multiply to perspective.</param>
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Multiplies a matrix with an orthographic matrix. This function is faster than performing the full matrix multiplication.
-        /// The operation order is ortho * rhs. 
+        /// The operation order is ortho * rhs.
         /// </summary>
         /// <param name="ortho">The ortho matrix to multiply with rhs.</param>
         /// <param name="rhs">A matrix to be multiply to perspective.</param>
@@ -148,10 +148,9 @@ namespace UnityEngine.Rendering
             return centered ? MultiplyGenericOrthoMatrix(ortho, rhs) : MultiplyOrthoMatrixCentered(ortho, rhs);
         }
 
-
         /// <summary>
         /// Multiplies a matrix with a projection matrix. This function is faster than performing the full matrix multiplication.
-        /// The operation order is projMatrix * rhs. 
+        /// The operation order is projMatrix * rhs.
         /// </summary>
         /// <param name="projMatrix">The projection matrix to multiply with rhs.</param>
         /// <param name="rhs">A matrix to be multiply to perspective.</param>

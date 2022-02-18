@@ -6,36 +6,57 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    path: Assets/Scenes/Effects.unity
+    guid: b636d9b99a5830a48b4d03bfda7dbf3b
   - enabled: 1
-    path: Assets/Scenes/0001_1000_LitCube.unity
-    guid: 28e288c67dfeebc4ca736cf19a048aec
+    path: Assets/Scenes/Lighting.unity
+    guid: f7590198924b11e47b1b33cdd7ec91ac
   - enabled: 1
-    path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
   - enabled: 1
-    path: Assets/Scenes/0003_TesselationShadow.unity
-    guid: 0e384ccb83f959247ba023387248b3e5
+    path: Assets/Scenes/Others.unity
+    guid: 2927e325ad9c3ad4cbbf2349fb02759f
   - enabled: 1
-    path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    path: Assets/Scenes/Effects.unity
+    guid: b636d9b99a5830a48b4d03bfda7dbf3b
   - enabled: 1
-    path: Assets/Scenes/0001_1000_LitCube.unity
-    guid: 28e288c67dfeebc4ca736cf19a048aec
+    path: Assets/Scenes/Lighting.unity
+    guid: f7590198924b11e47b1b33cdd7ec91ac
   - enabled: 1
-    path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
   - enabled: 1
-    path: Assets/Scenes/0003_TesselationShadow.unity
-    guid: 0e384ccb83f959247ba023387248b3e5
+    path: Assets/Scenes/Others.unity
+    guid: 2927e325ad9c3ad4cbbf2349fb02759f
   - enabled: 1
-    path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    path: Assets/Scenes/Effects.unity
+    guid: b636d9b99a5830a48b4d03bfda7dbf3b
   - enabled: 1
-    path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    path: Assets/Scenes/Lighting.unity
+    guid: f7590198924b11e47b1b33cdd7ec91ac
   - enabled: 1
-    path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
+  - enabled: 1
+    path: Assets/Scenes/Others.unity
+    guid: 2927e325ad9c3ad4cbbf2349fb02759f
+  - enabled: 1
+    path: Assets/Scenes/Effects.unity
+    guid: b636d9b99a5830a48b4d03bfda7dbf3b
+  - enabled: 1
+    path: Assets/Scenes/Lighting.unity
+    guid: f7590198924b11e47b1b33cdd7ec91ac
+  - enabled: 1
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
+  - enabled: 1
+    path: Assets/Scenes/Others.unity
+    guid: 2927e325ad9c3ad4cbbf2349fb02759f
+  - enabled: 1
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
+  - enabled: 1
+    path: Assets/Scenes/Materials.unity
+    guid: 3579be3d02cfeb748b65bee126dde746
   m_configObjects: {}

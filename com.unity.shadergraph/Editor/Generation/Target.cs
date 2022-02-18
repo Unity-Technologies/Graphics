@@ -12,12 +12,14 @@ namespace UnityEditor.ShaderGraph
     {
         public string displayName { get; set; }
         public bool isHidden { get; set; }
+        internal virtual bool ignoreCustomInterpolators => true;
+        internal virtual int padCustomInterpolatorLimit => 4;
+        internal virtual bool prefersSpritePreview => false;
         public abstract bool IsActive();
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);
         public abstract void GetActiveBlocks(ref TargetActiveBlockContext context);
         public abstract void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo);
-
         public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
         public virtual void ProcessPreviewMaterial(Material material) { }
         public virtual object saveContext => null;
@@ -27,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             return never == null;
         }
 
+        // think this is not called by anyone anymore, leaving it to avoid changing client code
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
-        
     }
 }

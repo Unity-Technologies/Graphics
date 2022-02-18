@@ -2,7 +2,7 @@
 
 __Subsurface Scattering__ handles light that penetrates and moves within the area under a surface. Use it to make organic materials, like skin, look smooth and natural rather than rough and plastic-like. HDRP implements subsurface scattering using a screen-space blur technique.
 
-Subsurface scattering also handles the light that penetrates GameObjects from behind and makes those GameObjects look transparent. For certain types of objects, the screen-space blur effect may not make a large visual difference. Therefore, HDRP implements two material types: 
+Subsurface scattering also handles the light that penetrates GameObjects from behind and makes those GameObjects look transparent. For certain types of objects, the screen-space blur effect may not make a large visual difference. Therefore, HDRP implements two material types:
 
 * __Subsurface Scattering__ implements both the screen-space blur effect and transmission (you can disable the latter).
 * __Translucent__ only models transmission.
@@ -25,7 +25,7 @@ First, change the Material’s __Material Type__ to __Subsurface Scattering__ or
 
 For the __Subsurface Scattering__ material type, uncheck the __Transmission__ checkbox to disable transmission.
 
-### Customizing Subsurface Scattering behavior 
+### Customizing Subsurface Scattering behavior
 
 When you select __Subsurface Scattering__ or __Translucent__ from the __Material Type__ drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](Material-Type.md).
 

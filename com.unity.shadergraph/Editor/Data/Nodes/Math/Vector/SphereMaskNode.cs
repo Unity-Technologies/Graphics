@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Sphere Mask";
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -25,9 +24,9 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
-	Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
+    Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
 }
 ";
         }

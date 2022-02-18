@@ -2553,9 +2553,8 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114128410732456472}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114214122751800258
@@ -7215,6 +7214,8 @@ MonoBehaviour:
   capacity: 65536
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114713590420958864
 MonoBehaviour:
@@ -9668,7 +9669,7 @@ MonoBehaviour:
         m_SerializableType: UnityEditor.VFX.Transform, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"position":{"x":NaN,"y":NaN,"z":NaN},"angles":{"x":326.0874938964844,"y":321.98138427734377,"z":321.98138427734377},"scale":{"x":0.0,"y":0.0,"z":0.0}}'
-    m_Space: 0
+    m_Space: 1
   m_Property:
     name: World To Local
     m_serializedType:

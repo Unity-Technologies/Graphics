@@ -4,8 +4,9 @@ The Depth Of Field component applies a depth of field effect, which simulates th
 
 The Universal Render Pipeline (URP) has two depth of field modes:
 
-- **Gaussian**: this mode approximates camera-like effects, but doesn’t imitate them completely. It has a limited blur radius and only does far-field blurring. This mode is the fastest, and is the best mode for lower-end platforms.
-- **Bokeh**: a slower but higher quality mode that closely imitates the effects of a real-life camera. It can do both near & far-field blurring, and generates bokeh on areas with high luminosity intensity, also known as hot spots.
+- **Gaussian**: this mode approximates camera-like effects, but doesn’t imitate them completely. It has a limited blur radius and only does far-field blurring. This mode is the fastest, and is the best mode for lower-end platforms.<br/>![Gaussian Depth Of Field](Images/post-proc/dof-gaussian.png)
+
+- **Bokeh**: a slower but higher quality mode that closely imitates the effects of a real-life camera. It can do both near & far-field blurring, and generates bokeh on areas with high luminosity intensity, also known as hot spots.<br/>![Gaussian Depth Of Field](Images/post-proc/dof-bokeh.png)
 
 ## Using Depth Of Field
 
@@ -35,16 +36,13 @@ The Universal Render Pipeline (URP) has two depth of field modes:
 
 ![](Images/Inspectors/BokehDepthOfField.png)
 
-The **Bokeh** Depth of Field mode closely imitates the effect of a real-life camera. For this reason, the settings are based on real-life camera settings, and offer a number of properties to adjust the diaphragm blades on the Camera. For an introduction to diaphragm blades and how they affect the visual quality of your Camera output, see Improve Photography’s guide [Aperture Blades: How many is best?](https://improvephotography.com/29529/aperture-blades-many-best/). 
+The **Bokeh** Depth of Field mode closely imitates the effect of a real-life camera. For this reason, the settings are based on real-life camera settings, and offer a number of properties to adjust the diaphragm blades on the Camera. For an introduction to diaphragm blades and how they affect the visual quality of your Camera output, see Improve Photography’s guide [Aperture Blades: How many is best?](https://improvephotography.com/29529/aperture-blades-many-best/).
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Focus Distance**  | Set the distance from the Camera to the focus point.         |
+| **Focus&#160;Distance**  | Set the distance from the Camera to the focus point.         |
 | **Focal Length**    | Set the distance, in millimeters, between the Camera sensor and the Camera lens. The larger the value is, the shallower the depth of field. |
 | **Aperture**        | Set the ratio of aperture (known as f-stop or f-number). The smaller the value is, the shallower the depth of field is. |
-| **Blade Count**     | Use the slider to set the number of diaphragm blades the Camera uses to form the aperture. The more blades you use, the rounder the bokeh appear. |
-| **Blade Curvature** | Use the slider to set the curvature of diaphragm blades the Camera uses to form the aperture.<br />The smaller the value is, the more visible aperture blades are. A value of 1 makes the bokeh perfectly circular. |
+| **Blade Count**     | Use the slider to set the number of diaphragm blades the Camera uses to form the aperture. The more blades you use, the rounder the bokeh appears.<br/>![Blade Count example](Images/post-proc/dof-bokeh-bladecount.png)<br/>_Blade Count from left to right: 3, 4, 5, and 6._ |
+| **Blade&#160;Curvature** | Use the slider to set the curvature of diaphragm blades the Camera uses to form the aperture.<br />The smaller the value is, the more visible aperture blades are. A value of 1 makes the bokeh perfectly circular.<br/>![Blade Curvature example](Images/post-proc/dof-bokeh-curvature.png)<br/>_Blade Curvature value of 1 (left), and 0 (right)._ |
 | **Blade Rotation**  | Use the slider to set the rotation of diaphragm blades in degrees. |
-
-
-

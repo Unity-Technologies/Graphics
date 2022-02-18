@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     interface IRequiresData<T> where T : HDTargetData
     {

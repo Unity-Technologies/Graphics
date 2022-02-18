@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
@@ -19,11 +19,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyCubemapField,
             int indentLevel = 0)
         {
-            var objectField = new ObjectField { value = fieldToDraw, objectType = typeof(Cubemap)};
+            var objectField = new ObjectField { value = fieldToDraw, objectType = typeof(Cubemap) };
 
             if (valueChangedCallback != null)
             {
-                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((Cubemap) evt.newValue); });
+                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((Cubemap)evt.newValue); });
             }
 
             propertyCubemapField = objectField;
@@ -40,10 +40,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Cubemap) propertyInfo.GetValue(actualObject),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
+                (Cubemap)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

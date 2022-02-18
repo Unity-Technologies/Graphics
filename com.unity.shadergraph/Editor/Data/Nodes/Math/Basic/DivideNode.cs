@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public DivideNode()
         {
             name = "Divide";
+            synonyms = new string[] { "division", "divided by" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {

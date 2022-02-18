@@ -5,27 +5,27 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CookieUpdater : MonoBehaviour
 {
-	[SerializeField] Material crtMaterial = null;
+    [SerializeField] Material crtMaterial = null;
 
-	[SerializeField] CustomRenderTexture[] customRenderTextures = null;
+    [SerializeField] CustomRenderTexture[] customRenderTextures = null;
 
-	int frames = 0;
+    int frames = 0;
 
-	void Start()
-	{
-		frames = 0;
-	}
+    void Start()
+    {
+        frames = 0;
+    }
 
-	void Update()
-	{
-		if (crtMaterial != null)
-			crtMaterial.SetFloat("_MyTime", frames / 60f);
+    void Update()
+    {
+        if (crtMaterial != null)
+            crtMaterial.SetFloat("_MyTime", frames / 60f);
 
-		if (customRenderTextures != null)
-			foreach(CustomRenderTexture crt in customRenderTextures)
-				if (crt != null)
-					crt.Update();
+        if (customRenderTextures != null)
+            foreach (CustomRenderTexture crt in customRenderTextures)
+                if (crt != null)
+                    crt.Update();
 
-		++frames;
-	}
+        ++frames;
+    }
 }

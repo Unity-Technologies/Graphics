@@ -14,17 +14,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Material used for the fullscreen pass, it's shader must have been created with.
         /// </summary>
-        public Material         fullscreenPassMaterial;
+        public Material fullscreenPassMaterial;
         [SerializeField]
-        int                     materialPassIndex = 0;
+        int materialPassIndex = 0;
         /// <summary>
         /// Name of the pass to use in the fullscreen material.
         /// </summary>
-        public string           materialPassName = "Custom Pass 0";
+        public string materialPassName = "Custom Pass 0";
         /// <summary>
         /// Set to true if your shader will sample in the camera color buffer.
         /// </summary>
-        public bool             fetchColorBuffer;
+        public bool fetchColorBuffer;
 
         int fadeValueId;
 
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (fetchColorBuffer)
                 {
                     ResolveMSAAColorBuffer(ctx.cmd, ctx.hdCamera);
-                    // reset the render target to the UI 
+                    // reset the render target to the UI
                     SetRenderTargetAuto(ctx.cmd);
                 }
 

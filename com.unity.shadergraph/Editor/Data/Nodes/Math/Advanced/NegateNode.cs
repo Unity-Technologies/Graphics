@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public NegateNode()
         {
             name = "Negate";
+            synonyms = new string[] { "invert", "opposite" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = -1 * In;
 }

@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<float>(a);
             var value_b = new VFXValue<float>(b);
 
-            var expressionA = VFXOperatorUtility.CylinderVolume(value_a, value_b);
+            var expressionA = VFXOperatorUtility.ConeVolume(value_a, value_a, value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpressionA = context.Compile(expressionA);
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ProcessOperatorSign([ValueSource("ProcessOperatorAbs_a")] float a)
         {
-            var r = Mathf.Sign(a);
+            var r = (a < 0.0f) ? -1.0f : (a > 0.0f) ? 1.0f : 0.0f;
             var value_a = new VFXValue<float>(a);
 
             var expression = new VFXExpressionSign(value_a);

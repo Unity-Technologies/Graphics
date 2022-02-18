@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/071_ChromaticAberration.unity
+    guid: 50a8dc518aa0c5e4fa5ae2ab2052bef4
+  - enabled: 1
+    path: Assets/Scenes/072_LensDistortion.unity
+    guid: 4484570f2b253984b89233ac50505811
+  - enabled: 1
+    path: Assets/Scenes/073_PaniniProjection.unity
+    guid: 3f7fbddefe91fe44ba7e0c199894d7d5
+  - enabled: 1
+    path: Assets/Scenes/074_VignetteClassic.unity
+    guid: 27e9bb11ee6914e44bf36ad688926b50
+  - enabled: 1
+    path: Assets/Scenes/075_FilmGrain.unity
+    guid: eac2e34f4627d8846a2df518b0e1cb9e
+  - enabled: 1
+    path: Assets/Scenes/076_Dithering.unity
+    guid: 49c136c02b1ebe640834a557f6baeef3
+  - enabled: 1
+    path: Assets/Scenes/077_GradingChannelMixerLDR.unity
+    guid: e4d45947c95a67a41b393c5fe823891b
+  - enabled: 1
+    path: Assets/Scenes/079_GradingColorAdjustmentsLDR.unity
+    guid: d37e4ef718eada94db246dbd8ef33205
+  - enabled: 1
+    path: Assets/Scenes/081_GradingColorCurvesLDR.unity
+    guid: c4dab86134e72034aac45c19df32ceb7
+  - enabled: 1
+    path: Assets/Scenes/083_GradingLiftGammaGainLDR.unity
+    guid: 61718ed79ced0044fbfabd6ef7861a15
+  - enabled: 1
+    path: Assets/Scenes/085_GradingShadowsMidtonesHighlightsLDR.unity
+    guid: b8fbc679adfaed54ea1d4121a8564c81
+  - enabled: 1
+    path: Assets/Scenes/087_GradingSplitToningLDR.unity
+    guid: 9e7523551cb924341a7dd2c98d773076
+  - enabled: 1
+    path: Assets/Scenes/089_GradingWhiteBalanceLDR.unity
+    guid: 507fe0226a0388c4898d134f829a4b28
+  - enabled: 1
+    path: Assets/Scenes/091_TonemappingNeutralLDR.unity
+    guid: d0fe400c29908d94e9cd70045224370d
+  - enabled: 1
+    path: Assets/Scenes/093_TonemappingACESLDR.unity
+    guid: 46788dd77b1c63144b05ad4e2bbe58d5
+  - enabled: 1
+    path: Assets/Scenes/100_BloomHDR.unity
+    guid: 5bc15ee9dd5b1fc4aaecb48fb9ae2d94
+  - enabled: 1
+    path: Assets/Scenes/101_FXAA.unity
+    guid: 736a5167224854841be61166040606c6
+  - enabled: 1
+    path: Assets/Scenes/102_SMAA.unity
+    guid: 500776c6f47e775448575730d8cfa86b
+  - enabled: 1
+    path: Assets/Scenes/103_GaussianDepthOfField.unity
+    guid: bb1de3ccb0b7a7a439e79e00f33a78f8
+  - enabled: 1
+    path: Assets/Scenes/104_BokehDepthOfField.unity
+    guid: 25cb76fbf82e5924f817e3466acb803a
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Auto.unity
+    guid: b0e4c7327ffa0d7449aea7cad66edd24
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Linear.unity
+    guid: 0a9a60e2b67587149a02d9fdb55fd832
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_Point.unity
+    guid: 4634b21ca67fa1b4bab24ec37f196b4b
+  - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_FSR.unity
+    guid: 39df0b33bc51d7f40b6ee02863991adf
+  - enabled: 1
+    path: Assets/Scenes/125_CameraStackingVolumes.unity
+    guid: 9173c5ffc1365594aa9b927c4cd84c54
+  - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
+    guid: 7b2479971db0f4b1b87c121244585fe5
+  - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP_deferred.unity
+    guid: c8a69ff74f0029f4a9778c11637b3bf4
+  - enabled: 1
+    path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
+    guid: aee9f891d65e44daf811d30053402efd
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesEveryFrameTest.unity
+    guid: aea08d28b240a4fbcad63f84cd63bce4
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesUsePipelineTest.unity
+    guid: 7962ed0a9378644e194cd1dc78107545
+  - enabled: 1
+    path: Assets/Scenes/160_MultiCameraVolumesViaScriptingTest.unity
+    guid: 3f6f1488245db419bab368d787dcc0b1
+  - enabled: 1
+    path: Assets/Scenes/200_Lens_Flare_Sanity.unity
+    guid: b51c203a350144f97ba208c293ab8333
+  - enabled: 1
+    path: Assets/Scenes/240_DepthPriming.unity
+    guid: 06d3d04c77b97ba40969b415bc9a25dd
+  m_configObjects: {}

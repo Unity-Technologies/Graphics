@@ -6,7 +6,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -27,19 +27,32 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     surfaceData.specularOcclusion = 1.0;
 
     // copy across graph values, if defined
-    $SurfaceDescription.BaseColor:                      surfaceData.diffuseColor =                  surfaceDescription.BaseColor;
-    $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
-    $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
-    $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-    $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
-    $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =      surfaceDescription.RimTransmissionIntensity;
+    $SurfaceDescription.BaseColor:                   surfaceData.diffuseColor =                   surfaceDescription.BaseColor;
 
-    $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
-    $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
+    $SurfaceDescription.AbsorptionCoefficient:       surfaceData.absorption =                     surfaceDescription.AbsorptionCoefficient;
 
-    $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
-    $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
-    $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
+    $SurfaceDescription.Eumelanin:                   surfaceData.eumelanin =                      surfaceDescription.Eumelanin;
+    $SurfaceDescription.Pheomelanin:                 surfaceData.pheomelanin =                    surfaceDescription.Pheomelanin;
+\
+    $SurfaceDescription.SpecularOcclusion:           surfaceData.specularOcclusion =              surfaceDescription.SpecularOcclusion;
+    $SurfaceDescription.Smoothness:                  surfaceData.perceptualSmoothness =           surfaceDescription.Smoothness;
+    $SurfaceDescription.Occlusion:                   surfaceData.ambientOcclusion =               surfaceDescription.Occlusion;
+    $SurfaceDescription.Transmittance:               surfaceData.transmittance =                  surfaceDescription.Transmittance;
+    $SurfaceDescription.RimTransmissionIntensity:    surfaceData.rimTransmissionIntensity =       surfaceDescription.RimTransmissionIntensity;
+
+    $SurfaceDescription.SpecularTint:                surfaceData.specularTint =                   surfaceDescription.SpecularTint;
+    $SurfaceDescription.SpecularShift:               surfaceData.specularShift =                  surfaceDescription.SpecularShift;
+
+    $SurfaceDescription.SecondarySmoothness:         surfaceData.secondaryPerceptualSmoothness =  surfaceDescription.SecondarySmoothness;
+    $SurfaceDescription.SecondarySpecularTint:       surfaceData.secondarySpecularTint =          surfaceDescription.SecondarySpecularTint;
+    $SurfaceDescription.SecondarySpecularShift:      surfaceData.secondarySpecularShift =         surfaceDescription.SecondarySpecularShift;
+
+    $SurfaceDescription.RadialSmoothness:            surfaceData.perceptualRadialSmoothness =     surfaceDescription.RadialSmoothness;
+    $SurfaceDescription.PrimaryReflectionSmoothness: surfaceData.primaryReflectionSmoothness =    surfaceDescription.PrimaryReflectionSmoothness;
+    $SurfaceDescription.CuticleAngle:                surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
+
+    $SurfaceDescription.StrandCountProbe:            surfaceData.strandCountProbe =               surfaceDescription.StrandCountProbe;
+    $SurfaceDescription.StrandShadowBias:            surfaceData.strandShadowBias =               surfaceDescription.StrandShadowBias;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
@@ -49,6 +62,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
     #endif
 
+    #ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
+    #endif
+
     #ifdef _DOUBLESIDED_ON
         float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
     #else
@@ -56,9 +73,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #endif
 
     // normal delivered to master node
-    $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
     $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
+    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
@@ -103,7 +120,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
 
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs.tangentToWorld[2], alpha);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
         }
     #endif
@@ -118,7 +135,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     bentNormalWS = N;
 
     $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-        
+
     #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {

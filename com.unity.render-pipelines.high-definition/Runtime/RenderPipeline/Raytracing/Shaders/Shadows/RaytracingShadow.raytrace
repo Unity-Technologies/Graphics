@@ -52,13 +52,13 @@ RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
 RW_TEXTURE2D_X(float2, _AnalyticProbBuffer);
 
 [shader("miss")]
-void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadows(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     rayIntersection.color = float3(1.0, 1.0, 1.0);
 }
 
 [shader("miss")]
-void MissShaderShadowsColor(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadowsColor(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     // Does nothing intentionally
 }
@@ -218,10 +218,12 @@ void RayGenAreaShadows()
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = length(rayDestination - rayOrigin);
 
-        // Create and init the RayIntersection structure for this
-        RayIntersection rayIntersection;
+        // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+        ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+        // Create and init the RayIntersectionVisibility structure for this
+        RayIntersectionVisibility rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
 
         // Evaluate the ray visibility term and PDF
         TraceRay(_RaytracingAccelerationStructure, rayFlag | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -272,7 +274,7 @@ void RayGenAreaShadows()
 
 // Fallback default any hit shader for this raytrace shader
 [shader("anyhit")]
-void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHitMain(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.t = RayTCurrent();
@@ -342,10 +344,12 @@ void RayGenAreaShadowSingle()
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = rayDistance;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -411,8 +415,11 @@ void RayGenDirectionalShadowSingle()
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _DirectionalMaxRayLength;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
@@ -477,8 +484,11 @@ void RayGenDirectionalColorShadowSingle()
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _DirectionalMaxRayLength;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
@@ -496,9 +506,8 @@ void RayGenDirectionalColorShadowSingle()
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 
-            | RAY_FLAG_FORCE_NON_OPAQUE, 
-            RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
+        // Evaluate the ray visibility term
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
     }
 
     _RaytracedColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(previousIntergrationValue + rayIntersection.color / (float)_RaytracingNumSamples, 1.0);
@@ -528,20 +537,22 @@ void RayGenShadowSegmentSingle()
     // Read the ray distance
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    // If the distance is negative, it means the rays is a visible intersection.
-    if (rayDistance < 0.0)
+    // Fetch the ray direction
+    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
+
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDistance < 0.0 || rayDirection.w == -2.0)
     {
         // Read the previous value and add one
-        float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
         _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
         _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         return;
     }
 
-    // Fetch the ray direction
-    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
-
-    // If the PDF is negative, means the ray means a hit (no need to shoot it)
+    // If this point doesn't see the light, we set it to black
     if (rayDirection.w < 0.0) return;
 
     // Make sure it is taken into account in the ray counters
@@ -573,10 +584,12 @@ void RayGenShadowSegmentSingle()
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = rayDistance;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
@@ -584,7 +597,6 @@ void RayGenShadowSegmentSingle()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
     float previousVelocityValue = _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     
@@ -615,20 +627,23 @@ void RayGenSemiTransparentShadowSegmentSingle()
     // Read the ray distance
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    // If the distance is negative, it means the rays is a visible intersection.
-    if (rayDistance < 0.0)
-    {
-        // Read the previous value and add one
-        float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
-        return;
-    }
-
     // Fetch the ray direction
     float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
 
-    // If the PDF is negative, means the ray means a hit (no need to shoot it)
-    if (rayDirection.w < 0.0) return;
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDistance < 0.0 || rayDirection.w == -2.0)
+    {
+        // Read the previous value and add one
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
+
+    // If this point doesn't see the light, we set it to black
+    if (rayDirection.w <= 0.0) return;
 
     // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
@@ -659,10 +674,12 @@ void RayGenSemiTransparentShadowSegmentSingle()
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = rayDistance;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersectionVisibility structure for this
+    RayIntersectionVisibility rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
@@ -680,13 +697,11 @@ void RayGenSemiTransparentShadowSegmentSingle()
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 
-            | RAY_FLAG_FORCE_NON_OPAQUE, 
-            RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
+        // Evaluate the ray visibility term
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
     }
 
     // Add the contribution of this sample
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
     float previousVelocityValue = _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + Luminance(rayIntersection.color) / (float)_RaytracingNumSamples;

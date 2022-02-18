@@ -6,7 +6,6 @@ using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -90,6 +89,21 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : Editor
 {
+#if UNITY_2021_1_OR_NEWER
+    [OnOpenAsset(OnOpenAssetAttributeMode.Validate)]
+    public static bool WillOpenInUnity(int instanceID)
+    {
+        var obj = EditorUtility.InstanceIDToObject(instanceID);
+        if (obj is VFXGraph || obj is VFXModel || obj is VFXUI)
+            return true;
+        else if (obj is VisualEffectAsset)
+            return true;
+        else if (obj is VisualEffectSubgraph)
+            return true;
+        return false;
+    }
+
+#endif
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
     {
@@ -101,19 +115,18 @@ class VisualEffectAssetEditor : Editor
             Selection.activeInstanceID = instanceID;
             return true;
         }
-        else if (obj is VisualEffectAsset)
+        else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
             return true;
         }
-        else if (obj is Shader || obj is ComputeShader)
+        else if (obj is Material || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
@@ -139,7 +152,7 @@ class VisualEffectAssetEditor : Editor
     {
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority = i;
+            m_OutputContexts[i].vfxSystemSortPriority = i;
         }
     }
 
@@ -150,7 +163,7 @@ class VisualEffectAssetEditor : Editor
         var systemName = context.GetGraph().systemNames.GetUniqueSystemName(context.GetData());
         var contextLetter = context.letter;
         var contextName = string.IsNullOrEmpty(context.label) ? context.libraryName : context.label;
-        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName);
+        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName.Replace('\n', ' '));
 
         EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));
     }
@@ -170,7 +183,7 @@ class VisualEffectAssetEditor : Editor
         {
             m_CurrentGraph = resource.GetOrCreateGraph();
             m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
-            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
@@ -408,6 +421,96 @@ class VisualEffectAssetEditor : Editor
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
+    public static void DisplayPrewarmInspectorGUI(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
+    {
+        if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
+        {
+            var currentDeltaTime = prewarmDeltaTime.floatValue;
+            var currentStepCount = prewarmStepCount.uintValue;
+            var currentTotalTime = currentDeltaTime * currentStepCount;
+            EditorGUI.BeginChangeCheck();
+            currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1u;
+                }
+
+                currentDeltaTime = currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentStepCount = (uint)EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1;
+                }
+
+                currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                prewarmStepCount.uintValue = currentStepCount;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                {
+                    prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                }
+
+                if (currentDeltaTime > currentTotalTime)
+                {
+                    currentTotalTime = currentDeltaTime;
+                }
+
+                if (currentTotalTime != 0.0f)
+                {
+                    var candidateStepCount_A = (uint)Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_B = (uint)Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                    var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                    var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                    if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                    {
+                        currentStepCount = candidateStepCount_A;
+                    }
+                    else
+                    {
+                        currentStepCount = candidateStepCount_B;
+                    }
+
+                    prewarmStepCount.uintValue = currentStepCount;
+                }
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+        else
+        {
+            //Multi selection case, can't resolve total time easily
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
+            EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
+                    prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+    }
+
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
@@ -417,19 +520,19 @@ class VisualEffectAssetEditor : Editor
         VFXUpdateMode initialUpdateMode = (VFXUpdateMode)0;
         bool? initialFixedDeltaTime = null;
         bool? initialProcessEveryFrame = null;
-        bool? initialIgnoreGameTimeScale= null;
+        bool? initialIgnoreGameTimeScale = null;
         if (resourceUpdateModeProperty.hasMultipleDifferentValues)
         {
             var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects
-                                                .Select(o => new SerializedObject(o)
-                                                .FindProperty(resourceUpdateModeProperty.propertyPath))
-                                                .ToArray(); //N.B.: This will create garbage
-            var allDeltaTime = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
-                                                            .Distinct();
-            var allProcessEveryFrame = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
-                                                                    .Distinct();
+                .Select(o => new SerializedObject(o)
+                    .FindProperty(resourceUpdateModeProperty.propertyPath))
+                .ToArray();                                 //N.B.: This will create garbage
+            var allDeltaTime = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
+                .Distinct();
+            var allProcessEveryFrame = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
+                .Distinct();
             var allIgnoreScale = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale)
-                                                             .Distinct();
+                .Distinct();
             if (allDeltaTime.Count() == 1)
                 initialFixedDeltaTime = !allDeltaTime.First();
             if (allProcessEveryFrame.Count() == 1)
@@ -444,11 +547,11 @@ class VisualEffectAssetEditor : Editor
             initialProcessEveryFrame = (initialUpdateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep;
             initialIgnoreGameTimeScale = (initialUpdateMode & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale;
         }
-        
+
         EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
-        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode.");
-        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant for fixed delta time mode, if enabled, can process several updates per frame (e.g.: if a frame is 30ms but the fixed frame rate is set to 5ms, it will update 6 times with a 5ms deltaTime instead of one time with a 30ms deltaTime). This update mode isn't efficient and should only be used for really high quality purpose.");
-        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "If enabled, the computed visual effect delta time ignore the game time scale value (play rate is still applied).");
+        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode, otherwise, use the default Time.deltaTime.");
+        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.");
+        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).");
 
         EditorGUI.BeginChangeCheck();
 
@@ -456,8 +559,9 @@ class VisualEffectAssetEditor : Editor
         bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
         bool newExactFixedTimeStep = false;
         EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
-        if (initialFixedDeltaTime.HasValue && initialFixedDeltaTime.Value || resourceUpdateModeProperty.hasMultipleDifferentValues)
-            newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
+        newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.EndDisabledGroup();
         EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
         bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
 
@@ -500,7 +604,7 @@ class VisualEffectAssetEditor : Editor
                         updateMode = updateMode | VFXUpdateMode.ExactFixedTimeStep;
                     else if (initialProcessEveryFrame.HasValue)
                         updateMode = updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-                    
+
                     if (newIgnoreTimeScale)
                         updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
                     else if (initialIgnoreGameTimeScale.HasValue)
@@ -511,108 +615,43 @@ class VisualEffectAssetEditor : Editor
                 }
             }
         }
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
 
-        EditorGUILayout.BeginHorizontal();
-        EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
-        EditorGUI.BeginChangeCheck();
-        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
-        if (EditorGUI.EndChangeCheck())
+        //The following should be working, and works for newly created systems, but fails for old systems,
+        //due probably to incorrectly pasting the VFXData when creating them.
+        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
-            cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-            resourceObject.ApplyModifiedProperties();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+            string forceSimulateTooltip = hasAutomaticBoundsSystems
+                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                : "";
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
+            EditorGUI.BeginChangeCheck();
+
+            int newOption =
+                EditorGUILayout.Popup(
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                    k_CullingOptionsContents);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                resourceObject.ApplyModifiedProperties();
+            }
         }
+
         EditorGUILayout.EndHorizontal();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
-            if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
-            {
-                var currentDeltaTime = prewarmDeltaTime.floatValue;
-                var currentStepCount = prewarmStepCount.intValue;
-                var currentTotalTime = currentDeltaTime * currentStepCount;
-                EditorGUI.BeginChangeCheck();
-                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    prewarmStepCount.intValue = currentStepCount;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
-                    {
-                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
-                    }
-
-                    if (currentDeltaTime > currentTotalTime)
-                    {
-                        currentTotalTime = currentDeltaTime;
-                    }
-
-                    if (currentTotalTime != 0.0f)
-                    {
-                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
-                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
-
-                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
-                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
-
-                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
-                        {
-                            currentStepCount = candidateStepCount_A;
-                        }
-                        else
-                        {
-                            currentStepCount = candidateStepCount_B;
-                        }
-
-                        prewarmStepCount.intValue = currentStepCount;
-                    }
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
-            else
-            {
-                //Multi selection case, can't resolve total time easily
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
-                EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
-                        prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
+            DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
         }
 
         if (initialEventName != null)
@@ -628,34 +667,41 @@ class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectAsset asset = (VisualEffectAsset)target;
-            VisualEffectResource resource = asset.GetResource();
+            asset = (VisualEffectAsset)target;
+            resource = asset.GetResource();
 
             m_OutputContexts.Clear();
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), false, false);
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
 
-            foreach (var shader in objects)
+            foreach (var obj in objects)
             {
-                if (shader is Shader || shader is ComputeShader)
+                if (obj is Material || obj is ComputeShader)
                 {
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
                     int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
 
+                    int index = resource.GetShaderIndex(obj);
+
+                    var shader = obj;
+                    if (obj is Material) // Retrieve the shader from the material
+                        shader = ((Material)(obj)).shader;
+                    if (shader == null)
+                        continue;
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
-                    GUI.Label(labelR, shader.name);
-                    int index = resource.GetShaderIndex(shader);
+                    GUI.Label(labelR, shader.name.Replace('\n', ' '));
+
                     if (index >= 0)
                     {
                         if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())

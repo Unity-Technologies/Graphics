@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [HasDependencies(typeof(MinimalCubemapInputMaterialSlot))]
     class CubemapInputMaterialSlot : CubemapMaterialSlot
     {
         [SerializeField]
@@ -24,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => cubemap == null;
 
         public CubemapInputMaterialSlot()
-        {}
+        { }
 
         public CubemapInputMaterialSlot(
             int slotId,
@@ -33,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {
@@ -42,21 +43,21 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return matOwner.GetVariableNameForSlot(id);
+            return $"UnityBuildTextureCubeStruct({nodeOwner.GetVariableNameForSlot(id)})";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             var prop = new CubemapShaderProperty();
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            prop.overrideReferenceName = nodeOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
             prop.value.cubemap = cubemap;
@@ -77,7 +78,25 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as CubemapInputMaterialSlot;
             if (slot != null)
+            {
                 m_Cubemap = slot.m_Cubemap;
+                bareResource = slot.bareResource;
+            }
+        }
+    }
+
+    class MinimalCubemapInputMaterialSlot : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableCubemap m_Cubemap = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Cubemap.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+            }
         }
     }
 }

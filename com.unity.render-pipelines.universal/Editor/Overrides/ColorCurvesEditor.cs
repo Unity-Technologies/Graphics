@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal
 {
     using CurveState = InspectorCurveEditor.CurveState;
 
-    [VolumeComponentEditor(typeof(ColorCurves))]
+    [CustomEditor(typeof(ColorCurves))]
     sealed class ColorCurvesEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Master;

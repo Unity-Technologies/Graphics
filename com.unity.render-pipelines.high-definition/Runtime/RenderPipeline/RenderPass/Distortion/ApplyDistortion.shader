@@ -9,7 +9,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -90,7 +90,17 @@ Shader "Hidden/HDRP/ApplyDistortion"
             // Get source pixel for distortion
             float2 distordedUV = float2(input.positionCS.xy + distortion * _FetchBias) * _Size.zw;
             float mip = (_ColorPyramidLodCount - 1) * saturate(distortionBlur) * _RoughDistortion;
-            float2 uv = distordedUV * _RTHandleScale.xy;
+
+            uint mipCeiled = ceil(mip);
+
+            int2 mipSize = int2(_Size.xy) >> mipCeiled;
+            // Clamp to the max size that is safe on the lowest mip. Note we recompute the full size this way to account for the
+            // rounding that can happen to sizes (and that _RTHandleScale won't represent correctly as we descend the mip chain)
+            float2 maxCoord = (mipSize << mipCeiled) * _Size.zw;
+            // Take of the half pixel for bilinear
+            maxCoord -= 0.5 * rcp(mipSize);
+
+            float2 uv = min(distordedUV, maxCoord) * _RTHandleScale.xy;
             float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, mip);
             return sampled;
         }

@@ -1,8 +1,10 @@
-# Sample Cubemap Node
+# Sample Reflected Cubemap Node
 
 ## Description
 
-Samples a **Cubemap** with reflected vector and returns a **Vector 4** color value for use in the shader. Requires **View Direction** and **Normal** inputs to sample the **Cubemap**. You can achieve a blurring effect by sampling at a different Level of Detail using the **LOD** input. You can also define a custom **Sampler State** using the **Sampler** input.
+Samples a Cubemap with reflected vector and returns a Vector 4 color value for use in the shader. Requires View Direction (**View Dir**) and **Normal** inputs to sample the Cubemap. You can achieve a blurring effect by using the **LOD** input to sample at a different Level of Detail. You can also use the **Sampler** input to define a custom Sampler State.
+
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
 
 ## Ports
 
@@ -11,7 +13,7 @@ Samples a **Cubemap** with reflected vector and returns a **Vector 4** color val
 | Cube | Input      |    Cubemap | None | Cubemap to sample |
 | View Dir      | Input | Vector 3 | View Direction (object space) | Mesh's view direction |
 | Normal | Input      |    Vector 3 | Normal (object space) | Mesh's normal vector |
-| Sampler | Input |	Sampler State | Default sampler state | Sampler for the **Cubemap** |
+| Sampler | Input | Sampler State | Default sampler state | Sampler for the Cubemap |
 | LOD | Input      |    Float    | None | Level of detail for sampling |
 | Out | Output      | Vector 4 | None | Output value |
 

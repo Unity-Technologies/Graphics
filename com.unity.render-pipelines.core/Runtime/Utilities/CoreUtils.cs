@@ -40,21 +40,71 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
+        /// <summary>
+        /// Class to store the menu sections
+        /// </summary>
+        public static class Sections
+        {
+            /// <summary>Menu section 1</summary>
+            public const int section1 = 10000;
+            /// <summary>Menu section 2</summary>
+            public const int section2 = 20000;
+            /// <summary>Menu section 3</summary>
+            public const int section3 = 30000;
+            /// <summary>Menu section 4</summary>
+            public const int section4 = 40000;
+            /// <summary>Menu section 5</summary>
+            public const int section5 = 50000;
+            /// <summary>Menu section 6</summary>
+            public const int section6 = 60000;
+            /// <summary>Menu section 7</summary>
+            public const int section7 = 70000;
+            /// <summary>Menu section 8</summary>
+            public const int section8 = 80000;
+        }
+
+        /// <summary>
+        /// Class to store the menu priorities on each top level menu
+        /// </summary>
+        public static class Priorities
+        {
+            /// <summary>Assets > Create > Shader priority</summary>
+            public const int assetsCreateShaderMenuPriority = 83;
+            /// <summary>Assets > Create > Rendering priority</summary>
+            public const int assetsCreateRenderingMenuPriority = 308;
+            /// <summary>Edit Menu base priority</summary>
+            public const int editMenuPriority = 320;
+            /// <summary>Game Object Menu priority</summary>
+            public const int gameObjectMenuPriority = 10;
+            /// <summary>Lens Flare Priority</summary>
+            public const int srpLensFlareMenuPriority = 303;
+        }
+
+        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
+
         /// <summary>Edit Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
@@ -67,7 +117,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_BlackCubeTexture == null)
                 {
-                    m_BlackCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_BlackCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_BlackCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.black);
                     m_BlackCubeTexture.Apply();
@@ -87,7 +137,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTexture == null)
                 {
-                    m_MagentaCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_MagentaCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_MagentaCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.magenta);
                     m_MagentaCubeTexture.Apply();
@@ -107,7 +157,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTextureArray == null)
                 {
-                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                     {
                         Color[] colors = { Color.magenta };
@@ -130,7 +180,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_WhiteCubeTexture == null)
                 {
-                    m_WhiteCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_WhiteCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_WhiteCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.white);
                     m_WhiteCubeTexture.Apply();
@@ -170,7 +220,7 @@ namespace UnityEngine.Rendering
                 if (m_BlackVolumeTexture == null)
                 {
                     Color[] colors = { Color.black };
-                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     m_BlackVolumeTexture.SetPixels(colors, 0);
                     m_BlackVolumeTexture.Apply();
                 }
@@ -188,14 +238,15 @@ namespace UnityEngine.Rendering
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
-                cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
+                cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
         }
 
         // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
         // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
         private static int FixupDepthSlice(int depthSlice, RTHandle buffer)
         {
-            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
+            // buffer.rt can be null in case the RTHandle is constructed from a RenderTextureIdentifier.
+            if (depthSlice == -1 && buffer.rt?.dimension == TextureDimension.Cube)
                 depthSlice = 0;
 
             return depthSlice;
@@ -225,6 +276,7 @@ namespace UnityEngine.Rendering
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
+
         /// <summary>
         /// Set the current render texture.
         /// </summary>
@@ -339,6 +391,46 @@ namespace UnityEngine.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
+        // Explicit load and store actions
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction,
+            int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            buffer = new RenderTargetIdentifier(buffer, miplevel, cubemapFace, depthSlice);
+            cmd.SetRenderTarget(buffer, loadAction, storeAction);
+        }
+
+        // Explicit load and store actions
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction,
+            ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            buffer = new RenderTargetIdentifier(buffer, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, clearColor);
+        }
+
         /// <summary>
         /// Set the current render texture.
         /// </summary>
@@ -369,6 +461,72 @@ namespace UnityEngine.Rendering
             ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            colorBuffer = new RenderTargetIdentifier(colorBuffer, miplevel, cubemapFace, depthSlice);
+            depthBuffer = new RenderTargetIdentifier(depthBuffer, miplevel, cubemapFace, depthSlice);
+            cmd.SetRenderTarget(colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            colorBuffer = new RenderTargetIdentifier(colorBuffer, miplevel, cubemapFace, depthSlice);
+            depthBuffer = new RenderTargetIdentifier(depthBuffer, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">RenderTargetIdentifier of the render texture.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
@@ -423,7 +581,7 @@ namespace UnityEngine.Rendering
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             depthSlice = FixupDepthSlice(depthSlice, buffer);
-            cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
+            cmd.SetRenderTarget(buffer.nameID, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
         }
 
@@ -450,12 +608,15 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
-            int cw = colorBuffer.rt.width;
-            int ch = colorBuffer.rt.height;
-            int dw = depthBuffer.rt.width;
-            int dh = depthBuffer.rt.height;
+            if (colorBuffer.rt != null && depthBuffer.rt != null)
+            {
+                int cw = colorBuffer.rt.width;
+                int ch = colorBuffer.rt.height;
+                int dw = depthBuffer.rt.width;
+                int dh = depthBuffer.rt.height;
 
-            Debug.Assert(cw == dw && ch == dh);
+                Debug.Assert(cw == dw && ch == dh);
+            }
 
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
@@ -472,12 +633,15 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
-            int cw = colorBuffer.rt.width;
-            int ch = colorBuffer.rt.height;
-            int dw = depthBuffer.rt.width;
-            int dh = depthBuffer.rt.height;
+            if (colorBuffer.rt != null && depthBuffer.rt != null)
+            {
+                int cw = colorBuffer.rt.width;
+                int ch = colorBuffer.rt.height;
+                int dw = depthBuffer.rt.width;
+                int dh = depthBuffer.rt.height;
 
-            Debug.Assert(cw == dw && ch == dh);
+                Debug.Assert(cw == dw && ch == dh);
+            }
 
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
@@ -495,14 +659,69 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
-            int cw = colorBuffer.rt.width;
-            int ch = colorBuffer.rt.height;
-            int dw = depthBuffer.rt.width;
-            int dh = depthBuffer.rt.height;
+            if (colorBuffer.rt != null && depthBuffer.rt != null)
+            {
+                int cw = colorBuffer.rt.width;
+                int ch = colorBuffer.rt.height;
+                int dw = depthBuffer.rt.width;
+                int dh = depthBuffer.rt.height;
 
-            Debug.Assert(cw == dw && ch == dh);
+                Debug.Assert(cw == dw && ch == dh);
+            }
 
-            CoreUtils.SetRenderTarget(cmd, colorBuffer.rt, depthBuffer.rt, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer.nameID, depthBuffer.nameID, miplevel, cubemapFace, depthSlice);
+            SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
+        }
+
+        // Explicit load and store actions
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RTHandleRTR.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            SetRenderTarget(cmd, buffer.nameID, loadAction, storeAction, miplevel, cubemapFace, depthSlice);
+            SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RTHandle.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RTHandle.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RTHandle depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            if (colorBuffer.rt != null && depthBuffer.rt != null)
+            {
+                int cw = colorBuffer.rt.width;
+                int ch = colorBuffer.rt.height;
+                int dw = depthBuffer.rt.width;
+                int dh = depthBuffer.rt.height;
+
+                Debug.Assert(cw == dw && ch == dh);
+            }
+
+            SetRenderTarget(cmd, colorBuffer.nameID, colorLoadAction, colorStoreAction, depthBuffer.nameID, depthLoadAction, depthStoreAction, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
         }
 
@@ -514,7 +733,7 @@ namespace UnityEngine.Rendering
         /// <param name="depthBuffer">Depth Buffer RTHandle.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
         {
-            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt, ClearFlag.None, Color.clear);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer.nameID, ClearFlag.None, Color.clear);
             SetViewport(cmd, depthBuffer);
         }
 
@@ -527,7 +746,7 @@ namespace UnityEngine.Rendering
         /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
-            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt); // Don't clear here, viewport needs to be set before we do.
+            SetRenderTarget(cmd, colorBuffers, depthBuffer.nameID); // Don't clear here, viewport needs to be set before we do.
             SetViewportAndClear(cmd, depthBuffer, clearFlag, Color.clear);
         }
 
@@ -541,7 +760,7 @@ namespace UnityEngine.Rendering
         /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
-            cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
+            cmd.SetRenderTarget(colorBuffers, depthBuffer.nameID, 0, CubemapFace.Unknown, -1);
             SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
         }
 
@@ -578,7 +797,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -593,9 +812,26 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        /// <summary>
+        /// Generate a name based on render texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <param name="format">Graphics format of the render texture.</param>
+        /// <param name="dim">Dimension of the texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="enableMSAA">True if the texture is multisampled.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
+        /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <returns>Generated names bassed on the provided parameters.</returns>
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -607,8 +843,14 @@ namespace UnityEngine.Rendering
 
             result = string.Format("{0}_{1}", result, format);
 
+            if (dim != TextureDimension.None)
+                result = string.Format("{0}_{1}", result, dim);
+
             if (enableMSAA)
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
+
+            if (dynamicRes)
+                result = string.Format("{0}_{1}", result, "dynamic");
 
             return result;
         }
@@ -702,7 +944,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -902,7 +1144,7 @@ namespace UnityEngine.Rendering
             if (obj != null)
             {
 #if UNITY_EDITOR
-                if (Application.isPlaying)
+                if (Application.isPlaying && !UnityEditor.EditorApplication.isPaused)
                     UnityObject.Destroy(obj);
                 else
                     UnityObject.DestroyImmediate(obj);
@@ -931,7 +1173,7 @@ namespace UnityEngine.Rendering
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch {}
+                        catch { }
                         return innerTypes;
                     });
             }
@@ -951,6 +1193,16 @@ namespace UnityEngine.Rendering
 #else
             return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
 #endif
+        }
+
+        /// <summary>
+        /// Safely release a Graphics Buffer.
+        /// </summary>
+        /// <param name="buffer">Graphics Buffer that needs to be released.</param>
+        public static void SafeRelease(GraphicsBuffer buffer)
+        {
+            if (buffer != null)
+                buffer.Release();
         }
 
         /// <summary>
@@ -1014,7 +1266,7 @@ namespace UnityEngine.Rendering
         {
             bool enabled = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
             {
                 enabled = false;
@@ -1034,7 +1286,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-        #endif
+#endif
 
             return enabled;
         }
@@ -1048,7 +1300,7 @@ namespace UnityEngine.Rendering
         {
             bool animateMaterials = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             animateMaterials = Application.isPlaying; // For Game and VR views; Reflection views pass the parent camera
 
             if (camera.cameraType == CameraType.SceneView)
@@ -1059,11 +1311,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-            #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
-            #else
+#else
                     if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
-            #endif
+#endif
                     {
                         animateMaterials = true;
                         break;
@@ -1093,7 +1345,7 @@ namespace UnityEngine.Rendering
             // which simply amounts to a recursive call, and then the story repeats itself.
             //
             // TLDR: we need to know the caller and its status/properties to make decisions.
-        #endif
+#endif
 
             return animateMaterials;
         }
@@ -1161,6 +1413,7 @@ namespace UnityEngine.Rendering
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
         }
+
 #endif
 
         /// <summary>
@@ -1194,12 +1447,29 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns true if any Scene view is using the Scene filtering.
+        /// </summary>
+        /// <returns>True if any Scene view is using the Scene filtering.</returns>
+        public static bool IsSceneFilteringEnabled()
+        {
+#if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
+            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+            {
+                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                if (sv.isUsingSceneFiltering) return true;
+            }
+#endif
+            return false;
+        }
+
+        /// <summary>
         /// Draw a renderer list.
         /// </summary>
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        [Obsolete("Use the updated RendererList API in the UnityEngine.Rendering.RendererUtils namespace.")]
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, Experimental.Rendering.RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
@@ -1216,5 +1486,144 @@ namespace UnityEngine.Rendering
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
         }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererUtils.RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            cmd.DrawRendererList(rendererList);
+        }
+
+        /// <summary>
+        /// Compute a hash of texture properties.
+        /// </summary>
+        /// <param name="texture"> Source texture.</param>
+        /// <returns>Returns hash of texture properties.</returns>
+        public static int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+#if UNITY_EDITOR
+                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
+                hash = 23 * hash + texture.wrapMode.GetHashCode();
+                hash = 23 * hash + texture.width.GetHashCode();
+                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + texture.filterMode.GetHashCode();
+                hash = 23 * hash + texture.anisoLevel.GetHashCode();
+                hash = 23 * hash + texture.mipmapCount.GetHashCode();
+                hash = 23 * hash + texture.updateCount.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        // Hacker’s Delight, Second Edition page 66
+        /// <summary>
+        /// Branchless previous power of two.
+        /// </summary>
+        /// <param name="size">Starting size or number.</param>
+        /// <returns>Previous power of two.</returns>
+        public static int PreviousPowerOfTwo(int size)
+        {
+            if (size <= 0)
+                return 0;
+
+            size |= (size >> 1);
+            size |= (size >> 2);
+            size |= (size >> 4);
+            size |= (size >> 8);
+            size |= (size >> 16);
+            return size - (size >> 1);
+        }
+
+        /// <summary>
+        /// Get the last declared value from an enum Type
+        /// </summary>
+        /// <typeparam name="T">Type of the enum</typeparam>
+        /// <returns>Last value of the enum</returns>
+        public static T GetLastEnumValue<T>() where T : Enum
+            => typeof(T).GetEnumValues().Cast<T>().Last();
+
+        internal static string GetCorePath()
+            => "Packages/com.unity.render-pipelines.core/";
+
+#if UNITY_EDITOR
+        // This is required in Runtime assembly between #if UNITY_EDITOR
+        /// <summary>
+        /// AssetDataBase.FindAssets("t:<type>") load all asset in project to check the type.
+        /// This utility function will try to filter at much possible before loading anything.
+        /// This also works with Interface and inherited types.
+        /// This will not find embedded sub assets.
+        /// This still take times on big project so it must be only used in Editor context only.
+        /// </summary>
+        /// <typeparam name="T">Type or Interface to search</typeparam>
+        /// <param name="extension">Extension of files to search in</param>
+        /// <param name="allowSubTypes">Allows to retrieve type inheriting from T.</param>
+        /// <returns>List of all asset of type T or implementing interface T.</returns>
+        public static IEnumerable<T> LoadAllAssets<T>(string extension = "asset", bool allowSubTypes = true)
+            where T : class
+        {
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentNullException(nameof(extension), "You must pass a valid extension");
+
+            bool isInterface = typeof(T).IsInterface;
+            if (!typeof(UnityEngine.Object).IsAssignableFrom(typeof(T)) && !isInterface)
+                throw new Exception("T must be an interface or inherite UnityEngine.Object.");
+
+            Func<Type, bool> needsLoad = (allowSubTypes || isInterface)
+                ? (type) => typeof(T).IsAssignableFrom(type)
+                : (type) => typeof(T) == type;
+
+            string[] guids = UnityEditor.AssetDatabase.FindAssets($"glob:\"*.{extension}\"");
+            foreach (string guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(path);
+                if (needsLoad(type))
+                    yield return UnityEditor.AssetDatabase.LoadAssetAtPath(path, type) as T;
+            }
+        }
+
+        /// <summary>
+        /// Create any missing folder in the file path given.
+        /// Path must use '/' separator
+        /// </summary>
+        /// <param name="filePath">Path to a file or to a folder (ending with '/') to ensure existance of each sub folder in it. </param>
+        public static void EnsureFolderTreeInAssetFilePath(string filePath)
+        {
+            void Recurse(string _folderPath)
+            {
+                int lastSeparator = _folderPath.LastIndexOf('/');
+                if (lastSeparator == -1)
+                    return;
+
+                string rootPath = _folderPath.Substring(0, lastSeparator);
+
+                Recurse(rootPath);
+
+                string folder = _folderPath.Substring(lastSeparator + 1);
+                if (!UnityEditor.AssetDatabase.IsValidFolder(_folderPath))
+                    UnityEditor.AssetDatabase.CreateFolder(rootPath, folder);
+            }
+
+            if (!filePath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
+                throw new System.ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+
+            Recurse(filePath.Substring(0, filePath.LastIndexOf('/')));
+        }
+
+#endif
     }
 }

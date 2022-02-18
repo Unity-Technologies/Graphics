@@ -6,18 +6,19 @@ namespace UnityEditor.VFX.Block
 {
     class PositionBaseProvider : VariantProvider
     {
-        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override IEnumerable<Variant> ComputeVariants()
         {
-            var compositions = new[] { AttributeCompositionMode.Overwrite };
-
-            foreach (var composition in compositions)
-            {
-                yield return new[] { new KeyValuePair<string, object>("compositionPosition", composition) };
-            }
+            return new[] { AttributeCompositionMode.Overwrite }
+                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("compositionPosition", x) }, new[] { VFXBlockUtility.GetNameString(x) }));
         }
     }
     abstract class PositionBase : VFXBlock
     {
+        public enum HeightMode
+        {
+            Base,
+            Volume
+        }
         public enum PositionMode
         {
             Surface,
@@ -73,7 +74,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 if (needDirectionWrite)
                     yield return new VFXAttributeInfo(VFXAttribute.Direction, compositionDirection == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);

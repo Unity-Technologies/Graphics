@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Moving the example here as it seems to not be parsed correctly by the doc validation tool...
+    //
     // <example>
     // <code>
     //
@@ -33,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // {
     //     enum Version
     //     {
+    //         NeverMigrated,
     //         First,
     //         Second
     //     }
@@ -60,6 +62,14 @@ namespace UnityEngine.Rendering.HighDefinition
     // }
     // </code>
     // </example>
+    //
+    // About the NeverMigrated entry:
+    // When using this generic versionable framework, it is better to use 0 as a place holder to detect a never migrated version
+    // (and thus a step never to be executed for that enum entry) instead of eg -1 because underlying enum values are ordered as unsigned and
+    // MigrationDescription.LastVersion<Version>() will not work properly - ie it can return -1 if this "-1" value exist in the enum, instead
+    // of other positive values that are intended to be more recent migration steps.
+    // (The enum symbol with -1 will be listed as the last enum values in UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumLastValue<T>())
+
 
     /// <summary>Describe migration steps to perform when upgrading from one version of an object to another.</summary>
     /// <typeparam name="TVersion">An enum identifying the version.</typeparam>
@@ -104,10 +114,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if UNITY_EDITOR
-            // Special in prefab case
-            if (target is UnityEngine.Object && UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(target as UnityEngine.Object))
+            UnityEngine.Object targetObject = target as UnityEngine.Object;
+            if (targetObject != null)
             {
-                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(target as UnityEngine.Object);
+                // Special in prefab case
+                if (UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(targetObject))
+                {
+                    UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(targetObject);
+                }
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    if (targetObject != null && !targetObject.Equals(null))
+                    {
+                        // Only dirty the object's scene if it can be saved, preview scenes are not saved (case 1367204).
+                        if (!UnityEditor.SceneManagement.EditorSceneManager.IsPreviewSceneObject(targetObject))
+                            UnityEditor.EditorUtility.SetDirty(targetObject);
+                    }
+                };
             }
 #endif
             return true;

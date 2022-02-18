@@ -4,14 +4,14 @@ Chromatic Aberration mimics the effect that a real-world camera produces when it
 
 For more information on the Chromatic Aberration effect, see the [Chromatic Aberration](https://docs.unity3d.com/Manual/PostProcessing-ChromaticAberration.html) documentation in the Unity Manual.
 
-## Comparison images
-
 ## Using Chromatic Aberration
 
 **Chromatic Aberration** uses the [Volume](Volumes.md) framework, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.md) in your Scene. To add **Chromatic Aberration** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Chromatic Aberration**. HDRP now applies **Chromatic Aberration** to any Camera this Volume affects.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 
@@ -31,3 +31,5 @@ From 2019.3, HDRP provides lookup Textures that you can use to customize this ef
 2. In the **Packages** window, select **High Definition RP**.
 3. In the **High Definition RP** section, navigate to **Additional Post-processing Data** and click **Import into Project** next to it.
 4. The Textures that are relevant to Chromatic Aberration are in the **Spectral LUTs** folder,  so if you only want the lookup Textures for Chromatic Aberration, only import the contents of the **Spectral LUTs** folder.
+
+Care is needed when using the [Bloom](Post-Processing-Bloom.md) effect with Chromatic Abberation. For performance reasons, Chromatic Aberation is computed after the Bloom computation. This results in Bloom overpowering the Chromatic Aberration effect when the Bloom Intensity is set to a very high value. However, in a typical Bloom configuration, the Intensity should never need to be set high enough for this to be an issue.

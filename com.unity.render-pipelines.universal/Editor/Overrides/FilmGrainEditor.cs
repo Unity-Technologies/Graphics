@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(FilmGrain))]
+    [CustomEditor(typeof(FilmGrain))]
     sealed class FilmGrainEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Type;
@@ -27,7 +27,8 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_Type.value.intValue == (int)FilmGrainLookup.Custom)
             {
-                PropertyField(m_Texture);
+                using (new IndentLevelScope())
+                    PropertyField(m_Texture);
 
                 var texture = (target as FilmGrain).texture.value;
 

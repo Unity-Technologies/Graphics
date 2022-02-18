@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.Graphing.Util;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -35,7 +36,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         [SerializeField]
         MatrixAxis m_Axis;
 
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId });
         }
 
-        static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
+        static int[] s_OutputSlots = { OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId };
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateDynamicMaterialSlots()
+        public override void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
@@ -135,10 +135,8 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                GetInputSlots(tempSlots);
-                foreach (var inputSlot in tempSlots)
+                foreach (var inputSlot in inputSlots)
                 {
                     inputSlot.hasError = false;
 
@@ -200,9 +198,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var skippedSlot in skippedDynamicSlots)
                     skippedSlot.SetConcreteType(dynamicType);
 
-                tempSlots.Clear();
-                GetInputSlots(tempSlots);
-                bool inputError = tempSlots.Any(x => x.hasError);
+                bool inputError = inputSlots.Any(x => x.hasError);
                 if (inputError)
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
@@ -212,9 +208,7 @@ namespace UnityEditor.ShaderGraph
                 // their slotType will either be the default output slotType
                 // or the above dynanic slotType for dynamic nodes
                 // or error if there is an input error
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                foreach (var outputSlot in tempSlots)
+                foreach (var outputSlot in outputSlots)
                 {
                     outputSlot.hasError = false;
 
@@ -236,10 +230,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                if(tempSlots.Any(x => x.hasError))
+                if (outputSlots.Any(x => x.hasError))
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;

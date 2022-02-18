@@ -1,6 +1,10 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -72,6 +76,9 @@ real4 LinearToGamma22(real4 c)
 // sRGB
 real SRGBToLinear(real c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real linearRGBLo  = c / 12.92;
     real linearRGBHi  = PositivePow((c + 0.055) / 1.055, 2.4);
     real linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -80,6 +87,9 @@ real SRGBToLinear(real c)
 
 real2 SRGBToLinear(real2 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real2 linearRGBLo  = c / 12.92;
     real2 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real2(2.4, 2.4));
     real2 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -88,6 +98,9 @@ real2 SRGBToLinear(real2 c)
 
 real3 SRGBToLinear(real3 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real3 linearRGBLo  = c / 12.92;
     real3 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
     real3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -176,10 +189,12 @@ real4 FastLinearToSRGB(real4 c)
 
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
+#ifndef BUILTIN_TARGET_API
 real Luminance(real3 linearRgb)
 {
     return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
 }
+#endif
 
 real Luminance(real4 linearRgba)
 {
@@ -254,7 +269,8 @@ real YCoCgCheckBoardEdgeFilter(real centerLum, real2 a0, real2 a1, real2 a2, rea
 }
 
 // Converts linear RGB to LMS
-real3 LinearToLMS(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LinearToLMS(float3 x)
 {
     const real3x3 LIN_2_LMS_MAT = {
         3.90405e-1, 5.49941e-1, 8.92632e-3,
@@ -265,7 +281,8 @@ real3 LinearToLMS(real3 x)
     return mul(LIN_2_LMS_MAT, x);
 }
 
-real3 LMSToLinear(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LMSToLinear(float3 x)
 {
     const real3x3 LMS_2_LIN_MAT = {
         2.85847e+0, -1.62879e+0, -2.48910e-2,
@@ -307,6 +324,25 @@ real RotateHue(real value, real low, real hi)
                 : value;
 }
 
+// CIE xyY to CIE 1931 XYZ
+float3 xyYtoXYZ(float3 xyY)
+{
+    float x = xyY.x;
+    float y = xyY.y;
+    float Y = xyY.z;
+
+    float X = (Y / y) * x;
+    float Z = (Y / y) * (1.0 - x - y);
+
+    return float3(X, Y, Z);
+}
+
+// CIE 1931 XYZ to CIE xy (Y component not returned)
+float2 XYZtoxy(float3 XYZ)
+{
+    return XYZ.xy / (dot(XYZ, 1));
+}
+
 // Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
 // fine for our use case.
 float3 SoftLight(float3 base, float3 blend)
@@ -315,49 +351,6 @@ float3 SoftLight(float3 base, float3 blend)
     float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
     float3 t = step(0.5, blend);
     return r2 * t + (1.0 - t) * r1;
-}
-
-// SMPTE ST.2084 (PQ) transfer functions
-// 1.0 = 100nits, 100.0 = 10knits
-#define DEFAULT_MAX_PQ 100.0
-
-struct ParamsPQ
-{
-    real N, M;
-    real C1, C2, C3;
-};
-
-static const ParamsPQ PQ =
-{
-    2610.0 / 4096.0 / 4.0,   // N
-    2523.0 / 4096.0 * 128.0, // M
-    3424.0 / 4096.0,         // C1
-    2413.0 / 4096.0 * 32.0,  // C2
-    2392.0 / 4096.0 * 32.0,  // C3
-};
-
-real3 LinearToPQ(real3 x, real maxPQValue)
-{
-    x = PositivePow(x / maxPQValue, PQ.N);
-    real3 nd = (PQ.C1 + PQ.C2 * x) / (1.0 + PQ.C3 * x);
-    return PositivePow(nd, PQ.M);
-}
-
-real3 LinearToPQ(real3 x)
-{
-    return LinearToPQ(x, DEFAULT_MAX_PQ);
-}
-
-real3 PQToLinear(real3 x, real maxPQValue)
-{
-    x = PositivePow(x, rcp(PQ.M));
-    real3 nd = max(x - PQ.C1, 0.0) / (PQ.C2 - (PQ.C3 * x));
-    return PositivePow(nd, rcp(PQ.N)) * maxPQValue;
-}
-
-real3 PQToLinear(real3 x)
-{
-    return PQToLinear(x, DEFAULT_MAX_PQ);
 }
 
 // Alexa LogC converters (El 1000)
@@ -389,13 +382,14 @@ real LinearToLogC_Precise(real x)
 {
     real o;
     if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+        o = LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
     else
         o = LogC.e * x + LogC.f;
     return o;
 }
 
-real3 LinearToLogC(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LinearToLogC(float3 x)
 {
 #if USE_PRECISE_LOGC
     return real3(
@@ -404,7 +398,7 @@ real3 LinearToLogC(real3 x)
         LinearToLogC_Precise(x.z)
     );
 #else
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+    return LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
 #endif
 }
 
@@ -418,7 +412,8 @@ real LogCToLinear_Precise(real x)
     return o;
 }
 
-real3 LogCToLinear(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LogCToLinear(float3 x)
 {
 #if USE_PRECISE_LOGC
     return real3(
@@ -538,16 +533,13 @@ real3 GetLutStripValue(float2 uv, float4 params)
 
 // Neutral tonemapping (Hable/Hejl/Frostbite)
 // Input is linear RGB
-#if defined(SHADER_API_SWITCH) // We need more accuracy on Nintendo Switch to avoid NaN on extremely high values.
+// More accuracy to avoid NaN on extremely high values.
 float3 NeutralCurve(float3 x, real a, real b, real c, real d, real e, real f)
-#else
-real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
-#endif
 {
     return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
 }
 
-#define TONEMAPPING_CLAMP_MAX 435.18712 //(-b + sqrt(b * b - 4 * a * (HALF_MAX - d * f))) / (2 * a * whiteScale) 
+#define TONEMAPPING_CLAMP_MAX 435.18712 //(-b + sqrt(b * b - 4 * a * (HALF_MAX - d * f))) / (2 * a * whiteScale)
 //Extremely high values cause NaN output when using fp16, we clamp to avoid the performace hit of switching to fp32
 //The overflow happens in (x * (a * x + b) + d * f) of the NeutralCurve, highest value that avoids fp16 precision errors is ~571.56873
 //Since whiteScale is constant (~1.31338) max input is ~435.18712
@@ -564,7 +556,7 @@ real3 NeutralTonemap(real3 x)
     const real whiteLevel = 5.3;
     const real whiteClip = 1.0;
 
-#if defined(SHADER_API_MOBILE) 
+#if defined(SHADER_API_MOBILE)
     x = min(x, TONEMAPPING_CLAMP_MAX);
 #endif
 
@@ -631,7 +623,9 @@ real3 CustomTonemap(real3 x, real3 curve, real4 toeSegmentA, real2 toeSegmentB, 
 
 // Filmic tonemapping (ACES fitting, unless TONEMAPPING_USE_FULL_ACES is set to 1)
 // Input is ACES2065-1 (AP0 w/ linear encoding)
+#ifndef TONEMAPPING_USE_FULL_ACES
 #define TONEMAPPING_USE_FULL_ACES 0
+#endif
 
 float3 AcesTonemap(float3 aces)
 {
@@ -679,7 +673,7 @@ float3 AcesTonemap(float3 aces)
     const float d = 0.887122 * 0.01;
     const float e = 0.806889 * 0.01;
     float3 x = acescg;
-   float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
+    float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
 #else
     const float a = 2.785085;
     const float b = 0.107772;
@@ -730,5 +724,9 @@ half3 DecodeRGBM(half4 rgbm)
 {
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COLOR_INCLUDED

@@ -1,0 +1,15 @@
+Pass
+{
+	Tags { "LightMode"=${VFXPassVelocity} }
+
+	${VFXStencilMotionVector}
+
+	ZWrite On
+	Blend Off
+
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_MOTION_VECTOR
+	${VFXPassVelocityAdditionalPragma}
+	${VFXInclude("Shaders/ParticlePoints/PassDepthOrMV.template")}
+	ENDHLSL
+}

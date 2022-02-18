@@ -10,21 +10,7 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 ## Properties
 
-### Surface Options
-
-**Surface Options** control the overall look of your Material's surface and how Unity renders the Material on screen.
-
-| **Property**              | **Description**                                              |
-| ------------------------- | ------------------------------------------------------------ |
-| **Surface Type**          | Use the drop-down to define whether your Material supports transparency or not. Materials with a **Transparent Surface Type** are more resource intensive to render than Materials with an **Opaque** **Surface Type**. HDRP exposes more properties, depending on the **Surface Type** you select. For more information about the feature and for the list of properties each **Surface Type** exposes, see the [Surface Type documentation](Surface-Type.md). |
-| **- Rendering Pass**      | Use the drop-down to set the rendering pass that HDRP processes this Material in. For more information on this property, see the [Surface Type documentation](Surface-Type.md). |
-| **Alpha Clipping**        | Enable the checkbox to make this Material act like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html). Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Alpha Clipping documentation](Alpha-Clipping.md). |
-| **Double-Sided**          | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.md). |
-| **Material Type**         | Allows you to give your Material a type, which allows you to customize it with different settings depending on the **Material Type** you select. For more information about the feature and for the list of properties each **Material Type** exposes, see the [Material Type documentation](Material-Type.md). |
-| **Receive Decals**        | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR (Transparent)** | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type.|
-| **Geometric Specular AA** | Enable the checkbox to make HDRP perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry in order to remove specular artifacts. For more information about the feature and for the list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.md). |
-| **Displacement Mode**     | Use this drop-down to select the method that HDRP uses to alter the height of the Material’s surface. For more information about the feature and for the list of properties each **Displacement Mode** exposes, see the [Displacement Mode documentation](Displacement-Mode.md). |
+[!include[](snippets/shader-properties/surface-options/lit-surface-options.md)]
 
 
 ### Vertex Animation
@@ -40,6 +26,7 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 | **Base Map**                    | Assign a Texture that controls both the color and opacity of your Material. To assign a Texture to this field, click the radio button and select your Texture in the Select Texture window. Use the color picker to select the color of the Material. If you do not assign a Texture, this is the absolute color of the Material. If you do assign a Texture, the final color of the Material is a combination of the Texture you assign and the color you select. The alpha value of the color controls the transparency level for the Material if you select **Transparent** from the **Surface Type** drop-down. |
 | **Metallic**                    | Use this slider to adjust how "metal-like" the surface of your Material is (between 0 and 1). When a surface is more metallic, it reflects the environment more and its albedo color becomes less visible. At full metallic level, the surface color is entirely driven by reflections from the environment. When a surface is less metallic, its albedo color is clearer and any surface reflections are visible on top of the surface color, rather than obscuring it.<br />This property only appears when you unassign the Texture in the **Mask Map**. |
 | **Smoothness**                  | Use the slider to adjust the smoothness of your Material. Every light ray that hits a smooth surface bounces off at predictable and consistent angles. For a perfectly smooth surface that reflects light like a mirror, set this to a value of 1. Less smooth surfaces reflect light over a wider range of angles (because the light hits the bumps in the microsurface), so the reflections have less detail and spread across the surface in a more diffused pattern.<br />This property only appears when you unassign the Texture in the **Mask Map**. |
+| **Alpha Remapping**             | Use this min-max slider to remap the alpha values from the **Base Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Base Map**. |
 | **Metallic Remapping**          | Use this min-max slider to remap the metallic values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
 | **Smoothness Remapping**        | Use this min-max slider to remap the smoothness values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
 | **Ambient Occlusion Remapping** | Use this min-max slider to remap the ambient occlusion values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
@@ -56,16 +43,7 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 ### Detail Inputs
 
-| **Property**                     | **Description**                                              |
-| -------------------------------- | ------------------------------------------------------------ |
-| **Detail Map**                   | Assign a [channel-packed Texture](Glossary.md#ChannelPacking) that HDRP uses to add micro details into the Material. The Detail Map uses the following channel settings:<br />&#8226; **Red**: Stores the grey scale as albedo.<br />&#8226; **Green**: Stores the green channel of the detail normal map.<br />&#8226; **Blue**: Stores the detail smoothness.<br />&#8226; **Alpha**: Stores the red channel of the detail normal map.<br />For more information on channel-packed Textures and the detail map, see [detail map](Mask-Map-and-Detail-Map.md#DetailMap). |
-| **Detail UV Mapping**            | Use the drop-down to set the type of UV map to use for the **Detail Map**. If the Material’s **Base UV mapping** property is set to **Planar** or **Triplanar**, the **Detail UV Mapping** is also set to **Planar** or **Triplanar**.<br />The **Detail Map** Texture modifies the appearance of the Material so, by default, HDRP applies the **Tiling** and **Offset** of the **Base UV Map** to the **Detail Map** to synchronize the **Detail Map** and the rest of the Material Textures. HDRP then applies the **Detail Map** **Tiling** and **Offset** properties on top of the **Base Map Tiling** and **Offset**. For example, on a plane, if the **Tiling** for **Base UV Mapping** is 2, and this value is also 2, then the **Detail Map** Texture tiles by 4 on the plane.<br />This workflow allows you to change the **Tiling** of the Texture on the Material, without having to set the **Tiling** of the **Detail UV** too.<br />To separate the **Detail UV Map** from the **Base UV Map** to set it independently, disable the **Lock to Base Tiling/Offset** checkbox. |
-| **- Lock to Base Tiling/Offset** | Enable the checkbox to make the **Base UV Map**’s **Tiling** and **Offset** properties affect the **Detail Map**. HDRP multiplies these properties by the **Detail UV Map**’s **Tiling** and **Offset** properties respectively. To separate the **Detail UV Map** from the **Base UV Map** to set it independently, disable this checkbox. |
-| **Tiling**                       | Set an **X** and **Y** tile rate for the **Detail Map** UV. HDRP uses the **X** and **Y** values to tile the Texture assigned to the **Detail Map** across the Material’s surface, in object space. |
-| **Offset**                       | Set an **X** and **Y** offset for the **Detail Map** UV. HDRP uses the **X** and **Y** values to offset  the Texture assigned to the **Detail Map** across the Material’s surface, in object space. |
-| **Detail Albedo Scale**          | Use the slider to modulate the albedo of the detail map (red channel) between 0 and 2. This is an overlay effect. |
-| **Detail Normal Scale**          | Use the slider to modulate the intensity of the detail normal map, between 0 and 2. The default value is 1 and has no scale. |
-| **Detail Smoothness Scale**      | Use the slider modulate the smoothness of the detail map (blue channel) between 0 and 2, like an overlay effect. The default value is 1 and has no scale. |
+[!include[](snippets/shader-properties/detail-inputs.md)]
 
 ### Transparency Inputs
 
@@ -94,8 +72,12 @@ Also, be aware that HDRP does not support **Refraction** in the **Pre-Refraction
 
 ### Advanced options
 
-| **Property**                 | **Description**                                              |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
-| **Specular Occlusion Mode**  | Use the drop-down to select the mode that HDRP uses to calculate specular occlusion. <br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From Ambient Occlusion**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From Bent Normal**: Calculates specular occlusion from the bent normal map. |
-| **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
+[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>

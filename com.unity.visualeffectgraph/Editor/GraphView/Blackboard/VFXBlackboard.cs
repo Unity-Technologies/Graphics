@@ -1,18 +1,21 @@
-using System;
+using System.Linq;
+using System.Collections.Generic;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEditor.Experimental;
 
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
         VFXViewController m_Controller;
+        bool m_CanEdit;
+
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
@@ -54,9 +57,10 @@ namespace  UnityEditor.VFX.UI
             m_Categories.Clear();
         }
 
-        VFXView m_View;
-
-        Button m_AddButton;
+        readonly VFXView m_View;
+        readonly Button m_AddButton;
+        readonly VisualElement m_ContentContainer;
+        Image m_VCSStatusImage;
 
         public VFXBlackboard(VFXView view)
         {
@@ -82,7 +86,11 @@ namespace  UnityEditor.VFX.UI
 
             focusable = true;
 
+            m_ContentContainer = this.Q<VisualElement>("contentContainer");
+
             m_AddButton = this.Q<Button>(name: "addButton");
+            m_AddButton.style.width = 27;
+            m_AddButton.style.height = 27;
 
             m_DragIndicator = new VisualElement();
 
@@ -103,8 +111,8 @@ namespace  UnityEditor.VFX.UI
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownSubTitle);
 
             m_PathTextField = new TextField { visible = false };
-            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
-            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); }, TrickleDown.TrickleDown);
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
             hierarchy.Add(m_PathTextField);
 
             resizer.RemoveFromHierarchy();
@@ -112,18 +120,107 @@ namespace  UnityEditor.VFX.UI
             if (s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
 
-            m_AddButton.SetEnabled(false);
-
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            // Workaround: output category is in a scrollview which can lead to get the Add button invisible (moved out of the visible viewport of the scrollviewer)
+            var scrollView = this.Q<ScrollView>();
+            if (scrollView != null)
+            {
+                scrollView.RegisterCallback<GeometryChangedEvent, ScrollView>(OnGeometryChanged, scrollView);
+                scrollView.horizontalScroller.valueChanged += x => OnOutputCategoryScrollChanged(scrollView);
+            }
         }
 
+        public void LockUI()
+        {
+            CreateVCSImageIfNeeded();
+
+            m_VCSStatusImage.style.display = DisplayStyle.Flex;
+            m_ContentContainer.SetEnabled(false);
+            m_CanEdit = false;
+            m_AddButton.tooltip = "Check out to modify";
+            UpdateSubtitle();
+        }
+
+        public void UnlockUI()
+        {
+            if (m_VCSStatusImage != null)
+            {
+                m_VCSStatusImage.style.display = DisplayStyle.None;
+            }
+
+            m_ContentContainer.SetEnabled(true);
+            m_CanEdit = true;
+            m_AddButton.tooltip = "Click to add a property";
+            UpdateSubtitle();
+        }
+
+        void CreateVCSImageIfNeeded()
+        {
+            if (m_VCSStatusImage == null)
+            {
+                m_VCSStatusImage = new Image();
+                m_VCSStatusImage.style.position = PositionType.Absolute;
+                m_VCSStatusImage.style.left = 12;
+                m_VCSStatusImage.style.top = 12;
+                m_VCSStatusImage.style.width = 14;
+                m_VCSStatusImage.style.height = 14;
+                m_VCSStatusImage.style.alignSelf = Align.Center;
+                m_VCSStatusImage.image = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "VersionControl/P4_OutOfSync.png");
+
+                m_AddButton.Add(m_VCSStatusImage);
+            }
+        }
+
+        void UpdateSubtitle()
+        {
+            m_PathLabel.text = m_CanEdit
+                ? (controller != null && controller.graph != null ? controller.graph.categoryPath : null)
+                : "Check out to modify";
+        }
+
+        public VFXBlackboardCategory AddCategory(string initialName)
+        {
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
+            var newCategory = new VFXBlackboardCategory { title = newCategoryName };
+            newCategory.SetSelectable();
+            this.m_Categories.Add(newCategoryName, newCategory);
+
+            this.Add(newCategory);
+
+            return newCategory;
+        }
+
+        DropdownMenuAction.Status GetContextualMenuStatus()
+        {
+            //Use m_AddButton state which relies on locked & controller status
+            return m_AddButton.enabledSelf && m_CanEdit
+                ? DropdownMenuAction.Status.Normal
+                : DropdownMenuAction.Status.Disabled;
+        }
+
+        void OnOutputCategoryScrollChanged(ScrollView scrollView)
+        {
+            OnGeometryChanged(null, scrollView);
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent evt, ScrollView scrollView)
+        {
+            if (scrollView != null)
+            {
+                var addOutputButton = scrollView.Q<Button>("addOutputButton");
+                if (addOutputButton != null)
+                {
+                    addOutputButton.style.left = -scrollView.horizontalScroller.highValue + scrollView.horizontalScroller.value;
+                }
+            }
+        }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Select All", (a) => SelectAll(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Select Unused", (a) => SelectUnused(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Select All", (a) => SelectAll(), (a) => GetContextualMenuStatus());
+            evt.menu.AppendAction("Select Unused", (a) => SelectUnused(), (a) => GetContextualMenuStatus());
         }
-
 
         void SelectAll()
         {
@@ -136,7 +233,7 @@ namespace  UnityEditor.VFX.UI
             m_View.ClearSelection();
 
             var unused = unusedParameters.ToList();
-            this.Query<BlackboardField>().Where(t=> unused.Contains(t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model) ).ForEach(t => m_View.AddToSelection(t));
+            this.Query<BlackboardField>().Where(t => unused.Contains(t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model)).ForEach(t => m_View.AddToSelection(t));
         }
 
         IEnumerable<VFXParameter> unusedParameters
@@ -152,7 +249,7 @@ namespace  UnityEditor.VFX.UI
 
         void OnMouseDownSubTitle(MouseDownEvent evt)
         {
-            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse && m_CanEdit && controller != null)
             {
                 StartEditingPath();
                 evt.PreventDefault();
@@ -326,7 +423,7 @@ namespace  UnityEditor.VFX.UI
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -402,8 +499,26 @@ namespace  UnityEditor.VFX.UI
             newParam.isOutput = true;
         }
 
+        private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
+        {
+            foreach (var desc in VFXLibrary.GetParameters().OrderBy(o => o.name))
+            {
+                var type = desc.model.type;
+                var attribute = VFXLibrary.GetAttributeFromSlotType(type);
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                    continue;
+
+                yield return desc;
+            }
+        }
+
         void OnAddItem(Blackboard bb)
         {
+            if (!m_CanEdit)
+            {
+                return;
+            }
+
             GenericMenu menu = new GenericMenu();
 
             if (!(controller.model.subgraph is VisualEffectSubgraphOperator))
@@ -412,15 +527,9 @@ namespace  UnityEditor.VFX.UI
                 menu.AddSeparator(string.Empty);
             }
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
-                VFXParameter model = parameter.model as VFXParameter;
-
-                var type = model.type;
-                if (type == typeof(GPUEvent))
-                    continue;
-
-                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
+                menu.AddItem(EditorGUIUtility.TextContent(parameter.name), false, OnAddParameter, parameter);
             }
 
             menu.ShowAsContext();
@@ -445,7 +554,7 @@ namespace  UnityEditor.VFX.UI
             string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
             int cpt = 1;
 
-            if(controller.graph.UIInfos.categories != null)
+            if (controller.graph.UIInfos.categories != null)
             {
                 while (controller.graph.UIInfos.categories.Any(t => t.name == newCategoryName))
                 {
@@ -518,7 +627,7 @@ namespace  UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
                 VFXParameter model = parameter.model as VFXParameter;
 
@@ -535,6 +644,12 @@ namespace  UnityEditor.VFX.UI
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
+            if (e.change == VFXViewController.Change.destroy)
+            {
+                title = null;
+                return;
+            }
+
             if (e.controller != controller && !(e.controller is VFXParameterController)) //optim : reorder only is only the order has changed
                 return;
 
@@ -580,7 +695,7 @@ namespace  UnityEditor.VFX.UI
                     VFXBlackboardCategory cat = null;
                     if (!m_Categories.TryGetValue(catModel.name, out cat))
                     {
-                        cat = new VFXBlackboardCategory() {title = catModel.name };
+                        cat = new VFXBlackboardCategory() { title = catModel.name };
                         cat.SetSelectable();
                         m_Categories.Add(catModel.name, cat);
                     }
@@ -623,7 +738,7 @@ namespace  UnityEditor.VFX.UI
                 m_OutputCategory.SyncParameters(outputControllers);
             }
 
-            m_PathLabel.text = controller.graph.categoryPath;
+            UpdateSubtitle();
         }
 
         public override void UpdatePresenterPosition()
@@ -634,6 +749,13 @@ namespace  UnityEditor.VFX.UI
         public void OnMoved()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
+        }
+
+        public void ForceUpdate()
+        {
+            this.Query<PropertyRM>()
+                .ToList()
+                .ForEach(x => x.ForceUpdate());
         }
     }
 }

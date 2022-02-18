@@ -24,8 +24,6 @@
     #define _PrevCamPosRWS                  _PrevCamPosRWS_Internal.xyz
 #endif
 
-#define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
-
 // Define the type for shadow (either colored shadow or monochrome shadow)
 #if SHADEROPTIONS_COLORED_SHADOW
 #define SHADOW_TYPE real3
@@ -56,6 +54,8 @@
 
 // ----------------------------------------------------------------------------
 
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
+
 CBUFFER_START(UnityPerDraw)
 
     float4x4 unity_ObjectToWorld;
@@ -65,7 +65,6 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_RenderingLayer;
 
     float4 unity_LightmapST;
-    float4 unity_LightmapIndex;
     float4 unity_DynamicLightmapST;
 
     // SH lighting environment
@@ -76,6 +75,10 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBg;
     float4 unity_SHBb;
     float4 unity_SHC;
+
+    // Renderer bounding box.
+    float4 unity_RendererBounds_Min;
+    float4 unity_RendererBounds_Max;
 
     // x = Disabled(0)/Enabled(1)
     // y = Computation are done in global space(0) or local space(1)
@@ -98,6 +101,8 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
+
+#endif // DOTS_INSTANCING_ON
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
@@ -156,6 +161,81 @@ TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
+
+// In HDRP, all material samplers have the possibility of having a mip bias.
+// This mip bias is necessary for temporal upsamplers, since they render to a lower
+// resolution into a higher resolution target.
+#if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
+
+    //simple 2d textures bias manipulation
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_BIAS
+        #ifdef  SAMPLE_TEXTURE2D
+            #undef  SAMPLE_TEXTURE2D
+            #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) \
+                PLATFORM_SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2,  _GlobalMipBias)
+        #endif
+        #ifdef  SAMPLE_TEXTURE2D_BIAS
+            #undef  SAMPLE_TEXTURE2D_BIAS
+            #define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias) \
+                PLATFORM_SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2,  (bias + _GlobalMipBias))
+        #endif
+    #endif
+
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_GRAD
+        #ifdef  SAMPLE_TEXTURE2D_GRAD
+            #undef  SAMPLE_TEXTURE2D_GRAD
+            #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, dpdx, dpdy) \
+                PLATFORM_SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, (dpdx * _GlobalMipBiasPow2), (dpdy * _GlobalMipBiasPow2))
+        #endif
+    #endif
+
+    //2d texture arrays bias manipulation
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
+        #ifdef  SAMPLE_TEXTURE2D_ARRAY
+            #undef  SAMPLE_TEXTURE2D_ARRAY
+            #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) \
+                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, _GlobalMipBias)
+        #endif
+        #ifdef  SAMPLE_TEXTURE2D_ARRAY_BIAS
+            #undef  SAMPLE_TEXTURE2D_ARRAY_BIAS
+            #define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias) \
+                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, (bias + _GlobalMipBias))
+        #endif //SAMPLE_TEXTURE2D_ARRAY_BIAS
+    #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
+
+    //2d texture cube arrays bias manipulation
+    #ifdef PLATFORM_SAMPLE_TEXTURECUBE_BIAS
+        #ifdef  SAMPLE_TEXTURECUBE
+            #undef  SAMPLE_TEXTURECUBE
+            #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) \
+                PLATFORM_SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, _GlobalMipBias)
+        #endif
+        #ifdef  SAMPLE_TEXTURECUBE_BIAS
+            #undef  SAMPLE_TEXTURECUBE_BIAS
+            #define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias) \
+                PLATFORM_SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, (bias + _GlobalMipBias))
+        #endif
+    #endif
+
+    //sample of texture cubemap array
+    #ifdef PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS
+
+        #ifdef  SAMPLE_TEXTURECUBE_ARRAY
+            #undef  SAMPLE_TEXTURECUBE_ARRAY
+            #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)\
+                PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, _GlobalMipBias)
+        #endif
+
+        #ifdef  SAMPLE_TEXTURECUBE_ARRAY_BIAS
+            #undef  SAMPLE_TEXTURECUBE_ARRAY_BIAS
+            #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias)\
+                PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, (bias + _GlobalMipBias))
+        #endif
+    #endif
+
+    #define VT_GLOBAL_MIP_BIAS_MULTIPLIER (_GlobalMipBiasPow2)
+
+#endif
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
@@ -298,10 +378,15 @@ float GetIndirectSpecularMultiplier(uint renderingLayers)
 
 // Functions to clamp UVs to use when RTHandle system is used.
 
-float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
+float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels, float2 scale)
 {
     float2 maxCoord = 1.0f - numberOfTexels * texelSize;
-    return min(UV, maxCoord) * _RTHandleScale.xy;
+    return min(UV, maxCoord) * scale;
+}
+
+float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
+{
+    return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandleScale.xy);
 }
 
 // This is assuming half a texel offset in the clamp.
@@ -310,16 +395,54 @@ float2 ClampAndScaleUVForBilinear(float2 UV, float2 texelSize)
     return ClampAndScaleUV(UV, texelSize, 0.5f);
 }
 
-// This is assuming full screen buffer and .
+// This is assuming full screen buffer and half a texel offset for the clamping.
 float2 ClampAndScaleUVForBilinear(float2 UV)
 {
     return ClampAndScaleUV(UV, _ScreenSize.zw, 0.5f);
+}
+
+// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
+float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV)
+{
+    return ClampAndScaleUV(UV, _PostProcessScreenSize.zw, 0.5f, _RTHandlePostProcessScale.xy);
+}
+
+// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
+float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV, float2 texelSize)
+{
+    return ClampAndScaleUV(UV, texelSize, 0.5f, _RTHandlePostProcessScale.xy);
+}
+
+// This is assuming an upsampled texture used in post processing, with original screen size and numberOfTexels offset for the clamping.
+float2 ClampAndScaleUVPostProcessTexture(float2 UV, float2 texelSize, float numberOfTexels)
+{
+    return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandlePostProcessScale.xy);
 }
 
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
 }
+
+float2 ClampAndScaleUVPostProcessTextureForPoint(float2 UV)
+{
+    return min(UV, 1.0f) * _RTHandlePostProcessScale.xy;
+}
+
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsampleUV(int2 posSS)
+{
+    return (posSS + 0.5f) * _PostProcessScreenSize.zw;
+}
+
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsamplePosSS(float2 posSS)
+{
+    float2 uv = FromOutputPosSSToPreupsampleUV(posSS);
+    return floor(uv * _ScreenSize.xy);
+}
+
+
 
 uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
 {
@@ -332,16 +455,48 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
     return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
+// There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
+#ifndef DOTS_INSTANCING_ON
+
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = unity_RendererBounds_Min.xyz;
+    maxBounds = unity_RendererBounds_Max.xyz;
+}
+
+void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    minBounds -= _WorldSpaceCameraPos.xyz;
+    maxBounds -= _WorldSpaceCameraPos.xyz;
+#endif
+}
+
+float3 GetRendererExtents()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return (maxBounds - minBounds) * 0.5;
+}
+
 // Define Model Matrix Macro
-// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
+float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
-#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
+#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
 
-// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
+#endif
+
+// To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
@@ -349,16 +504,20 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
+// VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
+#ifdef HAVE_VFX_MODIFICATION
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXMatricesOverride.hlsl"
+#endif
+
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // Undef the matrix error macros so that the DOTS instancing macro works
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
+#undef unity_MatrixPreviousM
+#undef unity_MatrixPreviousMI
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
@@ -374,23 +533,29 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
-// Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
-#define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
-#define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
-#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
-#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
-#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapIndex)
-#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
-#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
-#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
-#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
-#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
-#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
-#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
-#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
-#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
-#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
+#define unity_LODFade               LoadDOTSInstancedData_LODFade()
+#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
+#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
+#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
+#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
+#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
+#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
+#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
+#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
+#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
+#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
+
+#define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
+#define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
+#define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
+
+// Not supported by BatchRendererGroup or Hybrid Renderer. Just define them as constants.
+// ------------------------------------------------------------------------------
+static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
+static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
+static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
 
 #endif
 

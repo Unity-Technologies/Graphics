@@ -1,24 +1,40 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Interfaces;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, IResizable
+    interface ISelectionProvider
     {
+        List<ISelectable> GetSelection { get; }
+    }
+
+    class GraphSubWindow : GraphElement, ISGResizable
+    {
+        ISGViewModel m_ViewModel;
+
+        ISGViewModel ViewModel
+        {
+            get => m_ViewModel;
+            set => m_ViewModel = value;
+        }
+
         Dragger m_Dragger;
 
-        // This needs to be something that each subclass defines on its own
+        // This needs to be something that each subclass defines for itself at creation time
         // if they all use the same they'll be stacked on top of each other at SG window creation
-        WindowDockingLayout m_DefaultLayout =new WindowDockingLayout
+        protected WindowDockingLayout windowDockingLayout { get; private set; } = new WindowDockingLayout
         {
             dockingTop = true,
             dockingLeft = false,
             verticalOffset = 8,
             horizontalOffset = 8,
         };
-        WindowDockingLayout windowDockingLayout { get; set; }
+
+        // Used to cache the window docking layout between resizing operations as it interferes with window resizing operations
+        private IStyle cachedWindowDockingStyle;
 
         protected VisualElement m_MainContainer;
         protected VisualElement m_Root;
@@ -27,36 +43,49 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected ScrollView m_ScrollView;
         protected VisualElement m_ContentContainer;
         protected VisualElement m_HeaderItem;
-        protected GraphView m_GraphView;
+        protected VisualElement m_ParentView;
+
+        // Added for test assembly access
+        internal ScrollView scrollView => m_ScrollView;
 
         // These are used as default values for styling and layout purposes
         // They can be overriden if a child class wants to roll its own style and layout behavior
-        protected virtual string layoutKey => "UnityEditor.ShaderGraph.SubWindow";
-        protected virtual string styleName => "GraphSubWindow";
-        protected virtual string UxmlName => "GraphSubWindow";
+        public virtual string layoutKey => "UnityEditor.ShaderGraph.SubWindow";
+        public virtual string styleName => "GraphSubWindow";
+        public virtual string UxmlName => "GraphSubWindow";
 
         // Each sub-window will override these if they need to
-        protected virtual string elementName => "";
-        protected virtual string windowTitle => "";
+        public virtual string elementName => "";
+        public virtual string windowTitle => "";
 
-        public GraphView graphView
+        public VisualElement ParentView
         {
             get
             {
-                if (!windowed && m_GraphView == null)
-                    m_GraphView = GetFirstAncestorOfType<GraphView>();
-                return m_GraphView;
+                if (!isWindowed && m_ParentView == null)
+                    m_ParentView = GetFirstAncestorOfType<GraphView>();
+                return m_ParentView;
             }
 
             set
             {
-                if (!windowed)
+                if (!isWindowed)
                     return;
-                m_GraphView = value;
+                m_ParentView = value;
             }
         }
 
-        public List<ISelectable> selection => graphView?.selection;
+        public List<ISelectable> selection
+        {
+            get
+            {
+                if (ParentView is ISelectionProvider selectionProvider)
+                    return selectionProvider.GetSelection;
+
+                AssertHelpers.Fail("GraphSubWindow was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");
+                return new List<ISelectable>();
+            }
+        }
 
         public override string title
         {
@@ -71,13 +100,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         }
 
         // Intended for future handling of docking to sides of the shader graph window
-        bool m_Windowed;
-        public bool windowed
+        bool m_IsWindowed;
+        public bool isWindowed
         {
-            get { return m_Windowed; }
+            get { return m_IsWindowed; }
             set
             {
-                if (m_Windowed == value) return;
+                if (m_IsWindowed == value) return;
 
                 if (value)
                 {
@@ -91,48 +120,100 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                     RemoveFromClassList("windowed");
                     this.AddManipulator(m_Dragger);
                 }
-                m_Windowed = value;
+                m_IsWindowed = value;
             }
         }
 
         public override VisualElement contentContainer => m_ContentContainer;
 
-        readonly bool m_Scrollable = false;
+        private bool m_IsResizable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowResizable
+        {
+            get => m_IsResizable;
+            set
+            {
+                if (m_IsResizable != value)
+                {
+                    m_IsResizable = value;
+                    HandleResizingBehavior(m_IsResizable);
+                }
+            }
+        }
+
+        void HandleResizingBehavior(bool isResizable)
+        {
+            if (isResizable)
+            {
+                var resizeElement = this.Q<ResizableElement>();
+                resizeElement.BindOnResizeCallback(OnWindowResize);
+                hierarchy.Add(resizeElement);
+            }
+            else
+            {
+                var resizeElement = this.Q<ResizableElement>();
+                resizeElement.SetResizeRules(ResizableElement.Resizer.None);
+                hierarchy.Remove(resizeElement);
+            }
+        }
+
+        protected void SetResizingRules(ResizableElement.Resizer resizeDirections)
+        {
+            var resizeElement = this.Q<ResizableElement>();
+            resizeElement.SetResizeRules(resizeDirections);
+        }
+
+        private bool m_IsScrollable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowScrollable
+        {
+            get => m_IsScrollable;
+            set
+            {
+                if (m_IsScrollable != value)
+                {
+                    m_IsScrollable = value;
+                    HandleScrollingBehavior(m_IsScrollable);
+                }
+            }
+        }
+
+        protected float scrollableWidth
+        {
+            get { return m_ScrollView.contentContainer.layout.width - m_ScrollView.contentViewport.layout.width; }
+        }
+
+        protected float scrollableHeight
+        {
+            get { return contentContainer.layout.height - m_ScrollView.contentViewport.layout.height; }
+        }
 
         void HandleScrollingBehavior(bool scrollable)
         {
             if (scrollable)
             {
-                if (m_ScrollView == null)
-                {
-                    m_ScrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-                }
-
-                // Remove the sections container from the content item and add it to the scrollview
+                // Remove the categories container from the content item and add it to the scrollview
                 m_ContentContainer.RemoveFromHierarchy();
-                m_Root.Add(m_ScrollView);
                 m_ScrollView.Add(m_ContentContainer);
-
                 AddToClassList("scrollable");
             }
             else
             {
-                if (m_ScrollView != null)
-                {
-                    // Remove the sections container from the scrollview and add it to the content item
-                    m_ScrollView.RemoveFromHierarchy();
-                    m_ContentContainer.RemoveFromHierarchy();
-                    m_Root.Add(m_ContentContainer);
-                }
+                // Remove the categories container from the scrollview and add it to the content item
+                m_ContentContainer.RemoveFromHierarchy();
+                m_Root.Add(m_ContentContainer);
 
                 RemoveFromClassList("scrollable");
             }
         }
 
-        protected GraphSubWindow(GraphView associatedGraphView = null) : base()
+        protected GraphSubWindow(ISGViewModel viewModel)
         {
-            m_GraphView = associatedGraphView;
-            m_GraphView.Add(this);
+            ViewModel = viewModel;
+            m_ParentView = ViewModel.parentView;
+            ParentView.Add(this);
 
             var styleSheet = Resources.Load<StyleSheet>($"Styles/{styleName}");
             // Setup VisualElement from Stylesheet and UXML file
@@ -144,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             m_Root = m_MainContainer.Q("content");
             m_HeaderItem = m_MainContainer.Q("header");
             m_HeaderItem.AddToClassList("subWindowHeader");
-
+            m_ScrollView = m_MainContainer.Q<ScrollView>("scrollView");
             m_TitleLabel = m_MainContainer.Q<Label>(name: "titleLabel");
             m_SubTitleLabel = m_MainContainer.Q<Label>(name: "subTitleLabel");
             m_ContentContainer = m_MainContainer.Q(name: "contentContainer");
@@ -155,9 +236,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             style.overflow = Overflow.Hidden;
             focusable = false;
 
-            m_Scrollable = true;
-            HandleScrollingBehavior(m_Scrollable);
-
             name = elementName;
             title = windowTitle;
 
@@ -167,10 +245,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             BuildManipulators();
 
             /* Event interception to prevent GraphView manipulators from being triggered */
-            RegisterCallback<DragUpdatedEvent>(e =>
-            {
-                e.StopPropagation();
-            });
+            //RegisterCallback<DragUpdatedEvent>(e =>
+            //{
+            //    e.StopPropagation();
+            //});
 
             // prevent Zoomer manipulator
             RegisterCallback<WheelEvent>(e =>
@@ -178,54 +256,67 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 e.StopPropagation();
             });
 
-            RegisterCallback<MouseDownEvent>(e =>
-            {
-                // prevent ContentDragger manipulator
-                e.StopPropagation();
-            });
+            //RegisterCallback<MouseDownEvent>(e =>
+            //{
+            //    // prevent ContentDragger manipulator
+            //    e.StopPropagation();
+            //});
         }
 
-        protected void ShowWindow()
+        public void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
-            contentContainer.MarkDirtyRepaint();
+            this.m_ScrollView.style.display = DisplayStyle.Flex;
+            this.MarkDirtyRepaint();
         }
 
-        protected void HideWindow()
+        public void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-            this.m_ScrollView.showVertical = false;
-            this.m_ScrollView.showHorizontal = false;
-            contentContainer.Clear();
-            contentContainer.MarkDirtyRepaint();
+            this.m_ScrollView.style.display = DisplayStyle.None;
+            this.MarkDirtyRepaint();
         }
 
         void BuildManipulators()
         {
             m_Dragger = new Dragger { clampToParentEdges = true };
-            RegisterCallback<MouseUpEvent>(OnMoved);
+            RegisterCallback<MouseUpEvent>(OnMoveEnd);
             this.AddManipulator(m_Dragger);
-
-            var resizeElement = this.Q<ResizableElement>();
-            resizeElement.BindOnResizeCallback(OnWindowResize);
-            hierarchy.Add(resizeElement);
         }
 
-#region Layout
+        #region Layout
         public void ClampToParentLayout(Rect parentLayout)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
-            windowDockingLayout.ApplyPosition(this);
+
+            // If the parent shader graph window is being resized smaller than this window on either axis
+            if (parentLayout.width < this.layout.width || parentLayout.height < this.layout.height)
+            {
+                // Don't adjust the sub window in this case as it causes flickering errors and looks broken
+            }
+            else
+            {
+                windowDockingLayout.ApplyPosition(this);
+            }
+
             SerializeLayout();
         }
 
         public void OnStartResize()
         {
+            cachedWindowDockingStyle = this.style;
         }
 
         public void OnResized()
         {
+            if (cachedWindowDockingStyle != null)
+            {
+                this.style.left = cachedWindowDockingStyle.left;
+                this.style.right = cachedWindowDockingStyle.right;
+                this.style.bottom = cachedWindowDockingStyle.bottom;
+                this.style.top = cachedWindowDockingStyle.top;
+            }
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
@@ -237,13 +328,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
             else
             {
-                windowDockingLayout = m_DefaultLayout;
                 // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
                 windowDockingLayout.size = layout.size;
             }
-            
+
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
+        }
+
+        protected void AddStyleSheetFromPath(string styleSheetPath)
+        {
+            StyleSheet sheetAsset = Resources.Load<StyleSheet>(styleSheetPath); ;
+
+            if (sheetAsset == null)
+            {
+                Debug.LogWarning(string.Format("Style sheet not found for path \"{0}\"", styleSheetPath));
+                return;
+            }
+            styleSheets.Add(sheetAsset);
         }
 
         void SerializeLayout()
@@ -253,17 +355,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
         }
 
-        void OnMoved(MouseUpEvent upEvent)
+        void OnMoveEnd(MouseUpEvent upEvent)
         {
-            windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, ParentView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();
+        }
+
+        public bool CanResizePastParentBounds()
+        {
+            return false;
         }
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
         }
     }
-#endregion
+    #endregion
 }

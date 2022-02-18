@@ -1,0 +1,143 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/005_LitBakedEmission.unity
+    guid: e23c793ace3c4a146a73360af1600fbd
+  - enabled: 1
+    path: Assets/Scenes/006_LitShaderLightProbes.unity
+    guid: af9fe3931869d434196925b23cfece87
+  - enabled: 1
+    path: Assets/Scenes/017_Lighting_Scene_DirectionalBaked.unity
+    guid: 245a2b08a4f72437193b06846a5c8e33
+  - enabled: 1
+    path: Assets/Scenes/023_Lighting_Mixed_Indirect.unity
+    guid: 99da9ba2c3d1f4b1d92f851028bb7d0a
+  - enabled: 1
+    path: Assets/Scenes/023_Lighting_Mixed_Indirect_deferred.unity
+    guid: 2390977fa927ed74cadd2a62016007cb
+  - enabled: 1
+    path: Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity
+    guid: 2d287b701f8e1bf429c14805ac505eb9
+  - enabled: 1
+    path: Assets/Scenes/032_Shader_GlossyEnvironmentColor.unity
+    guid: 375d3d0d24cdfe14aa69d3d595acb1c3
+  - enabled: 1
+    path: Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
+    guid: ff592545ad5dd744893d54a73f85b2cc
+  - enabled: 1
+    path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
+    guid: e346f8573410f414ea2a8a4740526c88
+  - enabled: 1
+    path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
+    guid: 7a8ef7ce062f0465b9e493dd5730cecb
+  - enabled: 1
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
+    guid: cd37c7e9d54e74dd7add9b40a2698ada
+  - enabled: 1
+    path: Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity
+    guid: a27d5eebd041b42dab7ad89ce8249e81
+  - enabled: 1
+    path: Assets/Scenes/043_Lighting_Mixed_ShadowMask_deferred.unity
+    guid: 149f6ec36de310842bf26e54caf9240b
+  - enabled: 1
+    path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
+    guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
+  - enabled: 1
+    path: Assets/Scenes/049_Lighting_Mixed_Subtractive_deferred.unity
+    guid: 637e9541c01cb864b859cec63d622ef9
+  - enabled: 1
+    path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
+    guid: 362b9a0c21a9b4e798504044c7604e80
+  - enabled: 1
+    path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
+    guid: f5310a9ab278ec748b2091bf7ba966a7
+  - enabled: 1
+    path: Assets/Scenes/118_SkyboxReflectionTestOrthographic.unity
+    guid: e1fb4b913911b734b88f86697de1b94a
+  - enabled: 1
+    path: Assets/Scenes/133_ShadowFading.unity
+    guid: 137382e53d5a3714088dc0496a166199
+  - enabled: 1
+    path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance.unity
+    guid: 7ec898d33586cf84ca02ac537472e20d
+  - enabled: 1
+    path: Assets/Scenes/136_Lighting_Directional2Cascades.unity
+    guid: d99ff34133a649145adf85fcdfc11ddb
+  - enabled: 1
+    path: Assets/Scenes/137_Lighting_Directional3Cascades.unity
+    guid: 9a39ba2c4ee3d0a4ebb103a52b6030cd
+  - enabled: 1
+    path: Assets/Scenes/138_Lighting_Directional4Cascades.unity
+    guid: 69d2953b4a7ccaa468758f8517116950
+  - enabled: 1
+    path: Assets/Scenes/145_ManyAdditionalLightShadowTypes.unity
+    guid: 625fae218da02c440b56ea72ea59d986
+  - enabled: 1
+    path: Assets/Scenes/146_Unlit_Custom_Shadows.unity
+    guid: f928decd68efd04459541f49d86f0fbf
+  - enabled: 1
+    path: Assets/Scenes/146_AdditionalLightShadowCustomResolution.unity
+    guid: 5cb07294042344649a35ad91c91b539a
+  - enabled: 1
+    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
+    guid: 700788280c77e4c63a4d1919a8bf97e3
+  - enabled: 1
+    path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
+    guid: ad2db338b63034856a2718d37e4bdd7a
+  - enabled: 1
+    path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
+    guid: f1454a5402867f14e8df402c507e29db
+  - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers.unity
+    guid: 04e9a5e9f9bee5742b25a8f229a49428
+  - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers_deferred.unity
+    guid: 4978d640e872ce74bb4412e77a67d88b
+  - enabled: 1
+    path: Assets/Scenes/150_Lighting_EnlightenEmission.unity
+    guid: b2a47910b2788df489a1f84de6e4486c
+  - enabled: 1
+    path: Assets/Scenes/151_Lighting_EnlightenLights.unity
+    guid: a1c09e3c33ec7fc4084de318357c2fa0
+  - enabled: 1
+    path: Assets/Scenes/152_Lighting_EnlightenEnvironment.unity
+    guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec
+  - enabled: 1
+    path: Assets/Scenes/153_Lighting_EnlightenTerrain.unity
+    guid: 677cb6424a7fe3947974395b6c3d70a4
+  - enabled: 1
+    path: Assets/Scenes/200_DepthDeferred.unity
+    guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
+  - enabled: 1
+    path: Assets/Scenes/200_DepthForward.unity
+    guid: 95be3ed4f14c543b389e8e5a2e3d5187
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsDeferred.unity
+    guid: dafa2658c5a644673a2697d24ad96ffe
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsForward.unity
+    guid: 50a55af44edbd47579041b1556ed9a58
+  - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth.unity
+    guid: 2696010bf40d644cc8abc0b1304c59db
+  - enabled: 1
+    path: Assets/Scenes/203_SSAO_DepthNormal.unity
+    guid: c207f769f3e194ebc8cbd51e788ac65d
+  - enabled: 1
+    path: Assets/Scenes/204_SSAO_Deferred.unity
+    guid: 9033695b731a14fe79156b3c4c827aa0
+  - enabled: 1
+    path: Assets/Scenes/205_SSAO_BackBuffer.unity
+    guid: 72491ed40bf654eec9fef43f455e3916
+  - enabled: 1
+    path: Assets/Scenes/220_LightCookie_Baked.unity
+    guid: 4cd2c01cabdfb47d5a3ac05309090490
+  - enabled: 1
+    path: Assets/Scenes/221_ShadowMask_ShaderGraph.unity
+    guid: c53e60919f143ad40b950bea9827efc5
+  m_configObjects: {}

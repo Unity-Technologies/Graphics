@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Utility
             if (EditorGUI.EndChangeCheck())
             {
                 var newAudioSource = m_AudioSource.objectReferenceValue;
-                if (    newAudioSource != null
+                if (newAudioSource != null
                     &&  PrefabUtility.GetPrefabAssetType(newAudioSource) != PrefabAssetType.NotAPrefab
                     &&  PrefabUtility.GetPrefabInstanceStatus(newAudioSource) != PrefabInstanceStatus.Connected)
                     m_AudioSource.objectReferenceValue = null;

@@ -6,19 +6,37 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(HDRISky))]
-    class HDRISkyEditor
-        : SkySettingsEditor
+    [CustomEditor(typeof(HDRISky))]
+    class HDRISkyEditor : SkySettingsEditor
     {
+        class Styles
+        {
+            public static GUIContent scrollOrientationLabel { get; } = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
+            public static GUIContent scrollSpeedLabel { get; } = new GUIContent("Speed", "Sets the scrolling speed of the distortion. The higher the value, the faster the sky will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
+
+            public static GUIContent backplate { get; } = EditorGUIUtility.TrTextContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')");
+            public static GUIContent type { get; } = EditorGUIUtility.TrTextContent("Type");
+            public static GUIContent projection { get; } = EditorGUIUtility.TrTextContent("Projection");
+            public static GUIContent rotation { get; } = EditorGUIUtility.TrTextContent("Rotation");
+            public static GUIContent textureRotation { get; } = EditorGUIUtility.TrTextContent("Texture Rotation");
+            public static GUIContent textureOffset { get; } = EditorGUIUtility.TrTextContent("Texture Offset");
+            public static GUIContent pointSpotShadow { get; } = EditorGUIUtility.TrTextContent("Point/Spot Shadow");
+            public static GUIContent directionalShadow { get; } = EditorGUIUtility.TrTextContent("Directional Shadow");
+            public static GUIContent areaShadow { get; } = EditorGUIUtility.TrTextContent("Area Shadow");
+            public static GUIContent resetColors { get; } = EditorGUIUtility.TrTextContent("Reset Color");
+            public static GUIContent procedural { get; } = EditorGUIUtility.TrTextContent("Procedural");
+            public static GUIContent flowmap { get; } = EditorGUIUtility.TrTextContent("Flowmap");
+            public static string flowmapInfoMessage { get; } = "The flowmap needs to be a 2D Texture in LatLong layout.";
+        }
+
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
 
-        SerializedDataParameter m_EnableCloudMotion;
-        SerializedDataParameter m_Procedural;
+        SerializedDataParameter m_DistortionMode;
         SerializedDataParameter m_Flowmap;
         SerializedDataParameter m_UpperHemisphereOnly;
-        SerializedDataParameter m_ScrollDirection;
+        SerializedDataParameter m_ScrollOrientation;
         SerializedDataParameter m_ScrollSpeed;
 
         SerializedDataParameter m_EnableBackplate;
@@ -35,13 +53,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
-        GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
-        int[]           m_DistortionModeValues = { 1, 0 };
+        GUIContent[] m_DistortionModes = { Styles.procedural, Styles.flowmap };
+        int[] m_DistortionModeValues = { 1, 0 };
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -53,36 +70,36 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
-            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
-            m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
+            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
+            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_UpperHemisphereLuxColor = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
-            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
-            m_Procedural                = Unpack(o.Find(x => x.procedural));
-            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
-            m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
-            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
+            m_DistortionMode = Unpack(o.Find(x => x.distortionMode));
+            m_Flowmap = Unpack(o.Find(x => x.flowmap));
+            m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_ScrollOrientation = Unpack(o.Find(x => x.scrollOrientation));
+            m_ScrollSpeed = Unpack(o.Find(x => x.scrollSpeed));
 
-            m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
-            m_BackplateType             = Unpack(o.Find(x => x.backplateType));
-            m_GroundLevel               = Unpack(o.Find(x => x.groundLevel));
-            m_Scale                     = Unpack(o.Find(x => x.scale));
-            m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
-            m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
-            m_PlateTexRotation          = Unpack(o.Find(x => x.plateTexRotation));
-            m_PlateTexOffset            = Unpack(o.Find(x => x.plateTexOffset));
-            m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
-            m_PointLightShadow          = Unpack(o.Find(x => x.pointLightShadow));
-            m_DirLightShadow            = Unpack(o.Find(x => x.dirLightShadow));
-            m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
-            m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
+            m_EnableBackplate = Unpack(o.Find(x => x.enableBackplate));
+            m_BackplateType = Unpack(o.Find(x => x.backplateType));
+            m_GroundLevel = Unpack(o.Find(x => x.groundLevel));
+            m_Scale = Unpack(o.Find(x => x.scale));
+            m_ProjectionDistance = Unpack(o.Find(x => x.projectionDistance));
+            m_PlateRotation = Unpack(o.Find(x => x.plateRotation));
+            m_PlateTexRotation = Unpack(o.Find(x => x.plateTexRotation));
+            m_PlateTexOffset = Unpack(o.Find(x => x.plateTexOffset));
+            m_BlendAmount = Unpack(o.Find(x => x.blendAmount));
+            m_PointLightShadow = Unpack(o.Find(x => x.pointLightShadow));
+            m_DirLightShadow = Unpack(o.Find(x => x.dirLightShadow));
+            m_RectLightShadow = Unpack(o.Find(x => x.rectLightShadow));
+            m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if (hdrp != null)
-                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
-            m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
+            if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)
+            {
+                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
+            }
+            m_ReadBackTexture = new Texture2D(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
         }
 
         public override void OnDisable()
@@ -96,10 +113,17 @@ namespace UnityEditor.Rendering.HighDefinition
         // Compute the lux value in the upper hemisphere of the HDRI skybox
         public void GetUpperHemisphereLuxValue()
         {
-            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            // null material can happen when no HDRP asset was present at startup
+            if (m_IntegrateHDRISkyMaterial == null)
+            {
+                if (HDRenderPipeline.isReady)
+                    m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
+                else
+                    return;
+            }
 
-            // null material can happen when no HDRP asset is present.
-            if (hdri == null || m_IntegrateHDRISkyMaterial == null)
+            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            if (hdri == null)
                 return;
 
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
@@ -117,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
             if (max == 0.0f)
                 max = 1.0f;
-            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r / max, hdriIntensity.g / max, hdriIntensity.b / max);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
@@ -133,53 +157,42 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            {
-                PropertyField(m_hdriSky);
-            }
             bool updateDefaultShadowTint = false;
+
+            EditorGUI.BeginChangeCheck();
+            PropertyField(m_hdriSky);
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
             }
 
-            PropertyField(m_EnableCloudMotion);
-            if (m_EnableCloudMotion.value.boolValue)
+            PropertyField(m_DistortionMode);
+            if (m_DistortionMode.value.intValue != (int)HDRISky.DistortionMode.None)
             {
-                EditorGUI.indentLevel++;
-
-                using (new EditorGUILayout.HorizontalScope())
+                using (new IndentLevelScope())
                 {
-                    DrawOverrideCheckbox(m_Procedural);
-                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
-                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(new GUIContent("Distortion Mode"), (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
+                    PropertyField(m_ScrollOrientation, Styles.scrollOrientationLabel);
+                    PropertyField(m_ScrollSpeed, Styles.scrollSpeedLabel);
+                    if (m_DistortionMode.value.intValue == (int)HDRISky.DistortionMode.Flowmap)
+                    {
+                        PropertyField(m_Flowmap);
+                        if (IsFlowmapFormatInvalid(m_Flowmap))
+                            EditorGUILayout.HelpBox(Styles.flowmapInfoMessage, MessageType.Info);
+                        PropertyField(m_UpperHemisphereOnly);
+                    }
                 }
-
-                if (!m_Procedural.value.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_Flowmap);
-                    if (IsFlowmapFormatInvalid(m_Flowmap))
-                        EditorGUILayout.HelpBox("The flowmap needs to be a 2D Texture in LatLong layout.", MessageType.Info);
-                    PropertyField(m_UpperHemisphereOnly);
-                    EditorGUI.indentLevel--;
-                }
-
-                PropertyField(m_ScrollDirection);
-                PropertyField(m_ScrollSpeed);
-                EditorGUI.indentLevel--;
             }
+
             base.CommonSkySettingsGUI();
 
-            if (isInAdvancedMode)
+            PropertyField(m_EnableBackplate, Styles.backplate);
+
+            if (m_EnableBackplate.value.boolValue)
             {
-                PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
-                EditorGUILayout.Space();
-                if (m_EnableBackplate.value.boolValue)
+                using (new IndentLevelScope())
                 {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_BackplateType, new GUIContent("Type"));
+                    PropertyField(m_BackplateType, Styles.type);
                     bool constraintAsCircle = false;
                     if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
                     {
@@ -207,21 +220,20 @@ namespace UnityEditor.Rendering.HighDefinition
                             m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x + 1e-4f);
                         }
                     }
-                    PropertyField(m_ProjectionDistance, new GUIContent("Projection"));
-                    PropertyField(m_PlateRotation, new GUIContent("Rotation"));
-                    PropertyField(m_PlateTexRotation, new GUIContent("Texture Rotation"));
-                    PropertyField(m_PlateTexOffset, new GUIContent("Texture Offset"));
+                    PropertyField(m_ProjectionDistance, Styles.projection);
+                    PropertyField(m_PlateRotation, Styles.rotation);
+                    PropertyField(m_PlateTexRotation, Styles.textureRotation);
+                    PropertyField(m_PlateTexOffset, Styles.textureOffset);
                     if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
                         PropertyField(m_BlendAmount);
-                    PropertyField(m_PointLightShadow, new GUIContent("Point/Spot Shadow"));
-                    PropertyField(m_DirLightShadow, new GUIContent("Directional Shadow"));
-                    PropertyField(m_RectLightShadow, new GUIContent("Area Shadow"));
+                    PropertyField(m_PointLightShadow, Styles.pointSpotShadow);
+                    PropertyField(m_DirLightShadow, Styles.directionalShadow);
+                    PropertyField(m_RectLightShadow, Styles.areaShadow);
                     PropertyField(m_ShadowTint);
-                    if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
+                    if (updateDefaultShadowTint || GUILayout.Button(Styles.resetColors))
                     {
                         m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
                     }
-                    EditorGUI.indentLevel--;
                 }
             }
         }

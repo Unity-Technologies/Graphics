@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
     {
         public static string ToShaderString(this ShaderModel shaderModel)
         {
-            switch(shaderModel)
+            switch (shaderModel)
             {
                 case ShaderModel.Target20:
                     return "2.0";

@@ -18,10 +18,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal static readonly Dictionary<ScalableSettingSchemaId, ScalableSettingSchema> Schemas = new Dictionary<ScalableSettingSchemaId, ScalableSettingSchema>
         {
-            { ScalableSettingSchemaId.With3Levels, new ScalableSettingSchema(new[] {
+            { ScalableSettingSchemaId.With3Levels, new ScalableSettingSchema(new[]
+            {
                 new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High")
             }) },
-            { ScalableSettingSchemaId.With4Levels, new ScalableSettingSchema(new[] {
+            { ScalableSettingSchemaId.With4Levels, new ScalableSettingSchema(new[]
+            {
                 new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High"), new GUIContent("Ultra")
             }) },
         };

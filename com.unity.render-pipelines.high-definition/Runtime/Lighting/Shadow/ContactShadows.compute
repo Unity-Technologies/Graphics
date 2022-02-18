@@ -2,10 +2,6 @@
 
 #pragma multi_compile _ ENABLE_MSAA
 
-#ifdef SHADER_API_PSSL
-#   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
-#endif
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -14,7 +10,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#ifdef SHADER_API_PSSL
+#include SHADER_COMPILER_GLOBAL_OPTIMIZE_REGISTER_USAGE
+#endif
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -33,7 +33,7 @@ float SampleDepth(float2 UV, bool HalfRes)
         pixelCoord.x *= 0.5f;
         pixelCoord.y = pixelCoord.y * 0.5f + _RenderTargetHeight;
     }
-    
+
     return LoadCameraDepth(pixelCoord);
 }
 
@@ -78,7 +78,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
     float occluded = 0.0f;
 
-    // From this point on, all the marching will be done in UV space + Z 
+    // From this point on, all the marching will be done in UV space + Z
     float2 startUV = rayStartCS.xy * 0.5f + 0.5f;
     startUV.y = 1.0f - startUV.y;
     float3 rayStart = float3(startUV, rayStartCS.z);
@@ -146,7 +146,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 {
     bool    occluded = false;
     float   fade;
-    
+
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position
@@ -170,7 +170,7 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
     // There might be a mismatch between the size of a tile and the group size of this shader.
-    uint2 tileCoord = groupId * (DEFERRED_SHADOW_TILE_SIZE / TILE_SIZE_FPTL);
+    uint2 tileCoord = (groupId * DEFERRED_SHADOW_TILE_SIZE) / (TILE_SIZE_FPTL);
 
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
@@ -200,9 +200,9 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
         // Do the contact shadow for the directional light
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
-            if (_DirectionalShadowIndex >= 0)
+            for (uint i = 0; i < _DirectionalLightCount; ++i)
             {
-                DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+                DirectionalLightData light = _DirectionalLightDatas[i];
 
                 if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 0.0)
                 {
@@ -214,6 +214,7 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
                     // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
                     contactShadowMask |= light.contactShadowMask * occluded;
                 }
+
             }
         }
 

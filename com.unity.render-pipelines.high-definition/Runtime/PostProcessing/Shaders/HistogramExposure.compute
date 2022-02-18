@@ -4,7 +4,7 @@
 // TODO List to investigate
 //      - Worth considering multiple histograms per lane in the thread. (i.e. sharedHisto[BINS][NUMB_HIST] )
 //      - At the moment the dispatch is at half res, but the buffer sampled is full res,
-//        causing fairly bad cache behaviour. Can we use the mip chain realistically without issues? [The one we have is blurred and might be incomplete?] 
+//        causing fairly bad cache behaviour. Can we use the mip chain realistically without issues? [The one we have is blurred and might be incomplete?]
 
 #pragma kernel KHistogramGen        GEN_PASS
 #pragma kernel KHistogramReduce     REDUCE_PASS
@@ -12,6 +12,8 @@
 #define GROUP_SIZE_Y 8
 
 #pragma multi_compile _ OUTPUT_DEBUG_DATA
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // Because atomics are only on uint and we need a weighted value, we need to convert.
 // If we multiply the weight by 2048, we get somewhat ok precision and we support up to
@@ -30,7 +32,7 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
 {
     // Groupshared memory is not guaranteed to be 0 initialized.
     // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
-    if (groupIndex < HISTOGRAM_BINS)    
+    if (groupIndex < HISTOGRAM_BINS)
     {
         gs_localHistogram[groupIndex] = 0u;
     }
@@ -65,11 +67,11 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
 #if USE_WAVE_INTRINSICS
 
 #define WAVE_SIZE   PLATFORM_LANE_COUNT
-#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS / WAVE_SIZE 
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS / WAVE_SIZE
 
 #else
 
-#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS 
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS
 
 #endif
 
@@ -91,10 +93,11 @@ float ComputeTotalSum(uint threadID, float threadVal)
         gs_partialSums[waveIDInGroup] = waveSum;
     }
 
-    // We have values for all the waves, let's sync. 
+    // We have values for all the waves, let's sync.
     GroupMemoryBarrierWithGroupSync();
 
     sum = gs_partialSums[0];
+    [unroll]
     for (uint i = 1u; i < waveCount; ++i)
     {
         sum += gs_partialSums[i];
@@ -151,7 +154,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
 
-    // TODO: Can we be a bit more parallel here? 
+    // TODO: Can we be a bit more parallel here?
     if (threadID == 0)
     {
         float evProcessedSum = 0;
@@ -180,5 +183,5 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
     }
 
-    
+
 }

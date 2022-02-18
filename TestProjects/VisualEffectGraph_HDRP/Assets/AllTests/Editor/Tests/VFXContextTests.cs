@@ -194,6 +194,184 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(2, from.outputContexts.Count());
         }
 
+
+        [Test] //see fogbugz 1269756
+        public void Link_Fail_From_Event_To_OutputEvent()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var to = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
+
+        [Test]
+        public void Link_Fail_From_GPUEvent_To_Spawn()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+            var to = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
+
+        [Test]
+        public void Link_Mixing_GPUEvent_And_Spawn_To_Init()
+        {
+            var fromA = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+            var fromB = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            Assert.IsTrue(VFXContext.CanLink(fromA, to));
+            Assert.IsTrue(VFXContext.CanLink(fromB, to));
+
+            to.LinkFrom(fromA);
+            Assert.AreEqual(1u, to.inputFlowSlot[0].link.Count());
+            Assert.IsTrue(VFXContext.CanLink(fromB, to));
+
+            //Expected disconnection of previous link in that case
+            to.LinkFrom(fromB);
+            Assert.IsTrue(VFXContext.CanLink(fromA, to));
+            Assert.AreEqual(1u, to.inputFlowSlot[0].link.Count());
+            Assert.AreEqual(fromB, to.inputFlowSlot[0].link.First().context);
+        }
+
+        [Test]
+        public void Link_Mixing_Spawn_And_GPUEvent_To_Init()
+        {
+            var fromA = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+            var fromB = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            Assert.IsTrue(VFXContext.CanLink(fromA, to));
+            Assert.IsTrue(VFXContext.CanLink(fromB, to));
+
+            to.LinkFrom(fromB);
+            Assert.AreEqual(1u, to.inputFlowSlot[0].link.Count());
+            Assert.IsTrue(VFXContext.CanLink(fromA, to));
+
+            //Expected disconnection of previous link in that case
+            to.LinkFrom(fromA);
+            Assert.IsTrue(VFXContext.CanLink(fromB, to));
+            Assert.AreEqual(1u, to.inputFlowSlot[0].link.Count());
+            Assert.AreEqual(fromA, to.inputFlowSlot[0].link.First().context);
+        }
+
+        [Test]
+        public void MultiLink_Spawn_To_Output_And_Initialize()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var toA = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var toB = ScriptableObject.CreateInstance<VFXOutputEvent>();
+
+            toA.LinkFrom(from);
+            toB.LinkFrom(from);
+
+            Assert.AreEqual(2, from.outputContexts.Count());
+        }
+
+        [Test]
+        public void MultiLink_Spawner_Mixing_OutputEvent_And_Initialize()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var toA = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var toB = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var toC = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+
+            toA.LinkFrom(from);
+            toB.LinkFrom(from);
+            toC.LinkFrom(from);
+
+            Assert.AreEqual(3, from.outputContexts.Count());
+        }
+
+        [Test]
+        public void MultiLink_Spawn_And_Event_To_Initialize()
+        {
+            var from1 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var from2 = ScriptableObject.CreateInstance<VFXBasicEvent>();
+
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            to.LinkFrom(from1);
+            to.LinkFrom(from2);
+
+            Assert.AreEqual(2, to.inputContexts.Count());
+        }
+
+        [Test]
+        public void MultiLink_Event_And_Spawn_To_Initialize()
+        {
+            var from1 = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var from2 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            to.LinkFrom(from1);
+            to.LinkFrom(from2);
+
+            Assert.AreEqual(2, to.inputContexts.Count());
+        }
+
+        [Test]
+        public void Link_Success_From_Update_To_Update()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var to = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            Assert.IsTrue(VFXContext.CanLink(from, to));
+        }
+
+        [Test]
+        public void Link_Initialize_Cant_Mix_Update_And_Output()
+        {
+            var init = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var update = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputA = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var outputB = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            update.LinkFrom(init);
+            outputA.LinkFrom(update);
+
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(1, update.outputContexts.Count());
+
+            outputB.LinkFrom(init);
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(outputB, init.outputContexts.First());
+
+            update.LinkFrom(init);
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(update, init.outputContexts.First());
+        }
+
+        [Test]
+        public void Link_Update_Cant_Mix_Update_And_Output()
+        {
+            var init = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var updateA = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var updateB = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputA = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var outputB = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            updateA.LinkFrom(init);
+            updateB.LinkFrom(updateA);
+            outputA.LinkFrom(updateB);
+
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(1, updateB.outputContexts.Count());
+
+            outputB.LinkFrom(updateA);
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(outputB, updateA.outputContexts.First());
+
+            updateB.LinkFrom(updateA);
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(updateB, updateA.outputContexts.First());
+        }
+
+        [Test]
+        public void Link_Fail_From_Event_To_Initialize()
+        {
+            //For now, we can't use direct link from event to initialize context.
+            var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            Assert.IsTrue(VFXContext.CanLink(from, to));
+        }
+
         [Test]
         public void Link_Fail()
         {

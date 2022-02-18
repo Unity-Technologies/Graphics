@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef HDSTENCILUSAGE_CS_HLSL
@@ -16,6 +16,7 @@
 #define STENCILUSAGE_EXCLUDE_FROM_TAA (2)
 #define STENCILUSAGE_DISTORTION_VECTORS (4)
 #define STENCILUSAGE_SMAA (4)
+#define STENCILUSAGE_WATER_SURFACE (16)
 #define STENCILUSAGE_AFTER_OPAQUE_RESERVED_BITS (56)
 #define STENCILUSAGE_USER_BIT0 (64)
 #define STENCILUSAGE_USER_BIT1 (128)

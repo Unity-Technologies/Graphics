@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph
     class BitangentMaterialSlot : SpaceMaterialSlot, IMayRequireBitangent
     {
         public BitangentMaterialSlot() : base()
-        {}
+        { }
 
         public BitangentMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
                                      ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {

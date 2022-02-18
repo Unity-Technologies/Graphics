@@ -57,6 +57,7 @@ namespace UnityEditor.Rendering
             l.rawValue |= (uint)(int)(object)r;
             return l;
         }
+
         /// <summary>And operator between a EditorPrefBoolFlags and a value</summary>
         /// <param name="l">The EditorPrefBoolFlags</param>
         /// <param name="r">The value</param>
@@ -66,6 +67,7 @@ namespace UnityEditor.Rendering
             l.rawValue &= (uint)(int)(object)r;
             return l;
         }
+
         /// <summary>Xor operator between a EditorPrefBoolFlags and a value</summary>
         /// <param name="l">The EditorPrefBoolFlags</param>
         /// <param name="r">The value</param>

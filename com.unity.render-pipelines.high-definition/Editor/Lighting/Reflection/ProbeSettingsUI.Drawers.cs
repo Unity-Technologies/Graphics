@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((displayedFields.probe & lighting) != 0)
             {
-
                 using (new EditorGUI.DisabledScope(!hd.currentPlatformRenderPipelineSettings.supportLightLayers))
                 {
                     PropertyFieldWithoutToggle(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), displayedFields.probe,
@@ -41,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 PropertyFieldWithoutToggle(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier", "Sets the multiplier value that reflective Materials apply to the results from the Reflection Probe."), displayedFields.probe);
                 PropertyFieldWithoutToggle(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, EditorGUIUtility.TrTextContent("Weight", "Sets the weight of this Reflection Probe. When multiple Probes both affect the same area of a reflective Material, the Material uses the Weight of each Probe to determine their contribution to the reflective effect."), displayedFields.probe);
-                PropertyFieldWithoutToggle(ProbeSettingsFields.lightingFadeDistance, serialized.lightingFadeDistance, EditorGUIUtility.TrTextContent("Fade Distance", "Specifies the distance at which reflections smoothly fadeout before HDRP cuts them completely."), displayedFields.probe);
+                PropertyFieldWithoutToggle(ProbeSettingsFields.lightingFadeDistance, serialized.lightingFadeDistance, EditorGUIUtility.TrTextContent("Fade Distance", "Sets the distance from the camera at which reflections smoothly fadeout before HDRP cuts them completely."), displayedFields.probe);
             }
 
             if ((displayedFields.probe & frustum) != 0)
@@ -65,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((displayedFields.probe & proxy) != 0)
             {
                 PropertyFieldWithoutToggle(ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume, serialized.proxyUseInfluenceVolumeAsProxyVolume, EditorGUIUtility.TrTextContent("Use Influence Volume As Proxy Volume", "When enabled, this Reflection Probe uses the boundaries of the Influence Volume as its Proxy Volume."), displayedFields.probe);
-                PropertyFieldWithoutToggle(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, EditorGUIUtility.TrTextContent("Capture Position", "Sets the position, relative to the Transform Position, from which the Reflection Probe captures its surroundings."), displayedFields.probe,
+                PropertyFieldWithoutToggle(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, EditorGUIUtility.TrTextContent("Capture Position", "Sets the position, relative to the Proxy Volume Position, from which the Reflection Probe captures its surroundings."), displayedFields.probe,
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);
@@ -85,15 +84,13 @@ namespace UnityEditor.Rendering.HighDefinition
             CameraSettingsUI.Draw(serialized.cameraSettings, owner, displayedFields.camera);
 
             // Only display the field if it should
-            if (((int)ProbeSettingsFields.resolution & (int)displayedFields.probe) != 0 )
+            if (((int)ProbeSettingsFields.resolution & (int)displayedFields.probe) != 0)
             {
                 var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.planarReflectionResolution;
                 serialized.resolutionScalable.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
                     EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), scalableSetting, null
                 );
             }
-
-            PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
 
             PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
 

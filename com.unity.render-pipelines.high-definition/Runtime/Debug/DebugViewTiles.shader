@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -40,9 +40,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-#if (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && defined(USE_CLUSTERED_LIGHTLIST)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
-#endif
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
@@ -51,6 +48,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
             uint _NumTiles;
             float _ClusterDebugDistance;
             int _ClusterDebugMode;
+            float4 _ClusterDebugLightViewportSize;
+
 
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
@@ -123,7 +122,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     variant = -1;
 #endif
 
-                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
+                float2 clipCoord = (pixelCoord * _ClusterDebugLightViewportSize.zw) * 2.0 - 1.0;
                 clipCoord.y *= -1;
 
                 Varyings output;
@@ -153,43 +152,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
 
-            float4 OverlayHeatMap(uint2 pixCoord, uint n)
-            {
-                const float4 kRadarColors[12] =
-                {
-                    float4(0.0, 0.0, 0.0, 0.0),   // black
-                    float4(0.0, 0.0, 0.6, 0.5),   // dark blue
-                    float4(0.0, 0.0, 0.9, 0.5),   // blue
-                    float4(0.0, 0.6, 0.9, 0.5),   // light blue
-                    float4(0.0, 0.9, 0.9, 0.5),   // cyan
-                    float4(0.0, 0.9, 0.6, 0.5),   // blueish green
-                    float4(0.0, 0.9, 0.0, 0.5),   // green
-                    float4(0.6, 0.9, 0.0, 0.5),   // yellowish green
-                    float4(0.9, 0.9, 0.0, 0.5),   // yellow
-                    float4(0.9, 0.6, 0.0, 0.5),   // orange
-                    float4(0.9, 0.0, 0.0, 0.5),   // red
-                    float4(1.0, 0.0, 0.0, 0.9)    // strong red
-                };
-
-                float maxNrLightsPerTile = 31; // TODO: setup a constant for that
-
-                int colorIndex = n == 0 ? 0 : (1 + (int)floor(10 * (log2((float)n) / log2(maxNrLightsPerTile))));
-                colorIndex = colorIndex < 0 ? 0 : colorIndex;
-                float4 col = colorIndex > 11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[colorIndex];
-
-                int2 coord = pixCoord - int2(1, 1);
-
-                float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
-                if (n >= 0)
-                {
-                    if (SampleDebugFontNumber(coord, n))        // Shadow
-                        color = float4(0, 0, 0, 1);
-                    if (SampleDebugFontNumber(coord + 1, n))    // Text
-                        color = float4(1, 1, 1, 1);
-                }
-                return color;
-            }
-
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -197,14 +159,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // For debug shaders, Viewport can be at a non zero (x,y) but the pipeline render targets all starts at (0,0)
                 // input.positionCS in in pixel coordinate relative to the render target origin so they will be offsted compared to internal render textures
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
-                uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
+                uint2 pixelCoord = uint2(input.texcoord.xy * _ClusterDebugLightViewportSize.xy);
 
                 float depth = GetTileDepth(pixelCoord);
 
-                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
+                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ClusterDebugLightViewportSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
+                float2 debugViewportScaling = _ClusterDebugLightViewportSize.xy / _ScreenSize.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
-                int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
+                int2 mouseTileCoord = (_MousePixelCoord.xy * debugViewportScaling) / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;
@@ -214,27 +177,10 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            // If evaluating probe volumes during material pass, their data is only avaibile in clustered.
-                            // To accurately reflect this, if a user has selected to view the count inside of the tiled list,
-                            // the count should be zero.
-                            uint start;
-                            uint count;
-                            ProbeVolumeGetCountAndStart(posInput, start, count);
-                            n += count;
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            uint start;
-                            uint count;
-                            GetCountAndStart(posInput, category, start, count);
-                            n += count;
-                        }
+                        uint start;
+                        uint count;
+                        GetCountAndStart(posInput, category, start, count);
+                        n += count;
                     }
                 }
                 if (n == 0)
@@ -247,7 +193,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
 #ifdef DISABLE_TILE_MODE
                 // Tile debug mode is not supported in MSAA (only cluster)
-                int maxLights = 32;
+                int maxLights = (LIGHT_CLUSTER_PACKING_COUNT_MASK + 1);
                 const int textSize = 23;
                 const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
                 if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
@@ -266,7 +212,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
+                    const uint maxLightsPerTile = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
+                    const float opacity = 0.3f;
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy), GetTileSize(), n, maxLightsPerTile, opacity);
                 }
 
 #if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
@@ -278,66 +226,52 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     result = AlphaBlend(result, result2);
                 }
 
+                {
+                    float catMenuScale = max(debugViewportScaling.x,debugViewportScaling.y);
+                    float scaledTileSize = GetTileSize() * catMenuScale;
+                    int2 catTileCoord = (int2)((pixelCoord) / scaledTileSize);
+                    float2 catPixelCoordUnscaled = input.texcoord.xy * _ClusterDebugLightViewportSize.xy;
+                    int2 catPixelCoord = (int2)((catPixelCoordUnscaled - 0.5) / catMenuScale);
+                    int2 catOffsetInTile = catPixelCoord - catTileCoord * GetTileSize();
+
                 // Print light lists for selected tile at the bottom of the screen
-                int maxLights = 32;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
+                    if (catTileCoord.y < LIGHTCATEGORY_COUNT && catTileCoord.x < maxAreaWidth)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
+                        PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ClusterDebugLightViewportSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
-                    uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
+                        uint category = (LIGHTCATEGORY_COUNT - 1) - catTileCoord.y;
                     uint start;
                     uint count;
 
-                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                    if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                    {
-                    #if defined(USE_CLUSTERED_LIGHTLIST)
-                        ProbeVolumeGetCountAndStart(mousePosInput, start, count);
-                        n += count;
-                    #endif
-                    }
-                    else
-                #endif
-                    {
-                        GetCountAndStart(mousePosInput, category, start, count);
-                    }
+                    GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
-                    int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
-                    int lightListIndex = tileCoord.x - 2;
+                        int2 fontCoord = int2(catPixelCoord.x, catOffsetInTile.y);
+                        int lightListIndex = catTileCoord.x - 2;
 
                     int n = -1;
-                    if(tileCoord.x == 0)
+                        if(catTileCoord.x == 0)
                     {
                         n = (int)count;
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            n = ProbeVolumeFetchIndex(start, lightListIndex);
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            n = FetchIndex(start, lightListIndex);
-                        }
+                        n = FetchIndex(start, lightListIndex);
                     }
 
                     if (n >= 0)
                     {
-                        if (SampleDebugFontNumber(offsetInTile, n))
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile, n))
                             result2 = float4(0.0, 0.0, 0.0, 1.0);
-                        if (SampleDebugFontNumber(offsetInTile + 1, n))
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile + 1, n))
                             result2 = float4(1.0, 1.0, 1.0, 1.0);
                     }
 
                     result = AlphaBlend(result, result2);
+                }
                 }
 #endif
 #endif

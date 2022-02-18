@@ -19,9 +19,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
 
+            // Both normalWS and shadowTint are used for shadow mattes
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            // We should preprocessor: "defined(_ENABLE_SHADOW_MATTE)" however it will break compatibility with earlier version than 21.2 for shader.
+            // Also maybe it could be used in the future for other purpose than shadow matte, so let it like that.
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
             public Vector3 normalWS;
+
+            [SurfaceDataAttributes("Shadow Tint", false, true, preprocessor: "defined(_ENABLE_SHADOW_MATTE) && (SHADERPASS == SHADERPASS_PATH_TRACING)")]
+            public Vector4 shadowTint;
         };
 
         //-----------------------------------------------------------------------------

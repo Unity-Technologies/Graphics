@@ -8,13 +8,16 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
-        #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -43,6 +46,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float _Chroma_Params;
         half4 _Vignette_Params1;
         float4 _Vignette_Params2;
+    #ifdef USING_STEREO_MATRICES
+        float4 _Vignette_ParamsXR;
+    #endif
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
@@ -65,7 +71,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #define LensDirtIntensity       _LensDirt_Intensity.x
 
         #define VignetteColor           _Vignette_Params1.xyz
+    #ifdef USING_STEREO_MATRICES
+        #define VignetteCenterEye0      _Vignette_ParamsXR.xy
+        #define VignetteCenterEye1      _Vignette_ParamsXR.zw
+    #else
         #define VignetteCenter          _Vignette_Params2.xy
+    #endif
         #define VignetteIntensity       _Vignette_Params2.z
         #define VignetteSmoothness      _Vignette_Params2.w
         #define VignetteRoundness       _Vignette_Params1.w
@@ -142,7 +153,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Gamma space... Just do the rest of Uber in linear and convert back to sRGB at the end
             #if UNITY_COLORSPACE_GAMMA
             {
-                color = SRGBToLinear(color);
+                color = GetSRGBToLinear(color);
             }
             #endif
 
@@ -188,6 +199,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             UNITY_BRANCH
             if (VignetteIntensity > 0)
             {
+            #ifdef USING_STEREO_MATRICES
+                // With XR, the views can use asymmetric FOV which will have the center of each
+                // view be at a different location.
+                const float2 VignetteCenter = unity_StereoEyeIndex == 0 ? VignetteCenterEye0 : VignetteCenterEye1;
+            #endif
+
                 color = ApplyVignette(color, uvDistorted, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);
             }
 
@@ -202,16 +219,33 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             }
             #endif
 
-            // Back to sRGB
-            #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
+            // When Unity is configured to use gamma color encoding, we ignore the request to convert to gamma 2.0 and instead fall back to sRGB encoding
+            #if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
             {
-                color = LinearToSRGB(color);
+                color = LinearToGamma20(color);
+            }
+            // Back to sRGB
+            #elif UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
+            {
+                color = GetLinearToSRGB(color);
             }
             #endif
 
             #if _DITHERING
             {
                 color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                // Assume color > 0 and prevent 0 - ditherNoise.
+                // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
+                color = max(color, 0);
+            }
+            #endif
+
+            #if defined(DEBUG_DISPLAY)
+            half4 debugColor = 0;
+
+            if(CanDebugOverrideOutputColor(half4(color, 1), uv, debugColor))
+            {
+                return debugColor;
             }
             #endif
 

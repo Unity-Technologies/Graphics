@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1113 &111300000
+LightmapParameters:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ShadowProxy
+  serializedVersion: 3
+  resolution: 0.05
+  clusterResolution: 0.1
+  irradianceBudget: 32
+  irradianceQuality: 512
+  backFaceTolerance: 0.9
+  isTransparent: 0
+  modellingTolerance: 0.01
+  systemTag: -1
+  edgeStitching: 0
+  blurRadius: 2
+  directLightQuality: 64
+  antiAliasingSamples: 8
+  pushoff: 0.0001
+  bakedLightmapTag: -1
+  limitLightmapCount: 0
+  maxLightmapCount: 1
+  AOQuality: 256
+  AOAntiAliasingSamples: 16

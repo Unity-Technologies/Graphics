@@ -3,15 +3,25 @@ using UnityEditor.Graphing;
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+
 
 namespace UnityEditor.ShaderGraph
 {
+    enum Channel
+    {
+        Red = 0,
+        Green = 1,
+        Blue = 2,
+        Alpha = 3,
+    }
     [Title("UV", "Parallax Mapping")]
     class ParallaxMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxMappingNode()
         {
             name = "Parallax Mapping";
+            synonyms = new string[] { "offset mapping" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -32,6 +42,22 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
+        [SerializeField]
+        private Channel m_Channel = Channel.Green;
+
+        [EnumControl("Heightmap Sample Channel")]
+        public Channel channel
+        {
+            get { return m_Channel; }
+            set
+            {
+                if (m_Channel == value)
+                    return;
+
+                m_Channel = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DInputMaterialSlot(kHeightmapSlotId, kHeightmapSlotName, kHeightmapSlotName, ShaderStageCapability.Fragment));
@@ -40,18 +66,14 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
 
             AddSlot(new Vector2MaterialSlot(kParallaxUVsOutputSlotId, kParallaxUVsOutputSlotName, kParallaxUVsOutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(new[] {
+            RemoveSlotsNameNotMatching(new[]
+            {
                 kParallaxUVsOutputSlotId,
                 kHeightmapSlotId,
                 kHeightmapSamplerSlotId,
                 kAmplitudeSlotId,
                 kUVsSlotId,
             });
-        }
-
-        string GetFunctionName()
-        {
-            return $"Unity_ParallaxMapping_{concretePrecision.ToShaderString()}";
         }
 
         public override void Setup()
@@ -63,11 +85,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl""";
-            registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine(perPixelDisplacementInclude);
-            });
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl");
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -78,14 +96,15 @@ namespace UnityEditor.ShaderGraph
             var amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             var uvs = GetSlotValue(kUVsSlotId, generationMode);
 
-            sb.AppendLines(String.Format(@"$precision2 {5} = {4} + ParallaxMapping({0}, {1}, IN.{2}, {3} * 0.01, {4});",
+            sb.AppendLines(String.Format(@"$precision2 {5} = {0}.GetTransformedUV({4}) + ParallaxMappingChannel(TEXTURE2D_ARGS({0}.tex, {1}.samplerstate), IN.{2}, {3} * 0.01, {0}.GetTransformedUV({4}), {6});",
                 heightmap,
-                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap,
+                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : heightmap,
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
                 amplitude, // cm in the interface so we multiply by 0.01 in the shader to convert in meter
                 uvs,
-                GetSlotValue(kParallaxUVsOutputSlotId, generationMode)
-                ));
+                GetSlotValue(kParallaxUVsOutputSlotId, generationMode),
+                (int)channel
+            ));
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)

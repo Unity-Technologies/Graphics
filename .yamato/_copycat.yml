@@ -1,0 +1,52 @@
+# Documentation: https://internaldocs.hq.unity3d.com/copycat/
+
+nightly_katana_abv_validate:
+  name: Validate Katana ABV
+  agent:
+    type: Unity::VM
+    image: slough-ops/ubuntu-18.04-base:latest
+    flavor: b1.medium
+  variables:
+    MANIFEST: .copycat/graphics.json
+    RELEASE_BRANCH: trunk
+    SRP_VERSION: "14.0.1"
+  skip_checkout: true
+  commands:
+    - eval "$COPYCAT_1"
+    - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
+    - copycat katana "../destination/$MANIFEST"
+  triggers:
+    recurring:
+      - branch: master
+        frequency: daily
+
+vendor:
+  name: Vendor graphics (and create PR)
+  agent:
+    type: Unity::VM
+    image: slough-ops/ubuntu-18.04-base:latest
+    flavor: b1.medium
+  variables:
+    MANIFEST: .copycat/graphics.json
+    RELEASE_BRANCH: trunk
+    SRP_VERSION: "14.0.1"
+  skip_checkout: true
+  commands:
+    - eval "$COPYCAT_1"
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - copycat diff -o ../diff.patch "../destination/$MANIFEST"
+    - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
+    - |
+      author=${YAMATO_OWNER_EMAIL%@unity3d.com}
+      python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author" --unity-target-branch "$RELEASE_BRANCH"
+    - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
+    - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
+    - copycat katana "../destination/$MANIFEST"
+  artifacts:
+    release_notes:
+      paths:
+        - ono_release_notes.txt
+        - fogbugz_cases.txt
+        - gfx_to_ono_changelog.log

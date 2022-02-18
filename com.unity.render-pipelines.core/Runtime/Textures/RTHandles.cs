@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -64,8 +65,9 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 width,
@@ -86,8 +88,55 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
-                );
+            );
+        }
+
+        /// <summary>
+        /// Allocate a new fixed sized RTHandle with the default RTHandle System.
+        /// </summary>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            var result = s_DefaultInstance.Alloc(
+                descriptor.width,
+                descriptor.height,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
+                name
+            );
+            return result;
         }
 
         /// <summary>
@@ -106,12 +155,13 @@ namespace UnityEngine.Rendering
         /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
-        /// <returns></returns>
+        /// <returns>A new RTHandle.</returns>
         public static RTHandle Alloc(
             Vector2 scaleFactor,
             int slices = 1,
@@ -126,12 +176,13 @@ namespace UnityEngine.Rendering
             bool isShadowMap = false,
             int anisoLevel = 1,
             float mipMapBias = 0,
-            bool enableMSAA = false,
+            MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFactor,
@@ -147,12 +198,59 @@ namespace UnityEngine.Rendering
                 isShadowMap,
                 anisoLevel,
                 mipMapBias,
-                enableMSAA,
+                msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
-                );
+            );
+        }
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
+        /// </summary>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            Vector2 scaleFactor,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            return s_DefaultInstance.Alloc(
+                scaleFactor,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
+                name
+            );
         }
 
         /// <summary>
@@ -171,10 +269,11 @@ namespace UnityEngine.Rendering
         /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -191,12 +290,13 @@ namespace UnityEngine.Rendering
             bool isShadowMap = false,
             int anisoLevel = 1,
             float mipMapBias = 0,
-            bool enableMSAA = false,
+            MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFunc,
@@ -212,12 +312,59 @@ namespace UnityEngine.Rendering
                 isShadowMap,
                 anisoLevel,
                 mipMapBias,
-                enableMSAA,
+                msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
-                );
+            );
+        }
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
+        /// </summary>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            ScaleFunc scaleFunc,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            return s_DefaultInstance.Alloc(
+                scaleFunc,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
+                name
+            );
         }
 
         /// <summary>
@@ -272,21 +419,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Initial reference rendering width.</param>
         /// <param name="height">Initial reference rendering height.</param>
-        /// <param name="scaledRTsupportsMSAA">Set to true if automatically scaled RTHandles should support MSAA</param>
-        /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
-        public static void Initialize(
-            int width,
-            int height,
-            bool scaledRTsupportsMSAA,
-            MSAASamples scaledRTMSAASamples
-            )
+        public static void Initialize(int width, int height)
         {
-            s_DefaultInstance.Initialize(
-                width,
-                height,
-                scaledRTsupportsMSAA,
-                scaledRTMSAASamples
-                );
+            s_DefaultInstance.Initialize(width, height);
         }
 
         /// <summary>
@@ -312,18 +447,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Reference rendering width for subsequent rendering.</param>
         /// <param name="height">Reference rendering height for subsequent rendering.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
-        public static void SetReferenceSize(
-            int width,
-            int height,
-            MSAASamples msaaSamples
-            )
+        public static void SetReferenceSize(int width, int height)
         {
-            s_DefaultInstance.SetReferenceSize(
-                width,
-                height,
-                msaaSamples
-                );
+            s_DefaultInstance.SetReferenceSize(width, height);
         }
 
         /// <summary>
@@ -334,6 +460,17 @@ namespace UnityEngine.Rendering
         public static void ResetReferenceSize(int width, int height)
         {
             s_DefaultInstance.ResetReferenceSize(width, height);
+        }
+
+        /// <summary>
+        /// Returns the ratio against the current target's max resolution
+        /// </summary>
+        /// <param name="width">width to utilize</param>
+        /// <param name="height">height to utilize</param>
+        /// <returns> retruns the width,height / maxTargetSize.xy ratio. </returns>
+        public static Vector2 CalculateRatioAgainstMaxSize(int width, int height)
+        {
+            return s_DefaultInstance.CalculateRatioAgainstMaxSize(new Vector2Int(width, height));
         }
     }
 }

@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal Matrix4x4 GetInfluenceToWorld(Transform transform)
-             => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+            => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
         internal EnvShapeType envShape
         {
@@ -205,14 +205,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         Vector3 GetExtents(InfluenceShape shape)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    default:
-                    case InfluenceShape.Box:
-                        return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
-                    case InfluenceShape.Sphere:
-                        return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
+                default:
+                case InfluenceShape.Box:
+                    return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
+                case InfluenceShape.Sphere:
+                    return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
             }
         }
 

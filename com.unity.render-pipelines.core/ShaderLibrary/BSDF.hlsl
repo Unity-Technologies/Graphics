@@ -1,6 +1,10 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Note: All NDF and diffuse term have a version with and without divide by PI.
@@ -79,6 +83,20 @@ real3 F_Transm_Schlick(real3 f0, real f90, real u)
 real3 F_Transm_Schlick(real3 f0, real u)
 {
     return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad*3
+}
+
+// Compute the cos of critical angle: cos(asin(eta)) == sqrt(1.0 - eta*eta)
+// eta == IORMedium/IORSource
+// If eta >= 1 the it's an AirMedium interation, otherwise it's MediumAir interation
+real CosCriticalAngle(real eta)
+{
+    return sqrt(max(1.0 - Sq(eta), 0.0));
+    // For 1 <= IOR <= 4: Max error: 0.0268594
+    //return eta >= 1.0 ? 0.0 : (((3.0 + eta) * sqrt(max(0.0, 1.0 - eta))) / (2.0 * sqrt(2.0)));
+    // For 1 <= IOR <= 4: Max error: 0.00533065
+    //return eta >= 1.0 ? 0.0 : (-((-23.0 - 10.0 * eta + Sq(eta)) * sqrt(max(0.0, 1.0 - eta))) / (16.0 * sqrt(2.0)));
+    // For 1 <= IOR <= 4: Max error: 0.00129402
+    //return eta >= 1.0 ? 0.0 : (((91.0 + 43.0 * eta - 7.0 * Sq(eta) + pow(eta, 3)) * sqrt(max(0.0, 1.0 - eta))) / (64. * sqrt(2.0)));
 }
 
 // Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
@@ -167,6 +185,11 @@ real3 CoatRefract(real3 X, real3 N, real ieta)
 //-----------------------------------------------------------------------------
 // Specular BRDF
 //-----------------------------------------------------------------------------
+
+float Lambda_GGX(float roughness, float3 V)
+{
+    return 0.5 * (sqrt(1.0 + (Sq(roughness * V.x) + Sq(roughness * V.y)) / Sq(V.z)) - 1.0);
+}
 
 real D_GGXNoPI(real NdotH, real roughness)
 {
@@ -402,10 +425,12 @@ real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughn
     return rcp(1.03571) * (lightScatter * viewScatter);
 }
 
+#ifndef BUILTIN_TARGET_API
 real DisneyDiffuse(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, perceptualRoughness);
 }
+#endif
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
 real3 DiffuseGGXNoPI(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)
@@ -632,4 +657,9 @@ real3 D_KajiyaKay(real3 T, real3 H, real specularExponent)
 
     return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
+
 #endif // UNITY_BSDF_INCLUDED

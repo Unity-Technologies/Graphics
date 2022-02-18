@@ -12,8 +12,8 @@ namespace UnityEditor.Rendering.Universal
 {
     class FBXArnoldSurfaceMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 2;
-        static readonly int k_Order = 4;
+        static readonly uint k_Version = 3;
+        static readonly int k_Order = -960;
 
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ArnoldStandardSurface/ArnoldStandardSurface.shadergraph";
         static readonly string k_ShaderTransparentPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ArnoldStandardSurface/ArnoldStandardSurfaceTransparent.shadergraph";
@@ -39,9 +39,11 @@ namespace UnityEditor.Rendering.Universal
         {
             float classIdA;
             float classIdB;
+            string originalMtl;
             description.TryGetProperty("ClassIDa", out classIdA);
             description.TryGetProperty("ClassIDb", out classIdB);
-            return classIdA == 2121471519 && classIdB == 1660373836;
+            description.TryGetProperty("ORIGINAL_MTL", out originalMtl);
+            return classIdA == 2121471519 && classIdB == 1660373836 && originalMtl != "PHYSICAL_MTL";
         }
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material,
@@ -99,7 +101,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     material.SetFloat("_OPACITY", opacity);
                 }
-
             }
             else
             {
@@ -110,7 +111,7 @@ namespace UnityEditor.Rendering.Universal
                 material.shader = shader;
             }
 
-            
+
             foreach (var clip in clips)
             {
                 clip.ClearCurves();
@@ -225,7 +226,6 @@ namespace UnityEditor.Rendering.Universal
             remapPropertyFloatOrTexture3DsMax(description, material, "specular_IOR", "_SPECULAR_IOR");
 
             remapPropertyTexture(description, material, "normal_camera", "_NORMAL_MAP");
-
         }
 
         static void SetMaterialTextureProperty(string propertyName, Material material,

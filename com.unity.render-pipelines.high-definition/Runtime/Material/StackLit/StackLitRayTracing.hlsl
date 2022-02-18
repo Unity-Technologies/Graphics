@@ -1,4 +1,4 @@
-float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
+float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 {
     float roughness = bsdfData.roughnessAT;
     float3x3 localToWorld;
@@ -12,7 +12,7 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
     }
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
-    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     return sampleDir;
 }
 
@@ -69,18 +69,30 @@ float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-void FitToStandardLit( SurfaceData surfaceData
+void FitToStandardLit( BSDFData bsdfData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
-{    
-    outStandardlit.baseColor = surfaceData.baseColor;
-    outStandardlit.specularOcclusion = surfaceData.specularOcclusionCustomInput;
-    outStandardlit.normalWS = surfaceData.normalWS;
-    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
-    outStandardlit.fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
-    outStandardlit.coatMask = surfaceData.coatMask;
-    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
+{
+    // TODO: There's space for doing better here:
+
+    // bool hasCoatNormal = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT)
+    //                     && HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP);
+    // outStandardlit.normalWS = hasCoatNormal ? surfaceData.coatNormalWS : surfaceData.normalWS;
+    // Using coatnormal not necessarily better here depends on what each are vs geometric normal and the coat strength
+    // vs base strength. Could do something with that and specular albedos...
+    outStandardlit.normalWS = bsdfData.normalWS;
+
+    // StandardLit expects diffuse color in baseColor:
+    outStandardlit.baseColor = bsdfData.diffuseColor;
+    outStandardlit.fresnel0 = bsdfData.fresnel0;
+    outStandardlit.specularOcclusion = 1; // TODO
+
+    // We didn't run GetPreLightData, we cheaply cap base roughness up to coat roughness at least:
+    outStandardlit.perceptualRoughness = max(bsdfData.coatPerceptualRoughness, lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix));
+    // We make the coat mask go to 0 as the stacklit coat gets rougher (works ok and better than just feeding coatmask directly)
+    outStandardlit.coatMask = lerp(bsdfData.coatMask, 0, saturate((bsdfData.coatPerceptualRoughness - CLEAR_COAT_PERCEPTUAL_ROUGHNESS)/0.2) );
+    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * bsdfData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
 }
 #endif

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.UIElements;
@@ -11,5 +11,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Action inspectorUpdateDelegate { get; set; }
 
         VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute);
+
+        void DisposePropertyDrawer();
     }
 }

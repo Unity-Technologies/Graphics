@@ -13,7 +13,17 @@ namespace UnityEngine.VFX.Utility
         [SerializeField, HideInInspector]
         protected VFXEventAttribute eventAttribute;
 
+        protected virtual void OnEnable()
+        {
+            UpdateCacheEventAttribute();
+        }
+
         private void OnValidate()
+        {
+            UpdateCacheEventAttribute();
+        }
+
+        private void UpdateCacheEventAttribute()
         {
             if (target != null)
                 eventAttribute = target.CreateVFXEventAttribute();

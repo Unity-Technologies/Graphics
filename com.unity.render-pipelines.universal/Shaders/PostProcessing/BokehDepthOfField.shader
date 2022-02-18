@@ -2,7 +2,8 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -21,11 +22,12 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
 
-        float4 _SourceSize;
-        float4 _HalfSourceSize;
-        float4 _DownSampleScaleFactor;
-        float4 _CoCParams;
-        float4 _BokehKernel[SAMPLE_COUNT];
+        half4 _SourceSize;
+        half4 _HalfSourceSize;
+        half4 _DownSampleScaleFactor;
+        half4 _CoCParams;
+        half4 _BokehKernel[SAMPLE_COUNT];
+        half4 _BokehConstants;
 
         #define FocusDist       _CoCParams.x
         #define MaxCoC          _CoCParams.y
@@ -120,34 +122,30 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             avg *= smoothstep(0, _SourceSize.w * 2.0, abs(coc));
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            avg = SRGBToLinear(avg);
+            avg = GetSRGBToLinear(avg);
         #endif
 
             return half4(avg, coc);
         }
 
-        void Accumulate(float4 samp0, float2 uv, float2 disp, inout half4 farAcc, inout half4 nearAcc)
+        void Accumulate(half4 samp0, float2 uv, half4 disp, inout half4 farAcc, inout half4 nearAcc)
         {
-            float dist = length(disp);
-
-            float2 duv = float2(disp.x * RcpAspect, disp.y);
-            half4 samp = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + duv);
+            half4 samp = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + disp.wy);
 
             // Compare CoC of the current sample and the center sample and select smaller one
             half farCoC = max(min(samp0.a, samp.a), 0.0);
 
             // Compare the CoC to the sample distance & add a small margin to smooth out
-            const half margin = _SourceSize.w * _DownSampleScaleFactor.w * 2.0;
-            half farWeight = saturate((farCoC - dist + margin) / margin);
-            half nearWeight = saturate((-samp.a - dist + margin) / margin);
+            half farWeight = saturate((farCoC - disp.z + _BokehConstants.y) / _BokehConstants.y);
+            half nearWeight = saturate((-samp.a - disp.z + _BokehConstants.y) / _BokehConstants.y);
 
             // Cut influence from focused areas because they're darkened by CoC premultiplying. This is only
             // needed for near field
-            nearWeight *= step(_SourceSize.w * _DownSampleScaleFactor.w, -samp.a);
+            nearWeight *= step(_BokehConstants.x, -samp.a);
 
             // Accumulation
-            farAcc += half4(samp.rgb, 1.0) * farWeight;
-            nearAcc += half4(samp.rgb, 1.0) * nearWeight;
+            farAcc += half4(samp.rgb, 1.0h) * farWeight;
+            nearAcc += half4(samp.rgb, 1.0h) * nearWeight;
         }
 
         half4 FragBlur(Varyings input) : SV_Target
@@ -166,8 +164,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             UNITY_LOOP
             for (int si = 0; si < SAMPLE_COUNT; si++)
             {
-                float2 disp = _BokehKernel[si].xy * MaxRadius;
-                Accumulate(samp0, uv, disp, farAcc, nearAcc);
+                Accumulate(samp0, uv, _BokehKernel[si], farAcc, nearAcc);
             }
 
             // Get the weighted average
@@ -214,16 +211,15 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half4 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = SRGBToLinear(color);
+            color = GetSRGBToLinear(color);
         #endif
 
             half alpha = Max3(dof.r, dof.g, dof.b);
             color = lerp(color, half4(dof.rgb, alpha), ffa + dof.a - ffa * dof.a);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = LinearToSRGB(color);
+            color = GetLinearToSRGB(color);
         #endif
-
             return color;
         }
 

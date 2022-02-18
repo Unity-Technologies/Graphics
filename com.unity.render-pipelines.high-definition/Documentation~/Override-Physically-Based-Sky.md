@@ -1,15 +1,15 @@
 # Physically Based Sky
 
-Physically Based Sky simulates a spherical planet with a two-part atmosphere that has an exponentially decreasing density with respect to its altitude. This means that the higher you go above sea level, the less dense the atmosphere is. For information on the implementation for this sky type, see [Implementation details](#ImplementationDetails).
+Physically Based Sky simulates a spherical planet with a two-part atmosphere that has an exponentially decreasing density based on its altitude. This means that the higher you go above sea level, the less dense the atmosphere is. For information on the implementation for this sky type, see [Implementation details](#ImplementationDetails).
 
-The simulation runs as a pre-process, meaning that it runs once instead of on every frame. The simulation evaluates the atmospheric scattering of all combinations of light and view angles and then stores the results in several 3D Textures, which Unity resamples at runtime. The pre-computation is Scene-agnostic, and only depends on the settings of the Physically Based Sky. 
+The simulation runs as a pre-process, meaning that it runs once instead of on every frame. The simulation evaluates the atmospheric scattering of all combinations of light and view angles and then stores the results in several 3D Textures, which Unity resamples at runtime. The pre-computation is Scene-agnostic, and only depends on the settings of the Physically Based Sky.
 
-The Physically Based Sky’s atmosphere is composed of two types of particles: 
+The Physically Based Sky’s atmosphere has two types of particles:
 
 * Air particles with [Rayleigh scattering](<https://en.wikipedia.org/wiki/Rayleigh_scattering>).
 * Aerosol particles with anisotropic [Mie scattering](https://en.wikipedia.org/wiki/Mie_scattering). You can use aerosols to model pollution, height fog, or mist.
 
-You can use Physically Based Sky to simulate the sky during both daytime and night-time. The time of day may be arbitrarily changed at runtime without any incurring any extra cost. The following images show Physically Based Sky in Unity's Fontainebleau demo. For more information about the Fontainebleau demo, and for instructions on how to download and use the demo yourself, see https://github.com/Unity-Technologies/FontainebleauDemo. Note that the available Fontainebleau demo only uses Physically Based Sky for its daytime setup in version 2019.3.
+You can use Physically Based Sky to simulate the sky during both daytime and night-time. You can change the time of day at runtime without reducing performance. The following images display a Physically Based Sky in Unity's Fontainebleau demo. For more information about the Fontainebleau demo, and for instructions on how to download and use the demo yourself, see https://github.com/Unity-Technologies/FontainebleauDemo. The Fontainebleau demo only uses Physically Based Sky for its daytime setup in version 2019.3.
 
 ![](Images/Override-PhysicallyBasedSky2.png)
 
@@ -20,14 +20,20 @@ You can use Physically Based Sky to simulate the sky during both daytime and nig
 Physically Based Sky uses the [Volume](Volumes.md) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.md) in your Scene. To add **Physically Based Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-
 2. In the Inspector, go to **Add Override > Sky** and select **Physically Based Sky**.
+3. If the Scene doesn't contain a Directional [Light](Light-Component.md), create one (menu: **GameObject > Light > Directional Light**). For physically correct results, set the Light's intensity to 130,000 lux.
 
 Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Physically Based Sky**. HDRP now renders a **Physically Based Sky** for any Camera this Volume affects.
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
+**Note**: HDRP only takes into account Lights that have **Affect Physically Based Sky** enabled. After Unity bakes the lighting in your project, Physically Based Sky ignores all Lights that have their **Mode** property set to **Baked**. To fix this, set the **Mode** to **Realtime** or **Mixed**.
+
+**Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. You might experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
+
 ![](Images/Override-PhysicallyBasedSky4.png)
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 
@@ -44,7 +50,7 @@ To change how much the atmosphere attenuates light, you can change the density o
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Spherical Mode**             | Enables **Spherical Mode**. When in Spherical Mode, you can specify the location of the planet. Otherwise, the planet is always below the Camera in the world-space x-z plane. |
-| **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level.  Only available in **Spherical Mode**. |
+| **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. Only available in **Spherical Mode**. |
 | **Planet Center Position**     | The world-space position of the planet's center in meters. This does not affect the precomputation. Only available in **Spherical Mode**. |
 | **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Not available in **Spherical Mode**. |
 | **Planet Rotation**            | The orientation of the planet.                               |
@@ -101,7 +107,7 @@ To make this section visible, set **Type** to **Custom Planet**.
 | ------------------------- | ------------------------------------------------------------ |
 | **Number Of Bounces**     | The number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time. |
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity:<br/>&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br/>&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. |
-| **- Exposure**            | The exposure for HDRP to apply to the Scene as environmental light. HDRP uses 2 to the power of your **Exposure** value to calculate the environment light in your Scene. |
+| **- Exposure Compensation**    | The exposure compensation for HDRP to apply to the Scene as environmental light. HDRP uses 2 to the power of your **Exposure Compensation** value to calculate the environment light in your Scene. |
 | **- Multiplier**          | The multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. To make this property visible, set **Intensity Mode** to **Multiplier**. |
 | **Update Mode**           | The rate at which HDRP updates the sky environment (using Ambient and Reflection Probes):<br/>&#8226; **On Changed**: HDRP updates the sky environment when one of the sky properties changes.<br/>&#8226; **On Demand**: HDRP waits until you manually call for a sky environment update from a script.<br/>&#8226; **Realtime**: HDRP updates the sky environment at regular intervals defined by the **Update Period**. |
 | **- Update Period**       | The period (in seconds) for HDRP to update the sky environment. Set the value to 0 if you want HDRP to update the sky environment every frame. This property only appears when you set the **Update Mode** to **Realtime**. |
@@ -113,16 +119,35 @@ To make this section visible, set **Type** to **Custom Planet**.
 
 This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
-This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as it would do if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
+This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable the **Spherical Mode** property:
 
 * If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
 * Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
 
-The default values in either mode make it so the planet's surface is at **0** on the y-axis at the Scene origin. Since the default values for **Spherical Mode** simulate Earth, the radius is so large that, when you create you Scene environment, you can consider the surface to be flat. If you want some areas of your Scene environment to be below the current surface height, you can either vertically offset your Scene environment so that the lowest areas are above **0** on the y-axis, or decrease the surface height. To do the latter:
+The default values in either mode make it so the planet's surface is at **0** on the y-axis at the Scene origin. Since the default values for **Spherical Mode** simulate Earth, the radius is so large that, when you create your Scene environment, you can consider the surface to be flat. If you want some areas of your Scene environment to be below the current surface height, you can either vertically offset your Scene environment so that the lowest areas are above **0** on the y-axis, or decrease the surface height. To do the latter:
 
 * If in **Spherical Mode**, either decrease the **Planetary  Radius**, or move the **Planet Center Position** down.
 
 * If not in **Spherical Mode**, decrease the **Sea Level**.
+
+## Warmup performance impact
+
+When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the **Number of bounces** parameter) takes more time to render than other HDRP sky types.
+
+This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
+
+HDRP restarts precomputation when you change the following parameters:
+- **Type**
+- **Planetary Radius**
+- **Ground Tint**
+- **Air Maximum Altitude**
+- **Air Density**
+- **Air Tint**
+- **Aerosol Maximum Altitude**
+- **Aerosol Density**
+- **Aerosol Tint**
+- **Aerosol Anisotropy**
+- **Number of Bounces**
 
 ### Reference list
 

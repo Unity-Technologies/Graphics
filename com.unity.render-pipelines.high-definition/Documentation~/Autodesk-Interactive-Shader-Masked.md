@@ -37,7 +37,7 @@ When Unity imports an FBX with a compatible Autodesk shader, it automatically cr
 [!include[](snippets/shader-properties/autodesk-interactive/use-emissive-map.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/emissive.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/emissive-map.md)]
-[!include[](snippets/shader-properties/autodesk-interactive/use-opacity-map(mask).md)]
+[!include[](snippets/shader-properties/autodesk-interactive/use-opacity-map-masked.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/mask-map.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/mask-threshold.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/uv-offset.md)]

@@ -11,9 +11,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
     class ColorManager
     {
         static string DefaultProvider = NoColors.Title;
-    
+
         List<IColorProvider> m_Providers;
-        
+
         int m_ActiveIndex = 0;
         public int activeIndex
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             {
                 if (!IsValidIndex(value))
                     return;
-                
+
                 m_ActiveIndex = value;
             }
         }
@@ -36,10 +36,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
 
             foreach (var colorType in TypeCache.GetTypesDerivedFrom<IColorProvider>().Where(t => !t.IsAbstract))
             {
-                var provider = (IColorProvider) Activator.CreateInstance(colorType);
+                var provider = (IColorProvider)Activator.CreateInstance(colorType);
                 m_Providers.Add(provider);
             }
-            
+
             m_Providers.Sort((p1, p2) => string.Compare(p1.GetTitle(), p2.GetTitle(), StringComparison.InvariantCulture));
             activeIndex = m_Providers.FindIndex(provider => provider.GetTitle() == activeProvider);
         }
@@ -54,12 +54,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
                 }
             }
         }
-        
+
         public void SetActiveProvider(int newIndex, IEnumerable<IShaderNodeView> nodeViews)
         {
             if (newIndex == activeIndex || !IsValidIndex(newIndex))
                 return;
-            
+
             var oldProvider = activeProvider;
             activeIndex = newIndex;
 
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
                 UpdateNodeView(view);
             }
         }
-        
+
         public void UpdateNodeView(IShaderNodeView nodeView)
         {
             activeProvider.ApplyColor(nodeView);
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public bool activeSupportsCustom => activeProvider.AllowCustom();
 
         IColorProvider activeProvider => m_Providers[activeIndex];
-        
+
         bool IsValidIndex(int index) => index >= 0 && index < m_Providers.Count;
     }
 }

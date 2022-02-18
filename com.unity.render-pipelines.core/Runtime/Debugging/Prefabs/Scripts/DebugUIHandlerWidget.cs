@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.UI
         /// <summary>
         /// OnEnable implementation.
         /// </summary>
-        protected virtual void OnEnable() {}
+        protected virtual void OnEnable() { }
 
         internal virtual void SetWidget(DebugUI.Widget widget)
         {
@@ -83,24 +83,24 @@ namespace UnityEngine.Rendering.UI
         /// <summary>
         /// OnDeselection implementation.
         /// </summary>
-        public virtual void OnDeselection() {}
+        public virtual void OnDeselection() { }
 
         /// <summary>
         /// OnAction implementation.
         /// </summary>
-        public virtual void OnAction() {}
+        public virtual void OnAction() { }
 
         /// <summary>
         /// OnIncrement implementation.
         /// </summary>
         /// <param name="fast">True if incrementing fast.</param>
-        public virtual void OnIncrement(bool fast) {}
+        public virtual void OnIncrement(bool fast) { }
 
         /// <summary>
         /// OnDecrement implementation.
         /// </summary>
         /// <param name="fast">Trye if decrementing fast.</param>
-        public virtual void OnDecrement(bool fast) {}
+        public virtual void OnDecrement(bool fast) { }
 
         /// <summary>
         /// Previous implementation.

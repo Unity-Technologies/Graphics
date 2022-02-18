@@ -3,36 +3,33 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - compilation-errors-as-warnings
- # - type: playmode
+    allow_cache: False
+    utr_flags:
+      - [all]: compilation-errors-as-warnings
   - type: editmode
+
 platforms:
   - name: Win
-    apis: 
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
-  dependencies:
-    - platform: Win
-      api: ''
-      build_config: mono_apiNet2
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - editmode
-  #      - playmode
+    apis:
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: ''
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+          - editmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

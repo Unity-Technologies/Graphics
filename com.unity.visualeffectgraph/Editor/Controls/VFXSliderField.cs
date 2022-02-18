@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
@@ -22,10 +23,10 @@ namespace UnityEditor.VFX.UI
             {
                 m_Slider = target.GetFirstOfType<VFXBaseSliderField<T>>();
 
-                target.RegisterCallback<MouseDownEvent>(OnMouseDown,TrickleDown.TrickleDown);
+                target.RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
                 target.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
-
             }
+
             protected override void UnregisterCallbacksFromTarget()
             {
                 target.UnregisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
@@ -39,7 +40,7 @@ namespace UnityEditor.VFX.UI
 
             void OnMouseMove(MouseMoveEvent e)
             {
-                if( !m_InDrag)
+                if (!m_InDrag)
                 {
                     m_InDrag = true;
                     m_Slider.ValueDragStarted();
@@ -49,7 +50,7 @@ namespace UnityEditor.VFX.UI
 
             void OnMouseUp(MouseUpEvent e)
             {
-                if( m_InDrag)
+                if (m_InDrag)
                     m_Slider.ValueDragFinished();
                 else
                     target.UnregisterCallback<MouseMoveEvent>(OnMouseMove, TrickleDown.TrickleDown);
@@ -130,9 +131,10 @@ namespace UnityEditor.VFX.UI
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
 
-                    m_Slider.value = m_Range.x;
-                    m_Slider.value = m_Range.y;
-                    m_Slider.value = ValueToFloat(this.value);
+                    if (m_Slider.value < m_Slider.lowValue || m_Slider.value > m_Slider.highValue)
+                    {
+                        m_Slider.value = m_Slider.lowValue;
+                    }
                 }
                 m_IgnoreNotification = false;
             }
@@ -228,7 +230,7 @@ namespace UnityEditor.VFX.UI
 
         public bool indeterminate
         {
-            get {return m_FloatField.parent == null; }
+            get { return m_FloatField.parent == null; }
 
             set
             {

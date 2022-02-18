@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(ChannelMixer))]
+    [CustomEditor(typeof(ChannelMixer))]
     sealed class ChannelMixerEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RedOutRedIn;
@@ -22,15 +22,15 @@ namespace UnityEditor.Rendering.Universal
         {
             var o = new PropertyFetcher<ChannelMixer>(serializedObject);
 
-            m_RedOutRedIn     = Unpack(o.Find(x => x.redOutRedIn));
-            m_RedOutGreenIn   = Unpack(o.Find(x => x.redOutGreenIn));
-            m_RedOutBlueIn    = Unpack(o.Find(x => x.redOutBlueIn));
-            m_GreenOutRedIn   = Unpack(o.Find(x => x.greenOutRedIn));
+            m_RedOutRedIn = Unpack(o.Find(x => x.redOutRedIn));
+            m_RedOutGreenIn = Unpack(o.Find(x => x.redOutGreenIn));
+            m_RedOutBlueIn = Unpack(o.Find(x => x.redOutBlueIn));
+            m_GreenOutRedIn = Unpack(o.Find(x => x.greenOutRedIn));
             m_GreenOutGreenIn = Unpack(o.Find(x => x.greenOutGreenIn));
-            m_GreenOutBlueIn  = Unpack(o.Find(x => x.greenOutBlueIn));
-            m_BlueOutRedIn    = Unpack(o.Find(x => x.blueOutRedIn));
-            m_BlueOutGreenIn  = Unpack(o.Find(x => x.blueOutGreenIn));
-            m_BlueOutBlueIn   = Unpack(o.Find(x => x.blueOutBlueIn));
+            m_GreenOutBlueIn = Unpack(o.Find(x => x.greenOutBlueIn));
+            m_BlueOutRedIn = Unpack(o.Find(x => x.blueOutRedIn));
+            m_BlueOutGreenIn = Unpack(o.Find(x => x.blueOutGreenIn));
+            m_BlueOutBlueIn = Unpack(o.Find(x => x.blueOutBlueIn));
 
             m_SelectedChannel = new SavedInt($"{target.GetType()}.SelectedChannel", 0);
         }

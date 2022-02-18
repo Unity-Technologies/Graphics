@@ -30,5 +30,22 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ![Material Samples](Images/MaterialSamples.png)
 
-This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Node](Master-Node-Fabric.md), [Hair Master Node](Master-Node-Hair.md), and [Decal Master Node](Master-Node-Decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
-The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Stack](master-stack-fabric.md), [Hair Master Stack](master-stack-hair.md), [Eye Shader](eye-shader.md) and [Decal Master Stack](master-stack-decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
+
+The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+
+In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.
+
+In the Transparency scenes, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
+To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
+
+## Lens Flare Samples
+
+![Lens Flare Samples](Images/LensFlareSamples.png)
+
+This Sample includes the following Lens Flare examples that you can use in your project:
+- Lens Flare Assets
+- Lens Flare Textures
+- A scene you can use to preview Lens Flare Assets
+- A scene to showcases the use of Lens Flares with interior lighting
+- A scene to showcases the use of Lens Flares with a directional light

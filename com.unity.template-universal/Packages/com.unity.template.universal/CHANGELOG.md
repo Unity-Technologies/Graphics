@@ -4,12 +4,44 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-### Changed 
+## [13.2.1] - 2022-02-09
+
+### Added
+- Added a Visual Scripting package
+
+## [13.2.0] - 2021-10-18
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [13.1.0] - 2021-09-28
+
+### Changed
+- Update manifest to include required packages
+
+## [13.0.0] - 2021-09-01
+
+### Changed
+- Update SRP package to 13.0.0
+
+## [12.1.0] - 2021-07-28
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.0.0] - 2021-01-11
+
+### Changed
+- Update SRP package to 12.0.0
+
+## [11.0.0] - 2020-10-21
+
+### Changed
 - Update SRP package to 11.0.0
 
 ## [10.2.0] - 2020-10-19
 
-### Changed 
+### Changed
 - Update SRP package to 10.2.0
 
 ## [10.1.0] - 2020-10-12
@@ -71,11 +103,11 @@ The version number for this package has increased due to a version update of a r
 
 ## [3.6.0] - 2019-05-17
 - Updated to SRP package 6.7.0
-- Adding test framework package to manifest. 
+- Adding test framework package to manifest.
 - Updating project settings to make sure the sample scene is opened on load.
 
 ## [3.5.2] - 2019-03-15
-- Fixed incorrect default property setting for ProjectSettings.SupportedNpadStyles 
+- Fixed incorrect default property setting for ProjectSettings.SupportedNpadStyles
 
 ## [3.5.1] - 2019-03-13
 - PlayerSettings.legacyClampBlendShapeWeights property now defaults to false.
@@ -153,7 +185,7 @@ The version number for this package has increased due to a version update of a r
 ## [1.1.0] - 2018-10-24
 
 ### Changed
-- Updating LW Version 
+- Updating LW Version
 - AndroidTVCompatibility to false
 
 
@@ -180,7 +212,7 @@ The version number for this package has increased due to a version update of a r
 ## [1.0.3] - 2018-06-06
 
 ### Changed
-- Migrating old lightweight templates into package format 
+- Migrating old lightweight templates into package format
 
 ## [1.0.2] - 2018-06-01
 
@@ -204,7 +236,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Removed cinemachine and text mesh pro
-- Updated package version for LW 
+- Updated package version for LW
 - Additional setting and lighting polish
 - Removing basic content (red cube)
 
@@ -218,16 +250,16 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.3] - 2018-01-26 
+## [0.0.3] - 2018-01-26
 
-### Changed 
+### Changed
 - Updating Shadergraph and lightweight to new version
 - Updating lighting settings based on internal feedback from lighting team
 
 ## [0.0.2] - 2017-12-12
 ### Added
 - Packages for Lightweight SRP and Shadergraph
-- Simple example content - red cube 
+- Simple example content - red cube
 
 ### Changed
 - Project and Lighting Settings adjusted for use with Lightweight Render Pipeline
@@ -236,4 +268,3 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
 - Initial Project Creation for Unity Lightweight Project Template \com.unity.template.lightweight.
-

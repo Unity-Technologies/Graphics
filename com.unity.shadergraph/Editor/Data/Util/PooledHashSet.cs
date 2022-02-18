@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         static Stack<PooledHashSet<T>> s_Pool = new Stack<PooledHashSet<T>>();
         bool m_Active;
 
-        PooledHashSet() {}
+        PooledHashSet() { }
 
         public static PooledHashSet<T> Get()
         {
@@ -37,12 +37,13 @@ namespace UnityEditor.ShaderGraph
 #endif
         }
 
-// Destructor causes some GC alloc so only do this sanity check in debug build
+        // Destructor causes some GC alloc so only do this sanity check in debug build
 #if DEBUG
         ~PooledHashSet()
         {
             throw new InvalidOperationException($"{nameof(PooledHashSet<T>)} must be disposed manually.");
         }
+
 #endif
     }
 }

@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             set
             {
                 m_Disabled = !value;
-                Invalidate(InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kEnableChanged);
             }
         }
         public virtual bool isValid
@@ -90,5 +90,19 @@ namespace UnityEditor.VFX
                 return GetParent().space;
             return (VFXCoordinateSpace)int.MaxValue;
         }
+
+        public VFXContext flattenedParent
+        {
+            get
+            {
+                return m_FlattenedParent != null ? m_FlattenedParent : GetParent();
+            }
+            set
+            {
+                m_FlattenedParent = value;
+            }
+        }
+
+        private VFXContext m_FlattenedParent;
     }
 }

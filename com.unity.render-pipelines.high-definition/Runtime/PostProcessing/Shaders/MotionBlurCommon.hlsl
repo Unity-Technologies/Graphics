@@ -4,7 +4,7 @@
 
 #define WAVE_SIZE                   64u
 
-#ifdef MOTION_VEC_PREPPING 
+#ifdef MOTION_VEC_PREPPING
 RW_TEXTURE2D_X(float3, _MotionVecAndDepth);
 #else
 TEXTURE2D_X(_MotionVecAndDepth);
@@ -27,10 +27,12 @@ RW_TEXTURE2D_X(float, _TileToScatterMin);
 
 CBUFFER_START(MotionBlurUniformBuffer)
 float4x4 _PrevVPMatrixNoTranslation;
+float4x4 _CurrVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
 float4 _MotionBlurParams1;  // Upacked below.
 float4 _MotionBlurParams2;  // Upacked below.
+float4 _MotionBlurParams3;  // Upacked below.
 CBUFFER_END
 
 #define _ScreenMagnitude                    _MotionBlurParams0.x
@@ -46,9 +48,12 @@ CBUFFER_END
 #define _DepthScale                         _MotionBlurParams2.z
 #define _DisableCameraMotion                (_MotionBlurParams2.w > 0.0f)
 
+#define _CameraTranslationClampNDC          _MotionBlurParams3.x
+#define _CameraFullClampNDC                 _MotionBlurParams3.y
 
 #if defined(USING_STEREO_MATRICES)
 #define _PrevVPMatrixNoTranslation          _XRPrevViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
+#define _CurrVPMatrixNoTranslation          _XRViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
 #endif
 
 

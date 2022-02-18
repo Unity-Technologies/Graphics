@@ -10,13 +10,13 @@ To create your own sky, create some scripts to handle the following:
 
 ## Using your sky renderer
 
-When you complete all of the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
+When you complete the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
 
 <a name="SkySettings"></a>
 
 ## Sky Settings
 
-Firstly, create a new class that inherits from **SkySettings**. This new class contains all of the properties specific to the particular sky renderer you want.
+Create a new class that inherits from [**SkySettings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/api/UnityEngine.Rendering.HighDefinition.SkySettings.html). This new class contains all the properties specific to the particular sky renderer you want.
 
 You must include the following in this class:
 
@@ -72,37 +72,55 @@ public class NewSky : SkySettings
 
 ## Sky Renderer
 
-Now you must create the class that actually renders the sky, either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
+You must create the class that renders the sky either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
 
 Your SkyRenderer must implement the SkyRenderer interface:
 ```c#
-    public abstract class SkyRenderer
-    {
-        int m_LastFrameUpdate = -1;
+public abstract class SkyRenderer
+{
+    int m_LastFrameUpdate = -1;
 
-        /// <summary>
-        /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
-        /// </summary>
-        public abstract void Build();
+    /// <summary>
+    /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
+    /// </summary>
+    public abstract void Build();
 
-        /// <summary>
-        /// Called on cleanup. Release resources used by the renderer.
-        /// </summary>
-        public abstract void Cleanup();
+    /// <summary>
+    /// Called on cleanup. Release resources used by the renderer.
+    /// </summary>
+    public abstract void Cleanup();
 
-        /// <summary>
-        /// HDRP calls this function once every frame. Implement it if your SkyRenderer needs to iterate independently of the user defined update frequency (see SkySettings UpdateMode).
-        /// </summary>
-        /// <returns>True if the update determines that sky lighting needs to be re-rendered. False otherwise.</returns>
-        protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
+    /// <summary>
+    /// HDRP calls this function once every frame. Implement it if your SkyRenderer needs to iterate independently of the user defined update frequency (see SkySettings UpdateMode).
+    /// </summary>
+    /// <param name="builtinParams">Engine parameters that you can use to update the sky.</param>
+    /// <returns>True if the update determines that sky lighting needs to be re-rendered. False otherwise.</returns>
+    protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
 
-        /// <summary>
-        /// Implements actual rendering of the sky. HDRP calls this when rendering the sky into a cubemap (for lighting) and also during main frame rendering.
-        /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
-        /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
-        /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
-        public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
+    /// <summary>
+    /// Preprocess for rendering the sky. Called before the DepthPrePass operations
+    /// </summary>
+    /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
+    /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
+    /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
+    public virtual void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk) { }
+
+    /// <summary>
+    /// Whether the PreRenderSky step is required.
+    /// </summary>
+    /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
+    /// <returns>True if the PreRenderSky step is required.</returns>
+    public virtual bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams) { return false; }
+
+
+    /// <summary>
+    /// Implements actual rendering of the sky. HDRP calls this when rendering the sky into a cubemap (for lighting) and also during main frame rendering.
+    /// </summary>
+    /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
+    /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
+    /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
+    public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
+}
 ```
 For example, here’s the a simple implementation of the SkyRenderer:
 ```C#
@@ -130,7 +148,7 @@ class NewSkyRenderer : SkyRenderer
     // Project dependent way to retrieve a shader.
     Shader GetNewSkyShader()
     {
-        // Implement me
+        // Implement your shader here to render it.
         return null;
     }
 
@@ -146,7 +164,7 @@ class NewSkyRenderer : SkyRenderer
 
     public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
     {
-        using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
+        using (new ProfilingScope(builtinParams.commandBuffer, "Draw sky"))
         {
             var newSky = builtinParams.skySettings as NewSky;
 
@@ -165,16 +183,19 @@ class NewSkyRenderer : SkyRenderer
 
 ```
 ### Important note:
-If your sky renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it will also be duplicated in memory.
-Since each sky renderer can have very different needs, the responsbility to share this kind of data is the renderer's and need to be implemented by the user.
+If your sky renderer has to manage heavy data (for example, precomputed textures) then take particular care. One instance of the renderer exists for each Camera. By default, if this data is a member of the renderer, HDRP also duplicates it in memory.
+Each sky renderer can have different needs. This means the responsbility to share this kind of data is the renderer's and you need to implement it manually.
 
 <a name="RenderingShader"></a>
 
 ## Sky rendering Shader
 
-Finally, you need to actually create the Shader for your sky. The content of this Shader depends on the effects you want to include.
+The content of your sky Shader depends on the effects you want to include.
 
-For example, here’s the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
+For example, the below code describes the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
+
+The following example uses two passes. The first pass uses a depth test to render the sky in the background (so that geometry occludes it correctly). The second pass doesn't use a Depth Test and renders the sky into the reflection cubemap:
+
 ```
 Shader "Hidden/HDRP/Sky/NewSky"
 {
@@ -184,7 +205,7 @@ Shader "Hidden/HDRP/Sky/NewSky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -294,4 +315,3 @@ Shader "Hidden/HDRP/Sky/NewSky"
 }
 
 ```
-**Note**: The NewSky example uses two passes, one that uses a Depth Test for rendering the sky in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the sky into the reflection cubemap.

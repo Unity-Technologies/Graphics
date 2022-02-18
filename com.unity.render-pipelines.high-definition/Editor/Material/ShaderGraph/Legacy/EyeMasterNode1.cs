@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public const int LightingSlotId = 15;
         public const int BackLightingSlotId = 16;
         public const int DepthOffsetSlotId = 17;
-         public const int VertexNormalSlotID = 18;
+        public const int VertexNormalSlotID = 18;
         public const int VertexTangentSlotID = 19;
 
         [Flags]
@@ -124,7 +124,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public CompareFunction m_ZTest;
         public bool m_SupportLodCrossFade;
         public bool m_DOTSInstancing;
-        public bool m_AlphaToMask;
         public int m_MaterialNeedsUpdateHash;
         public string m_ShaderGUIOverride;
         public bool m_OverrideEnabled;

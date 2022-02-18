@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public FloorNode()
         {
             name = "Floor";
+            synonyms = new string[] { "down" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = floor(In);
 }

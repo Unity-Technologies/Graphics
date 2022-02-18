@@ -228,13 +228,13 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             float3 vsDiffuseNormal = TransformWorldToViewDir(bsdfData.diffuseNormalWS);
             result = IsNormalized(vsDiffuseNormal) ?  vsDiffuseNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        } 
+        }
     case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
         {
             float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
             result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        } 
+        }
     case DEBUGVIEW_EYE_BSDFDATA_IOR:
         result = saturate((bsdfData.IOR - 1.0) / 1.5).xxx;
         break;
@@ -309,8 +309,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACosPos(clampedNdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI), LTC_LUT_SIZE);
+    // We use V = sqrt( 1 - cos(theta) ) for parametrization which is kind of linear and only requires a single sqrt() instead of an expensive acos()
+    float cosThetaParam = sqrt( 1 - clampedNdotV ); // For Area light - UVs for sampling the LUTs
+    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, cosThetaParam), LTC_LUT_SIZE);
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformDiffuse = k_identity3x3;
@@ -319,10 +320,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformSpecular = 0.0;
     preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
-    preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, preLightData.NdotV);
+    preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, dot(V, bsdfData.diffuseNormalWS));
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
 
     return preLightData;
@@ -657,7 +658,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF

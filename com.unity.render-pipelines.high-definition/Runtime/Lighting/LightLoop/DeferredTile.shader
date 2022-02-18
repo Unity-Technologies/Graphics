@@ -31,15 +31,15 @@ Shader "Hidden/HDRP/DeferredTile"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING // Split lighting is utilized during the SSS pass.
-            #pragma multi_compile  _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
-            #pragma multi_compile_local VARIANT0 VARIANT1 VARIANT2 VARIANT3 VARIANT4 VARIANT5 VARIANT6 VARIANT7 VARIANT8 VARIANT9 VARIANT10 VARIANT11 VARIANT12 VARIANT13 VARIANT14 VARIANT15 VARIANT16 VARIANT17 VARIANT18 VARIANT19 VARIANT20 VARIANT21 VARIANT22 VARIANT23 VARIANT24 VARIANT25 VARIANT26 VARIANT27 VARIANT28
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING // Split lighting is utilized during the SSS pass.
+            #pragma multi_compile_fragment  _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
+            #pragma multi_compile_local_fragment VARIANT0 VARIANT1 VARIANT2 VARIANT3 VARIANT4 VARIANT5 VARIANT6 VARIANT7 VARIANT8 VARIANT9 VARIANT10 VARIANT11 VARIANT12 VARIANT13 VARIANT14 VARIANT15 VARIANT16 VARIANT17 VARIANT18 VARIANT19 VARIANT20 VARIANT21 VARIANT22 VARIANT23 VARIANT24 VARIANT25 VARIANT26 VARIANT27 VARIANT28
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
@@ -174,6 +174,11 @@ Shader "Hidden/HDRP/DeferredTile"
             CBUFFER_END
             #endif
 
+            #ifndef SHADER_STAGE_FRAGMENT
+            #undef  VARIANT // Prevent the chance of redefinition (1372256).
+            #define VARIANT 28
+            #endif
+
             uint g_TileListOffset;
             StructuredBuffer<uint> g_TileList;
 
@@ -297,16 +302,17 @@ Shader "Hidden/HDRP/DeferredTile"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
-            #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
-            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+            #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
 

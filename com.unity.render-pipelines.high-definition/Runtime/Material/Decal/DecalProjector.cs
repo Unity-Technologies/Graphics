@@ -4,19 +4,27 @@ using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>The scaling mode to apply to decals that use the Decal Projector.</summary>
+    public enum DecalScaleMode
+    {
+        /// <summary>Ignores the transformation hierarchy and uses the scale values in the Decal Projector component directly.</summary>
+        ScaleInvariant,
+        /// <summary>Multiplies the lossy scale of the Transform with the Decal Projector's own scale then applies this to the decal.</summary>
+        [InspectorName("Inherit from Hierarchy")]
+        InheritFromHierarchy,
+    }
+
     /// <summary>
     /// Decal Projector component.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Decal-Projector")]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    [AddComponentMenu("Rendering/Decal Projector")]
+    [AddComponentMenu("Rendering/HDRP Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
-        internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
-
         [SerializeField]
         private Material m_Material = null;
         /// <summary>
@@ -36,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        private int m_Layer;
+        internal int cachedEditorLayer = 0;
 #endif
 
         [SerializeField]
@@ -58,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         private float m_FadeScale = 0.9f;
         /// <summary>
         /// Percent of the distance from the camera at which this Decal start to fade off.
@@ -169,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.LightLayerDefault;
+        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
@@ -180,12 +188,27 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
+        private DecalScaleMode m_ScaleMode = DecalScaleMode.ScaleInvariant;
         /// <summary>
-        /// Change the offset position.
-        /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
+        /// The scaling mode to apply to decals that use this Decal Projector.
         /// </summary>
-        internal Vector3 offset
+        public DecalScaleMode scaleMode
+        {
+            get => m_ScaleMode;
+            set
+            {
+                m_ScaleMode = value;
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
+        internal Vector3 m_Offset = new Vector3(0, 0, 0);
+        /// <summary>
+        /// Change the pivot position.
+        /// It is an offset between the center of the projection and the transform position.
+        /// </summary>
+        public Vector3 pivot
         {
             get
             {
@@ -199,21 +222,31 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Vector3 m_Size = new Vector3(1, 1, 1);
+        internal Vector3 m_Size = new Vector3(1, 1, 1);
         /// <summary>
         /// The size of the projection volume.
+        /// See also <seealso cref="ResizeAroundPivot"/> to rescale relatively to the pivot position.
         /// </summary>
         public Vector3 size
         {
-            get
-            {
-                return m_Size;
-            }
+            get => m_Size;
             set
             {
                 m_Size = value;
                 OnValidate();
             }
+        }
+
+        /// <summary>
+        /// Update the pivot to resize centered on the pivot position.
+        /// </summary>
+        /// <param name="newSize">The new size.</param>
+        public void ResizeAroundPivot(Vector3 newSize)
+        {
+            for (int axis = 0; axis < 3; ++axis)
+                if (m_Size[axis] > Mathf.Epsilon)
+                    m_Offset[axis] *= newSize[axis] / m_Size[axis];
+            size = newSize;
         }
 
         [SerializeField]
@@ -238,15 +271,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
 
+        /// <summary>A scale that should be used for rendering and handles.</summary>
+        internal Vector3 effectiveScale => m_ScaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
 
-        /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
-        internal Quaternion rotation => transform.rotation * k_MinusYtoZRotation;
         /// <summary>current position in a way the DecalSystem will be able to use it</summary>
         internal Vector3 position => transform.position;
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalSize => new Vector3(m_Size.x, m_Size.z, m_Size.y);
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalOffset => new Vector3(m_Offset.x, -m_Offset.z, m_Offset.y);
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
@@ -265,9 +294,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Struct used to gather all decal property required to be cached to be sent to shader code
         internal struct CachedDecalData
         {
-            public Matrix4x4 localToWorld;
-            public Quaternion rotation;
-            public Matrix4x4 sizeOffset;
             public float drawDistance;
             public float fadeScale;
             public float startAngleFade;
@@ -284,9 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CachedDecalData data = new CachedDecalData();
 
-            data.localToWorld = Matrix4x4.TRS(position, rotation, Vector3.one);
-            data.rotation = rotation;
-            data.sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             data.drawDistance = m_DrawDistance;
             data.fadeScale = m_FadeScale;
             data.startAngleFade = m_StartAngleFade;
@@ -306,8 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = HDRenderPipeline.defaultAsset;
-                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+                m_Material = HDRenderPipelineGlobalSettings.instance != null ? HDRenderPipelineGlobalSettings.instance.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif
@@ -326,11 +348,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
 
-            m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+            m_Handle = DecalSystem.instance.AddDecal(this);
             m_OldMaterial = m_Material;
 
 #if UNITY_EDITOR
-            m_Layer = gameObject.layer;
+            cachedEditorLayer = gameObject.layer;
             // Handle scene visibility
             UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
 #endif
@@ -347,14 +369,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (m_Handle == null)
             {
-                m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+                m_Handle = DecalSystem.instance.AddDecal(this);
             }
             else
             {
                 // Scene culling mask may have changed.
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                DecalSystem.instance.UpdateCachedData(m_Handle, this);
             }
         }
+
 #endif
 
         void OnDisable()
@@ -390,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_Material != null)
                     {
-                        m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+                        m_Handle = DecalSystem.instance.AddDecal(this);
 
                         if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
                         {
@@ -408,31 +431,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else // no material change, just update whatever else changed
                 {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                    DecalSystem.instance.UpdateCachedData(m_Handle, this);
                 }
-            }
-        }
 
 #if UNITY_EDITOR
-        void Update() // only run in editor
-        {
-            if (m_Layer != gameObject.layer)
-            {
-                m_Layer = gameObject.layer;
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-            }
-        }
+                cachedEditorLayer = gameObject.layer;
 #endif
-
-        void LateUpdate()
-        {
-            if (m_Handle != null)
-            {
-                if (transform.hasChanged == true)
-                {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-                    transform.hasChanged = false;
-                }
             }
         }
 
@@ -447,8 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
+            if (!HDRenderPipeline.isReady || m_Material == HDRenderPipeline.currentAsset.GetDefaultDecalMaterial())
                 return false;
 #endif
 

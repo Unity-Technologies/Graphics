@@ -4,13 +4,10 @@ namespace UnityEditor.ShaderGraph
 {
     class TestSlot : MaterialSlot
     {
-        public TestSlot() {}
+        public TestSlot() { }
 
         public TestSlot(int slotId, string displayName, SlotType slotType, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
-            : base(slotId, displayName, displayName, slotType, stageCapability, hidden) {}
-
-        public TestSlot(int slotId, string displayName, SlotType slotType, int priority, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
-            : base(slotId, displayName, displayName, slotType, priority, stageCapability, hidden) {}
+            : base(slotId, displayName, displayName, slotType, stageCapability, hidden) { }
 
         public override SlotValueType valueType
         {

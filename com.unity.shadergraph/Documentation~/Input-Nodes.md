@@ -34,6 +34,10 @@
 |[**Vertex Color**](Vertex-Color-Node.md)|[**View Direction**](View-Direction-Node.md)|
 |![Image](images/VertexColorNodeThumb.png)|![Image](images/ViewDirectionNodeThumb.png)|
 |Provides access to the mesh vertex or fragment's Vertex Color value.|Provides access to the mesh vertex or fragment's View Direction vector.|
+|[**Vertex ID**](Vertex-ID-Node.md)|
+|![Image](images/VertexIDNodeThumb.png)|
+|Provides access to the mesh vertex or fragment's Vertex ID value.|
+
 
 ## Gradient
 
@@ -84,28 +88,31 @@
 |[**Scene Color**](Scene-Color-Node.md)|[**Scene Depth**](Scene-Depth-Node.md)|
 |![Image](images/SceneColorNodeThumb.png)|![Image](images/SceneDepthNodeThumb.png)|
 |Provides access to the current Camera's color buffer.|Provides access to the current Camera's depth buffer.|
-|[**Screen**](Screen-Node.md)||
-|![Image](images/ScreenNodeThumb.png)||
-|Provides access to parameters of the screen.||
+|[**Screen**](Screen-Node.md)|[**Eye Index**](Eye-Index-Node.md)|
+|![Image](images/ScreenNodeThumb.png)|![Image](images/EyeIndexNodeThumb.png)|
+|Provides access to parameters of the screen.|Provides access to the Eye Index when stereo rendering.|
 
 ## Texture
 
-|[Cubemap Asset](Cubemap-Asset-Node.md)|[Sample Cubemap](Sample-Cubemap-Node.md)|
+|[**Cubemap Asset**](Cubemap-Asset-Node.md)|[**Sample Cubemap**](Sample-Cubemap-Node.md)|
 |:--------:|:------:|
 |[![Image](images/CubemapAssetNodeThumb.png)](Combine-Node)|![](images/SampleCubemapNodeThumb.png)|
 | Defines a constant Cubemap Asset for use in the shader. | Samples a Cubemap and returns a Vector 4 color value for use in the shader. |
-|[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|[**Sample Texture 2D Array**](Sample-Texture-2D-Array-Node.md)|
-|![Image](images/SampleTexture2DNodeThumb.png)|![Image](images/SampleTexture2DArrayNodeThumb.png)|
-|Samples a Texture 2D and returns a color value for use in the shader.|Samples a Texture 2D Array at an Index and returns a color value for use in the shader.|
-|[**Sample Texture 2D LOD**](Sample-Texture-2D-LOD-Node.md)|[**Sample Texture 3D**](Sample-Texture-3D-Node.md)|
-|![Image](images/SampleTexture2DLODNodeThumb.png)|![Image](images/SampleTexture3DNodeThumb.png)|
-|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader.|Samples a Texture 3D and returns a color value for use in the shader.|
-| [**Sample Virtual Texture**](Sample-Virtual-Texture-Node.md) | [**Sampler State**](Sampler-State-Node.md) |
-| ![image](images/SampleVirtualTextureNodeThumb.png) | ![Image](images/SamplerStateNodeThumb.png) |
-| Samples a Virtual Texture and returns color values for use in the shader. | Defines a Sampler State for sampling textures.|
-|[**Texel Size**](Texel-Size-Node.md)| [**Texture 2D Array Asset**](Texture-2D-Array-Asset-Node.md)|
-|![Image](images/TexelSizeNodeThumb.png)| ![Image](images/Texture2DArrayAssetNodeThumb.png)|
-|Returns the Width and Height of the texel size of Texture 2D input.| Defines a constant Texture 2D Array Asset for use in the shader.|
-|[**Texture 2D Asset**](Texture-2D-Asset-Node.md)|[**Texture 3D Asset**](Texture-3D-Asset-Node.md)|
-|![Image](images/Texture2DAssetNodeThumb.png)| ![Image](images/Texture3DAssetNodeThumb.png)|
-|Defines a constant Texture 2D Asset for use in the shader.| Defines a constant Texture 3D Asset for use in the shader.|
+|[**Sample Reflected Cubemap Node**](Sample-Reflected-Cubemap-Node.md)|[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|
+|![Image](images/SampleReflectedCubemapThumb.png)|![Image](images/SampleTexture2DNodeThumb.png)|
+|Samples a Cubemap with reflected vector and returns a Vector 4 color value for use in the shader.|Samples a Texture 2D and returns a color value for use in the shader.|
+|[**Sample Texture 2D Array**](Sample-Texture-2D-Array-Node.md)|[**Sample Texture 2D LOD**](Sample-Texture-2D-LOD-Node.md)|
+|![Image](images/SampleTexture2DArrayNodeThumb.png)|![Image](images/SampleTexture2DLODNodeThumb.png)|
+|Samples a Texture 2D Array at an Index and returns a color value for use in the shader.|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader.|
+|[**Sample Texture 3D**](Sample-Texture-3D-Node.md)| [**Sample Virtual Texture**](Sample-Virtual-Texture-Node.md) |
+|![Image](images/SampleTexture3DNodeThumb.png)| ![image](images/SampleVirtualTextureNodeThumb.png) |
+|Samples a Texture 3D and returns a color value for use in the shader.| Samples a Virtual Texture and returns color values for use in the shader.|
+|[**Sampler State**](Sampler-State-Node.md)|[**Texture Size**](Texture-Size-Node.md)|
+|![Image](images/SamplerStateNodeThumb.png)|![Image](images/TexelSizeNodeThumb.png) <!-- Add updated image -->|
+|Defines a Sampler State for sampling textures.|Returns the Width and Height of the texel size of Texture 2D input.|
+|[**Texture 2D Array Asset**](Texture-2D-Array-Asset-Node.md)|[**Texture 2D Asset**](Texture-2D-Asset-Node.md)|
+|![Image](images/Texture2DArrayAssetNodeThumb.png)|![Image](images/Texture2DAssetNodeThumb.png)|
+|Defines a constant Texture 2D Array Asset for use in the shader.|Defines a constant Texture 2D Asset for use in the shader.|
+|[**Texture 3D Asset**](Texture-3D-Asset-Node.md)| |
+|![Image](images/Texture3DAssetNodeThumb.png)| |
+|Defines a constant Texture 3D Asset for use in the shader.| |

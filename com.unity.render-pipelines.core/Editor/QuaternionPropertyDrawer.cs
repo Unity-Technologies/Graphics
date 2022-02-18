@@ -17,5 +17,4 @@ namespace UnityEditor.Rendering
                 property.quaternionValue = Quaternion.Euler(euler);
         }
     }
-
 }

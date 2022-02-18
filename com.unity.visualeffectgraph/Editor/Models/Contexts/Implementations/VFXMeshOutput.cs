@@ -9,12 +9,20 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle Mesh"; } }
+        public override string name
+        {
+            get
+            {
+                if (shaderName != string.Empty)
+                    return $"Output Particle {shaderName} Mesh";
+                return "Output Particle Mesh";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
-        public override CullMode defaultCullMode { get { return CullMode.Back;  } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), Tooltip("Specifies the number of different meshes (up to 4). Mesh per particle can be specified with the meshIndex attribute."), SerializeField]
         private uint MeshCount = 1;
@@ -33,8 +41,13 @@ namespace UnityEditor.VFX
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                        features |= VFXOutputUpdate.Features.Sort;
+                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
+                    {
+                        if (VFXSortingUtility.IsPerCamera(sortMode))
+                            features |= VFXOutputUpdate.Features.CameraSort;
+                        else
+                            features |= VFXOutputUpdate.Features.Sort;
+                    }
                 }
                 return features;
             }
@@ -72,7 +85,7 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
@@ -86,8 +99,8 @@ namespace UnityEditor.VFX
                 foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, outputUpdateFeatures))
                     yield return property;
 
-                if (shaderGraph == null)
-                    foreach (var property in PropertiesFromType("OptionalInputProperties"))
+                if (GetOrRefreshShaderGraphObject() == null)
+                    foreach (var property in optionalInputProperties)
                         yield return property;
             }
         }
@@ -108,10 +121,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public class OptionalInputProperties
+
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -131,6 +147,16 @@ namespace UnityEditor.VFX
             }
 
             return mapper;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
+                manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
+                    $" so the resulted computed bounds can be too small or big" +
+                    $" Please use padding to mitigate this discrepancy.");
         }
     }
 }

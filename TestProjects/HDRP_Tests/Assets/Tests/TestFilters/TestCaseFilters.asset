@@ -24,22 +24,22 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
+    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato
+    Reason: temporarily disabled
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
+    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: weird artifact
+    Reason: temporarily disabled
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
@@ -51,34 +51,6 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: c566b460a3674184da6c102196a1a888, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: '[Error] Metal: Error creating pipeline state (Hidden/HDRP/Blit): output
-      of type float4 is not compatible with a MTLPixelFormatRGBA32Uint color attachement.'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2486b40270d6e524d8762a9d2a0c1e78, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 5 allocations detected.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: b8090c44833d0a842bcd90e27dc43b6b, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -88,43 +60,16 @@ MonoBehaviour:
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 2 allocations detected.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: cf78ea2211e5e6c45b8a85261bb291dd, type: 3}
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: instability on Yamato
+    Reason: API Bug
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: cause inconclusive on Yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: cause inconclusive on Yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 322dc5ea5f705a245acc44fd467164ef, type: 3}
+    - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
@@ -133,112 +78,40 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: e77695acbf97db642bde151c9cb2e6dd, type: 3}
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 2
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 4a647d8a90f260a498beeeab999a7a94, type: 3}
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: da4626baae9ab224396d5b4ea4d65ade, type: 3}
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 2
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d9fa5d46dfe9c904094d3307d82467ba, type: 3}
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d00305c429b50834eb16887388118552, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c94380e34bef7d24c9d95f520ee006b1, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 4f2cb986918804f4aad481246d4b54ba, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 6cfc34a76b5a8334b850c3129d9069c7, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: aa2b8ed7d0d276340b794c91ebc7cdce, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: dbac54cd53110e949bff19f8be4e39bf, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 356a32d71c5170b4ea18c8b7a80b0f47, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 134ab13db8156a14891996196de4cf63, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
@@ -247,13 +120,22 @@ MonoBehaviour:
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato XR
+    Reason: unstable on  XR yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 708bd21bc204d2342bc1702a5a6de1d3, type: 3}
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: mising object on Yamato (but not locally)
+    Reason: API Bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Error on lightmapper side

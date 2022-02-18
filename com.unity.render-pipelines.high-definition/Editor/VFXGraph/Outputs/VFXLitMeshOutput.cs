@@ -3,15 +3,23 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle Lit Mesh"; } }
+        public override string name
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(shaderName)
+                ? $"Output Particle {shaderName} Mesh"
+                : "Output Particle HDRP Lit Mesh";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
@@ -33,8 +41,13 @@ namespace UnityEditor.VFX
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                        features |= VFXOutputUpdate.Features.Sort;
+                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
+                    {
+                        if (VFXSortingUtility.IsPerCamera(sortMode))
+                            features |= VFXOutputUpdate.Features.CameraSort;
+                        else
+                            features |= VFXOutputUpdate.Features.Sort;
+                    }
                 }
                 return features;
             }
@@ -116,6 +129,16 @@ namespace UnityEditor.VFX
             }
 
             return mapper;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
+                manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
+                    $" so the resulted computed bounds can be too small or big" +
+                    $" Please use padding to mitigate this discrepancy.");
         }
     }
 }

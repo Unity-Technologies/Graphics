@@ -1,0 +1,351 @@
+.unity-label {
+    padding-top: 1px;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    margin-left: 4px;
+    margin-top: 2px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+}
+
+#SGBlackboard {
+    position:absolute;
+    flex-direction: column;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    min-width: 100px;
+    min-height: 100px;
+    width: 200px;
+    height: 400px;
+}
+
+#SGBlackboard.windowed {
+    position: relative;
+    padding-top: 0;
+    flex: 1;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    width: initial;
+    height: initial;
+}
+
+#SGBlackboard > #subTitleTextField {
+    position: relative;
+    font-size: 11px;
+    margin-left: 0;
+    left: 5;
+    top: 5;
+    width: auto;
+    visibility: hidden;
+}
+
+#SGBlackboard.windowed > .resizer {
+    display: none;
+}
+
+#SGBlackboard > #categoryDragIndicator {
+    background-color: cornflowerblue;
+    min-height: 4px;
+    left:0;
+    right:0;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+#SGBlackboard:selected {
+    border-color: #44C0FF;
+}
+
+#SGBlackboard > .mainContainer {
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 5px;
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin: 6px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#SGBlackboard.scrollable > .mainContainer {
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+}
+
+#SGBlackboard > .mainContainer > #content {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content {
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryTop
+{
+    position: relative;
+    align-content: flex-start;
+    opacity: 0.1;
+    min-height: 15;
+    -unity-background-image-tint-color: aqua;
+    background-color: lightgrey;
+    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryBottom
+{
+    position: relative;
+    align-content: flex-end;
+    min-height: 15;
+    opacity: 0.1;
+    -unity-background-image-tint-color: aqua;
+    background-color: lightgrey;
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
+#SGBlackboard > .mainContainer > #content > ScrollView {
+    flex: 1 0 0;
+    align-content: center;
+}
+
+#SGBlackboard > .mainContainer > #content > #contentContainer {
+    min-height: 50px;
+    padding-bottom: 15px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#SGBlackboard > .mainContainer > #content > #header {
+    overflow: hidden;
+    flex-direction: row;
+    align-items: stretch;
+    background-color: #393939;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 1px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+}
+
+#SGBlackboard.windowed > .mainContainer > #content > #header {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #labelContainer {
+    flex: 1 0 0;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #addButton {
+    align-self:center;
+    font-size: 20px;
+    margin-top:15px;
+    margin-bottom:3px;
+    margin-left:4px;
+    margin-right:4px;
+    border-color: transparent;
+    background-color: transparent;
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #addButton:hover {
+    background-color: #676767;
+    /* theme-button-background-color */
+    border-color: #222222;
+    /* -theme-app-toolbar-button-border-color */
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #addButton:hover:active {
+    background-color: #747474;
+    /* theme-button-background-color */
+    border-color: #222222;
+    /* -theme-app-toolbar-button-border-color */
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #labelContainer > #titleLabel {
+    font-size : 14px;
+    color: #c1c1c1;
+}
+
+#SGBlackboard > .mainContainer > #content > #header > #labelContainer > #subTitleLabel {
+    font-size: 11px;
+    color: #606060;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+}
+
+.blackboardCategory {
+    padding: 2px;
+    border-color: dimgray;
+    border-width: 0.5px;
+    border-radius: 3px;
+}
+
+.blackboardCategory  > .mainContainer > #categoryHeader {
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.blackboardCategory > .mainContainer > #categoryHeader > #categoryTitleLabel {
+    color: #606060;
+    font-size: 11px;
+}
+
+.blackboardCategory > .mainContainer > #categoryHeader > #textField {
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    -unity-text-align:middle-left;
+    -unity-font-color: red;
+    font-size: 11px;
+}
+
+.blackboardCategory > #dragIndicator {
+    background-color: #44C0FF;
+    position: absolute;
+    min-height: 2px;
+    height:4px;
+    margin-bottom: 1;
+}
+
+.blackboardCategory.selected {
+    border-color: cornflowerblue;
+}
+
+.blackboardCategory.unnamed {
+    border-width: 0;
+    border-radius: 0;
+    border-color: black;
+}
+.blackboardCategory.hovered {
+    border-color: lightskyblue;
+}
+
+#SGBlackboardRow {
+    left: 1px;
+    right: 1px;
+    padding-left: 4px;
+    padding-right: 8px;
+}
+
+#SGBlackboardRow  > .mainContainer > #root > #itemRow {
+    flex-direction: row;
+}
+
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer {
+    flex: 1 0 0;
+    align-items: stretch;
+}
+
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer > #itemContainer {
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton {
+    align-self: center;
+    background-image: none;
+    background-color: #2A2A2A;
+    /* theme-input-background-color */
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronRight.png");
+    width: 12px;
+    height: 12px;
+}
+
+#SGBlackboardRow.expanded > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
+
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton:hover > #buttonImage {
+    background-color: #212121;
+    border-radius: 1px;
+}
+
+#SGBlackboardRow > .mainContainer > #root > #propertyViewContainer {
+}
+
+#SGBlackboardRow.hovered #pill #selection-border
+{
+    background-color:rgba(68,192,255,0.4);
+    border-color: cornflowerblue;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+#SGBlackboardField {
+    flex: 1 0 0;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#SGBlackboardField > .mainContainer {
+    flex: 1 0 0;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#SGBlackboardField > .mainContainer > #contentItem {
+    flex: 1 0 0;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#SGBlackboardField > .mainContainer > #textField {
+    position: absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    -unity-text-align:middle-left;
+    -unity-font-color: red;
+    font-size: 11px;
+}
+
+#SGBlackboardField > .mainContainer > #contentItem > #typeLabel {
+    flex: 1 0 0;
+    -unity-text-align:middle-right;
+    color: #808080;
+    font-size: 11px;
+}

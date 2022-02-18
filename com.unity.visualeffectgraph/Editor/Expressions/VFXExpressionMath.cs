@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionCos : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionCos() : this(VFXValue<float>.Default) {}
+        public VFXExpressionCos() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOperation.Cos)
         {
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSin : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionSin() : this(VFXValue<float>.Default) {}
+        public VFXExpressionSin() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionSin(VFXExpression parent) : base(parent, VFXExpressionOperation.Sin)
         {
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionTan : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionTan() : this(VFXValue<float>.Default) {}
+        public VFXExpressionTan() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOperation.Tan)
         {
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionACos : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionACos() : this(VFXValue<float>.Default) {}
+        public VFXExpressionACos() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionACos(VFXExpression parent) : base(parent, VFXExpressionOperation.ACos)
         {
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionASin : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionASin() : this(VFXValue<float>.Default) {}
+        public VFXExpressionASin() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionASin(VFXExpression parent) : base(parent, VFXExpressionOperation.ASin)
         {
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionATan : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionATan() : this(VFXValue<float>.Default) {}
+        public VFXExpressionATan() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionATan(VFXExpression parent) : base(parent, VFXExpressionOperation.ATan)
         {
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionLog2 : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionLog2() : this(VFXValue<float>.Default) {}
+        public VFXExpressionLog2() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionLog2(VFXExpression parent) : base(parent, VFXExpressionOperation.Log2)
         {
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionAbs : VFXExpressionUnaryNumericOperation
     {
-        public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
+        public VFXExpressionAbs() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOperation.Abs)
         {
@@ -179,7 +179,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSign : VFXExpressionUnaryNumericOperation
     {
-        public VFXExpressionSign() : this(VFXValue<float>.Default) {}
+        public VFXExpressionSign() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOperation.Sign)
         {
@@ -206,7 +206,7 @@ namespace UnityEditor.VFX
 
         sealed protected override float ProcessUnaryOperation(float input)
         {
-            return Mathf.Sign(input);
+            return (input > 0.0f ? 1.0f : 0.0f) - (input < 0.0f ? 1.0f : 0.0f);
         }
 
         protected override bool ProcessUnaryOperation(bool input)
@@ -217,7 +217,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSaturate : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionSaturate() : this(VFXValue<float>.Default) {}
+        public VFXExpressionSaturate() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionSaturate(VFXExpression parent) : base(parent, VFXExpressionOperation.Saturate)
         {
@@ -238,7 +238,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCeil : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionCeil() : this(VFXValue<float>.Default) {}
+        public VFXExpressionCeil() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionCeil(VFXExpression parent) : base(parent, VFXExpressionOperation.Ceil)
         {
@@ -259,7 +259,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionRound : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionRound() : this(VFXValue<float>.Default) {}
+        public VFXExpressionRound() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionRound(VFXExpression parent) : base(parent, VFXExpressionOperation.Round)
         {
@@ -280,7 +280,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFrac : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionFrac() : this(VFXValue<float>.Default) {}
+        public VFXExpressionFrac() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionFrac(VFXExpression parent) : base(parent, VFXExpressionOperation.Frac)
         {
@@ -301,7 +301,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionFloor() : this(VFXValue<float>.Default) {}
+        public VFXExpressionFloor() : this(VFXValue<float>.Default) { }
 
         public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOperation.Floor)
         {
@@ -379,7 +379,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var zero  = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
+            var zero = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
             if (zero.Equals(reducedParents[0]) || zero.Equals(reducedParents[1]))
                 return zero;
 

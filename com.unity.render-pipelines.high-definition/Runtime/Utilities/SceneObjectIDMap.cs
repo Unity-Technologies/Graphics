@@ -107,8 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var gameObject = new GameObject(SceneObjectIDMapSceneAsset.k_GameObjectName)
             {
                 hideFlags = HideFlags.DontSaveInBuild
-                | HideFlags.HideInHierarchy
-                | HideFlags.HideInInspector
+                    | HideFlags.HideInHierarchy
+                    | HideFlags.HideInInspector
             };
             var result = gameObject.AddComponent<SceneObjectIDMapSceneAsset>();
             SceneManager.MoveGameObjectToScene(gameObject, scene);
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanDestroyedGameObjects();
 
             var intCategory = Convert.ToInt32(category);
-            for (int i = m_Entries.Count - 1; i >= 0 ; --i)
+            for (int i = m_Entries.Count - 1; i >= 0; --i)
             {
                 if (m_Entries[i].category != intCategory)
                     continue;
@@ -260,6 +260,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_IndexByGameObject.Add(gameObject, index);
             m_Entries.Insert(index, entry);
+            for (int i = index + 1; i < m_Entries.Count; ++i)
+            {
+                // Upon insertion, all index by game object entries after the insertion point need their index updated.
+                m_IndexByGameObject[m_Entries[i].gameObject] = i;
+            }
             return m_Entries[index].id;
         }
 

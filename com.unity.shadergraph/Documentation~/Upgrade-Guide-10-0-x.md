@@ -4,9 +4,9 @@
 
 Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.
 
-## Renamed Sample Cubemap
+## Renamed Sample Cubemap Node
 
-Shader Graph has renamed the previous Sample Cubemap Node **to** Sample Reflected Cubemap**,** and **has** added a new Sample Cubemap**,** which **uses** world space direction.
+Shader Graph has renamed the previous Sample Cubemap Node to [Sample Reflected Cubemap Node](Sample-Reflected-Cubemap-Node.md), and has added a new [Sample Cubemap Node](Sample-Cubemap-Node.md), which uses world space direction.
 
 ## Master Stack graph output
 
@@ -27,7 +27,7 @@ After this upgrade process, the final shader is identical in appearance.
 
 ### Upgrade multiple Master Nodes to the Master Stack
 
-If your graph has more than one Master Node, Shader Graph applies the above process for automatically upgrading one Master Node to the currently selected Active Master Node. 
+If your graph has more than one Master Node, Shader Graph applies the above process for automatically upgrading one Master Node to the currently selected Active Master Node.
 
 When you upgrade to the Master Stack format, Shader Graph removes any inactive Master Nodes from your graph, and you might lose this data. If you plan to upgrade a graph with multiple Master Nodes, it's best practice to keep a record of the ports, connected nodes, and any non-default settings in the settings menu (gear icon) of inactive Master Nodes.
 
@@ -35,21 +35,21 @@ After the upgrade, you can add any required Block nodes that went missing, and r
 
 ### Upgrade cross-pipeline Master Nodes to the Master Stack
 
-If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project. 
+If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project.
 
-In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade. 
+In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade.
 
 In HDRP, settings from the PBR and Unlit Master Nodes are not the same as the HDRP Lit and Unlit Targets. Thus, there might be unexpected behavior when you upgrade PBR or Unlit Master Nodes to HDRP Lit and Unlit Master Stacks. The final shader might not appear the same as before the upgrade. When this happens, you can use the **Bug Reporter** to submit your upgrade issue, but keep in mind that some upgrade paths don't have immediate automated solutions and will require manual adjustments.
 
-### "View Generated Shader" has moved 
+### "View Generated Shader" has moved
 
 Previously, you could right-click the Master Node to bring up a context menu, and select **View Generated Shader** to preview the generated shader. In 10.0, you must now use the Unity Inspector, and click the **View Generated Shader** button on the Shader Graph asset.
 
 ![image](images/GeneratedShaderButton.png)
 
-## Settings in Graph Inspector 
+## Settings in Graph Inspector
 
-Shader Graph introduced an internal [Graph Inspector](Internal-Inspector.md) in version 10.0. The Graph Inspector is a floating window that displays settings related to objects you select in the graph. 
+Shader Graph introduced an internal [Graph Inspector](Internal-Inspector.md) in version 10.0. The Graph Inspector is a floating window that displays settings related to objects you select in the graph.
 
 ### Graph settings
 
@@ -61,13 +61,13 @@ In the **Graph Settings** tab, you can also find settings that describe surface 
 
 Property settings that were previously in Blackboard foldouts are now available in the Graph Inspector. You can now select multiple properties from the Blackboard and edit them all at the same time. There were no changes to data, and all settings you made on properties of the graph remain the same.
 
-### Per-Node settings 
+### Per-Node settings
 
 All per-node settings that you previously managed by opening a settings (gear icon) sub-menu are now accessible through the Graph Inspector. There were no changes to data, and all settings you previously set on nodes, such as precision settings and Custom Function Node settings, remain the same.
 
 Any settings on the Master Node that define surface options are now located in the Graph Inspector’s Graph Settings tab. For more information, see [Automatic upgrade from Master Nodes](#AutomaticUpgrade) above.
 
-## Custom Function Nodes and Shader Graph Preview 
+## Custom Function Nodes and Shader Graph Preview
 
 To avoid errors in the preview shader compilation for Custom Function Nodes, you might need to use keywords for the in-graph preview rendering.
 
@@ -75,9 +75,9 @@ If you have any Custom Function Nodes with custom Shader Graph Preview code that
 
 ```
 #ifdef SHADERGAPH_PREVIEW
-	Out = 1;
+    Out = 1;
 #else
-	Out = MainLight;
+    Out = MainLight;
 #endif
 ```
 

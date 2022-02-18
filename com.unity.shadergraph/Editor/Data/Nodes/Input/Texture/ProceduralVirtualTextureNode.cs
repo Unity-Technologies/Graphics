@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph
 
             vtProperty.displayName = "ProceduralVirtualTexture";
             vtProperty.overrideReferenceName = "MyPVT";
-            vtProperty.generatePropertyBlock = false;
             vtProperty.value.procedural = true;
+            vtProperty.value.shaderDeclaration = HLSLDeclaration.UnityPerMaterial;
 
             UpdateName();
         }
@@ -37,6 +37,19 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             SetLayerCount(layers);
+            vtProperty.generatePropertyBlock = true;
+            vtProperty.hidden = true;
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                // version 0 was implicitly declaring PVT stacks as Global shader properties
+                shaderDeclaration = HLSLDeclaration.Global;
+                ChangeVersion(1);
+            }
         }
 
         [SerializeField]
@@ -83,6 +96,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        internal HLSLDeclaration shaderDeclaration
+        {
+            get { return vtProperty.value.shaderDeclaration; }
+            set
+            {
+                if (vtProperty.value.shaderDeclaration == value)
+                    return;
+
+                vtProperty.value.shaderDeclaration = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(vtProperty);
@@ -101,7 +127,10 @@ namespace UnityEditor.ShaderGraph
         {
             return vtProperty;
         }
+
+        // to show Shader Declaration in the node settings, as if this node was itself a real AbstractShaderProperty
+        internal bool AllowHLSLDeclaration(HLSLDeclaration decl) =>
+            (decl == HLSLDeclaration.Global || decl == HLSLDeclaration.UnityPerMaterial);
     }
 #endif // PROCEDURAL_VT_IN_GRAPH
 }
-

@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            switch(masterNode)
+            switch (masterNode)
             {
                 case UnlitMasterNode1 unlitMasterNode:
                     UpgradeUnlitMasterNode(unlitMasterNode, out blockMap);
@@ -83,7 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.distortion = hdUnlitMasterNode.m_Distortion;
             builtinData.distortionMode = hdUnlitMasterNode.m_DistortionMode;
             builtinData.distortionDepthTest = hdUnlitMasterNode.m_DistortionDepthTest;
-            builtinData.alphaToMask = hdUnlitMasterNode.m_AlphaToMask;
             builtinData.addPrecomputedVelocity = hdUnlitMasterNode.m_AddPrecomputedVelocity;
 
             unlitData.distortionOnly = hdUnlitMasterNode.m_DistortionOnly;

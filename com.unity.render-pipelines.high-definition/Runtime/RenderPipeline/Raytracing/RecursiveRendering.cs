@@ -6,8 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Recursive Rendering Volume Component.
     /// This component setups recursive rendering.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Recursive Rendering (Preview)")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Tracing-Recursive-Rendering" + Documentation.endURL)]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Recursive Rendering (Preview)", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Ray-Tracing-Recursive-Rendering")]
     public sealed class RecursiveRendering : VolumeComponent
     {
         /// <summary>
@@ -29,16 +29,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maxDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
-        /// This defines the maximal travel distance of rays.
+        /// This defines the maximal travel distance of rays in meters.
         /// </summary>
-        [Tooltip("Ray Length. This defines the maximal travel distance of rays.")]
-        public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0f, 50f);
+        public MinFloatParameter rayLength = new MinFloatParameter(10.0f, 0.0f);
 
         /// <summary>
         /// Minmal smoothness for reflection rays. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.
         /// </summary>
         [Tooltip("Minmal Smoothness for Reflection. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.")]
         public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls which sources are used to fallback on when the traced ray misses.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Controls which sources are used to fallback on when the traced ray misses.")]
+        public RayTracingFallbackHierachyParameter rayMiss = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for lighting the last bounce.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Controls the fallback hierarchy for lighting the last bounce.")]
+        public RayTracingFallbackHierachyParameter lastBounce = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
         /// <summary>
         /// Default constructor for the recursive rendering volume component.
         /// </summary>

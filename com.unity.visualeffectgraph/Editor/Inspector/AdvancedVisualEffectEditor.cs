@@ -72,6 +72,10 @@ namespace UnityEditor.VFX
             {
                 return "m_NamedObject";
             }
+            else if (type == typeof(SkinnedMeshRenderer))
+            {
+                return "m_NamedObject";
+            }
             else if (type == typeof(float))
             {
                 return "m_Float";
@@ -106,9 +110,13 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+            Selection.selectionChanged += OnHierarchySelectionChanged;
 
-            // Force rebuilding the parameterinfos
-            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Try to auto attach because the selection could have changed while the VFX editor was disabled
+            AutoAttachToSelection();
+
+            // Force rebuilding the parameter infos
+            VisualEffect effect = (VisualEffect)targets[0];
 
             var asset = effect.visualEffectAsset;
             if (asset != null && asset.GetResource() != null)
@@ -124,10 +132,8 @@ namespace UnityEditor.VFX
 
         new void OnDisable()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
-            VFXViewWindow window = VFXViewWindow.currentWindow;
-            if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
+            // Reset play rate only when no vfx is selected anymore
+            if (Selection.gameObjects.All(x => x.GetComponent<VisualEffect>() == null))
             {
                 base.OnDisable();
             }
@@ -139,12 +145,20 @@ namespace UnityEditor.VFX
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
+            Selection.selectionChanged -= OnHierarchySelectionChanged;
+
+            DetachIfDeleted();
         }
 
         public override void OnInspectorGUI()
         {
             m_GizmoableParameters.Clear();
             base.OnInspectorGUI();
+        }
+
+        private void OnHierarchySelectionChanged()
+        {
+            AutoAttachToSelection();
         }
 
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
@@ -166,12 +180,33 @@ namespace UnityEditor.VFX
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
                 bool saveEnabled = GUI.enabled;
-                GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                if (m_VisualEffectAsset.objectReferenceValue == null && !m_VisualEffectAsset.hasMultipleDifferentValues)
                 {
-                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    GUI.enabled = saveEnabled;
+                    if (GUILayout.Button(Contents.createAsset, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
+                        if (!string.IsNullOrEmpty(filePath))
+                        {
+                            VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
+                            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
+                            m_VisualEffectAsset.objectReferenceValue = asset;
+                            serializedObject.ApplyModifiedProperties();
+
+                            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                            window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                        }
+                    }
+                }
+                else
+                {
+                    GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                    if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                        VFXViewWindow window = VFXViewWindow.GetWindow(asset, true);
+                        window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    }
                 }
                 GUI.enabled = saveEnabled;
             }
@@ -219,7 +254,7 @@ namespace UnityEditor.VFX
 
             VFXParameter parameter = GetParameter(name, resource);
 
-            if (!VFXGizmoUtility.HasGizmo(parameter.type))
+            if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
                 base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
@@ -313,18 +348,6 @@ namespace UnityEditor.VFX
             return context;
         }
 
-        protected override void OnSceneViewGUI(SceneView sv)
-        {
-            base.OnSceneViewGUI(sv);
-
-            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
-            {
-                ContextAndGizmo context = GetGizmo();
-
-                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
-            }
-        }
-
         class GizmoContext : VFXGizmoUtility.Context
         {
             public GizmoContext(SerializedObject obj, VFXParameter parameter)
@@ -336,7 +359,7 @@ namespace UnityEditor.VFX
 
             public override System.Type portType
             {
-                get {return m_Parameter.type; }
+                get { return m_Parameter.type; }
             }
 
             public override VFXCoordinateSpace space
@@ -376,7 +399,7 @@ namespace UnityEditor.VFX
             public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
             {
                 var cmdList = new List<Action<List<object>, object>>();
-                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[] {separator[0]}, StringSplitOptions.RemoveEmptyEntries), 0);
+                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[] { separator[0] }, StringSplitOptions.RemoveEmptyEntries), 0);
                 if (succeeded)
                 {
                     return new Property<T>(m_SerializedObject, cmdList);
@@ -470,7 +493,8 @@ namespace UnityEditor.VFX
                         if (specialSpacableVector3CaseField != null)
                         {
                             cmdList.Add(
-                                (l, o) => {
+                                (l, o) =>
+                                {
                                     object vector3Property = specialSpacableVector3CaseField.GetValue(o);
                                     SetObjectValue(property, vector3Property);
                                 });
@@ -503,7 +527,7 @@ namespace UnityEditor.VFX
 
                     FieldInfo vector3Field = type.GetFields(BindingFlags.Instance | BindingFlags.Public).First(t => t.FieldType == typeof(Vector3));
                     string name = vector3Field.Name;
-                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[] {name}, 1, vector3Field);
+                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[] { name }, 1, vector3Field);
                 }
                 Debug.LogError("Setting A value across multiple property is not yet supported");
 
@@ -557,6 +581,8 @@ namespace UnityEditor.VFX
 
             void BuildValue(List<Action<List<object>>> cmdList, Type type, string propertyPath)
             {
+                m_SerializedObject.Update();
+
                 string field = VisualEffectSerializationUtility.GetTypeField(type);
                 if (field != null)
                 {
@@ -625,7 +651,7 @@ namespace UnityEditor.VFX
                     m_CmdList = cmdlist;
                 }
 
-                public bool isEditable { get {return true; } }
+                public bool isEditable { get { return true; } }
 
 
                 List<Action<List<object>, object>> m_CmdList;
@@ -673,9 +699,19 @@ namespace UnityEditor.VFX
             return base.GetWorldBoundsOfTarget(targetObject);
         }
 
-        protected override void SceneViewGUICallback(UnityObject tar, SceneView sceneView)
+        private void OnSceneGUI()
         {
-            base.SceneViewGUICallback(tar, sceneView);
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
+            {
+                ContextAndGizmo context = GetGizmo();
+                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
+            }
+        }
+
+        protected override void SceneViewGUICallback()
+        {
+            base.SceneViewGUICallback();
+
             if (m_GizmoableParameters.Count > 0)
             {
                 int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;
@@ -701,17 +737,32 @@ namespace UnityEditor.VFX
                     if (m_GizmoDisplayed && m_GizmoedParameter != null)
                     {
                         ContextAndGizmo context = GetGizmo();
-
-                        context.gizmo.currentSpace = context.context.space;
-                        context.gizmo.spaceLocalByDefault = context.context.spaceLocalByDefault;
-                        context.gizmo.component = (VisualEffect)target;
-                        Bounds bounds = context.gizmo.CallGetGizmoBounds(context.context.value);
-                        sceneView.Frame(bounds, false);
+                        Bounds bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
+                        context.context.Unprepare(); //Restore initial state : if gizmo isn't actually rendered, it could be out of sync
+                        var sceneView = SceneView.lastActiveSceneView;
+                        if (sceneView)
+                            sceneView.Frame(bounds, false);
                     }
                 }
                 GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
             }
+        }
+
+        private void AutoAttachToSelection()
+        {
+            if ((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>() is VisualEffect visualEffect)
+            {
+                foreach (var window in VFXViewWindow.GetAllWindows())
+                {
+                    window.AttachTo(visualEffect);
+                }
+            }
+        }
+
+        private void DetachIfDeleted()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.DetachIfDeleted());
         }
     }
 }

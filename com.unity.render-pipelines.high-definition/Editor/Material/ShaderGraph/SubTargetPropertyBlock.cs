@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // Null/Empty means no title
         protected virtual string title => null;
-        
+
         protected TargetPropertyGUIContext context;
         protected Action onChange;
         protected Action<String> registerUndo;
@@ -45,31 +45,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             switch (getter())
             {
-                case bool b: elem = new Toggle { value = b, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case SurfaceType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case RenderQueueType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case BlendMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case CompareFunction e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case TransparentCullMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case DoubleSidedMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case NormalDropOffSpace e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case HDLitData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case DistortionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case ScreenSpaceRefraction.RefractionModel e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case SpecularOcclusionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case FabricData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case EyeData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case StackLit.BaseParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case StackLit.DualSpecularLobeParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case OpaqueCullMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                case bool b: elem = new Toggle { value = b } as BaseField<Data>; break;
+                case int i: elem = new IntegerField { value = i, isDelayed = true } as BaseField<Data>; break;
+                case float f: elem = new FloatField { value = f, isDelayed = true } as BaseField<Data>; break;
+                case Enum e: elemEnum = new EnumField(e) { value = e }; break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
             if (elem != null)
             {
-                context.AddProperty<Data>(displayName.text, indentLevel, elem, (evt) => {
+                context.AddProperty<Data>(displayName.text, displayName.tooltip, indentLevel, elem, (evt) =>
+                {
                     if (Equals(getter(), evt.newValue))
                         return;
 
@@ -80,7 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddProperty<Enum>(displayName.text, indentLevel, elemEnum, (evt) => {
+                context.AddProperty<Enum>(displayName.text, displayName.tooltip, indentLevel, elemEnum, (evt) =>
+                {
                     if (Equals(getter(), evt.newValue))
                         return;
 
@@ -96,13 +83,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected void AddFoldout(GUIContent content, Func<bool> getter, Action<bool> setter)
         {
-            var foldout = new Foldout() {
+            var foldout = new Foldout()
+            {
                 value = getter(),
                 text = content.text,
                 tooltip = content.tooltip
             };
 
-            foldout.RegisterValueChangedCallback((evt) => {
+            foldout.RegisterValueChangedCallback((evt) =>
+            {
                 setter(evt.newValue);
                 onChange();
             });
@@ -117,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // We don't use UIElement HelpBox because it's width is not dynamic.
             int indentLevel = context.globalIndentLevel;
-            var imgui = new IMGUIContainer(() => 
+            var imgui = new IMGUIContainer(() =>
             {
                 float indentPadding = indentLevel * 15;
                 var rect = EditorGUILayout.GetControlRect(false, 42);

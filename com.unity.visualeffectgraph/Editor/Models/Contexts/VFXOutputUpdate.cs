@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
@@ -11,13 +12,14 @@ namespace UnityEditor.VFX
         public enum Features
         {
             None = 0,
-            MotionVector    = 1 << 0,
-            IndirectDraw    = 1 << 1,
-            Culling         = 1 << 2 | IndirectDraw,
-            MultiMesh       = 1 << 3 | Culling,
-            LOD             = 1 << 4 | Culling,
-            Sort            = 1 << 5 | IndirectDraw,
-            FrustumCulling  = 1 << 6 | IndirectDraw,
+            MotionVector = 1 << 0,
+            IndirectDraw = 1 << 1,
+            Culling = 1 << 2 | IndirectDraw,
+            MultiMesh = 1 << 3 | Culling,
+            LOD = 1 << 4 | Culling,
+            Sort = 1 << 5 | Culling,
+            CameraSort = 1 << 6 | Sort,
+            FrustumCulling = 1 << 7 | IndirectDraw,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
@@ -25,12 +27,15 @@ namespace UnityEditor.VFX
 
         private VFXAbstractParticleOutput m_Output;
         public VFXAbstractParticleOutput output => m_Output;
+        public override VFXDataType ownedType => output != null ? output.ownedType : base.ownedType;
+
         public void SetOutput(VFXAbstractParticleOutput output)
         {
             if (m_Output != null)
                 throw new InvalidOperationException("Unexpected SetOutput called twice, supposed to be call only once after construction");
 
             features = output.outputUpdateFeatures;
+            sortCriterion = output.GetSortCriterion();
 
             if (features == VFXOutputUpdate.Features.None)
                 throw new ArgumentException("This output does not need an output update pass");
@@ -39,6 +44,8 @@ namespace UnityEditor.VFX
         }
 
         private Features features = Features.None;
+
+        private SortCriteria sortCriterion = SortCriteria.DistanceToCamera;
 
         public static bool HasFeature(Features flags, Features feature)
         {
@@ -49,7 +56,7 @@ namespace UnityEditor.VFX
         {
             return HasFeature(flags, Features.MotionVector)
                 || HasFeature(flags, Features.LOD)
-                || HasFeature(flags, Features.Sort)
+                || HasFeature(flags, Features.CameraSort)
                 || HasFeature(flags, Features.FrustumCulling);
         }
 
@@ -94,7 +101,7 @@ namespace UnityEditor.VFX
             if (features == Features.None)
                 throw new InvalidOperationException("This additional update context has no feature set");
 
-            
+
             if (target == VFXDeviceTarget.GPU)
             {
                 var expressionMapper = m_Output.GetExpressionMapper(target);
@@ -102,7 +109,7 @@ namespace UnityEditor.VFX
                 var exp = GetExpressionsFromSlots(m_Output);
 
                 if (HasFeature(Features.LOD))
-                {     
+                {
                     var lodExp = exp.FirstOrDefault(e => e.name == VFXMultiMeshHelper.lodName);
                     var ratioExp = lodExp.exp * VFXValue.Constant(new Vector4(0.01f, 0.01f, 0.01f, 0.01f));
                     expressionMapper.AddExpression(ratioExp, VFXMultiMeshHelper.lodName, -1);
@@ -126,6 +133,12 @@ namespace UnityEditor.VFX
                 //Since it's a compute shader without renderer associated, these entries aren't automatically sent
                 expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
                 expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
+                if (m_Output.HasCustomSortingCriterion())
+                {
+                    var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
+                    expressionMapper.AddExpression(sortKeyExp, "sortKey", -1);
+                }
+
 
                 return expressionMapper;
             }
@@ -172,6 +185,14 @@ namespace UnityEditor.VFX
 
                 if (HasFeature(Features.MultiMesh))
                     yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
+
+                if (HasFeature(Features.MotionVector) && output is VFXLineOutput)
+                    yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Read);
+
+                if (sortCriterion == SortCriteria.YoungestInFront)
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                }
             }
         }
 
@@ -182,25 +203,117 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
+                yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
+
                 if (HasFeature(Features.MotionVector))
+                {
                     yield return "VFX_FEATURE_MOTION_VECTORS";
+                    if (output.SupportsMotionVectorPerVertex(out uint vertsCount))
+                        yield return "VFX_FEATURE_MOTION_VECTORS_VERTS " + vertsCount;
+                }
                 if (HasFeature(Features.LOD))
                     yield return "VFX_FEATURE_LOD";
                 if (HasFeature(Features.Sort))
+                {
                     yield return "VFX_FEATURE_SORT";
+                    yield return "SORTING_SIGN " + (output.revertSorting ? -1 : 1);
+                    foreach (string additionalDef in GetSortingAdditionalDefines(m_Output.GetSortCriterion()))
+                    {
+                        yield return additionalDef;
+                    }
+                }
                 if (HasFeature(Features.FrustumCulling))
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
+                if (output.HasStrips(false))
+                    yield return "HAS_STRIPS";
             }
         }
 
-        public override IEnumerable<string> additionalDataHeaders
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
-                foreach (var d in base.additionalDataHeaders)
-                    yield return d;
+                if (HasFeature(Features.MotionVector))
+                {
+                    string motionVectorVerts = null;
 
-                yield return "#define INDIRECT_BUFFER_COUNT " + bufferCount;
+                    if (output.HasStrips(false))
+                    {
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(0.0f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4(0.0f,  0.5f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticleLineOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position
+};";
+                                break;
+                        }
+                    }
+                    else if (output is VFXLineOutput)
+                    {
+                        bool useTargetOffset = (bool)output.GetSettingValue("useTargetOffset");
+                        string targetPosition = useTargetOffset ? "mul(elementToVFX, float4(targetOffset, 1)).xyz" : "attributes.targetPosition";
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position,
+    attributes.position,
+    " + targetPosition + @",
+    " + targetPosition + @"
+};";
+                                break;
+                            case VFXTaskType.ParticleLineOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position,
+    " + targetPosition + @"
+};";
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(-0.5f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4(-0.5f,  0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f,  0.5f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticleTriangleOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(-0.5f, -0.288675129413604736328125f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.0f,  0.57735025882720947265625f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f, -0.288675129413604736328125f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticlePointOutput:
+                                motionVectorVerts = @"float3 verts[] = { elementToVFX._m03_m13_m23 };";
+                                break;
+                        }
+                    }
+
+                    if (motionVectorVerts != null)
+                    {
+                        var motionVectorVertsWriter = new VFXShaderWriter();
+                        motionVectorVertsWriter.Write(motionVectorVerts);
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${VFXMotionVectorVerts}", motionVectorVertsWriter);
+                    }
+                }
             }
         }
     }

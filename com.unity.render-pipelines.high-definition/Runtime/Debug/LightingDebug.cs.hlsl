@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTINGDEBUG_CS_HLSL
@@ -23,7 +23,7 @@
 #define DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS (13)
 #define DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION (14)
 #define DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION (15)
-#define DEBUGLIGHTINGMODE_PROBE_VOLUME (16)
+#define DEBUGLIGHTINGMODE_PROBE_VOLUME_SAMPLED_SUBDIVISION (16)
 
 //
 // UnityEngine.Rendering.HighDefinition.DebugLightFilterMode:  static fields
@@ -72,6 +72,14 @@
 #define EXPOSUREDEBUGMODE_HISTOGRAM_VIEW (2)
 #define EXPOSUREDEBUGMODE_FINAL_IMAGE_HISTOGRAM_VIEW (3)
 #define EXPOSUREDEBUGMODE_METERING_WEIGHTED (4)
+
+//
+// UnityEngine.Rendering.HighDefinition.HDRDebugMode:  static fields
+//
+#define HDRDEBUGMODE_NONE (0)
+#define HDRDEBUGMODE_GAMUT_VIEW (1)
+#define HDRDEBUGMODE_GAMUT_CLIP (2)
+#define HDRDEBUGMODE_VALUES_ABOVE_PAPER_WHITE (3)
 
 //
 // UnityEngine.Rendering.HighDefinition.ProbeVolumeDebugMode:  static fields

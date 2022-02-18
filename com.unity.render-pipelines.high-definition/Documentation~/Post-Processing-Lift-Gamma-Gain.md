@@ -9,6 +9,8 @@ This effect allows you to perform three-way color grading. The **Lift Gamma Gain
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Lift Gamma Gain**. HDRP now applies **Lift Gamma Gain** to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingLiftGammaGain1.png)

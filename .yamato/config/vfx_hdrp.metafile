@@ -3,50 +3,123 @@ project:
   folder: VisualEffectGraph_HDRP
 test_platforms:
   - type: Standalone
-    timeout:
-      OSX_Metal: 2400
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --testfilter="VFX.Test"
+  - type: Standalone
+    name: Standalone_PerformanceTests
+    utr_flags:
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
+    utr_flags_build:
+      - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+  - type: playmode
+    name: playmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: editmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
+  - type: editmode
+    name: editmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
+
 platforms:
   - name: Win
     apis:
-      - DX11
-  #    - DX12
-      - Vulkan
-  - name: OSX 
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
-    apis: 
-      - Vulkan
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono_apiNet2
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        - playmode_XR
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+          - playmode_XR
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+          - editmode_PerformanceTests
+          - playmode_PerformanceTests
+          - Standalone_PerformanceTests
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # - Standalone
+          - playmode
+          # - Standalone
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

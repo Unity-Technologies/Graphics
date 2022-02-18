@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
 
         static Dictionary<ScriptableObject, bool>[] NewPrioritizedHashSet()
         {
-            Dictionary<ScriptableObject,bool>[] result = new Dictionary<ScriptableObject, bool>[(int)Priorities.Count];
+            Dictionary<ScriptableObject, bool>[] result = new Dictionary<ScriptableObject, bool>[(int)Priorities.Count];
 
             for (int i = 0; i < (int)Priorities.Count; ++i)
             {
@@ -94,10 +94,10 @@ namespace UnityEditor.VFX.UI
             return Priorities.Default;
         }
 
-        Dictionary<ScriptableObject,bool>[] modifiedModels = NewPrioritizedHashSet();
-        Dictionary<ScriptableObject,bool>[] otherModifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] modifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] otherModifiedModels = NewPrioritizedHashSet();
 
-        public void OnObjectModified(VFXObject obj,bool uiChange)
+        public void OnObjectModified(VFXObject obj, bool uiChange)
         {
             // uiChange == false is stronger : if we have a uiChange and there was a nonUIChange before we keep the non uichange.
             if (!uiChange)
@@ -106,10 +106,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if ( !modifiedModels[(int)GetPriority(obj)].ContainsKey(obj))
+                if (!modifiedModels[(int)GetPriority(obj)].ContainsKey(obj))
                     modifiedModels[(int)GetPriority(obj)][obj] = true;
             }
-
         }
 
         Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
@@ -124,10 +123,10 @@ namespace UnityEditor.VFX.UI
             List<Action> notifieds;
             if (m_Notified.TryGetValue(target, out notifieds))
             {
-                #if NOTIFICATION_VALIDATION
+#if NOTIFICATION_VALIDATION
                 if (notifieds.Contains(action))
                     Debug.LogError("Adding the same notification twice on:" + target.name);
-                #endif
+#endif
                 notifieds.Add(action);
             }
             else
@@ -148,10 +147,10 @@ namespace UnityEditor.VFX.UI
             List<Action> notifieds;
             if (m_Notified.TryGetValue(target, out notifieds))
             {
-                #if NOTIFICATION_VALIDATION
+#if NOTIFICATION_VALIDATION
                 if (!notifieds.Contains(action))
                     Debug.LogError("Removing a non existent notification" + target.name);
-                #endif
+#endif
                 notifieds.Remove(action);
 
                 if (m_CurrentlyNotified == target)
@@ -205,13 +204,20 @@ namespace UnityEditor.VFX.UI
                         while (m_CurrentActions.Count > 0)
                         {
                             var action = m_CurrentActions[m_CurrentActions.Count - 1];
-                            action();
+                            try
+                            {
+                                action();
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                            }
                             cpt++;
                             m_CurrentActions.RemoveAt(m_CurrentActions.Count - 1);
                         }
                     }
                     Profiler.EndSample();
-                    if(!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
+                    if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
                         model.RefreshErrors(m_Graph);
                     }
@@ -232,11 +238,11 @@ namespace UnityEditor.VFX.UI
             {
                 m_Name = newName;
 
-                if (model != null)
+                if (model != null && model.name != m_Name)
                 {
                     model.name = m_Name;
                 }
-                if (graph != null)
+                if (graph != null && (graph as UnityObject).name != m_Name)
                 {
                     (graph as UnityObject).name = m_Name;
                 }
@@ -251,7 +257,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXGraph graph { get {return model != null ? model.graph as VFXGraph : null; }}
+        public VFXGraph graph { get { return model != null ? model.graph as VFXGraph : null; } }
 
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -615,6 +621,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
                 if (fromController != null)
                 {
+                    foreach (var anyNode in fromController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     if (fromController.infos.linkedSlots == null)
                         fromController.infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
                     fromController.infos.linkedSlots.Add(resulting);
@@ -623,6 +635,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController toController = input.sourceNode as VFXParameterNodeController;
                 if (toController != null)
                 {
+                    foreach (var anyNode in toController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     var infos = toController.infos;
                     if (infos.linkedSlots == null)
                         infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
@@ -839,7 +857,7 @@ namespace UnityEditor.VFX.UI
                 {
                     Clear();
                 }
-                m_Graph =  model.GetOrCreateGraph();
+                m_Graph = model.GetOrCreateGraph();
                 m_Graph.SanitizeGraph();
 
                 if (m_Graph != null)
@@ -1338,7 +1356,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewController(VisualEffectResource vfx) : base(vfx)
+        internal VFXViewController(VisualEffectResource vfx) : base(vfx)
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
@@ -1385,11 +1403,11 @@ namespace UnityEditor.VFX.UI
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
         {
-            get {return m_GroupNodeControllers.AsReadOnly(); }
+            get { return m_GroupNodeControllers.AsReadOnly(); }
         }
         public ReadOnlyCollection<VFXStickyNoteController> stickyNotes
         {
-            get {return m_StickyNoteControllers.AsReadOnly(); }
+            get { return m_StickyNoteControllers.AsReadOnly(); }
         }
 
         List<VFXGroupNodeController> m_GroupNodeControllers = new List<VFXGroupNodeController>();
@@ -1487,7 +1505,7 @@ namespace UnityEditor.VFX.UI
 
                 if (missingCategories.Length > 0)
                 {
-                    categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t}));
+                    categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t }));
                     ui.categories = categories;
                     ui.Modified(true);
                 }

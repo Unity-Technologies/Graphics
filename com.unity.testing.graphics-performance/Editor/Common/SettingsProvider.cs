@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -24,7 +24,9 @@ static class PerformanceSettingsProviderGUI
 
                 EditorGUI.BeginChangeCheck();
                 ShowObjectField(settings.FindProperty("testDescriptionAsset"), typeof(TestSceneAsset), new GUIContent("Test Description Asset"));
+#if SHADERANALYSIS_SUPPORT
                 ShowObjectField(settings.FindProperty("staticAnalysisAsset"), typeof(EditorShaderStaticAnalysisAsset), new GUIContent("Static Analysis Asset"));
+#endif
                 if (EditorGUI.EndChangeCheck())
                     settings.ApplyModifiedProperties();
             },

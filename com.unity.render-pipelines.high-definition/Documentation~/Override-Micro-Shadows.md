@@ -13,10 +13,12 @@ Micro shadows are shadows that the High Definition Render Pipeline (HDRP) simula
 HDRP uses the [Volume](Volumes.md) framework to generate **Micro Shadows**, so to enable and modify **Micro Shadow** properties, you must add a **Micro Shadows** override to a [Volume](Volumes.md) in your Scene. To add **Micro Shadows** to a Volume:
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
-2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Micro Shadows**. 
+2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Micro Shadows**.
    HDRP now processes **Micro Shadows** for any Camera this Volume affects.
 
 Micro shadowing only works with directional [Lights](Light-Component.md). If you enable micro shadows, make sure you have a directional Light in the Scene.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 
@@ -31,7 +33,7 @@ Micro shadowing only works with directional [Lights](Light-Component.md). If you
 
 ## Details
 
-Micro shadowing gives the impression of extremely detailed lighting that can capture small details. It relies on how you generate your Textures so, to produce better results, consider the following when you author the normal map and ambient occlusion map for a Material: 
+Micro shadowing gives the impression of extremely detailed lighting that can capture small details. It relies on how you generate your Textures so, to produce better results, consider the following when you author the normal map and ambient occlusion map for a Material:
 
 - Make sure to capture the details of both Textures in a consistent way.
 - Always use the same pipeline to produce your normal maps and ambient occlusion maps.

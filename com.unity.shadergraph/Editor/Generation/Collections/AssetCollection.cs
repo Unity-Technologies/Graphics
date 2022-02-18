@@ -13,10 +13,10 @@ namespace UnityEditor.ShaderGraph
         [Flags]
         public enum Flags
         {
-            SourceDependency =          1 << 0,     // ShaderGraph directly reads the source file in the Assets directory
-            ArtifactDependency =        1 << 1,     // ShaderGraph reads the import result artifact (i.e. subgraph import)
-            IsSubGraph =                1 << 2,     // This asset is a SubGraph (used when we need to get multiple levels of dependencies)
-            IncludeInExportPackage =    1 << 3      // This asset should be pulled into any .unitypackages built via "Export Package.."
+            SourceDependency = 1 << 0,     // ShaderGraph directly reads the source file in the Assets directory
+            ArtifactDependency = 1 << 1,     // ShaderGraph reads the import result artifact (i.e. subgraph import)
+            IsSubGraph = 1 << 2,     // This asset is a SubGraph (used when we need to get multiple levels of dependencies)
+            IncludeInExportPackage = 1 << 3      // This asset should be pulled into any .unitypackages built via "Export Package.."
         }
 
         internal Dictionary<GUID, Flags> assets = new Dictionary<GUID, Flags>();

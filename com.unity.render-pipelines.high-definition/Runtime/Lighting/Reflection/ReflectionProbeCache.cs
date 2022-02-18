@@ -11,21 +11,21 @@ namespace UnityEngine.Rendering.HighDefinition
             Ready
         }
 
-        int                     m_ProbeSize;
-        int                     m_CacheSize;
-        IBLFilterBSDF[]         m_IBLFilterBSDF;
-        TextureCacheCubemap     m_TextureCache;
-        RenderTexture           m_TempRenderTexture;
-        RenderTexture[]         m_ConvolutionTargetTextureArray;
-        ProbeFilteringState[]   m_ProbeBakingState;
-        Material                m_ConvertTextureMaterial;
-        Material                m_CubeToPano;
-        MaterialPropertyBlock   m_ConvertTextureMPB;
-        bool                    m_PerformBC6HCompression;
+        int m_ProbeSize;
+        int m_CacheSize;
+        IBLFilterBSDF[] m_IBLFilterBSDF;
+        TextureCacheCubemap m_TextureCache;
+        RenderTexture m_TempRenderTexture;
+        RenderTexture[] m_ConvolutionTargetTextureArray;
+        ProbeFilteringState[] m_ProbeBakingState;
+        Material m_ConvertTextureMaterial;
+        Material m_CubeToPano;
+        MaterialPropertyBlock m_ConvertTextureMPB;
+        bool m_PerformBC6HCompression;
 
-        GraphicsFormat          m_ProbeFormat;
+        GraphicsFormat m_ProbeFormat;
 
-        public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
+        public ReflectionProbeCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCache.Release();
             CoreUtils.Destroy(m_TempRenderTexture);
 
-            if(m_ConvolutionTargetTextureArray != null)
+            if (m_ConvolutionTargetTextureArray != null)
             {
                 for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
                 {
@@ -142,26 +142,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // 2) to the proper reflection probe cache size
                 bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
                 bool formatMismatch = (GraphicsFormatUtility.GetGraphicsFormat(cubeTexture.format, false) != m_TempRenderTexture.graphicsFormat);
-                if (formatMismatch || sizeMismatch)
+
+                // We comment the following warning as they have no impact on the result but spam the console, it is just that we waste offline time and a bit of quality for nothing.
+                if (sizeMismatch)
                 {
-                    // We comment the following warning as they have no impact on the result but spam the console, it is just that we waste offline time and a bit of quality for nothing.
-                    if (sizeMismatch)
-                    {
-                        // Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
-                    }
-                    else if (cubeTexture.format == TextureFormat.BC6H)
-                    {
-                        // Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
-                    }
-                    ConvertTexture(cmd, cubeTexture, m_TempRenderTexture);
+                    // Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
                 }
-                else
+                else if (formatMismatch && (cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_UFloat || cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_SFloat))
                 {
-                    for (int f = 0; f < 6; f++)
-                    {
-                        cmd.CopyTexture(cubeTexture, f, 0, m_TempRenderTexture, f, 0);
-                    }
+                    // Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
                 }
+
+                // Convert the cubemap to match the size and texture format used for the cache
+                // This will also take care of decoding manually encoded HDR cubemaps (RGBM, dLDR)
+                ConvertTexture(cmd, cubeTexture, m_TempRenderTexture);
 
                 // Ideally if input is not compressed and has mipmaps, don't do anything here. Problem is, we can't know if mips have been already convolved offline...
                 cmd.GenerateMips(m_TempRenderTexture);
@@ -194,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.GenerateMips(convolutionSourceTexture);
             }
 
-            for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
             {
                 m_IBLFilterBSDF[bsdfIdx].FilterCubemap(cmd, convolutionSourceTexture, m_ConvolutionTargetTextureArray[bsdfIdx]);
             }
@@ -202,10 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ConvolutionTargetTextureArray;
         }
 
-        public int FetchSlice(CommandBuffer cmd, Texture texture)
+        public int FetchSlice(CommandBuffer cmd, Texture texture, uint textureHash)
         {
             bool needUpdate;
-            var sliceIndex = m_TextureCache.ReserveSlice(texture, out needUpdate);
+            var sliceIndex = m_TextureCache.ReserveSlice(texture, textureHash, out needUpdate);
             if (sliceIndex != -1)
             {
                 if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
@@ -224,11 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.BC6HEncodeFastCubemap(
                                 result[0], m_ProbeSize, m_TextureCache.GetTexCache(),
                                 0, int.MaxValue, sliceIndex);
-                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureHash(texture));
+                            m_TextureCache.SetSliceHash(sliceIndex, textureHash);
                         }
                         else
                         {
-                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureHash(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, textureHash); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
                         }
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;

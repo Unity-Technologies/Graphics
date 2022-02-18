@@ -42,7 +42,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_GBUFFER(outGBuffer)
             #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
             #endif
             )
 {

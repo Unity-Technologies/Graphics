@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Drawing;
@@ -52,7 +52,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 // Reset UndoGroup when done editing input field
                 mUndoGroup = -1;
             });
-
         }
 
         internal VisualElement CreateGUI(
@@ -62,13 +61,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyVec2Field,
             int indentLevel = 0)
         {
-            var vector2Field = new Vector2Field {value = fieldToDraw};
+            var vector2Field = new Vector2Field { value = fieldToDraw };
 
             var inputFields = vector2Field.Query("unity-text-input").ToList();
             foreach (var inputField in inputFields)
             {
-                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
-                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback, TrickleDown.TrickleDown);
+                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback, TrickleDown.TrickleDown);
             }
             // Bind value changed event to callback to handle dragger behavior before actually settings the value
             vector2Field.RegisterValueChangedCallback(evt =>
@@ -96,10 +95,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Vector2) propertyInfo.GetValue(actualObject),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
+                (Vector2)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

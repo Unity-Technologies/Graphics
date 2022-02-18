@@ -9,23 +9,24 @@ namespace UnityEditor.ShaderGraph
         public DDYNode()
         {
             name = "DDY";
+            synonyms = new string[] { "derivative" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_DDY", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_DDY", BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
-        static string Unity_DDY(
+        string Unity_DDY(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-                @"
-{
+$@"
+{{
+    {GetRayTracingError()}
     Out = ddy(In);
-}
+}}
 ";
         }
     }

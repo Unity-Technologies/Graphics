@@ -15,3 +15,6 @@ var cameraData = camera.GetUniversalAdditionalCameraData();
 For more information, see [the UniversalAdditionalCameraData API documentation](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html).
 
 If you need to access the Universal Additional Camera Data component frequently in a script, you should cache the reference to it to avoid unnecessary CPU work.
+
+## Preset
+When using Preset of a Camera, only a subset of properties are supported. Unsupported properties are hidden.

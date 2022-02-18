@@ -1,4 +1,5 @@
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2DArray m_TextureArray16L;
         Texture2DArray m_TextureArray16RGB;
 
-        RenderPipelineResources m_RenderPipelineResources;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
 
         static readonly System.Random m_Random = new System.Random();
 
@@ -41,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Creates a new instance of the blue noise texture bank.
         /// </summary>
         /// <param name="resources">A reference to the render pipeline resources asset.</param>
-        internal BlueNoise(RenderPipelineResources resources)
+        internal BlueNoise(HDRenderPipelineRuntimeResources resources)
         {
             m_RenderPipelineResources = resources;
             InitTextures(16, TextureFormat.Alpha8, resources.textures.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);
@@ -131,6 +132,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_RenderPipelineResources.textures.scramblingTex);
         }
 
+        internal DitheredTextureSet DitheredTextureSet1SPP()
+        {
+            DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();
+            ditheredTextureSet.owenScrambled256Tex = m_RenderPipelineResources.textures.owenScrambled256Tex;
+            ditheredTextureSet.scramblingTile = m_RenderPipelineResources.textures.scramblingTile1SPP;
+            ditheredTextureSet.rankingTile = m_RenderPipelineResources.textures.rankingTile1SPP;
+            ditheredTextureSet.scramblingTex = m_RenderPipelineResources.textures.scramblingTex;
+            return ditheredTextureSet;
+        }
+
         internal DitheredTextureSet DitheredTextureSet8SPP()
         {
             DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();
@@ -166,6 +177,5 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._RankingTileXSPP, ditheredTextureSet.rankingTile);
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, ditheredTextureSet.scramblingTex);
         }
-
     }
 }

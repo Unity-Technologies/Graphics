@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             m_Middle.name = "middle";
             inputContainer.parent.Insert(1, m_Middle);
 
-            m_EditButton = new VisualElement() {name = "edit"};
+            m_EditButton = new VisualElement() { name = "edit" };
             m_EditButton.Add(new VisualElement() { name = "icon" });
             m_EditButton.AddManipulator(new Clickable(OnEdit));
             this.AddManipulator(new SuperCollapser());
@@ -39,6 +39,7 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer.parent != null)
                 {
                     m_EditContainer.RemoveFromHierarchy();
+                    style.minWidth = 0;
                 }
                 else
                 {
@@ -186,7 +187,7 @@ namespace UnityEditor.VFX.UI
                     m_EditButton.RemoveFromHierarchy();
             }
 
-            if (!base.expanded && m_EditContainer.parent != null)
+            if (!base.expanded && m_EditContainer != null && m_EditContainer.parent != null)
                 m_EditContainer.RemoveFromHierarchy();
         }
 
@@ -208,24 +209,26 @@ namespace UnityEditor.VFX.UI
                 float controlWidth = 50;
                 GetPreferedWidths(ref labelWidth, ref controlWidth);
 
-                float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
-
-                if (resolvedStyle.minWidth != newMinWidth)
-                {
-                    style.minWidth = newMinWidth;
-                }
-
                 ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
 
                 ApplyWidths(labelWidth, controlWidth);
-            }
-            else
-            {
-                if (resolvedStyle.minWidth != 0f)
+
+                // To prevent width to change between expanded and collapsed state
+                // we set the minwidth to actual width before collapse, and reset to zero when expand
+                // so that the expand/collapse button does not move
+                if (!expanded)
                 {
-                    style.minWidth = 0f;
+                    var newMinWidth = resolvedStyle.width;
+                    if (resolvedStyle.minWidth.value < newMinWidth)
+                    {
+                        style.minWidth = newMinWidth;
+                    }
+
+                    return;
                 }
             }
+
+            style.minWidth = 0f;
         }
     }
 }

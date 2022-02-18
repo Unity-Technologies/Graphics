@@ -129,18 +129,18 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable;
             styleSheets.Add(VFXView.LoadStyleSheet("Selectable"));
             AddToClassList("selectable");
-            hierarchy.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
+            hierarchy.Add(new VisualElement() { name = "selection-border", pickingMode = PickingMode.Ignore });
 
             //RegisterCallback<MouseDownEvent>(OnHeaderClicked);
             pickingMode = PickingMode.Position;
 
             this.AddManipulator(new SelectionDropper());
 
-            m_NameField = new TextField() {name = "name-field"};
+            m_NameField = new TextField() { name = "name-field" };
             m_Header.Add(m_NameField);
             m_Header.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-            m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); });
-            m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed);
+            m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); }, TrickleDown.TrickleDown);
+            m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
             m_Header.pickingMode = PickingMode.Position;
             m_NameField.style.display = DisplayStyle.None;
         }

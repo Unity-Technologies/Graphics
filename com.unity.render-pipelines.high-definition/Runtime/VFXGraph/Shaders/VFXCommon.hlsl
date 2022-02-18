@@ -31,7 +31,7 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 {
 #if IS_TRANSPARENT_PARTICLE && defined(VFX_VARYING_POSCS)
     // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
-    input.VFX_VARYING_POSCS.xy = _OffScreenRendering > 0 ? (input.VFX_VARYING_POSCS.xy * _OffScreenDownsampleFactor) : input.VFX_VARYING_POSCS.xy;
+    input.VFX_VARYING_POSCS.xy = _OffScreenRendering > 0 ? (uint2)round(input.VFX_VARYING_POSCS.xy * _OffScreenDownsampleFactor) : input.VFX_VARYING_POSCS.xy;
 #endif
 }
 #endif
@@ -39,13 +39,19 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 float4 VFXTransformFinalColor(float4 color)
 {
 #ifdef DEBUG_DISPLAY
-	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
         color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
     }
 
 #endif
-	return color;
+    return color;
+}
+
+float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
+{
+    //_ScreenParams.z is 1 + 1.0/width
+    return clipPos.xy * frac(_ScreenParams.zw);
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -59,13 +65,13 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
     float3 posWS = TransformObjectToWorld(posOS);
-    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
     float3 posWS = TransformPreviousObjectToWorld(posOS);
-    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -82,14 +88,33 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
+#else
     return GetObjectToWorldMatrix();
+#endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
+#else
     return GetWorldToObjectMatrix();
+#endif
 }
 
 float3x3 VFXGetWorldToViewRotMatrix()
@@ -113,14 +138,16 @@ float4x4 VFXGetViewToWorldMatrix()
     return viewToWorld;
 }
 
+#ifdef USING_STEREO_MATRICES
+float3 GetWorldStereoOffset()
+{
+    return _XRWorldSpaceCameraPos[0].xyz - _XRWorldSpaceCameraPos[1].xyz;
+}
+#endif
+
 float VFXSampleDepth(float4 posSS)
 {
     return LoadCameraDepth(posSS.xy);
-}
-
-float VFXLinearEyeDepth(float depth)
-{
-    return LinearEyeDepth(depth,_ZBufferParams);
 }
 
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
@@ -141,7 +168,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-    
+
 #if VFX_BLENDMODE_ALPHA
     color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD
@@ -175,3 +202,8 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 #endif
 }
 #endif
+
+float3 VFXGetCameraWorldDirection()
+{
+    return -_CameraViewMatrix._m20_m21_m22;
+}

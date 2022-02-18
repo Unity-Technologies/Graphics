@@ -1,10 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -13,65 +14,110 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class HDShaderUtils
     {
-        //enum representing all shader and shadergraph that we expose to user
-        internal enum ShaderID
+        // List of all discovered HDSubTargets
+        // Should be refreshed on assembly reload so no need to poll (cf MaterialPostProcessor's polling)
+        static List<HDSubTarget> k_HDSubTargets = new List<HDSubTarget>(
+            UnityEngine.Rendering.CoreUtils
+                .GetAllTypesDerivedFrom<HDSubTarget>()
+                .Where(type => (!type.IsAbstract && type.IsClass))
+                .Select(Activator.CreateInstance)
+                .Cast<HDSubTarget>()
+                //.Where(subTarget => subTarget.IsExternalPlugin())
+                .ToList());
+
+        // Map from HDMetaData subTarget GUID to its HDSubTarget
+        static Dictionary<GUID, HDSubTarget> k_HDSubTargetsFromGuid =
+            k_HDSubTargets.ToDictionary(subTarget => subTarget.subTargetGuid, subTarget => subTarget);
+
+        // Map from HDMetaData subTarget GUID to its MaterialResetter function
+        static Dictionary<GUID, MaterialResetter> k_HDSubTargetsMaterialResetters =
+            k_HDSubTargets.ToDictionary(subTarget => subTarget.subTargetGuid, subTarget => subTarget.setupMaterialKeywordsAndPassFunc);
+        // Note: could autogenerate GUID from ShaderID using namespace guids (like SG JsonObject does), and this would permit us to merge the resetters dictionaries into one.
+
+        // Map from HDMetaData subTarget GUID to interface to access latest version and migration functions
+        // of materials using plugin-subtargets shaders
+        static Dictionary<GUID, IPluginSubTargetMaterialUtils> k_HDPluginSubTargets =
+            k_HDSubTargets.Where(x => x is IPluginSubTargetMaterialUtils).ToDictionary(subTarget => subTarget.subTargetGuid, subTarget => ((IPluginSubTargetMaterialUtils)subTarget));
+
+        // To accelerate MaterialProcessor polling of project packages/code changes/updates, we track
+        // the sum of all present plugin material latest versions (that a plugin SubTarget "advertizes" through IPluginSubTargetMaterialUtils),
+        // such that the project HDProjectSettings will do the same, with the precondition that each last seen versions in HDProjectSettings
+        // should never be allowed to be higher than the currently present plugin SubTarget's latestMaterialVersion
+        // (otherwise the sums of HDProjectSettings vs code base can't reliably be compared). This could happen if we downgrade the codebase
+        // of a plugin SubTarget, which is not supported anyway.
+        static long pluginSubTargetMaterialVersionsSum =
+            k_HDPluginSubTargets.Count > 0 ? k_HDPluginSubTargets.Sum(pair => (long)pair.Value.latestMaterialVersion) : (long)PluginMaterial.GenericVersions.NeverMigrated;
+
+        static long pluginSubTargetVersionsSum =
+            k_HDPluginSubTargets.Count > 0 ? k_HDPluginSubTargets.Sum(pair => (long)pair.Value.latestSubTargetVersion) : (long)PluginMaterial.GenericVersions.NeverMigrated;
+
+        /// <summary>
+        /// Checks if a SubTarget GUID of a shadergraph shader used by a material correspond to a plugin SubTarget.
+        /// If so, also returns that plugin material interface giving access to its latest version and material migration.
+        /// </summary>
+        /// <param name="pluginMaterialGUID">The SubTarget GUID (<see cref="GetShaderIDsFromShader"/>)</param>
+        /// <param name="subTargetMaterialUtils">The interface from which to get latest version and material migration function for that SubTarget</param>
+        /// <returns>
+        /// True: The GUID matches a found plugin SubTarget and the subTargetMaterialUtils interface is found.
+        /// False: Unknown plugin SubTarget GUID.
+        /// </returns>
+        internal static bool GetMaterialPluginSubTarget(GUID pluginMaterialGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils)
         {
-            Lit,
-            LitTesselation,
-            LayeredLit,
-            LayeredLitTesselation,
-            Unlit,
-            Decal,
-            TerrainLit,
-            AxF,
-            Count_Standard,
-            SG_Unlit = Count_Standard,
-            SG_Lit,
-            SG_Hair,
-            SG_Fabric,
-            SG_StackLit,
-            SG_Decal,
-            SG_Eye,
-            Count_All,
-            Count_ShaderGraph = Count_All - Count_Standard
+            try
+            {
+                k_HDPluginSubTargets.TryGetValue(pluginMaterialGUID, out subTargetMaterialUtils);
+            }
+            catch
+            {
+                subTargetMaterialUtils = null;
+            }
+            return (subTargetMaterialUtils != null);
         }
 
-        // exposed shader, for reference while searching the ShaderID
-        static readonly string[] s_ShaderPaths =
+        internal static Dictionary<GUID, IPluginSubTargetMaterialUtils> GetHDPluginSubTargets()
         {
-            "HDRP/Lit",
-            "HDRP/LitTessellation",
-            "HDRP/LayeredLit",
-            "HDRP/LayeredLitTessellation",
-            "HDRP/Unlit",
-            "HDRP/Decal",
-            "HDRP/TerrainLit",
-            "HDRP/AxF",
-        };
+            return k_HDPluginSubTargets;
+        }
 
-        // list of methods for resetting keywords
-        delegate void MaterialResetter(Material material);
-        static Dictionary<ShaderID, MaterialResetter> k_MaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
+        internal static long GetHDPluginSubTargetMaterialVersionsSum()
         {
-            { ShaderID.Lit, LitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LitTesselation, LitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LayeredLit,  LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LayeredLitTesselation, LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            // no entry for ShaderID.StackLit
-            { ShaderID.Unlit, UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
-            // no entry for ShaderID.Fabric
-            { ShaderID.Decal, DecalUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.TerrainLit, TerrainLitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.AxF, AxFGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Unlit, HDUnlitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Lit, LitShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Decal, DecalGUI.SetupMaterialKeywordsAndPass },
-            // no entry for ShaderID.SG_Decal
-            // no entry for ShaderID.SG_Eye
-        };
+            return pluginSubTargetMaterialVersionsSum;
+        }
+
+        internal static long GetHDPluginSubTargetVersionsSum()
+        {
+            return pluginSubTargetVersionsSum;
+        }
+
+        internal static string GetMaterialSubTargetDisplayName(GUID subTargetGUID)
+        {
+            try
+            {
+                k_HDSubTargetsFromGuid.TryGetValue(subTargetGUID, out HDSubTarget subTarget);
+                if (subTarget == null)
+                    return String.Empty;
+                else
+                    return subTarget.displayName;
+            }
+            catch
+            {
+                return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Returns a material's shadergraph's SubTarget display name, if it
+        /// is an HD shadergraph.
+        /// </summary>
+        /// <param name="material">The material with the subtarget</param>
+        /// <returns>
+        /// The display name of the subtarget or an empty string.
+        /// </returns>
+        internal static string GetMaterialSubTargetDisplayName(Material material)
+        {
+            (_, GUID subTargetGUID) = GetShaderIDsFromShader(material.shader);
+            return GetMaterialSubTargetDisplayName(subTargetGUID);
+        }
 
         /// <summary>
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
@@ -84,12 +130,24 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
+            return ResetMaterialKeywords(material, assetWithHDMetaData: null);
+        }
+
+        // Giving assetWithHDMetaData will directly try to get ids from an HDMetaData object from the given asset
+        internal static bool ResetMaterialKeywords(Material material, UnityEngine.Object assetWithHDMetaData = null)
+        {
             MaterialResetter resetter;
 
+            (ShaderID id, GUID extMaterialGUID) = GetShaderIDsFromShader(material.shader, assetWithHDMetaData);
             // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
-            try {
-                k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
-            } catch {
+            try
+            {
+                k_PlainShadersMaterialResetters.TryGetValue(id, out resetter);
+                if (resetter == null)
+                    k_HDSubTargetsMaterialResetters.TryGetValue(extMaterialGUID, out resetter);
+            }
+            catch
+            {
                 return false;
             }
 
@@ -110,18 +168,31 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The list of shader preprocessor</returns>
         internal static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
             => UnityEngine.Rendering.CoreUtils
-                .GetAllTypesDerivedFrom<BaseShaderPreprocessor>()
-                .Select(Activator.CreateInstance)
-                .Cast<BaseShaderPreprocessor>()
-                .OrderByDescending(spp => spp.Priority)
-                .ToList();
+            .GetAllTypesDerivedFrom<BaseShaderPreprocessor>()
+            .Select(Activator.CreateInstance)
+            .Cast<BaseShaderPreprocessor>()
+            .OrderByDescending(spp => spp.Priority)
+            .ToList();
+
+        internal static bool IsHDRPShaderGraph(Shader shader)
+        {
+            if (shader == null)
+                return false;
+
+            if (shader.IsShaderGraphAsset())
+            {
+                // All HDRP shader graphs should have HD metadata
+                return shader.TryGetMetadataOfType<HDMetadata>(out _);
+            }
+            return false;
+        }
 
         internal static bool IsHDRPShader(Shader shader, bool upgradable = false)
         {
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // All HDRP shader graphs should have HD metadata
                 return shader.TryGetMetadataOfType<HDMetadata>(out _);
@@ -137,14 +208,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
                 HDMetadata obj;
-                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                if (!shader.TryGetMetadataOfType<HDMetadata>(out obj))
                     throw new ArgumentException("Unknown shader");
-                
+
                 return obj.shaderID == ShaderID.SG_Unlit;
             }
             else
@@ -163,24 +234,52 @@ namespace UnityEditor.Rendering.HighDefinition
             return s_ShaderPaths[index];
         }
 
-        internal static ShaderID GetShaderEnumFromShader(Shader shader)
+        internal static (ShaderID, GUID) GetShaderIDsFromHDMetadata(UnityEngine.Object mainAsset)
         {
-            if (shader.IsShaderGraph())
+            // Throw exception if no metadata is found
+            // This case should be handled by the Target
+            HDMetadata obj = null;
+            var path = AssetDatabase.GetAssetPath(mainAsset);
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+            {
+                if (asset is HDMetadata metadataAsset)
+                {
+                    obj = metadataAsset;
+                }
+            }
+
+            if (obj == null)
+                throw new ArgumentException("No HDMetaData found");
+
+            return (obj.shaderID, obj.subTargetGuid);
+        }
+
+        // Giving assetWithHDMetaData will directly try to get ids from an HDMetaData object from the given asset
+        internal static (ShaderID, GUID) GetShaderIDsFromShader(Shader shader, UnityEngine.Object assetWithHDMetaData = null)
+        {
+            if (assetWithHDMetaData != null)
+            {
+                return GetShaderIDsFromHDMetadata(assetWithHDMetaData);
+            }
+
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
                 HDMetadata obj;
-                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                // TODO: To check in GraphUtil: should TryGetMetadataOfType() really use IsShaderGraphAsset, as an HDMetaData
+                // can be present with that call failing, see use case in VFXHDRPBinder SetupMaterial().
+                if (!shader.TryGetMetadataOfType<HDMetadata>(out obj))
                     throw new ArgumentException("Unknown shader");
-                
-                return obj.shaderID;
+
+                return (obj.shaderID, obj.subTargetGuid);
             }
             else
             {
                 var index = Array.FindIndex(s_ShaderPaths, m => m == shader.name);
                 if (index == -1)
                     throw new ArgumentException("Unknown shader");
-                return (ShaderID)index;
+                return ((ShaderID)index, new GUID());
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿.unity-list-view .odd {
+.unity-list-view .odd {
     background-color: #3f3f3f;
 }
 

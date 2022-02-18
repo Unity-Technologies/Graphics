@@ -4,13 +4,14 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEditor.Graphing;
 using System.Globalization;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
     struct ShaderStringMapping
     {
         public AbstractMaterialNode node { get; set; }
-//        public List<AbstractMaterialNode> nodes { get; set; }
+        //        public List<AbstractMaterialNode> nodes { get; set; }
         public int startIndex { get; set; }
         public int count { get; set; }
     }
@@ -29,8 +30,10 @@ namespace UnityEditor.ShaderGraph
         int m_IndentationLevel;
         ShaderStringMapping m_CurrentMapping;
         List<ShaderStringMapping> m_Mappings;
+        bool m_HumanReadable;
 
         const string k_IndentationString = "    ";
+        const string k_NewLineString = "\n";
 
         internal AbstractMaterialNode currentNode
         {
@@ -51,40 +54,55 @@ namespace UnityEditor.ShaderGraph
             get { return m_Mappings; }
         }
 
-        public ShaderStringBuilder()
+        public ShaderStringBuilder(int indentationLevel = 0, int stringBuilderSize = 8192, bool humanReadable = false)
         {
-            m_StringBuilder = new StringBuilder();
+            IncreaseIndent(indentationLevel);
+            m_StringBuilder = new StringBuilder(stringBuilderSize);
             m_ScopeStack = new Stack<ScopeType>();
             m_Mappings = new List<ShaderStringMapping>();
             m_CurrentMapping = new ShaderStringMapping();
-        }
-
-        public ShaderStringBuilder(int indentationLevel)
-            : this()
-        {
-            IncreaseIndent(indentationLevel);
+            m_HumanReadable = humanReadable;
         }
 
         public void AppendNewLine()
         {
-            m_StringBuilder.AppendLine();
+            m_StringBuilder.Append(k_NewLineString);
+        }
+
+        private void AppendLine(string value, int startIndex, int count)
+        {
+            if (value.Length > 0)
+            {
+                TryAppendIndentation();
+                m_StringBuilder.Append(value, startIndex, count);
+            }
+            AppendNewLine();
         }
 
         public void AppendLine(string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
-                AppendIndentation();
+                TryAppendIndentation();
                 m_StringBuilder.Append(value);
             }
             AppendNewLine();
         }
 
+        public void AddLine(string v0) { TryAppendIndentation(); Append(v0); AppendNewLine(); }
+        public void AddLine(string v0, string v1) { TryAppendIndentation(); Append(v0); Append(v1); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5, string v6) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); Append(v6); AppendNewLine(); }
+        public void AddLine(string v0, string v1, string v2, string v3, string v4, string v5, string v6, string v7) { TryAppendIndentation(); Append(v0); Append(v1); Append(v2); Append(v3); Append(v4); Append(v5); Append(v6); Append(v7); AppendNewLine(); }
+
         [StringFormatMethod("formatString")]
         public void AppendLine(string formatString, params object[] args)
         {
-            AppendIndentation();
-            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture,formatString, args);
+            TryAppendIndentation();
+            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture, formatString, args);
             AppendNewLine();
         }
 
@@ -92,13 +110,59 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(lines))
                 return;
-            var splitLines = lines.Split('\n');
-            var lineCount = splitLines.Length;
-            var lastLine = splitLines[lineCount - 1];
-            if (string.IsNullOrEmpty(lastLine) || lastLine == "\r")
-                lineCount--;
-            for (var i = 0; i < lineCount; i++)
-                AppendLine(splitLines[i].Trim('\r'));
+
+            int startSearchIndex = 0;
+            int newline = lines.IndexOf('\n');
+            int ret = lines.IndexOf('\r');
+            int indexOfNextBreak;
+
+            if (newline >= 0 && ret >= 0)
+            {
+                indexOfNextBreak = Math.Min(lines.IndexOf('\n'), lines.IndexOf('\r'));
+            }
+            else if (newline >= 0)
+            {
+                indexOfNextBreak = newline;
+            }
+            else if (ret >= 0)
+            {
+                indexOfNextBreak = ret;
+            }
+            else
+            {
+                indexOfNextBreak = -1;
+            }
+
+            while (indexOfNextBreak >= 0)
+            {
+                AppendLine(lines, startSearchIndex, indexOfNextBreak - startSearchIndex);
+                startSearchIndex = indexOfNextBreak + 1;
+
+                newline = lines.IndexOf('\n', startSearchIndex);
+                ret = lines.IndexOf('\r', startSearchIndex);
+
+                if (newline >= 0 && ret >= 0)
+                {
+                    indexOfNextBreak = Math.Min(lines.IndexOf('\n', startSearchIndex), lines.IndexOf('\r', startSearchIndex));
+                }
+                else if (newline >= 0)
+                {
+                    indexOfNextBreak = newline;
+                }
+                else if (ret >= 0)
+                {
+                    indexOfNextBreak = ret;
+                }
+                else
+                {
+                    indexOfNextBreak = -1;
+                }
+            }
+
+            if (startSearchIndex < lines.Length)
+            {
+                AppendLine(lines, startSearchIndex, lines.Length - startSearchIndex);
+            }
         }
 
         public void Append(string value)
@@ -122,10 +186,13 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Append(' ', count);
         }
 
-        public void AppendIndentation()
+        public void TryAppendIndentation()
         {
-            for (var i = 0; i < m_IndentationLevel; i++)
-                m_StringBuilder.Append(k_IndentationString);
+            if (m_HumanReadable)
+            {
+                for (var i = 0; i < m_IndentationLevel; i++)
+                    m_StringBuilder.Append(k_IndentationString);
+            }
         }
 
         public IDisposable IndentScope()
@@ -175,9 +242,9 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
-            if(m_ScopeStack.Count == 0)
+            if (m_ScopeStack.Count == 0)
                 return;
-            
+
             switch (m_ScopeStack.Pop())
             {
                 case ScopeType.Indent:
@@ -202,27 +269,51 @@ namespace UnityEditor.ShaderGraph
                 currentNode = mapping.node;
 
                 // Use `AppendLines` to indent according to the current indentation.
-                AppendLines(other.ToString(mapping.startIndex, mapping.count));
+                if (m_HumanReadable)
+                {
+                    AppendLines(other.ToString(mapping.startIndex, mapping.count));
+                }
+                else
+                {
+                    Append(other.ToString(mapping.startIndex, mapping.count));
+                }
             }
             currentNode = other.currentNode;
-            AppendLines(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            if (m_HumanReadable)
+            {
+                AppendLines(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            }
+            else
+            {
+                Append(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            }
         }
 
         public void ReplaceInCurrentMapping(string oldValue, string newValue)
         {
+            Profiler.BeginSample("ReplaceInCurrentMapping");
             int start = m_CurrentMapping.startIndex;
             int end = m_StringBuilder.Length - start;
-            m_StringBuilder.Replace(oldValue, newValue, start, end );
+            m_StringBuilder.Replace(oldValue, newValue, start, end);
+            Profiler.EndSample();
+        }
+
+        public void Replace(string oldValue, string newValue, int start, int end)
+        {
+            m_StringBuilder.Replace(oldValue, newValue, start, end);
         }
 
         public string ToCodeBlock()
         {
             // Remove new line
-            if(m_StringBuilder.Length > 0)
+            if (m_StringBuilder.Length > 0)
                 m_StringBuilder.Length = m_StringBuilder.Length - 1;
 
-            // Set indentations
-            m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
+            if (m_HumanReadable)
+            {
+                // Set indentations
+                m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
+            }
 
             return m_StringBuilder.ToString();
         }

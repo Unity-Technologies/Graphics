@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public void Sort(System.Comparison<T> comparison)
         {
-            m_List?.Sort((a,b) => comparison(a.value, b.value));
+            m_List?.Sort((a, b) => comparison(a.value, b.value));
         }
 
         public Enumerator GetEnumerator() => new Enumerator(m_List.GetEnumerator());

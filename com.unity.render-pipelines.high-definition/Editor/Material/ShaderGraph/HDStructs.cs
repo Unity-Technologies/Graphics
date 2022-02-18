@@ -4,6 +4,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDStructs
     {
+        public static StructDescriptor AttributesMeshProcedural = new StructDescriptor()
+        {
+            name = "AttributesMesh",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                HDStructFields.AttributesMesh.instanceID,
+                HDStructFields.AttributesMesh.vertexID,
+            }
+        };
+
         public static StructDescriptor AttributesMesh = new StructDescriptor()
         {
             name = "AttributesMesh",
@@ -29,10 +40,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             name = "VaryingsMeshToPS",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToPS.positionCS,
                 HDStructFields.VaryingsMeshToPS.positionRWS,
+                HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,
                 HDStructFields.VaryingsMeshToPS.normalWS,
                 HDStructFields.VaryingsMeshToPS.tangentWS,
                 HDStructFields.VaryingsMeshToPS.texCoord0,
@@ -48,9 +61,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             name = "VaryingsMeshToDS",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToDS.positionRWS,
+                HDStructFields.VaryingsMeshToDS.positionPredisplacementRWS,
+                HDStructFields.VaryingsMeshToDS.tessellationFactor,
                 HDStructFields.VaryingsMeshToDS.normalWS,
                 HDStructFields.VaryingsMeshToDS.tangentWS,
                 HDStructFields.VaryingsMeshToDS.texCoord0,
@@ -59,6 +75,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.VaryingsMeshToDS.texCoord3,
                 HDStructFields.VaryingsMeshToDS.color,
                 HDStructFields.VaryingsMeshToDS.instanceID,
+            }
+        };
+
+        public static StructDescriptor VertexDescriptionInputsProcedural = new StructDescriptor()
+        {
+            name = "VertexDescriptionInputs",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.VertexDescriptionInputs.TimeParameters,
+                StructFields.VertexDescriptionInputs.VertexID,
             }
         };
     }

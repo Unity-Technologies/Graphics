@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     class BooleanNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
-        private bool m_Value;
+        internal bool m_Value;
 
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph
         public BooleanNode()
         {
             name = "Boolean";
+            synonyms = new string[] { "switch", "true", "false", "on", "off" };
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (generationMode.IsPreview())
                 return;
-            
+
             sb.AppendLine("$precision {0} = {1};", GetVariableNameForNode(), (m_Value ? 1 : 0));
         }
 

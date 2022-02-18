@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KFixedExposure
 #pragma kernel KManualCameraExposure
@@ -112,7 +112,7 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
 
         if (gs_weights[0] > 0.0)
             avgLuminance /= (gs_weights[0] * 0.25);
-        
+
         UNITY_BRANCH
         switch (ParamEvaluateMode)
         {

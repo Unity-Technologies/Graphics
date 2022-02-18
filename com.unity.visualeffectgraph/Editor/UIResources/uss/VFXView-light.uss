@@ -1,0 +1,22 @@
+.unity-toolbar > .unity-toolbar-toggle .unity-label
+{
+    color: #000;
+}
+
+.unity-toolbar.unity-disabled
+{
+    opacity: 1;
+    background-color: #767676;
+    -unity-background-image-tint-color: #808080;
+}
+
+.unity-toolbar.unity-disabled *
+{
+    background-color: rgba(0,0,0,0);
+    color: #444;
+}
+
+.unity-toolbar.unity-disabled > .unity-toolbar-toggle .unity-label
+{
+    color: #444;
+}

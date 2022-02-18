@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -82,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmap,
             /// <summary>Display materials using instancing.</summary>
             Instancing,
+            /// <summary>Display deferred/forward shading capable materials.</summary>
+            DeferredMaterials,
         }
 
         /// <summary>
@@ -101,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion,
             /// <summary>Display metal (N/A for AxF).</summary>
             Metal,
-            /// <summary>Display specular.</summary>
+            /// <summary>Display the specular color (fresnel0). For materials using the metallic property, the corresponding fresnel0 term is displayed. (N/A for Unlit).</summary>
             Specular,
             /// <summary>Display alpha.</summary>
             Alpha,
@@ -154,9 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // className include the additional "/"
         static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className)
         {
-            var attributes = type.GetCustomAttributes(true);
-            // Get attribute to get the start number of the value for the enum
-            var attr = attributes[0] as GenerateHLSL;
+            var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
             {
@@ -175,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (Attribute.IsDefined(field, typeof(PackingAttribute)))
                 {
                     var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
-                    foreach(PackingAttribute packAttr in packingAttributes)
+                    foreach (PackingAttribute packAttr in packingAttributes)
                     {
                         displayNames.AddRange(packAttr.displayNames);
                     }
@@ -275,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 List<MaterialItem> materialItems = GetAllMaterialDatas();
 
                 // Init list
-                List < GUIContent> debugViewMaterialStringsList = new List<GUIContent>();
+                List<GUIContent> debugViewMaterialStringsList = new List<GUIContent>();
                 List<int> debugViewMaterialValuesList = new List<int>();
                 List<GUIContent> debugViewEngineStringsList = new List<GUIContent>();
                 List<int> debugViewEngineValuesList = new List<int>();
@@ -359,8 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // builtins parameters
                 Type builtin = typeof(Builtin.BuiltinData);
-                var attributes = builtin.GetCustomAttributes(true);
-                var generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                var generateHLSLAttribute = builtin.GetCustomAttribute<GenerateHLSL>();
                 int materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                 int localIndex = 0;
@@ -379,8 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // specific shader parameters
                 foreach (MaterialItem materialItem in materialItems)
                 {
-                    attributes = materialItem.surfaceDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.surfaceDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)
@@ -404,8 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (materialItem.bsdfDataType == null)
                         continue;
 
-                    attributes = materialItem.bsdfDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.bsdfDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)
@@ -444,12 +442,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Color for displaying materials using a true metallic color.</summary>
         public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
         /// <summary>Enable display of materials using a true metallic value.</summary>
-        public bool  materialValidateTrueMetal = false;
+        public bool materialValidateTrueMetal = false;
 
         /// <summary>
         /// Current Debug View Material.
         /// </summary>
-        public int[] debugViewMaterial {
+        public int[] debugViewMaterial
+        {
             get => m_DebugViewMaterial;
             internal set
             {
@@ -493,11 +492,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // The index stored in this buffer could either be
         //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
         //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-        int[]                m_DebugViewMaterial = new int[kDebugViewMaterialBufferLength + 1]; // No enum there because everything is generated from materials.
-        int                  m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
-        DebugViewVarying     m_DebugViewVarying = DebugViewVarying.None;
-        DebugViewProperties  m_DebugViewProperties = DebugViewProperties.None;
-        int                  m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
+        int[] m_DebugViewMaterial = new int[kDebugViewMaterialBufferLength + 1]; // No enum there because everything is generated from materials.
+        int m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
+        DebugViewVarying m_DebugViewVarying = DebugViewVarying.None;
+        DebugViewProperties m_DebugViewProperties = DebugViewProperties.None;
+        int m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
 
         internal int materialEnumIndex;
 

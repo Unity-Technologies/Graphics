@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return true;
         }
+
         public string GetCacheName()
         {
             return m_CacheName;
@@ -92,20 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function returns the internal storage texture of the cache. It is specified by the child class.
         abstract public Texture GetTexCache();
 
-        // Function that allows us to do the mapping between a texture value and an identifier
-        public uint GetTextureHash(Texture texture)
-        {
-            uint textureHash  = texture.updateCount;
-            // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
-            // This code leaks logic from reflection probe baking into the texture cache which is not good... TODO: Find a way to do that outside of the texture cache.
-#if UNITY_EDITOR
-            textureHash += (uint)texture.imageContentsHash.GetHashCode();
-#endif
-            return textureHash;
-        }
-
         // Function that reserves a slice using a texture and it returns a update flag that tells if the stored value matches the input one
-        public int ReserveSlice(Texture texture, out bool needUpdate)
+        public int ReserveSlice(Texture texture, uint textureHash, out bool needUpdate)
         {
             // Reset the update flag
             needUpdate = false;
@@ -121,9 +110,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var sliceIndex = -1;
             if (m_LocatorInSliceDictionnary.TryGetValue(texId, out sliceIndex))
             {
-                // Compute the new hash of the texture
-                var textureHash  = GetTextureHash(texture);
-
                 // We need to update the texture if the hash does not match the one in the slice
                 needUpdate |= (m_SliceArray[sliceIndex].sliceEntryHash != textureHash);
 
@@ -205,10 +191,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Push the content to the internal target slice. Should be overridden by the child class. It will return fals if it fails to update (mainly sub-textures's size do not match)
         protected abstract bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray);
 
-        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject = false)
+        public int FetchSlice(CommandBuffer cmd, Texture texture, uint textureHash, bool forceReinject = false)
         {
             bool needUpdate = false;
-            var sliceIndex = ReserveSlice(texture, out needUpdate);
+            var sliceIndex = ReserveSlice(texture, textureHash, out needUpdate);
 
             var bSwapSlice = forceReinject || needUpdate;
 
@@ -217,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sliceIndex != -1 && bSwapSlice)
             {
                 m_autoContentArray[0] = texture;
-                UpdateSlice(cmd, sliceIndex, m_autoContentArray, GetTextureHash(texture));
+                UpdateSlice(cmd, sliceIndex, m_autoContentArray, textureHash);
             }
 
             return sliceIndex;
@@ -328,20 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 return Application.isMobilePlatform;
 #endif
-            }
-        }
-
-        public static TextureFormat GetPreferredHDRCompressedTextureFormat
-        {
-            get
-            {
-                var format = TextureFormat.RGBAHalf;
-                var probeFormat = TextureFormat.BC6H;
-
-                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
-                    format = probeFormat;
-
-                return format;
             }
         }
 

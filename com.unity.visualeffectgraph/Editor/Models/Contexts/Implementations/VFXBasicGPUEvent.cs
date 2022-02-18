@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXType]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty)]
     struct GPUEvent
     {
         /* expected emptiness */
@@ -13,7 +14,7 @@ namespace UnityEditor.VFX
     [VFXInfo(experimental = true)]
     class VFXBasicGPUEvent : VFXContext
     {
-        public VFXBasicGPUEvent() : base(VFXContextType.SpawnerGPU, VFXDataType.None, VFXDataType.SpawnEvent) {}
+        public VFXBasicGPUEvent() : base(VFXContextType.SpawnerGPU, VFXDataType.None, VFXDataType.SpawnEvent) { }
         public override string name { get { return "GPUEvent"; } }
 
         public class InputProperties

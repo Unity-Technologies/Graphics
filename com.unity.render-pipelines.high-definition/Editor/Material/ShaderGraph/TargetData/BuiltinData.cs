@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -47,19 +47,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AlphaToMask = false;
-        public bool alphaToMask
-        {
-            get => m_AlphaToMask;
-            set => m_AlphaToMask = value;
-        }
-
-        [SerializeField]
         bool m_DepthOffset;
         public bool depthOffset
         {
             get => m_DepthOffset;
             set => m_DepthOffset = value;
+        }
+
+        [SerializeField]
+        bool m_ConservativeDepthOffset;
+        public bool conservativeDepthOffset
+        {
+            get => m_ConservativeDepthOffset;
+            set => m_ConservativeDepthOffset = value;
         }
 
         [SerializeField]

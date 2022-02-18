@@ -9,42 +9,42 @@ namespace UnityEngine.Rendering.HighDefinition
 
     internal static class HDRenderQueue
     {
-        const int k_TransparentPriorityQueueRange = 100;
+        const int k_TransparentPriorityQueueRangeStep = 100;
 
         public enum Priority
         {
-            Background = UnityEngine.Rendering.RenderQueue.Background,
+            Background = RenderQueue.Background,
 
 
-            Opaque = UnityEngine.Rendering.RenderQueue.Geometry,
-            OpaqueDecal = UnityEngine.Rendering.RenderQueue.Geometry + 225, // Opaque Decal mean Opaque that can receive decal
-            OpaqueAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest,
-            OpaqueDecalAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest + 25,
+            Opaque = RenderQueue.Geometry,
+            OpaqueDecal = RenderQueue.Geometry + 225, // Opaque Decal mean Opaque that can receive decal
+            OpaqueAlphaTest = RenderQueue.AlphaTest,
+            OpaqueDecalAlphaTest = RenderQueue.AlphaTest + 25,
             // Warning: we must not change Geometry last value to stay compatible with occlusion
-            OpaqueLast = UnityEngine.Rendering.RenderQueue.GeometryLast,
+            OpaqueLast = RenderQueue.GeometryLast,
 
-            AfterPostprocessOpaque = UnityEngine.Rendering.RenderQueue.GeometryLast + 1,
-            AfterPostprocessOpaqueAlphaTest = UnityEngine.Rendering.RenderQueue.GeometryLast + 10,
+            AfterPostprocessOpaque = RenderQueue.GeometryLast + 1,
+            AfterPostprocessOpaqueAlphaTest = RenderQueue.GeometryLast + 10,
 
             // For transparent pass we define a range of 200 value to define the priority
             // Warning: Be sure no range are overlapping
-            PreRefractionFirst = 2750 - k_TransparentPriorityQueueRange,
+            PreRefractionFirst = 2750 - k_TransparentPriorityQueueRangeStep,
             PreRefraction = 2750,
-            PreRefractionLast = 2750 + k_TransparentPriorityQueueRange,
+            PreRefractionLast = 2750 + k_TransparentPriorityQueueRangeStep,
 
-            TransparentFirst = UnityEngine.Rendering.RenderQueue.Transparent - k_TransparentPriorityQueueRange,
-            Transparent = UnityEngine.Rendering.RenderQueue.Transparent,
-            TransparentLast = UnityEngine.Rendering.RenderQueue.Transparent + k_TransparentPriorityQueueRange,
+            TransparentFirst = RenderQueue.Transparent - k_TransparentPriorityQueueRangeStep,
+            Transparent = RenderQueue.Transparent,
+            TransparentLast = RenderQueue.Transparent + k_TransparentPriorityQueueRangeStep,
 
-            LowTransparentFirst = 3400 - k_TransparentPriorityQueueRange,
+            LowTransparentFirst = 3400 - k_TransparentPriorityQueueRangeStep,
             LowTransparent = 3400,
-            LowTransparentLast = 3400 + k_TransparentPriorityQueueRange,
+            LowTransparentLast = 3400 + k_TransparentPriorityQueueRangeStep,
 
-            AfterPostprocessTransparentFirst = 3700 - k_TransparentPriorityQueueRange,
+            AfterPostprocessTransparentFirst = 3700 - k_TransparentPriorityQueueRangeStep,
             AfterPostprocessTransparent = 3700,
-            AfterPostprocessTransparentLast = 3700 + k_TransparentPriorityQueueRange,
+            AfterPostprocessTransparentLast = 3700 + k_TransparentPriorityQueueRangeStep,
 
-            Overlay = UnityEngine.Rendering.RenderQueue.Overlay
+            Overlay = RenderQueue.Overlay
         }
 
         public enum RenderQueueType
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static RenderQueueType MigrateRenderQueueToHDRP10(RenderQueueType renderQueue)
         {
-            switch((int)renderQueue)
+            switch ((int)renderQueue)
             {
                 case 0: return RenderQueueType.Background; // Background
                 case 1: return RenderQueueType.Opaque; // Opaque
@@ -101,13 +101,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessTransparent = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessTransparentFirst, upperBound = (int)Priority.AfterPostprocessTransparentLast };
 
+        public static readonly RenderQueueRange k_RenderQueue_Overlay = new RenderQueueRange { lowerBound = (int)Priority.Overlay, upperBound = 5000 };
+
         public static readonly RenderQueueRange k_RenderQueue_All = new RenderQueueRange { lowerBound = 0, upperBound = 5000 };
 
         public static bool Contains(this RenderQueueRange range, int value) => range.lowerBound <= value && value <= range.upperBound;
 
         public static int Clamps(this RenderQueueRange range, int value) => Math.Max(range.lowerBound, Math.Min(value, range.upperBound));
 
-        public static int ClampsTransparentRangePriority(int value) => Math.Max(-k_TransparentPriorityQueueRange, Math.Min(value, k_TransparentPriorityQueueRange));
+        public const int sortingPriorityRange = 50;
+        public static int ClampsTransparentRangePriority(int value) => Math.Max(-sortingPriorityRange, Math.Min(value, sortingPriorityRange));
+
+        public const int meshDecalPriorityRange = 50; // This range is arbitrary and match sorting priority
 
         public static RenderQueueType GetTypeByRenderQueueValue(int renderQueue)
         {
@@ -159,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static RenderQueueType GetTransparentEquivalent(RenderQueueType type)
         {
-            switch(type)
+            switch (type)
             {
                 case RenderQueueType.Opaque:
                     return RenderQueueType.Transparent;
@@ -170,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return type;
                 case RenderQueueType.Overlay:
                 case RenderQueueType.Background:
-                    throw new ArgumentException("Unknow RenderQueueType conversion to transparent equivalent, was " + type);
+                    throw new ArgumentException("Unknown RenderQueueType conversion to transparent equivalent, was " + type);
             }
         }
 
@@ -189,10 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     return type;
                 case RenderQueueType.Overlay:
                 case RenderQueueType.Background:
-                    throw new ArgumentException("Unknow RenderQueueType conversion to opaque equivalent, was " + type);
+                    throw new ArgumentException("Unknown RenderQueueType conversion to opaque equivalent, was " + type);
             }
         }
-
 
         //utility: split opaque/transparent queue
         public enum OpaqueRenderQueue
@@ -273,9 +277,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Special case for transparent (as we have transparent range from PreRefractionFirst to AfterPostprocessTransparentLast
             // that start before RenderQueue.Transparent value
-            if (HDRenderQueue.k_RenderQueue_AllTransparent.Contains(index)
-                || HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(index)
-                || HDRenderQueue.k_RenderQueue_LowTransparent.Contains(index))
+            if (k_RenderQueue_AllTransparent.Contains(index)
+                || k_RenderQueue_AfterPostProcessTransparent.Contains(index)
+                || k_RenderQueue_LowTransparent.Contains(index))
             {
                 int v = (index - (int)RenderQueue.Transparent);
                 return "Transparent" + ((v < 0) ? "" : "+") + v;

@@ -5,10 +5,16 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
-// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+// If you need to change this, be sure to read this comment.
+// For raytracing we decided to force the shadow quality to low.
+// - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+// we want to save that cost as it may increase signfiicantly the cost..
+// - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+// in a ray tracing context.
+// In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
 #define SHADOW_LOW
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -29,6 +35,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/RayTracingFallbackHierarchy.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 #define RAYTRACING_DEFERRED_TILE_SIZE 8
 
@@ -47,7 +55,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
 
     #ifdef HALF_RESOLUTION
-    currentCoord *=2;
+    currentCoord = ComputeSourceCoordinates(currentCoord, _RaytracingFrameIndex);
     #endif
 
     // Initialize the output buffer
@@ -55,29 +63,78 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    // If this is a background pixel or an invalid ray, leave right away
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).w < 0.0f)
         return;
 
-    if (LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x < 0.0)
+    // First let's compute the position of the pixel from which the ray has been shot
+    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Fetch the intersection distance of the ray
+    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x;
+
+    // Fetch the direction of the ray
+    float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
+
+    float3 finalColor = 0.0f;
+    // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
+    if (RayTracingGBufferIsSky(rayDistance))
     {
-        float3 newSampleColor = clamp(LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) 
-                                * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier() );
-        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(newSampleColor, 0.0);
+        // Weight value used to do the blending
+        float weight = 0.0;
+
+        if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy)
+            finalColor = RayTraceReflectionProbes(sourcePosInput.positionWS, rayDirection, weight);
+
+        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight == 0.0f)
+        {
+            finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz;
+            weight = 1.0;
+        }
+
+        if (weight > 0.0)
+        {
+            // Apply the fog attenuation
+            ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, finalColor);
+
+            // In the case of the sky we always want to operate the clamping in hsv space (reflections and indirect diffuse)
+            finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
+            finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+            finalColor = HsvToRgb(finalColor);
+        }
+    }
+    else if (RayTracingGBufferIsUnlit(rayDistance))
+    {
+        finalColor = LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb;
+
+        // Expose, clamp and inverse exposure. Though depending on the signal nature we go for different clamping strategies
+        if (_RaytracingPreExposition)
+        {
+            // Convert to HSV space
+            finalColor = RgbToHsv(finalColor);
+
+            // Expose and clamp the final color
+            finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+
+            // Convert back to HSV space
+            finalColor = HsvToRgb(finalColor);
+        }
+        else
+        {
+            finalColor = clamp(finalColor, 0.0, _RaytracingIntensityClamp);
+        }
+    }
+
+    // If the distance is negative, this means it is a sky pixel or an unlit material
+    if (!RayTracingGBufferIsLit(rayDistance))
+    {
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
         return;
     }
 
-    // First let's compute the position of the pixel from which the ray has been shot
-    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = sourcePosInput.positionWS;
-
     // Then compute the pos input of the intersection vertice
-    float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x;
-    float3 intersectionPositionWS = positionWS + rayDirection * rayDistance;
-
+    float3 intersectionPositionWS = sourcePosInput.positionWS + rayDirection * rayDistance;
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, intersectionPositionWS);
-
-    float3 V = -rayDirection;
 
     // Read the bsdf data and builtin data from the gbuffer
     BSDFData bsdfData;
@@ -92,21 +149,36 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     builtinData.shadowMask2 = 1.0;
     builtinData.shadowMask3 = 1.0;
 
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(-rayDirection, posInput, bsdfData);
 
     // Evaluate the complete lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(-rayDirection, posInput, preLightData, bsdfData, builtinData, float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
     float3 specularLighting = lightLoopOutput.specularLighting;
 
-    float3 finalColor = (diffuseLighting + specularLighting);
+    finalColor = (diffuseLighting + specularLighting);
     // Apply fog attenuation
-    ApplyFogAttenuation(positionWS, rayDirection, rayDistance, finalColor, true);
-    // Expose, clamp and inverse exposure
-    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
+    ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, rayDistance, finalColor, true);
+
+    // Expose, clamp and inverse exposure. Though depending on the signal nature we go for different clamping strategies
+    if (_RaytracingPreExposition)
+    {
+        // Convert to HSV space
+        finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
+
+        // Expose and clamp the final color
+        finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+
+        // Convert back to HSV space
+        finalColor = HsvToRgb(finalColor);
+    }
+    else
+    {
+        finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
+    }
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
 }
 
@@ -182,10 +254,10 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
-    
+
     // Evaluate lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

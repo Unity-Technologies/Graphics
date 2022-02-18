@@ -2,7 +2,7 @@
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipelineEditorResources
+    partial class HDRenderPipelineEditorResources
     {
         enum Version
         {

@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public ReflectionProbeNode()
         {
             name = "Reflection Probe";
+            synonyms = new string[] { "light probe", "cube map", "environment" };
         }
-
 
         public override bool hasPreview { get { return false; } }
 
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.one;
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);
 }

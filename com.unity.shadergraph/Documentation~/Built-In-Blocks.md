@@ -6,6 +6,7 @@
 | ![image](images/Blocks-Vertex-Position.png) | Position | Vector 3 | Object Space Position | Defines the absolute object space vertex position per vertex.|
 | ![image](images/Blocks-Vertex-Normal.png) | Normal   | Vector 3 | Object Space Normal | Defines the absolute object space vertex normal per vertex.|
 | ![image](images/Blocks-Vertex-Tangent.png) | Tangent  | Vector 3 | Object Space Tangent | Defines the absolute object space vertex tangent per vertex.|
+| ![image](images/Blocks-Vertex-Color.png) | Color  | Vector 4 | Vertex Color | Defines vertex color. Expected range 0 - 1. |
 
 ## Fragment Blocks
 |            | Name     | Type     | Binding              | Description |

@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         protected SpaceMaterialSlot()
-        {}
+        { }
 
         protected SpaceMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
                                     ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)

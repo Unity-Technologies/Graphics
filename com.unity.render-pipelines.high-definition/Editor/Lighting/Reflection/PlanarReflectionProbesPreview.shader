@@ -1,4 +1,4 @@
-Shader "Debug/PlanarReflectionProbePreview"
+Shader "Hidden/Debug/PlanarReflectionProbePreview"
 {
     Properties
     {
@@ -22,6 +22,8 @@ Shader "Debug/PlanarReflectionProbePreview"
             HLSLPROGRAM
 
             #pragma editor_sync_compilation
+            #pragma target 4.5
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex vert
             #pragma fragment frag

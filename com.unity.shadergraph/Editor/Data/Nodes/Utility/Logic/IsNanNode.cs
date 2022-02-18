@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Is NaN";
         }
 
-
         public override bool hasPreview
         {
             get { return false; }
@@ -27,9 +26,9 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
-    Out = (In < 0.0 || In > 0.0 || In == 0.0) ? 0 : 1;
+    Out = isnan(In) ? 1 : 0;
 }
 ";
         }

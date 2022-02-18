@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
         }
-        
+
         static void DrawBoxHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, transform.rotation, Vector3.one)))

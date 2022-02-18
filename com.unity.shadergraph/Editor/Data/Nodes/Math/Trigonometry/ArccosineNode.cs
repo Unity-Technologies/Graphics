@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public ArccosineNode()
         {
             name = "Arccosine";
+            synonyms = new string[] { "acos" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = acos(In);
 }

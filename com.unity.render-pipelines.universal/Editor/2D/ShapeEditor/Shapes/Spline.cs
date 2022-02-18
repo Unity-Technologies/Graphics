@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal struct Spline : IShape
     {
@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             if (points == null)
                 throw new NullReferenceException("Points array is null");
 
-            if (!points.IsSpline(isOpenEnded)) 
+            if (!points.IsSpline(isOpenEnded))
                 throw new Exception("The provided control point array can't conform a Spline.");
 
             var controlPoints = new List<ControlPoint>();
@@ -37,11 +37,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     else
                         leftTangent = points[EditablePathUtility.Mod(-1, pointCount)];
                 }
-                
+
                 if (i == pointCount - 1 && isOpenEnded)
                     rightTangent = points[i];
                 else
-                    rightTangent = points[i+1];
+                    rightTangent = points[i + 1];
 
 
                 controlPoints.Add(
@@ -56,15 +56,15 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 if (i == pointCount - 1 && isOpenEnded)
                     leftTangent = Vector3.zero;
                 else
-                    leftTangent = points[i+2];
+                    leftTangent = points[i + 2];
             }
 
             pointCount = controlPoints.Count;
 
-            for (var i = 0; i < pointCount; ++i) 
+            for (var i = 0; i < pointCount; ++i)
             {
-                var prevIndex = EditablePathUtility.Mod(i-1, pointCount);
-                var nextIndex = EditablePathUtility.Mod(i+1, pointCount);
+                var prevIndex = EditablePathUtility.Mod(i - 1, pointCount);
+                var nextIndex = EditablePathUtility.Mod(i + 1, pointCount);
                 var controlPoint = controlPoints[i];
                 var prevControlPoint = controlPoints[prevIndex];
                 var nextControlPoint = controlPoints[nextIndex];
@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 var liniarLeftPosition = (prevControlPoint.position - controlPoint.position) / 3f;
                 var isLeftTangentLinear = (controlPoint.localLeftTangent - liniarLeftPosition).sqrMagnitude < 0.001f;
 
-                if (isLeftTangentLinear) 
+                if (isLeftTangentLinear)
                     controlPoint.localLeftTangent = Vector3.zero;
 
                 var liniarRightPosition = (nextControlPoint.position - controlPoint.position) / 3f;

@@ -9,14 +9,14 @@ EnumConversionControlView {
 
 .unity-base-field {
     width: 80px;
-	flex:1;
+    flex:1;
     margin-top: 1px;
     margin-bottom: 1px;
 }
 
 .unity-base-field__input {
-	flex:1;
-	margin-left: 0;
+    flex:1;
+    margin-left: 0;
     margin-right: 0;
     margin-top: 0;
     margin-bottom: 0;

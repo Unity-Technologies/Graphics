@@ -1,13 +1,14 @@
 #pragma kernel RaytracingLightCluster
 #pragma kernel RaytracingLightCull
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // SRP & HDRP includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRaytracingLightCluster.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 
 #define CLUSTER_GROUP_SIZE 8
 
@@ -78,27 +79,8 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 
         if (currentLight.shape == 0)
         {
-            // When the shape we are processing is a sphere, the radius is stored in the three channels
-            float squareRange = currentLight.range.x * currentLight.range.x;
-            
-            // So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
-            for(uint cIdx = 0; cIdx < 8; ++cIdx)
-            {
-                // Check if this corner is inside the shphere
-                float3 dir = currentLight.position - (cellCenterPosition + CornerSubDirections[cIdx] * _ClusterCellSize);
-                if(dot(dir, dir) <= squareRange)
-                {
-                    intersects = true;
-                    break;
-                }
-            }
-
-            // One additional case that we need to check is: Is the light inside the cell?
-            if (!intersects) 
-            {    
-                float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
-                intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
-            }
+            // Do a box sphere intersection
+            intersects = IntersectSphereAABB(currentLight.position, currentLight.range.x, cellCenterPosition + CornerSubDirections[0] * _ClusterCellSize, cellCenterPosition + CornerSubDirections[7] * _ClusterCellSize);
         }
         else
         {

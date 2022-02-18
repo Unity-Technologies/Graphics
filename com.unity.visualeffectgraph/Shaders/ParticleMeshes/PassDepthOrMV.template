@@ -1,12 +1,24 @@
 #pragma target 4.5
 
+#if SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#define NEEDS_NORMAL 1
+#endif
+
+#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+#define NEEDS_TANGENT 1
+#endif
+
 struct ps_input
 {
 	float4 pos : SV_POSITION;
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
+	#if USE_FLIPBOOK_ARRAY_LAYOUT
+	float3 uv : TEXCOORD0;
+	#else
 	float2 uv : TEXCOORD0;	
+	#endif
 	#endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : TEXCOORD1;
@@ -38,10 +50,17 @@ struct ps_input
     #endif
 	
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-	float4 cPosPrevious : TEXCOORD7;
-	float4 cPosNonJiterred : TEXCOORD8;
+	VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
 	#endif
     ${VFXAdditionalInterpolantsDeclaration}
+
+    #if NEEDS_NORMAL
+    float3 normal : TEXCOORD9;
+    #endif
+
+    #if NEEDS_TANGENT
+    float4 tangent : TEXCOORD10;
+    #endif
 	
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -58,9 +77,17 @@ struct ps_input
 #define VFX_VARYING_POSWS posWS
 #endif
 
+#if NEEDS_NORMAL
+#define VFX_VARYING_NORMAL normal
+#endif
+
+#if NEEDS_TANGENT
+#define VFX_VARYING_TANGENT tangent
+#endif
+
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
-#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
+#define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
 #endif
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR

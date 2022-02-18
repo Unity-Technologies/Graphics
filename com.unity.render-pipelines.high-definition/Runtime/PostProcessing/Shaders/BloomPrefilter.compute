@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KMain
 
@@ -22,9 +22,9 @@ CBUFFER_END
 
 float3 BilinearSample(float2 uv, float2 offset, out float weight)
 {
-    CTYPE c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv + offset * _ScreenSize.zw), 0.0).CTYPE_SWIZZLE;
+    CTYPE c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(uv + offset * _PostProcessScreenSize.zw), 0.0).CTYPE_SWIZZLE;
 #ifdef ENABLE_ALPHA
-    // When alpha is enabled, regions with zero alpha should not generate any bloom / glow. Therefore we pre-multipy the color with the alpha channel here and the rest  
+    // When alpha is enabled, regions with zero alpha should not generate any bloom / glow. Therefore we pre-multipy the color with the alpha channel here and the rest
     // of the computations remain float3. Still, when bloom is applied to the final image, bloom will still be spread on regions with zero alpha (see UberPost.compute)
     c.xyz *= c.w;
 #endif

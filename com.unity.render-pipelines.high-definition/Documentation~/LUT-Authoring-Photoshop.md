@@ -6,14 +6,14 @@ The following process uses Photoshop, but you can apply it for other digital con
 
 Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
-This is a fixed size; if you change it later, you need to rebake all of your LUTs. A size of **32** provides enough precision for real-time use. 
+This is a fixed size; if you change it later, you need to rebake all of your LUTs. A size of **32** provides enough precision for real-time use.
 
 ## Step 2: Render the Camera view to an EXR file
 
 Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
-2. Select **Edit** > **Render Pipeline** > **Render Selected Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
+2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
 3. Save the EXR file.
 
 ![](Images/LUTAuthoringPhototshop1.png)

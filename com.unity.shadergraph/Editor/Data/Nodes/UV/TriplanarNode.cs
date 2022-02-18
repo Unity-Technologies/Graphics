@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
-{    
+{
     [Title("UV", "Triplanar")]
     class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
@@ -24,18 +24,18 @@ namespace UnityEditor.ShaderGraph
         const string kTileInputName = "Tile";
         const string kBlendInputName = "Blend";
 
+        PositionMaterialSlot positionSlot => FindInputSlot<PositionMaterialSlot>(PositionInputId);
+        NormalMaterialSlot normalSlot => FindInputSlot<NormalMaterialSlot>(NormalInputId);
+
         public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
 
         public TriplanarNode()
         {
             name = "Triplanar";
+            synonyms = new string[] { "project" };
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
-
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;
@@ -56,13 +56,54 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private CoordinateSpace m_InputSpace = CoordinateSpace.AbsoluteWorld;
+
+        public CoordinateSpace inputSpace
+        {
+            get { return m_InputSpace; }
+            set
+            {
+                if (m_InputSpace == value)
+                    return;
+
+                m_InputSpace = value;
+
+                Setup();
+                Dirty(ModificationScope.Topological); // needed to update slot views
+
+                ValidateNode();
+            }
+        }
+
+        [SerializeField]
+        private CoordinateSpace m_NormalOutputSpace = CoordinateSpace.Tangent;
+
+        public CoordinateSpace normalOutputSpace
+        {
+            get { return m_NormalOutputSpace; }
+            set
+            {
+                if (m_NormalOutputSpace == value)
+                    return;
+
+                m_NormalOutputSpace = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        internal SpaceTransform normalTransform =>
+            new SpaceTransform(inputSpace, normalOutputSpace, ConversionType.Normal, normalize: true);
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.AbsoluteWorld));
-            AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.World));
+            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, inputSpace));
+            AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, inputSpace));
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
             AddSlot(new Vector1MaterialSlot(BlendInputId, kBlendInputName, kBlendInputName, SlotType.Input, 1));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
@@ -72,7 +113,9 @@ namespace UnityEditor.ShaderGraph
         {
             base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
-            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.NormalMap : Texture2DShaderProperty.DefaultType.White);
+            positionSlot.space = inputSpace;
+            normalSlot.space = inputSpace;
         }
 
         // Node generations
@@ -98,20 +141,20 @@ namespace UnityEditor.ShaderGraph
                         , GetSlotValue(BlendInputId, generationMode));
                     sb.AppendLine("{0}_Blend /= ({0}_Blend.x + {0}_Blend.y + {0}_Blend.z ).xxx;", GetVariableNameForNode());
 
-                    sb.AppendLine("$precision3 {0}_X = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy));"
+                    sb.AppendLine("$precision3 {0}_X = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.zy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
-                    sb.AppendLine("$precision3 {0}_Y = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz));"
+                    sb.AppendLine("$precision3 {0}_Y = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.xz));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
-                    sb.AppendLine("$precision3 {0}_Z = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy));"
+                    sb.AppendLine("$precision3 {0}_Z = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.xy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
                     sb.AppendLine("{0}_X = $precision3({0}_X.xy + {1}.zy, abs({0}_X.z) * {1}.x);"
                         , GetVariableNameForNode()
@@ -125,13 +168,15 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode));
 
-                    sb.AppendLine("$precision4 {0} = $precision4(normalize({1}_X.zyx * {1}_Blend.x + {1}_Y.xzy * {1}_Blend.y + {1}_Z.xyz * {1}_Blend.z), 1);"
-                        , GetVariableNameForSlot(OutputSlotId)
+                    var outputVariable = GetVariableNameForSlot(OutputSlotId);
+                    sb.AppendLine("$precision4 {0} = $precision4({1}_X.zyx * {1}_Blend.x + {1}_Y.xzy * {1}_Blend.y + {1}_Z.xyz * {1}_Blend.z, 1);"
+                        , outputVariable
                         , GetVariableNameForNode());
-                    sb.AppendLine("$precision3x3 {0}_Transform = $precision3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);", GetVariableNameForNode());
-                    sb.AppendLine("{0}.rgb = TransformWorldToTangent({0}.rgb, {1}_Transform);"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , GetVariableNameForNode());
+
+                    // transform the normal from input to output space, and normalize
+
+                    outputVariable = $"{outputVariable}.rgb";
+                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputVariable, outputVariable, sb);
                     break;
                 default:
                     // We want the sum of the 3 blend weights (by which we normalize them) to be > 0.
@@ -148,20 +193,20 @@ namespace UnityEditor.ShaderGraph
                         , GetSlotValue(NormalInputId, generationMode)
                         , GetSlotValue(BlendInputId, generationMode));
                     sb.AppendLine("{0}_Blend /= dot({0}_Blend, 1.0);", GetVariableNameForNode());
-                    sb.AppendLine("$precision4 {0}_X = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy);"
+                    sb.AppendLine("$precision4 {0}_X = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.zy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
-                    sb.AppendLine("$precision4 {0}_Y = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz);"
+                    sb.AppendLine("$precision4 {0}_Y = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.xz);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
-                    sb.AppendLine("$precision4 {0}_Z = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy);"
+                    sb.AppendLine("$precision4 {0}_Z = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {0}_UV.xy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
                     sb.AppendLine("$precision4 {0} = {1}_X * {1}_Blend.x + {1}_Y * {1}_Blend.y + {1}_Z * {1}_Blend.z;"
                         , GetVariableNameForSlot(OutputSlotId)
@@ -172,34 +217,31 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.AbsoluteWorld.ToNeededCoordinateSpace() | CoordinateSpace.World.ToNeededCoordinateSpace();
+            return positionSlot.RequiresPosition();
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.World.ToNeededCoordinateSpace();
+            NeededCoordinateSpace neededSpaces = normalSlot.RequiresNormal();
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresNormal;
+            return neededSpaces;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            switch (m_TextureType)
-            {
-                case TextureType.Normal:
-                    return CoordinateSpace.World.ToNeededCoordinateSpace();
-                default:
-                    return NeededCoordinateSpace.None;
-            }
+            NeededCoordinateSpace neededSpaces = NeededCoordinateSpace.None;
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresTangent;
+            return neededSpaces;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            switch (m_TextureType)
-            {
-                case TextureType.Normal:
-                    return CoordinateSpace.World.ToNeededCoordinateSpace();
-                default:
-                    return NeededCoordinateSpace.None;
-            }
+            NeededCoordinateSpace neededSpaces = NeededCoordinateSpace.None;
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresBitangent;
+            return neededSpaces;
         }
     }
 }

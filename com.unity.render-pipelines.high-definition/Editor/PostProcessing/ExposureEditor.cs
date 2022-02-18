@@ -1,10 +1,9 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(Exposure))]
+    [CustomEditor(typeof(Exposure))]
     sealed class ExposureEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;
@@ -37,11 +36,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_TargetMidGray;
 
-        private static LightUnitSliderUIDrawer k_LightUnitSlider;
+        private static HDLightUnitSliderUIDrawer k_LightUnitSlider;
 
-        static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
-
-        public override bool hasAdvancedMode => true;
+        int m_RepaintsAfterChange = 0;
+        int m_SettingsForDoubleRefreshHash = 0;
 
         public override void OnEnable()
         {
@@ -77,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
 
-            k_LightUnitSlider = new LightUnitSliderUIDrawer();
+            k_LightUnitSlider = new HDLightUnitSliderUIDrawer();
         }
 
         public override void OnInspectorGUI()
@@ -91,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)ExposureMode.Fixed)
             {
-                DoFixedExposureField(m_FixedExposure);
+                DoExposurePropertyField(m_FixedExposure);
                 PropertyField(m_Compensation);
             }
             else
@@ -99,15 +97,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 PropertyField(m_MeteringMode);
-                if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
+                if (m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
                     PropertyField(m_WeightTextureMask);
 
-                if (m_MeteringMode.value.intValue == (int) MeteringMode.ProceduralMask)
+                if (m_MeteringMode.value.intValue == (int)MeteringMode.ProceduralMask)
                 {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField("Procedural Mask", EditorStyles.miniLabel);
-
-
                     PropertyField(m_CenterAroundTarget);
 
                     var centerLabel = EditorGUIUtility.TrTextContent("Center", "Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)");
@@ -126,14 +120,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralCenter, centerLabel);
                     var radiiValue = m_ProceduralRadii.value.vector2Value;
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
-                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
+                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
-
-                    if (isInAdvancedMode)
-                    {
-                        PropertyField(m_ProceduralMinIntensity);
-                        PropertyField(m_ProceduralMaxIntensity);
-                    }
+                    PropertyField(m_ProceduralMinIntensity);
+                    PropertyField(m_ProceduralMaxIntensity);
 
                     EditorGUILayout.Space();
                 }
@@ -152,16 +142,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else if (!(mode == (int)ExposureMode.AutomaticHistogram && m_HistogramCurveRemapping.value.boolValue))
                 {
-                    PropertyField(m_LimitMin);
-                    PropertyField(m_LimitMax);
+                    DoExposurePropertyField(m_LimitMin);
+                    DoExposurePropertyField(m_LimitMax);
                 }
 
                 PropertyField(m_Compensation);
 
-                if(mode == (int)ExposureMode.AutomaticHistogram)
+                if (mode == (int)ExposureMode.AutomaticHistogram)
                 {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
                     PropertyField(m_HistogramPercentages);
                     PropertyField(m_HistogramCurveRemapping, EditorGUIUtility.TrTextContent("Use Curve Remapping"));
                     if (m_HistogramCurveRemapping.value.boolValue)
@@ -172,9 +160,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Adaptation", EditorStyles.miniLabel);
-
                 PropertyField(m_AdaptationMode, EditorGUIUtility.TrTextContent("Mode"));
 
                 if (m_AdaptationMode.value.intValue == (int)AdaptationMode.Progressive)
@@ -183,54 +168,63 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                if (isInAdvancedMode)
+                PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
+            }
+
+            // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if
+            // some of the changes that will lead to different results are changed.
+            int automaticCurrSettingHash = m_LimitMin.value.floatValue.GetHashCode() +
+                17 * m_LimitMax.value.floatValue.GetHashCode() +
+                17 * m_Compensation.value.floatValue.GetHashCode();
+
+            if (mode == (int)ExposureMode.Automatic || mode == (int)ExposureMode.AutomaticHistogram)
+            {
+                if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
                 {
-                    EditorGUILayout.Space();
+                    m_RepaintsAfterChange = 2;
+                }
+                else
+                {
+                    m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
+                }
+                m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
 
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        // Override checkbox
-                        DrawOverrideCheckbox(m_TargetMidGray);
-
-                        // Property
-                        using (new EditorGUI.DisabledScope(!m_TargetMidGray.overrideState.boolValue))
-                        {
-                            // Default unity field
-                            m_TargetMidGray.value.intValue = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."),
-                                                                                    m_TargetMidGray.value.intValue, s_MidGrayNames);
-                        }
-                    }
+                if (m_RepaintsAfterChange > 0)
+                {
+                    SceneView.RepaintAll();
                 }
             }
         }
 
-        // TODO: See if it's possible to refactor into a custom VolumeParameterDrawer
-        void DoFixedExposureField(SerializedDataParameter fixedExposure)
+        // TODO: See if this can be refactored into a custom VolumeParameterDrawer
+        void DoExposurePropertyField(SerializedDataParameter exposureProperty)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(exposureProperty, exposureProperty.displayName, this))
             {
-                DrawOverrideCheckbox(fixedExposure);
+                if (!scope.displayed)
+                    return;
 
-                using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
-                    EditorGUILayout.LabelField(fixedExposure.displayName);
-            }
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUILayout.LabelField(scope.label);
 
-            using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
-            {
-                var xOffset = EditorGUIUtility.labelWidth + 22;
-                var lineRect = EditorGUILayout.GetControlRect();
-                lineRect.x += xOffset;
-                lineRect.width -= xOffset;
+                    var xOffset = EditorGUIUtility.labelWidth + 2;
 
-                var sliderRect = lineRect;
-                sliderRect.y -= EditorGUIUtility.singleLineHeight;
-                k_LightUnitSlider.SetSerializedObject(serializedObject);
-                k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
+                    var lineRect = EditorGUILayout.GetControlRect();
+                    lineRect.x += xOffset;
+                    lineRect.width -= xOffset;
 
-                // GUIContent.none disables horizontal scrolling, ur TrTextContent and adjust the rect to make it work
-                lineRect.x -= EditorGUIUtility.labelWidth + 2;
-                lineRect.width += EditorGUIUtility.labelWidth + 2;
-                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, EditorGUIUtility.TrTextContent(" "));
+                    var sliderRect = lineRect;
+                    sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                    k_LightUnitSlider.SetSerializedObject(serializedObject);
+                    k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+
+                    // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
+                    lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                    lineRect.y += EditorGUIUtility.standardVerticalSpacing;
+                    lineRect.width += EditorGUIUtility.labelWidth + 2;
+                    EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
+                }
             }
         }
     }

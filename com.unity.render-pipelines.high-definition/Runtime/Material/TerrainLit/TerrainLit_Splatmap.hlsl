@@ -184,12 +184,12 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
         #elif defined(_TERRAIN_BLEND_DENSITY)
             // Denser layers are more visible.
             float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-            opacityAsDensity0 += 0.001f * blendMasks0;		// if all weights are zero, default to what the blend mask says
+            opacityAsDensity0 += 0.001f * blendMasks0;      // if all weights are zero, default to what the blend mask says
             float4 useOpacityAsDensityParam0 = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
             blendMasks0 = lerp(opacityAsDensity0, blendMasks0, useOpacityAsDensityParam0);
             #ifdef _TERRAIN_8_LAYERS
                 float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-                opacityAsDensity1 += 0.001f * blendMasks1;	// if all weights are zero, default to what the blend mask says
+                opacityAsDensity1 += 0.001f * blendMasks1;  // if all weights are zero, default to what the blend mask says
                 float4 useOpacityAsDensityParam1 = { _DiffuseRemapScale4.w, _DiffuseRemapScale5.w, _DiffuseRemapScale6.w, _DiffuseRemapScale7.w };
                 blendMasks1 = lerp(opacityAsDensity1, blendMasks1, useOpacityAsDensityParam1);
             #endif

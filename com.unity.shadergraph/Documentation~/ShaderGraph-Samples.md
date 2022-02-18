@@ -2,7 +2,7 @@
 
 ## Description
 
-The Shader Graph package offers sample Assets, which you can download through **Package Manager**. When you import these samples, Unity places the files in your Project's Asset folder. The files contain examples that demonstrate how to use Shader Graph features. 
+The Shader Graph package offers sample Assets, which you can download through **Package Manager**. When you import these samples, Unity places the files in your Project's Asset folder. The files contain examples that demonstrate how to use Shader Graph features.
 
 ## Add samples
 

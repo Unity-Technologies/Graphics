@@ -24,7 +24,24 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    // For custom interpolators to inject a substruct definition before FragInputs definition,
+    // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
+    $splice(CustomInterpolatorPreInclude)
+
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl" // Required by Tessellation.hlsl
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -35,28 +52,50 @@ Pass
     // Defines
 
     // Attribute
-    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
-    $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
-    $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:        #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
-    $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
-    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+    $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+    $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
+
+    $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
+
+    $VertexDescription.CustomVelocity: #define _ADD_CUSTOM_VELOCITY
+
     $splice(GraphDefines)
+
+    $features.graphTessellation: #ifdef TESSELLATION_ON
+    $features.graphTessellation: // World and normal are always available
+    $features.graphTessellation: $VaryingsMeshToDS.positionPredisplacementRWS:          #define VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT
+    $features.graphTessellation: $VaryingsMeshToDS.tangentWS:                           #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:                           #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:                           #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:                           #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:                           #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:                               #define VARYINGS_DS_NEED_COLOR
+	$features.graphTessellation: #endif
 
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
     // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
     // to still allow us to rename the field and keyword of this node without breaking existing code.
-    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT
     #define RAYTRACING_SHADER_GRAPH_HIGH
     #endif
 
@@ -67,7 +106,8 @@ Pass
 
     #ifndef SHADER_UNLIT
     // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
-    #ifdef _DOUBLESIDED_ON
+    // VARYINGS_NEED_CULLFACE can be define by VaryingsMeshToPS.FaceSign input if a IsFrontFace Node is included in the shader graph.
+    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
         #define VARYINGS_NEED_CULLFACE
     #endif
     #endif
@@ -95,7 +135,7 @@ Pass
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-        #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
+        #if !defined(_SURFACE_TYPE_TRANSPARENT)
             #if SHADERPASS == SHADERPASS_FORWARD
             #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #elif SHADERPASS == SHADERPASS_GBUFFER
@@ -104,20 +144,23 @@ Pass
         #endif
     #endif
 
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #if defined(SHADER_LIT) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _DEFERRED_CAPABLE_MATERIAL
+    #endif
+
     // Translate transparent motion vector define
     #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
         #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
 
-    // Dots Instancing
-    $splice(DotsInstancingOptions)
-
-    // Various properties
-
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // -- Graph Properties
     $splice(GraphProperties)
+
+    // -- Property used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
 
     // -- Properties used by SceneSelectionPass
     #ifdef SCENESELECTIONPASS
@@ -127,6 +170,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -150,9 +194,16 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    #ifdef HAVE_VFX_MODIFICATION
+    #define VFX_SRP_ATTRIBUTES AttributesMesh
+    #define VaryingsMeshType VaryingsMeshToPS
+    #define VFX_SRP_VARYINGS VaryingsMeshType
+    #define VFX_SRP_SURFACE_INPUTS FragInputs
+    #endif
+    $features.graphVFX:     $include("VFXConfig.template.hlsl")
+    $features.graphVertex:  $include("Vertex.template.hlsl")
+    $features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
@@ -182,7 +233,17 @@ Pass
         #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+
+        #if defined(HAVE_VFX_MODIFICATION)
+        GraphProperties properties;
+        ZERO_INITIALIZE(GraphProperties, properties);
+
+        GetElementPixelProperties(fragInputs, properties);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+        #else
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+        #endif
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
@@ -219,7 +280,7 @@ Pass
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
-        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
         #if defined(DEBUG_DISPLAY)
@@ -245,7 +306,9 @@ Pass
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
         // This is a limitation of the current MRT approach.
+        #ifdef UNITY_VIRTUAL_TEXTURING
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+        #endif
 
         #if _DEPTHOFFSET_ON
         builtinData.depthOffset = surfaceDescription.DepthOffset;
@@ -271,6 +334,13 @@ Pass
     // Main
 
     $splice(PostGraphIncludes)
+
+    // --------------------------------------------------
+    // Visual Effect Vertex Invocations
+
+	#ifdef HAVE_VFX_MODIFICATION
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+	#endif
 
     ENDHLSL
 }

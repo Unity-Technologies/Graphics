@@ -28,6 +28,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string assetReferenceName => $"{referenceName}_Asset";
 
+        internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, float)";
+            else
+                return base.GetHLSLVariableName(isSubgraphProperty, mode);
+        }
+
         internal override string GetPropertyBlockString()
         {
             uint hash = 0;
@@ -40,16 +49,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             /// <summary>Float to string convertion function without any loss of precision</summary>
-            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
+            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339), CultureInfo.InvariantCulture);
 
             return
-$@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+                $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
-        public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
+        public override string GetOldDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return $"float {referenceName}";
         }
@@ -81,20 +90,17 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
             return new DiffusionProfileShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
         void IShaderPropertyDrawer.HandlePropertyField(PropertySheet propertySheet, PreChangeValueCallback preChangeValueCallback, PostChangeValueCallback postChangeValueCallback)
         {
-            var diffusionProfileDrawer = new DiffusionProfilePropertyDrawer();
+            var diffusionProfileDrawer = new ShaderGraphDiffusionProfilePropertyDrawer();
 
             propertySheet.Add(diffusionProfileDrawer.CreateGUI(
-                newValue => {
+                newValue =>
+                {
                     preChangeValueCallback("Changed Diffusion Profile");
                     value = newValue;
                     postChangeValueCallback(true);

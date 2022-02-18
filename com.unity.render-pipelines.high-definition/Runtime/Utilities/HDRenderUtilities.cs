@@ -98,60 +98,60 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (target.dimension)
                 {
                     case TextureDimension.Tex2D:
-                        {
+                    {
 #if DEBUG
-                            Debug.LogWarning(
-                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        Debug.LogWarning(
+                            "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        );
+#endif
+                        Assert.IsNotNull(rtTarget);
+                        camera.targetTexture = rtTarget;
+                        camera.Render();
+                        camera.targetTexture = null;
+                        target.IncrementUpdateCount();
+                        break;
+                    }
+                    case TextureDimension.Cube:
+                    {
+                        Assert.IsTrue(rtTarget != null || cubeTarget != null);
+
+                        var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                        canHandleStaticFlags = true;
+#endif
+                        // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                        if (canHandleStaticFlags && staticFlags != 0)
+                        // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                        {
+#if UNITY_EDITOR
+                            UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                camera,
+                                rtTarget,
+                                -1,
+                                (UnityEditor.StaticEditorFlags)staticFlags
                             );
 #endif
-                            Assert.IsNotNull(rtTarget);
-                            camera.targetTexture = rtTarget;
-                            camera.Render();
-                            camera.targetTexture = null;
-                            target.IncrementUpdateCount();
-                            break;
                         }
-                    case TextureDimension.Cube:
+                        else
                         {
-                            Assert.IsTrue(rtTarget != null || cubeTarget != null);
-
-                            var canHandleStaticFlags = false;
-#if UNITY_EDITOR
-                            canHandleStaticFlags = true;
-#endif
                             // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                            if (canHandleStaticFlags && staticFlags != 0)
-                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            if (!canHandleStaticFlags && staticFlags != 0)
+                            // ReSharper restore ConditionIsAlwaysTrueOrFalse
                             {
-#if UNITY_EDITOR
-                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
-                                    camera,
-                                    rtTarget,
-                                    -1,
-                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                Debug.LogWarning(
+                                    "A static flags bitmask was provided but this is ignored in player builds"
                                 );
-#endif
-                            }
-                            else
-                            {
-                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                                if (!canHandleStaticFlags && staticFlags != 0)
-                                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
-                                {
-                                    Debug.LogWarning(
-                                        "A static flags bitmask was provided but this is ignored in player builds"
-                                    );
-                                }
-
-                                if (rtTarget != null)
-                                    camera.RenderToCubemap(rtTarget);
-                                if (cubeTarget != null)
-                                    camera.RenderToCubemap(cubeTarget);
                             }
 
-                            target.IncrementUpdateCount();
-                            break;
+                            if (rtTarget != null)
+                                camera.RenderToCubemap(rtTarget);
+                            if (cubeTarget != null)
+                                camera.RenderToCubemap(cubeTarget);
                         }
+
+                        target.IncrementUpdateCount();
+                        break;
+                    }
                 }
             }
             finally
@@ -209,14 +209,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="position">The probe position to use.</param>
         /// <param name="cameras">Will receives the camera settings.</param>
         /// <param name="cameraPositions">Will receives the camera position settings.</param>
+        /// <param name="cameraCubeFaces">Will receive the camera cube face settings.</param>
         /// <param name="overrideSceneCullingMask">Override of the scene culling mask.</param>
+        /// <param name="renderSteps">The rendering steps to perform for this probe.</param>
         /// <param name="forceFlipY">Whether to force the Y axis flipping.</param>
         /// <param name="referenceFieldOfView">The reference field of view.</param>
         /// <param name="referenceAspect">The reference aspect ratio.</param>
         public static void GenerateRenderingSettingsFor(
             ProbeSettings settings, ProbeCapturePositionSettings position,
-            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
+            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions, List<CubemapFace> cameraCubeFaces,
             ulong overrideSceneCullingMask,
+            ProbeRenderSteps renderSteps,
             bool forceFlipY = false,
             float referenceFieldOfView = 90,
             float referenceAspect = 1
@@ -235,24 +238,29 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    {
-                        cameras.Add(cameraSettings);
-                        cameraPositions.Add(cameraPositionSettings);
-                        break;
-                    }
+                {
+                    cameras.Add(cameraSettings);
+                    cameraPositions.Add(cameraPositionSettings);
+                    cameraCubeFaces.Add(CubemapFace.Unknown);
+                    break;
+                }
                 case ProbeSettings.ProbeType.ReflectionProbe:
+                {
+                    for (int i = 0; i < 6; ++i)
                     {
-                        for (int i = 0; i < 6; ++i)
-                        {
-                            var cameraPositionCopy = cameraPositionSettings;
-                            cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
-                                s_GenerateRenderingSettingsFor_Rotations[i]
-                            );
-                            cameras.Add(cameraSettings);
-                            cameraPositions.Add(cameraPositionCopy);
-                        }
-                        break;
+                        CubemapFace face = (CubemapFace)i;
+                        if (!renderSteps.HasCubeFace(face))
+                            continue;
+                        var cameraPositionCopy = cameraPositionSettings;
+                        cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
+                            s_GenerateRenderingSettingsFor_Rotations[i]
+                        );
+                        cameras.Add(cameraSettings);
+                        cameraPositions.Add(cameraPositionCopy);
+                        cameraCubeFaces.Add(face);
                     }
+                    break;
+                }
             }
         }
 
@@ -341,13 +349,15 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead", true)]
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
-            return new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
                 useMipMap = true,
                 autoGenerateMips = false
             };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>
@@ -358,13 +368,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture to use as reflection probe target.</returns>
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, GraphicsFormat format)
         {
-            return new RenderTexture(cubemapSize, cubemapSize, 1, format)
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, format)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>
@@ -375,13 +388,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize, GraphicsFormat format)
         {
-            return new RenderTexture(planarSize, planarSize, 1, format)
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, format)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>
@@ -391,13 +407,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
         {
-            return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 useMipMap = true,
                 autoGenerateMips = false
             };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>

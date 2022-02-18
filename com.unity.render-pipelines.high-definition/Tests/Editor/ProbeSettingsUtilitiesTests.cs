@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 probeSettings.proxySettings.capturePositionProxySpace,
                 Quaternion.LookRotation(Vector3.forward),
                 Vector3.one
-            ).inverse;
+                ).inverse;
 
             ProbeSettingsUtilities.ApplyObliqueNearClipPlane(
                 ref probeSettings, ref probePosition,

@@ -5,14 +5,13 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Screen Position")]
-    class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
+    class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         public ScreenPositionNode()
         {
             name = "Screen Position";
             UpdateNodeAfterDeserialization();
         }
-
 
         [SerializeField]
         private ScreenSpaceType m_ScreenSpaceType = ScreenSpaceType.Default;
@@ -35,11 +34,6 @@ namespace UnityEditor.ShaderGraph
         private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview2D; }
-        }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -52,9 +46,19 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine(string.Format("$precision4 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()));
         }
 
-        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
+        bool IMayRequireScreenPosition.RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            return true;
+            return screenSpaceType.RequiresScreenPosition();
+        }
+
+        bool IMayRequireNDCPosition.RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            return screenSpaceType.RequiresNDCPosition();
+        }
+
+        bool IMayRequirePixelPosition.RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            return screenSpaceType.RequiresPixelPosition();
         }
     }
 }

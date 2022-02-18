@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public static ShaderPort Create(MaterialSlot slot, IEdgeConnectorListener connectorListener)
         {
             var port = new ShaderPort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output,
-                    slot.isInputSlot ? Capacity.Single : Capacity.Multi, null)
+                slot.isInputSlot ? Capacity.Single : Capacity.Multi, null)
             {
                 m_EdgeConnector = new EdgeConnector<Edge>(connectorListener),
             };

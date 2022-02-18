@@ -1,9 +1,9 @@
-﻿Shader "Hidden/Shader/BluePP"
+Shader "Hidden/Shader/BluePP"
 {
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -43,7 +43,7 @@
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
-        float2 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xy;
+        float2 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xz;
 
         return float4(outColor.y, 0, outColor.x, _Intensity);
     }

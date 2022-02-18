@@ -43,26 +43,14 @@ CBUFFER_END
     #endif
 #endif
 
-// Declare distortion variables just to make the code compile with the Debug Menu.
-// See LitBuiltinData.hlsl:73.
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER(sampler_DistortionVectorMap);
-
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
-
 #ifdef _ALPHATEST_ON
 TEXTURE2D(_TerrainHolesTexture);
 SAMPLER(sampler_TerrainHolesTexture);
 
 void ClipHoles(float2 uv)
 {
-	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-	DoAlphaTest(hole, 0.5);
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    DoAlphaTest(hole, 0.5);
 }
 #endif
 
@@ -159,8 +147,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
 
 #ifdef _ALPHATEST_ON
-	ClipHoles(input.texCoord0.xy);
-#endif	
+    ClipHoles(input.texCoord0.xy);
+#endif
 
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
@@ -172,20 +160,17 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     #ifdef TERRAIN_PERPIXEL_NORMAL_OVERRIDE
         float3 normalWS = terrainLitSurfaceData.normalData.xyz; // normalData directly contains normal in world space.
-        surfaceData.normalWS = normalWS;
     #else
         float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
     #endif
     float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
     input.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
+    surfaceData.normalWS = normalWS;
+#else
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 #endif
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
-
-#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
-    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
-    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
-#endif
 
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
@@ -214,17 +199,53 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.specularOcclusion = 1.0;
+
+#ifdef DECAL_SURFACE_GRADIENT
+
+#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
+    #if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        float alpha = 1.0; // unused
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+    }
+    #endif
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+#elif HAVE_DECALS
+    if (_EnableDecals)
+    {
+        float3 normalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], surfaceData.normalWS);
+
+        float alpha = 1.0; // unused
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+
+        GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+    }
+#endif
+
+#else // DECAL_SURFACE_GRADIENT
+
+#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+#endif
 
 #if HAVE_DECALS
     if (_EnableDecals)
     {
         float alpha = 1.0; // unused
                            // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif
+
+#endif // DECAL_SURFACE_GRADIENT
 
     float3 bentNormalWS = surfaceData.normalWS;
 

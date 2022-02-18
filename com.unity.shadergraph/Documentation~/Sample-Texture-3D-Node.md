@@ -4,16 +4,25 @@
 
 Samples a **Texture 3D** and returns a **Vector 4** color value for use in the shader. You can override the **UV** coordinates using the **UV** input and define a custom **Sampler State** using the **Sampler** input.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
+
 NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md).
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Texture |	Input |	Texture 3D  | None | Texture 3D to sample |
-| UV      | Input |	Vector 3    | None	| 3 dimnensional UV coordinates |
-| Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
-| RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
+| Texture | Input | Texture 3D  | None | Texture 3D to sample |
+| UV      | Input | Vector 3    | None  | 3 dimnensional UV coordinates |
+| Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
+| RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
+| LOD | Input | Float | LOD | Available when mip sampling mode is LOD. The actual mip to sample from. |
+
+## Controls
+
+| Name                     | Type     | Options         | Description |
+|:------------------------ |:---------|:----------------|:-------------------------|
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. |
 
 ## Generated Code Example
 

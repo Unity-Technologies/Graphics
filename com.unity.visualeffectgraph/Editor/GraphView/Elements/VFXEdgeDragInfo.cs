@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         public void DisplayEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
         {
-            if(m_ScheduledItem != null)
+            if (m_ScheduledItem != null)
             {
                 m_ScheduledItem.Pause();
                 m_ScheduledItem = null;
@@ -71,8 +71,6 @@ namespace UnityEditor.VFX.UI
                         else
                             error = "Link impossible for an unknown reason";
                     }
-
-
                 }
             }
             if (error == null)
@@ -125,7 +123,7 @@ namespace UnityEditor.VFX.UI
         public void StopEdgeDragInfo()
         {
             style.display = DisplayStyle.None;
-            if(m_ScheduledItem != null)
+            if (m_ScheduledItem != null)
             {
                 m_ScheduledItem.Pause();
                 m_ScheduledItem = null;

@@ -8,8 +8,8 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionValueNoise1D : VFXExpression
     {
-        public VFXExpressionValueNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionValueNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionValueNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.ValueNoise1D; } }
 
@@ -30,8 +30,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionValueNoise2D : VFXExpression
     {
-        public VFXExpressionValueNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionValueNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionValueNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.ValueNoise2D; } }
 
@@ -52,8 +52,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionValueNoise3D : VFXExpression
     {
-        public VFXExpressionValueNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionValueNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionValueNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.ValueNoise3D; } }
 
@@ -74,8 +74,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPerlinNoise1D : VFXExpression
     {
-        public VFXExpressionPerlinNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionPerlinNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionPerlinNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.PerlinNoise1D; } }
 
@@ -96,8 +96,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPerlinNoise2D : VFXExpression
     {
-        public VFXExpressionPerlinNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionPerlinNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionPerlinNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.PerlinNoise2D; } }
 
@@ -118,8 +118,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPerlinNoise3D : VFXExpression
     {
-        public VFXExpressionPerlinNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionPerlinNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionPerlinNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.PerlinNoise3D; } }
 
@@ -140,8 +140,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCellularNoise1D : VFXExpression
     {
-        public VFXExpressionCellularNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionCellularNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionCellularNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.CellularNoise1D; } }
 
@@ -162,8 +162,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCellularNoise2D : VFXExpression
     {
-        public VFXExpressionCellularNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionCellularNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionCellularNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.CellularNoise2D; } }
 
@@ -184,8 +184,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCellularNoise3D : VFXExpression
     {
-        public VFXExpressionCellularNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionCellularNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionCellularNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.CellularNoise3D; } }
 
@@ -206,8 +206,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionValueCurlNoise2D : VFXExpression
     {
-        public VFXExpressionValueCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionValueCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionValueCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.ValueCurlNoise2D; } }
 
@@ -228,8 +228,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionValueCurlNoise3D : VFXExpression
     {
-        public VFXExpressionValueCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionValueCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionValueCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.ValueCurlNoise3D; } }
 
@@ -250,8 +250,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPerlinCurlNoise2D : VFXExpression
     {
-        public VFXExpressionPerlinCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionPerlinCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionPerlinCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.PerlinCurlNoise2D; } }
 
@@ -272,8 +272,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPerlinCurlNoise3D : VFXExpression
     {
-        public VFXExpressionPerlinCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionPerlinCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionPerlinCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.PerlinCurlNoise3D; } }
 
@@ -294,8 +294,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCellularCurlNoise2D : VFXExpression
     {
-        public VFXExpressionCellularCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionCellularCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionCellularCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.CellularCurlNoise2D; } }
 
@@ -316,8 +316,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCellularCurlNoise3D : VFXExpression
     {
-        public VFXExpressionCellularCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionCellularCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) {}
+        public VFXExpressionCellularCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents) { }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.CellularCurlNoise3D; } }
 
@@ -338,8 +338,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionVoroNoise2D : VFXExpression
     {
-        public VFXExpressionVoroNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default) {}
-        public VFXExpressionVoroNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
+        public VFXExpressionVoroNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default) { }
+        public VFXExpressionVoroNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }

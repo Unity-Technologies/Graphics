@@ -1,0 +1,74 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:gv="UnityEditor.Experimental.GraphView" xmlns:vfx="UnityEditor.VFX.UI">
+    <ui:VisualElement class="mainContainer">
+        <ui:VisualElement name="header" pickingMode="Ignore">
+            <ui:VisualElement name="labelContainer" pickingMode="Ignore">
+                <ui:Label name="titleLabel" text="VFX Control" tooltip="Control the attached VFX GameObject"/>
+                <ui:VisualElement name="subtitle" pickingMode="Ignore">
+                    <ui:Label name="subTitleLabel" />
+                    <ui:Image name="subTitle-icon" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:ScrollView class="stretchContentWidth">
+            <ui:VisualElement name="component-container">
+                <ui:VisualElement pickingMode="Ignore" >
+                    <ui:VisualElement name="toolbar" pickingMode="Ignore" >
+                        <ui:Button name="stop">
+                            <ui:Image name="icon"/>
+                        </ui:Button>
+                        <ui:Button name="play">
+                            <ui:Image name="icon"/>
+                        </ui:Button>
+                        <ui:Button name="step">
+                            <ui:Image name="icon"/>
+                        </ui:Button>
+                        <ui:Button name="restart">
+                            <ui:Image name="icon"/>
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="play-rate-container" pickingMode="Ignore" >
+                        <ui:Label text="Play Rate" />
+                        <ui:Slider name="play-rate-slider" direction="Horizontal" />
+                        <uie:IntegerField name="play-rate-field"/>
+                        <ui:Button name="play-rate-menu" text="Set" class="MiniDropDown"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="divider" class="horizontal"/>
+                    <ui:VisualElement>
+                        <ui:VisualElement name="bounds-tool-container" pickingMode="Ignore">
+                            <ui:VisualElement name="bounds-actions-container" pickingMode="Ignore">
+                                <ui:Label name="bounds-label" text="Bounds Recording"/>
+                                <ui:Button name="record">
+                                    <ui:Image name ="record-icon"/>
+                                </ui:Button>
+                                <ui:Button name="apply-bounds-button" text="Apply Bounds"/>
+                            </ui:VisualElement>
+                            <vfx:VFXBoundsSelector name="system-bounds-container" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="divider" class="horizontal"/>
+                        <ui:VisualElement name="events-tool-container" pickingMode="Ignore">
+                            <ui:Label name="events-label" text="Events"/>
+                            <ui:VisualElement name="on-play-stop" pickingMode="Ignore" style="flex-direction:row">
+                                <ui:Button name="on-play-button" text="OnPlay" style="flex:1"/>
+                                <ui:Button name="on-stop-button" text="OnStop" style="flex:1"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="divider" class="horizontal"/>
+                        <ui:VisualElement name="debug-tool-container" pickingMode="Ignore">
+                            <ui:Label name="debug-label" text="Debug"/>
+                            <ui:VisualElement name="debug-container" pickingMode="Ignore">
+                                <ui:Button name="debug-modes" text="Debug modes" class="DropDown"/>
+                                <ui:VisualElement name="debug-modes-container" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement>
+                        <ui:VisualElement name="divider" class="horizontal"/>
+                        <ui:VisualElement name="events-container" pickingMode="Ignore" >
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+    <gv:ResizableElement pickingMode="Ignore" />
+</UXML>

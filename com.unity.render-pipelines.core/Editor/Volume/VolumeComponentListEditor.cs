@@ -50,22 +50,17 @@ namespace UnityEditor.Rendering
         /// </summary>
         public VolumeProfile asset { get; private set; }
 
+        /// <summary>
+        /// Obtains if all the volume components are visible
+        /// </summary>
+        internal bool hasHiddenVolumeComponents => m_Editors.Count != asset.components.Count;
+
         Editor m_BaseEditor;
 
         SerializedObject m_SerializedObject;
         SerializedProperty m_ComponentsProperty;
 
-        Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
-        List<VolumeComponentEditor> m_Editors;
-
-        static Dictionary<Type, string> m_EditorDocumentationURLs;
-
-        int m_CurrentHashCode;
-
-        static VolumeComponentListEditor()
-        {
-            ReloadDocumentation();
-        }
+        List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
 
         /// <summary>
         /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
@@ -91,30 +86,8 @@ namespace UnityEditor.Rendering
 
             this.asset = asset;
             m_SerializedObject = serializedObject;
-            m_ComponentsProperty = serializedObject.Find((VolumeProfile x) => x.components);
-            Assert.IsNotNull(m_ComponentsProperty);
 
-            m_EditorTypes = new Dictionary<Type, Type>();
-            m_Editors = new List<VolumeComponentEditor>();
-
-            // Gets the list of all available component editors
-            var editorTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponentEditor>()
-                .Where(
-                    t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                    && !t.IsAbstract
-                    );
-
-            // Map them to their corresponding component type
-            foreach (var editorType in editorTypes)
-            {
-                var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
-                m_EditorTypes.Add(attribute.componentType, editorType);
-            }
-
-            // Create editors for existing components
-            var components = asset.components;
-            for (int i = 0; i < components.Count; i++)
-                CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
+            RefreshEditors();
 
             // Keep track of undo/redo to redraw the inspector when that happens
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
@@ -127,9 +100,9 @@ namespace UnityEditor.Rendering
             // Dumb hack to make sure the serialized object is up to date on undo (else there'll be
             // a state mismatch when this class is used in a GameObject inspector).
             if (m_SerializedObject != null
-                 && !m_SerializedObject.Equals(null)
-                 && m_SerializedObject.targetObject != null
-                 && !m_SerializedObject.targetObject.Equals(null))
+                && !m_SerializedObject.Equals(null)
+                && m_SerializedObject.targetObject != null
+                && !m_SerializedObject.targetObject.Equals(null))
             {
                 m_SerializedObject.Update();
                 m_SerializedObject.ApplyModifiedProperties();
@@ -144,14 +117,21 @@ namespace UnityEditor.Rendering
         void CreateEditor(VolumeComponent component, SerializedProperty property, int index = -1, bool forceOpen = false)
         {
             var componentType = component.GetType();
-            Type editorType;
 
-            if (!m_EditorTypes.TryGetValue(componentType, out editorType))
-                editorType = typeof(VolumeComponentEditor);
+            if (RenderPipelineManager.currentPipeline != null)
+            {
+                if (componentType.GetCustomAttributes(typeof(VolumeComponentMenuForRenderPipeline), true)
+                    .FirstOrDefault() is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline
+                             && !volumeComponentMenuForRenderPipeline.pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType()))
+                {
+                    return;
+                }
+            }
 
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
-            editor.Init(component, m_BaseEditor);
+            var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
+            editor.inspector = m_BaseEditor;
             editor.baseProperty = property.Copy();
+            editor.Init();
 
             if (forceOpen)
                 editor.baseProperty.isExpanded = true;
@@ -162,14 +142,18 @@ namespace UnityEditor.Rendering
                 m_Editors[index] = editor;
         }
 
+        int m_CurrentHashCode;
         void RefreshEditors()
         {
-            // Disable all editors first
-            foreach (var editor in m_Editors)
-                editor.OnDisable();
+            if (m_Editors.Any())
+            {
+                // Disable all editors first
+                foreach (var editor in m_Editors)
+                    editor.OnDisable();
 
-            // Remove them
-            m_Editors.Clear();
+                // Remove them
+                m_Editors.Clear();
+            }
 
             // Refresh the ref to the serialized components in case the asset got swapped or another
             // script is editing it while it's active in the inspector
@@ -181,6 +165,8 @@ namespace UnityEditor.Rendering
             var components = asset.components;
             for (int i = 0; i < components.Count; i++)
                 CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
+
+            m_CurrentHashCode = asset.GetComponentListHashCode();
         }
 
         /// <summary>
@@ -196,7 +182,6 @@ namespace UnityEditor.Rendering
                 editor.OnDisable();
 
             m_Editors.Clear();
-            m_EditorTypes.Clear();
 
             // ReSharper disable once DelegateSubtraction
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
@@ -215,7 +200,6 @@ namespace UnityEditor.Rendering
             if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
-                m_CurrentHashCode = asset.GetComponentListHashCode();
                 asset.isDirty = false;
             }
 
@@ -224,25 +208,22 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(!isEditable))
             {
-                // Component list
                 for (int i = 0; i < m_Editors.Count; i++)
                 {
                     var editor = m_Editors[i];
-                    string title = editor.GetDisplayTitle();
+                    var title = editor.GetDisplayTitle();
                     int id = i; // Needed for closure capture below
-
-                    m_EditorDocumentationURLs.TryGetValue(editor.target.GetType(), out var documentationURL);
 
                     CoreEditorUtils.DrawSplitter();
                     bool displayContent = CoreEditorUtils.DrawHeaderToggle(
-                            title,
-                            editor.baseProperty,
-                            editor.activeProperty,
-                            pos => OnContextClick(pos, editor.target, id),
-                            editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                            () => editor.isInAdvancedMode ^= true,
-                            documentationURL
-                            );
+                        title,
+                        editor.baseProperty,
+                        editor.activeProperty,
+                        pos => OnContextClick(pos, editor, id),
+                        editor.hasAdditionalProperties ? () => editor.showAdditionalProperties : (Func<bool>)null,
+                        () => editor.showAdditionalProperties ^= true,
+                        Help.GetHelpURLForObject(editor.volumeComponent)
+                    );
 
                     if (displayContent)
                     {
@@ -270,8 +251,9 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
+        void OnContextClick(Vector2 position, VolumeComponentEditor targetEditor, int id)
         {
+            var targetComponent = targetEditor.volumeComponent;
             var menu = new GenericMenu();
 
             if (id == 0)
@@ -292,7 +274,7 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count -1) - id));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count - 1) - id));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
             }
 
@@ -302,6 +284,13 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddSeparator(string.Empty);
+            if (targetEditor.hasAdditionalProperties)
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
+            else
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
@@ -342,17 +331,17 @@ namespace UnityEditor.Rendering
             var componentProp = m_ComponentsProperty.GetArrayElementAtIndex(m_ComponentsProperty.arraySize - 1);
             componentProp.objectReferenceValue = component;
 
+            // Create & store the internal editor object for this effect
+            CreateEditor(component, componentProp, forceOpen: true);
+
+            m_SerializedObject.ApplyModifiedProperties();
+
             // Force save / refresh
             if (EditorUtility.IsPersistent(asset))
             {
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
             }
-
-            // Create & store the internal editor object for this effect
-            CreateEditor(component, componentProp, forceOpen: true);
-
-            m_SerializedObject.ApplyModifiedProperties();
         }
 
         internal void RemoveComponent(int id)
@@ -482,7 +471,6 @@ namespace UnityEditor.Rendering
             m_SerializedObject.ApplyModifiedProperties();
         }
 
-
         static bool CanPaste(VolumeComponent targetComponent)
         {
             if (string.IsNullOrWhiteSpace(EditorGUIUtility.systemCopyBuffer))
@@ -510,33 +498,6 @@ namespace UnityEditor.Rendering
             string typeData = clipboard.Substring(clipboard.IndexOf('|') + 1);
             Undo.RecordObject(targetComponent, "Paste Settings");
             JsonUtility.FromJsonOverwrite(typeData, targetComponent);
-        }
-
-        static void ReloadDocumentation()
-        {
-            if (m_EditorDocumentationURLs == null)
-                m_EditorDocumentationURLs = new Dictionary<Type, string>();
-            m_EditorDocumentationURLs.Clear();
-
-            string GetVolumeComponentDocumentation(Type component)
-            {
-                var attrs = component.GetCustomAttributes(false);
-                foreach (var attr in attrs)
-                {
-                    if (attr is HelpURLAttribute attrDocumentation)
-                        return attrDocumentation.URL;
-                }
-
-                // There is no documentation for this volume component.
-                return null;
-            }
-
-            var componentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>();
-            foreach (var componentType in componentTypes)
-            {
-                if (!m_EditorDocumentationURLs.ContainsKey(componentType))
-                    m_EditorDocumentationURLs.Add(componentType, GetVolumeComponentDocumentation(componentType));
-            }
         }
     }
 }

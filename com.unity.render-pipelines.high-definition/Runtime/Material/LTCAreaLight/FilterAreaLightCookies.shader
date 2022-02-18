@@ -1,8 +1,8 @@
-Shader "CoreResources/FilterAreaLightCookies"
+Shader "Hidden/CoreResources/FilterAreaLightCookies"
 {
     HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
 
         #pragma vertex Vert
@@ -54,6 +54,7 @@ Shader "CoreResources/FilterAreaLightCookies"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         // Simple copy to mip 0
         Pass
         {
@@ -63,7 +64,16 @@ Shader "CoreResources/FilterAreaLightCookies"
             float4 frag(Varyings input) : SV_Target
             {
                 float2  UV = input.texcoord;
-                return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, UV, _SourceMipLevel);
+
+                // Since we blit the cookie texture into a common texture, to avoid leaking we blit with an extra border
+                if (any(input.positionCS.xy > _SourceSize.xy))
+                    return 0.0f;
+
+                // Because the viewport is bigger than the source texture, we need to rescale the UVs.
+                // The scale is (viewportSize / SourceSize)
+                float2 uvScale = _SourceSize.zw;
+                return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, UV * uvScale, 0);
+
             }
             ENDHLSL
         }

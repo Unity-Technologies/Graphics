@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESRAYTRACING_CS_HLSL
@@ -18,10 +18,15 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     float _RaytracingPixelSpreadAngle;
     float _RaytracingReflectionMinSmoothness;
     float _RaytracingReflectionSmoothnessFadeStart;
-    int _RaytracingIncludeSky;
     int _RaytracingMinRecursion;
     int _RaytracingMaxRecursion;
     int _RayTracingDiffuseLightingOnly;
+    float _DirectionalShadowFallbackIntensity;
+    float _RayTracingLodBias;
+    int _RayTracingRayMissFallbackHierarchy;
+    int _RayTracingLastBounceFallbackHierarchy;
+    int _Padding0;
+    int _Padding1;
 CBUFFER_END
 
 

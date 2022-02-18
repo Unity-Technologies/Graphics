@@ -1,70 +1,45 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-using UnityEditor;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class LayerListUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents a material layer list. The Layered Lit shader uses this UI block.
+    /// </summary>
+    public class LayerListUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
-            public const string header = "Layer List";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Layering List");
             public static readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
             public static readonly GUIContent layerMaterialHeader = EditorGUIUtility.TrTextContent("Layer Material");
             public static readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also reset UV.");
             public static readonly GUIContent resetButtonIcon = EditorGUIUtility.TrTextContent("Reset", "Copy again Material parameters to layer. If UV is disabled, this will not copy UV."); //EditorGUIUtility.IconContent("RotateTool", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
-
-            public static readonly GUIContent[] layerLabels =
-            {
-                new GUIContent("Main layer"),
-                new GUIContent("Layer 1"),
-                new GUIContent("Layer 2"),
-                new GUIContent("Layer 3"),
-            };
         }
 
         MaterialProperty layerCount = null;
 
-        Expandable      m_ExpandableBit;
-        bool[]          m_WithUV;
-        Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
-        AssetImporter   m_MaterialImporter;
+        bool[] m_WithUV = new bool[kMaxLayerCount];
+        Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+        AssetImporter m_MaterialImporter;
 
-        int numLayer
+        int numLayer => (int)layerCount.floatValue;
+
+        /// <summary>
+        /// Constructs a LayerListUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the state of the foldout</param>
+        public LayerListUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            get { return (int)layerCount.floatValue; }
-            set
-            {
-                layerCount.floatValue = (float)value;
-                UpdateEditorExpended(value);
-            }
         }
 
-        void UpdateEditorExpended(int layerNumber)
-        {
-            if (layerNumber == 4)
-            {
-                materialEditor.SetExpandedAreas((uint)Expandable.ShowLayer3, true);
-            }
-            if (layerNumber >= 3)
-            {
-                materialEditor.SetExpandedAreas((uint)Expandable.ShowLayer2, true);
-            }
-            materialEditor.SetExpandedAreas((uint)Expandable.ShowLayer1, true);
-        }
-
-        public LayerListUIBlock(Expandable expandableBit)
-        {
-            m_ExpandableBit = expandableBit;
-            m_WithUV = new bool[]{ true, true, true, true };
-        }
-
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             layerCount = FindProperty(kLayerCount);
@@ -76,83 +51,70 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
             if (m_MaterialImporter != null)
-                InitializeMaterialLayers(m_MaterialImporter, ref m_MaterialLayers);
+                LayeredLitGUI.InitializeMaterialLayers(m_MaterialImporter, ref m_MaterialLayers, ref m_WithUV);
         }
 
-        // We use the user data to save a string that represent the referenced lit material
-        // so we can keep reference during serialization
-        static void InitializeMaterialLayers(AssetImporter materialImporter, ref Material[] layers)
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
+        protected override void OnGUIOpen()
         {
-            if (materialImporter.userData != string.Empty)
-            {
-                SerializeableGUIDs layersGUID = JsonUtility.FromJson<SerializeableGUIDs>(materialImporter.userData);
-                if (layersGUID.GUIDArray.Length > 0)
-                {
-                    layers = new Material[layersGUID.GUIDArray.Length];
-                    for (int i = 0; i < layersGUID.GUIDArray.Length; ++i)
-                    {
-                        layers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
-                    }
-                }
-            }
-        }
-
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                {
-                    DrawLayerListGUI();
-                }
-            }
-        }
-
-        void DrawLayerListGUI()
-        {
-            bool    layersChanged = false;
-            var     oldLabelWidth = EditorGUIUtility.labelWidth;
+            bool layersChanged = false;
+            int oldindentLevel = EditorGUI.indentLevel;
 
             // TODO: does not work with multi-selection
             Material material = materials[0];
 
             float indentOffset = EditorGUI.indentLevel * 15f;
-            float colorWidth = 5;
-            float UVWidth = 30;
-            float resetButtonWidth = 41;
-            float padding = 4f;
-            float endOffset = 2f;
-            float labelWidth = 75f;
+            const int UVWidth = 14;
+            const int resetButtonWidth = 43;
+            const int endOffset = 2;
+            const int horizontalSpacing = 4;
+            const int headerHeight = 15;
 
-            EditorGUIUtility.labelWidth = labelWidth;
+            EditorGUI.indentLevel = 0;
 
+            Rect headerLineRect = GUILayoutUtility.GetRect(1, headerHeight);
+            Rect labelRect = new Rect(headerLineRect.x + indentOffset, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset, headerHeight);
+            Rect uvRect = new Rect(headerLineRect.x + headerLineRect.width - horizontalSpacing - UVWidth - resetButtonWidth - endOffset, headerLineRect.y, UVWidth, headerHeight);
+            Rect materialDropRect = new Rect(labelRect.xMax + horizontalSpacing, headerLineRect.y, uvRect.xMin - labelRect.xMax - 2 * horizontalSpacing, headerHeight);
 
-            Rect headerLineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15f, headerLineRect.height);
-            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37f - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, headerLineRect.height);
-            Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 20f, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, headerLineRect.height);
+            //Minilabel is slighly shifted from 2 px.
+            const int shift = 2;
+            const int textOverflow = 2;
+            Rect headerLabelRect = new Rect(labelRect) { xMin = labelRect.xMin - shift, xMax = labelRect.xMax + shift };
+            Rect headerUVRect = new Rect(uvRect) { xMin = uvRect.xMin - shift, xMax = uvRect.xMax + shift + textOverflow }; //dealing with text overflow (centering "UV" on sligthly larger area)
+            Rect headerMaterialDropRect = new Rect(materialDropRect) { xMin = materialDropRect.xMin - shift, xMax = materialDropRect.xMax + shift };
 
-            EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.centeredGreyMiniLabel);
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.miniLabel);
+            }
 
             for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
+                    Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+                    lineRect.xMin += indentOffset;
+                    lineRect.yMax -= EditorGUIUtility.standardVerticalSpacing;
+
+                    Rect lineLabelRect = new Rect(labelRect.x, lineRect.y, labelRect.width, lineRect.height);
+                    Rect lineMaterialRect = new Rect(materialDropRect.x, lineRect.y, materialDropRect.width, lineRect.height);
+                    Rect lineUvRect = new Rect(uvRect.x, lineRect.y, uvRect.width, lineRect.height);
+                    Rect lineResetRect = new Rect(uvRect.xMax + horizontalSpacing, lineRect.y, resetButtonWidth, lineRect.height);
+
+                    using (new EditorGUIUtility.IconSizeScope(LayersUIBlock.Styles.layerIconSize))
+                        EditorGUI.LabelField(lineLabelRect, LayersUIBlock.Styles.layers[layerIndex]);
+
                     EditorGUI.BeginChangeCheck();
-
-                    Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-                    Rect colorRect = new Rect(lineRect.x + 17f, lineRect.y + 7f, colorWidth, colorWidth);
-                    Rect materialRect = new Rect(lineRect.x + padding + colorRect.width, lineRect.y, lineRect.width - UVWidth - padding - 3 - resetButtonWidth + endOffset, lineRect.height);
-                    Rect uvRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - padding - UVWidth - endOffset, lineRect.y, UVWidth, lineRect.height);
-                    Rect resetRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - endOffset, lineRect.y, resetButtonWidth, lineRect.height);
-
-                    m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(materialRect, Styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), allowSceneObjects: true) as Material;
+                    m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(lineMaterialRect, GUIContent.none, m_MaterialLayers[layerIndex], typeof(Material), allowSceneObjects: true) as Material;
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Change layer material");
-                        LayeredLitGUI.SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
+                        LayeredLitGUI.SynchronizeLayerProperties(material, layerIndex, m_MaterialLayers[layerIndex], m_WithUV[layerIndex]);
                         layersChanged = true;
 
                         // Update external reference.
@@ -163,21 +125,20 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
 
-                    EditorGUI.DrawRect(colorRect, kLayerColors[layerIndex]);
-
-                    m_WithUV[layerIndex] = EditorGUI.Toggle(uvRect, m_WithUV[layerIndex]);
-
-                    if (GUI.Button(resetRect, GUIContent.none))
+                    EditorGUI.BeginChangeCheck();
+                    m_WithUV[layerIndex] = EditorGUI.Toggle(lineUvRect, m_WithUV[layerIndex]);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Reset layer material");
-                        LayeredLitGUI.SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, !m_WithUV[layerIndex]);
+                        Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Change layer material");
                         layersChanged = true;
                     }
 
-                    //draw text above to not cut the last letter
-                    resetRect.x -= 12;
-                    resetRect.width = 50;
-                    EditorGUI.LabelField(resetRect, Styles.resetButtonIcon);
+                    if (GUI.Button(lineResetRect, Styles.resetButtonIcon))
+                    {
+                        Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Reset layer material");
+                        LayeredLitGUI.SynchronizeLayerProperties(material, layerIndex, m_MaterialLayers[layerIndex], m_WithUV[layerIndex]);
+                        layersChanged = true;
+                    }
                 }
 
                 if (m_MaterialLayers[layerIndex] != null && m_MaterialLayers[layerIndex].shader != null)
@@ -188,18 +149,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorGUIUtility.labelWidth = oldLabelWidth;
+            EditorGUI.indentLevel = oldindentLevel;
 
             if (layersChanged)
             {
                 foreach (var mat in materials)
                 {
-                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data
                 if (m_MaterialImporter != null)
-                    LayeredLitGUI.SaveMaterialLayers(material, m_MaterialLayers);
+                    LayeredLitGUI.SaveMaterialLayers(material, m_MaterialLayers, m_WithUV);
 
                 // We should always do this call at the end
                 materialEditor.serializedObject.ApplyModifiedProperties();

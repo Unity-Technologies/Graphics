@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     /// <typeparam name="T">The type of the scalable setting.</typeparam>
     [Serializable]
-    public class ScalableSetting<T>: ISerializationCallbackReceiver
+    public class ScalableSetting<T> : ISerializationCallbackReceiver
     {
         [SerializeField] private T[] m_Values;
         [SerializeField] private ScalableSettingSchemaId m_SchemaId;

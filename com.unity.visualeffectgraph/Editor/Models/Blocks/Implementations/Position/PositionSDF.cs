@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Attribute/position/Composition/Set")]
     class PositionSDF : PositionBase
     {
         public override string name { get { return "Position (Signed Distance Field)"; } }
@@ -15,7 +15,6 @@ namespace UnityEditor.VFX.Block
             public Texture3D SDF = VFXResources.defaultResources.signedDistanceField;
             [Tooltip("Sets the transform with which to position, scale, or rotate the field.")]
             public OrientedBox FieldTransform = OrientedBox.defaultValue;
-
         }
 
         public class CustomProperties
@@ -56,7 +55,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(VFX.VFXOperatorUtility.Max3(extents.exp), "scalingFactor");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "InvFieldTransform");
                 var SDFExpr = GetExpressionsFromSlots(this).First(o => o.name == "SDF").exp;
-                var minDim = new VFXExpressionCastUintToFloat( VFX.VFXOperatorUtility.Min3(new VFXExpressionTextureHeight(SDFExpr), new VFXExpressionTextureWidth(SDFExpr),new VFXExpressionTextureDepth(SDFExpr)));
+                var minDim = new VFXExpressionCastUintToFloat(VFX.VFXOperatorUtility.Min3(new VFXExpressionTextureHeight(SDFExpr), new VFXExpressionTextureWidth(SDFExpr), new VFXExpressionTextureDepth(SDFExpr)));
                 var gradStep = VFXValue.Constant(0.01f);  //kStep used in SampleSDFDerivativesFast and SampleSDFDerivatives
                 var margin = VFXValue.Constant(0.5f) / minDim + gradStep + VFXValue.Constant(0.001f);
                 yield return new VFXNamedExpression(VFXValue.Constant(0.5f) - margin, "projectionRayWithMargin");
@@ -106,7 +105,7 @@ for(uint proj_step=0; proj_step < n_steps; proj_step++){
 
     //Projection on surface/volume
     float3 delta;
-    worldNormal = normalize(mul(float4(n, 0), InvFieldTransform).xyz);
+    worldNormal = VFXSafeNormalize(mul(float4(n, 0), InvFieldTransform).xyz);
     if (dist > 0)
         delta = dist * worldNormal;
     else
@@ -125,7 +124,7 @@ direction = -worldNormal;
                 if (killOutliers)
                 {
                     outSource += @"
- 
+
  float dist = SampleSDF(SDF, coord);
  if (dist * scalingFactor > 0.01)
     alive = false;
@@ -137,4 +136,3 @@ direction = -worldNormal;
         }
     }
 }
-

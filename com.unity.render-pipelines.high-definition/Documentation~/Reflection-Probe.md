@@ -6,14 +6,13 @@ The Reflection Probe component is one of the types of [Reflection Probe](Reflect
 
 The HDRP Reflection Probe uses the [built-in render pipeline Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html) as a base, and thus shares many properties with the built-in version. HDRP Reflection Probes also share many properties with the [HDRP Planar Reflection Probe](Planar-Reflection-Probe.md).
 
-![img](Images/ReflectionProbe1.png)
-
 ### General Properties
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
 | **Type**          | Use the drop-down to select the mode this Reflection Probe uses to capture a view of the Scene. Reflective Materials query this capture to process reflections for their surface.<br />&#8226; **Realtime**: Makes the Reflection Probe capture a view of the Scene in real time. Use the **Realtime Mode** property to set the time period.<br />&#8226; **Custom**: Allows you to assign a cubemap Texture to act as the Reflection Probe's captured view of the Scene. Use the **Texture** property to assign the cubemap.<br />&#8226; **Baked**: Makes the Reflection Probe use a static cubemap Texture at runtime. You must bake this Texture before you build your Unity Project. In this mode, the Reflection Probe does not capture GameObjects have their Reflection Probe Static flag disabled. |
-| **Realtime Mode** | Use the drop-down to select how often the Reflection Probe should capture a view of the Scene.<br />&#8226;**Every Frame**: Updates the Probe’s capture data every frame.<br />&#8226; **On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to.<br /><br /> This property only appears when you select **Realtime** from the **Type** drop-down. |
+| **Realtime Mode** | Use the drop-down to select how often the Reflection Probe should capture a view of the Scene.<br />&#8226; **Every Frame**: Updates the Probe’s capture data every frame.<br />&#8226; **On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to.<br />&#8226; **On Demand**: Updates the Probe's capture data when you request it. To do this, access the Probe's `HDAdditionalReflectionData` and call the `RequestRenderNextUpdate()` function.<br /> This property only appears when you select **Realtime** from the **Type** drop-down. |
+| **Time Slicing** | Enable the checkbox to distribute realtime updates over 7 frames (one for each cubemap face then one to process the result) instead of fully updating in a single frame.<br />This property only appears when you select **Realtime** from the **Type** drop-down, and only for Reflection Probes (not Planar Reflection Probes). |
 | **Texture**       | Assign a Texture for the Reflection Probe to use as its captured view of the Scene.<br />This property only appears when you select **Custom** from the **Type** drop-down. |
 
 ### Projection Settings
@@ -24,6 +23,7 @@ The following properties control the projection settings for this Reflection Pro
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.md) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the Texture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
 | **Use Influence Volume As Proxy Volume** | Enable the checkbox to use the boundaries of the Influence Volume as the Proxy Volume.<br />This property only appears when you have not set a Reflection Proxy Volume to the **Proxy Volume** property. |
+| **Distance Based Roughness**             | Enable the checkbox to used the assigned Proxy Volume to calculate distance based roughness for reflections. This produces more physically-accurate results if the Proxy Volume closely matches the environment. This option should be disable if the Proxy Volume don't matches the environment.|
 
 <a name="InfluenceVolume"></a>
 
@@ -35,8 +35,8 @@ The Influence Volume defines the area around the Probe in which reflective Mater
 
 There are two workflows you can use to edit your Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
 
-- **Normal** mode allows you to set a single value for the **Blend Distance**. You can use **Normal** mode with **Box** and **Sphere** Influence Volumes. 
-- **Advanced** mode exposes the **Face Fade** property. It also allows you to set **Face Fade**, **Blend Distance**, and **Blend Normal Distance**, on a per axis, per direction basis for an Influence Volume with a **Box Shape**. 
+- **Normal** mode allows you to set a single value for the **Blend Distance**. You can use **Normal** mode with **Box** and **Sphere** Influence Volumes.
+- **Advanced** mode exposes the **Face Fade** property. It also allows you to set **Face Fade**, **Blend Distance**, and **Blend Normal Distance**, on a per axis, per direction basis for an Influence Volume with a **Box Shape**.
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
@@ -51,20 +51,21 @@ There are two workflows you can use to edit your Reflection Probe’s Influence 
 
 The following properties control the method that the Reflection Probe uses to capture its surroundings..
 
-| **Property**               | **Description**                                              |
-| -------------------------- | ------------------------------------------------------------ |
-| **Capture Position**       | The position, relative to the Transform Position, from which the Reflection Probe captures its surroundings. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.md) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** property to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
-| **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
-| **Clear Depth**            | Choose whether the Reflection Probe clears the Depth Buffer or not. |
-| **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Reflection Probe’s capture. |
-| **Volume Anchor Override** | Set the Transform that the [Volume](Volumes.md) system uses to handle the position of this Reflection Probe. For example, if you want this Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Reflection Probe. |
-| **Use Occlusion Culling**  | Enables [Occlusion Culling](https://docs.unity3d.com/Manual/OcclusionCulling.html) for this Reflection Probe. |
-| **Culling Mask**           | A LayerMask that defines which Layers to include in the reflection. GameObjects on the Layers included in this LayerMask appear in the reflection. |
-| **Clip Planes - Near**     | The closest point relative to the Reflection Probe that the Probe captures reflections. |
-| **Clip Planes - Far**      | The furthest point relative to the Reflection Probe that it  captures reflections. |
-| **Probe Layer Mask**       | Acts as a culling mask for environment lights (light from Planar Reflection Probes and Reflection Probes). This Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
-| **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
+| **Property**                 | **Description**                                              |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Capture Position**         | The position, relative to the Transform Position, from which the Reflection Probe captures its surroundings. |
+| **Clear Mode**               | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.md) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** property to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Background Color**         | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
+| **Clear Depth**              | Choose whether the Reflection Probe clears the Depth Buffer or not. |
+| **Volume Layer Mask**        | A LayerMask that defines which Volumes affect this Reflection Probe’s capture. |
+| **Volume Anchor Override**   | Set the Transform that the [Volume](Volumes.md) system uses to handle the position of this Reflection Probe. For example, if you want this Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Reflection Probe. |
+| **Use Occlusion Culling**    | Enables [Occlusion Culling](https://docs.unity3d.com/Manual/OcclusionCulling.html) for this Reflection Probe. |
+| **Culling Mask**             | A LayerMask that defines which Layers to include in the reflection. GameObjects on the Layers included in this LayerMask appear in the reflection. |
+| **Clip Planes - Near**       | The closest point relative to the Reflection Probe that the Probe captures reflections. |
+| **Clip Planes - Far**        | The furthest point relative to the Reflection Probe that it  captures reflections. |
+| **Probe Layer Mask**         | Acts as a culling mask for environment lights (light from Planar Reflection Probes and Reflection Probes). This Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
+| **Custom Frame Settings**    | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
+| **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
 ### Custom Settings
 
@@ -75,7 +76,7 @@ The following properties control extra behavior options for fine-tuning the beha
 | **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
 | **Multiplier**  | A multiplier for the RenderTexture the Reflection Probe captures. The Reflection Probe applies this multiplier when Reflective Materials query the RenderTexture. |
 | **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
-| **Range Compression Factor**      | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated. |
+| **Fade Distance** | The distance, in meters, from the camera at which reflections begin to smoothly fade out before they disappear completely. |
 
 ## Gizmos
 

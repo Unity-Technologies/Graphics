@@ -1,6 +1,10 @@
 #ifndef UNITY_SAMPLING_INCLUDED
 #define UNITY_SAMPLING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Sample generator
 //-----------------------------------------------------------------------------
@@ -168,8 +172,11 @@ real3 SampleHemisphereCosine(real u1, real u2)
 // Ref: http://www.amietia.com/lambertnotangent.html
 real3 SampleHemisphereCosine(real u1, real u2, real3 normal)
 {
+    // This function needs to used safenormalize because there is a probability
+    // that the generated direction is the exact opposite of the normal and that would lead
+    // to a nan vector otheriwse.
     real3 pointOnSphere = SampleSphereUniform(u1, u2);
-    return normalize(normal + pointOnSphere);
+    return SafeNormalize(normal + pointOnSphere);
 }
 
 real3 SampleHemisphereUniform(real u1, real u2)
@@ -301,5 +308,22 @@ void SampleCone(real2 u, real cosHalfAngle,
     dir    = SphericalToCartesian(phi, cosTheta);
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
+
+// Returns uniformly distributed sample vectors in a cone using
+// "golden angle spiral method" described here: http://blog.marmakoide.org/?p=1
+// note: the first sample is always [0, 0, 1]
+real3 SampleConeStrata(uint sampleIdx, real rcpSampleCount, real cosHalfApexAngle)
+{
+    real z = 1.0f - ((1.0f - cosHalfApexAngle) * sampleIdx) * rcpSampleCount;
+    real r = sqrt(1.0f - z * z);
+    real a = sampleIdx * 2.3999632297286f; // pi*(3-sqrt(5))
+    real sphi = sin(a);
+    real cphi = cos(a);
+    return real3(r * cphi, r * sphi, z);
+}
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_SAMPLING_INCLUDED

@@ -3,8 +3,8 @@
 Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
 - [Directional](#DirectionalLight)
-- [Point](#PointLight)
-- [Spot](#SpotLight)
+- [Point](#point-and-spot-light)
+- [Spot](#point-and-spot-light)
 - [Rectangle](#RectangleLight)
 
 When you enable ray-traced shadows in your HDRP Project, they replace shadow maps for opaque GameObjects.
@@ -31,6 +31,8 @@ Finally, to make HDRP process ray-traced shadows for your Directional, Point, or
 2. Also in the Shadow Map foldout, enable Ray-Traced Shadows. For Directional Lights, you need to enable Screen Space Shadows to access this property.
 3. To change the behavior of the shadows, edit the properties under Ray-Traced Shadows.
 
+If a light is has **Shadowmask Mode** set to **Shadowmask**, then ray traced shadows will not be rendered and shadow masks will be used instead.
+
 <a name="DirectionalLight"></a>
 
 ## Directional Light
@@ -51,6 +53,8 @@ Ray-traced shadows offer an alternative to the cascade shadow map that Direction
 
 Ray-traced shadows allow for transparent and transmissive GameObjects, lit by Directional Lights, to cast colored shadows.
 
+**Note**: When you use a Directional Light with a transmissive GameObject, HDRP displays rasterized shadows on the reverse side of the GameObject.
+
 ![](Images/RayTracedShadows9.png)
 
 **Ray-traced Directional Light shadows with colored shadows**
@@ -65,7 +69,7 @@ Ray-traced shadows allow for transparent and transmissive GameObjects, lit by Di
 | --------------------- | ------------------------------------------------------------ |
 | **Sun Angle**         | Sets the size of the Sun in the sky, in degrees. For example, the value for the Sun on Earth is 0.53°. |
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. Higher values produce more accurate shadows. Increasing this value increases execution time linearly. |
-| **Color Shadow**      | Allows transparent and transmissive GameObjects to cast colored shadows. |
+| **Color Shadow**      | Allows transparent and transmissive GameObjects to cast colored shadows. A Material can only cast colored shadows when its [**Refraction Model**](Surface-Type.md#transparency-inputs) is set to **Thin**, **Box** or **Sphere**. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows; making them smoother. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
 
@@ -87,7 +91,7 @@ Ray-traced shadows offer an alternative to the shadow map that Point and Spot Li
 
 **Ray-traced Point Light shadows (radius = 0.5m)**
 
-Ray-traced shadows offer the possibility of semi-transparent shadows for Point Lights cast by tranparent and transmissive GameObjects.
+Ray-traced shadows offer the possibility of semi-transparent shadows for Point Lights cast by transparent and transmissive GameObjects.
 
 ![](Images/RayTracedShadows11.png)
 
@@ -115,11 +119,14 @@ Ray-traced shadows offer the possibility of semi-transparent shadows for Point L
 Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.md#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
 
 ![](Images/RayTracedShadows7.png)
-
 **Rectangle Light shadow map**
 
 ![](Images/RayTracedShadows8.png)
 **Ray-traced Rectangle Light shadows**
+
+**Note**: When rendering in [deferred mode](Forward-And-Deferred-Rendering.md), HDRP provides accurate ray-traced area light shadows for the [Lit](Lit-Shader.md) shader. When HDRP renders for any other shader, or for the Lit shader in forward mode, it uses an approximation to calculate ray-traced shadows for area lights. This approximation is not perfectly accurate, but does produce plausible results.
+
+When you use a Rectangle Light with a transmissive GameObject, HDRP displays rasterized shadows on the reverse side of the GameObject
 
 ### Properties
 
@@ -129,5 +136,12 @@ Ray-traced shadows offer an alternative to the [exponential variance shadow map]
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
 
-### Notes
+
+## Limitations
+
+#### Double-sided shadows
 Ray-traced shadows do not support the **Two Sided** option for the Mesh Renderer's **Cast Shadows** property. To use double-sided shadows for a mesh, open the Mesh Renderer's Material in the Inspector and, in the **Surface Options** section, enable the **Double-Sided** property.
+
+#### Recursive rendering
+
+GameObjects HDRP renders using [recursive rendering](Ray-Tracing-Recursive-Rendering.md) cannot receive ray-traced shadows. If you enable both effects, HDRP renders rasterized [shadows](Shadows-in-HDRP.md) on recursively rendered GameObjects.

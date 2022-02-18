@@ -8,8 +8,14 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -18,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -56,12 +57,23 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
+
 #ifdef UNITY_VIRTUAL_TEXTURING
 #define VT_BUFFER_TARGET SV_Target1
 #define EXTRA_BUFFER_TARGET SV_Target2
 #else
 #define EXTRA_BUFFER_TARGET SV_Target1
 #endif
+
+float GetDeExposureMultiplier()
+{
+#if defined(DISABLE_UNLIT_DEEXPOSURE)
+    return 1.0;
+#else
+    return _DeExposureMultiplier;
+#endif
+}
 
 void Frag(PackedVaryingsToPS packedInput,
             out float4 outColor : SV_Target0
@@ -72,7 +84,7 @@ void Frag(PackedVaryingsToPS packedInput,
             , out float4 outMotionVec : EXTRA_BUFFER_TARGET
         #endif
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {
@@ -107,43 +119,31 @@ void Frag(PackedVaryingsToPS packedInput,
     bsdfData.color *= GetScreenSpaceAmbientOcclusion(input.positionSS.xy);
 #endif
 
+#ifdef DEBUG_DISPLAY
+    // Handle debug lighting mode here as there is no lightloop for unlit.
+    // For unlit we let all unlit object appear
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    {
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            builtinData.emissiveColor = 0.0;
+        }
+        else
+        {
+            bsdfData.color = 0.0;
+        }
+    }
+#endif
+
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    float4 outResult = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    float4 outResult = ApplyBlendMode(bsdfData.color * GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
 
 #ifdef DEBUG_DISPLAY
-    // Same code in ShaderPassForward.shader
-    // Reminder: _DebugViewMaterialArray[i]
-    //   i==0 -> the size used in the buffer
-    //   i>0  -> the index used (0 value means nothing)
-    // The index stored in this buffer could either be
-    //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
-    //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    int bufferSize = _DebugViewMaterialArray[0].x;
-    // Loop through the whole buffer
-    // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
-    for (int index = 1; index <= bufferSize; index++)
+    float4 debugColor = 0;
+    if (GetMaterialDebugColor(debugColor, input, builtinData, posInput, surfaceData, bsdfData))
     {
-        int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-        if (indexMaterialProperty != 0)
-        {
-            float3 result = float3(1.0, 0.0, 1.0);
-            bool needLinearToSRGB = false;
-
-            GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-            GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-            GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-            GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-            GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-
-            // TEMP!
-            // For now, the final blit in the backbuffer performs an sRGB write
-            // So in the meantime we apply the inverse transform to linear data to compensate.
-            if (!needLinearToSRGB)
-                result = SRGBToLinear(max(0, result));
-
-            outResult = float4(result, 1.0);
-        }
+        outResult = debugColor;
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
@@ -151,7 +151,6 @@ void Frag(PackedVaryingsToPS packedInput,
         float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
         outResult = result;
     }
-
 #endif
 
     outColor = outResult;
@@ -159,6 +158,12 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
     VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
     bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
+
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     // outMotionVec is already initialize at the value of forceNoMotion (see above)
     if (!forceNoMotion)
     {

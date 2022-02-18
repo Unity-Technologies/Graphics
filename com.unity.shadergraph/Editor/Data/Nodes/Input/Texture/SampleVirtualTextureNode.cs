@@ -143,6 +143,24 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        private bool m_EnableGlobalMipBias = true;
+        public bool enableGlobalMipBias
+        {
+            get
+            {
+                return m_EnableGlobalMipBias;
+            }
+            set
+            {
+                if (m_EnableGlobalMipBias == value)
+                    return;
+
+                m_EnableGlobalMipBias = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_NoFeedback;          // aka !AutomaticStreaming
         public bool noFeedback
         {
@@ -167,6 +185,7 @@ namespace UnityEditor.ShaderGraph
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
             name = "Sample Virtual Texture";
+            synonyms = new string[] { "buffer" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -300,7 +319,7 @@ namespace UnityEditor.ShaderGraph
             return GetVariableNameForNode() + "_fb";
         }
 
-        void AppendVtParameters(ShaderStringBuilder sb, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddressMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality)
+        void AppendVtParameters(ShaderStringBuilder sb, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddressMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality, bool enableGlobalMipBias)
         {
             sb.AppendLine("VtInputParameters vtParams;");
             sb.AppendLine("vtParams.uv = " + uvExpr + ";");
@@ -312,7 +331,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("vtParams.levelMode = " + lod + ";");
             sb.AppendLine("vtParams.uvMode = " + space + ";");
             sb.AppendLine("vtParams.sampleQuality = " + quality + ";");
-
+            sb.AppendLine("vtParams.enableGlobalMipBias = " + (enableGlobalMipBias ? "1" : "0") + ";");
             sb.AppendLine("#if defined(SHADER_STAGE_RAY_TRACING)");
             sb.AppendLine("if (vtParams.levelMode == VtLevel_Automatic || vtParams.levelMode == VtLevel_Bias)");
             using (sb.BlockScope())
@@ -325,13 +344,13 @@ namespace UnityEditor.ShaderGraph
 
         void AppendVtSample(ShaderStringBuilder sb, string propertiesName, string vtInputVariable, string infoVariable, int layerIndex, string outputVariableName)
         {
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
             sb.Append("SampleVTLayerWithTextureType(");
-            sb.Append(propertiesName);          sb.Append(", ");
-            sb.Append(vtInputVariable);         sb.Append(", ");
-            sb.Append(infoVariable);            sb.Append(", ");
-            sb.Append(layerIndex.ToString());   sb.Append(");");
+            sb.Append(propertiesName); sb.Append(", ");
+            sb.Append(vtInputVariable); sb.Append(", ");
+            sb.Append(infoVariable); sb.Append(", ");
+            sb.Append(layerIndex.ToString()); sb.Append(");");
             sb.AppendNewLine();
         }
 
@@ -375,7 +394,7 @@ namespace UnityEditor.ShaderGraph
                 string dyExpr = "0.0f";
 
                 // function header
-                s.AppendIndentation();
+                s.TryAppendIndentation();
                 s.Append("float4 ");
                 s.Append(functionName);
                 s.Append("(float2 uv");
@@ -416,7 +435,8 @@ namespace UnityEditor.ShaderGraph
                         FilterMode.VtFilter_Anisotropic,
                         m_LodCalculation,
                         UvSpace.VtUvSpace_Regular,
-                        m_SampleQuality);
+                        m_SampleQuality,
+                        m_EnableGlobalMipBias);
 
                     s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
 
@@ -456,7 +476,7 @@ namespace UnityEditor.ShaderGraph
                     if (layerOutputVariables.Count > 0)
                     {
                         // assign feedback variable
-                        sb.AppendIndentation();
+                        sb.TryAppendIndentation();
                         if (!noFeedback)
                         {
                             sb.Append("float4 ");
@@ -541,6 +561,9 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             // Feedback dithering requires screen position (and only works in Pixel Shader currently)
+            // Note that the code that makes use of the screen position is not actually in this node,
+            // but is activated by the presence of this node..
+            // via a bit of a hack..
             return stageCapability.HasFlag(ShaderStageCapability.Fragment) && !noFeedback;
         }
     }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+using UnityEditor.Rendering.Universal.Path2D.GUIFramework;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal class DefaultStyles
     {
@@ -118,7 +118,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             DrawGUIStyleCap(0, tangent, Quaternion.identity, m_GUIState.GetHandleSize(tangent), styles.tangentNormalStyle);
         }
 
-        
         private void DrawGUIStyleCap(int controlID, Vector3 position, Quaternion rotation, float size, GUIStyle guiStyle)
         {
             if (Camera.current && Vector3.Dot(position - Camera.current.transform.position, Camera.current.transform.forward) < 0f)

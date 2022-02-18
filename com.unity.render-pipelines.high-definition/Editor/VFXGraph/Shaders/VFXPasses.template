@@ -14,6 +14,7 @@ ${VFXBegin:VFXPassVelocityAdditionalPragma}#pragma multi_compile _ WRITE_MSAA_DE
 
 ${VFXBegin:VFXShaderGraphFunctionsInclude}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"

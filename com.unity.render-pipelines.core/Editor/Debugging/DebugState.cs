@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering
             {
                 int hash = 13;
                 hash = hash * 23 + m_QueryPath.GetHashCode();
-                hash = hash * 23 + m_Value.GetHashCode();
+                hash = hash * 23 + value.GetHashCode();
                 return hash;
             }
         }
@@ -132,53 +132,116 @@ namespace UnityEditor.Rendering
     /// Boolean Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout), typeof(DebugUI.HistoryBoolField))]
-    public sealed class DebugStateBool : DebugState<bool> {}
+    public sealed class DebugStateBool : DebugState<bool> { }
+
+    /// <summary>
+    /// Enums Debug State.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
+    public sealed class DebugStateEnum : DebugState<int>
+    {
+        DebugUI.EnumField m_EnumField;
+
+        /// <summary>
+        /// Set the value of the Debug Item.
+        /// </summary>
+        /// <param name="value">Input value.</param>
+        /// <param name="field">Debug Item field.</param>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            m_EnumField = field as DebugUI.EnumField;
+            base.SetValue(value, field);
+        }
+
+        /// <summary>
+        /// On Enable method from <see cref="ScriptableObject"/>
+        /// </summary>
+        public override void OnEnable()
+        {
+            if (m_EnumField == null)
+                return;
+
+            m_EnumField.SetValue(value);
+            base.SetValue(value, m_EnumField);
+        }
+    }
 
     /// <summary>
     /// Integer Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
-    public sealed class DebugStateInt : DebugState<int> {}
+    [Serializable, DebugState(typeof(DebugUI.IntField))]
+    public sealed class DebugStateInt : DebugState<int> { }
+
+    /// <summary>
+    /// Object Debug State.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
+    public sealed class DebugStateObject : DebugState<UnityEngine.Object> { }
 
     /// <summary>
     /// Flags Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BitField))]
-    public sealed class DebugStateFlags : DebugState<Enum> { }
+    public sealed class DebugStateFlags : DebugState<Enum>
+    {
+        [SerializeField]
+        private SerializableEnum m_SerializableEnum;
+
+        /// <summary>
+        /// Value of the Debug Item
+        /// </summary>
+        public override Enum value
+        {
+            get => m_SerializableEnum?.value ?? default;
+            set => m_SerializableEnum.value = value;
+        }
+
+        /// <summary>
+        /// Set the value of the Debug Item.
+        /// </summary>
+        /// <param name="value">Input value.</param>
+        /// <param name="field">Debug Item field.</param>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            if (m_SerializableEnum == null)
+                m_SerializableEnum = new SerializableEnum((field as DebugUI.BitField).enumType);
+            base.SetValue(value, field);
+        }
+    }
 
     /// <summary>
     /// Unsigned Integer Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.UIntField))]
-    public sealed class DebugStateUInt : DebugState<uint> {}
+    public sealed class DebugStateUInt : DebugState<uint> { }
 
     /// <summary>
     /// Float Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.FloatField))]
-    public sealed class DebugStateFloat : DebugState<float> {}
+    public sealed class DebugStateFloat : DebugState<float> { }
 
     /// <summary>
     /// Color Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.ColorField))]
-    public sealed class DebugStateColor : DebugState<Color> {}
+    public sealed class DebugStateColor : DebugState<Color> { }
 
     /// <summary>
     /// Vector2 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector2Field))]
-    public sealed class DebugStateVector2 : DebugState<Vector2> {}
+    public sealed class DebugStateVector2 : DebugState<Vector2> { }
 
     /// <summary>
     /// Vector3 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector3Field))]
-    public sealed class DebugStateVector3 : DebugState<Vector3> {}
+    public sealed class DebugStateVector3 : DebugState<Vector3> { }
 
     /// <summary>
     /// Vector4 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector4Field))]
-    public sealed class DebugStateVector4 : DebugState<Vector4> {}
+    public sealed class DebugStateVector4 : DebugState<Vector4> { }
 }

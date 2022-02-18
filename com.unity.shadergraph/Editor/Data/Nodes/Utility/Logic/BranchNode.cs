@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public BranchNode()
         {
             name = "Branch";
+            synonyms = new string[] { "switch", "if", "else" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Predicate ? True : False;
 }

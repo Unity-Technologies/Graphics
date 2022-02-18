@@ -6,9 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Gradient Sky Volume Component.
     /// This component setups gradient sky for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Gradient Sky")]
+    [VolumeComponentMenuForRenderPipeline("Sky/Gradient Sky", typeof(HDRenderPipeline))]
     [SkyUniqueID((int)SkyType.Gradient)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Gradient-Sky" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Gradient-Sky")]
     public class GradientSky : SkySettings
     {
         /// <summary>Top color of the gradient sky.</summary>
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorParameter bottom = new ColorParameter(Color.white, true, false, true);
         /// <summary>Size of the horizon (middle color.</summary>
         [Tooltip("Sets the size of the horizon (Middle color).")]
-        public FloatParameter gradientDiffusion = new FloatParameter(1);
+        public MinFloatParameter gradientDiffusion = new MinFloatParameter(1, 0.0f);
 
         /// <summary>
         /// Returns the hash code of the gradient sky parameters.

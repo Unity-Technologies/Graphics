@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public ModuloNode()
         {
             name = "Modulo";
+            synonyms = new string[] { "fmod" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = fmod(A, B);
 }

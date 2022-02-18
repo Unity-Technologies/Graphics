@@ -109,11 +109,11 @@ namespace UnityEditor.VFX.Block
                 string sizeString = string.Empty;
                 switch (sizeMode)
                 {
-                    case SizeMode.PixelAbsolute:                          sizeString = "float2(PixelSize, PixelSize)";                                            break;
-                    case SizeMode.PixelRelativeToResolution:              sizeString = "float2(PixelSize, PixelSize) * (_ScreenParams.xy/ReferenceResolution)";   break;
-                    case SizeMode.RatioRelativeToWidth:                   sizeString = "float2(_ScreenParams.x, _ScreenParams.x) * RelativeSize";                 break;
-                    case SizeMode.RatioRelativeToHeight:                  sizeString = "float2(_ScreenParams.y, _ScreenParams.y) * RelativeSize";                 break;
-                    case SizeMode.RatioRelativeToHeightAndWidth:          sizeString = "float2(_ScreenParams.x, _ScreenParams.y) * RelativeSize";                 break;
+                    case SizeMode.PixelAbsolute: sizeString = "float2(PixelSize, PixelSize)"; break;
+                    case SizeMode.PixelRelativeToResolution: sizeString = "float2(PixelSize, PixelSize) * (_ScreenParams.xy/ReferenceResolution)"; break;
+                    case SizeMode.RatioRelativeToWidth: sizeString = "float2(_ScreenParams.x, _ScreenParams.x) * RelativeSize"; break;
+                    case SizeMode.RatioRelativeToHeight: sizeString = "float2(_ScreenParams.y, _ScreenParams.y) * RelativeSize"; break;
+                    case SizeMode.RatioRelativeToHeightAndWidth: sizeString = "float2(_ScreenParams.x, _ScreenParams.y) * RelativeSize"; break;
                     default: throw new NotImplementedException(string.Format("Not Implemented SizeMode: {0}", sizeMode));
                 }
 
@@ -130,10 +130,10 @@ scaleY = newScale.y;
                     switch (sizeZMode)
                     {
                         case SizeZMode.Ignore: break; // should not happen
-                        case SizeZMode.SameAsSizeX:     Source += "scaleZ = scaleX;"; break;
-                        case SizeZMode.SameAsSizeY:     Source += "scaleZ = scaleY;"; break;
-                        case SizeZMode.MinOfSizeXY:     Source += "scaleZ = min(scaleX,scaleY);"; break;
-                        case SizeZMode.MaxOfSizeXY:     Source += "scaleZ = max(scaleX,scaleY);"; break;
+                        case SizeZMode.SameAsSizeX: Source += "scaleZ = scaleX;"; break;
+                        case SizeZMode.SameAsSizeY: Source += "scaleZ = scaleY;"; break;
+                        case SizeZMode.MinOfSizeXY: Source += "scaleZ = min(scaleX,scaleY);"; break;
+                        case SizeZMode.MaxOfSizeXY: Source += "scaleZ = max(scaleX,scaleY);"; break;
                         case SizeZMode.AverageOfSizeXY: Source += "scaleZ = (scaleX + scaleY) * 0.5;"; break;
                     }
                 }

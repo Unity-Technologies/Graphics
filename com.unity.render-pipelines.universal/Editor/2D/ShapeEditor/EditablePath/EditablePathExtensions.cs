@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal static class EditablePathExtensions
     {
@@ -11,8 +11,8 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var polygon = new Polygon()
             {
-               isOpenEnded = path.isOpenEnded,
-               points = new Vector3[path.pointCount]
+                isOpenEnded = path.isOpenEnded,
+                points = new Vector3[path.pointCount]
             };
 
             for (var i = 0; i < path.pointCount; ++i)
@@ -27,25 +27,25 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             if (path.isOpenEnded)
                 count -= 2;
-            
+
             var spline = new Spline()
             {
-               isOpenEnded = path.isOpenEnded,
-               points = new Vector3[count]
+                isOpenEnded = path.isOpenEnded,
+                points = new Vector3[count]
             };
 
             for (var i = 0; i < path.pointCount; ++i)
             {
                 var point = path.GetPoint(i);
 
-                spline.points[i*3] = point.position;
+                spline.points[i * 3] = point.position;
 
                 if (i * 3 + 1 < count)
                 {
-                    var nextIndex = EditablePathUtility.Mod(i+1, path.pointCount);
+                    var nextIndex = EditablePathUtility.Mod(i + 1, path.pointCount);
 
-                    spline.points[i*3 + 1] = path.CalculateRightTangent(i);
-                    spline.points[i*3 + 2] = path.CalculateLeftTangent(nextIndex);
+                    spline.points[i * 3 + 1] = path.CalculateRightTangent(i);
+                    spline.points[i * 3 + 2] = path.CalculateLeftTangent(nextIndex);
                 }
             }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             if (isEndpoint)
                 return point.position;
-            
+
             if (isTangentLinear)
             {
                 var nextPoint = path.GetNextPoint(index);
@@ -127,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 controlPoint.tangentMode = TangentMode.Broken;
             else if (controlPoint.tangentMode != TangentMode.Continuous)
                 controlPoint.tangentMode = TangentMode.Broken;
-            
+
             controlPoint.StoreTangents();
             path.SetPoint(index, controlPoint);
             path.localToWorldMatrix = localToWorldMatrix;
@@ -143,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             for (var i = 0; i < path.pointCount; ++i)
             {
                 var controlPoint = path.GetPoint(i);
-                 
+
                 if (controlPoint.tangentMode == TangentMode.Linear)
                 {
                     controlPoint.localLeftTangent = Vector3.zero;
@@ -158,10 +158,10 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     var liniarLeftPosition = (prevPoint.position - controlPoint.position) / 3f;
                     var isLeftTangentLinear = isLeftEndpoint || (controlPoint.localLeftTangent - liniarLeftPosition).sqrMagnitude < kEpsilon;
 
-                    if (isLeftTangentLinear) 
+                    if (isLeftTangentLinear)
                         controlPoint.localLeftTangent = Vector3.zero;
 
-                    var isRightEndpoint = path.isOpenEnded && i == path.pointCount-1;
+                    var isRightEndpoint = path.isOpenEnded && i == path.pointCount - 1;
                     var liniarRightPosition = (nextPoint.position - controlPoint.position) / 3f;
                     var isRightTangentLinear = isRightEndpoint || (controlPoint.localRightTangent - liniarRightPosition).sqrMagnitude < kEpsilon;
 
@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 var isLeftLinear = controlPoint.localLeftTangent == Vector3.zero;
                 var isRightLinear = controlPoint.localRightTangent == Vector3.zero;
-                
+
                 if (isLeftLinear || isRightLinear)
                 {
                     if (isLeftLinear)

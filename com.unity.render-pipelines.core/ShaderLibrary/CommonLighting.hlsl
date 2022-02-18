@@ -1,6 +1,10 @@
 #ifndef UNITY_COMMON_LIGHTING_INCLUDED
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 // Ligthing convention
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward
 
@@ -241,7 +245,7 @@ real3 GTAOMultiBounce(real visibility, real3 albedo)
     return max(x, ((x * a + b) * x + c) * x);
 }
 
-// Based on Oat and Sander's 2008 technique
+// Based on Oat and Sander's 2007 technique
 // Area/solidAngle of intersection of two cone
 real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
 {
@@ -275,7 +279,7 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
 // ref: Practical Realtime Strategies for Accurate Indirect Occlusion
 // http://blog.selfshadow.com/publications/s2016-shading-course/#course_content
 // Original Cone-Cone method with cosine weighted assumption (p129 s2016_pbs_activision_occlusion)
-real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+real GetSpecularOcclusionFromBentAO_ConeCone(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
 {
     // Retrieve cone angle
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
@@ -286,10 +290,54 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
 }
 
+real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+{
+    // Pseudo code:
+    //SphericalGaussian NDF = WarpedGGXDistribution(normalWS, roughness, V);
+    //SphericalGaussian Visibility = VisibilityConeSG(bentNormalWS, ambientOcclusion);
+    //SphericalGaussian UpperHemisphere = UpperHemisphereSG(normalWS);
+    //return saturate( InnerProduct(NDF, Visibility) / InnerProduct(NDF, UpperHemisphere) );
+
+    // 1. Approximate visibility cone with a spherical gaussian of amplitude A=1
+    // For a cone angle X, we can determine sharpness so that all point inside the cone have a value > Y
+    // sharpness = (log(Y) - log(A)) / (cos(X) - 1)
+    // For AO cone, cos(X) = sqrt(1 - ambientOcclusion)
+    // -> for Y = 0.1, sharpness = -1.0 / (sqrt(1-ao) - 1)
+    float vs = -1.0f / min(sqrt(1.0f - ambientOcclusion) - 1.0f, -0.001f);
+
+    // 2. Approximate upper hemisphere with sharpness = 0.8 and amplitude = 1
+    float us = 0.8f;
+
+    // 3. Compute warped SG Axis of GGX distribution
+    // Ref: All-Frequency Rendering of Dynamic, Spatially-Varying Reflectance
+    // https://www.microsoft.com/en-us/research/wp-content/uploads/2009/12/sg.pdf
+    float NoV = dot(V, normalWS);
+    float3 NDFAxis = (2 * NoV * normalWS - V) * (0.5f / max(roughness * roughness * NoV, 0.001f));
+
+    float umLength1 = length(NDFAxis + vs * bentNormalWS);
+    float umLength2 = length(NDFAxis + us * normalWS);
+    float d1 = 1 - exp(-2 * umLength1);
+    float d2 = 1 - exp(-2 * umLength2);
+
+    float expFactor1 = exp(umLength1 - umLength2 + us - vs);
+
+    return saturate(expFactor1 * (d1 * umLength2) / (d2 * umLength1));
+}
+
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
 real ComputeWrappedDiffuseLighting(real NdotL, real w)
 {
     return saturate((NdotL + w) / ((1.0 + w) * (1.0 + w)));
+}
+
+// Ref: Stephen McAuley - Advances in Rendering: Graphics Research and Video Game Production
+real3 ComputeWrappedNormal(real3 N, real3 L, real w)
+{
+    real NdotL = dot(N, L);
+    real wrappedNdotL = saturate((NdotL + w) / (1 + w));
+    real sinPhi = lerp(w, 0.f, wrappedNdotL);
+    real cosPhi = sqrt(1.0f - sinPhi * sinPhi);
+    return normalize(cosPhi * N + sinPhi * cross(cross(N, L), N));
 }
 
 // Jimenez variant for eye
@@ -301,9 +349,9 @@ real ComputeWrappedPowerDiffuseLighting(real NdotL, real w, real p)
 // Ref: The Technical Art of Uncharted 4 - Brinck and Maximov 2016
 real ComputeMicroShadowing(real AO, real NdotL, real opacity)
 {
-	real aperture = 2.0 * AO * AO;
-	real microshadow = saturate(NdotL + aperture - 1.0);
-	return lerp(1.0, microshadow, opacity);
+    real aperture = 2.0 * AO * AO;
+    real microshadow = saturate(NdotL + aperture - 1.0);
+    return lerp(1.0, microshadow, opacity);
 }
 
 real3 ComputeShadowColor(real shadow, real3 shadowTint, real penumbraFlag)
@@ -352,7 +400,7 @@ real ClampNdotV(real NdotV)
 void GetBSDFAngle(real3 V, real3 L, real NdotL, real NdotV,
                   out real LdotV, out real NdotH, out real LdotH, out real invLenLV)
 {
-    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
+    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114), assuming |L|=1 and |V|=1
     LdotV = dot(L, V);
     invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));    // invLenLV = rcp(length(L + V)), clamp to avoid rsqrt(0) = inf, inf * 0 = NaN
     NdotH = saturate((NdotL + NdotV) * invLenLV);
@@ -437,7 +485,7 @@ real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool test
     if (testSingularity && (abs(1.0 - unclampedNdotV) <= FLT_EPS))
     {
         // In this case N == V, and azimuth orientation around N shouldn't matter for the caller,
-        // we can use any quaternion-based method, like Frisvad or Reynold's (Pixar): 
+        // we can use any quaternion-based method, like Frisvad or Reynold's (Pixar):
         orthoBasisViewNormal = GetLocalFrame(N);
     }
     else
@@ -454,5 +502,9 @@ bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
 {
     return (lightLayers & renderingLayers) != 0;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

@@ -1,0 +1,69 @@
+struct ps_input
+{
+	float4 pos : SV_POSITION;
+	#if VFX_NEEDS_COLOR_INTERPOLATOR
+	nointerpolation float4 color : COLOR0;
+	#endif
+	#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT || VFX_FEATURE_MOTION_VECTORS_FORWARD
+	nointerpolation float3 builtInInterpolants : TEXCOORD0;
+	#endif
+	#if VFX_NEEDS_POSWS_INTERPOLATOR
+	float3 posWS : TEXCOORD1;
+	#endif
+
+	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	VFX_DECLARE_MOTION_VECTORS_STORAGE(2,3)
+	#endif
+
+	float pointSize : PSIZE;
+
+	UNITY_VERTEX_OUTPUT_STEREO
+};
+
+struct ps_output
+{
+	float4 color : SV_Target0;
+	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	float4 motionVector : SV_Target1;
+	#endif
+};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
+#endif
+
+${VFXPassForwardDefine}
+${VFXInclude("Shaders/ParticlePoints/Pass.template")}	
+	
+#pragma fragment frag
+ps_output frag(ps_input i)
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	VFXTransformPSInputs(i);
+	ps_output o = (ps_output)0;
+	${VFXApplyColor}
+	o.color = VFXApplyPreExposure(o.color, i);
+	o.color = VFXApplyFog(o.color,i);
+	VFXClipFragmentColor(o.color.a,i);
+	o.color.a = saturate(o.color.a);
+	o.color = VFXTransformFinalColor(o.color);
+	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	${VFXComputeOutputMotionVector}
+	o.motionVector = encodedMotionVector;
+	o.motionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
+	#endif
+	return o;
+}

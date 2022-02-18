@@ -1,10 +1,16 @@
 # Lens Distortion
 
+![Lens Distortion off](Images/post-proc/lens-distortion-off.png)
+<br/>_Scene with Lens Distortion effect turned off._
+
+![Lens Distortion on](Images/post-proc/lens-distortion.png)
+<br/>_Scene with Lens Distortion effect turned on._
+
 The **Lens Distortion** effect distorts the final rendered picture to simulate the shape of a real-world camera lens.
 
 ## Using Lens Distortion
 
-**Lens Distortion** uses the [Volume](Volumes.html) framework, so to enable and modify **Lens Distortion** properties, you must add a **Lens Distortion** override to a [Volume](Volumes.html) in your Scene. To add **Lens Distortion** to a Volume:
+**Lens Distortion** uses the [Volume](Volumes.md) framework, so to enable and modify **Lens Distortion** properties, you must add a **Lens Distortion** override to a [Volume](Volumes.md) in your Scene. To add **Lens Distortion** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Lens Distortion**. URP now applies **Lens Distortion** to any Camera this Volume affects.

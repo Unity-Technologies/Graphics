@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
@@ -9,12 +11,19 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        RenderTargetHandle m_Source;
+        RTHandle m_Source;
         Material m_BlitMaterial;
 
+        /// <summary>
+        /// Creates a new <c>FinalBlitPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="blitMaterial">The <c>Material</c> to use for copying the executing the final blit.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+            base.useNativeRenderPass = false;
 
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
@@ -25,7 +34,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
+        [Obsolete("Use RTHandles for colorHandle")]
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
+        {
+            if (m_Source?.nameID != colorHandle.Identifier())
+                m_Source = RTHandles.Alloc(colorHandle.Identifier());
+        }
+
+        /// <summary>
+        /// Configure the pass
+        /// </summary>
+        /// <param name="baseDescriptor"></param>
+        /// <param name="colorHandle"></param>
+        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle)
         {
             m_Source = colorHandle;
         }
@@ -46,13 +67,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
+                m_Source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
+                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, true);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.nameID);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -74,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                     // 2) renderTexture starts UV at top
-                    bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
+                    bool yflip = SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
 
@@ -88,7 +116,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+                    cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
                 }
                 else
                 {
@@ -100,7 +128,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cameraTarget,
                         RenderBufferLoadAction.Load,
                         RenderBufferStoreAction.Store,
-                        ClearFlag.None,
+                        ClearFlag.Depth,
                         Color.black);
 
                     Camera camera = cameraData.camera;
@@ -109,6 +137,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
                 }
+#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
+                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 0618
             }
 
             context.ExecuteCommandBuffer(cmd);

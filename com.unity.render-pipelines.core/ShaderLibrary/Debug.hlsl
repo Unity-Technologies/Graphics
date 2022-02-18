@@ -1,6 +1,35 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+// UX-verified colorblind-optimized debug colors, listed in order of increasing perceived "hotness"
+#define DEBUG_COLORS_COUNT 12
+#define kDebugColorBlack        float4(0.0   / 255.0, 0.0   / 255.0, 0.0   / 255.0, 1.0) // #000000
+#define kDebugColorLightPurple  float4(166.0 / 255.0, 70.0  / 255.0, 242.0 / 255.0, 1.0) // #A646F2
+#define kDebugColorDeepBlue     float4(0.0   / 255.0, 26.0  / 255.0, 221.0 / 255.0, 1.0) // #001ADD
+#define kDebugColorSkyBlue      float4(65.0  / 255.0, 152.0 / 255.0, 224.0 / 255.0, 1.0) // #4198E0
+#define kDebugColorLightBlue    float4(158.0 / 255.0, 228.0 / 255.0, 251.0 / 255.0, 1.0) // #1A1D21
+#define kDebugColorTeal         float4(56.0  / 255.0, 243.0 / 255.0, 176.0 / 255.0, 1.0) // #38F3B0
+#define kDebugColorBrightGreen  float4(168.0 / 255.0, 238.0 / 255.0, 46.0  / 255.0, 1.0) // #A8EE2E
+#define kDebugColorBrightYellow float4(255.0 / 255.0, 253.0 / 255.0, 76.0  / 255.0, 1.0) // #FFFD4C
+#define kDebugColorDarkYellow   float4(255.0 / 255.0, 214.0 / 255.0, 0.0   / 255.0, 1.0) // #FFD600
+#define kDebugColorOrange       float4(253.0 / 255.0, 152.0 / 255.0, 0.0   / 255.0, 1.0) // #FD9800
+#define kDebugColorBrightRed    float4(255.0 / 255.0, 67.0  / 255.0, 51.0  / 255.0, 1.0) // #FF4333
+#define kDebugColorDarkRed      float4(132.0 / 255.0, 10.0  / 255.0, 54.0  / 255.0, 1.0) // #840A36
+
+// Shadow cascade debug colors. Keep in sync with the ones in ShadowCascadeGUI.cs.
+// Note: These colors are not 1:1 match to editor UI, in order to provide better contrast in the viewport.
+#define kDebugColorShadowCascade0   float4(0.4, 0.4, 0.9, 1.0)
+#define kDebugColorShadowCascade1   float4(0.4, 0.9, 0.4, 1.0)
+#define kDebugColorShadowCascade2   float4(0.9, 0.9, 0.4, 1.0)
+#define kDebugColorShadowCascade3   float4(0.9, 0.4, 0.4, 1.0)
+
+// UX-verified colorblind-optimized "heat color gradient"
+static const float4 kDebugColorGradient[DEBUG_COLORS_COUNT] = { kDebugColorBlack, kDebugColorLightPurple, kDebugColorDeepBlue,
+    kDebugColorSkyBlue, kDebugColorLightBlue, kDebugColorTeal, kDebugColorBrightGreen, kDebugColorBrightYellow,
+    kDebugColorDarkYellow, kDebugColorOrange, kDebugColorBrightRed, kDebugColorDarkRed };
+
 #define TRANSPARENCY_OVERDRAW_COST 1.0
 #define TRANSPARENCY_OVERDRAW_A 1.0
 
@@ -71,7 +100,17 @@ bool SampleDebugFont(int2 pixCoord, uint digit)
     return (fontData[8 - pixCoord.y][digit >= 5] >> ((digit % 5) * 5 + pixCoord.x)) & 1;
 }
 
-bool SampleDebugFontNumber(int2 pixCoord, uint number)
+/*
+ * Sample up to 2 digits of a number. (Excluding leading zeroes)
+ *
+ * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
+ * See SampleDebugFontNumberAllDigits to sample all digits.
+ *
+ * @param pixCoord: pixel coordinate of the number sample
+ * @param number: number to sample
+ * @return true when the pixel is a pixel of a digit.
+ */
+bool SampleDebugFontNumber2Digits(int2 pixCoord, uint number)
 {
     pixCoord.y -= 4;
     if (number <= 9)
@@ -82,6 +121,55 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     {
         return (SampleDebugFont(pixCoord, number / 10) | SampleDebugFont(pixCoord - int2(6, 0), number % 10));
     }
+}
+
+/*
+ * Sample all digits of a number. (Excluding leading zeroes)
+ *
+ * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
+ * See SampleDebugFontNumber2Digits for a faster version supporting only 2 digits.
+ *
+ * @param pixCoord: pixel coordinate of the number sample
+ * @param number: number to sample
+ * @return true when the pixel is a pixel of a digit.
+ */
+bool SampleDebugFontNumberAllDigits(int2 pixCoord, uint number)
+{
+    const int digitCount = (int)max(1u, uint(log10(number)) + 1u);
+
+    pixCoord.y -= 4;
+    int2 offset = int2(6 * digitCount, 0);
+    uint current = number;
+    for (int i = 0; i < digitCount; ++i)
+    {
+        if (SampleDebugFont(pixCoord - offset, current % 10))
+            return true;
+
+        current /= 10;
+        offset -= int2(6, 0);
+    }
+    return false;
+}
+
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
+    int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
+    colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
+    float4 col = kDebugColorGradient[colorIndex];
+
+    int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+    if (n >= 0)
+    {
+        if (SampleDebugFontNumber2Digits(coord, n))        // Shadow
+            color = float4(0, 0, 0, 1);
+        if (SampleDebugFontNumber2Digits(coord + 1, n))    // Text
+            color = float4(1, 1, 1, 1);
+    }
+    return color;
 }
 
 float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
@@ -164,35 +252,31 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
     return color;
 }
 
-float3 GetDebugMipColor(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv)
+float3 GetDebugMipColor(float3 originalColor, float4 texelSize, float2 uv)
 {
     // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    float4 mipColor= GetMipLevelColor(uv, texelSize);
+    float4 mipColor = GetMipLevelColor(uv, texelSize);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipCountColor(float3 originalColor, Texture2D tex)
+float3 GetDebugMipCountColor(float3 originalColor, uint mipCount)
 {
-    uint mipCount = GetMipCount(tex);
-
     float4 mipColor = GetSimpleMipCountColor(mipCount);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugStreamingMipColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColor(uint mipCount, float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
     return GetStreamingMipColor(mipCount, mipInfo).xyz;
 }
 
-float3 GetDebugStreamingMipColorBlended(float3 originalColor, Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColorBlended(float3 originalColor, uint mipCount, float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
     float4 mipColor = GetStreamingMipColor(mipCount, mipInfo);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv, float4 mipInfo)
+float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, uint mipCount, float4 texelSize, float2 uv, float4 mipInfo)
 {
     uint originalTextureMipCount = uint(mipInfo.y);
     if (originalTextureMipCount != 0)
@@ -204,7 +288,6 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
         // w = 0
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
         uint mipReductionFactor = 1 << mipReductionLevel;
         if (mipReductionFactor)
@@ -214,7 +297,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
             texelSize.zw *= oneOverMipReductionFactor;
         }
     }
-    return GetDebugMipColor(originalColor, tex, texelSize, uv);
+    return GetDebugMipColor(originalColor, texelSize, uv);
 }
 
 // mipInfo :
@@ -222,7 +305,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
 // y = original mip count for texture
 // z = desired on screen mip level
 // w = 0
-float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugMipReductionColor(uint mipCount, float4 mipInfo)
 {
     float3 outColor = float3(1.0, 0.0, 1.0); // Can't calculate without original mip count - return magenta
 
@@ -230,7 +313,6 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
     if (originalTextureMipCount != 0)
     {
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
 
         float mipCol = float(mipReductionLevel) / 14.0;
@@ -274,6 +356,117 @@ real3 GetColorCodeFunction(real value, real4 threshold)
     }
 
     return outColor;
+}
+
+/// Return the color of the overdraw debug.
+///
+/// The color will go from
+/// (cheap) dark blue -> red -> violet -> white (expensive)
+///
+/// * overdrawCount: the number of overdraw
+/// * maxOverdrawCount: the maximum number of overdraw.
+///   if the overdrawCount is above, the most expensive color is returned.
+real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
+{
+    if (overdrawCount < 0.01)
+        return real3(0, 0, 0);
+
+    // cheapest hue
+    const float initialHue = 240;
+    // most expensive hue is initialHue - deltaHue
+    const float deltaHue = 20;
+    // the value in % of budget where we start to remove saturation
+    const float xLight = 0.95;
+    // minimum hue
+    const float minHue = deltaHue - 360 + initialHue;
+    // budget value of a single draw
+    const float xCostOne = 1.0 / maxOverdrawCount;
+    // current budget value
+    const float x = saturate(overdrawCount / maxOverdrawCount);
+
+
+    float hue = fmod(max(min((x - xCostOne) * (deltaHue - 360) * (1.0 / (xLight - xCostOne)) + initialHue, initialHue), minHue), 360)/360.0;
+    float saturation = min(max((-1.0/(1 - xLight)) * (x - xLight), 0), 1);
+    return HsvToRgb(real3(hue, saturation, 1.0));
+}
+
+int OverdrawLegendBucketInterval(int maxOverdrawCount)
+{
+    if (maxOverdrawCount <= 10)
+        return 1;
+    if (maxOverdrawCount <= 50)
+        return 5;
+    if (maxOverdrawCount <= 100)
+        return 10;
+
+    const int digitCount = floor(log10(maxOverdrawCount));
+    const int digitMultiplier = pow(10, digitCount);
+    const int biggestDigit = floor(maxOverdrawCount/digitMultiplier);
+    if (biggestDigit < 5)
+        return pow(10, digitCount - 1) * 5;
+
+    return digitMultiplier;
+}
+
+/// Return the color of the overdraw debug legend.
+///
+/// It will draw a bar with all the color buckets of the overdraw debug
+///
+/// * texcoord: the texture coordinate of the pixel to draw
+/// * maxOverdrawCount: the maximum number of overdraw.
+/// * screenSize: screen size (w, h, 1/w, 1/h).
+/// * defaultColor: the default color used for other areas
+void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize, inout real3 color)
+{
+    // Band parameters
+    // Position of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandPosition = real4(20, 20, 0, 0);
+    // Position of the band labels (fixed x, fixed y, rel x, rel y)
+    const real4 bandLabelPosition = real4(20, 50, 0, 0);
+    // Size of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandSize = real4(-bandPosition.x * 2, 20, 1, 0);
+    // Thickness of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandBorderThickness = real4(4, 4, 0, 0);
+
+    // Compute UVs
+    const real2 bandPositionUV = bandPosition.xy * screenSize.zw + bandPosition.zw;
+    const real2 bandLabelPositionUV = bandLabelPosition.xy * screenSize.zw + bandLabelPosition.zw;
+    const real2 bandSizeUV = bandSize.xy * screenSize.zw + bandSize.zw;
+    const real4 bandBorderPosition = bandPosition - bandBorderThickness;
+    const real4 bandBorderSize = bandSize + 2 * bandBorderThickness;
+    const real2 bandBorderPositionUV = bandBorderPosition.xy * screenSize.zw + bandBorderPosition.zw;
+    const real2 bandBorderSizeUV = bandBorderSize.xy * screenSize.zw + bandBorderSize.zw;
+
+    // Transform coordinate
+    const real2 bandBorderCoord =  (texCoord - bandBorderPositionUV) / bandBorderSizeUV;
+    const real2 bandCoord =  (texCoord - bandPositionUV) / bandSizeUV;
+
+    // Compute bucket index
+    const real bucket = ceil(bandCoord.x * maxOverdrawCount);
+
+    // Assign color when relevant
+    // Band border
+    if (all(bandBorderCoord >= 0) && all(bandBorderCoord <= 1))
+        color = real3(0.1, 0.1, 0.1);
+
+    // Band color
+    if (all(bandCoord >= 0) && all(bandCoord <= 1))
+        color = GetOverdrawColor(bucket, maxOverdrawCount);
+
+    // Bucket label
+    if (0 < bucket && bucket <= maxOverdrawCount)
+    {
+        const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
+        const int bucketLabelIndex = (int(bucket) / bucketInterval) * bucketInterval;
+        const real2 labelStartCoord = real2(
+            bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
+            bandLabelPositionUV.y
+        );
+
+        const uint2 pixCoord = uint2((texCoord - labelStartCoord) * screenSize.xy);
+        if (SampleDebugFontNumberAllDigits(pixCoord, bucketLabelIndex))
+            color = real3(1, 1, 1);
+    }
 }
 
 #endif // UNITY_DEBUG_INCLUDED

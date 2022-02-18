@@ -1,0 +1,24 @@
+{
+    "name": "Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "Unity.PerformanceTesting",
+        "Unity.Testing.VisualEffectGraph.Tests",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestTools.Graphics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

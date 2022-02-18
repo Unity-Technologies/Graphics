@@ -12,7 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HDPropertiesHeader(string label) : base(label)
         {
-            
         }
     }
 }

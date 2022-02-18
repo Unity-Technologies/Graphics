@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -37,6 +38,14 @@ namespace UnityEditor.Rendering
         string m_OldShader;
         string m_NewShader;
 
+        /// <summary>
+        /// Retrieves path to new shader.
+        /// </summary>
+        public string NewShaderPath
+        {
+            get => m_NewShader;
+        }
+
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -56,6 +65,36 @@ namespace UnityEditor.Rendering
             public float setVal, unsetVal;
         }
         List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
+
+        /// <summary>
+        /// Type of property to rename.
+        /// </summary>
+        public enum MaterialPropertyType
+        {
+            /// <summary>Texture reference property.</summary>
+            Texture,
+            /// <summary>Float property.</summary>
+            Float,
+            /// <summary>Color property.</summary>
+            Color
+        }
+
+        /// <summary>
+        /// Retrieves a collection of renamed parameters of a specific MaterialPropertyType.
+        /// </summary>
+        /// <param name="type">Material Property Type</param>
+        /// <returns>Dictionary of property names to their renamed values.</returns>
+        /// <exception cref="ArgumentException">type is not valid.</exception>
+        public IReadOnlyDictionary<string, string> GetPropertyRenameMap(MaterialPropertyType type)
+        {
+            switch (type)
+            {
+                case MaterialPropertyType.Texture: return m_TextureRename;
+                case MaterialPropertyType.Float: return m_FloatRename;
+                case MaterialPropertyType.Color: return m_ColorRename;
+                default: throw new ArgumentException(nameof(type));
+            }
+        }
 
         /// <summary>
         /// Upgrade Flags
@@ -270,8 +309,17 @@ namespace UnityEditor.Rendering
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
+        /// <summary>
+        /// Checking if the passed in value is a path to a Material.
+        /// </summary>
+        /// <param name="path">Path to test.</param>
+        /// <return>Returns true if the passed in value is a path to a material.</return>
         static bool IsMaterialPath(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
             return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -299,7 +347,13 @@ namespace UnityEditor.Rendering
             AssetDatabase.Refresh();
         }
 
-        private static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
+        /// <summary>
+        /// Checking if the passed in value is a path to a Material.
+        /// </summary>
+        /// <param name="material">Material to check.</param>
+        /// <param name="shaderNamesToIgnore">HashSet of strings to ignore.</param>
+        /// <return>Returns true if the passed in material's shader is not in the passed in ignore list.</return>
+        static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
         {
             if (material == null)
                 return false;
@@ -331,7 +385,7 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            if (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+            if ((!Application.isBatchMode) && (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel)))
                 return;
 
             int totalMaterialCount = 0;
@@ -340,7 +394,7 @@ namespace UnityEditor.Rendering
                 if (IsMaterialPath(s))
                     totalMaterialCount++;
             }
-            
+
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
@@ -354,7 +408,7 @@ namespace UnityEditor.Rendering
 
                     if (!ShouldUpgradeShader(m, shaderNamesToIgnore))
                         continue;
-                    
+
                     Upgrade(m, upgraders, flags);
 
                     //SaveAssetsAndFreeMemory();
@@ -379,9 +433,11 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void Upgrade(Material material, MaterialUpgrader upgrader, UpgradeFlags flags)
         {
-            var upgraders = new List<MaterialUpgrader>();
-            upgraders.Add(upgrader);
-            Upgrade(material, upgraders, flags);
+            using (ListPool<MaterialUpgrader>.Get(out List<MaterialUpgrader> upgraders))
+            {
+                upgraders.Add(upgrader);
+                Upgrade(material, upgraders, flags);
+            }
         }
 
         /// <summary>
@@ -392,15 +448,44 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags)
         {
-            if (material == null)
+            string message = string.Empty;
+            if (Upgrade(material, upgraders, flags, ref message))
                 return;
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                Debug.Log(message);
+            }
+        }
+
+        /// <summary>
+        /// Upgrade a material.
+        /// </summary>
+        /// <param name="material">Material to upgrade.</param>
+        /// <param name="upgraders">List of Material upgraders.</param>
+        /// <param name="flags">Material upgrader flags.</param>
+        /// <param name="message">Error message to be outputted when no material upgraders are suitable for given material if the flags <see cref="UpgradeFlags.LogMessageWhenNoUpgraderFound"/> is used.</param>
+        /// <returns>Returns true if the upgrader was found for the passed in material.</returns>
+        public static bool Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags, ref string message)
+        {
+            if (material == null)
+                return false;
 
             var upgrader = GetUpgrader(upgraders, material);
 
             if (upgrader != null)
+            {
                 upgrader.Upgrade(material, flags);
-            else if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
-                Debug.Log(string.Format("{0} material was not upgraded. There's no upgrader to convert {1} shader to selected pipeline", material.name, material.shader.name));
+                return true;
+            }
+            if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
+            {
+                message =
+                    $"{material.name} material was not upgraded. There's no upgrader to convert {material.shader.name} shader to selected pipeline";
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -448,7 +533,7 @@ namespace UnityEditor.Rendering
             }
 
             if (!EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
-                    DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
             string lastMaterialName = "";

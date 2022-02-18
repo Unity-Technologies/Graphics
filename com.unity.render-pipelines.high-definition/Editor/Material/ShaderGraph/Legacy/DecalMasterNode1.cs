@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine.Rendering;
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         }
 
         const SlotMask decalParameter = SlotMask.Position | SlotMask.VertexNormal | SlotMask.VertexTangent | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
-        
+
         SlotMask GetActiveSlotMask()
         {
             return decalParameter;

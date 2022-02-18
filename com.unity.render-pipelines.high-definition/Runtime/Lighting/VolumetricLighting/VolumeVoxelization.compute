@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_OPTIMAL
 #pragma kernel VolumeVoxelizationTiledOptimal      VolumeVoxelization=VolumeVoxelizationTiledOptimal                                         VL_PRESET_OPTIMAL
@@ -22,6 +22,8 @@
 #define GROUP_SIZE_1D     8
 #define SOFT_VOXELIZATION 1 // Hack which attempts to determine partial coverage of the voxel
 
+#define EXPONENTIAL_FALLOFF_EXPONENT 2.2
+
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
@@ -31,7 +33,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 //--------------------------------------------------------------------------------------------------
@@ -39,7 +41,7 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
 TEXTURE3D(_VolumeMaskAtlas);
 
@@ -61,34 +63,27 @@ struct JitteredRay
 
 float ComputeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
-                        float rcpDistFadeLen, float endTimesRcpDistFadeLen)
+                        float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
 {
-    // We have to account for handedness.
-    coordNDC.z = 1 - coordNDC.z;
-
     float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
     float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
     float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
-    return dstF * (invertFade ? (1 - fade) : fade);
+    // We only apply exponential falloff on the Blend Distance and not Distance Fade
+    if (falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
+        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
+
+    fade = dstF * (invertFade ? (1 - fade) : fade);
+
+    return fade;
 }
 
-float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
+float4 SampleVolumeMask(LocalVolumetricFogEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
-    // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
-    float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
-
-    float rcpNumTextures = _VolumeMaskDimensions.x;
-    float textureWidth   = _VolumeMaskDimensions.y;
-    float textureDepth   = _VolumeMaskDimensions.z;
-    float maxLod         = _VolumeMaskDimensions.w;
-
-    float offset = volumeData.textureIndex * rcpNumTextures;
-    voxelCenterUVW.z = voxelCenterUVW.z * rcpNumTextures + offset;
-
+    float maxLod         = log2(volumeData.maskSize.w);
     // TODO: expose the LoD bias parameter.
-    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth);
+    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, volumeData.maskSize.w);
     lod = clamp(lod, 0, maxLod);
 
     // TODO: bugfix.
@@ -99,13 +94,20 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tileable textures.
     // For now, we choose the second option.
     // We support texture filtering across the wrap in Z in neither case.
-    int   textureSize   = (int)textureDepth;
+    int   textureSize   = (int)volumeData.maskSize.w;
     int   mipSize       = textureSize >> (int)ceil(lod);
     float halfTexelSize = 0.5f * rcp(mipSize);
-    voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
+
+    // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
+    float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
+    voxelCenterUVW = clamp(voxelCenterUVW, halfTexelSize, 1 - halfTexelSize);
+
+    // And then a scale depending on the atlas resolution.
+    // Note that the z coordinate is never scaled or offseted because we don't store textures in thsi direction.
+    voxelCenterUVW = voxelCenterUVW * volumeData.maskSize.xyz + volumeData.atlasOffset;
 
     // Reminder: still no filtering across the the wrap in Z.
-    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
+    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod);
 }
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
@@ -120,6 +122,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
     // list of object indices. Note that while objects are already sorted by type, we don't know the
     // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
     volumeCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
+    // On Metal for unknow reasons it seems we have bad value sometimes causing freeze / crash. This min here prevent it.
+    volumeCount = min(volumeCount, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE);
     volumeStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
 
     // For now, iterate through all the objects to determine the correct range.
@@ -131,9 +135,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         {
             uint objectIndex = FetchIndex(volumeStart, offset);
 
-            if (objectIndex >= _DensityVolumeIndexShift)
+            if (objectIndex >= _LocalVolumetricFogIndexShift)
             {
-                // We have found the first density volume.
+                // We have found the first Local Volumetric Fog.
                 break;
             }
         }
@@ -144,7 +148,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
 #else  // USE_BIG_TILE_LIGHTLIST
 
-    volumeCount = _NumVisibleDensityVolumes;
+    volumeCount = _NumVisibleLocalVolumetricFog;
     volumeStart = 0;
 
 #endif // USE_BIG_TILE_LIGHTLIST
@@ -175,14 +179,14 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
         {
         #ifdef USE_BIG_TILE_LIGHTLIST
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _DensityVolumeIndexShift;
+            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _LocalVolumetricFogIndexShift;
         #else
             uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
         #endif
 
             const OrientedBBox obb = _VolumeBounds[volumeIndex];
 
-            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
             const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
 
             // Express the voxel center in the local coordinate system of the box.
@@ -273,20 +277,24 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                                                      _VolumeData[volumeIndex].rcpNegFaceFade,
                                                      _VolumeData[volumeIndex].invertFade,
                                                      _VolumeData[volumeIndex].rcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen);
+                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen,
+                                                     _VolumeData[volumeIndex].falloffMode);
 
-                // Sample the volumeMask.
-                if (_VolumeData[volumeIndex].textureIndex != -1)
+                float3 scatteringMultiplier = 1;
+                // Sample the volume Mask + Scattering color.
+                if (_VolumeData[volumeIndex].useVolumeMask > 0)
                 {
                     float3 xDerivUVW = (0.5 *  t) * voxelAxisRightBS   * rcp(obbExtents);
                     float3 yDerivUVW = (0.5 *  t) * voxelAxisUpBS      * rcp(obbExtents);
                     float3 zDerivUVW = (0.5 * dt) * voxelAxisForwardBS * rcp(obbExtents);
 
-                    overlapFraction *= SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
+                    float4 volumeMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
+                    overlapFraction *= volumeMask.a;
+                    scatteringMultiplier *= volumeMask.rgb;
                 }
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering;
+                voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringMultiplier;
                 voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
             }
         }
@@ -314,9 +322,11 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
     // a tile boundary. This means different voxel subsamples may belong to different tiles.
     // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
+    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize) / TILE_SIZE_BIG_TILE;
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+    // This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
+    tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use

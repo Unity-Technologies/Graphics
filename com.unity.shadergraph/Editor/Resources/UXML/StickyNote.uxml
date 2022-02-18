@@ -9,4 +9,3 @@
   <ui:VisualElement name="selection-border" pickingMode="Ignore" />
   <sg:ResizableElement pickingMode="Ignore" />
 </UXML>
-

@@ -18,5 +18,4 @@ For ray tracing, HDRP builds an axis-aligned grid which, in each cell, stores th
 
 | **Property**             | **Description**                                              |
 | ------------------------ | ------------------------------------------------------------ |
-| **Camera Cluster Range** | The range of the cluster grid. The cluster grid itself has its center on the Camera's position and extends in all directions because an intersection may occur outside of the Camera frustum. |
-
+| **Camera Cluster Range** | The range of the cluster grid in meters. The cluster grid itself has its center on the Camera's position and extends in all directions because an intersection may occur outside of the Camera frustum. |

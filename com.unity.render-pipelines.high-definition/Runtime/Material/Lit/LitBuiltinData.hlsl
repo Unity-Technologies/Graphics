@@ -11,13 +11,6 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
     builtinData.emissiveColor = lerp(emissiveRcpExposure, builtinData.emissiveColor, _EmissiveExposureWeight);
 
-#if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
-    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy).rgb;
-    distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;
-    builtinData.distortion = distortion.rg * _DistortionScale;
-    builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
-#endif
-
     builtinData.depthOffset = depthOffset;
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
@@ -44,6 +37,12 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     layerTexCoord.vertexNormalWS = input.tangentToWorld[2].xyz;
+    bool objectSpaceMapping = false;
+#ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMappingEmissive;
+    if (objectSpaceMapping)
+        layerTexCoord.vertexNormalWS = TransformWorldToObjectNormal(layerTexCoord.vertexNormalWS);
+#endif
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;
@@ -62,7 +61,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
                             input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
                             _EmissiveColorMap_ST.xy, _EmissiveColorMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             input.positionRWS, _TexWorldScaleEmissive,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 
     #ifndef LAYERED_LIT_SHADER
     UVMapping emissiveMapMapping = layerTexCoord.base;

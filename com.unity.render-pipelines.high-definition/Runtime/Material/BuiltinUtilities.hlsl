@@ -14,6 +14,14 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
     float2 motionVec = (positionCS.xy - previousPositionCS.xy);
+
+#ifdef KILL_MICRO_MOVEMENT
+    motionVec.x = abs(motionVec.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVec.x;
+    motionVec.y = abs(motionVec.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVec.y;
+#endif
+
+    motionVec = clamp(motionVec, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
     motionVec.y = -motionVec.y;
 #endif
@@ -34,18 +42,25 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
-    ZERO_INITIALIZE(BuiltinData, builtinData);
+    ZERO_BUILTIN_INITIALIZE(builtinData);
 
     builtinData.opacity = alpha;
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
     builtinData.renderingLayers = GetMeshRenderingLightLayer();
 
-    // Sample lightmap/probevolume/lightprobe/volume proxy
+    // Sample lightmap/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = 0.0;
     builtinData.backBakeDiffuseLighting = 0.0;
     SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
                     builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
+
+    builtinData.isLightmap =
+#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+        1;
+#else
+        0;
+#endif
 
 #ifdef SHADOWS_SHADOWMASK
     float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
@@ -95,18 +110,8 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
-        return;
-#else
-    // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
-    // color in case of lit deferred for example and avoid material to have to deal with it
-
-    // Note: We only apply indirect multiplier for Material pass mode, for lightloop mode, the multiplier will be apply in lightloop
-    float multiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
-    builtinData.bakeDiffuseLighting *= multiplier;
-    builtinData.backBakeDiffuseLighting *= multiplier;
-#endif
+    // For APV (non lightmap case) and SSGI/RTGI/Mixed bakeDiffuseLighting is 0 and below code will not have any effect.
+    // ModifyBakedDiffuseLighting, GetIndirectDiffuseMultiplier and ApplyDebugToBuiltinData will be done in lightloop for those cases
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 
@@ -117,6 +122,13 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
         ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
 
 #endif
+
+    // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
+    // color in case of lit deferred for example and avoid material to have to deal with it
+    // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+    float multiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+    builtinData.bakeDiffuseLighting *= multiplier;
+
     ApplyDebugToBuiltinData(builtinData);
 }
 

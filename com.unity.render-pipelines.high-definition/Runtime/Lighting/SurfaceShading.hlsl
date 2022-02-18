@@ -96,6 +96,17 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+            if ((light.shadowIndex >= 0))
+            {
+                bsdfData.splineVisibility = lightLoopContext.splineVisibility;
+            }
+            else
+            {
+                bsdfData.splineVisibility = -1;
+            }
+#endif
         }
 
         // Simulate a sphere/disk light with this hack.
@@ -175,9 +186,26 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         else
 #endif
         {
+            PositionInputs shadowPositionInputs = posInput;
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+            shadowPositionInputs.positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
+#endif
             // This code works for both surface reflection and thin object transmission.
-            SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
+            SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, shadowPositionInputs, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+            if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+            {
+                // Evaluate the shadow map a second time (this time unbiased for the spline).
+                bsdfData.splineVisibility = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances).x;
+            }
+            else
+            {
+                bsdfData.splineVisibility = -1;
+            }
+#endif
 
 #ifdef DEBUG_DISPLAY
             // The step with the attenuation is required to avoid seeing the screen tiles at the end of lights because the attenuation always falls to 0 before the tile ends.
@@ -199,5 +227,3 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
     return lighting;
 }
-
-

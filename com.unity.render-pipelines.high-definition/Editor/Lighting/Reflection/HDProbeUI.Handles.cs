@@ -25,41 +25,41 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
                 case EditCapturePosition:
                 case EditMirrorPosition:
+                {
+                    var proxyToWorldMatrix = probe.proxyToWorld;
+
+                    SerializedProperty target;
+                    switch (EditMode.editMode)
                     {
-                        var proxyToWorldMatrix = probe.proxyToWorld;
-
-                        SerializedProperty target;
-                        switch (EditMode.editMode)
-                        {
-                            case EditCapturePosition: target = serialized.probeSettings.proxyCapturePositionProxySpace; break;
-                            case EditMirrorPosition: target = serialized.probeSettings.proxyMirrorPositionProxySpace; break;
-                            default: throw new ArgumentOutOfRangeException();
-                        }
-
-                        var position = proxyToWorldMatrix.MultiplyPoint(target.vector3Value);
-                        EditorGUI.BeginChangeCheck();
-                        position = Handles.PositionHandle(position, proxyToWorldMatrix.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                            target.vector3Value = proxyToWorldMatrix.inverse.MultiplyPoint(position);
-                        break;
+                        case EditCapturePosition: target = serialized.probeSettings.proxyCapturePositionProxySpace; break;
+                        case EditMirrorPosition: target = serialized.probeSettings.proxyMirrorPositionProxySpace; break;
+                        default: throw new ArgumentOutOfRangeException();
                     }
+
+                    var position = proxyToWorldMatrix.MultiplyPoint(target.vector3Value);
+                    EditorGUI.BeginChangeCheck();
+                    position = Handles.PositionHandle(position, proxyToWorldMatrix.rotation);
+                    if (EditorGUI.EndChangeCheck())
+                        target.vector3Value = proxyToWorldMatrix.inverse.MultiplyPoint(position);
+                    break;
+                }
                 case EditMirrorRotation:
+                {
+                    var proxyToWorldMatrix = probe.proxyToWorld;
+
+                    var target = serialized.probeSettings.proxyMirrorRotationProxySpace;
+                    var position = serialized.probeSettings.proxyMirrorPositionProxySpace.vector3Value;
+
+                    using (new Handles.DrawingScope(proxyToWorldMatrix))
                     {
-                        var proxyToWorldMatrix = probe.proxyToWorld;
-
-                        var target = serialized.probeSettings.proxyMirrorRotationProxySpace;
-                        var position = serialized.probeSettings.proxyMirrorPositionProxySpace.vector3Value;
-
-                        using (new Handles.DrawingScope(proxyToWorldMatrix))
-                        {
-                            var rotation = target.quaternionValue;
-                            EditorGUI.BeginChangeCheck();
-                            rotation = Handles.RotationHandle(rotation, position);
-                            if (EditorGUI.EndChangeCheck())
-                                target.quaternionValue = rotation;
-                        }
-                        break;
+                        var rotation = target.quaternionValue;
+                        EditorGUI.BeginChangeCheck();
+                        rotation = Handles.RotationHandle(rotation, position);
+                        if (EditorGUI.EndChangeCheck())
+                            target.quaternionValue = rotation;
                     }
+                    break;
+                }
             }
         }
     }

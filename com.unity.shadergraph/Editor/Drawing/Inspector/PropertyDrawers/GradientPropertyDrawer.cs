@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
@@ -19,11 +19,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyGradientField,
             int indentLevel = 0)
         {
-            var objectField = new GradientField { value = fieldToDraw};
+            var objectField = new GradientField { value = fieldToDraw, colorSpace = ColorSpace.Linear, hdr = true };
 
             if (valueChangedCallback != null)
             {
-                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((Gradient) evt.newValue); });
+                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((Gradient)evt.newValue); });
             }
 
             propertyGradientField = objectField;
@@ -41,10 +41,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Gradient) propertyInfo.GetValue(actualObject),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
+                (Gradient)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

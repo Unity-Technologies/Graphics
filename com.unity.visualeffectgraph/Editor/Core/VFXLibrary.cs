@@ -3,38 +3,50 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using System.Reflection;
+using UnityEngine.Profiling;
+
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.VFX
 {
+    class Variant
+    {
+        public KeyValuePair<string, object>[] settings { get; }
+        public string[] categories { get; }
+
+        public Variant(KeyValuePair<string, object>[] kvp, string[] cat = null)
+        {
+            settings = kvp;
+            categories = cat;
+        }
+    }
+
     abstract class VariantProvider
     {
-        protected virtual Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, Object[]>();
-            }
-        }
+        protected virtual Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>();
 
-        public virtual IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public virtual IEnumerable<Variant> ComputeVariants()
         {
             //Default behavior : Cartesian product
             IEnumerable<IEnumerable<object>> empty = new[] { Enumerable.Empty<object>() };
-            var arrVariants = variants.Select(o => o.Value as IEnumerable<Object>);
+            var arrVariants = variants.Select(o => o.Value as IEnumerable<object>);
             var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
+
             foreach (var combination in combinations)
             {
                 var variant = combination.Select((o, i) => new KeyValuePair<string, object>(variants.ElementAt(i).Key, o));
-                yield return variant;
+                yield return new Variant(variant.ToArray());
             }
         }
     };
 
     // Attribute used to register VFX type to library
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    class VFXInfoAttribute : Attribute
+    class VFXInfoAttribute : ExcludeFromPresetAttribute
     {
         public VFXInfoAttribute()
         {
@@ -46,7 +58,6 @@ namespace UnityEditor.VFX
         public bool autoRegister
         {
             get;
-            set;
         }
         public string category
         {
@@ -80,69 +91,68 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptor
     {
-        protected VFXModelDescriptor(VFXModel template, IEnumerable<KeyValuePair<string, Object>> variants = null)
+        protected VFXModelDescriptor(VFXModel template, Variant variants = null)
         {
-            m_Template = template;
-            m_Variants = variants == null ? Enumerable.Empty<KeyValuePair<string, object>>() : variants;
-            ApplyVariant(m_Template);
+            m_Variants = variants?.settings ?? new KeyValuePair<string, object>[0];
+            //Don't notify model here for performance reason, we are assuming the name shouldn't relies on something in Invalidate of VFXModel
+            ApplyVariant(template, false);
+
+            model = template;
+            name = model.libraryName;
+            info = VFXInfoAttribute.Get(model.GetType());
+            modelType = model.GetType();
+            category = info?.category;
+
+            if (!string.IsNullOrEmpty(category) && variants?.categories != null)
+            {
+                category = string.Format(category, variants.categories);
+            }
         }
 
         public bool AcceptParent(VFXModel parent, int index = -1)
         {
-            return parent.AcceptChild(m_Template, index);
+            return parent.AcceptChild(model, index);
         }
 
-        protected void ApplyVariant(VFXModel model)
+        protected void ApplyVariant(VFXModel m, bool notify)
         {
-            model.SetSettingValues(m_Variants);
+            m.SetSettingValues(m_Variants, notify);
         }
 
-        private IEnumerable<KeyValuePair<string, object>> m_Variants;
-        protected VFXModel m_Template;
+        private readonly KeyValuePair<string, object>[] m_Variants;
 
-        virtual public string name { get { return m_Template.libraryName; } }
-        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
-        public Type modelType { get { return m_Template.GetType(); } }
-        public VFXModel model
-        {
-            get { return m_Template; }
-        }
+        public string category { get; }
+        public virtual string name { get; }
+        public VFXInfoAttribute info { get; }
+        public Type modelType { get; }
+        public VFXModel model { get; }
     }
 
     class VFXModelDescriptor<T> : VFXModelDescriptor where T : VFXModel
     {
-        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null) : base(template, variants)
+        public VFXModelDescriptor(T template, Variant variants = null) : base(template, variants)
         {
+            model = template;
         }
 
-        virtual public T CreateInstance()
+        public virtual T CreateInstance()
         {
-            var instance = (T)ScriptableObject.CreateInstance(m_Template.GetType());
-            ApplyVariant(instance);
+            var instance = (T)ScriptableObject.CreateInstance(modelType);
+            ApplyVariant(instance, true);
             return instance;
         }
 
-        public new T model
-        {
-            get { return (T)m_Template; }
-        }
+        public new T model { get; }
     }
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
     {
-        private string m_name;
-        public override string name
-        {
-            get
-            {
-                return m_name;
-            }
-        }
+        public override string name { get; }
 
         public VFXModelDescriptorParameters(Type type) : base(ScriptableObject.CreateInstance<VFXParameter>())
         {
             model.Init(type);
-            m_name = type.UserFriendlyName();
+            name = type.UserFriendlyName();
         }
 
         public override VFXParameter CreateInstance()
@@ -153,38 +163,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXSRPBinder
-    {
-        abstract public string templatePath { get; }
-        virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
-        abstract public string SRPAssetTypeStr { get; }
-        abstract public Type SRPOutputDataType { get; }
-
-        public virtual void SetupMaterial(Material mat) {}
-    }
-
-    // Not in Universal package because we dont want to add a dependency on VFXGraph
-    class VFXUniversalBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
-        public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
-        public override Type SRPOutputDataType { get { return null; } }
-    }
-
-    // This is just for retrocompatibility with LWRP
-    class VFXLWRPBinder : VFXUniversalBinder
-    {
-        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
-    }
-
-    // This is the default binder used if no SRP is used in the project
-    class VFXLegacyBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Legacy"; } }
-        public override string SRPAssetTypeStr { get { return "None"; } }
-        public override Type SRPOutputDataType { get { return null; } }
-    }
-
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_ContextDescs : m_ContextDescs.Where(o => !o.info.experimental); }
@@ -193,6 +171,12 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots() { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<Type> GetSlotsType() { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
         public static bool IsSpaceableSlotType(Type type) { LoadSlotsIfNeeded(); return m_SlotSpaceable.Contains(type); }
+        public static VFXTypeAttribute GetAttributeFromSlotType(Type type)
+        {
+            LoadSlotsIfNeeded();
+            m_SlotAttribute.TryGetValue(type, out var attribute);
+            return attribute;
+        }
 
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters() { LoadIfNeeded(); return m_ParametersDescs; }
 
@@ -238,7 +222,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void LoadIfNeeded()
+        private static void LoadIfNeeded()
         {
             if (m_Loaded)
                 return;
@@ -255,44 +239,44 @@ namespace UnityEditor.VFX
             if (VFXViewPreference.advancedLogs)
                 Debug.Log("Load VFX Library");
 
-            LoadSlotsIfNeeded();
 
-            lock (m_Lock)
+            Profiler.BeginSample("VFXLibrary.Load");
+            try
             {
-                if (m_Sentinel != null)
-                    ScriptableObject.DestroyImmediate(m_Sentinel);
-                m_Sentinel = ScriptableObject.CreateInstance<LibrarySentinel>();
-                m_ContextDescs = LoadModels<VFXContext>();
-                m_BlockDescs = LoadModels<VFXBlock>();
-                m_OperatorDescs = LoadModels<VFXOperator>();
-                m_ParametersDescs = m_SlotDescs.Select(s =>
-                {
-                    var desc = new VFXModelDescriptorParameters(s.Key);
-                    return desc;
-                }).ToList();
+                LoadSlotsIfNeeded();
 
-                m_Loaded = true;
+                lock (m_Lock)
+                {
+                    if (m_Sentinel != null)
+                        ScriptableObject.DestroyImmediate(m_Sentinel);
+                    m_Sentinel = ScriptableObject.CreateInstance<LibrarySentinel>();
+
+                    m_ContextDescs = LoadModels<VFXContext>();
+                    m_BlockDescs = LoadModels<VFXBlock>();
+                    m_OperatorDescs = LoadModels<VFXOperator>();
+                    m_ParametersDescs = m_SlotDescs
+                        .Select(s => new VFXModelDescriptorParameters(s.Key))
+                        .ToArray();
+
+                    m_Loaded = true;
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 
-        private static bool IsSpaceable(Type type)
+        private static bool IsSpaceable(Type type, Type attributeType)
         {
-            var spaceAttributeOnType = type.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
-            if (spaceAttributeOnType != null)
+            if (type.IsDefined(typeof(VFXSpaceAttribute)))
             {
                 return true;
             }
 
-            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).ToArray();
-            foreach (var field in fields)
-            {
-                var spaceAttributeOnField = field.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
-                if (spaceAttributeOnField != null || IsSpaceable(field.FieldType))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return type
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Any(x => x.IsDefined(attributeType) || IsSpaceable(x.FieldType, attributeType));
         }
 
         private static void LoadSlotsIfNeeded()
@@ -304,15 +288,24 @@ namespace UnityEditor.VFX
             {
                 if (!m_SlotLoaded)
                 {
+                    var spaceAttributeType = typeof(VFXSpaceAttribute);
+                    var vfxTypeAttributeType = typeof(VFXTypeAttribute);
+
                     m_SlotDescs = LoadSlots();
                     m_SlotSpaceable = new HashSet<Type>();
+                    m_SlotAttribute = new Dictionary<Type, VFXTypeAttribute>();
+
                     foreach (var slotDescType in m_SlotDescs.Keys)
                     {
-                        if (IsSpaceable(slotDescType))
+                        if (IsSpaceable(slotDescType, spaceAttributeType))
                         {
                             m_SlotSpaceable.Add(slotDescType);
                         }
+
+                        var attribute = slotDescType.GetCustomAttributes(vfxTypeAttributeType, true).FirstOrDefault() as VFXTypeAttribute;
+                        m_SlotAttribute.Add(slotDescType, attribute);
                     }
+
                     m_SlotLoaded = true;
                 }
             }
@@ -322,7 +315,6 @@ namespace UnityEditor.VFX
         {
             var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
-            var nameAlreadyAdded = new HashSet<string>();
             var error = new StringBuilder();
 
             foreach (var modelType in modelTypes)
@@ -330,28 +322,14 @@ namespace UnityEditor.VFX
                 try
                 {
                     T instance = (T)ScriptableObject.CreateInstance(modelType);
+
                     var modelDesc = new VFXModelDescriptor<T>(instance);
                     if (modelDesc.info.autoRegister)
                     {
                         if (modelDesc.info.variantProvider != null)
                         {
                             var provider = Activator.CreateInstance(modelDesc.info.variantProvider) as VariantProvider;
-                            foreach (var variant in provider.ComputeVariants())
-                            {
-                                var variantArray = variant.ToArray();
-                                var currentVariant = new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant);
-                                if (!nameAlreadyAdded.Contains(currentVariant.name))
-                                {
-                                    modelDescs.Add(currentVariant);
-                                    nameAlreadyAdded.Add(currentVariant.name);
-                                }
-                                else
-                                {
-                                    error.AppendFormat("Trying to add twice : {0}", currentVariant.name);
-                                    error.AppendLine();
-                                }
-                            }
-                            nameAlreadyAdded.Clear();
+                            modelDescs.AddRange(provider.ComputeVariants().Select(variant => new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant)));
                         }
                         else
                         {
@@ -382,6 +360,106 @@ namespace UnityEditor.VFX
             }
         }
 
+        public struct VFXFieldType
+        {
+            public VFXValueType valueType;
+            public Type type;
+            public string name;
+        }
+
+        public static IEnumerable<VFXFieldType> GetFieldFromType(Type type, bool enumeratePrivate = true)
+        {
+            var bindingsFlag = BindingFlags.Public | BindingFlags.Instance;
+            foreach (var field in type.GetFields(bindingsFlag))
+            {
+                yield return new VFXFieldType()
+                {
+                    valueType = VFXExpression.GetVFXValueTypeFromType(field.FieldType),
+                    type = field.FieldType,
+                    name = field.Name
+                };
+            }
+        }
+
+        private static bool CheckBlittablePublic(Type type)
+        {
+            if (type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Any())
+                return false;
+
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+                if (VFXExpression.GetVFXValueTypeFromType(field.FieldType) == VFXValueType.None
+                    && !CheckBlittablePublic(field.FieldType))
+                    return false;
+
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors, Dictionary<Type, bool> alreadyProcessedType)
+        {
+            if (alreadyProcessedType.TryGetValue(type, out var result))
+                return result;
+
+            alreadyProcessedType.Add(type, false);
+            var attribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+            if (attribute == null)
+            {
+                errors.AppendFormat("The type {0} doesn't use the expected [VFXType] attribute.\n", type);
+                return false;
+            }
+
+            var hasGraphicsBufferFlag = attribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer);
+            if (hasGraphicsBufferFlag && !Unity.Collections.LowLevel.Unsafe.UnsafeUtility.IsBlittable(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't blittable.\n", type);
+                return false;
+            }
+
+            foreach (var field in GetFieldFromType(type))
+            {
+                if (field.valueType == VFXValueType.None)
+                {
+                    var innerType = field.type;
+                    if (!ValidateVFXType(innerType, errors, alreadyProcessedType))
+                    {
+                        errors.AppendFormat("The field '{0}' ({1}) in type '{2}' isn't valid.\n", field.name, field.type, type);
+                        return false;
+                    }
+                }
+            }
+
+            if (hasGraphicsBufferFlag && !CheckBlittablePublic(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't fully public.\n", type);
+                return false;
+            }
+
+            alreadyProcessedType.Remove(type);
+            alreadyProcessedType.Add(type, true);
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors)
+        {
+            var processedType = new Dictionary<Type, bool>();
+            return ValidateVFXType(type, errors, processedType);
+        }
+
+        private static Type[] LoadAndValidateVFXType()
+        {
+            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var errors = new StringBuilder();
+            var validTypes = new List<Type>();
+            foreach (var type in vfxTypes)
+            {
+                if (ValidateVFXType(type, errors))
+                    validTypes.Add(type);
+            }
+
+            if (errors.Length != 0)
+                Debug.LogErrorFormat("Error while processing VFXType\n{0}", errors.ToString());
+            return validTypes.ToArray();
+        }
+
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
         {
             // First find concrete slots
@@ -408,7 +486,7 @@ namespace UnityEditor.VFX
             }
 
             // Then find types that needs a generic slot
-            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var vfxTypes = LoadAndValidateVFXType();
             foreach (var type in vfxTypes)
             {
                 if (!dictionary.ContainsKey(type)) // If a slot was not already explicitly declared
@@ -476,19 +554,57 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool unsupportedSRPWarningIssued = false;
+
+        private static void LogUnsupportedSRP(VFXSRPBinder binder, bool forceLog)
+        {
+            if (binder == null && (forceLog || !unsupportedSRPWarningIssued))
+            {
+                Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
+                unsupportedSRPWarningIssued = true;
+            }
+        }
+
+        public static void LogUnsupportedSRP(bool forceLog = true)
+        {
+            bool logIssued = unsupportedSRPWarningIssued;
+            var binder = currentSRPBinder;
+
+            if (logIssued || !unsupportedSRPWarningIssued) // Don't reissue warning if inner currentSRPBinder call has already logged it
+                LogUnsupportedSRP(binder, forceLog);
+        }
+
         public static VFXSRPBinder currentSRPBinder
         {
             get
             {
                 LoadSRPBindersIfNeeded();
-                VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline == null ? "None" : GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null)
-                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.currentRenderPipeline.GetType());
+                VFXSRPBinder binder = null;
+                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                if (currentSRP != null)
+                    srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
+
+                LogUnsupportedSRP(binder, false);
 
                 return binder;
             }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterSRPChangeCallback()
+        {
+            RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
+        }
+
+        public delegate void OnSRPChangedEvent();
+        public static event OnSRPChangedEvent OnSRPChanged;
+
+        private static void SRPChanged()
+        {
+            unsupportedSRPWarningIssued = false;
+            OnSRPChanged?.Invoke();
+            VFXAssetManager.Build();
         }
 
         private static LibrarySentinel m_Sentinel = null;
@@ -496,11 +612,12 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;
         private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
-        private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
+        private static volatile VFXModelDescriptorParameters[] m_ParametersDescs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
         private static volatile HashSet<Type> m_SlotSpaceable;
+        private static volatile Dictionary<Type, VFXTypeAttribute> m_SlotAttribute;
 
-        private static Object m_Lock = new Object();
+        private static readonly Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;
         private static volatile bool m_SlotLoaded = false;
     }

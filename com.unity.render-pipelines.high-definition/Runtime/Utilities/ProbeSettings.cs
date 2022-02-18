@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>A multiplier applied to the radiance of the Probe.</summary>
             public float multiplier;
             /// <summary>A weight applied to the influence of the Probe.</summary>
-            [Range(0,1)]
+            [Range(0, 1)]
             public float weight;
             /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
             public LightLayerEnum lightLayer;
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 capturePositionProxySpace = Vector3.zero,
                 captureRotationProxySpace = Quaternion.identity,
-                useInfluenceVolumeAsProxyVolume = false
+                useInfluenceVolumeAsProxyVolume = true
             };
 
             /// <summary>
@@ -233,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 type = ProbeType.ReflectionProbe,
                 realtimeMode = RealtimeMode.EveryFrame,
+                timeSlicing = false,
                 mode = Mode.Baked,
                 cameraSettings = CameraSettings.NewDefault(),
                 influence = null,
@@ -242,6 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frustum = Frustum.NewDefault(),
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
                 roughReflections = true,
+                distanceBasedRoughness = false,
             };
             probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
 
@@ -256,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Mode mode;
         /// <summary>The mode of the probe.</summary>
         public RealtimeMode realtimeMode;
+        /// <summary>Whether a realtime probe uses time slicing.</summary>
+        public bool timeSlicing;
         /// <summary>The lighting of the probe.</summary>
         public Lighting lighting;
         /// <summary>The influence volume of the probe.</summary>
@@ -275,8 +279,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
-        /// <summary>Defines if the planar reflection should support rough reflections.</summary>
+        /// <summary>Indicates whether the ReflectionProbe supports rough reflections.</summary>
         public bool roughReflections;
+
+        /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
+        public bool distanceBasedRoughness;
 
         /// <summary>
         /// Compute a hash of the settings.

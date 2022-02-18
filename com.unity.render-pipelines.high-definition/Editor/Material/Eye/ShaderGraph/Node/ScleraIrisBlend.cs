@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         public ScleraIrisBlend()
         {
-            name = "Sclera Limbal Ring (Preview)";
+            name = "Sclera Iris Blend (Preview)";
         }
 
         public override bool hasPreview
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             EyeSmoothness = new Vector1();
             SurfaceDiffusionProfile = new Vector1();
             return
-                @"
+@"
                 {
                     $precision osRadius = length(PositionOS.xy);
                     $precision innerBlendRegionRadius = IrisRadius - 0.02;

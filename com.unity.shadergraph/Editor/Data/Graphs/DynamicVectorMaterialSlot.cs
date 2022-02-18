@@ -19,9 +19,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector4 m_DefaultValue = Vector4.zero;
 
-        static readonly string[] k_Labels = {"X", "Y", "Z", "W"};
+        static readonly string[] k_Labels = { "X", "Y", "Z", "W" };
 
-        private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Vector4;
+        private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Vector1;
 
         public DynamicVectorMaterialSlot()
         {
@@ -141,6 +141,5 @@ namespace UnityEditor.ShaderGraph
                 m_DefaultValue = ms.defaultValue;
             }
         }
-
     }
 }

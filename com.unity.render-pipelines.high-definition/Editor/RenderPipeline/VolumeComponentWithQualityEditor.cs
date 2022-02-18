@@ -18,13 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             private struct QualitySetting
             {
-                public bool   state;
+                public bool state;
                 public object value;
             }
 
             Dictionary<int, QualitySetting> settings = new Dictionary<int, QualitySetting>();
 
-            public static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
+            public static bool IsEqual(QualitySettingsBlob left, QualitySettingsBlob right)
             {
                 if (right == null && left == null)
                 {
@@ -139,12 +139,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Ensure we reflect presets in the pipeline asset, not the hardcoded defaults.
             // Warning: base.OnEnable must be called after VolumeComponentWithQuality has unpacked SerializedData.
-            var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-            if (pipeline != null)
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline pipeline)
             {
                 serializedObject.Update();
 
-                if (m_QualitySetting.value.intValue < k_CustomQuality)
+                if (m_QualitySetting.value.intValue < k_CustomQuality && QualityEnabled())
                     LoadSettingsFromQualityPreset(pipeline.currentPlatformRenderPipelineSettings, m_QualitySetting.value.intValue);
 
                 serializedObject.ApplyModifiedProperties();
@@ -161,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // When a quality preset changes, we want to detect and reflect the settings in the UI. PropertyFields mirror the contents of one memory loccation, so
             // the idea is that we copy the presets to that location. This logic is optional, if volume components don't override the helper functions at the end,
             // they will continue to work, but the preset settings will not be reflected in the UI.
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && QualityEnabled())
             {
                 int newQualityLevel = m_QualitySetting.value.intValue;
 
@@ -191,7 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
                             if (history != null)
                             {
-                                 SaveCustomQualitySettingsAsObject(history);
+                                SaveCustomQualitySettingsAsObject(history);
                             }
                             else
                             {
@@ -201,7 +200,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                 {
                                     s_CustomSettingsHistory.Add(serializedObject.targetObject, history);
                                 }
-
                             }
                         }
                         LoadSettingsFromQualityPreset(pipeline.currentPlatformRenderPipelineSettings, newQualityLevel);
@@ -216,12 +214,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// This utility can be used to copy a value into a volume component setting visible in the inspector.
         /// </summary>
-        protected static void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
+        protected void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
         {
             setting.value.SetInline(value);
 
-            // Force enable the override state, to indicate that these values are actually used.
-            setting.overrideState.boolValue = true;
+            // Force enable the override state to match the state of the quality setting.
+            setting.overrideState.boolValue = m_QualitySetting.overrideState.boolValue;
         }
 
         /// <summary>
@@ -243,6 +241,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// This function should be overriden by a volume component to load a custom preset setting from an opaque binary blob (as returned from SaveCustomQualitySettingsAsObject)
         /// </summary>
         public virtual void LoadSettingsFromObject(QualitySettingsBlob settings) { }
-    }
 
+        /// <summary>
+        /// This function should be overriden by a volume component to enable the quality setting functionality only in certain cases.
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool QualityEnabled() => true;
+    }
 }

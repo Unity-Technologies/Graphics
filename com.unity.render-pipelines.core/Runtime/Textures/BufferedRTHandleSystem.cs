@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
             int bufferId,
             Func<RTHandleSystem, int, RTHandle> allocator,
             int bufferCount
-            )
+        )
         {
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
@@ -123,15 +123,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
+        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool)"/>)
         /// </summary>
         /// <param name="width">The width of the RTs of this buffer.</param>
         /// <param name="height">The height of the RTs of this buffer.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
-        public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        public void SwapAndSetReferenceSize(int width, int height)
         {
             Swap();
-            m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
+            m_RTHandleSystem.SetReferenceSize(width, height);
         }
 
         /// <summary>
@@ -144,6 +143,29 @@ namespace UnityEngine.Rendering
             m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
+        /// <summary>
+        /// Queries the number of RT handle buffers allocated for a buffer ID.
+        /// </summary>
+        /// <param name="bufferId">The buffer ID to query.</param>
+        /// <returns>The num of frames allocated</returns>
+        public int GetNumFramesAllocated(int bufferId)
+        {
+            if (!m_RTHandles.ContainsKey(bufferId))
+                return 0;
+
+            return m_RTHandles[bufferId].Length;
+        }
+
+        /// <summary>
+        /// Returns the ratio against the current target's max resolution
+        /// </summary>
+        /// <param name="width">width to utilize</param>
+        /// <param name="height">height to utilize</param>
+        /// <returns> retruns the width,height / maxTargetSize.xy ratio. </returns>
+        public Vector2 CalculateRatioAgainstMaxSize(int width, int height)
+        {
+            return m_RTHandleSystem.CalculateRatioAgainstMaxSize(new Vector2Int(width, height));
+        }
 
         void Swap()
         {

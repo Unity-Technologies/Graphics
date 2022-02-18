@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
         const string kInputSlotName = "In";
@@ -29,7 +28,8 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_Flip_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            // NOTE: it's important we use the $precision generic form of the slot type in the name here
+            return $"Unity_Flip_{FindSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -113,8 +113,9 @@ namespace UnityEditor.ShaderGraph
 
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0} _{1}_Flip = {0} ({2}",
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
+                sb.TryAppendIndentation();
+                sb.Append("{0} _{1}_Flip = {0} ({2}",
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForNode(),
                     Convert.ToInt32(m_RedChannel));
                 if (channelCount > 1)
@@ -124,6 +125,7 @@ namespace UnityEditor.ShaderGraph
                 if (channelCount > 3)
                     sb.Append(", {0}", Convert.ToInt32(m_AlphaChannel));
                 sb.Append(");");
+                sb.AppendNewLine();
             }
 
             sb.AppendLine("{0}({1}, _{2}_Flip, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
@@ -157,17 +159,17 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
+                    GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
-                        GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
-                    {
-                        s.AppendLine("Out = (Flip * -2 + 1) * In;");
-                    }
-                });
+                    s.AppendLine("Out = (Flip * -2 + 1) * In;");
+                }
+            });
         }
     }
 }

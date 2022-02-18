@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             StringBuilder availables = new StringBuilder();
             for (int i = 0; i < fsm.mask.capacity; ++i)
             {
-                if(!singleValues.Contains(i))
+                if (!singleValues.Contains(i))
                     availables.AppendFormat("{0} ", i);
             }
             Debug.Log($"Available bit in FrameSettings: {availables}");
@@ -437,7 +437,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.enablePostprocess, frameSettingsData.IsEnabled(FrameSettingsField.Postprocess));
                 Assert.AreEqual(legacyFrameSettingsData.enableOpaqueObjects, frameSettingsData.IsEnabled(FrameSettingsField.OpaqueObjects));
                 Assert.AreEqual(legacyFrameSettingsData.enableTransparentObjects, frameSettingsData.IsEnabled(FrameSettingsField.TransparentObjects));
-                Assert.AreEqual(legacyFrameSettingsData.enableMSAA, frameSettingsData.IsEnabled(FrameSettingsField.MSAA));
                 Assert.AreEqual(legacyFrameSettingsData.enableAsyncCompute, frameSettingsData.IsEnabled(FrameSettingsField.AsyncCompute));
                 Assert.AreEqual(legacyFrameSettingsData.runLightListAsync, frameSettingsData.IsEnabled(FrameSettingsField.LightListAsync));
                 Assert.AreEqual(legacyFrameSettingsData.runSSRAsync, frameSettingsData.IsEnabled(FrameSettingsField.SSRAsync));
@@ -476,7 +475,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Postprocess) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Postprocess]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.OpaqueObjects) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.OpaqueObjects]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.TransparentObjects) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.TransparentObjects]);
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.MSAA) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.MSAA]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.AsyncCompute) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.AsyncCompute]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.LightListAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.LightListAsync]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.SSRAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.SSRAsync]);
@@ -494,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         string GeneratePrefabYAML(LegacyFrameSettings legacyFrameSettings)
-                => $@"%YAML 1.1
+            => $@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3102262843427888416
 GameObject:
@@ -682,7 +680,5 @@ MonoBehaviour:
   m_ObsoleteBoxSideFadePositive: {{x: 1, y: 1, z: 1}}
   m_ObsoleteBoxSideFadeNegative: {{x: 1, y: 1, z: 1}}
 ";
-
-
     }
 }

@@ -26,8 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private class DiffusionProfileSerializer
         {
             [SerializeField]
-            public DiffusionProfileSettings    diffusionProfileAsset = null;
-
+            public DiffusionProfileSettings diffusionProfileAsset = null;
         }
 
         [SerializeField]
@@ -60,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 if (m_DiffusionProfileAsset == value)
-                    return ;
+                    return;
 
                 var serializedProfile = new DiffusionProfileSerializer();
                 serializedProfile.diffusionProfileAsset = value;
@@ -77,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public DiffusionProfileInputMaterialSlot(int slotId, string displayName, string shaderOutputName,
-                                          ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                                                 ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, 0.0f, stageCapability, hidden: hidden)
         {
         }

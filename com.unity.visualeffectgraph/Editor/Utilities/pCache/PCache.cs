@@ -293,7 +293,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                             var prop = properties[j];
                             switch (prop.Type)
                             {
-                                case "byte":
+                                case "char":
+                                    binaryWriter.Write((sbyte)buckets[j][i]); break;
+                                case "uchar":
                                     binaryWriter.Write((byte)buckets[j][i]); break;
                                 case "short":
                                     binaryWriter.Write((short)buckets[j][i]); break;
@@ -321,7 +323,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                             var prop = properties[j];
                             switch (prop.Type)
                             {
-                                case "byte":
+                                case "char":
+                                    sb.Append(((sbyte)buckets[j][i]).ToString(CultureInfo.InvariantCulture)); break;
+                                case "uchar":
                                     sb.Append(((byte)buckets[j][i]).ToString(CultureInfo.InvariantCulture)); break;
                                 case "short":
                                     sb.Append(((short)buckets[j][i]).ToString(CultureInfo.InvariantCulture)); break;
@@ -452,7 +456,8 @@ namespace UnityEditor.Experimental.VFX.Utility
                                 case "ushort": data.buckets[j].Add(binaryReader.ReadUInt16()); break;
                                 case "int": data.buckets[j].Add(binaryReader.ReadInt32()); break;
                                 case "uint": data.buckets[j].Add(binaryReader.ReadUInt32()); break;
-                                case "byte": data.buckets[j].Add(binaryReader.ReadChar()); break;
+                                case "char": data.buckets[j].Add(binaryReader.ReadSByte()); break;
+                                case "uchar": data.buckets[j].Add(binaryReader.ReadByte()); break;
                                 case "float": data.buckets[j].Add(binaryReader.ReadSingle()); break;
                                 case "double": data.buckets[j].Add(binaryReader.ReadDouble()); break;
                             }
@@ -486,7 +491,8 @@ namespace UnityEditor.Experimental.VFX.Utility
                             case "ushort": data.buckets[j].Add(ushort.Parse(elements[j], CultureInfo.InvariantCulture)); break;
                             case "int": data.buckets[j].Add(int.Parse(elements[j], CultureInfo.InvariantCulture)); break;
                             case "uint": data.buckets[j].Add(uint.Parse(elements[j], CultureInfo.InvariantCulture)); break;
-                            case "byte": data.buckets[j].Add(byte.Parse(elements[j], CultureInfo.InvariantCulture)); break;
+                            case "char": data.buckets[j].Add(sbyte.Parse(elements[j], CultureInfo.InvariantCulture)); break;
+                            case "uchar": data.buckets[j].Add(byte.Parse(elements[j], CultureInfo.InvariantCulture)); break;
                             case "float": data.buckets[j].Add(float.Parse(elements[j], CultureInfo.InvariantCulture)); break;
                             case "double": data.buckets[j].Add(double.Parse(elements[j], CultureInfo.InvariantCulture)); break;
                         }
@@ -580,7 +586,8 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         private static Dictionary<string, int> TypeSize = new Dictionary<string, int>()
         {
-            { "byte", 1 },
+            { "char", 1 },
+            { "uchar", 1 },
             { "short", 2 },
             { "ushort", 2 },
             { "int", 4 },

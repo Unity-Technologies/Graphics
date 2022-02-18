@@ -1,49 +1,105 @@
 # Decal
 
-The High Definition Render Pipeline (HDRP) includes two ways to create decals in a Scene. You can either use a decal Mesh and manually position the decal or use the [Decal Projector](Decal-Projector.md) component to project the decal. Both of these methods require that you create a decal Material, which is a Material that uses either the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). You can use either to create decal Materials that you can place or project into a Scene.
+The High Definition Render Pipeline (HDRP) includes the following ways to create decals in a Scene.
+
+- Use a Decal Mesh and manually position the decal.
+
+- Use the [Decal Projector](Decal-Projector.md) component to project the decal.
+
+To use these methods, you need to create a decal Material. A decal Material is a Material that uses the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). You can then place or project your decal Material into a Scene.
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
-**Limitation and compatibility**
+## Decal Layers
 
-The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md). It does not support emissive on Transparent Materials and does support Decal Layers.
-Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). They also do not support Decal Layers.
+HDRP includes Decal Layers that you can use to specify which Materials a decal affects based on which layer you assign it to.
 
-# Decal Layers
+### Enabling Decal Layers
 
-## Enabling Decal Layers
+To use Decal Layers, enable them in your Project’s [HDRP Asset](HDRP-Asset.md).  To do this:
+1. Navigate to the **Project** window and open your HDRP Asset.
+2. In the Inspector, open the **Decals** dropdown.
+3. Enable the  **Layers**  checkbox.
 
-To use Decal Layers, first enable them in your Project’s [HDRP Asset](HDRP-Asset.md). You can then enable Decal Layers in your [Frame Settings](Frame-Settings.md) to set your Cameras to process Decal Layers.
-1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Decal > Layers** and enable the checkbox.
-2. To enable Decal Layers in the default Frame Settings for all Cameras, in your HDRP Asset, go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Rendering** section, enable the **Decal Layers** checkbox. 
+You can then enable Decal Layers in your [Frame Settings](Frame-Settings.md) to enable Decal Layers for all Cameras. To do this:
 
-To override the Frame Settings for Cameras and set Decal Layers on an individual basis:
+1. Go to **Edit** > **Project Settings** open the **Graphics** section and select [HDRP Global Settings](Default-Settings-Window.md).
+2. Go to the **Frame Settings (Default Values**) > **Camera** section.
+3. Open the **Rendering** section.
+4. Enable the **Decal Layers** checkbox.
 
-1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector. 
-2. Go to the **General** section and enable the **Custom Frame Settings** checkbox. This exposes the **Frame Settings Overrides,** which you can use to customize this Camera only. 
-3. In the **Rendering** section, enable the **Decal Layers** checkbox to make this Camera use Decal Layers.
+To control the Frame Settings and set Decal Layers for a specific Camera:
 
-## Using Decal Layers
+1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector.
+2. Go to the **Rendering** section and enable the **Custom Frame Settings** checkbox. This opens a new **Frame Settings Overrides** section, which you can use to customize this Camera.
+3. In the **Frame Settings Overrides** section open the **Rendering** section.
+4. Enable the **Decal Layers** checkbox.
 
-After you enable Decal Layers, you can then use them to decouple Meshes from certain Decal Projectors in your Scene. To do this:
+### Using Decal Layers
+
+When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if they both use a matching Decal Layer. You can use Decal Layers to separate Meshes from specific [Decal Projectors](Decal-Projector.md) in your Scene. To do this:
 
 1. Click on a Decal Projector in the Hierarchy or the Scene view to view it in the Inspector.
 2. Use the **Decal Layer** property drop-down to select which Decal Layers this Decal Projector affects.
 4. Click on a Mesh Renderer or Terrain in the Hierarchy or the Scene view to view it in the Inspector.
-5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain. When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if they both use a matching Decal Layer.
+5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain.
 
-## Renaming Decal Layers
+### Renaming Decal Layers
 
-By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal Layers are named **Decal Layer 1-7**. To more easily differentiate between them, you can give each Decal Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Decal Layer Names**. Here you can set the name of each Decal Layer individually.
+By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal Layers are named **Decal Layer 1-7**. You can give each Decal Layer a specific name. To do this:
 
-## Performance implications
+1. Open the [HDRP Global Settings](Default-Settings-Window.md).
+2. Expand the **Decal Layer Names** section.
 
-Enabling Decal Layers require increase memory, have a GPU performance cost and generate more Shader Variant (so increase build time).
+Here you can set the name of each Decal Layer individually.
 
-If you use the Decal Layer system to disable a decal, via the **Rendering Layer Mask** of a Mesh Renderer or Terrain, it doesn't save on any performance. Instead, to save performance, you need to disable the **Receive Decals** property for the Mesh Renderer or Terrain's Material.
+### How Decal Layers affect performance
 
-Implementation detail: To allow HDRP to apply decals to opaque Materials, it must render depth in a Depth Prepass, which adds to the CPU resource intensity of the operation. Only Materials with **Receive Decals** enabled render in the Depth Prepass, unless you force a full Depth Prepass. If you disable a decal with the Decal Layers system, HDRP still renders it in the Depth Prepass. This is why you need to disable the **Receive Decals** property on Materials to save performance.
+When you enable Decal Layers, it increases the build time of your project. This is because Decal Layers:
 
-## Migration of data previous to Unity 2020.2
+* Uses a high amount of memory.
+* Increases GPU performance cost.
+* Generates more [Shader Variants](https://docs.unity3d.com/Manual/shader-variants.html).
 
-Before Unity 2020.2, the default value for the **Rendering Layer Mask** for new Mesh Renderers and Terrain doesn't include any of the Decal Layer flags. This means that, when you enable Decal Layers, these Mesh Renderers and Terrain default to not receive any Decals. Later versions use **Decal Layer Default**  by default.
+HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materials. This increases resource use on the CPU. Only Materials that have the **Receive Decals** property enabled render in the Depth Prepass, unless you force a full Depth Prepass. To prevent HDRP from rendering a Material which shouldn't receive Decals in the Depth Prepass:
+
+1. Open the Material assigned to a Mesh Renderer or Terrain that you do not want to display decals on.
+
+2. Disable the **Receive Decals** property.
+
+If you use the Decal Layer system to change the **Rendering Layer Mask** of a Mesh Renderer or Terrain to disable decal, it doesn't have an effect on your application's performance.
+
+## Additive Normal Blending
+
+You can use Additive normal blending to blend decal normals with the normals of a specific GameObject.
+In the following image examples, the screenshot on the left does not use additive normal blending, and the screenshot on the right uses additive normal blending.:
+
+![](Images/HDRPFeatures-SurfGrad.png)
+
+To use Additive Normal Blending:
+1. Open your Project’s [HDRP Asset](HDRP-Asset.md).
+2. In the Inspector, go to **Rendering**  >**Decals** and enable the **Additive Normal Blending** checkbox.
+
+### High Precision Normal Buffer
+
+When you use additive normal blending, HDRP constrains the decal displacement to a cone of 45° around the object normal to reduce banding artifacts.
+To remove this angle constraint on the normal at the cost of a higher memory usage, enable the High Precision Normal Buffer setting. To do this:
+
+1. Select your Project’s [HDRP Asset](HDRP-Asset.md).
+2. In the Inspector, go to **Rendering** > **Decals** and enable the **High Precision Normal Buffer** checkbox.
+
+## Limitations
+
+- A Decal Projector can only affect transparent Materials when you use the [Decal Shader](Decal-Shader.md).
+
+- The Decal Shader does not support emissive on Transparent Materials and does support Decal Layers.
+
+- Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md).
+
+- Decal Meshes do not support Decal Layers.
+
+### Migration of data previous to Unity 2020.2
+
+When you convert a project from 2020.2, Mesh renderers and Terrain do not receive any decals by default.
+
+This is because, before Unity 2020.2, the default value for the **Rendering Layer Mask** for new Mesh Renderers and Terrain doesn't include Decal Layer flags.

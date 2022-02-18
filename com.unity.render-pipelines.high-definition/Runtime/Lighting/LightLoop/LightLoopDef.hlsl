@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
+
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // Some file may not required HD shadow context at all. In this case provide an empty one
@@ -23,6 +24,7 @@ struct LightLoopContext
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;     // combined fade factor of all contact shadows
     SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
+    real splineVisibility;      // Stores the value of the cascade shadow map (unbiased for splines)
 };
 
 // LightLoopOutput is the output of the LightLoop fuction call.
@@ -62,12 +64,27 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.weight = 1.0;
     output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
     output.roughReflections = 1.0;
+    output.distanceBasedRoughness = 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
     output.proxyUp = float3(0.0, 1.0, 0.0);
     output.proxyRight = float3(1.0, 0.0, 0.0);
     output.minProjectionDistance = 65504.0f;
+
+    return output;
+}
+
+// Variant environment data that provides a better default behavior for screen space refraction, when no proxy volume is available.
+EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
+{
+    EnvLightData output = InitSkyEnvLightData(envIndex);
+
+    // For screen space refraction, instead of an infinite projection, utilize the renderer's extents.
+    output.proxyExtents = GetRendererExtents();
+
+    // Revert the infinite projection.
+    output.minProjectionDistance = 0;
 
     return output;
 }
@@ -151,15 +168,18 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
 
+        // Planar and Reflection Probes aren't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
+
         color.rgb *= rangeCompressionFactorCompensation;
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
+        // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
     }
 
-    // Planar, Reflection Probes and Sky aren't pre-expose, so best to clamp to max16 here in case of inf
-    color.rgb = ClampToFloat16Max(color.rgb);
 
     return color;
 }
@@ -187,7 +207,7 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
 #endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
+    lightCount = g_vLightListTile[LIGHT_DWORD_PER_FPTL_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -207,7 +227,7 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 {
     const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListTile[LIGHT_DWORD_PER_FPTL_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * 16)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -231,6 +251,12 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
     return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
+void UnpackClusterLayeredOffset(uint packedValue, out uint offset, out uint count)
+{
+    offset = packedValue & LIGHT_CLUSTER_PACKING_OFFSET_MASK;
+    count = packedValue >> LIGHT_CLUSTER_PACKING_OFFSET_BITS;
+}
+
 void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
 {
     int nrClusters = (1 << g_iLog2NumClusters);
@@ -238,8 +264,7 @@ void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCateg
     const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
 
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
-    start = dataPair & 0x7ffffff;
-    lightCount = (dataPair >> 27) & 31;
+    UnpackClusterLayeredOffset(dataPair, start, lightCount);
 }
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -260,7 +285,7 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return g_vLightListGlobal[lightStart + lightOffset];
+    return g_vLightListCluster[lightStart + lightOffset];
 }
 
 #elif defined(USE_BIG_TILE_LIGHTLIST)
@@ -271,11 +296,24 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #else
-// Fallback case (mainly for raytracing right now)
+// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
+
+uint GetTileSize()
+{
+    return 1;
+}
+
+void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    start = 0;
+    lightCount = 0;
+    return;
+}
+
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -328,16 +366,17 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
-// In the first 8 bits of the target we store the max fade of the contact shadows as a byte
+// In the first bits of the target we store the max fade of the contact shadows as a byte.
+//By default its 8 bits for the fade and 24 for the mask, please check the LightLoop.cs definitions.
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
 {
-    fade = float(contactShadowData >> 24) / 255.0;
-    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent
+    fade = float(contactShadowData >> CONTACT_SHADOW_MASK_BITS) / ((float)CONTACT_SHADOW_FADE_MASK);
+    mask = contactShadowData & CONTACT_SHADOW_MASK_MASK; // store only the first 24 bits which represent
 }
 
 uint PackContactShadowData(float fade, uint mask)
 {
-    uint fadeAsByte = (uint(saturate(fade) * 255) << 24);
+    uint fadeAsByte = (uint(saturate(fade) * CONTACT_SHADOW_FADE_MASK) << CONTACT_SHADOW_MASK_BITS);
 
     return fadeAsByte | mask;
 }
@@ -371,6 +410,13 @@ float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
     uint slot = shadowIndex / 4;
     uint channel = shadowIndex & 0x3;
     return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
+}
+
+float2 GetScreenSpaceShadowArea(PositionInputs posInput, uint shadowIndex)
+{
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return float2(LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel], LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel + 1]);
 }
 
 float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)

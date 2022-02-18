@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
         public BlendNode()
         {
             name = "Blend";
+            synonyms = new string[] { "burn", "darken", "difference", "dodge", "divide", "exclusion", "hard light", "hard mix", "linear burn", "linear dodge", "linear light", "multiply", "negate", "overlay", "pin light", "screen", "soft light", "subtract", "vivid light", "overwrite" };
         }
 
         string GetCurrentBlendName()
@@ -48,7 +49,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
     Out = lerp(Base, Out, Opacity);
@@ -62,7 +63,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = min(Blend, Base);
     Out = lerp(Base, Out, Opacity);
@@ -76,7 +77,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = abs(Blend - Base);
     Out = lerp(Base, Out, Opacity);
@@ -90,7 +91,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
     Out = lerp(Base, Out, Opacity);
@@ -104,7 +105,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base / (Blend + 0.000000000001);
     Out = lerp(Base, Out, Opacity);
@@ -118,7 +119,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Blend + Base - (2.0 * Blend * Base);
     Out = lerp(Base, Out, Opacity);
@@ -132,7 +133,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
     $precision{slot2dimension} result2 = 2.0 * Base * Blend;
@@ -149,7 +150,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = step(1 - Base, Blend);
     Out = lerp(Base, Out, Opacity);
@@ -163,7 +164,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = max(Blend, Base);
     Out = lerp(Base, Out, Opacity);
@@ -177,7 +178,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base + Blend - 1.0;
     Out = lerp(Base, Out, Opacity);
@@ -191,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base + Blend;
     Out = lerp(Base, Out, Opacity);
@@ -205,7 +206,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Blend < 0.5 ? max(Base + (2 * Blend) - 1, 0) : min(Base + 2 * (Blend - 0.5), 1);
     Out = lerp(Base, Out, Opacity);
@@ -219,7 +220,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Blend + 2.0 * Base - 1.0;
     Out = lerp(Base, Out, Opacity);
@@ -233,7 +234,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base * Blend;
     Out = lerp(Base, Out, Opacity);
@@ -247,7 +248,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = 1.0 - abs(1.0 - Blend - Base);
     Out = lerp(Base, Out, Opacity);
@@ -261,7 +262,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = 1.0 - (1.0 - Blend) * (1.0 - Base);
     Out = lerp(Base, Out, Opacity);
@@ -275,7 +276,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
     $precision{slot2dimension} result2 = 2.0 * Base * Blend;
@@ -293,7 +294,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision{slot2dimension} check = step (0.5, Blend);
     $precision{slot2dimension} result1 = check * max(2.0 * (Base - 0.5), Blend);
@@ -310,7 +311,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision{slot2dimension} result1 = 2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend);
     $precision{slot2dimension} result2 = sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend);
@@ -328,7 +329,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Base = clamp(Base, 0.000001, 0.999999);
     $precision{slot2dimension} result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
@@ -347,7 +348,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Base - Blend;
     Out = lerp(Base, Out, Opacity);
@@ -362,7 +363,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = lerp(Base, Blend, Opacity);
 }";

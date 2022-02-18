@@ -1,9 +1,7 @@
-﻿using UnityEngine.Scripting.APIUpdating;
-
 namespace UnityEngine.Rendering.Universal
 {
     [System.Serializable]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class StencilStateData
+    public class StencilStateData
     {
         public bool overrideStencilState = false;
         public int stencilReference = 0;

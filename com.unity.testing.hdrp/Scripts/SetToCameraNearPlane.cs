@@ -26,7 +26,7 @@ public class SetToCameraNearPlane : MonoBehaviour
         PlaceObject();
     }
 
-    void PlaceObject ()
+    void PlaceObject()
     {
         float captureRatio = 1.0f; // testSettings.ImageComparisonSettings.TargetWidth * 1.0f / testSettings.ImageComparisonSettings.TargetHeight;
         float objectRatio = extend.x / extend.y;
@@ -49,8 +49,7 @@ public class SetToCameraNearPlane : MonoBehaviour
         renderer.transform.parent = camera.transform;
         renderer.transform.localPosition = new Vector3(0, 0, camDistance);
         renderer.transform.localRotation = Quaternion.identity;
-        renderer.transform.localScale = Vector3.one * Mathf.Abs(nearPlaneTargetSize / ( (scaleBaseOnX) ? extend.x : extend.y ) );
-
+        renderer.transform.localScale = Vector3.one * Mathf.Abs(nearPlaneTargetSize / ((scaleBaseOnX) ? extend.x : extend.y));
     }
 
     public bool place = false;

@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 if (m_DepthSamplingMode == value)
-                    return ;
+                    return;
 
                 m_DepthSamplingMode = value;
                 Dirty(ModificationScope.Graph);
@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph
         public SceneDepthNode()
         {
             name = "Scene Depth";
+            synonyms = new string[] { "zbuffer", "zdepth" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -66,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }
@@ -78,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
 }
@@ -90,9 +91,16 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
-    Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
+    if (unity_OrthoParams.w == 1.0)
+    {
+        Out = LinearEyeDepth(ComputeWorldSpacePosition(UV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+    }
+    else
+    {
+        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
+    }
 }
 ";
         }

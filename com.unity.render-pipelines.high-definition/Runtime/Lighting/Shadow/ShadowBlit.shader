@@ -2,7 +2,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
 {
     HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -10,6 +10,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "BlitShadows"
@@ -37,7 +38,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
 
             TEXTURE2D(_CachedShadowmapAtlas);
             float4 _BlitScaleBias;
-             
+
             Varyings Vert(Attributes input)
             {
                 Varyings output;

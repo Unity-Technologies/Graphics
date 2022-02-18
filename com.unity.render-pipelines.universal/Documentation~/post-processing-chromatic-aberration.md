@@ -1,10 +1,16 @@
 # Chromatic Aberration
 
-Chromatic Aberration creates fringes of color along boundaries that separate dark and light parts of the image. It mimics the color distortion that a real-world camera produces when its lens fails to join all colors to the same point. See Wikipedia: Chromation aberration. 
+![Chromatic Aberration Off](Images/post-proc/chromatic-aberration-off.png)
+<br/>_Scene with Chromatic Aberration effect turned off._
+
+![Chromatic Aberration On](Images/post-proc/chromatic-aberration.png)
+<br/>_Scene with Chromatic Aberration effect turned on._
+
+Chromatic Aberration creates fringes of color along boundaries that separate dark and light parts of the image. It mimics the color distortion that a real-world camera produces when its lens fails to join all colors to the same point. See Wikipedia: Chromation aberration.
 
 ## Using Chromatic Aberration
 
-**Chromatic Aberration** uses the [Volume](Volumes.md) system, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.md) in your Scene. 
+**Chromatic Aberration** uses the [Volume](Volumes.md) system, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.md) in your Scene.
 
 To add **Chromatic Aberration** to a Volume:
 

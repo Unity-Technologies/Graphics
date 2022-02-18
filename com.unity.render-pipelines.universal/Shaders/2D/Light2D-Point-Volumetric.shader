@@ -14,7 +14,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
-            #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
@@ -29,15 +28,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
             {
                 float4  positionCS      : SV_POSITION;
                 half2   uv              : TEXCOORD0;
-                half2	screenUV        : TEXCOORD1;
-                half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
-                half2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
+                half2   lookupUV        : TEXCOORD2;  // This is used for light relative direction
 
-#if LIGHT_QUALITY_FAST
-                half4	lightDirection	: TEXCOORD4;
-#else
-                half4	positionWS : TEXCOORD4;
-#endif
                 SHADOW_COORDS(TEXCOORD5)
             };
 
@@ -54,18 +46,15 @@ Shader "Hidden/Light2d-Point-Volumetric"
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
 
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
-
             half4   _LightColor;
             half    _VolumeOpacity;
             float4   _LightPosition;
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
             half    _LightZDistance;
-            half    _OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
+            half    _OuterAngle;                // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerAngleMult;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half    _InverseHDREmulationScale;
             half    _IsFullSpotlight;
 
@@ -85,19 +74,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
-                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
-
-#if LIGHT_QUALITY_FAST
-                output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
-                output.lightDirection.z = _LightZDistance;
-                output.lightDirection.w = 0;
-                output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-#else
-                output.positionWS = worldSpacePos;
-#endif
-
-                float4 clipVertex = output.positionCS / output.positionCS.w;
-                output.screenUV = ComputeScreenPos(clipVertex).xy;
 
                 TRANSFER_SHADOWS(output)
 
@@ -106,12 +82,10 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             half4 frag(Varyings input) : SV_Target
             {
-                half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
-                half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
                 // Inner Radius
-                half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
+                half attenuation = saturate(_InnerRadiusMult * lookupValue.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
                 half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * _InnerAngleMult);

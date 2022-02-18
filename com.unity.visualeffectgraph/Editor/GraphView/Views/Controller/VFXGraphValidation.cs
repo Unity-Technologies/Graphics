@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
             {
                 LogError("Model error : wrong parent. expected:" + GetVFXModelDesc(expectedParent) + " actual:" + GetVFXModelDesc(model.GetParent()));
             }
-            if (!(model is VFXSlot) &&  model.GetGraph() != m_Graph)
+            if (!(model is VFXSlot) && model.GetGraph() != m_Graph)
             {
                 LogError("Model error : " + GetVFXModelDesc(model) + " wrong graph. expected:" + GetVFXModelDesc(m_Graph) + " actual:" + GetVFXModelDesc(model.GetParent()));
             }

@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-	float4 _GradientBottom;
+    float4 _GradientBottom;
     float4 _GradientMiddle;
     float4 _GradientTop;
     float _GradientDiffusion;
@@ -69,6 +69,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite Off

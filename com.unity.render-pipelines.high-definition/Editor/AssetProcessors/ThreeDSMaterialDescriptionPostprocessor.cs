@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 2;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -980;
 
         public override uint GetVersion()
         {
@@ -23,8 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (HDRenderPipeline.currentAsset == null)
                 return;
 
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
@@ -60,11 +59,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 material.SetInt("_ZWrite", 0);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetFloat("_SurfaceType", 1.0f);
+                material.SetFloat("_Cutoff", .0f);
+                material.SetFloat("_AlphaCutoffEnable", 1.0f);
+                material.SetFloat("_AlphaCutoff", .0f);
+                material.SetFloat("_AlphaCutoffShadow", 1.0f);
+                material.SetFloat("_UseShadowThreshold", 1.0f);
             }
             else
             {
@@ -113,4 +119,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

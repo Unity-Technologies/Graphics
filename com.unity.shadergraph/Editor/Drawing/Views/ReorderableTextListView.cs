@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // should we set up a new style sheet?  allow user overrides?
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
 
-            m_Container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
+            m_Container = new IMGUIContainer(() => OnGUIHandler()) { name = "ListContainer" };
             Add(m_Container);
         }
 
@@ -221,4 +221,3 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 }
-

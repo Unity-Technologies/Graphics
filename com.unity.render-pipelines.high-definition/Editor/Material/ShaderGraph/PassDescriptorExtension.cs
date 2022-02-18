@@ -24,18 +24,46 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || (pass.lightMode.Contains("DXR") && pass.lightMode != HDShaderPassNames.s_RayTracingVisibilityStr && pass.lightMode != HDShaderPassNames.s_PathTracingDXRStr);
         }
 
-        public static bool IsDXR(this PassDescriptor pass)
+        public static bool IsForward(this PassDescriptor pass)
+        {
+            return pass.lightMode == HDShaderPassNames.s_ForwardOnlyStr
+                || pass.lightMode == HDShaderPassNames.s_ForwardStr
+                || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
+        }
+
+        public static bool NeedsDebugDisplay(this PassDescriptor pass)
+        {
+            return IsLightingOrMaterial(pass);
+        }
+
+        public static bool IsRaytracing(this PassDescriptor pass)
+        {
+            foreach (var pragma in pass.pragmas)
+            {
+                if (pragma.value == "#pragma raytracing surface_shader")
+                    return true;
+            }
+
+            return false;
+        }
+
+        // This function allow to know if a pass is used in context of raytracing rendering even if the pass is not a rayrtacing pass itself (like with RaytracingPrepass)
+        public static bool IsRelatedToRaytracing(this PassDescriptor pass)
         {
             return pass.lightMode.Contains("DXR")
                 || pass.lightMode == HDShaderPassNames.s_RayTracingVisibilityStr
                 || pass.lightMode == HDShaderPassNames.s_RayTracingPrepassStr;
         }
 
-        public static bool IsForward(this PassDescriptor pass)
+        public static bool IsTessellation(this PassDescriptor pass)
         {
-            return pass.lightMode == HDShaderPassNames.s_ForwardOnlyStr
-                || pass.lightMode == HDShaderPassNames.s_ForwardStr
-                || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
+            foreach (var pragma in pass.pragmas)
+            {
+                if (pragma.value == "#pragma hull Hull")
+                    return true;
+            }
+
+            return false;
         }
     }
 }

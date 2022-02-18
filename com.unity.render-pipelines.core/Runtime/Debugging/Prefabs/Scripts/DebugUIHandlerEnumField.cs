@@ -1,57 +1,10 @@
-using System;
-using UnityEngine.UI;
-
 namespace UnityEngine.Rendering.UI
 {
     /// <summary>
     /// DebugUIHandler for enumerator widget.
     /// </summary>
-    public class DebugUIHandlerEnumField : DebugUIHandlerWidget
+    public class DebugUIHandlerEnumField : DebugUIHandlerField<DebugUI.EnumField>
     {
-        /// <summary>Name of the enum field.</summary>
-        public Text nameLabel;
-        /// <summary>Value of the enum field.</summary>
-        public Text valueLabel;
-        internal protected DebugUI.EnumField m_Field;
-
-        internal override void SetWidget(DebugUI.Widget widget)
-        {
-            base.SetWidget(widget);
-            m_Field = CastWidget<DebugUI.EnumField>();
-            nameLabel.text = m_Field.displayName;
-            UpdateValueLabel();
-        }
-
-        /// <summary>
-        /// OnSelection implementation.
-        /// </summary>
-        /// <param name="fromNext">True if the selection wrapped around.</param>
-        /// <param name="previous">Previous widget.</param>
-        /// <returns>State of the widget.</returns>
-        public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
-        {
-            nameLabel.color = colorSelected;
-            valueLabel.color = colorSelected;
-            return true;
-        }
-
-        /// <summary>
-        /// OnDeselection implementation.
-        /// </summary>
-        public override void OnDeselection()
-        {
-            nameLabel.color = colorDefault;
-            valueLabel.color = colorDefault;
-        }
-
-        /// <summary>
-        /// OnAction implementation.
-        /// </summary>
-        public override void OnAction()
-        {
-            OnIncrement(false);
-        }
-
         /// <summary>
         /// OnIncrement implementation.
         /// </summary>
@@ -75,7 +28,7 @@ namespace UnityEngine.Rendering.UI
                     //check if quickSeparators have not been constructed
                     //it is the case when not constructed with autoenum
                     var separators = m_Field.quickSeparators;
-                    if(separators == null)
+                    if (separators == null)
                     {
                         m_Field.InitQuickSeparators();
                         separators = m_Field.quickSeparators;
@@ -83,7 +36,7 @@ namespace UnityEngine.Rendering.UI
 
                     int idxSup = 0;
                     for (; idxSup < separators.Length && index + 1 > separators[idxSup]; ++idxSup) ;
-                    if(idxSup == separators.Length)
+                    if (idxSup == separators.Length)
                     {
                         index = 0;
                     }
@@ -117,7 +70,7 @@ namespace UnityEngine.Rendering.UI
 
             if (index == 0)
             {
-                if(fast)
+                if (fast)
                 {
                     //check if quickSeparators have not been constructed
                     //it is thecase when not constructed with autoenum
@@ -166,7 +119,7 @@ namespace UnityEngine.Rendering.UI
         /// <summary>
         /// Update the label of the widget.
         /// </summary>
-        protected virtual void UpdateValueLabel()
+        public override void UpdateValueLabel()
         {
             int index = m_Field.currentIndex;
 
@@ -174,7 +127,7 @@ namespace UnityEngine.Rendering.UI
             if (index < 0)
                 index = 0;
 
-            valueLabel.text = "< " + m_Field.enumNames[index].text + " >";
+            SetLabelText(m_Field.enumNames[index].text);
         }
     }
 }

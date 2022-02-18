@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
 using System;
@@ -18,41 +18,48 @@ public class DocChecker : EditorWindow
 {
     const string key = "HDRP Documnetation Checker";
 
-    ListRequest         packageListRequest;
-    PackageCollection   collection;
-    string[]            packageNames;
-    Event               e => Event.current;
+    ListRequest packageListRequest;
+    PackageCollection collection;
+    string[] packageNames;
+    Event e => Event.current;
 
-    int                 selectedPackage
+    int selectedPackage
     {
         get => EditorPrefs.GetInt($"{key} selectedPackage", 0);
         set => EditorPrefs.SetInt($"{key} selectedPackage", value);
     }
-    string              outputFolder
+    string outputFolder
     {
         get => EditorPrefs.GetString($"{key} outputFolder", "");
         set => EditorPrefs.SetString($"{key} outputFolder", value);
     }
     [SerializeField]
-    bool                excludeTests
+    bool excludeTests
     {
         get => EditorPrefs.GetBool($"{key} excludeTests", true);
         set => EditorPrefs.SetBool($"{key} excludeTests", value);
     }
-    
+
+    [SerializeField]
+    bool showOnOutput
+    {
+        get => EditorPrefs.GetBool($"{key} showOnOutput", true);
+        set => EditorPrefs.SetBool($"{key} showOnOutput", value);
+    }
+
     public string undocumentedEntitiesFilePath => outputFolder + "/" + "undocumented_entities.txt";
 
-    [MenuItem ("Window/Doc Checker")]
+    [MenuItem("Window/Doc Checker")]
     public new static void Show() => EditorWindow.GetWindow<DocChecker>();
 
-    void OnGUI ()
+    void OnGUI()
     {
         UpdatePackagesList();
 
         if (IsLoading())
         {
             EditorGUILayout.LabelField("Loading Packages ...");
-            return ;
+            return;
         }
 
         if (collection == null)
@@ -78,6 +85,7 @@ public class DocChecker : EditorWindow
                     Application.OpenURL(outputFolder);
             }
             excludeTests = EditorGUILayout.Toggle("Exclude Tests", excludeTests);
+            showOnOutput = EditorGUILayout.Toggle("Show on output", showOnOutput);
         }
 
         EditorGUILayout.Space();
@@ -192,13 +200,19 @@ public class DocChecker : EditorWindow
         if (stdoutLines.Length > 0)
         {
             var errorMessage = FormatErrorMessage(stdoutLines);
-            // Debug.Log(errorMessage);
+            if (showOnOutput)
+                Debug.Log(errorMessage);
             File.WriteAllText(undocumentedEntitiesFilePath, errorMessage);
+        }
+        else
+        {
+            if (File.Exists(undocumentedEntitiesFilePath))
+                File.Delete(undocumentedEntitiesFilePath);
         }
 
         if (responseFilePath != null)
             File.Delete(responseFilePath);
-        
+
         EditorUtility.ClearProgressBar();
         Debug.Log("Done !");
     }

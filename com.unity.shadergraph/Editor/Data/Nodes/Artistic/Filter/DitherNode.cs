@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public DitherNode()
         {
             name = "Dither";
+            synonyms = new string[] { "blue noise", "half tone" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -23,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision2 uv = ScreenPosition.xy * _ScreenParams.xy;
     $precision DITHER_THRESHOLDS[16] =

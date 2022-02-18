@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => false;
+        internal override bool ignoreCustomInterpolators => false;
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -48,7 +49,7 @@ namespace UnityEditor.ShaderGraph
                 passes = new PassCollection { Passes.Preview },
             };
         }
-        
+
         static class Passes
         {
             public static PassDescriptor Preview = new PassDescriptor()
@@ -87,6 +88,7 @@ namespace UnityEditor.ShaderGraph
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph },       // TODO: put this on a conditional
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", IncludeLocation.Pregraph },
+                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
@@ -110,6 +112,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     StructFields.Varyings.positionCS,
                     StructFields.Varyings.positionWS,
+                    StructFields.Varyings.positionPredisplacementWS,
                     StructFields.Varyings.normalWS,
                     StructFields.Varyings.tangentWS,
                     StructFields.Varyings.texCoord0,
@@ -117,9 +120,9 @@ namespace UnityEditor.ShaderGraph
                     StructFields.Varyings.texCoord2,
                     StructFields.Varyings.texCoord3,
                     StructFields.Varyings.color,
-                    StructFields.Varyings.viewDirectionWS,
                     StructFields.Varyings.screenPosition,
                     StructFields.Varyings.instanceID,
+                    StructFields.Varyings.vertexID,
                     StructFields.Varyings.cullFace,
                 }
             };
@@ -134,6 +137,7 @@ namespace UnityEditor.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+                stages = KeywordShaderStage.All,
             };
         }
     }

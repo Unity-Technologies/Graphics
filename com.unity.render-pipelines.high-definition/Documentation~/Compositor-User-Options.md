@@ -36,13 +36,14 @@ To expose these properties, select a Sub-layer in the **Render Schedule**.
 | **Background Fit** |Specifies the method the Graphics Compositor uses to fit the **Source Image** to the screen. The options are:<br />&#8226; **Stretch**: Stretches the image that it completely fills the screen. This method does not maintain the image's original aspect ratio.<br />&#8226; **Fit Horizontally**: Resizes the image so that it fits the screen horizontally. For the vertical axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how tall the image is.<br />&#8226; **Fit Vertically**: Resizes the image so that it fits the screen vertically. For the horizontal axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how wide the image is.<br />This property is only available for **Image** Sub-layers.|
 | **Source Video**| Specifies the [Video Player](https://docs.unity3d.com/ScriptReference/Video.VideoPlayer.html) to use for this Sub-layer.<br />This property is only available for **Video** Sub-layers. |
 | **Source Camera** |Specifies the Camera to use for this Sub-layer. By default, this is set to the main Camera in the Scene.<br />This property is only available for **Camera** Sub-layers.|
-| **Clear Depth**| Specifies whether Unity clears the depth buffer before it draws the contents of this Sub-layer. |
-| **Clear Alpha** |Specifies whether Unity clears the alpha channel before it draws the contents of this Sub-layer. If you enable this property, post-processing only affects pixels drawn by previous Sub-layers. Otherwise, post-processing also affects pixels drawn in previous Composition Layers.|
-| **Clear Color** |Overrides the **Background Type** for this Sub-layer. By default, this has the same value as **Background Type** on the Sub-layer's Camera. To override this value, enable the checkbox then select the new value from the drop-down.|
+| **Clear Depth**| Specifies whether Unity clears the depth buffer before it draws the contents of this Sub-layer. This option is inactive for the first Sub-layer in a stack, since this Sub-layer always clears the depth.|
+| **Clear Alpha** | Specifies whether Unity clears the alpha channel before it draws the contents of this Sub-layer. If you enable this property, post-processing only affects pixels drawn by previous Sub-layers. Otherwise, post-processing also affects pixels drawn in previous Composition Layers.|
+| **Alpha Range** | Controls how steep the transition between the post-processed and plain regions is. The full [0, 1] range provides the smoothest transition, while shorter ranges provide a steeper transition. Adjusted this option if you see outlines around transparent objects when using per-layer post-processing. For more information on how the compositor uses the alpha channel, see [Using the Graphics Compositor](Compositor-User-Guide.md).|
+| **Clear Color** | Overrides the **Background Type** for this Sub-layer. By default, this has the same value as **Background Type** on the Sub-layer's Camera. To override this value, enable the checkbox then select the new value from the drop-down. This option is only available for the first Sub-layer in a stack. The other Sub-layers never clear the color buffer (as required for camera stacking). Setting this option to **None** means the color values are uninitialized when rendering for the sub-layer starts. This guarantees that the compositor does not clear the color, but there is no guarantee of what the contents of the buffer are when you start drawing.|
 | **Post Anti-aliasing** |Overrides the **Postprocess Anti-aliasing** mode for this Sub-layer. By default, this has the same value as **Postprocess Anti-aliasing** on the Sub-layer's Camera.|
 | **Culling Mask** |Overrides the **Culling Mask** for this Sub-layer. By default, this has the same value as **Culling Mask** on the Sub-layer's Camera.|
 | **Volume Mask** |Overrides the **Volume Layer Mask** for this Sub-layer. By default, this has the same value as **Volume Layer Mask** on the Sub-layer's Camera. You can use this to have different post-processing effects for each Sub-layer.|
-| **Input Filters**| A list of [filters](#Sub-layer-filters) to apply to this Sub-layer. |
+| **Input Filters**| A list of [filters](#sub-layer-filters) to apply to this Sub-layer. |
 
 ### Sub-layer Filters
 When you add a new **Input Filter** to a Sub-layer, the properties that appear depend on which filter type you select. The current filter types are:
@@ -50,7 +51,7 @@ When you add a new **Input Filter** to a Sub-layer, the properties that appear d
 * [Chroma Keying](#chroma-keying)
 * [Alpha Mask](#alpha-mask)
 
-you can use filters to apply common color processing operations to Sub-layers. The filter list is empty by default. To add new filters, click the add (**+**) button. 
+you can use filters to apply common color processing operations to Sub-layers. The filter list is empty by default. To add new filters, click the add (**+**) button.
 
 **Note**: It is possible to implement the functionality of many filters with nodes in the Composition Graph, but if you use the built-in filters instead, it makes the Composition Graph simpler.
 
@@ -70,5 +71,3 @@ Takes as input a static texture that overrides the alpha mask of the Sub-layer. 
 | **Property** | **Description** |
 | ---- | ---- |
 | **Alpha Mask** |Specifies the Texture that overrides the Sub-layer's alpha mask.|
-
-

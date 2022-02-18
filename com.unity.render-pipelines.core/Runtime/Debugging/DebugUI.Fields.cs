@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -80,7 +83,7 @@ namespace UnityEngine.Rendering
             /// Set the value of the field.
             /// </summary>
             /// <param name="value">Input value.</param>
-            public void SetValue(T value)
+            public virtual void SetValue(T value)
             {
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
@@ -88,9 +91,7 @@ namespace UnityEngine.Rendering
                 if (!v.Equals(getter()))
                 {
                     setter(v);
-
-                    if (onValueChanged != null)
-                        onValueChanged(this, v);
+                    onValueChanged?.Invoke(this, v);
                 }
             }
         }
@@ -241,6 +242,39 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static class EnumUtility
+        {
+            internal static GUIContent[] MakeEnumNames(Type enumType)
+            {
+                return enumType.GetFields(BindingFlags.Public | BindingFlags.Static).Select(fieldInfo =>
+                {
+                    var description = fieldInfo.GetCustomAttributes(typeof(InspectorNameAttribute), false);
+
+                    if (description.Length > 0)
+                    {
+                        return new GUIContent(((InspectorNameAttribute)description.First()).displayName);
+                    }
+
+                    // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
+                    var niceName = Regex.Replace(fieldInfo.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+                    return new GUIContent(niceName);
+                }).ToArray();
+            }
+
+            internal static int[] MakeEnumValues(Type enumType)
+            {
+                // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
+                //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                var values = Enum.GetValues(enumType);
+                var enumValues = new int[values.Length];
+                for (int i = 0; i < values.Length; i++)
+                    enumValues[i] = (int)values.GetValue(i);
+
+                return enumValues;
+            }
+        }
+
         /// <summary>
         /// Enumerator field.
         /// </summary>
@@ -256,7 +290,9 @@ namespace UnityEngine.Rendering
             public int[] enumValues;
 
             internal int[] quickSeparators;
-            internal int[] indexes;
+
+            private int[] m_Indexes;
+            internal int[] indexes => m_Indexes ??= Enumerable.Range(0, enumNames?.Length ?? 0).ToArray();
 
             /// <summary>
             /// Get the enumeration value index.
@@ -270,7 +306,11 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Current enumeration value index.
             /// </summary>
-            public int currentIndex { get { return getIndex(); } set { setIndex(value); } }
+            public int currentIndex
+            {
+                get => getIndex();
+                set => setIndex(value);
+            }
 
             /// <summary>
             /// Generates enumerator values and names automatically based on the provided type.
@@ -279,17 +319,8 @@ namespace UnityEngine.Rendering
             {
                 set
                 {
-                    enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
-
-                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
-                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
-
-                    var values = Enum.GetValues(value);
-                    enumValues = new int[values.Length];
-                    for (int i = 0; i < values.Length; i++)
-                        enumValues[i] = (int)values.GetValue(i);
-
-                    InitIndexes();
+                    enumNames = EnumUtility.MakeEnumNames(value);
+                    enumValues = EnumUtility.MakeEnumValues(value);
                     InitQuickSeparators();
                 }
             }
@@ -318,17 +349,38 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            internal void InitIndexes()
+            /// <summary>
+            /// Set the value of the field.
+            /// </summary>
+            /// <param name="value">Input value.</param>
+            public override void SetValue(int value)
             {
-                if (enumNames == null)
-                    enumNames = new GUIContent[0];
+                Assert.IsNotNull(setter);
+                var validValue = ValidateValue(value);
 
-                indexes = new int[enumNames.Length];
-                for (int i = 0; i < enumNames.Length; i++)
+                // There might be cases that the value does not map the index, look for the correct index
+                var newCurrentIndex = Array.IndexOf(enumValues, validValue);
+
+                if (currentIndex != newCurrentIndex && !validValue.Equals(getter()))
                 {
-                    indexes[i] = i;
+                    setter(validValue);
+                    onValueChanged?.Invoke(this, validValue);
+
+                    if (newCurrentIndex > -1)
+                        currentIndex = newCurrentIndex;
                 }
             }
+        }
+
+        /// <summary>
+        /// Object PopupField
+        /// </summary>
+        public class ObjectPopupField : Field<Object>
+        {
+            /// <summary>
+            /// Callback to obtain the elemtents of the pop up
+            /// </summary>
+            public Func<IEnumerable<Object>> getObjects { get; set; }
         }
 
         /// <summary>
@@ -372,29 +424,20 @@ namespace UnityEngine.Rendering
             /// </summary>
             public int[] enumValues { get; private set; }
 
-            internal Type m_EnumType;
+            Type m_EnumType;
 
             /// <summary>
             /// Generates bitfield values and names automatically based on the provided type.
             /// </summary>
             public Type enumType
             {
+                get => m_EnumType;
                 set
                 {
-                    enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
-
-                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
-                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
-
-                    var values = Enum.GetValues(value);
-                    enumValues = new int[values.Length];
-                    for (int i = 0; i < values.Length; i++)
-                        enumValues[i] = (int)values.GetValue(i);
-
                     m_EnumType = value;
+                    enumNames = EnumUtility.MakeEnumNames(value);
+                    enumValues = EnumUtility.MakeEnumValues(value);
                 }
-
-                get { return m_EnumType; }
             }
         }
 
@@ -509,6 +552,58 @@ namespace UnityEngine.Rendering
             /// Number of decimals.
             /// </summary>
             public int decimals = 3;
+        }
+
+        /// <summary>
+        /// Object field.
+        /// </summary>
+        public class ObjectField : Field<Object>
+        {
+            /// <summary>
+            /// Object type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Object list field.
+        /// </summary>
+        public class ObjectListField : Field<Object[]>
+        {
+            /// <summary>
+            /// Objects type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Simple message box widget, providing a couple of different styles.
+        /// </summary>
+        public class MessageBox : Widget
+        {
+            /// <summary>
+            /// Label style defines text color and background.
+            /// </summary>
+            public enum Style
+            {
+                /// <summary>
+                /// Info category
+                /// </summary>
+                Info,
+                /// <summary>
+                /// Warning category
+                /// </summary>
+                Warning,
+                /// <summary>
+                /// Error category
+                /// </summary>
+                Error
+            }
+
+            /// <summary>
+            /// Style used to render displayName.
+            /// </summary>
+            public Style style = Style.Info;
         }
     }
 }

@@ -24,9 +24,11 @@ namespace UnityEditor.VFX
         // Caps
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
+        public virtual bool supportsExcludeFromTAA { get { return false; } }
+        public virtual bool supportsSortingPriority { get { return true; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies
-        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
+        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) { }
 
         public virtual string GetBlendModeStr()
         {
@@ -45,25 +47,39 @@ namespace UnityEditor.VFX
 
         public virtual string GetRenderQueueStr()
         {
+            var baseRenderQueue = string.Empty;
             switch (owner.blendMode)
             {
                 case BlendMode.Additive:
                 case BlendMode.Alpha:
                 case BlendMode.AlphaPremultiplied:
-                    return "Transparent";
+                    baseRenderQueue = "Transparent";
+                    break;
                 case BlendMode.Opaque:
                     if (owner.hasAlphaClipping)
-                        return "AlphaTest";
+                        baseRenderQueue = "AlphaTest";
                     else
-                        return "Geometry";
+                        baseRenderQueue = "Geometry";
+                    break;
                 default:
                     throw new NotImplementedException("Unknown blend mode");
             }
+
+            int rawMaterialSortingPriority = owner.GetMaterialSortingPriority();
+            int queueOffset = Mathf.Clamp(rawMaterialSortingPriority, -50, +50);
+            return baseRenderQueue + queueOffset.ToString("+#;-#;+0");
         }
 
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
         {
             return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>();
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (owner is VFXModel)
+                ((VFXModel)owner).Invalidate(model, cause); // Forward invalidate event to owner
         }
     }
 }

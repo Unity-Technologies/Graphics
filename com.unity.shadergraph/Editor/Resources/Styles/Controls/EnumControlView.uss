@@ -12,11 +12,11 @@ EnumControlView {
 }
 
 .unity-base-field__input {
-	margin-left: 0;
+    margin-left: 0;
 }
 
 EnumControlView > Label {
-    max-width: 94px;
+    max-width: 140px;
     width: 30px;
     -unity-text-align: middle-left;
     flex-grow: 1;

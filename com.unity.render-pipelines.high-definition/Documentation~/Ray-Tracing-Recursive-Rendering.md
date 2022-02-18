@@ -4,6 +4,8 @@ This feature is a replacement pipeline for rendering Meshes in the High Definiti
 
 The smoothness of a Material does not affect the way a ray reflects or refracts, which makes this rendering mode useful for rendering multi-layered transparent GameObjects.
 
+HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
+
 ![](Images/RayTracingRecursiveRendering1.png)
 
 **Car gear shift rendered with recursive ray tracing**
@@ -13,19 +15,23 @@ The smoothness of a Material does not affect the way a ray reflects or refracts,
 Recursive Rendering uses the [Volume](Volumes.md) framework, so to enable this feature and modify its properties, you need to add a Recursive Rendering override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to Add Override > Ray Tracing and click on Recursive Rendering.
-3. In the Inspector for the Recursive Rendering Volume Override, enable Ray Tracing. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
+2. In the Inspector, go to **Add Override > Ray Tracing** and click on **Recursive Rendering**.
+3. In the Inspector for the Recursive Rendering Volume Override, check the **Enable** option. If you do not see the **Enable** option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 Now that you have recursive rendering set up in your Scene, you must set GameObjects to use the Raytracing rendering pass to make HDRP use recursive rendering for them. To do this:
 
 1. Select the GameObject in the Scene view or Hierarchy to view it in the Inspector.
 2. Select the Material attached to the GameObject.
-3. In the Surface Options foldout, select Raytracing from the Rendering Pass drop-down.
+3. In the **Surface Options** foldout, enable **Recursive Rendering (Preview)**.
 
 You can also do this for Shader Graph master nodes:
 
 1. In the Project window, double-click on the Shader to open it in Shader Graph.
-2. On the master node, click the gear, then select Raytracing from the Rendering Pass drop-down.
+2. In the **Graph Settings** tab of the **Graph Inspector**, go to **Surface Options** and enable **Recursive Rendering (Preview)**.
+
+It is best practice to use recursive rendering in situations that require multi-bounced reflection and refraction, for example, car headlights. You can use recursive rendering in simple scenarios, like a mirror or a puddle, but for best performance, use [ray-traced reflections](Ray-Traced-Reflections.md).
+
+Since recursive rendering uses an independent render pass, HDRP cannot render any other ray-traced effects on recursively rendered GameObjects. For example, it cannot render effects such as ray-traced subsurface scattering or ray-traced shadows.
 
 ## Properties
 
@@ -33,5 +39,7 @@ You can also do this for Shader Graph master nodes:
 | -------------- | ------------------------------------------------------------ |
 | **LayerMask**  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Max Depth**  | Controls the maximum number of times a ray can reflect or refract before it stops and returns the final color. Increasing this value increases execution time exponentially. |
-| **Ray Length** | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
+| **Max Ray Length** | Controls the length of the rays in meters that HDRP uses for ray tracing after the initial intersection. For the primary ray, HDRP uses the camera's near and far planes.|
 | **Min Smoothness** | Defines the threshold at which reflection rays are not cast if the smoothness value of the target surface is inferior to the one defined by the parameter. |
+| **Ray Miss**                  | Determines what HDRP does when recursive rendering doesn't find an intersection. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the last recursive rendering bounce.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the last recursive rendering bounce.<br/>&#8226;**Both** : HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the last recursive rendering bounce.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when recursive rendering doesn't find an intersection.<br/><br/>This property is set to **Both** by default. |
+| **Last Bounce**               | Determines what HDRP does when recursive rendering lights the last bounce. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the last bounce.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the last recursive rendering bounce.<br/>&#8226;**Both**:  HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the last recursive rendering bounce.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when it evaluates the last bounce.<br/><br/>This property is set to **Both** by default. |

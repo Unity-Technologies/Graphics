@@ -1,5 +1,7 @@
 #pragma kernel CSVFXIndirectArgs
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)
@@ -121,7 +123,13 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
                 //Update total element count (spawnIndex)
                 outputAdditional.Store((index * 2 + 0) << 2, elementCount);
-                outputAdditional.Store((index * 2 + 1) << 2, outputAdditional.Load((data.indexCount * 2 + 1) << 2) + elementCount);
+
+                // TODO: This needs to be redesigned. Current behavior, reading and writing to the same buffer in different positions, is not thread safe.
+                //       Also, it is possible to increase several times if run per camera with multiple cameras.
+
+                //Increase offset (from 0 if it is the first time)
+                uint oldOffset = data.indexCount != 0xffffffff ? outputAdditional.Load((data.indexCount * 2 + 1) << 2) : 0;
+                outputAdditional.Store((index * 2 + 1) << 2, oldOffset + elementCount);
 
                 args.y = args.z = 1u;
                 break;

@@ -1,19 +1,19 @@
 # Complex Lit Shader
 
-The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware. 
+The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware.
 
-In the Deferred Rendering Path, URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead. 
+In the Deferred Rendering Path, URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead.
 
-## Using the Complex Lit Shader in the Editor 
+## Using the Complex Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Complex Lit__.
 
-## UI overview  
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -23,9 +23,9 @@ The Inspector window for this Shader contains these elements:
 
 
 
-### Surface Options 
+### Surface Options
 
-The __Surface Options__ control how URP renders the Material on a screen. 
+The __Surface Options__ control how URP renders the Material on a screen.
 
 | Property            | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
@@ -40,7 +40,7 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 **Note:** If you are used to the [Standard Shader](https://docs.unity3d.com/Manual/Shader-StandardShader.html) in the built-in Unity render pipeline, these options are similar to the Main Maps settings in the [Material Editor](https://docs.unity3d.com/Manual/StandardShaderContextAndContent.html).
 
@@ -81,7 +81,7 @@ The __Advanced__ settings affect the underlying calculations of your rendering. 
 | __Specular Highlights__     | Enable this to allow your Material to have specular highlights from direct lighting, for example [Directional, Point, and Spot lights](https://docs.unity3d.com/Manual/Lighting.html). This means that your Material reflects the shine from these light sources. Disable this to leave out these highlight calculations, so your Shader renders faster. By default, this feature is enabled. |
 | __Environment Reflections__ | Sample reflections using the nearest [Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html), or, if you have set one in the [Lighting](https://docs.unity3d.com/Manual/GlobalIllumination.html) window, the [Lighting Probe](https://docs.unity3d.com/Manual/LightProbes.html). If you disable this, you will have fewer Shader calculations, but this also means that your surface has no reflections. |
 | __Enable GPU Instancing__   | Makes URP render meshes with the same geometry and Material in one batch, when possible. This makes rendering faster. URP cannot render Meshes in one batch if they have different Materials or if the hardware does not support GPU instancing. |
-| __Priority__                | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with higher values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
+| __Priority__                | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with lower values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
 
 
 ## Channel packing
@@ -105,4 +105,3 @@ This Shader uses [channel packing](http://wiki.polycount.com/wiki/ChannelPacking
 | **Green** | Smoothness |
 | **Blue**  | None       |
 | **Alpha** | None       |
-

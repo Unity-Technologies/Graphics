@@ -23,8 +23,8 @@ namespace UnityEditor.VFX
         {
             Handles.DrawLine(line.start, line.end);
 
-            PositionGizmo(line.start, m_StartProperty, true);
-            PositionGizmo(line.end, m_EndProperty, true);
+            PositionGizmo(line.start, Vector3.zero, m_StartProperty, true);
+            PositionGizmo(line.end, Vector3.zero, m_EndProperty, true);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Line value)

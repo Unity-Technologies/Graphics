@@ -10,24 +10,27 @@ class RuntimeTests
 {
     GameObject go;
     Camera camera;
-    RenderPipelineAsset currentAsset;
+    RenderPipelineAsset currentAssetGraphics;
+    RenderPipelineAsset currentAssetQuality;
 
     [SetUp]
     public void Setup()
     {
         go = new GameObject();
         camera = go.AddComponent<Camera>();
-        currentAsset = GraphicsSettings.renderPipelineAsset;
+        currentAssetGraphics = GraphicsSettings.renderPipelineAsset;
+        currentAssetQuality = QualitySettings.renderPipeline;
     }
 
     [TearDown]
     public void Cleanup()
     {
-        GraphicsSettings.renderPipelineAsset = currentAsset;
+        GraphicsSettings.renderPipelineAsset = currentAssetGraphics;
+        QualitySettings.renderPipeline = currentAssetQuality;
         Object.DestroyImmediate(go);
     }
 
-    // When LWRP pipeline is active, lightsUseLinearIntensity must match active color space.
+    // When URP pipeline is active, lightsUseLinearIntensity must match active color space.
     [UnityTest]
     public IEnumerator PipelineHasCorrectColorSpace()
     {
@@ -40,7 +43,7 @@ class RuntimeTests
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
     }
 
-    // When switching to LWRP it sets "UniversalPipeline" as global shader tag.
+    // When switching to URP it sets "UniversalPipeline" as global shader tag.
     // When switching to Built-in it sets "" as global shader tag.
 #if UNITY_EDITOR // TODO This API call does not reset in player
     [UnityTest]
@@ -51,24 +54,26 @@ class RuntimeTests
         camera.Render();
         yield return null;
 
-        Assert.AreEqual("UniversalPipeline,LightweightPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
+        Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
+        QualitySettings.renderPipeline = null;
         camera.Render();
         yield return null;
 
         Assert.AreEqual("", Shader.globalRenderPipeline, "Render Pipeline shader tag is not restored.");
     }
+
 #endif
 
     void AssetCheck()
     {
-        //Assert.IsNotNull(currentAsset, "Render Pipeline Asset is Null");
+        //Assert.IsNotNull(currentAssetGraphics, "Render Pipeline Asset is Null");
         // Temp fix, test passes if project isnt setup for Universal RP
-        if(currentAsset == null)
+        if (RenderPipelineManager.currentPipeline == null)
             Assert.Pass("Render Pipeline Asset is Null, test pass by default");
 
-        Assert.AreEqual(currentAsset.GetType(), typeof(UniversalRenderPipelineAsset),
+        Assert.AreEqual(RenderPipelineManager.currentPipeline.GetType(), typeof(UniversalRenderPipeline),
             "Pipeline Asset is not Universal RP");
     }
 }

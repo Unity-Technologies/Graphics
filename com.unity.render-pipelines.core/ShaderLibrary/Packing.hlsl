@@ -1,6 +1,10 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -59,7 +63,7 @@ float2 PackNormalOctQuadEncode(float3 n)
     //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
 
     // Optimized version of above code:
-    n *= rcp(dot(abs(n), 1.0));
+    n *= rcp(max(dot(abs(n), 1.0), 1e-6));
     float t = saturate(-n.z);
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }
@@ -198,6 +202,7 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
     return UnpackNormalAG(packedNormal, scale);
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_ASTC_NORMALMAP_ENCODING)
@@ -209,6 +214,7 @@ real3 UnpackNormal(real4 packedNormal)
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
 }
+#endif
 
 real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
@@ -534,28 +540,40 @@ real UnpackFloatFromR8G8(real2 f)
 }
 
 // Pack float2 (each of 12 bit) in 888
-float3 PackFloat2To888(float2 f)
+uint3 PackFloat2To888UInt(float2 f)
 {
     uint2 i = (uint2)(f * 4095.5);
     uint2 hi = i >> 8;
     uint2 lo = i & 255;
     // 8 bit in lo, 4 bit in hi
     uint3 cb = uint3(lo, hi.x | (hi.y << 4));
+    return cb;
+}
 
-    return cb / 255.0;
+// Pack float2 (each of 12 bit) in 888
+float3 PackFloat2To888(float2 f)
+{
+    return PackFloat2To888UInt(f) / 255.0;
+}
+
+// Unpack 2 float of 12bit packed into a 888
+float2 Unpack888UIntToFloat2(uint3 x)
+{
+    // 8 bit in lo, 4 bit in hi
+    uint hi = x.z >> 4;
+    uint lo = x.z & 15;
+    uint2 cb = x.xy | uint2(lo << 8, hi << 8);
+
+    return cb / 4095.0;
 }
 
 // Unpack 2 float of 12bit packed into a 888
 float2 Unpack888ToFloat2(float3 x)
 {
-    uint3 i = (uint3)(x * 255.5); // +0.5 to fix precision error on iOS 
-    // 8 bit in lo, 4 bit in hi
-    uint hi = i.z >> 4;
-    uint lo = i.z & 15;
-    uint2 cb = i.xy | uint2(lo << 8, hi << 8);
-
-    return cb / 4095.0;
+    uint3 i = (uint3)(x * 255.5); // +0.5 to fix precision error on iOS
+    return Unpack888UIntToFloat2(i);
 }
+
 #endif // SHADER_API_GLES
 
 // Pack 2 float values from the [0, 1] range, to an 8 bits float from the [0, 1] range
@@ -567,7 +585,7 @@ float PackFloat2To8(float2 f)
     return x_y_expanded / 255.0;
 
     // above 4 lines equivalent to:
-    //return (16.0 * f.x + f.y) / 17.0; 
+    //return (16.0 * f.x + f.y) / 17.0;
 }
 
 // Unpack 2 float values from the [0, 1] range, packed in an 8 bits float from the [0, 1] range
@@ -580,5 +598,9 @@ float2 Unpack8ToFloat2(float f)
     float y = y_expanded / 15.0;
     return float2(x, y);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_PACKING_INCLUDED

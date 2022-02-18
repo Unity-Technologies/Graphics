@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering
                 previewCamera.targetTexture = null;
             }
         }
+
         /// <summary>
         /// Check if the view port rect have a positive size
         /// </summary>

@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class PreIntegratedFGD
@@ -25,7 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FGD_GGXAndDisneyDiffuse = 0,
             FGD_CharlieAndFabricLambert = 1,
-            Count = 2
+            FGD_Marschner = 2,
+            Count = 3
         }
 
         bool[] m_isInit = new bool[(int)FGDIndex.Count];
@@ -50,28 +53,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting[(int)index] == 0)
             {
-                var hdrp = HDRenderPipeline.defaultAsset;
-                int res  = (int)FGDTexture.Resolution;
+                int res = (int)FGDTexture.Resolution;
 
-                switch(index)
+                switch (index)
                 {
                     case FGDIndex.FGD_GGXAndDisneyDiffuse:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_GGXDisneyDiffusePS);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_GGXDisneyDiffusePS);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
                         m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
                         m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
                         m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_GGXDisneyDiffuse");
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_GGXDisneyDiffuse");
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 
                     case FGDIndex.FGD_CharlieAndFabricLambert:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_CharlieFabricLambertPS);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_CharlieFabricLambertPS);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
                         m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
                         m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
                         m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieFabricLambert");
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_CharlieFabricLambert");
+                        m_PreIntegratedFGD[(int)index].Create();
+                        break;
+
+                    case FGDIndex.FGD_Marschner:
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_MarschnerPS);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
+                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
+                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
+                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_Marschner");
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 
@@ -91,6 +103,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // In this case IsCreated will return false, allowing us to re-render the texture (setting the texture as current RT during DrawFullScreen will automatically re-create it internally)
             if (m_isInit[(int)index] && m_PreIntegratedFGD[(int)index].IsCreated())
                 return;
+
+            // If we are in wireframe mode, the drawfullscreen will not work as expected, but we don't need the LUT anyway
+            // So create the texture to avoid errors, it will be initialized by the first render without wireframe
+            if (GL.wireframe)
+            {
+                m_PreIntegratedFGD[(int)index].Create();
+                return;
+            }
 
             CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial[(int)index], new RenderTargetIdentifier(m_PreIntegratedFGD[(int)index]));
             m_isInit[(int)index] = true;
@@ -120,6 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
 
                 case FGDIndex.FGD_CharlieAndFabricLambert:
+                    cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
+                    break;
+
+                case FGDIndex.FGD_Marschner:
                     cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
                     break;
 

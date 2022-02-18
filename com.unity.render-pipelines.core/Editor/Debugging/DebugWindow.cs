@@ -6,15 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Callbacks;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    #pragma warning disable 414
+#pragma warning disable 414
 
     [Serializable]
-    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> {}
+    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> { }
 
     sealed class DebugWindowSettings : ScriptableObject
     {
@@ -29,14 +30,8 @@ namespace UnityEditor.Rendering
         }
     }
 
-    sealed class DebugWindow : EditorWindow
+    sealed class DebugWindow : EditorWindow, IHasCustomMenu
     {
-        static readonly GUIContent k_ResetButtonContent = new GUIContent("Reset");
-        //static readonly GUIContent k_SaveButtonContent = new GUIContent("Save");
-        //static readonly GUIContent k_LoadButtonContent = new GUIContent("Load");
-
-        //static bool isMultiview = false;
-
         static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
 
@@ -97,7 +92,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
-                    );
+                );
 
             s_WidgetStateMap = new Dictionary<Type, Type>();
 
@@ -115,7 +110,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
-                    );
+                );
 
             s_WidgetDrawerMap = new Dictionary<Type, DebugUIDrawer>();
 
@@ -130,18 +125,26 @@ namespace UnityEditor.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/Render Pipeline/Render Pipeline Debug", priority = 10005)] // 112 is hardcoded number given by the UxTeam to fit correctly in the Windows menu
+        [MenuItem("Window/Analysis/Rendering Debugger", priority = 10005)]
         static void Init()
         {
             var window = GetWindow<DebugWindow>();
-            window.titleContent = new GUIContent("Debug");
-            if(OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-            open = true;
+            window.titleContent = Styles.windowTitle;
+        }
+
+        [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
+        static bool ValidateMenuItem()
+        {
+            return RenderPipelineManager.currentPipeline != null;
         }
 
         void OnEnable()
         {
+            if (OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+
+            open = true;
+
             DebugManager.instance.refreshEditorRequested = false;
 
             hideFlags = HideFlags.HideAndDontSave;
@@ -151,7 +154,7 @@ namespace UnityEditor.Rendering
                 m_Settings = CreateInstance<DebugWindowSettings>();
 
             // States are ScriptableObjects (necessary for Undo/Redo) but are not saved on disk so when the editor is closed then reopened, any existing debug window will have its states set to null
-            // Since we don't care about persistance in this case, we just re-init everything.
+            // Since we don't care about persistence in this case, we just re-init everything.
             if (m_WidgetStates == null || !AreWidgetStatesValid())
                 m_WidgetStates = new WidgetStateDictionary();
 
@@ -186,18 +189,18 @@ namespace UnityEditor.Rendering
 
         public void DestroyWidgetStates()
         {
-            if (m_WidgetStates != null)
-            {
-                // Clear all the states from memory
-                foreach (var state in m_WidgetStates)
-                {
-                    var s = state.Value;
-                    Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
-                    DestroyImmediate(s);
-                }
+            if (m_WidgetStates == null)
+                return;
 
-                m_WidgetStates.Clear();
+            // Clear all the states from memory
+            foreach (var state in m_WidgetStates)
+            {
+                var s = state.Value;
+                Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
+                DestroyImmediate(s);
             }
+
+            m_WidgetStates.Clear();
         }
 
         bool AreWidgetStatesValid()
@@ -229,8 +232,7 @@ namespace UnityEditor.Rendering
         void UpdateWidgetStates(DebugUI.IContainer container)
         {
             // Skip runtime only containers, we won't draw them so no need to serialize them either
-            var actualWidget = container as DebugUI.Widget;
-            if (actualWidget != null && actualWidget.isInactiveInEditor)
+            if (container is DebugUI.Widget actualWidget && actualWidget.isInactiveInEditor)
                 return;
 
             // Recursively update widget states
@@ -238,8 +240,7 @@ namespace UnityEditor.Rendering
             {
                 // Skip non-serializable widgets but still traverse them in case one of their
                 // children needs serialization support
-                var valueField = widget as DebugUI.IValueField;
-                if (valueField != null)
+                if (widget is DebugUI.IValueField valueField)
                 {
                     // Skip runtime & readonly only items
                     if (widget.isInactiveInEditor)
@@ -247,8 +248,7 @@ namespace UnityEditor.Rendering
 
                     var widgetType = widget.GetType();
                     string guid = widget.queryPath;
-                    Type stateType;
-                    s_WidgetStateMap.TryGetValue(widgetType, out stateType);
+                    s_WidgetStateMap.TryGetValue(widgetType, out Type stateType);
 
                     // Create missing states & recreate the ones that are null
                     if (stateType != null)
@@ -264,8 +264,7 @@ namespace UnityEditor.Rendering
                 }
 
                 // Recurse if the widget is a container
-                var containerField = widget as DebugUI.IContainer;
-                if (containerField != null)
+                if (widget is DebugUI.IContainer containerField)
                     UpdateWidgetStates(containerField);
             }
         }
@@ -287,9 +286,7 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            var widget = DebugManager.instance.GetItem(queryPath) as DebugUI.IValueField;
-
-            if (widget == null)
+            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());
@@ -332,6 +329,12 @@ namespace UnityEditor.Rendering
                 DebugManager.instance.refreshEditorRequested = false;
             }
 
+            int? requestedPanelIndex = DebugManager.instance.GetRequestedEditorWindowPanelIndex();
+            if (requestedPanelIndex != null)
+            {
+                m_Settings.selectedPanel = requestedPanelIndex.Value;
+            }
+
             int treeState = DebugManager.instance.GetState();
 
             if (m_DebugTreeState != treeState || m_IsDirty)
@@ -371,14 +374,15 @@ namespace UnityEditor.Rendering
 
 
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            //isMultiview = GUILayout.Toggle(isMultiview, "multiview", EditorStyles.toolbarButton);
-            //if (isMultiview)
-            //    EditorGUILayout.Popup(0, new[] { new GUIContent("SceneView 1"), new GUIContent("SceneView 2") }, EditorStyles.toolbarDropDown, GUILayout.Width(100f));
             GUILayout.FlexibleSpace();
-            //GUILayout.Button(k_LoadButtonContent, EditorStyles.toolbarButton);
-            //GUILayout.Button(k_SaveButtonContent, EditorStyles.toolbarButton);
-            if (GUILayout.Button(k_ResetButtonContent, EditorStyles.toolbarButton))
+            if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
+            {
                 DebugManager.instance.Reset();
+                DestroyWidgetStates();
+                UpdateWidgetStates();
+                InternalEditorUtility.RepaintAllViews();
+            }
+
             GUILayout.EndHorizontal();
 
             using (new EditorGUILayout.HorizontalScope())
@@ -386,8 +390,6 @@ namespace UnityEditor.Rendering
                 // Side bar
                 using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_PanelScroll, s_Styles.sectionScrollView, GUILayout.Width(splitterPos)))
                 {
-                    GUILayout.Space(40f);
-
                     if (m_Settings.selectedPanel >= panels.Count)
                         m_Settings.selectedPanel = 0;
 
@@ -420,7 +422,7 @@ namespace UnityEditor.Rendering
                         GUI.Toggle(elementRect, m_Settings.selectedPanel == i, panel.displayName, s_Styles.sectionElement);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RegisterCompleteObjectUndo(m_Settings, "Debug Panel Selection");
+                            Undo.RegisterCompleteObjectUndo(m_Settings, $"Debug Panel '{panel.displayName}' Selection");
                             var previousPanel = m_Settings.selectedPanel >= 0 && m_Settings.selectedPanel < panels.Count
                                 ? panels[m_Settings.selectedPanel]
                                 : null;
@@ -438,17 +440,17 @@ namespace UnityEditor.Rendering
                 Rect splitterRect = new Rect(splitterPos - 3, 0, 6, Screen.height);
                 GUI.Box(splitterRect, "", s_SplitterLeft);
 
-                GUILayout.Space(10f);
+                const float topMargin = 2f;
+                GUILayout.Space(topMargin);
 
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
+                        const float leftMargin = 4f;
+                        GUILayout.Space(leftMargin);
                         var selectedPanel = panels[m_Settings.selectedPanel];
-
-                        GUILayout.Label(selectedPanel.displayName, s_Styles.sectionHeader);
-                        GUILayout.Space(10f);
 
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
@@ -497,15 +499,15 @@ namespace UnityEditor.Rendering
 
         void OnWidgetGUI(DebugUI.Widget widget)
         {
-            if (widget.isInactiveInEditor)
+            if (widget.isInactiveInEditor || widget.isHidden)
                 return;
 
-            DebugState state; // State will be null for stateless widget
-            m_WidgetStates.TryGetValue(widget.queryPath, out state);
+            // State will be null for stateless widget
+            m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
 
-            DebugUIDrawer drawer;
+            GUILayout.Space(4);
 
-            if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out drawer))
+            if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out DebugUIDrawer drawer))
             {
                 EditorGUILayout.LabelField("Drawer not found (" + widget.GetType() + ").");
             }
@@ -545,14 +547,35 @@ namespace UnityEditor.Rendering
         {
             public static float s_DefaultLabelWidth = 0.5f;
 
+            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Rendering Debugger");
+
+            public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
+
+            public static GUIStyle foldoutHeaderStyle { get; } = new GUIStyle(EditorStyles.foldoutHeader)
+            {
+                fixedHeight = 20,
+                fontStyle = FontStyle.Bold,
+                margin = new RectOffset(0, 0, 0, 0)
+            };
+
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
             public readonly GUIStyle selected = "OL SelectedRow";
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
 
+            public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+            public static int foldoutColumnWidth = 70;
+
             public Styles()
             {
+                Color textColorDarkSkin = new Color32(210, 210, 210, 255);
+                Color textColorLightSkin = new Color32(102, 102, 102, 255);
+                Color backgroundColorDarkSkin = new Color32(38, 38, 38, 128);
+                Color backgroundColorLightSkin = new Color32(128, 128, 128, 96);
+
                 sectionScrollView = new GUIStyle(sectionScrollView);
                 sectionScrollView.overflow.bottom += 1;
 
@@ -562,23 +585,37 @@ namespace UnityEditor.Rendering
                 sectionHeader.fontSize = 18;
                 sectionHeader.margin.top = 10;
                 sectionHeader.margin.left += 1;
-                sectionHeader.normal.textColor = !EditorGUIUtility.isProSkin
-                    ? new Color(0.4f, 0.4f, 0.4f, 1.0f)
-                    : new Color(0.7f, 0.7f, 0.7f, 1.0f);
+                sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
+                skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
+            }
+        }
 
-                if (EditorGUIUtility.isProSkin)
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetExpanded(true));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetExpanded(false));
+        }
+
+        void SetExpanded(bool value)
+        {
+            var panels = DebugManager.instance.panels;
+            foreach (var p in panels)
+            {
+                foreach (var w in p.children)
                 {
-                    sectionHeader.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
-                    skinBackgroundColor = Color.gray * new Color(0.3f, 0.3f, 0.3f, 0.5f);
-                }
-                else
-                {
-                    sectionHeader.normal.textColor = new Color(0.4f, 0.4f, 0.4f, 1.0f);
-                    skinBackgroundColor = Color.gray * new Color(1f, 1f, 1f, 0.32f);
+                    if (w.GetType() == typeof(DebugUI.Foldout))
+                    {
+                        if (m_WidgetStates.TryGetValue(w.queryPath, out DebugState state))
+                        {
+                            var foldout = (DebugUI.Foldout)w;
+                            state.SetValue(value, foldout);
+                            foldout.SetValue(value);
+                        }
+                    }
                 }
             }
         }
     }
 
-    #pragma warning restore 414
+#pragma warning restore 414
 }

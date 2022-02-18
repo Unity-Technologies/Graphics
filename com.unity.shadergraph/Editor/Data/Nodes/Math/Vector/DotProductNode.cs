@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public DotProductNode()
         {
             name = "Dot Product";
+            synonyms = new string[] { "scalar product" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = dot(A, B);
 }

@@ -1,18 +1,29 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]public enum RenderQueueType
+    /// <summary>
+    /// The queue type for the objects to render.
+    /// </summary>
+    public enum RenderQueueType
     {
+        /// <summary>
+        /// Use this for opaque objects.
+        /// </summary>
         Opaque,
+
+        /// <summary>
+        /// Use this for transparent objects.
+        /// </summary>
         Transparent,
     }
 
     [ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]public class RenderObjects : ScriptableRendererFeature
+    [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
+    [URPHelpURL("urp-renderer-feature", "#render-objects-renderer-featurea-namerender-objects-renderer-featurea")]
+    public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]
         public class RenderObjectsSettings
@@ -62,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         RenderObjectsPass renderObjectsPass;
 
+        /// <inheritdoc/>
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;
@@ -71,8 +83,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Events before BeforeRenderingPrepasses should be used for input texture passes (shadow map, LUT, etc) that doesn't depend on the camera.
             // These events are filtering in the UI, but we still should prevent users from changing it from code or
             // by changing the serialized data.
-            if (settings.Event < RenderPassEvent.BeforeRenderingPrepasses)
-                settings.Event = RenderPassEvent.BeforeRenderingPrepasses;
+            if (settings.Event < RenderPassEvent.BeforeRenderingPrePasses)
+                settings.Event = RenderPassEvent.BeforeRenderingPrePasses;
 
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
@@ -89,10 +101,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
         }
 
+        /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(renderObjectsPass);
         }
+
+        internal override bool SupportsNativeRenderPass()
+        {
+            return true;
+        }
     }
 }
-

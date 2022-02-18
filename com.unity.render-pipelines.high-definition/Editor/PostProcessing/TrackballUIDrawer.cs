@@ -1,6 +1,6 @@
 using System;
-using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,16 +11,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static GUIStyle s_WheelThumb;
         static Vector2 s_WheelThumbSize;
         static Material s_Material;
+        static bool s_MaterialConfigured;
 
         Func<Vector4, Vector3> m_ComputeFunc;
         bool m_ResetState;
         Vector2 m_CursorPos;
-
-        static TrackballUIDrawer()
-        {
-            if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
-        }
 
         public void OnGUI(SerializedProperty property, SerializedProperty overrideState, GUIContent title, Func<Vector4, Vector3> computeFunc)
         {
@@ -29,7 +24,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
             }
-            
+
+            if (!s_MaterialConfigured)
+            {
+                // Initialization of materials with Shader.Find from static constructors is not allowed.
+                s_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
+                s_MaterialConfigured = true;
+            }
+
             m_ComputeFunc = computeFunc;
             var value = property.vector4Value;
 
@@ -86,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Wheel texture
                 var oldRT = RenderTexture.active;
-                var rt = RenderTexture.GetTemporary((int)(size * scale), (int)(size * scale), 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                var rt = RenderTexture.GetTemporary((int)(size * scale), (int)(size * scale), 0, GraphicsFormat.R8G8B8A8_SRGB);
                 s_Material.SetFloat("_Offset", offset);
                 s_Material.SetFloat("_DisabledState", overrideState && GUI.enabled ? 1f : 0.5f);
                 s_Material.SetVector("_Resolution", new Vector2(size * scale, size * scale / 2f));
@@ -159,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var valuesRect = GUILayoutUtility.GetRect(1f, 17f);
                 valuesRect.width /= (displayInputFields ? 4f : 3.0f);
-                if(displayInputFields)
+                if (displayInputFields)
                 {
                     GUI.Label(valuesRect, "RGB Value:", EditorStyles.centeredGreyMiniLabel);
                     valuesRect.x += valuesRect.width;

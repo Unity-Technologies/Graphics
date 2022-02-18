@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -9,46 +8,65 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class AdvancedOptionsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Represents an advanced options material UI block.
+    /// </summary>
+    public class AdvancedOptionsUIBlock : MaterialUIBlock
     {
+        /// <summary>Options that define the visibility of fields in the block.</summary>
         [Flags]
         public enum Features
         {
-            None                    = 0,
-            Instancing              = 1 << 0,
-            SpecularOcclusion       = 1 << 1,
-            AddPrecomputedVelocity  = 1 << 2,
-            DoubleSidedGI           = 1 << 3,
-            EmissionGI              = 1 << 4,
-            MotionVector            = 1 << 5,
-            StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
-            All                     = ~0
+            /// <summary>Hide all the fields in the block.</summary>
+            None = 0,
+            /// <summary>Display the instancing field.</summary>
+            Instancing = 1 << 0,
+            /// <summary>Display the specular occlusion field.</summary>
+            SpecularOcclusion = 1 << 1,
+            /// <summary>Display the add precomputed velocity field.</summary>
+            AddPrecomputedVelocity = 1 << 2,
+            /// <summary>Display the double sided GI field.</summary>
+            DoubleSidedGI = 1 << 3,
+            /// <summary>Display the emission GI field.</summary>
+            EmissionGI = 1 << 4,
+            /// <summary>Display the motion vector field.</summary>
+            MotionVector = 1 << 5,
+            /// <summary>Display the fields for the shaders.</summary>
+            StandardLit = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
+            /// <summary>Display all the field.</summary>
+            All = ~0
         }
 
-        public class Styles
+        internal class Styles
         {
-            public const string header = "Advanced Options";
-            public static GUIContent specularOcclusionModeText = new GUIContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
-            public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
-            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
-            public static readonly GUIContent motionVectorForVertexAnimationText = new GUIContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Options");
+            public static GUIContent specularOcclusionModeText { get; } = EditorGUIUtility.TrTextContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
+            public static GUIContent addPrecomputedVelocityText { get; } = EditorGUIUtility.TrTextContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
+            public static GUIContent motionVectorForVertexAnimationText { get; } = EditorGUIUtility.TrTextContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
+            public static GUIContent bakedEmission = EditorGUIUtility.TrTextContent("Baked Emission", "");
         }
 
-        protected MaterialProperty specularOcclusionMode = null;
-        protected MaterialProperty addPrecomputedVelocity = null;
+        MaterialProperty specularOcclusionMode = null;
 
-        protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
-        protected const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
+        MaterialProperty addPrecomputedVelocity = null;
+        const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
-        Expandable  m_ExpandableBit;
-        Features    m_Features;
+        Features m_Features;
 
-        public AdvancedOptionsUIBlock(Expandable expandableBit, Features features = Features.All)
+        /// <summary>
+        /// Constructs the AdvancedOptionsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="features">Features of the block.</param>
+        public AdvancedOptionsUIBlock(ExpandableBit expandableBit, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             specularOcclusionMode = FindProperty(kSpecularOcclusionMode);
@@ -64,19 +82,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
-
         }
 
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                    DrawAdvancedOptionsGUI();
-            }
-        }
-
-        void DrawAdvancedOptionsGUI()
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
+        protected override void OnGUIOpen()
         {
             if ((m_Features & Features.Instancing) != 0)
                 materialEditor.EnableInstancingField();
@@ -90,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
+                materialEditor.LightmapEmissionFlagsProperty(0, true);
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
@@ -98,14 +109,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
             if ((m_Features & Features.AddPrecomputedVelocity) != 0)
             {
-                if ( addPrecomputedVelocity != null)
+                if (addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
             }
-        }
-
-        void DrawEmissionGI()
-        {
-            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
         }
 
         void DrawMotionVectorToggle()
@@ -114,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // So here we workaround it with materialTag system by checking if a tag exist to know if it is
             // the first time we display this information. And thus setup the MotionVector Pass to false.
             const string materialTag = "MotionVector";
-            
+
             string tag = materials[0].GetTag(materialTag, false, "Nothing");
             if (tag == "Nothing")
             {

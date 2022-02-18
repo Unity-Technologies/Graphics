@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public DegreesToRadiansNode()
         {
             name = "Degrees To Radians";
+            synonyms = new string[] { "degtorad", "radians", "convert" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = radians(In);
 }

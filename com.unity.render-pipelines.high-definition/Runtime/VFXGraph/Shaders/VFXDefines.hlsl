@@ -1,19 +1,28 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
 
 #if VFX_BLENDMODE_ALPHA
-    #define _BlendMode BLENDMODE_ALPHA 
+    #define _BlendMode BLENDMODE_ALPHA
 #elif VFX_BLENDMODE_ADD
-    #define _BlendMode BLENDMODE_ADDITIVE  
+    #define _BlendMode BLENDMODE_ADDITIVE
 #elif VFX_BLENDMODE_PREMULTIPLY
-    #define _BlendMode BLENDMODE_PREMULTIPLY   
+    #define _BlendMode BLENDMODE_PREMULTIPLY
 #else
     //Opaque, doesn't really matter what we specify, but a definition is needed to avoid compilation errors.
-    #define _BlendMode BLENDMODE_ALPHA 
+    #define _BlendMode BLENDMODE_ALPHA
 #endif
 
-#if IS_TRANSPARENT_PARTICLE && !HDRP_LIT // Fog for opaque is handled in a dedicated pass
+#ifdef _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #define _EnableBlendModePreserveSpecularLighting 1
+#else
+    #define _EnableBlendModePreserveSpecularLighting 0
+#endif
+
+#if HDRP_LIT
+#define VFX_NEEDS_POSWS_INTERPOLATOR 1 // Needed for LPPV
+#elif IS_TRANSPARENT_PARTICLE // Fog for opaque is handled in a dedicated pass
 #define USE_FOG 1
 #define VFX_NEEDS_POSWS_INTERPOLATOR 1
 #endif
@@ -29,3 +38,13 @@
 #if IS_TRANSPARENT_PARTICLE
 #define _SURFACE_TYPE_TRANSPARENT
 #endif
+
+#ifdef USE_TEXTURE2D_X_AS_ARRAY
+#define CameraBuffer Texture2DArray
+#define VFXSamplerCameraBuffer VFXSampler2DArray
+#else
+#define CameraBuffer Texture2D
+#define VFXSamplerCameraBuffer VFXSampler2D
+#endif
+
+#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name

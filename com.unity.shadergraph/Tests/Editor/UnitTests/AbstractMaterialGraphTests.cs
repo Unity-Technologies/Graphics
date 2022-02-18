@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
     class AbstractMaterialGraphTests
     {
         private class TestableMNode : AbstractMaterialNode
-        {}
+        { }
 
         [OneTimeSetUp]
         public void RunBeforeAnyTests()

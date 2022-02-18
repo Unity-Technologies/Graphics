@@ -8,56 +8,129 @@ namespace UnityEditor.VFX
 {
     class CustomSpawnerVariant : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_customType", VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks)).Select(o => new SerializableType(o) as object).ToArray() }
-                };
+                "m_customType",
+                VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
+                    .Select(o => new SerializableType(o) as object)
+                    .ToArray()
             }
-        }
+        };
     }
 
     [VFXInfo(category = "Custom", variantProvider = typeof(CustomSpawnerVariant))]
     class VFXSpawnerCustomWrapper : VFXAbstractSpawner
     {
-        [SerializeField, VFXSetting]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         protected SerializableType m_customType;
 
-        protected override IEnumerable<string> filteredOutSettings
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
+        protected MonoScript m_customScript;
+
+        private void ResolveCustomCallbackInstance()
         {
-            get
+            //m_customScript always prevails on m_customType, we cannot modify m_customType twice.
+            if (m_customScript != null && m_customScript.GetClass() != null)
+                m_customType = m_customScript.GetClass();
+
+            //m_customScript is null in three cases
+            // - Newly created VFXSpawnerCustomWrapper, m_customType changed by SetSettingValue.
+            // - VFXSpawnerCallbacks has been suppressed, in that case, m_customType.text can display a message and m_customType == null.
+            // - VFXSpawnerCallbacks has been restored, m_customType != null, rebuild the m_instance.
+            if (m_customScript == null && m_customType != null)
             {
-                yield return "m_customType";
+                var instance = CreateInstance(m_customType);
+                m_customScript = MonoScript.FromScriptableObject(instance);
             }
         }
 
+        public override void Sanitize(int version)
+        {
+            if (m_customScript == null && !object.ReferenceEquals(m_customType, null))
+            {
+                //Handle previous name based serialization, these class move to UnityEngine.VFX
+                if (m_customType.text.StartsWith("UnityEditor.VFX.LoopAndDelay,"))
+                    m_customType = typeof(LoopAndDelay);
+                else if (m_customType.text.StartsWith("UnityEditor.VFX.SetSpawnTime,"))
+                    m_customType = typeof(SetSpawnTime);
+                else if (m_customType.text.StartsWith("UnityEditor.VFX.SpawnOverDistance,"))
+                    m_customType = typeof(SpawnOverDistance);
+                else if (m_customType.text.StartsWith("IncrementStripIndexOnStart,"))
+                    m_customType = typeof(IncrementStripIndexOnStart);
+
+                ResolveCustomCallbackInstance();
+            }
+            base.Sanitize(version);
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+            ResolveCustomCallbackInstance();
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            ResolveCustomCallbackInstance();
+        }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
-            if (m_customType != null)
-            {
-                var function = ScriptableObject.CreateInstance(m_customType);
-                var monoScript = MonoScript.FromScriptableObject(function);
-                if (monoScript != null)
-                    dependencies.Add(monoScript.GetInstanceID());
-            }
+            if (customBehavior != null && customBehavior != null)
+                dependencies.Add(customBehavior.GetInstanceID());
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                return customBehavior == null ? Enumerable.Empty<VFXPropertyWithValue>() : PropertiesFromType(customBehavior.GetRecursiveNestedType(GetInputPropertiesTypeName()));
+                if (m_customType == null)
+                    return Enumerable.Empty<VFXPropertyWithValue>();
+                return PropertiesFromType(((Type)m_customType).GetRecursiveNestedType(GetInputPropertiesTypeName()));
             }
         }
 
-        public override sealed string name { get { return customBehavior == null ? "null" : ObjectNames.NicifyVariableName((customBehavior).Name); } }
-        public override sealed Type customBehavior { get { return (Type)m_customType; } }
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            //Type isn't reachable ... but we already stored a type, log an error.
+            if (m_customType == null
+                && !object.ReferenceEquals(m_customType, null)
+                && !string.IsNullOrEmpty(m_customType.text))
+            {
+                manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "Can't find : " + m_customType.text);
+            }
+
+            if (customBehavior == null && m_customType != null)
+            {
+                if (m_customScript != null && m_customScript.GetClass() != null)
+                    manager.RegisterError("CustomSpawnerIDNotVFXSpawnerCallbacks", VFXErrorType.Error, string.Format("{0} isn't a VFXSpawnerCallbacks", m_customScript.GetClass()));
+                else
+                    manager.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid ScriptableObject : " + (Type)m_customType);
+            }
+        }
+
+        public override sealed string name
+        {
+            get
+            {
+                if (m_customType != null)
+                    return ObjectNames.NicifyVariableName(((Type)m_customType).Name);
+                return "null";
+            }
+        }
+
+        public override sealed MonoScript customBehavior
+        {
+            get
+            {
+                if (m_customScript != null && typeof(VFXSpawnerCallbacks).IsAssignableFrom(m_customScript.GetClass()))
+                    return m_customScript;
+                return null;
+            }
+        }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
 }

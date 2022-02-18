@@ -3,20 +3,23 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>ScriptableRendererData</c> class.
+    /// </summary>
     [CustomEditor(typeof(ScriptableRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ScriptableRendererDataEditor : Editor
+    public class ScriptableRendererDataEditor : Editor
     {
         class Styles
         {
             public static readonly GUIContent RenderFeatures =
                 new GUIContent("Renderer Features",
-                    "Features to include in this renderer.\nTo add or remove features, use the plus and minus at the bottom of this box.");
+                    "A Renderer Feature is an asset that lets you add extra Render passes to a URP Renderer and configure their behavior.");
 
             public static readonly GUIContent PassNameField =
                 new GUIContent("Name", "Render pass name. This name is the name displayed in Frame Debugger.");
@@ -48,6 +51,12 @@ namespace UnityEditor.Rendering.Universal
             UpdateEditorList();
         }
 
+        private void OnDisable()
+        {
+            ClearEditorsList();
+        }
+
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             if (m_RendererFeatures == null)
@@ -82,10 +91,39 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
 
             //Add renderer
-            if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
+            using (var hscope = new EditorGUILayout.HorizontalScope())
             {
-                AddPassMenu();
+                if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
+                {
+                    var r = hscope.rect;
+                    var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
+                    FilterWindow.Show(pos, new ScriptableRendererFeatureProvider(this));
+                }
             }
+        }
+
+        internal bool GetCustomTitle(Type type, out string title)
+        {
+            var isSingleFeature = type.GetCustomAttribute<DisallowMultipleRendererFeature>();
+            if (isSingleFeature != null)
+            {
+                title = isSingleFeature.customTitle;
+                return title != null;
+            }
+            title = null;
+            return false;
+        }
+
+        private bool GetTooltip(Type type, out string tooltip)
+        {
+            var attribute = type.GetCustomAttribute<TooltipAttribute>();
+            if (attribute != null)
+            {
+                tooltip = attribute.tooltip;
+                return true;
+            }
+            tooltip = string.Empty;
+            return false;
         }
 
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
@@ -94,7 +132,20 @@ namespace UnityEditor.Rendering.Universal
             if (rendererFeatureObjRef != null)
             {
                 bool hasChangedProperties = false;
-                string title = ObjectNames.GetInspectorTitle(rendererFeatureObjRef);
+                string title;
+
+                bool hasCustomTitle = GetCustomTitle(rendererFeatureObjRef.GetType(), out title);
+
+                if (!hasCustomTitle)
+                {
+                    title = ObjectNames.GetInspectorTitle(rendererFeatureObjRef);
+                }
+
+                string tooltip;
+                GetTooltip(rendererFeatureObjRef.GetType(), out tooltip);
+
+                string helpURL;
+                DocumentationUtils.TryGetHelpURL(rendererFeatureObjRef.GetType(), out helpURL);
 
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];
@@ -104,25 +155,28 @@ namespace UnityEditor.Rendering.Universal
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index), null, null, helpURL);
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
                 if (displayContent)
                 {
-                    EditorGUI.BeginChangeCheck();
-                    SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
-                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
-                    if (EditorGUI.EndChangeCheck())
+                    if (!hasCustomTitle)
                     {
-                        hasChangedProperties = true;
+                        EditorGUI.BeginChangeCheck();
+                        SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
+                        nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            hasChangedProperties = true;
 
-                        // We need to update sub-asset name
-                        rendererFeatureObjRef.name = nameProperty.stringValue;
-                        AssetDatabase.SaveAssets();
+                            // We need to update sub-asset name
+                            rendererFeatureObjRef.name = nameProperty.stringValue;
+                            AssetDatabase.SaveAssets();
 
-                        // Triggers update for sub-asset name change
-                        ProjectWindowUtil.ShowCreatedAsset(target);
+                            // Triggers update for sub-asset name change
+                            ProjectWindowUtil.ShowCreatedAsset(target);
+                        }
                     }
 
                     EditorGUI.BeginChangeCheck();
@@ -142,7 +196,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature,renderFeatureProperty, m_FalseBool,pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
@@ -173,30 +227,12 @@ namespace UnityEditor.Rendering.Universal
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        private void AddPassMenu()
-        {
-            GenericMenu menu = new GenericMenu();
-            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<ScriptableRendererFeature>();
-            foreach (Type type in types)
-            {
-                var data = target as ScriptableRendererData;
-                if (data.DuplicateFeatureCheck(type))
-                {
-                    continue;
-                }
-
-                string path = GetMenuNameFromType(type);
-                menu.AddItem(new GUIContent(path), false, AddComponent, type.Name);
-            }
-            menu.ShowAsContext();
-        }
-
-        private void AddComponent(object type)
+        internal void AddComponent(string type)
         {
             serializedObject.Update();
 
             ScriptableObject component = CreateInstance((string)type);
-            component.name = $"New{(string)type}";
+            component.name = $"{(string)type}";
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards
@@ -247,6 +283,9 @@ namespace UnityEditor.Rendering.Universal
             if (component != null)
             {
                 Undo.DestroyObjectImmediate(component);
+
+                ScriptableRendererFeature feature = component as ScriptableRendererFeature;
+                feature?.Dispose();
             }
 
             // Force save / refresh
@@ -266,20 +305,6 @@ namespace UnityEditor.Rendering.Universal
             ForceSave();
         }
 
-        private string GetMenuNameFromType(Type type)
-        {
-            var path = type.Name;
-            if (type.Namespace != null)
-            {
-                if (type.Namespace.Contains("Experimental"))
-                    path += " (Experimental)";
-            }
-
-            // Inserts blank space in between camel case strings
-            return Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2", RegexOptions.Compiled),
-                "([A-Z])([A-Z][a-z])", "$1 $2", RegexOptions.Compiled);
-        }
-
         private string ValidateName(string name)
         {
             name = Regex.Replace(name, @"[^a-zA-Z0-9 ]", "");
@@ -288,11 +313,21 @@ namespace UnityEditor.Rendering.Universal
 
         private void UpdateEditorList()
         {
-            m_Editors.Clear();
+            ClearEditorsList();
             for (int i = 0; i < m_RendererFeatures.arraySize; i++)
             {
                 m_Editors.Add(CreateEditor(m_RendererFeatures.GetArrayElementAtIndex(i).objectReferenceValue));
             }
+        }
+
+        //To avoid leaking memory we destroy editors when we clear editors list
+        private void ClearEditorsList()
+        {
+            for (int i = m_Editors.Count - 1; i >= 0; --i)
+            {
+                DestroyImmediate(m_Editors[i]);
+            }
+            m_Editors.Clear();
         }
 
         private void ForceSave()

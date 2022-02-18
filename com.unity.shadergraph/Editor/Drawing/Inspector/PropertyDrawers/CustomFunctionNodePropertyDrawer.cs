@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -7,27 +7,41 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.UIElements;
 using UnityEngine;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(CustomFunctionNode))]
-    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer
+    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
+        Action m_setNodesAsDirtyCallback;
+        Action m_updateNodeViewsCallback;
+
+        void IGetNodePropertyDrawerPropertyData.GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        {
+            m_setNodesAsDirtyCallback = setNodesAsDirtyCallback;
+            m_updateNodeViewsCallback = updateNodeViewsCallback;
+        }
+
         VisualElement CreateGUI(CustomFunctionNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)
         {
             var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold));
-            var inputListView = new ReorderableSlotListView(node, SlotType.Input);
+
+            PropertyDrawerUtils.AddDefaultNodeProperties(propertySheet, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+
+            var inputListView = new ReorderableSlotListView(node, SlotType.Input, true);
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
             inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(inputListView);
-            var outputListView = new ReorderableSlotListView(node, SlotType.Output);
+
+            var outputListView = new ReorderableSlotListView(node, SlotType.Output, true);
             outputListView.OnAddCallback += list => inspectorUpdateDelegate();
             outputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(outputListView);
+
             propertySheet.Add(new HlslFunctionView(node));
-            propertyVisualElement = propertySheet;
+            propertyVisualElement = null;
             return propertySheet;
         }
 
@@ -37,9 +51,11 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (CustomFunctionNode) actualObject,
+                (CustomFunctionNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

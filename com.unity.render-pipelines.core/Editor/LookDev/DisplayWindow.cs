@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
@@ -55,19 +56,19 @@ namespace UnityEditor.Rendering.LookDev
 
             internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),
-                "First view");
+                    "First view");
             internal static readonly (Texture2D icon, string tooltip) k_Layout2Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true),
-                "Second view");
+                    "Second view");
             internal static readonly (Texture2D icon, string tooltip) k_LayoutVerticalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true),
-                "Both views split vertically");
+                    "Both views split vertically");
             internal static readonly (Texture2D icon, string tooltip) k_LayoutHorizontalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true),
-                "Both views split horizontally");
+                    "Both views split horizontally");
             internal static readonly (Texture2D icon, string tooltip) k_LayoutStackIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true),
-                "Both views stacked");
+                    "Both views stacked");
 
             internal static readonly Texture2D k_Camera1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera1", forceLowRes: true);
             internal static readonly Texture2D k_Camera2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera2", forceLowRes: true);
@@ -216,48 +217,46 @@ namespace UnityEditor.Rendering.LookDev
         StyleSheet styleSheet = null;
         StyleSheet styleSheetLight = null;
 
+        SwitchableCameraController m_FirstOrCompositeManipulator;
+        CameraController m_SecondManipulator;
+        ComparisonGizmoController m_GizmoManipulator;
+
         void ReloadStyleSheets()
         {
-            if(styleSheet == null || styleSheet.Equals(null))
+            if (styleSheet == null || styleSheet.Equals(null))
             {
                 styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                if(styleSheet == null || styleSheet.Equals(null))
+                if (styleSheet == null || styleSheet.Equals(null))
                 {
                     //Debug.LogWarning("[LookDev] Could not load Stylesheet.");
                     return;
                 }
             }
 
-            if(!rootVisualElement.styleSheets.Contains(styleSheet))
+            if (!rootVisualElement.styleSheets.Contains(styleSheet))
                 rootVisualElement.styleSheets.Add(styleSheet);
 
             //Additively load Light Skin
-            if(!EditorGUIUtility.isProSkin)
+            if (!EditorGUIUtility.isProSkin)
             {
-                if(styleSheetLight == null || styleSheetLight.Equals(null))
+                if (styleSheetLight == null || styleSheetLight.Equals(null))
                 {
                     styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                    if(styleSheetLight == null || styleSheetLight.Equals(null))
+                    if (styleSheetLight == null || styleSheetLight.Equals(null))
                     {
                         //Debug.LogWarning("[LookDev] Could not load Light skin.");
                         return;
                     }
                 }
-                 
-                if(!rootVisualElement.styleSheets.Contains(styleSheetLight))
+
+                if (!rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
             }
         }
 
-        void OnEnable()
+        void CreateGUI()
         {
-            //Stylesheet
-            // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
-            // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
-            // Waiting for filter on stylesheet (case 1228706) to remove last error.
-            // On Editor Skin change, OnEnable is called and stylesheets need to be reloaded (case 1278802).
-            if(EditorApplication.isUpdating)
-                ReloadStyleSheets();
+            ReloadStyleSheets();
 
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
@@ -283,7 +282,10 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+        }
 
+        void OnEnable()
+        {
             Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
@@ -297,13 +299,14 @@ namespace UnityEditor.Rendering.LookDev
         {
             // Layout swapper part
             var layoutRadio = new ToolbarRadio() { name = Style.k_ToolbarRadioName };
-            layoutRadio.AddRadios(new[] {
+            layoutRadio.AddRadios(new[]
+            {
                 Style.k_Layout1Icon,
                 Style.k_Layout2Icon,
                 Style.k_LayoutVerticalIcon,
                 Style.k_LayoutHorizontalIcon,
                 Style.k_LayoutStackIcon,
-                });
+            });
             layoutRadio.RegisterCallback((ChangeEvent<int> evt)
                 => viewLayout = (Layout)evt.newValue);
             layoutRadio.SetValueWithoutNotify((int)viewLayout);
@@ -347,10 +350,11 @@ namespace UnityEditor.Rendering.LookDev
             {
                 name = Style.k_TabsRadioName
             };
-            sideRadio.AddRadios(new[] {
+            sideRadio.AddRadios(new[]
+            {
                 Style.k_EnvironmentSidePanelName,
                 Style.k_DebugSidePanelName,
-                });
+            });
             sideRadio.SetValueWithoutNotify((int)sidePanel);
             sideRadio.RegisterCallback((ChangeEvent<int> evt)
                 => sidePanel = (SidePanel)evt.newValue);
@@ -395,9 +399,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Views[(int)ViewIndex.Second] = new Image() { name = Style.k_SecondViewName, image = Texture2D.blackTexture };
             m_ViewContainer.Add(m_Views[(int)ViewIndex.Second]);
 
-            var firstOrCompositeManipulator = new SwitchableCameraController(
-                LookDev.currentContext.GetViewContent(ViewIndex.First).camera,
-                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+            m_FirstOrCompositeManipulator = new SwitchableCameraController(
                 this,
                 index =>
                 {
@@ -406,8 +408,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
-            var secondManipulator = new CameraController(
-                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+            m_SecondManipulator = new CameraController(
                 this,
                 () =>
                 {
@@ -416,10 +417,10 @@ namespace UnityEditor.Rendering.LookDev
                     if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
-            var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);
-            m_Views[(int)ViewIndex.First].AddManipulator(gizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
-            m_Views[(int)ViewIndex.First].AddManipulator(firstOrCompositeManipulator);
-            m_Views[(int)ViewIndex.Second].AddManipulator(secondManipulator);
+            m_GizmoManipulator = new ComparisonGizmoController(m_FirstOrCompositeManipulator);
+            m_Views[(int)ViewIndex.First].AddManipulator(m_GizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
+            m_Views[(int)ViewIndex.First].AddManipulator(m_FirstOrCompositeManipulator);
+            m_Views[(int)ViewIndex.Second].AddManipulator(m_SecondManipulator);
 
             m_NoObject1 = new Label(Style.k_DragAndDropObject);
             m_NoObject1.style.flexGrow = 1;
@@ -526,7 +527,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (updated |= m_Views[(int)ViewIndex.First].image != texture)
                         m_Views[(int)ViewIndex.First].image = texture;
                     else if (updated |= (m_LastFirstViewSize.x != texture.width
-                                      || m_LastFirstViewSize.y != texture.height))
+                                         || m_LastFirstViewSize.y != texture.height))
                     {
                         m_Views[(int)ViewIndex.First].image = null; //force refresh else it will appear zoomed
                         m_Views[(int)ViewIndex.First].image = texture;
@@ -541,7 +542,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (m_Views[(int)ViewIndex.Second].image != texture)
                         m_Views[(int)ViewIndex.Second].image = texture;
                     else if (updated |= (m_LastSecondViewSize.x != texture.width
-                                      || m_LastSecondViewSize.y != texture.height))
+                                         || m_LastSecondViewSize.y != texture.height))
                     {
                         m_Views[(int)ViewIndex.Second].image = null; //force refresh else it will appear zoomed
                         m_Views[(int)ViewIndex.Second].image = texture;
@@ -651,76 +652,34 @@ namespace UnityEditor.Rendering.LookDev
 
         void Update()
         {
+            if (LookDev.waitingConfigure)
+                return;
+
             // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
-            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
-            if (!LookDev.supported && OnUpdateRequestedInternal != null)
+            // Note: After an editor reload, we might get a null SRP for a couple of frames, hence the check.
+            if (!LookDev.supported)
             {
                 // Print an error and close the Lookdev window (to avoid spamming the console)
-                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                if (RenderPipelineManager.currentPipeline != null)
+                    Debug.LogError("LookDev is not supported by this Scriptable Render Pipeline: " + RenderPipelineManager.currentPipeline.ToString());
+                else if (GraphicsSettings.currentRenderPipeline != null)
+                    Debug.LogError("LookDev is not available until a camera render occurs.");
+                else
+                    Debug.LogError("LookDev is not supported: No SRP detected.");
                 LookDev.Close();
             }
+
+            // All those states coming from the Contexts can become invalid after a domain reload so we need to update them.
+            m_FirstOrCompositeManipulator.UpdateCameraState(LookDev.currentContext);
+            m_SecondManipulator.UpdateCameraState(LookDev.currentContext, ViewIndex.Second);
+            m_GizmoManipulator.UpdateGizmoState(LookDev.currentContext.layout.gizmoState);
         }
 
         void OnGUI()
         {
-            //Stylesheet
-            // [case 1219692] if LookDev is open while reimporting CoreRP package,
-            // stylesheet can be null. In this case, we can have a null stylesheet
-            // registered as it got destroyed. Reloading it. As we cannot just
-            // remove a null entry, we must filter and reconstruct the while list.
-            if (styleSheet == null || styleSheet.Equals(null)
-                || (!EditorGUIUtility.isProSkin && (styleSheetLight == null || styleSheetLight.Equals(null))))
-            {
-                // While (case 1228706) is still on going, we sill close and reopen the look dev.
-                // This will prevent spawning error at frame.
-                // Note 2: This actually causes the lookdev to break completely with light theme.
-                // Until the actual issue is fixed, we'll comment this fix out as it only concerns an upgrade problem.
-                //LookDev.Close();
-                //LookDev.Open();
-                //return;
-
-                // Following lines is the correct fix if UIElement filter garbage collected Stylesheet.
-
-                //System.Collections.Generic.List<StyleSheet> usedStyleSheets = new System.Collections.Generic.List<StyleSheet>();
-                //int currentCount = rootVisualElement.styleSheets.count;
-                //for (int i = 0; i < currentCount; ++i)
-                //{
-                //    StyleSheet sheet = rootVisualElement.styleSheets[i];
-                //    if (sheet != null && !sheet.Equals(null))
-                //        usedStyleSheets.Add(sheet);
-                //}
-                //rootVisualElement.styleSheets.Clear();
-                //foreach (StyleSheet sheet in usedStyleSheets)
-                //    rootVisualElement.styleSheets.Add(sheet);
-
-                //styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                //if (styleSheet != null && !styleSheet.Equals(null))
-                //{
-                //    rootVisualElement.styleSheets.Add(styleSheet);
-                //    if (!EditorGUIUtility.isProSkin)
-                //    {
-                //        rootVisualElement.styleSheets.Add(
-                //            AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
-                //    }
-                //}
-
-                //if (styleSheet == null || styleSheet.Equals(null))
-                //{
-                //    styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                //    if (styleSheet != null && !styleSheet.Equals(null))
-                //        rootVisualElement.styleSheets.Add(styleSheet);
-                //}
-                //if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
-                //{
-                //    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                //    if (styleSheetLight != null && !styleSheetLight.Equals(null))
-                //        rootVisualElement.styleSheets.Add(styleSheetLight);
-                //}
-            }
-            if(EditorApplication.isUpdating)
+            if (EditorApplication.isUpdating)
                 return;
-           
+
             //deal with missing style on domain reload...
             ReloadStyleSheets();
 

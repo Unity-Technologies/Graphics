@@ -1,5 +1,9 @@
-#ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
-#define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#ifndef UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
+#define UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
@@ -20,11 +24,11 @@
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
 // Improves the perceptual roughness distribution.
-real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint mipMapCount)
+real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint maxMipLevel)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 
-    return perceptualRoughness * mipMapCount;
+    return perceptualRoughness * maxMipLevel;
 }
 
 real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
@@ -176,6 +180,54 @@ void SampleAnisoGGXDir(real2 u,
 
     // Convert sample from half angle to incident angle
     L = 2.0 * saturate(dot(V, H)) * H - V;
+}
+
+// Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
+// http://jcgt.org/published/0007/04/01/paper.pdf
+void SampleAnisoGGXVisibleNormal(float2 u,
+                                 float3 V,
+                                 float3x3 localToWorld,
+                                 float roughnessX,
+                                 float roughnessY,
+                             out float3 localV,
+                             out float3 localH,
+                             out float  VdotH)
+{
+    localV = mul(V, transpose(localToWorld));
+
+    // Construct an orthonormal basis around the stretched view direction
+    float3x3 viewToLocal;
+    viewToLocal[2] = normalize(float3(roughnessX * localV.x, roughnessY * localV.y, localV.z));
+    viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(float3(0, 0, 1), viewToLocal[2])) : float3(1, 0, 0);
+    viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
+
+    // Compute a sample point with polar coordinates (r, phi)
+    float r   = sqrt(u.x);
+    float phi = 2.0 * PI * u.y;
+    float t1  = r * cos(phi);
+    float t2  = r * sin(phi);
+    float s  = 0.5 * (1.0 + viewToLocal[2].z);
+    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
+
+    // Reproject onto hemisphere
+    localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
+
+    // Transform the normal back to the ellipsoid configuration
+    localH = normalize(float3(roughnessX * localH.x, roughnessY * localH.y, max(0.0, localH.z)));
+
+    VdotH = saturate(dot(localV, localH));
+}
+
+// GGX vsible normal sampling, isotropic variant
+void SampleGGXVisibleNormal(float2 u,
+                            float3 V,
+                            float3x3 localToWorld,
+                            float roughness,
+                        out float3 localV,
+                        out float3 localH,
+                        out float  VdotH)
+{
+    SampleAnisoGGXVisibleNormal(u, V, localToWorld, roughness, roughness, localV, localH, VdotH);
 }
 
 // weightOverPdf return the weight (without the diffuseAlbedo term) over pdf. diffuseAlbedo term must be apply by the caller.
@@ -486,91 +538,55 @@ real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
 }
 
 real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
-                   real3 V,
-                   real3 N,
-                   real roughness,
-                   uint sampleCount,
-                   real invOmegaP,
-                   bool prefilter)
+                         real3 N,
+                         real roughness,
+                         uint sampleCount,
+                         real invFaceCenterTexelSolidAngle)
 {
-    // Local frame for the local to world sample transformation
+    // ensure proper values
+    roughness = max(roughness, 0.001f);
+    sampleCount = max(1, sampleCount);
+
+    // filtered uniform sampling of the hemisphere
     real3x3 localToWorld = GetLocalFrame(N);
-    float NdotV = 1;
-
-    // Cumulative values
-    real3 lightInt = real3(0.0, 0.0, 0.0);
-    real  cbsdfInt = 0.0;
-
+    real3 totalLight = real3(0.0, 0.0, 0.0);
+    real totalWeight = 0.0;
+    real rcpNumSamples = rcp(sampleCount);
+    real pdf = 1 / (2.0f * PI);
+    real lodBias = roughness;
+    real lodBase = 0.5f * log2((rcpNumSamples * 1.0f / pdf) * invFaceCenterTexelSolidAngle) + lodBias;
     for (uint i = 0; i < sampleCount; ++i)
     {
-        // Generate a new random number
-        real2 u = Hammersley2d(i, sampleCount);
-
-        // Generate the matching direction with a cosine importance sampling
-        float3 localL = SampleHemisphereCosine(u.x, u.y);
-
-        // Convert it to world space
+        // generate sample on the normal oriented hemisphere (uniform sampling)
+        real3 localL = SampleConeStrata(i, rcpNumSamples, 0.0f);
+        real NdotL = localL.z;
         real3 L = mul(localL, localToWorld);
-        float NdotL = saturate(dot(N, L));
 
-        // Are we in the hemisphere?
-        if (NdotL <= 0) continue; // Note that some samples will have 0 contribution
-
-        // The goal of this function is to use Monte-Carlo integration to find
-        // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
-        // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
-        // CBSDF  = F * D * V * NdotL.
-        // PDF    =  1.0 / NdotL
-        // Weight = CBSDF / PDF = F * D * V
-        // Since we perform filtering with the assumption that (V == N),
-        // (LdotH == NdotH) && (NdotV == 1) && (Weight ==  F * D * V)
-        // Therefore, after the Monte Carlo expansion of the integrals,
-        // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * D * V) / Sum(F * D * V).
-
-        // We are in the supposition that N == V
-        float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
-
-        // BRDF data
-        real F = 1;
+        // evaluate BRDF for the sample (assume V=N)
+        real NdotV = 1.0;
+        real LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(N, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
         real D = D_Charlie(NdotH, roughness);
-        real Vis = V_Charlie(NdotL, NdotV, roughness);
 
-        real mipLevel = 0;
-        if (prefilter) // Prefiltered BRDF importance sampling
-        {
-            // Use lower MIP-map levels for fetching samples with low probabilities
-            // in order to reduce the variance.
-            // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
-            //
-            // - OmegaS: Solid angle associated with the sample
-            // - OmegaP: Solid angle associated with the texel of the cubemap
+        // calculate texture LOD: 0.5*log2(omegaS/omegaP) as descriped in GPU Gems 3 "GPU-Based Importance Sampling" chapter 20.4:
+        //   https://developer.nvidia.com/gpugems/gpugems3/part-iii-rendering/chapter-20-gpu-based-importance-sampling
+        // omegaS = solid angle of the sample (i.e. 2pi/sampleCount for uniform hemisphere sampling)
+        // omegaP = solid angle of the texel in the sample direction. This is calculated by multiplying solid angle
+        // of the face center texel with texel cos(theta), where theta is angle between sample direction
+        // and center of the face, to account diminishing texel solid angles towards the edges of the cube.
+        real3 cubeCoord = L / max(abs(L.x), max(abs(L.y), abs(L.z))); // project sample direction to the cube face
+        real invDu2 = dot(cubeCoord, cubeCoord); // invDu2=1/cos^2(theta) of the sample texel
+        real lod = 0.5f * 0.5f * log2(invDu2) + lodBase; // extra 0.5f for sqrt(invDu2)=1/cos(theta)
+        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, lod).rgb;
 
-            real omegaS;
-
-            // real PDF = 1.0f / NdotL
-            // Since (N == V), NdotH == LdotH.
-            real pdf = 1.0 /  NdotL;
-            // TODO: improve the accuracy of the sample's solid angle fit for GGX.
-            omegaS    = rcp(sampleCount) * rcp(pdf);
-
-            // 'invOmegaP' is precomputed on CPU and provided as a parameter to the function.
-            // real omegaP = FOUR_PI / (6.0 * cubemapWidth * cubemapWidth);
-            const real mipBias = roughness;
-            mipLevel = 0.5 * log2(omegaS * invOmegaP) + mipBias;
-        }
-
-        // TODO: use a Gaussian-like filter to generate the MIP pyramid.
-        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
-
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
-        lightInt +=  val * F * D * Vis;
-        cbsdfInt += F * D * Vis;
+        // accumulate lighting & weights
+        real w = D * NdotL;
+        totalLight += val * w;
+        totalWeight += w;
     }
 
-    return real4(lightInt / cbsdfInt, 1.0);
+    return real4(totalLight / totalWeight, 1.0);
 }
-
 
 // Searches the row 'j' containing 'n' elements of 'haystack' and
 // returns the index of the first element greater or equal to 'needle'.
@@ -690,4 +706,8 @@ float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
     return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
 }
 
-#endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
+
+#endif // UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED

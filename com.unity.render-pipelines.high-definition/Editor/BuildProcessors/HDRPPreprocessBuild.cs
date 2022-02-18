@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!Application.isBatchMode)
                 {
                     if (!EditorUtility.DisplayDialog("Build Player",
-                                                    "There is no HDRP Asset provided in GraphicsSettings.\nAre you sure you want to continue?\n Build time can be extremely long without it.", "Ok", "Cancel"))
+                        "There is no HDRP Asset provided in GraphicsSettings.\nAre you sure you want to continue?\n Build time can be extremely long without it.", "Ok", "Cancel"))
                     {
                         throw new BuildFailedException("Stop build on request.");
                     }
@@ -52,27 +52,28 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdPipelineAsset == null)
                 return;
+            else if (!(hdPipelineAsset as IMigratableAsset).IsAtLastVersion())
+                throw new BuildFailedException($"GraphicSetting's HDRenderPipelineAsset {AssetDatabase.GetAssetPath(hdPipelineAsset)} is a non updated asset. Please use HDRP wizard to fix it.");
 
-            // If platform is supported all good
-            GraphicsDeviceType  unsupportedGraphicDevice = GraphicsDeviceType.Null;
-            bool supported = HDUtils.AreGraphicsAPIsSupported(report.summary.platform, out unsupportedGraphicDevice)
-                && HDUtils.IsSupportedBuildTarget(report.summary.platform)
-                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem);
+            // If platform is not supported, throw an exception to stop the build
+            if (!HDUtils.IsSupportedBuildTargetAndDevice(report.summary.platform, out GraphicsDeviceType deviceType))
+                throw new BuildFailedException(HDUtils.GetUnsupportedAPIMessage(deviceType.ToString()));
 
-            if (!supported)
-            {
-                unsupportedGraphicDevice = (unsupportedGraphicDevice == GraphicsDeviceType.Null) ? SystemInfo.graphicsDeviceType : unsupportedGraphicDevice;
-                string msg = "The platform " + report.summary.platform.ToString() + " with the graphic API " + unsupportedGraphicDevice + " is not supported with High Definition Render Pipeline";
-
-                // Throw an exception to stop the build
-                throw new BuildFailedException(msg);
-            }
+            //ensure global settings exist and at last version
+            if (HDRenderPipelineGlobalSettings.instance == null)
+                throw new BuildFailedException("There is currently no HDRenderPipelineGlobalSettings in use. Please use HDRP wizard to fix it.");
+            if (!(HDRenderPipelineGlobalSettings.instance as IMigratableAsset).IsAtLastVersion())
+                throw new BuildFailedException($"Current HDRenderPipelineGlobalSettings {AssetDatabase.GetAssetPath(HDRenderPipelineGlobalSettings.instance)} is a non updated asset. Please use HDRP wizard to fix it.");
 
             // Update all quality levels with the right max lod so that meshes can be stripped.
             // We don't take lod bias into account because it can be overridden per camera.
+            int currentQualityLevel = QualitySettings.GetQualityLevel();
             int qualityLevelCount = QualitySettings.names.Length;
             for (int i = 0; i < qualityLevelCount; ++i)
             {
+                if (!((QualitySettings.renderPipeline as IMigratableAsset)?.IsAtLastVersion() ?? true))
+                    throw new BuildFailedException($"Quality {QualitySettings.names[i]} use a non updated asset {AssetDatabase.GetAssetPath(QualitySettings.renderPipeline)}. Please use HDRP wizard to fix it.");
+
                 QualitySettings.SetQualityLevel(i, false);
                 var renderPipeline = QualitySettings.renderPipeline as HDRenderPipelineAsset;
                 if (renderPipeline != null)
@@ -84,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     QualitySettings.maximumLODLevel = GetMinimumMaxLoDValue(hdPipelineAsset);
                 }
             }
+            QualitySettings.SetQualityLevel(currentQualityLevel, false);
         }
     }
 }

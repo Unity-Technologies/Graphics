@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
+  m_Name: TestCaseFilters
+  m_EditorClassIdentifier: 
+  filters:
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    - {fileID: 102900000, guid: fa7b4e9f812398d41bdc005faebd62aa, type: 3}
+    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    - {fileID: 102900000, guid: a90386d4c0292b7489de8256b45fb16e, type: 3}
+    - {fileID: 102900000, guid: 57b37a9fcda3f244992f314e76964faa, type: 3}
+    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
+    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : unstable'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5a941913e97a77344b15d6acc9db8435, type: 3}
+    - {fileID: 102900000, guid: 848cdeb8585cb4f96a667c02e9ce3880, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : development build text issue'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
+    - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1325306/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
+    - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 8
+    XrSdk: 
+    StereoModes: 0
+    Reason: Decals not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : broken feature'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/URP-1313

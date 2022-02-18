@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
                 {
                     m_LegacyProbe = GetComponent<ReflectionProbe>();
                 }
@@ -65,6 +65,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ProbeSettings.mode == ProbeSettings.Mode.Realtime)
                 cubeProbe.renderDynamicObjects = true;
 #endif
+        }
+
+        internal bool ReflectionProbeIsEnabled()
+        {
+            return reflectionProbe.enabled;
         }
     }
 }

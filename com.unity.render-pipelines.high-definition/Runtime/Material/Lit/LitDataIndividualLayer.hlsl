@@ -5,7 +5,7 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     // parameter for planar/triplanar
                                     float3 positionRWS, float worldScale,
                                     // mapping type and output
-                                    int mappingType, inout LayerTexCoord layerTexCoord)
+                                    int mappingType, bool objectSpaceMapping, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = uvMappingMask.x * texCoord0 +
@@ -30,15 +30,17 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
     // Copy data for the uvmapping
     ADD_IDX(layerTexCoord.details).triplanarWeights = ADD_IDX(layerTexCoord.base).triplanarWeights = layerTexCoord.triplanarWeights;
 
-    // TODO: Currently we only handle world planar/triplanar but we may want local planar/triplanar.
-    // In this case both position and normal need to be convert to object space.
-
     // planar/triplanar
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
 
-    GetTriplanarCoordinate(GetAbsolutePositionWS(positionRWS) * worldScale, uvXZ, uvXY, uvZY);
+    float3 posForTriplanar = GetAbsolutePositionWS(positionRWS) * worldScale;
+    if (objectSpaceMapping)
+    {
+        posForTriplanar = TransformWorldToObject(positionRWS);
+    }
+    GetTriplanarCoordinate(posForTriplanar, uvXZ, uvXY, uvZY);
 
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)
@@ -135,7 +137,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
     // This can happen with object space normal map not being set, but we still want detail map.
     // If we are tangent space, _NORMALMAP_IDX is always defined if we have _DETAIL_MAP_IDX.
-    #if defined(_DETAIL_MAP_IDX)   
+    #if defined(_DETAIL_MAP_IDX)
         #ifdef SURFACE_GRADIENT
             normalTS += detailNormalTS * detailMask;
         #else
@@ -203,18 +205,20 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // We split both call due to trilinear mapping
     detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_IDX(_DetailNormalScale));
 #endif
+
     float4 color = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgba * ADD_IDX(_BaseColor).rgba;
     surfaceData.baseColor = color.rgb;
     float alpha = color.a;
+    alpha = lerp(ADD_IDX(_AlphaRemapMin), ADD_IDX(_AlphaRemapMax), alpha);
+
 #ifdef _DETAIL_MAP_IDX
-	
     // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
     // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
     // with a factor based on speed.
     // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
     float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
     float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-    baseColorOverlay *= baseColorOverlay;							   
+    baseColorOverlay *= baseColorOverlay;
     // Lerp with details mask
     surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif

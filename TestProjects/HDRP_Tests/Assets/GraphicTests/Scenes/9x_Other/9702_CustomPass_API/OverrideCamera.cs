@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -6,15 +6,15 @@ using System.Linq;
 
 class OverrideCamera : CustomPass
 {
-    public Camera       customCamera0 = null;
-    public Camera       customCamera1 = null;
-    public Camera       customCamera2 = null;
-    public Camera       customCamera3 = null;
-    public Camera       customCamera4 = null;
+    public Camera customCamera0 = null;
+    public Camera customCamera1 = null;
+    public Camera customCamera2 = null;
+    public Camera customCamera3 = null;
+    public Camera customCamera4 = null;
 
-    RTHandle            temp;
-    RTHandle            halfResColor;
-    RTHandle            halfResDepth;
+    RTHandle temp;
+    RTHandle halfResColor;
+    RTHandle halfResDepth;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
@@ -62,7 +62,7 @@ class OverrideCamera : CustomPass
             depthState = new DepthState(true, CompareFunction.LessEqual)
         };
 
-        // Render from camera 1 
+        // Render from camera 1
         CustomPassUtils.RenderFromCamera(ctx, customCamera1, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1, overrideRenderState: overrideDepth);
         CustomPassUtils.Copy(
             ctx, temp, ctx.cameraColorBuffer,

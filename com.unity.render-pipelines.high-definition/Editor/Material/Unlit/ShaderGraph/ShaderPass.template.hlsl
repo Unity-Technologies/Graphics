@@ -18,30 +18,40 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     }
     #endif
 
-    #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
-        HDShadowContext shadowContext = InitShadowContext();
-        float shadow;
-        float3 shadow3;
-        // We need to recompute some coordinate not computed by default for shadow matte
-        posInput = GetPositionInput(fragInputs.positionSS.xy, _ScreenSize.zw, fragInputs.positionSS.z, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-        float3 upWS = normalize(fragInputs.tangentToWorld[1]);
-        uint renderingLayers = GetMeshRenderingLightLayer();
-        ShadowLoopMin(shadowContext, posInput, upWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
-        shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
+    #ifdef _ENABLE_SHADOW_MATTE
 
-        float4 shadowColor = (1.0 - shadow) * surfaceDescription.ShadowTint.rgba;
-        float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
+        #if (SHADERPASS == SHADERPASS_FORWARD_UNLIT) || (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
 
-        // Keep the nested lerp
-        // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
-        // And mix color to consider the Color & ShadowColor alpha (from texture or/and color picker)
-        #ifdef _SURFACE_TYPE_TRANSPARENT
-            surfaceData.color = lerp(shadowColor.rgb * surfaceData.color, lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow), surfaceDescription.Alpha);
-        #else
-            surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow);
+            HDShadowContext shadowContext = InitShadowContext();
+
+            // Evaluate the shadow, the normal is guaranteed if shadow matte is enabled on this shader.
+            float3 shadow3;
+            ShadowLoopMin(shadowContext, posInput, normalize(fragInputs.tangentToWorld[2]), asuint(_ShadowMatteFilter), GetMeshRenderingLightLayer(), shadow3);
+
+            // Compute the average value in the fourth channel
+            float4 shadow = float4(shadow3, dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0)));
+
+            float4 shadowColor = (1.0 - shadow) * surfaceDescription.ShadowTint.rgba;
+            float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
+
+            // Keep the nested lerp
+            // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
+            // And mix color to consider the Color & ShadowColor alpha (from texture or/and color picker)
+            #ifdef _SURFACE_TYPE_TRANSPARENT
+                surfaceData.color = lerp(shadowColor.rgb * surfaceData.color, lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow.rgb), surfaceDescription.Alpha);
+            #else
+                surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow.rgb);
+            #endif
+            localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
+
+            surfaceDescription.Alpha = localAlpha;
+
+        #elif SHADERPASS == SHADERPASS_PATH_TRACING
+
+            surfaceData.normalWS = fragInputs.tangentToWorld[2];
+            surfaceData.shadowTint = surfaceDescription.ShadowTint.rgba;
+
         #endif
-        localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
 
-        surfaceDescription.Alpha = localAlpha;
-    #endif
+    #endif // _ENABLE_SHADOW_MATTE
 }

@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-
-// Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,14 +10,16 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public const string header = "Main Mapping Configuration";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Main Mapping Configuration");
 
             public static GUIContent mappingModeText = new GUIContent("Mapping Mode");
             public static GUIContent planarSpaceText = new GUIContent("Planar Space");
 
             public static GUIContent materialTilingOffsetText = new GUIContent("Main Tiling (XY scales) and Offset (ZW)", "The XY scales the texture coordinates while the ZW are additive offsets");
+
+            public static GUIContent rayTracingTexFilteringScaleText = new GUIContent("Texture Filtering In Raytracing", "Texture filtering works differently in raytracing. To help with aliasing you can adjust this from 0 (no filtering) to 1 (maximum filtering)");
         }
-        static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
+        static readonly string[] MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
         static string m_MappingModeText = "_MappingMode";
         MaterialProperty m_MappingMode = null;
@@ -35,11 +33,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static string m_MaterialTilingOffsetText = "_Material_SO";
         MaterialProperty m_MaterialTilingOffset = null;
 
-        Expandable  m_ExpandableBit;
+        static string m_RayTracingTexFilteringScaleText = "_RayTracingTexFilteringScale";
+        MaterialProperty m_RayTracingTexFilteringScale = null;
 
-        public AxfMainSurfaceInputsUIBlock(Expandable expandableBit)
+        public AxfMainSurfaceInputsUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
         }
 
         public override void LoadMaterialProperties()
@@ -48,33 +47,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MappingMask = FindProperty(m_MappingMaskText);
             m_PlanarSpace = FindProperty(m_PlanarSpaceText);
 
-            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);    
+            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
+            m_RayTracingTexFilteringScale = FindProperty(m_RayTracingTexFilteringScaleText);
         }
 
-        public override void OnGUI()
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
+        protected override void OnGUIOpen()
         {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                {
-                    DrawMainAxfSurfaceInputsGUI();
-                }
-            }
-        }
-
-        void DrawMainAxfSurfaceInputsGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change Mapping Mode");
-                m_MappingMode.floatValue = val;
-            }
+            materialEditor.PopupShaderProperty(m_MappingMode, Styles.mappingModeText, MappingModeNames);
 
             AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
-            m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);
+            m_MappingMask.vectorValue = AxFAPI.AxFMappingModeToMask(mappingMode);
 
             if (mappingMode >= AxFMappingMode.PlanarXY)
             {
@@ -84,6 +69,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
+
+            // We only display the ray tracing option if the asset supports it
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                materialEditor.ShaderProperty(m_RayTracingTexFilteringScale, Styles.rayTracingTexFilteringScaleText);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using System.IO;
+using UnityEditor;
 using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
@@ -11,7 +12,7 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Environment-Library" + Documentation.endURL)]
+    [CoreRPHelpURL("Environment-Library")]
     public class EnvironmentLibrary : ScriptableObject
     {
         [field: SerializeField]
@@ -82,16 +83,21 @@ namespace UnityEditor.Rendering.LookDev
         /// <returns>The created Environment</returns>
         public Environment Duplicate(int fromIndex)
         {
+            Undo.SetCurrentGroupName("Duplicate Environment");
+            int group = Undo.GetCurrentGroup();
+
             Environment environment = ScriptableObject.CreateInstance<Environment>();
             Environment environmentToCopy = environments[fromIndex];
             environmentToCopy.CopyTo(environment);
 
             Undo.RegisterCreatedObjectUndo(environment, "Duplicate Environment");
-
+            Undo.RecordObject(this, "Duplicate Environment");
             environments.Add(environment);
 
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
+
+            Undo.CollapseUndoOperations(group);
 
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
             EditorUtility.SetDirty(this);
@@ -112,14 +118,15 @@ namespace UnityEditor.Rendering.LookDev
     [CustomEditor(typeof(EnvironmentLibrary))]
     class EnvironmentLibraryEditor : Editor
     {
-        VisualElement root;
+        VisualElement m_Root;
+        VisualElement m_OpenButton;
 
         public sealed override VisualElement CreateInspectorGUI()
         {
             var library = target as EnvironmentLibrary;
-            root = new VisualElement();
+            m_Root = new VisualElement();
 
-            Button open = new Button(() =>
+            m_OpenButton = new Button(() =>
             {
                 if (!LookDev.open)
                     LookDev.Open();
@@ -127,11 +134,22 @@ namespace UnityEditor.Rendering.LookDev
                 LookDev.currentEnvironmentDisplayer.Repaint();
             })
             {
-                text = "Open in LookDev window"
+                text = "Open in Look Dev window"
             };
+            m_OpenButton.SetEnabled(LookDev.supported);
 
-            root.Add(open);
-            return root;
+            m_Root.Add(m_OpenButton);
+            return m_Root;
+        }
+
+        void OnEnable() => EditorApplication.update += Update;
+        void OnDisable() => EditorApplication.update -= Update;
+
+        void Update()
+        {
+            // Current SRP can be changed at any time so we need to do this at every update.
+            if (m_OpenButton != null)
+                m_OpenButton.SetEnabled(LookDev.supported);
         }
 
         // Don't use ImGUI
@@ -159,7 +177,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Field = null;
         }
 
-        [MenuItem("Assets/Create/LookDev/Environment Library", priority = 2000)]
+        [MenuItem("Assets/Create/Rendering/Environment Library (Look Dev)", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void Create()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");

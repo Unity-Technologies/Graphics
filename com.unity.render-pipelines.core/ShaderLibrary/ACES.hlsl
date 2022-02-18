@@ -1,6 +1,10 @@
 #ifndef __ACES__
 #define __ACES__
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 /**
  * https://github.com/ampas/aces-dev
  *
@@ -197,6 +201,12 @@ half3 ACEScg_to_unity(half3 x)
     return x;
 }
 
+half3 ACEScg_to_Rec2020(half3 x)
+{
+    half3 xyz = mul(AP1_2_XYZ_MAT, x);
+    return mul(XYZ_2_REC2020_MAT, xyz);
+}
+
 //
 // ACES Color Space Conversion - ACES to ACEScc
 //
@@ -322,7 +332,7 @@ half rgb_2_yc(half3 rgb)
     half k = b * (b - g) + g * (g - r) + r * (r - b);
     k = max(k, 0.0h); // Clamp to avoid precision issue causing k < 0, making sqrt(k) undefined
 #if defined(SHADER_API_SWITCH)
-    half chroma = k == 0.0 ? 0.0 : sqrt(k); // Fix NaN on Nintendo Switch (should not happen in theory).
+    half chroma = k == 0.0 ? 0.0 : sqrt(k); // Avoid Nan
 #else
     half chroma = sqrt(k);
 #endif
@@ -497,16 +507,19 @@ half segmented_spline_c5_fwd(half x)
     return pow(10.0, logy);
 }
 
-half segmented_spline_c9_fwd(half x)
+struct SegmentedSplineParams_c9
 {
-    const half coefsLow[10] = { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414 }; // coefs for B-spline between minPoint and midPoint (units of log luminance)
-    const half coefsHigh[10] = { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 }; // coefs for B-spline between midPoint and maxPoint (units of log luminance)
-    const half2 minPoint = half2(segmented_spline_c5_fwd(0.18 * exp2(-6.5)), 0.02); // {luminance, luminance} linear extension below this
-    const half2 midPoint = half2(segmented_spline_c5_fwd(0.18), 4.8); // {luminance, luminance}
-    const half2 maxPoint = half2(segmented_spline_c5_fwd(0.18 * exp2(6.5)), 48.0); // {luminance, luminance} linear extension above this
-    const half slopeLow = 0.0; // log-log slope of low linear extension
-    const half slopeHigh = 0.04; // log-log slope of high linear extension
+    float coefsLow[10];    // coefs for B-spline between minPoint and midPoint (units of log luminance)
+    float coefsHigh[10];   // coefs for B-spline between midPoint and maxPoint (units of log luminance)
+    half2 minPoint; // {luminance, luminance} linear extension below this
+    half2 midPoint; // {luminance, luminance}
+    half2 maxPoint; // {luminance, luminance} linear extension above this
+    float slopeLow;       // log-log slope of low linear extension
+    float slopeHigh;      // log-log slope of high linear extension
+};
 
+half segmented_spline_c9_fwd(half x, SegmentedSplineParams_c9 params)
+{
     const int N_KNOTS_LOW = 8;
     const int N_KNOTS_HIGH = 8;
 
@@ -518,36 +531,112 @@ half segmented_spline_c9_fwd(half x)
     half logx = log10(xCheck);
     half logy;
 
-    if (logx <= log10(minPoint.x))
+    if (logx <= log10(params.minPoint.x))
     {
-        logy = logx * slopeLow + (log10(minPoint.y) - slopeLow * log10(minPoint.x));
+        logy = logx * params.slopeLow + (log10(params.minPoint.y) - params.slopeLow * log10(params.minPoint.x));
     }
-    else if ((logx > log10(minPoint.x)) && (logx < log10(midPoint.x)))
+    else if ((logx > log10(params.minPoint.x)) && (logx < log10(params.midPoint.x)))
     {
-        half knot_coord = (N_KNOTS_LOW - 1) * (logx - log10(minPoint.x)) / (log10(midPoint.x) - log10(minPoint.x));
+        half knot_coord = (N_KNOTS_LOW - 1) * (logx - log10(params.minPoint.x)) / (log10(params.midPoint.x) - log10(params.minPoint.x));
         int j = knot_coord;
         half t = knot_coord - j;
 
-        half3 cf = half3(coefsLow[j], coefsLow[j + 1], coefsLow[j + 2]);
+        half3 cf = half3(params.coefsLow[j], params.coefsLow[j + 1], params.coefsLow[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
         logy = dot(monomials, mul(M, cf));
     }
-    else if ((logx >= log10(midPoint.x)) && (logx < log10(maxPoint.x)))
+    else if ((logx >= log10(params.midPoint.x)) && (logx < log10(params.maxPoint.x)))
     {
-        half knot_coord = (N_KNOTS_HIGH - 1) * (logx - log10(midPoint.x)) / (log10(maxPoint.x) - log10(midPoint.x));
+        half knot_coord = (N_KNOTS_HIGH - 1) * (logx - log10(params.midPoint.x)) / (log10(params.maxPoint.x) - log10(params.midPoint.x));
         int j = knot_coord;
         half t = knot_coord - j;
 
-        half3 cf = half3(coefsHigh[j], coefsHigh[j + 1], coefsHigh[j + 2]);
+        half3 cf = half3(params.coefsHigh[j], params.coefsHigh[j + 1], params.coefsHigh[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
         logy = dot(monomials, mul(M, cf));
     }
     else
     { //if (logIn >= log10(maxPoint.x)) {
-        logy = logx * slopeHigh + (log10(maxPoint.y) - slopeHigh * log10(maxPoint.x));
+        logy = logx * params.slopeHigh + (log10(params.maxPoint.y) - params.slopeHigh * log10(params.maxPoint.x));
     }
 
     return pow(10.0, logy);
+}
+
+
+// > 48 Nits from https://github.com/ampas/aces-dev/blob/dev/transforms/ctl/lib/ACESlib.Tonescales.ctl
+SegmentedSplineParams_c9 GetSplineParams_ODT48Nits()
+{
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+    return ODT_48nits;
+}
+
+SegmentedSplineParams_c9 GetSplineParams_ODT1000Nits()
+{
+    const SegmentedSplineParams_c9 ODT_1000nits =
+    {
+        // coefsLow[10]
+        { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
+        // coefsHigh[10]
+        { 0.8089132070, 1.1910867930, 1.5683, 1.9483, 2.3083, 2.6384, 2.8595, 2.9872608805, 3.0127391195, 3.0127391195 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,10.)),  1000.0},    // maxPoint
+        3.0,  // slopeLow
+        0.06  // slopeHigh
+    };
+    return ODT_1000nits;
+}
+
+SegmentedSplineParams_c9 GetSplineParams_ODT2000Nits()
+{
+    const SegmentedSplineParams_c9 ODT_2000nits =
+    {
+        // coefsLow[10]
+        { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
+        // coefsHigh[10]
+        { 0.8019952042, 1.1980047958, 1.5943000000, 1.9973000000, 2.3783000000, 2.7684000000, 3.0515000000, 3.2746293562, 3.3274306351, 3.3274306351 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,11.)),  2000.0},    // maxPoint
+        3.0,  // slopeLow
+        0.12  // slopeHigh
+    };
+    return ODT_2000nits;
+}
+
+SegmentedSplineParams_c9 GetSplineParams_ODT4000Nits()
+{
+    const SegmentedSplineParams_c9 ODT_4000nits =
+    {
+        // coefsLow[10]
+        { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
+        // coefsHigh[10]
+        { 0.7973186613, 1.2026813387, 1.6093000000, 2.0108000000, 2.4148000000, 2.8179000000, 3.1725000000, 3.5344995451, 3.6696204376, 3.6696204376 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,12.)),  4000.0},    // maxPoint
+        3.0,  // slopeLow
+        0.3   // slopeHigh
+    };
+    return ODT_4000nits;
+}
+
+
+half segmented_spline_c9_fwd(half x)
+{
+    return segmented_spline_c9_fwd(x, GetSplineParams_ODT48Nits());
 }
 
 static const half RRT_GLOW_GAIN = 0.05;
@@ -597,9 +686,9 @@ half3 RRT(half3 aces)
     rgbPost.z = segmented_spline_c5_fwd(rgbPre.z);
 
     // --- RGB rendering space to OCES --- //
-    half3 rgbOces = mul(AP1_2_AP0_MAT, rgbPost);
+    half3 outputVal = mul(AP1_2_AP0_MAT, rgbPost);
 
-    return rgbOces;
+    return outputVal;
 }
 
 //
@@ -626,7 +715,7 @@ half3 xyY_2_XYZ(half3 xyY)
 
 static const half DIM_SURROUND_GAMMA = 0.9811;
 
-half3 darkSurround_to_dimSurround(half3 linearCV)
+float3 darkSurround_to_dimSurround(float3 linearCV)
 {
     half3 XYZ = mul(AP1_2_XYZ_MAT, linearCV);
 
@@ -708,7 +797,7 @@ half3 linear_to_bt1886(half3 x, half gamma, half Lw, half Lb)
     return V;
 }
 
-static const half CINEMA_WHITE = 48.0;
+static const half CINEMA_WHITE = 48.0f;
 static const half CINEMA_BLACK = CINEMA_WHITE / 2400.0;
 static const half ODT_SAT_FACTOR = 0.93;
 
@@ -758,14 +847,16 @@ static const half ODT_SAT_FACTOR = 0.93;
 //
 half3 ODT_RGBmonitor_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -856,14 +947,16 @@ half3 ODT_RGBmonitor_100nits_dim(half3 oces)
 //
 half3 ODT_RGBmonitor_D60sim_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -966,14 +1059,16 @@ half3 ODT_RGBmonitor_D60sim_100nits_dim(half3 oces)
 //
 half3 ODT_Rec709_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -1058,14 +1153,16 @@ half3 ODT_Rec709_100nits_dim(half3 oces)
 //
 half3 ODT_Rec709_D60sim_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -1168,14 +1265,16 @@ half3 ODT_Rec709_D60sim_100nits_dim(half3 oces)
 
 half3 ODT_Rec2020_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -1250,14 +1349,16 @@ half3 ODT_Rec2020_100nits_dim(half3 oces)
 //
 half3 ODT_P3DCI_48nits(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits = GetSplineParams_ODT48Nits();
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
     // Apply the tonescale independently in rendering-space RGB
     half3 rgbPost;
-    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x);
-    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y);
-    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z);
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_48nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_48nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_48nits);
 
     // Scale luminance to linear code value
     half3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
@@ -1315,5 +1416,94 @@ half3 ODT_P3DCI_48nits(half3 oces)
 
     return outputCV;
 }
+
+
+// IMPORTANT: This will need transforming to the final output space after unlike the standard ODT.
+half3 ODT_Rec2020_1000nits_ToLinear(half3 oces)
+{
+    const SegmentedSplineParams_c9 ODT_1000nits = GetSplineParams_ODT1000Nits();
+
+    // OCES to RGB rendering space
+    half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
+
+    // Apply the tonescale independently in rendering-space RGB
+    half3 rgbPost;
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_1000nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_1000nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_1000nits);
+
+    // Scale luminance to linear code value
+    half3 linearCV = Y_2_linCV(rgbPost, ODT_1000nits.maxPoint.y, ODT_1000nits.minPoint.y);
+
+    // Apply desaturation to compensate for luminance difference
+    //linearCV = mul(ODT_SAT_MAT, linearCV);
+    linearCV = lerp(dot(linearCV, AP1_RGB2Y).xxx, linearCV, ODT_SAT_FACTOR.xxx);
+
+    // Convert to display primary encoding
+    // Rendering space RGB to XYZ
+    half3 XYZ = mul(AP1_2_XYZ_MAT, linearCV);
+
+    // Apply CAT from ACES white point to assumed observer adapted white point
+    XYZ = mul(D60_2_D65_CAT, XYZ);
+
+    // CIE XYZ to display primaries
+    linearCV = mul(XYZ_2_REC2020_MAT, XYZ);
+
+    // Handle out-of-gamut values
+    linearCV = max(linearCV, 0.);
+
+    return linearCV;
+}
+
+half3 ODT_1000nits_ToAP1(half3 oces)
+{
+    const SegmentedSplineParams_c9 ODT_1000nits = GetSplineParams_ODT1000Nits();
+
+    // OCES to RGB rendering space
+    half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
+
+    // Apply the tonescale independently in rendering-space RGB
+    half3 rgbPost;
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_1000nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_1000nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_1000nits);
+
+    return rgbPost;
+}
+
+half3 ODT_2000nits_ToAP1(half3 oces)
+{
+    const SegmentedSplineParams_c9 ODT_2000nits = GetSplineParams_ODT2000Nits();
+
+    // OCES to RGB rendering space
+    half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
+
+    // Apply the tonescale independently in rendering-space RGB
+    half3 rgbPost;
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_2000nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_2000nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_2000nits);
+
+    return rgbPost;
+}
+
+half3 ODT_4000nits_ToAP1(half3 oces)
+{
+    const SegmentedSplineParams_c9 ODT_4000nits = GetSplineParams_ODT4000Nits();
+
+    // OCES to RGB rendering space
+    half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
+
+    // Apply the tonescale independently in rendering-space RGB
+    half3 rgbPost;
+    rgbPost.x = segmented_spline_c9_fwd(rgbPre.x, ODT_4000nits);
+    rgbPost.y = segmented_spline_c9_fwd(rgbPre.y, ODT_4000nits);
+    rgbPost.z = segmented_spline_c9_fwd(rgbPre.z, ODT_4000nits);
+
+    return rgbPost;
+}
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // __ACES__

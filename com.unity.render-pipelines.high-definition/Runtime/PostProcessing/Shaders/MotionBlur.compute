@@ -1,6 +1,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel MotionBlurCS
 
 //#pragma enable_d3d11_debug_symbols
@@ -41,12 +43,12 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define ONLY_FAST_PATH 2
 
 #define DEBUG_EXECUTION NORMAL
- 
+
 // ------------Options------------------
 #define MIRROR_WEIGHTS 1
 #define TILE_JITTER 1
-// When this is set to 1, samples are taken from both the central direction and the maximum direction in the tile. This reduces bugs when very different velocities are available in a tile. 
-// This however also can cause the blur to look slightly different. 
+// When this is set to 1, samples are taken from both the central direction and the maximum direction in the tile. This reduces bugs when very different velocities are available in a tile.
+// This however also can cause the blur to look slightly different.
 #define GUERTIN2014_DOUBLE_DIR 0
 #define DOT_WEIGHTING 1
 #define DOT_MULTIPLIER 1 * DOT_WEIGHTING
@@ -81,7 +83,7 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
     float2 tileLocation = (0.5f + pixCoord) / _TileSize;
     float2 UV = (tileLocation + randomVals) * _TileTargetSize.zw;
 
-    return  ClampAndScaleUVForBilinear(UV, _TileTargetSize.zw);
+    return  ClampAndScaleUVForBilinearPostProcessTexture(UV, _TileTargetSize.zw);
 }
 
 
@@ -128,7 +130,7 @@ void MirrorWeights(float depth1, float depth2, float motionVec1, float motionVec
 }
 
 // ---------------------------------------------
-// Sample processing 
+// Sample processing
 // ---------------------------------------------
 
 CTYPE ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal, float dirSign)
@@ -136,7 +138,7 @@ CTYPE ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount,
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
-    float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
+    float2 sampleUV = ClampAndScaleUVForBilinearPostProcessTexture(centralUV + (offsetLength*invSampleCount) * currDir);
 
     CTYPE sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).CTYPE_SWIZZLE;
 
@@ -148,7 +150,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
-    float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
+    float2 sampleUV = ClampAndScaleUVForBilinearPostProcessTexture(centralUV + (offsetLength*invSampleCount) * currDir);
 
     float3 sampleMotionVecDepth = SAMPLE_TEXTURE2D_X_LOD(_MotionVecAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
     CTYPE sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).CTYPE_SWIZZLE;
@@ -244,7 +246,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint stepCount = actualSampleCount / 2u;
 
 
-        float2 centerSampleUV = (0.5 + dispatchThreadId.xy) * _ScreenSize.zw;
+        float2 centerSampleUV = (0.5 + dispatchThreadId.xy) * _PostProcessScreenSize.zw;
 
         float randomVal = randomVals.x;
         float2 dir = 0.5 * maxMotionVec;
@@ -267,7 +269,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-            float3 motionVecAndDepth = SAMPLE_TEXTURE2D_X_LOD(_MotionVecAndDepth, s_point_clamp_sampler, ClampAndScaleUVForPoint(centerSampleUV), 0).xyz;
+            float3 motionVecAndDepth = SAMPLE_TEXTURE2D_X_LOD(_MotionVecAndDepth, s_point_clamp_sampler, ClampAndScaleUVPostProcessTextureForPoint(centerSampleUV), 0).xyz;
 
             float pixelToSampleScale = (float)stepCount * rcp(maxMotionVecLen);
 
@@ -305,7 +307,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
 #if ENABLE_ALPHA
-            colorAccumulation.w = alphaAccumulation + (1.0 - accumulation.w) * centralColor.w;
+            colorAccumulation.w = alphaAccumulation * invSampleCount + (1.0 - accumulation.w) * centralColor.w;
 #endif
 
 #if DEBUG_VIEW == WEIGHT_VIS
@@ -315,7 +317,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 
 #if DEBUG_VIEW == MAX_MOTION_VEC
-        colorAccumulation = float3(maxMotionVec, 0.0);
+        colorAccumulation.xyz = float3(maxMotionVec, 0.0);
         float maxMotionVecLenPix = MotionVecLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
         colorAccumulation = maxMotionVecLenPix;
 #endif

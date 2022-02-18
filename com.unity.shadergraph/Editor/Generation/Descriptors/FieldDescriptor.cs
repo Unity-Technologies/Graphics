@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal class FieldDescriptor
@@ -7,6 +7,7 @@
         public string tag { get; }
         public string name { get; }
         public string define { get; }
+        public string interpolation { get; }
 
         // StructField
         public string type { get; }
@@ -23,7 +24,7 @@
         }
 
         public FieldDescriptor(string tag, string name, string define, ShaderValueType type,
-                string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, string interpolation = "")
         {
             this.tag = tag;
             this.name = name;
@@ -32,11 +33,12 @@
             this.vectorCount = type.GetVectorCount();
             this.semantic = semantic;
             this.preprocessor = preprocessor;
+            this.interpolation = interpolation;
             this.subscriptOptions = subscriptOptions;
         }
 
         public FieldDescriptor(string tag, string name, string define, string type,
-                string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, string interpolation = "")
         {
             this.tag = tag;
             this.name = name;
@@ -45,6 +47,7 @@
             this.vectorCount = 0;
             this.semantic = semantic;
             this.preprocessor = preprocessor;
+            this.interpolation = interpolation;
             this.subscriptOptions = subscriptOptions;
         }
     }

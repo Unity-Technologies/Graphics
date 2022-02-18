@@ -44,16 +44,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // During the light loop, when reserving space for the cookies (first part of the light loop) the atlas
         // can run out of space, in this case, we set to true this flag which will trigger a re-layouting of the
         // atlas (sort entries by size and insert them again).
-        bool                m_2DCookieAtlasNeedsLayouting = false;
-        bool                m_NoMoreSpace = false;
-        readonly int        cookieAtlasLastValidMip;
+        bool m_2DCookieAtlasNeedsLayouting = false;
+        bool m_NoMoreSpace = false;
+        readonly int cookieAtlasLastValidMip;
         readonly GraphicsFormat cookieFormat;
 
         public LightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
         {
             // Keep track of the render pipeline asset
             m_RenderPipelineAsset = hdAsset;
-            var hdResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
+            var hdResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
 
             // Create the texture cookie cache that we shall be using for the area lights
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_MaterialFilterAreaLights);
 
-            if(m_TempRenderTexture0 != null)
+            if (m_TempRenderTexture0 != null)
             {
                 m_TempRenderTexture0.Release();
                 m_TempRenderTexture0 = null;
@@ -142,7 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetRenderTarget(m_TempRenderTexture1, mipIdx);
                     cmd.ClearRenderTarget(false, true, Color.clear);
                 }
-
             }
         }
 
@@ -182,14 +181,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texSource, source);
 
+
+                    // Since we blit the cookie texture into a common texture, to avoid leaking we blit with an extra border
+                    int border = 1;
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
-                    cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
+                    cmd.SetViewport(new Rect(0, 0, viewportWidth + border, viewportHeight + border));
+
+                    m_MPBFilterAreaLights.SetVector(s_sourceSize, new Vector4(viewportWidth, viewportHeight, (float)(viewportWidth + border) / viewportWidth, (float)(viewportHeight + border) / viewportHeight));
                     cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                 }
 
                 // Then operate on all the remaining mip levels
                 Vector4 sourceSize = Vector4.zero;
-                for (int mipIndex=1; mipIndex < mipMapCount; mipIndex++)
+                for (int mipIndex = 1; mipIndex < mipMapCount; mipIndex++)
                 {
                     {   // Perform horizontal blur
                         sourceSize.Set(viewportWidth / (float)sourceWidth * 1.0f, viewportHeight / (float)sourceHeight, 1.0f / sourceWidth, 1.0f / sourceHeight);
@@ -203,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
                         m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
 
-                        cmd.SetRenderTarget(m_TempRenderTexture1, mipIndex-1);    // Temp texture is already 1 mip lower than source
+                        cmd.SetRenderTarget(m_TempRenderTexture1, mipIndex - 1);    // Temp texture is already 1 mip lower than source
                         cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
                         cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 1, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                     }
@@ -248,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 Fetch2DCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
-            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int width = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
@@ -294,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie, cookie.width, cookie.height);
-                Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
+                Vector4 sourceScaleOffset = new Vector4((cookie.width - 0.5f) / (float)atlasTexture.rt.width, (cookie.height - 0.5f) / (float)atlasTexture.rt.height, 0, 0);
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
             }
 
@@ -303,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
-            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int width = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
@@ -336,13 +340,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cookieA == null || cookieB == null)
                 return;
 
-            int width  = (int)Mathf.Max(cookieA.width, cookieB.height);
+            int width = (int)Mathf.Max(cookieA.width, cookieB.height);
             int height = (int)Mathf.Max(cookieA.width, cookieB.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), width, height))
+            if (!m_CookieAtlas.ReserveSpace(cookieA, cookieB, width, height))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -365,12 +369,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
 
-            int projectionSize  = 2*cookie.width;
+            int projectionSize = 2 * cookie.width;
 
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookie), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(cookie, projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -381,12 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(cookieA.dimension == TextureDimension.Cube && cookieB.dimension == TextureDimension.Cube);
 
-            int projectionSize  = 2*(int)Mathf.Max(cookieA.width, cookieB.width);
+            int projectionSize = 2 * (int)Mathf.Max(cookieA.width, cookieB.width);
 
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(cookieA, cookieB, projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -408,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CookieAtlas.NeedsUpdate(cookie, true))
             {
-                Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
+                Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
 
                 Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
                 m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie));
@@ -437,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
             {
-                Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
+                Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
 
                 Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
                 m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
@@ -463,7 +467,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CookieAtlas.AtlasTexture.rt.height,
                 1.0f / m_CookieAtlas.AtlasTexture.rt.width,
                 1.0f / m_CookieAtlas.AtlasTexture.rt.height
-           );
+            );
         }
 
         public Vector4 GetCookieAtlasDatas()
@@ -474,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 padding / (float)m_CookieAtlas.AtlasTexture.rt.width,
                 cookieAtlasLastValidMip,
                 0
-           );
+            );
         }
     }
 }

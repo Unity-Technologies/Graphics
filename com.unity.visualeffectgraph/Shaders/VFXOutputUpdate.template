@@ -1,6 +1,12 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+
+#if HAS_STRIPS
+RWStructuredBuffer<uint> stripDataBuffer;
+#endif
+
 ${VFXPerPassInclude}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
@@ -41,9 +47,13 @@ CBUFFER_START(updateParams)
 	uint nbMax;
 	uint dispatchWidth;
 	uint systemSeed;
+	float3 cameraXRSettings;
 CBUFFER_END
 
 ${VFXGeneratedBlockFunction}
+
+#if VFX_FEATURE_FRUSTUM_CULL || VFX_FEATURE_LOD
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 
 bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
 {
@@ -53,6 +63,11 @@ bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
         outside = outside || DistanceFromPlane(pos, frustumPlanes[i]) < -radius;
     return outside;
 }
+#endif
+
+#if HAS_STRIPS
+${VFXDeclareGetStripTangent}
+#endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId		: SV_GroupID,
@@ -61,14 +76,20 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	if (id < nbMax)
 	{
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
         uint index = id;
+
 		${VFXLoadAttributes:{alive}}
 		if (attributes.alive)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+#if HAS_STRIPS
+            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            InitStripAttributes(index, attributes, stripData);
+            uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+#endif
 			${VFXProcessBlocks}
 
             // Recheck alive as blocks can set it to false for manual culling.
@@ -76,6 +97,9 @@ void CSMain(uint3 groupId		: SV_GroupID,
             if (attributes.alive)
             {
                 ${VFXLoadSize}
+#if HAS_STRIPS
+                size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+#endif
                 float4x4 elementToVFX = GetElementToVFXMatrix(
                     attributes.axisX,
                     attributes.axisY,
@@ -90,12 +114,12 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	            float4x4 elementToWorld = elementToVFX;
                 elementToWorld._m03_m13_m23 = GetCameraRelativePositionWS(elementToWorld._m03_m13_m23);
 #else
-                float4x4 elementToWorld = mul(GetObjectToWorldMatrix(),elementToVFX);          
+                float4x4 elementToWorld = mul(GetObjectToWorldMatrix(),elementToVFX);
 #endif
 
 	            float xAxisSqrLength = dot(elementToWorld._m00_m10_m20, elementToWorld._m00_m10_m20);
 	            float yAxisSqrLength = dot(elementToWorld._m01_m11_m21, elementToWorld._m01_m11_m21);
-	            float zAxisSqrLength = dot(elementToWorld._m02_m12_m22, elementToWorld._m02_m12_m22);             
+	            float zAxisSqrLength = dot(elementToWorld._m02_m12_m22, elementToWorld._m02_m12_m22);
                 float radius = 0.5f * sqrt(xAxisSqrLength + yAxisSqrLength + zAxisSqrLength);
 
                 ${VFXLoadParameter:{radiusScale}}
@@ -105,22 +129,6 @@ void CSMain(uint3 groupId		: SV_GroupID,
                 if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, _FrustumPlanes))
                     return;
 #endif
-#endif          
-
-#if VFX_FEATURE_MOTION_VECTORS 
-			    UNITY_UNROLL
-			    for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
-			    {
-				    UNITY_UNROLL
-				    for (int itIndexMatrixCol = 0; itIndexMatrixCol < 4; ++itIndexMatrixCol)
-				    {
-					    uint itIndexMatrix = itIndexMatrixCol * 4 + itIndexMatrixRow;
-					    float value = elementToVFX[itIndexMatrixRow][itIndexMatrixCol];
-					    elementToVFXBuffer.Store((index * 16 + itIndexMatrix) << 2, asuint(value));
-				    }
-			    }
-
-                elementToVFXBuffer.Store((index*16 + 15) << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
 #endif
 
 #if INDIRECT_BUFFER_COUNT > 0
@@ -139,7 +147,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                     float lodValue = max(abs(clip.x),abs(clip.y)) * rcp(max(VFX_EPSILON, clip.w));
 
                     ${VFXLoadParameter:{lodValues}}
-                
+
                     for (uint i = 0; i < INDIRECT_BUFFER_COUNT; ++i)
                         if (lodValue > lodValues[i])
                         {
@@ -152,20 +160,12 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #else
                 uint outputIndex = attributes.meshIndex;
 #endif
-                if (outputIndex > 3)
+                if (outputIndex >= INDIRECT_BUFFER_COUNT)
                     return;
 
+
 #if VFX_FEATURE_SORT
-#if VFX_LOCAL_SPACE
-                float3 posRWS = TransformObjectToWorld(attributes.position);
-#else
-                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
-#endif
-                float3 camToPos = posRWS - GetCurrentViewPosition();
-		
-                Kvp output;
-                output.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
-                output.index = index;
+${VFXFeedSortingKeys}
 #else
                 uint output = index;
 #endif
@@ -197,7 +197,64 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
 #endif
 #endif
+
+#if VFX_FEATURE_MOTION_VECTORS
+#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+                uint viewTotal = asuint(cameraXRSettings.x);
+                uint viewCount = asuint(cameraXRSettings.y);
+                uint viewOffset = asuint(cameraXRSettings.z);
+                uint elementToVFXIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+#else
+                uint elementToVFXIndex = index * 13;
+#endif
+                elementToVFXBuffer.Store(elementToVFXIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
+#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+                elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
+                ${VFXMotionVectorVerts}
+#ifdef USING_STEREO_MATRICES
+                if (viewCount == 2)
+                {
+                    float4 stereoOffset = float4(GetWorldStereoOffset(), 0.0f);
+                    UNITY_UNROLL
+                    for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS; ++itIndexVert)
+                    {
+                        float4 vertPosWorld = float4(TransformPositionVFXToWorld(verts[itIndexVert]), 1.0f);
+                        float4 vertPosA = mul(_XRNonJitteredViewProjMatrix[0], vertPosWorld);
+                        float4 vertPosB = mul(_XRNonJitteredViewProjMatrix[1], vertPosWorld + stereoOffset);
+                        elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
+                        elementToVFXIndex += 4; // 1 vert * 2 floats * 2 views
+                    }
+                }
+                else
+#endif
+                {
+                    UNITY_UNROLL
+                    for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS - 1; itIndexVert += 2)
+                    {
+                        float4 vertPosA = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
+                        float4 vertPosB = TransformPositionVFXToNonJitteredClip(verts[itIndexVert + 1]);
+                        elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
+                        elementToVFXIndex += 4; // 2 verts * 2 floats
+                    }
+                    if (VFX_FEATURE_MOTION_VECTORS_VERTS % 2 == 1)
+                    {
+                        int itIndexVert = VFX_FEATURE_MOTION_VECTORS_VERTS - 1;
+                        float4 vertPos = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
+                        elementToVFXBuffer.Store2(elementToVFXIndex << 2, asuint(vertPos.xy / vertPos.w));
+                        elementToVFXIndex += 2; // 1 verts * 2 floats
+                    }
+               }
+#else
+                UNITY_UNROLL
+                for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+                {
+                    float4 value = elementToVFX[itIndexMatrixRow] * attributes.alive;
+                    elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(value));
+                    elementToVFXIndex += 4; // 1 row * 4 floats
+                }
+#endif
+#endif
             }
-		}		
+		}
 	}
 }

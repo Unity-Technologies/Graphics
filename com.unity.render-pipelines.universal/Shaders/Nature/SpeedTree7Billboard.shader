@@ -33,14 +33,16 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ _CLUSTERED_RENDERING
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fog
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION
@@ -88,14 +90,14 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION
@@ -114,7 +116,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
 

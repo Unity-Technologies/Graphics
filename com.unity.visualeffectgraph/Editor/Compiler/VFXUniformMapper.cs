@@ -122,7 +122,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_UniformToName.Select(s => {
+                return m_UniformToName.Select(s =>
+                {
                     string code = null;
                     string firstName = s.Value.First();
                     switch (s.Key.valueType)
@@ -143,9 +144,9 @@ namespace UnityEditor.VFX
 
                     return new KeyValuePair<VFXExpression, string>(s.Key, code);
                 })
-                .Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
-                .Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
-                .ToDictionary(s => s.Key, s => s.Value);
+                    .Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
+                    .Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
+                    .ToDictionary(s => s.Key, s => s.Value);
             }
         }
 

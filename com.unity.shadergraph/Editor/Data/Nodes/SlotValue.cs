@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph
         Vector1,
         Dynamic,
         Boolean,
-        VirtualTexture
+        VirtualTexture,
+        PropertyConnectionState,
     }
 
     enum ConcreteSlotValueType
@@ -43,7 +44,8 @@ namespace UnityEditor.ShaderGraph
         Vector2,
         Vector1,
         Boolean,
-        VirtualTexture
+        VirtualTexture,
+        PropertyConnectionState
     }
 
     // This enum must match ConcreteSlotValueType enum and is used to give friendly name in the enum popup used for custom function
@@ -63,14 +65,79 @@ namespace UnityEditor.ShaderGraph
         Vector2 = ConcreteSlotValueType.Vector2,
         Float = ConcreteSlotValueType.Vector1, // This is currently the only renaming we need - rename Vector1 to Float
         Boolean = ConcreteSlotValueType.Boolean,
-        VirtualTexture = ConcreteSlotValueType.VirtualTexture
+        VirtualTexture = ConcreteSlotValueType.VirtualTexture,
+        PropertyConnectionState = ConcreteSlotValueType.PropertyConnectionState,
+
+        // These allow the user to choose 'bare' types for custom function nodes
+        // they are treated specially in the conversion functions below
+        BareSamplerState = 1000 + ConcreteSlotValueType.SamplerState,
+        BareTexture2D = 1000 + ConcreteSlotValueType.Texture2D,
+        BareTexture2DArray = 1000 + ConcreteSlotValueType.Texture2DArray,
+        BareTexture3D = 1000 + ConcreteSlotValueType.Texture3D,
+        BareCubemap = 1000 + ConcreteSlotValueType.Cubemap,
     }
 
     static class SlotValueHelper
     {
-        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueType type)
+        public static ConcreteSlotValueTypePopupName ToConcreteSlotValueTypePopupName(this ConcreteSlotValueType slotType, bool isBareResource)
         {
-            return type != ConcreteSlotValueType.VirtualTexture;
+            ConcreteSlotValueTypePopupName result = (ConcreteSlotValueTypePopupName)slotType;
+            switch (slotType)
+            {
+                case ConcreteSlotValueType.SamplerState:
+                    if (isBareResource)
+                        result = ConcreteSlotValueTypePopupName.BareSamplerState;
+                    break;
+                case ConcreteSlotValueType.Texture2D:
+                    if (isBareResource)
+                        result = ConcreteSlotValueTypePopupName.BareTexture2D;
+                    break;
+                case ConcreteSlotValueType.Texture2DArray:
+                    if (isBareResource)
+                        result = ConcreteSlotValueTypePopupName.BareTexture2DArray;
+                    break;
+                case ConcreteSlotValueType.Texture3D:
+                    if (isBareResource)
+                        result = ConcreteSlotValueTypePopupName.BareTexture3D;
+                    break;
+                case ConcreteSlotValueType.Cubemap:
+                    if (isBareResource)
+                        result = ConcreteSlotValueTypePopupName.BareCubemap;
+                    break;
+            }
+            return result;
+        }
+
+        public static ConcreteSlotValueType ToConcreteSlotValueType(this ConcreteSlotValueTypePopupName popup, out bool isBareResource)
+        {
+            switch (popup)
+            {
+                case ConcreteSlotValueTypePopupName.BareSamplerState:
+                    isBareResource = true;
+                    return ConcreteSlotValueType.SamplerState;
+                case ConcreteSlotValueTypePopupName.BareTexture2D:
+                    isBareResource = true;
+                    return ConcreteSlotValueType.Texture2D;
+                case ConcreteSlotValueTypePopupName.BareTexture2DArray:
+                    isBareResource = true;
+                    return ConcreteSlotValueType.Texture2DArray;
+                case ConcreteSlotValueTypePopupName.BareTexture3D:
+                    isBareResource = true;
+                    return ConcreteSlotValueType.Texture3D;
+                case ConcreteSlotValueTypePopupName.BareCubemap:
+                    isBareResource = true;
+                    return ConcreteSlotValueType.Cubemap;
+            }
+            ;
+
+            isBareResource = false;
+            return (ConcreteSlotValueType)popup;
+        }
+
+        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueTypePopupName type)
+        {
+            // virtual textures and bare types disallowed
+            return (type < ConcreteSlotValueTypePopupName.VirtualTexture);
         }
 
         public static int GetChannelCount(this ConcreteSlotValueType type)
@@ -120,40 +187,46 @@ namespace UnityEditor.ShaderGraph
 
         static Dictionary<ConcreteSlotValueType, List<SlotValueType>> s_ValidConversions;
         static List<SlotValueType> s_ValidSlotTypes;
-        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType)
+        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType, bool outputTypeIsConnectionTestable = false)
         {
             if (s_ValidConversions == null)
             {
                 var validVectors = new List<SlotValueType>()
                 {
                     SlotValueType.Dynamic, SlotValueType.DynamicVector,
-                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4
+                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4,
+                    SlotValueType.Boolean
                 };
 
                 s_ValidConversions = new Dictionary<ConcreteSlotValueType, List<SlotValueType>>()
                 {
-                    {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean}},
+                    {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean, SlotValueType.Dynamic, SlotValueType.DynamicVector, SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4}},
                     {ConcreteSlotValueType.Vector1, validVectors},
                     {ConcreteSlotValueType.Vector2, validVectors},
                     {ConcreteSlotValueType.Vector3, validVectors},
                     {ConcreteSlotValueType.Vector4, validVectors},
                     {ConcreteSlotValueType.Matrix2, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2}},
                     {ConcreteSlotValueType.Matrix3, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3}},
                     {ConcreteSlotValueType.Matrix4, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3, SlotValueType.Matrix4}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3, SlotValueType.Matrix4}},
                     {ConcreteSlotValueType.Texture2D, new List<SlotValueType>() {SlotValueType.Texture2D}},
                     {ConcreteSlotValueType.Texture3D, new List<SlotValueType>() {SlotValueType.Texture3D}},
                     {ConcreteSlotValueType.Texture2DArray, new List<SlotValueType>() {SlotValueType.Texture2DArray}},
                     {ConcreteSlotValueType.Cubemap, new List<SlotValueType>() {SlotValueType.Cubemap}},
                     {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
                     {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
-                    {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}}
+                    {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}},
                 };
             }
 
-            if(s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
+            if (inputType == SlotValueType.PropertyConnectionState)
+            {
+                return outputTypeIsConnectionTestable;
+            }
+
+            if (s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
             {
                 return s_ValidSlotTypes.Contains(inputType);
             }

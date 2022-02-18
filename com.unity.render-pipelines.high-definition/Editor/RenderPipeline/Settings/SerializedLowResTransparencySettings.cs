@@ -1,4 +1,4 @@
-﻿using UnityEditor.Rendering;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -15,9 +15,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             this.root = root;
 
-            enabled                     = root.Find((GlobalLowResolutionTransparencySettings s) => s.enabled);
-            checkerboardDepthBuffer     = root.Find((GlobalLowResolutionTransparencySettings s) => s.checkerboardDepthBuffer);
-            upsampleType                = root.Find((GlobalLowResolutionTransparencySettings s) => s.upsampleType);
+            enabled = root.Find((GlobalLowResolutionTransparencySettings s) => s.enabled);
+            checkerboardDepthBuffer = root.Find((GlobalLowResolutionTransparencySettings s) => s.checkerboardDepthBuffer);
+            upsampleType = root.Find((GlobalLowResolutionTransparencySettings s) => s.upsampleType);
         }
     }
 }

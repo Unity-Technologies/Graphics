@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.Matrix2;
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concretePrecision.ToShaderString()}2x2 {referenceName}";
+            return $"{precisionString}2x2 {referenceName}";
         }
 
         internal override AbstractMaterialNode ToConcreteNode()
@@ -45,9 +45,7 @@ namespace UnityEditor.ShaderGraph
             return new Matrix2ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
 

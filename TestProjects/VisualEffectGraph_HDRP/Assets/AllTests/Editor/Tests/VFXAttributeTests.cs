@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.Test
             protected ContextTest(VFXContextType type) : base(type, VFXDataType.Particle, VFXDataType.Particle)
             {}
 
+            public override bool CanBeCompiled()
+            {
+                return true;
+            }
+
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get { return attributeInfos; }
@@ -29,10 +34,22 @@ namespace UnityEditor.VFX.Test
         private class ContextTestInit : ContextTest
         {
             public ContextTestInit() : base(VFXContextType.Init) {}
+
+            public override bool CanBeCompiled()
+            {
+                return true;
+            }
+
         }
         private class ContextTestOutput : ContextTest
         {
             public ContextTestOutput() : base(VFXContextType.Output) {}
+
+            public override bool CanBeCompiled()
+            {
+                return true;
+            }
+
         }
 
         private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.Float);

@@ -1,6 +1,10 @@
 #ifndef UNITY_COMMON_MATERIAL_INCLUDED
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Define constants
 //-----------------------------------------------------------------------------
@@ -14,11 +18,14 @@
 #define CLEAR_COAT_ROUGHNESS 0.01
 #define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
+#define CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS 0.0 // For screen space reflections and ray traced reflections, we want to have a purely smooth surface to map the envrionement light behavior
 
 //-----------------------------------------------------------------------------
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
+
+#ifndef BUILTIN_TARGET_API
 real PerceptualRoughnessToRoughness(real perceptualRoughness)
 {
     return perceptualRoughness * perceptualRoughness;
@@ -28,6 +35,7 @@ real RoughnessToPerceptualRoughness(real roughness)
 {
     return sqrt(roughness);
 }
+#endif
 
 real RoughnessToPerceptualSmoothness(real roughness)
 {
@@ -58,9 +66,9 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 // but chopping the far tails of GGX and keeping 94% of the mass yields a distribution with a defined variance where
 // we can then relate the roughness of GGX to a variance (see Ray Tracing Gems p153 - the reference is wrong though,
 // the Conty paper doesn't mention this at all, but it can be found in stats using quantiles):
-// 
+//
 // roughnessGGX^2 = variance / 2
-// 
+//
 // From the two previous, if we want roughly comparable variances of slopes between a Beckmann and a GGX NDF, we can
 // equate the variances and get a conversion of their roughnesses:
 //
@@ -131,6 +139,11 @@ void ConvertRoughnessTAndAnisotropyToRoughness(real roughnessT, real anisotropy,
     roughness = roughnessT / (1 + anisotropy);
 }
 
+real ConvertRoughnessTAndBToRoughness(real roughnessT, real roughnessB)
+{
+    return 0.5 * (roughnessT + roughnessB);
+}
+
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)
 {
     anisotropy = ((roughnessT - roughnessB) / max(roughnessT + roughnessB, 0.0001));
@@ -176,6 +189,18 @@ float NormalFiltering(float perceptualSmoothness, float variance, float threshol
     return RoughnessToPerceptualSmoothness(sqrt(squaredRoughness));
 }
 
+float ProjectedSpaceNormalFiltering(float perceptualSmoothness, float variance, float threshold)
+{
+    float roughness = PerceptualSmoothnessToRoughness(perceptualSmoothness);
+    // Ref: Stable Geometric Specular Antialiasing with Projected-Space NDF Filtering - https://yusuketokuyoshi.com/papers/2021/Tokuyoshi2021SAA.pdf
+    float squaredRoughness = roughness * roughness;
+    float projRoughness2 = squaredRoughness / (1.0 - squaredRoughness);
+    float filteredProjRoughness2 = saturate(projRoughness2 + min(2.0 * variance, threshold * threshold));
+    squaredRoughness = filteredProjRoughness2 / (filteredProjRoughness2 + 1.0f);
+
+    return RoughnessToPerceptualSmoothness(sqrt(squaredRoughness));
+}
+
 // Reference: Error Reduction and Simplification for Shading Anti-Aliasing
 // Specular antialiasing for geometry-induced normal (and NDF) variations: Tokuyoshi / Kaplanyan et al.'s method.
 // This is the deferred approximation, which works reasonably well so we keep it for forward too for now.
@@ -194,6 +219,12 @@ float GeometricNormalFiltering(float perceptualSmoothness, float3 geometricNorma
 {
     float variance = GeometricNormalVariance(geometricNormalWS, screenSpaceVariance);
     return NormalFiltering(perceptualSmoothness, variance, threshold);
+}
+
+float ProjectedSpaceGeometricNormalFiltering(float perceptualSmoothness, float3 geometricNormalWS, float screenSpaceVariance, float threshold)
+{
+    float variance = GeometricNormalVariance(geometricNormalWS, screenSpaceVariance);
+    return ProjectedSpaceNormalFiltering(perceptualSmoothness, variance, threshold);
 }
 
 // Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation.
@@ -324,9 +355,16 @@ real LerpWhiteTo(real b, real t)
     return oneMinusT + b * t;
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 LerpWhiteTo(real3 b, real t)
 {
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
+#endif
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
+
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

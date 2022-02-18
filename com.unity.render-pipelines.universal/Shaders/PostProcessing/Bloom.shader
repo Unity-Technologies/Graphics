@@ -3,7 +3,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
     HLSLINCLUDE
         #pragma exclude_renderers gles
         #pragma multi_compile_local _ _USE_RGBM
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -84,10 +84,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
         #endif
 
-        #if UNITY_COLORSPACE_GAMMA
-            color = SRGBToLinear(color);
-        #endif
-
             // User controlled clamp to limit crazy high broken spec
             color = min(ClampMax, color);
 
@@ -98,6 +94,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half multiplier = max(brightness - Threshold, softness) / max(brightness, 1e-4);
             color *= multiplier;
 
+            // Clamp colors to positive once in prefilter. Encode can have a sqrt, and sqrt(-x) == NaN. Up/Downsample passes would then spread the NaN.
+            color = max(color, 0);
             return EncodeHDR(color);
         }
 

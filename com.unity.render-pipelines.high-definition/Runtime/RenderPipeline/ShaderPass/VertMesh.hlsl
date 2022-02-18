@@ -127,20 +127,48 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-// Make it inout so that MotionVectorPass can get the modified input values later.
-VaryingsMeshType VertMesh(AttributesMesh input)
+VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
+#ifdef HAVE_VFX_MODIFICATION
+    , out AttributesElement element
+#endif
+)
 {
     VaryingsMeshType output;
+#if defined(USE_CUSTOMINTERP_SUBSTRUCT) || defined(HAVE_VFX_MODIFICATION)
+    ZERO_INITIALIZE(VaryingsMeshType, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
+#endif
 
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-#if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input, _TimeParameters.xyz);
+#ifdef HAVE_VFX_MODIFICATION
+    ZERO_INITIALIZE(AttributesElement, element);
+
+    if(!GetMeshAndElementIndex(input, element))
+        return output; // Culled index.
+
+    if(!GetInterpolatorAndElementData(output, element))
+        return output; // Dead particle.
+
+    SetupVFXMatrices(element, output);
+#endif
+
+#ifdef HAVE_MESH_MODIFICATION
+    input = ApplyMeshModification(input, _TimeParameters.xyz
+    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
+        // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+        , output
+    #endif
+    #ifdef HAVE_VFX_MODIFICATION
+        , element
+    #endif
+    );
 #endif
 
     // This return the camera relative position (if enable)
-    float3 positionRWS = TransformObjectToWorld(input.positionOS);
+    float3 positionRWS = TransformObjectToWorld(input.positionOS) + worldSpaceOffset;
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else
@@ -158,6 +186,13 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
 #ifdef TESSELLATION_ON
     output.positionRWS = positionRWS;
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = positionRWS;
+#endif
+    // For tessellation we evaluate the tessellation factor from vertex shader then interpolate it in Hull Shader
+    // Note: For unknow reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
+    // so we prefer this version to be compatible with all platforms, have same code for non shader graph and shader graph version and also it should be faster.
+    output.tessellationFactor = GetTessellationFactor(input);
     output.normalWS = normalWS;
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
@@ -166,6 +201,10 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = positionRWS;
 #endif
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = positionRWS;
+#endif
+
     output.positionCS = TransformWorldToHClip(positionRWS);
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
@@ -196,13 +235,32 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     return output;
 }
 
+VaryingsMeshType VertMesh(AttributesMesh input)
+{
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement element;
+    return VertMesh(input, 0.0f, element);
+#else
+    return VertMesh(input, 0.0f);
+#endif
+}
+
+#ifdef HAVE_VFX_MODIFICATION
+VaryingsMeshType VertMesh(AttributesMesh input, out AttributesElement element)
+{
+    return VertMesh(input, 0.0f, element);
+}
+#endif
+
 #ifdef TESSELLATION_ON
 
 VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
 
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
+    // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
@@ -214,6 +272,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = input.positionRWS;
+#endif
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = input.positionPredisplacementRWS;
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
@@ -235,6 +296,12 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
+#endif
+
+    // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    VertMeshTesselationCustomInterpolation(input, output);
 #endif
 
     return output;

@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
         }
         public int operandCount
         {
-            get {return m_Type.Length; }
+            get { return m_Type.Length; }
         }
         public Type GetOperandType(int index)
         {

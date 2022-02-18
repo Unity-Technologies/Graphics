@@ -1,17 +1,26 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
+#define USE_PREFIX_SUM ((VFX_STATIC_SOURCE_COUNT > 1) || (VFX_USE_DYNAMIC_SOURCE_COUNT))
+
 RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
+#if USE_PREFIX_SUM
+StructuredBuffer<uint> prefixSumSpawnCount;
+#endif
 
 CBUFFER_START(initParams)
 #if !VFX_USE_SPAWNER_FROM_GPU
     uint nbSpawned;					// Numbers of particle spawned
     uint spawnIndex;				// Index of the first particle spawned
     uint dispatchWidth;
+#if VFX_USE_DYNAMIC_SOURCE_COUNT
+    uint nbEvents;					// Number of spawn events
+#endif
 #else
     uint offsetInAdditionalOutput;
 	uint nbMax;
@@ -30,7 +39,7 @@ ByteAddressBuffer inputAdditional;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
 ${VFXPerPassInclude}
@@ -88,11 +97,34 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		uint particleIndex = id + currentSpawnIndex;
 		
 #if !VFX_USE_SPAWNER_FROM_GPU
-        ${VFXComputeSourceIndex}
+        int sourceIndex = 0;
+
+        #if !VFX_USE_DYNAMIC_SOURCE_COUNT
+            uint nbEvents = VFX_STATIC_SOURCE_COUNT;
+        #endif
+
+        #if USE_PREFIX_SUM
+            uint left = 0;
+            uint right = max(nbEvents, 1) - 1;
+            while (left <= right)
+            {
+                sourceIndex = (int)((left + right) / 2);
+                if (id.x < prefixSumSpawnCount[sourceIndex])
+                {
+                    if (sourceIndex == 0 || id.x >= prefixSumSpawnCount[max(sourceIndex - 1, 0)])
+                        break;
+                    right = sourceIndex - 1;
+                }
+                else
+                {
+                    left = sourceIndex + 1;
+                }
+            }
+        #endif
 #endif
 
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 		
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
@@ -116,7 +148,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
             return;
 
         const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
-		InitStripAttributes(particleIndex, attributes, stripData);
+		InitStripAttributesWithSpawn(maxThreadId, particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #endif
         

@@ -3,7 +3,7 @@ The Contact Shadows [Volume Override](Volume-Components.md) specifies properties
 
 
 ## Enabling Contact Shadows
-[!include[](snippets/Volume-Override-Enable.md)]
+[!include[](snippets/Volume-Override-Enable-Override.md)]
 
 For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Shadows > Use Contact Shadows**.
@@ -22,6 +22,8 @@ You can enable Contact Shadows on a per Light basis for Directional, Point, and 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Directional Light that casts Contact Shadows is always the dominant Light.
 
 **Note**: A Light casts Contact Shadows for every Mesh Renderer that uses a Material that writes to the depth buffer. This is regardless of whether you enable or disable the **Cast Shadows** property on the Mesh Renderer. This means that you can disable **Cast Shadows** on small GameObjects/props and still have them cast Contact Shadows. This is good if you do not want HDRP to render these GameObjects in shadow maps. If you do not want this behavior, use Shader Graph to author a Material that does not write to the depth buffer.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 

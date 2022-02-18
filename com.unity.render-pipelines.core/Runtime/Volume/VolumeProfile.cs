@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Volume"/>.
     /// </summary>
-    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volume-Profile" + Documentation.endURL)]
+    [CoreRPHelpURL("Volume-Profile", "com.unity.render-pipelines.high-definition")]
     public sealed class VolumeProfile : ScriptableObject
     {
         /// <summary>
@@ -75,6 +75,10 @@ namespace UnityEngine.Rendering
                 throw new InvalidOperationException("Component already exists in the volume");
 
             var component = (VolumeComponent)CreateInstance(type);
+#if UNITY_EDITOR
+            component.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+            component.name = type.Name;
+#endif
             component.SetAllOverridesTo(overrides);
             components.Add(component);
             isDirty = true;
@@ -280,7 +284,6 @@ namespace UnityEngine.Rendering
             return count != result.Count;
         }
 
-
         /// <summary>
         /// A custom hashing function that Unity uses to compare the state of parameters.
         /// </summary>
@@ -309,6 +312,16 @@ namespace UnityEngine.Rendering
 
                 return hash;
             }
+        }
+
+        /// <summary>
+        /// Removes any components that were destroyed externally from the iternal list of components
+        /// </summary>
+        internal void Sanitize()
+        {
+            for (int i = components.Count - 1; i >= 0; i--)
+                if (components[i] == null)
+                    components.RemoveAt(i);
         }
     }
 }

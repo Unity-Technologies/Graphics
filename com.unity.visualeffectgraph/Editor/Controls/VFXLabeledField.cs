@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
                 dragging = true;
                 startValue = m_DrivenField.value;
-                if(m_OnDragStarted != null)
+                if (m_OnDragStarted != null)
                     m_OnDragStarted();
 
                 EditorGUIUtility.SetWantsMouseJumping(1);
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
 
         public bool indeterminate
         {
-            get {return m_Control.parent == null; }
+            get { return m_Control.parent == null; }
 
             set
             {

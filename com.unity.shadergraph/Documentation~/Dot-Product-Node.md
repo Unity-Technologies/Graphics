@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the dot product, or scalar product, of the two input vectors **A** and **B**. 
+Returns the dot product, or scalar product, of the two input vectors **A** and **B**.
 
 The dot product is a value equal to the magnitudes of the two vectors multiplied together and then multiplied by the cosine of the angle between them.
 

@@ -11,7 +11,6 @@ public enum Type
 };
 public class Motion : MonoBehaviour
 {
-
     float angle = 0;
     float dist = 0;
     float dir = 1.0f;
@@ -36,7 +35,7 @@ public class Motion : MonoBehaviour
     {
         if (type == Type.Circle)
         {
-            if(perFrame)
+            if (perFrame)
             {
                 float fixedStep = speed / 30.0f;
                 angle += fixedStep;
@@ -69,7 +68,6 @@ public class Motion : MonoBehaviour
 
             Vector3 offset = axisSide.normalized * dist;// new Vector3(dist, 0.0f, 0.0f);
             transform.position = originalPos + offset;
-
         }
         if (type == Type.Rotate)
         {

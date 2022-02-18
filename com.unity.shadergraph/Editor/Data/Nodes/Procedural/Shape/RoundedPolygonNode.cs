@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public RoundedPolygonNode()
         {
             name = "Rounded Polygon";
+            synonyms = new string[] { "shape" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -25,9 +26,9 @@ namespace UnityEditor.ShaderGraph
             [Slot(5, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
-	UV = UV * 2. + $precision2(-1.,-1.);
+    UV = UV * 2. + $precision2(-1.,-1.);
     $precision epsilon = 1e-6;
     UV.x = UV.x / ( Width + (Width==0)*epsilon);
     UV.y = UV.y / ( Height + (Height==0)*epsilon);
@@ -77,8 +78,12 @@ namespace UnityEditor.ShaderGraph
     Out = UV.x;
     float chamferZone = ( halfAngle - polaruv.x ) < chamferAngle;
     Out = lerp( UV.x, polaruv.y / distC, chamferZone );
-	// Output this to have the shape mask instead of the distance field
-	Out = saturate((1 - Out) / fwidth(Out));
+    // Output this to have the shape mask instead of the distance field
+#if defined(SHADER_STAGE_RAY_TRACING)
+    Out = saturate((1 - Out) * 1e7);
+#else
+    Out = saturate((1 - Out) / fwidth(Out));
+#endif
 }
 ";
         }

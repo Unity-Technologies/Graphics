@@ -4,6 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Assertions;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering
 {
     using UnityObject = UnityEngine.Object;
@@ -14,8 +18,6 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeManager
     {
-        internal static bool needIsolationFilteredByRenderer = false;
-
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
 
         /// <summary>
@@ -27,12 +29,90 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
-        public VolumeStack stack { get; private set; }
+        public VolumeStack stack { get; set; }
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public IEnumerable<Type> baseComponentTypes { get; private set; }
+        [Obsolete("Please use baseComponentTypeArray instead.")]
+        public IEnumerable<Type> baseComponentTypes
+        {
+            get => baseComponentTypeArray;
+            private set => baseComponentTypeArray = value.ToArray();
+        }
+
+        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
+
+        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
+        {
+            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
+                out var supportedVolumeComponents))
+                return supportedVolumeComponents;
+
+            supportedVolumeComponents = FilterVolumeComponentTypes(
+                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
+
+            return supportedVolumeComponents;
+        }
+
+        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
+        {
+            var volumes = new List<(string, Type)>();
+            foreach (var t in types)
+            {
+                string path = string.Empty;
+
+                var attrs = t.GetCustomAttributes(false);
+
+                bool skipComponent = false;
+
+                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+                foreach (var attr in attrs)
+                {
+                    switch (attr)
+                    {
+                        case VolumeComponentMenu attrMenu:
+                        {
+                            path = attrMenu.menu;
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                            break;
+                        }
+                        case HideInInspector attrHide:
+                        case ObsoleteAttribute attrDeprecated:
+                            skipComponent = true;
+                            break;
+                    }
+                }
+
+                if (skipComponent)
+                    continue;
+
+                // If no attribute or in case something went wrong when grabbing it, fallback to a
+                // beautified class name
+                if (string.IsNullOrEmpty(path))
+                {
+#if UNITY_EDITOR
+                    path = ObjectNames.NicifyVariableName(t.Name);
+#else
+                    path = t.Name;
+#endif
+                }
+
+
+                volumes.Add((path, t));
+            }
+
+            return volumes
+                .OrderBy(i => i.Item1)
+                .ToList();
+        }
+
+        /// <summary>
+        /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
+        /// </summary>
+        public Type[] baseComponentTypeArray { get; private set; }
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -51,8 +131,24 @@ namespace UnityEngine.Rendering
         // would be error-prone)
         readonly List<VolumeComponent> m_ComponentsDefaultState;
 
+        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
+        {
+            foreach (VolumeComponent component in m_ComponentsDefaultState)
+            {
+                if (component.GetType() == volumeComponentType)
+                    return component;
+            }
+
+            return null;
+        }
+
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
+
+        // The default stack the volume manager uses.
+        // We cache this as users able to change the stack through code and
+        // we want to be able to switch to the default one through the ResetMainStack() function.
+        VolumeStack m_DefaultStack = null;
 
         VolumeManager()
         {
@@ -64,7 +160,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            stack = CreateStack();
+            m_DefaultStack = CreateStack();
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -77,8 +174,17 @@ namespace UnityEngine.Rendering
         public VolumeStack CreateStack()
         {
             var stack = new VolumeStack();
-            stack.Reload(baseComponentTypes);
+            stack.Reload(baseComponentTypeArray);
             return stack;
+        }
+
+        /// <summary>
+        /// Resets the main stack to be the default one.
+        /// Call this function if you've assigned the main stack to something other than the default one.
+        /// </summary>
+        public void ResetMainStack()
+        {
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -97,13 +203,15 @@ namespace UnityEngine.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Grab all the component types we can find
-            baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract);
+            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+                .Where(t => !t.IsAbstract).ToArray();
 
+            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
-            foreach (var type in baseComponentTypes)
+            foreach (var type in baseComponentTypeArray)
             {
+                type.GetMethod("Init", flags)?.Invoke(null, null);
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
             }
@@ -227,7 +335,7 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
-                    if(target.parameters[i] != null)
+                    if (target.parameters[i] != null)
                     {
                         target.parameters[i].overrideState = false;
                         target.parameters[i].SetValue(component.parameters[i]);
@@ -262,7 +370,7 @@ namespace UnityEngine.Rendering
 
             if (components == null)
             {
-                stack.Reload(baseComponentTypes);
+                stack.Reload(baseComponentTypeArray);
                 return;
             }
 
@@ -270,7 +378,7 @@ namespace UnityEngine.Rendering
             {
                 if (kvp.Key == null || kvp.Value == null)
                 {
-                    stack.Reload(baseComponentTypes);
+                    stack.Reload(baseComponentTypeArray);
                     return;
                 }
             }
@@ -319,18 +427,15 @@ namespace UnityEngine.Rendering
             if (!onlyGlobal)
                 trigger.TryGetComponent<Camera>(out camera);
 
-#if UNITY_EDITOR
-            // requested or prefab isolation mode.
-            bool needIsolation = needIsolationFilteredByRenderer || (UnityEditor.SceneManagement.StageUtility.GetCurrentStageHandle() != UnityEditor.SceneManagement.StageUtility.GetMainStageHandle());
-#endif
-
             // Traverse all volumes
             foreach (var volume in volumes)
             {
+                if (volume == null)
+                    continue;
+
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
-                if (needIsolation
-                    && !IsVolumeRenderedByCamera(volume, camera))
+                if (!IsVolumeRenderedByCamera(volume, camera))
                     continue;
 #endif
 
@@ -398,6 +503,7 @@ namespace UnityEngine.Rendering
         public Volume[] GetVolumes(LayerMask layerMask)
         {
             var volumes = GrabVolumes(layerMask);
+            volumes.RemoveAll(v => v == null);
             return volumes.ToArray();
         }
 
@@ -469,19 +575,18 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A scope in which a Camera filters a Volume.
     /// </summary>
+    [Obsolete("VolumeIsolationScope is deprecated, it does not have any effect anymore.")]
     public struct VolumeIsolationScope : IDisposable
     {
         /// <summary>
         /// Constructs a scope in which a Camera filters a Volume.
         /// </summary>
         /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused)
-            => VolumeManager.needIsolationFilteredByRenderer = true;
+        public VolumeIsolationScope(bool unused) { }
 
         /// <summary>
         /// Stops the Camera from filtering a Volume.
         /// </summary>
-        void IDisposable.Dispose()
-            => VolumeManager.needIsolationFilteredByRenderer = false;
+        void IDisposable.Dispose() { }
     }
 }

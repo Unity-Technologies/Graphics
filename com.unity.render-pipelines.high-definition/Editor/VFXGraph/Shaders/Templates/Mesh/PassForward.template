@@ -2,6 +2,8 @@ Pass
 {		
 	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
 			
+    ${VFXStencilForward}
+
 	HLSLPROGRAM
 	#pragma target 4.5
 	
@@ -10,6 +12,7 @@ Pass
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 	#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
 	
@@ -24,7 +27,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD1;
 		#else
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+		float3 uv : TEXCOORD1;
+		#else
 		float2 uv : TEXCOORD1;	
+		#endif
 		#endif
         #if VFX_SHADERGRAPH_HAS_UV1
         float4 uv1 : COLOR2;
@@ -42,7 +49,7 @@ Pass
 		#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD
 		float4 tangent : TEXCOORD3;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || WRITE_MOTION_VECTOR_IN_FORWARD
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_FEATURE_MOTION_VECTORS_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -55,9 +62,8 @@ Pass
 		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 		#endif
 		
-		#if WRITE_MOTION_VECTOR_IN_FORWARD
-		float4 cPosPrevious : TEXCOORD6;
-		float4 cPosNonJiterred : TEXCOORD7;
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		VFX_DECLARE_MOTION_VECTORS_STORAGE(6,7)
 		#endif
 
 		float3 posWS : TEXCOORD8; // Needed for fog
@@ -87,9 +93,9 @@ ${VFXHDRPLitVaryingsMacros}
 #endif
 #define VFX_VARYING_POSWS posWS
 
-#if WRITE_MOTION_VECTOR_IN_FORWARD
-#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
-#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
 #endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
@@ -108,7 +114,7 @@ ${VFXEnd}
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
-#if WRITE_MOTION_VECTOR_IN_FORWARD
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	, out float4 outMotionVector : SV_Target1
 #endif
 	)
@@ -127,7 +133,7 @@ ${VFXEnd}
             outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
         #endif
 		
-		#if WRITE_MOTION_VECTOR_IN_FORWARD
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 			${VFXComputeOutputMotionVector}
 			outMotionVector = encodedMotionVector;
 			outMotionVector.a = outColor.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass

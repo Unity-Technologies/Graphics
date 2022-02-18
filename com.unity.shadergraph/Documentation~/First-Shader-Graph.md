@@ -1,13 +1,13 @@
 # My first Shader Graph
 
-Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started) for more information.
+Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started.md) for more information.
 
-## Create a New Graph 
-Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shaders** will display the various creation options. 
+## Create a New Graph
+Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shader Graph** will display the various creation options.
 
-A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
+A **Blank Shader Graph** will create a Shader Graph with no selected active targets or [block nodes](Block-Node.md). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Tab.md) to continue.
 
-Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened. 
+Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened.
 
 ## Create a new node
 
@@ -24,13 +24,13 @@ In the menu, you can type in the search bar to look for specific nodes, or brows
 
 To build a graph, you need to connect nodes together. To do so, click the **Output Slot** of a node, and drag that connection into the **Input Slot** of another node.
 
-Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack](). 
+Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack]().
 
 ![](images/MyFirstShaderGraph_02.png)
 
 ## Change node output
 
-Notice that the connection updated the master preview, and the 3D Object in the **Main Preview** is now black, which is the color specified in the Color node. You can click on the color bar in that node, and use the color picker to change the color. Any changes you make on the node updates the object in the **Main Preview** in real time.
+Notice that the connection updated the main preview, and the 3D Object in the **Main Preview** is now black, which is the color specified in the Color node. You can click on the color bar in that node, and use the color picker to change the color. Any changes you make on the node updates the object in the **Main Preview** in real time.
 
 For example, if you pick red, the 3D Object immediately reflects this change.
 
@@ -52,6 +52,8 @@ After saving your graph, use the shader to create a new Material. The process of
 You can also right-click the Shader Graph shader, and select **Create > Material**. This method automatically assigns that Shader Graph shader to the newly created Material.
 
 ![](images/MyFirstShaderGraph_05.png)
+
+A Material is also automatically generated as a subasset of the Shader Graph. You can assign it directly to an object in your scene. Modifying a property from the Blackboard on the Shader Graph will update this material in real time, which allows for quick visualization in the scene.
 
 ## Put the Material in the Scene
 
@@ -78,7 +80,7 @@ This adds a new property in the Blackboard with the following options in the **N
 | **Reference**       | The property's name that appears in C# scripts. To change the **Reference** name, enter a new string. |
 | **Default**         | The default value of the property.                           |
 | **Mode**            | The mode of the property. Each property has different modes. For **Color**, you can select either **Default** or **HDR**. |
-| **Precision**       | The default [precision](Precision-Modes) of the property. |
+| **Precision**       | The default [precision](Precision-Modes.md) of the property. |
 | **Hybrid Instanced**| An experimental feature that enables this property to be instanced when using the Hybrid DOTS renderer. |
 
 
@@ -99,7 +101,7 @@ Save your graph, and return to the Material's Inspector. The property now appear
 
 ## More Tutorials
 
-Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack](). 
+Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack]().
 
 To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
 
@@ -111,4 +113,3 @@ To keep exploring how to use Shader Graph to author shaders, check out these blo
 - [Introduction to Shader Graph: Build your shaders with a visual editor](https://blogs.unity3d.com/2018/02/27/introduction-to-shader-graph-build-your-shaders-with-a-visual-editor/)
 
 You can also visit the [Unity YouTube Channel](https://www.youtube.com/channel/UCG08EqOAXJk_YXPDsAvReSg) and look for [video tutorials on Shader Graph](https://www.youtube.com/user/Unity3D/search?query=shader+graph), or head to our [user forum](https://forum.unity.com/forums/shader-graph.346/) to find the latest information and conversations about Shader Graph.
-

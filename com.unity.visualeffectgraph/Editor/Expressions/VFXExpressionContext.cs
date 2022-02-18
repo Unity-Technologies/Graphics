@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
                         var gpuTransformation = Has(VFXExpressionContextOption.GPUDataTransformation);
                         var spawnEventPath = Has(VFXExpressionContextOption.PatchReadToEventAttribute);
                         foreach (var exp in m_EndExpressions)
-                            m_ReducedCache[exp] = PatchVFXExpression(GetReduced(exp), gpuTransformation, spawnEventPath, m_GlobalEventAttribute);
+                            m_ReducedCache[exp] = PatchVFXExpression(GetReduced(exp), null /* no source in end expression */, gpuTransformation, spawnEventPath, m_GlobalEventAttribute);
                     }
                 }
                 finally
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
                 return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
             }
 
-            private static VFXExpression PatchVFXExpression(VFXExpression input, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
+            private VFXExpression PatchVFXExpression(VFXExpression input, VFXExpression targetExpression, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
             {
                 if (insertGPUTransformation)
                 {
@@ -118,7 +118,84 @@ namespace UnityEditor.VFX
                         case VFXValueType.Curve:
                             input = new VFXExpressionBakeCurve(input);
                             break;
-                        default: break;
+
+                        case VFXValueType.Mesh:
+                        case VFXValueType.SkinnedMeshRenderer:
+                            if (targetExpression != null)
+                            {
+                                if (input.valueType == VFXValueType.Mesh)
+                                {
+                                    switch (targetExpression.operation)
+                                    {
+                                        case VFXExpressionOperation.SampleMeshVertexFloat:
+                                        case VFXExpressionOperation.SampleMeshVertexFloat2:
+                                        case VFXExpressionOperation.SampleMeshVertexFloat3:
+                                        case VFXExpressionOperation.SampleMeshVertexFloat4:
+                                        case VFXExpressionOperation.SampleMeshVertexColor:
+                                            var channelFormatAndDimensionAndStream = targetExpression.parents[2];
+                                            channelFormatAndDimensionAndStream = Compile(channelFormatAndDimensionAndStream);
+                                            if (!(channelFormatAndDimensionAndStream is VFXExpressionMeshChannelInfos))
+                                                throw new InvalidOperationException("Unexpected type of expression in mesh sampling : " + channelFormatAndDimensionAndStream);
+                                            input = new VFXExpressionVertexBufferFromMesh(input, channelFormatAndDimensionAndStream);
+                                            break;
+                                        case VFXExpressionOperation.SampleMeshIndex:
+                                            input = new VFXExpressionIndexBufferFromMesh(input);
+                                            break;
+                                        default:
+                                            throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + targetExpression.operation);
+                                    }
+                                }
+                                else //VFXValueType.SkinnedMeshRenderer
+                                {
+                                    if (targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat2
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat3
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat4
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererColor)
+                                    {
+                                        var channelFormatAndDimensionAndStream = targetExpression.parents[2];
+                                        channelFormatAndDimensionAndStream = Compile(channelFormatAndDimensionAndStream);
+                                        if (!(channelFormatAndDimensionAndStream is VFXExpressionMeshChannelInfos))
+                                            throw new InvalidOperationException("Unexpected type of expression in skinned mesh sampling : " + channelFormatAndDimensionAndStream);
+                                        input = new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, channelFormatAndDimensionAndStream);
+                                    }
+                                    else
+                                    {
+                                        throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + targetExpression);
+                                    }
+                                }
+                            } //else sourceExpression is null, we can't determine usage but it's possible if value is declared but not used.
+                            break;
+
+                        case VFXValueType.Buffer:
+                        {
+                            //Save expression usage for later HLSL shader generation
+                            if (targetExpression is VFXExpressionSampleBuffer)
+                            {
+                                var sampledType = (targetExpression as VFXExpressionSampleBuffer).GetSampledType();
+                                if (!m_GraphicsBufferUsageType.TryGetValue(input, out var registeredType))
+                                {
+                                    m_GraphicsBufferUsageType.Add(input, sampledType);
+                                }
+                                else if (registeredType != sampledType)
+                                {
+                                    throw new InvalidOperationException(string.Format("Diverging type usage for GraphicsBuffer : {0}, {1}", registeredType, sampledType));
+                                }
+                            }
+                        }
+                        break;
+
+                        default:
+                            //Nothing to patch on this type
+                            break;
+                    }
+
+                    if (input.valueType == VFXValueType.Buffer && targetExpression is VFXExpressionSampleBuffer)
+                    {
+                        if (!m_GraphicsBufferUsageType.ContainsKey(input))
+                        {
+                            m_GraphicsBufferUsageType.Add(input, (targetExpression as VFXExpressionSampleBuffer).GetSampledType());
+                        }
                     }
                 }
 
@@ -152,8 +229,10 @@ namespace UnityEditor.VFX
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
-                        bool currentGPUTransformation = gpuTransformation && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                        parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
+                        bool currentGPUTransformation = gpuTransformation
+                            && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
+                            && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
+                        parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                         return parent;
                     }).ToArray();
 
@@ -178,6 +257,7 @@ namespace UnityEditor.VFX
             public void Invalidate()
             {
                 m_ReducedCache.Clear();
+                m_GraphicsBufferUsageType.Clear();
             }
 
             public void Invalidate(VFXExpression expression)
@@ -213,8 +293,11 @@ namespace UnityEditor.VFX
 
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
+            public IEnumerable<KeyValuePair<VFXExpression, Type>> GraphicsBufferUsageType { get { return m_GraphicsBufferUsageType; } }
+
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
+            private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;

@@ -4,7 +4,7 @@ The Channel Mixer effect modifies the influence of each input color channel on t
 
 ## Using Channel Mixer
 
-**Channel Mixer** uses the [Volume](Volumes.html) framework, so to enable and modify **Channel Mixer** properties, you must add a **Channel Mixer** override to a [Volume](Volumes.html) in your Scene. To add **Channel Mixer** to a Volume:
+**Channel Mixer** uses the [Volume](Volumes.md) framework, so to enable and modify **Channel Mixer** properties, you must add a **Channel Mixer** override to a [Volume](Volumes.md) in your Scene. To add **Channel Mixer** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Channel Mixer**. URP now applies **Channel Mixer** to any Camera this Volume affects.

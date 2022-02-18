@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public StructCollection Add(StructCollection structs)
         {
-            foreach(StructCollection.Item item in structs)
+            foreach (StructCollection.Item item in structs)
             {
                 m_Items.Add(item);
             }
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public StructCollection Add(StructDescriptor descriptor, FieldCondition fieldCondition)
         {
-            m_Items.Add(new StructCollection.Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new StructCollection.Item(descriptor, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

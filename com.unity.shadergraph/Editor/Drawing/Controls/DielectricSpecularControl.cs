@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using UnityEngine;
 
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -132,25 +132,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
-                {
-                    var fieldValue = (float)evt.newValue;
-                    if (index == 1)
-                        m_DielectricMaterial.indexOfRefraction = fieldValue;
-                    else
-                        m_DielectricMaterial.range = fieldValue;
-                    
-                    m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
-                    this.MarkDirtyRepaint();
-                });
-            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-                {
-                    if (index == 1)
-                        RedrawIORControls(m_DielectricMaterial.indexOfRefraction);
-                    else
-                        RedrawRangeControls(m_DielectricMaterial.range);
+            {
+                var fieldValue = (float)evt.newValue;
+                if (index == 1)
+                    m_DielectricMaterial.indexOfRefraction = fieldValue;
+                else
+                    m_DielectricMaterial.range = fieldValue;
 
-                    this.MarkDirtyRepaint();
-                });
+                m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
+                this.MarkDirtyRepaint();
+            });
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                if (index == 1)
+                    RedrawIORControls(m_DielectricMaterial.indexOfRefraction);
+                else
+                    RedrawRangeControls(m_DielectricMaterial.range);
+
+                this.MarkDirtyRepaint();
+            }, TrickleDown.TrickleDown);
             panel.Add(field);
             return field;
         }
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             value = Mathf.Max(Mathf.Min(value, 5), 1);
             m_IORPanel.Remove(m_IORSlider);
-            m_IORSlider = new Slider(1, 2.5f)  { value = value };
+            m_IORSlider = new Slider(1, 2.5f) { value = value };
             m_IORSlider.RegisterValueChangedCallback((evt) => OnChangeIORSlider(evt.newValue));
 
             m_IORPanel.Add(m_IORSlider);

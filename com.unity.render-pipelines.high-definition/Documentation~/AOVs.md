@@ -7,7 +7,7 @@ Here is an example of three AOVs, containing from left to right the Albedo, Norm
 ![](Images/aov_example.png)
 
 In HDRP, you can access and configure AOVs in the following ways:
-- Using the [HDRP Compositor tool](Compositor-Main).
+- Using the [HDRP Compositor tool](Compositor-Main.md).
 - Using the [Unity Recorder](https://docs.unity3d.com/Packages/com.unity.recorder@latest/index.html) and the [AOV Recorder](https://docs.unity3d.com/Packages/com.unity.aovrecorder@latest/index.html) packages.
 - Using the scripting API to set up a custom AOV request in any HDRP Camera in your Scene.
 
@@ -18,10 +18,10 @@ Here is the list of Material properties that you can access with the AOV API.
 
 | Material property | Description               |
 |-------------------|---------------------------|
-| **Normal**        | Outputs the surface albedo. |
-| **Albedo**        | Outputs the surface normal. |
+| **Albedo**        | Outputs the surface albedo. |
+| **Normal**        | Outputs the surface normal. |
 | **Smoothness**    | Outputs the surface smoothness. |
-| **Ambient Occlusion** | Outputs the ambient occlusion (N/A for AxF). |
+| **Ambient Occlusion** | Outputs the ambient occlusion (N/A for AxF). **Note**: the ambient occlusion this outputs does not include ray-traced/screen-space ambient occlusion from the [Ambient Occlusion override](Override-Ambient-Occlusion.md). It only includes ambient occlusion from materials in the Scene. |
 | **Specular**      | Outputs the surface specularity. |
 | **Alpha**         | Outputs the surface alpha (pixel coverage). |
 
@@ -41,6 +41,9 @@ You can use AOVs to output the contribution from a selected list of [Lights](Lig
 
 ## Custom Pass AOVs
 Finally, you can use AOVs to output the results of [custom passes](Custom-Pass.md). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that custom passes compute, such as the Object ID of the Scene GameObjects.
+
+## Rendering Precission
+By default AOVs are rendering at the precision and format selected in the HDRP asset. If the  AOVRequest is configured with *SetOverrideRenderFormat* option set to true, then rendering will use the same precision as the user allocated AOV output buffer.
 
 ## Scripting API example
 The following example script outputs albedo AOVs from an HDRP Camera and saves the resulting frames to disk as a sequence of .png images. To use the example script, attach it to an HDRP Camera and enter Play Mode.
@@ -89,7 +92,7 @@ public class AovRecorder : MonoBehaviour
                     bufferId => m_TmpRT,
                     (cmd, textures, customPassTextures, properties) =>
                     {
-                        // callback to read back the AOV data and write them to disk 
+                        // callback to read back the AOV data and write them to disk
                         if (textures.Count > 0)
                         {
                             m_ReadBackTexture = m_ReadBackTexture ?? new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGBAFloat, false);

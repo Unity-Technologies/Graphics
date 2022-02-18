@@ -37,39 +37,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class RayCountManager
     {
-        // Texture that holds the ray count per pixel
-        RTHandle m_RayCountTexture = null;
-
         // Buffer that holds the reductions of the ray count
-        ComputeBuffer m_ReducedRayCountBuffer0 = null;
-        ComputeBuffer m_ReducedRayCountBuffer1 = null;
-        ComputeBuffer m_ReducedRayCountBuffer2 = null;
+        ComputeBuffer m_ReducedRayCountBufferOutput = null;
 
         // CPU Buffer that holds the current values
         uint[] m_ReducedRayCountValues = new uint[(int)RayCountValues.Count];
 
         // HDRP Resources
-        ComputeShader rayCountCS;
+        ComputeShader m_RayCountCS;
 
         // Flag that defines if ray counting is enabled for the current frame
         bool m_IsActive = false;
         bool m_RayTracingSupported = false;
 
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
-        Queue<AsyncGPUReadbackRequest> rayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
+        Queue<AsyncGPUReadbackRequest> m_RayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
 
         public void Init(HDRenderPipelineRayTracingResources rayTracingResources)
         {
             // Keep track of the compute shader we are going to use
-            rayCountCS = rayTracingResources.countTracedRays;
+            m_RayCountCS = rayTracingResources.countTracedRays;
 
             // We only require 3 buffers (this supports a maximal size of 8192x8192)
-            m_ReducedRayCountBuffer0 = new ComputeBuffer((int)RayCountValues.Count * 256 * 256, sizeof(uint));
-            m_ReducedRayCountBuffer1 = new ComputeBuffer((int)RayCountValues.Count * 32 * 32, sizeof(uint));
-            m_ReducedRayCountBuffer2 = new ComputeBuffer((int)RayCountValues.Count + 1, sizeof(uint));
+            m_ReducedRayCountBufferOutput = new ComputeBuffer((int)RayCountValues.Count + 1, sizeof(uint));
 
             // Initialize the CPU  ray count (Optional)
-            for(int i = 0; i < (int)RayCountValues.Count; ++i)
+            for (int i = 0; i < (int)RayCountValues.Count; ++i)
             {
                 m_ReducedRayCountValues[i] = 0;
             }
@@ -81,42 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release()
         {
-            CoreUtils.SafeRelease(m_ReducedRayCountBuffer0);
-            CoreUtils.SafeRelease(m_ReducedRayCountBuffer1);
-            CoreUtils.SafeRelease(m_ReducedRayCountBuffer2);
-        }
-
-        public void InitializeNonRenderGraphResources()
-        {
-            // Allocate the texture that will hold the ray count
-            m_RayCountTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices * (int)RayCountValues.Count, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_UInt, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
-        }
-
-        public void CleanupNonRenderGraphResources()
-        {
-            RTHandles.Release(m_RayCountTexture);
-            m_RayCountTexture = null;
-        }
-
-        public void ClearRayCount(CommandBuffer cmd, HDCamera camera, bool isActive)
-        {
-            m_IsActive = isActive;
-
-            // Make sure to clear before the current frame
-            if (m_IsActive)
-            {
-                // Grab the kernel that we will be using for the clear
-                int currentKenel = rayCountCS.FindKernel("ClearBuffer");
-
-                // We only clear the 256x256 texture, the clear will then implicitly propagate to the lower resolutions
-                cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer0);
-                cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 256 * (int)RayCountValues.Count);
-                int tileSize = 256 / 32;
-                cmd.DispatchCompute(rayCountCS, currentKenel, tileSize, tileSize, 1);
-
-                // Clear the ray count texture (that ensures that we don't have to check what we are reading while we reduce)
-                CoreUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
-            }
+            CoreUtils.SafeRelease(m_ReducedRayCountBufferOutput);
         }
 
         public int RayCountIsEnabled()
@@ -124,9 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_IsActive ? 1 : 0;
         }
 
-        public RTHandle GetRayCountTexture()
+        internal void SetRayCountEnabled(bool value)
         {
-            return m_RayCountTexture;
+            m_IsActive = value;
         }
 
         static public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
@@ -136,98 +94,154 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorFormat = GraphicsFormat.R16_UInt,
                 slices = TextureXR.slices * (int)RayCountValues.Count,
                 dimension = TextureDimension.Tex2DArray,
+                clearBuffer = true,
                 enableRandomWrite = true,
                 name = "RayCountTextureDebug"
             });
         }
 
-        public void EvaluateRayCount(CommandBuffer cmd, HDCamera camera)
+        class EvaluateRayCountPassData
+        {
+            public TextureHandle colorBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle rayCountTexture;
+
+            public ComputeBufferHandle reducedRayCountBuffer0;
+            public ComputeBufferHandle reducedRayCountBuffer1;
+
+            public ComputeBuffer reducedRayCountBufferOutput;
+
+            public ComputeShader rayCountCS;
+            public int rayCountKernel;
+            public int clearKernel;
+            public int width;
+            public int height;
+
+            public Queue<AsyncGPUReadbackRequest> rayCountReadbacks;
+        }
+
+        void PrepareEvaluateRayCountPassData(in RenderGraphBuilder builder, EvaluateRayCountPassData data, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
+        {
+            data.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+            data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+            data.rayCountTexture = builder.ReadTexture(rayCountTexture);
+
+            data.reducedRayCountBuffer0 = builder.CreateTransientComputeBuffer(new ComputeBufferDesc((int)RayCountValues.Count * 256 * 256, sizeof(uint)));
+            data.reducedRayCountBuffer1 = builder.CreateTransientComputeBuffer(new ComputeBufferDesc((int)RayCountValues.Count * 32 * 32, sizeof(uint)));
+            data.reducedRayCountBufferOutput = m_ReducedRayCountBufferOutput;
+
+            data.rayCountCS = m_RayCountCS;
+            data.rayCountKernel = m_RayCountCS.FindKernel("TextureReduction");
+            data.clearKernel = m_RayCountCS.FindKernel("ClearBuffer");
+            data.width = hdCamera.actualWidth;
+            data.height = hdCamera.actualHeight;
+
+            data.rayCountReadbacks = m_RayCountReadbacks;
+        }
+
+        public void EvaluateRayCount(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
         {
             if (m_IsActive)
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay)))
+                using (var builder = renderGraph.AddRenderPass<EvaluateRayCountPassData>("RenderRayCountOverlay", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay)))
                 {
-                    // Get the size of the viewport to process
-                    int currentWidth = camera.actualWidth;
-                    int currentHeight = camera.actualHeight;
+                    PrepareEvaluateRayCountPassData(builder, passData, hdCamera, colorBuffer, depthBuffer, rayCountTexture);
 
-                    // Grab the kernel that we will be using for the reduction
-                    int currentKenel = rayCountCS.FindKernel("TextureReduction");
+                    builder.SetRenderFunc(
+                        (EvaluateRayCountPassData data, RenderGraphContext ctx) =>
+                        {
+                            // Get the size of the viewport to process
+                            int currentWidth = data.width;
+                            int currentHeight = data.height;
 
-                    // Compute the dispatch dimensions
-                    int areaTileSize = 32;
-                    int dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
-                    int dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
+                            var rayCountCS = data.rayCountCS;
 
-                    // Do we need three passes
-                    if (dispatchHeight > 32 || dispatchWidth > 32)
-                    {
-                        // Bind the texture and the 256x256 buffer
-                        cmd.SetComputeTextureParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountTexture, m_RayCountTexture);
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer0);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 256 * (int)RayCountValues.Count);
-                        cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
+                            // Grab the kernel that we will be using for the reduction
+                            int currentKenel = data.rayCountKernel;
 
-                        // Let's move to the next reduction pass
-                        currentWidth /= 32;
-                        currentHeight /= 32;
+                            // Compute the dispatch dimensions
+                            int areaTileSize = 32;
+                            int dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
+                            int dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
 
-                        // Grab the kernel that we will be using for the reduction
-                        currentKenel = rayCountCS.FindKernel("BufferReduction");
+                            // Do we need three passes
+                            if (dispatchHeight > 32 || dispatchWidth > 32)
+                            {
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBuffer0);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 256 * (int)RayCountValues.Count);
+                                int tileSize = 256 / 32;
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, tileSize, tileSize, 1);
 
-                        // Compute the dispatch dimensions
-                        dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
-                        dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
+                                // Bind the texture and the 256x256 buffer
+                                ctx.cmd.SetComputeTextureParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountTexture, data.rayCountTexture);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBuffer0);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 256 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
 
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, m_ReducedRayCountBuffer0);
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer1);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 256 * (int)RayCountValues.Count);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 32 * (int)RayCountValues.Count);
-                        cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
+                                // Let's move to the next reduction pass
+                                currentWidth /= 32;
+                                currentHeight /= 32;
 
-                        // Let's move to the next reduction pass
-                        currentWidth /= 32;
-                        currentHeight /= 32;
+                                // Grab the kernel that we will be using for the reduction
+                                currentKenel = rayCountCS.FindKernel("BufferReduction");
 
-                        // Compute the dispatch dimensions
-                        dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
-                        dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
+                                // Compute the dispatch dimensions
+                                dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
+                                dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
 
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, m_ReducedRayCountBuffer1);
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer2);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 32 * (int)RayCountValues.Count);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 1 * (int)RayCountValues.Count);
-                        cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
-                    }
-                    else
-                    {
-                        cmd.SetComputeTextureParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountTexture, m_RayCountTexture);
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer1);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 32 * (int)RayCountValues.Count);
-                        cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, data.reducedRayCountBuffer0);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBuffer1);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 256 * (int)RayCountValues.Count);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 32 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
 
-                        // Let's move to the next reduction pass
-                        currentWidth /= 32;
-                        currentHeight /= 32;
+                                // Let's move to the next reduction pass
+                                currentWidth /= 32;
+                                currentHeight /= 32;
 
-                        // Grab the kernel that we will be using for the reduction
-                        currentKenel = rayCountCS.FindKernel("BufferReduction");
+                                // Compute the dispatch dimensions
+                                dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
+                                dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
 
-                        // Compute the dispatch dimensions
-                        dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
-                        dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, data.reducedRayCountBuffer1);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBufferOutput);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 32 * (int)RayCountValues.Count);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 1 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
+                            }
+                            else
+                            {
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBuffer1);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 32 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, 1, 1, 1);
 
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, m_ReducedRayCountBuffer1);
-                        cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, m_ReducedRayCountBuffer2);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 32 * (int)RayCountValues.Count);
-                        cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 1 * (int)RayCountValues.Count);
-                        cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
-                    }
+                                ctx.cmd.SetComputeTextureParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountTexture, data.rayCountTexture);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBuffer1);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 32 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
 
-                    // Enqueue an Async read-back for the single value
-                    AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(m_ReducedRayCountBuffer2, (int)RayCountValues.Count * sizeof(uint), 0);
-                    rayCountReadbacks.Enqueue(singleReadBack);
+                                // Let's move to the next reduction pass
+                                currentWidth /= 32;
+                                currentHeight /= 32;
 
+                                // Grab the kernel that we will be using for the reduction
+                                currentKenel = rayCountCS.FindKernel("BufferReduction");
+
+                                // Compute the dispatch dimensions
+                                dispatchWidth = Mathf.Max(1, (currentWidth + (areaTileSize - 1)) / areaTileSize);
+                                dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
+
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountBuffer, data.reducedRayCountBuffer1);
+                                ctx.cmd.SetComputeBufferParam(rayCountCS, currentKenel, HDShaderIDs._OutputRayCountBuffer, data.reducedRayCountBufferOutput);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._InputBufferDimension, 32 * (int)RayCountValues.Count);
+                                ctx.cmd.SetComputeIntParam(rayCountCS, HDShaderIDs._OutputBufferDimension, 1 * (int)RayCountValues.Count);
+                                ctx.cmd.DispatchCompute(rayCountCS, currentKenel, dispatchWidth, dispatchHeight, 1);
+                            }
+
+                            // Enqueue an Async read-back for the single value
+                            AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(data.reducedRayCountBufferOutput, (int)RayCountValues.Count * sizeof(uint), 0);
+                            data.rayCountReadbacks.Enqueue(singleReadBack);
+                        });
                 }
             }
         }
@@ -240,19 +254,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                while(rayCountReadbacks.Peek().done || rayCountReadbacks.Peek().hasError ==  true)
+                while (m_RayCountReadbacks.Peek().done || m_RayCountReadbacks.Peek().hasError == true)
                 {
                     // If this has an error, just skip it
-                    if (!rayCountReadbacks.Peek().hasError)
+                    if (!m_RayCountReadbacks.Peek().hasError)
                     {
                         // Grab the native array from this readback
-                        NativeArray<uint> sampleCount = rayCountReadbacks.Peek().GetData<uint>();
-                        for(int i = 0; i < (int)RayCountValues.Count; ++i)
+                        NativeArray<uint> sampleCount = m_RayCountReadbacks.Peek().GetData<uint>();
+                        for (int i = 0; i < (int)RayCountValues.Count; ++i)
                         {
                             m_ReducedRayCountValues[i] = sampleCount[i];
                         }
                     }
-                    rayCountReadbacks.Dequeue();
+                    m_RayCountReadbacks.Dequeue();
                 }
 
                 if (rayCountValue != RayCountValues.Total)

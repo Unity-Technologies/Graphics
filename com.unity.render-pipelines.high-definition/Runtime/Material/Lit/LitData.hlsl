@@ -17,8 +17,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 #endif
 
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SPTDistribution.hlsl"
-//#define SPECULAR_OCCLUSION_USE_SPTD
+//#define PROJECTED_SPACE_NDF_FILTERING
 
 // Struct that gather UVMapping info of all layers + common calculation
 // This is use to abstract the mapping that can differ on layers
@@ -142,7 +141,17 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                       float3 positionRWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
+    float objectSpaceMapping = false;
+    float3 normalToComputeWeights = layerTexCoord.vertexNormalWS;
+#ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMapping;
+    if (objectSpaceMapping)
+    {
+        normalToComputeWeights = TransformWorldToObjectNormal(normalToComputeWeights);
+    }
+#endif
+
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalToComputeWeights);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_MAPPING_PLANAR)
@@ -151,11 +160,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
+
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, _UVDetailsMappingMask,
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
                             positionRWS, _TexWorldScale,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 }
 
 // This is call only in this file
@@ -183,7 +193,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // When using lightmaps, the uv1 is always valid but we don't update _UVMappingMask.y to 1
     // So when we are using them, we just need to keep the UVs as is.
 #if !defined(LIGHTMAP_ON) && defined(SURFACE_GRADIENT)
-    input.texCoord1 = (_UVMappingMask.y + _UVDetailsMappingMask.y) > 0 ? input.texCoord1 : 0;
+    input.texCoord1 = (_UVMappingMask.y + _UVDetailsMappingMask.y + _UVMappingMaskEmissive.y) > 0 ? input.texCoord1 : 0;
 #endif
 
 // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
@@ -215,7 +225,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #if defined(_ALPHATEST_ON)
-    float alphaValue = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a * _BaseColor.a;
+    float alphaTex = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a;
+    alphaTex = lerp(_AlphaRemapMin, _AlphaRemapMax, alphaTex);
+    float alphaValue = alphaTex * _BaseColor.a;
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
     #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
@@ -237,17 +249,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
+
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+    surfaceData.specularOcclusion = 1.0;
+
+#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+    }
+#endif
+
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-    surfaceData.geomNormalWS = input.tangentToWorld[2];
-
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
-
-#if HAVE_DECALS
+#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif
@@ -275,11 +296,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // If user provide bent normal then we process a better term
 #if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    #ifdef SPECULAR_OCCLUSION_USE_SPTD
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
-    #else
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#endif
     // Don't do spec occ from Ambient if there is no mask mask
 #elif defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
@@ -290,7 +307,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
     // Specular AA
+    #ifdef PROJECTED_SPACE_NDF_FILTERING
+    surfaceData.perceptualSmoothness = ProjectedSpaceGeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+    #else
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+    #endif
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData

@@ -43,12 +43,27 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private TextureSamplerState.Anisotropic m_aniso = TextureSamplerState.Anisotropic.None;
+
+        public TextureSamplerState.Anisotropic anisotropic
+        {
+            get { return m_aniso; }
+            set
+            {
+                if (m_aniso == value)
+                    return;
+
+                m_aniso = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public SamplerStateNode()
         {
             name = "Sampler State";
             UpdateNodeAfterDeserialization();
         }
-
 
         public override bool hasPreview { get { return false; } }
 
@@ -61,41 +76,51 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override string GetVariableNameForSlot(int slotId)
+        string GetSamplerStatePropertyName()
         {
             return GetVariableNameForNode();
+        }
+
+        string GetSamplerStateVariableName()
+        {
+            return $"UnityBuildSamplerStateStruct({GetSamplerStatePropertyName()})";
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return GetSamplerStateVariableName();
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
+                overrideReferenceName = GetSamplerStatePropertyName(),
                 generatePropertyBlock = false,
 
                 value = new TextureSamplerState()
                 {
                     filter = m_filter,
-                    wrap =  m_wrap
+                    wrap = m_wrap,
+                    anisotropic = m_aniso
                 }
             });
         }
 
         public override string GetVariableNameForNode()
         {
-            return string.Format(@"{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
+            return TextureSamplerState.BuildSamplerStateName(filter, wrap, anisotropic);
         }
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new SamplerStateShaderProperty 
-            { 
+            return new SamplerStateShaderProperty
+            {
                 value = new TextureSamplerState()
                 {
                     filter = this.filter,
-                    wrap = this.wrap
+                    wrap = this.wrap,
+                    anisotropic = this.anisotropic
                 }
             };
         }

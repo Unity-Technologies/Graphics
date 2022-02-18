@@ -1,0 +1,77 @@
+#pragma kernel PerlinWorleyNoiseEvaluator
+#pragma kernel WorleyNoiseEvaluator
+#pragma kernel PerlinNoiseEvaluator
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/WorleyUtilities.hlsl"
+
+// Input and output data
+int _NumLayers;
+int _Layer;
+RWTexture2D<float4> _WorleyEvaluationOutput;
+
+// Due to a limitation, we cannot do the whole thing in a single NxNxN dispatch so we have to do N dispatches of NxN.
+[numthreads(8, 8, 1)]
+void PerlinWorleyNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    // Convert the dispatch coordinates to to the generation space [0,1]x[0,1]x[0,1]
+    float3 position = float3(((float2)dispatchThreadID.xy + 0.5) / _NumLayers, ((float)_Layer + 0.5) / _NumLayers);
+
+    // Generate the perlin FBM
+    const float baseFrequence = 4.0;
+    float perlinFBM = lerp(1.0, EvaluatePerlinFractalBrownianMotion(position, baseFrequence, 4.0), 0.5);
+    perlinFBM = abs(perlinFBM * 2.0 - 1.0); // billowy perlin noise
+
+    // Generate all the worley noises that are required
+    const float3 positionFrequence = position * baseFrequence;
+    float worley1 = 1.0 - WorleyNoise(positionFrequence, baseFrequence * 1.0f);
+    float worley2 = 1.0 - WorleyNoise(positionFrequence * 2.0f, baseFrequence * 2.0f);
+    float worley4 = 1.0 - WorleyNoise(positionFrequence * 4.0f, baseFrequence * 4.0f);
+
+    // Compute the worley fractal brownian motion
+    float worleyFBM = worley1 * 0.625 + worley2 * 0.25 + worley4 * 0.125;
+
+    // Combine both signals
+    float result = remap(perlinFBM, 0.0, 1.0, worleyFBM, 1.0); // Perlin-Worley
+
+    // Output to the render texture.
+    _WorleyEvaluationOutput[dispatchThreadID.xy] = float4(result, 0.0, 0.0, 1.0);
+}
+
+// Due to a limitation, we cannot do the whole thing in a single NxNxN dispatch so we have to do N dispatches of NxN.
+[numthreads(8, 8, 1)]
+void WorleyNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    // Convert the dispatch coordinates to to the generation space [0,1]x[0,1]x[0,1]
+    float3 position = float3(((float2)dispatchThreadID.xy + 0.5) / _NumLayers, ((float)_Layer + 0.5) / _NumLayers);
+
+    // Generate all the worley noises that are required
+    const float baseFrequence = 2.0;
+    const float3 positionFrequence = position * baseFrequence;
+    float worley2 = 1.0 - WorleyNoise(positionFrequence * 2.0f, baseFrequence * 2.0f);
+    float worley4 = 1.0 - WorleyNoise(positionFrequence * 4.0f, baseFrequence * 4.0f);
+    float worley8 = 1.0 - WorleyNoise(positionFrequence * 8.0f, baseFrequence * 8.0f);
+
+    // Compute the worley fractal brownian motion
+    float worleyFBM = worley2 * 0.625 + worley4 * 0.25 + worley8 * 0.125;
+
+    // Output to the render texture.
+    _WorleyEvaluationOutput[dispatchThreadID.xy] = float4(worleyFBM, 0.0, 0.0, 1.0);
+}
+
+// Due to a limitation, we cannot do the whole thing in a single NxNxN dispatch so we have to do N dispatches of NxN.
+[numthreads(8, 8, 1)]
+void PerlinNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    // Convert the dispatch coordinates to to the generation space [0,1]x[0,1]x[0,1]
+    float3 position = float3(((float2)dispatchThreadID.xy + 0.5) / _NumLayers, ((float)_Layer + 0.5) / _NumLayers);
+    // Compute the worley fractal brownian motion
+    const float baseFrequence = 4.0;
+    float perlinFBM = lerp(1.0, EvaluatePerlinFractalBrownianMotion(position, baseFrequence, 8.0), 0.5);
+
+    // Output to the render texture.
+    _WorleyEvaluationOutput[dispatchThreadID.xy] = float4(perlinFBM, 0.0, 0.0, 1.0);
+}

@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
         /// that are missing or broken.
@@ -56,7 +55,8 @@ namespace UnityEngine.Rendering
                 return false;
 
             var changed = false;
-            foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
+            foreach (var fieldInfo in container.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
                 //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering
                     if (attribute.paths.Length == 1)
                     {
                         changed |= SetAndLoadIfNull(container, fieldInfo, GetFullPath(basePath, attribute),
-                            attribute.package == ReloadAttribute.Package.Builtin);
+                            attribute.package);
                     }
                     else if (attribute.paths.Length > 1)
                     {
@@ -90,10 +90,10 @@ namespace UnityEngine.Rendering
                         }
                         else
                         {
-                            bool builtin = attribute.package == ReloadAttribute.Package.Builtin;
                             //Find each null element and reload them
                             for (int index = 0; index < attribute.paths.Length; ++index)
-                                changed |= SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index), builtin);
+                                changed |= SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index),
+                                    attribute.package);
                         }
                     }
                 }
@@ -104,14 +104,21 @@ namespace UnityEngine.Rendering
             return changed;
         }
 
+        static void CheckReloadGroupSupportedType(Type type)
+        {
+            if (type.IsSubclassOf(typeof(ScriptableObject)))
+                throw new Exception(@$"ReloadGroup attribute must not be used on {nameof(ScriptableObject)}.
+If {nameof(ResourceReloader)} create an instance of it, it will be not saved as a file, resulting in corrupted ID when building.");
+        }
+
         static bool FixGroupIfNeeded(System.Object container, FieldInfo info)
         {
+            var type = info.FieldType;
+            CheckReloadGroupSupportedType(type);
+
             if (IsNull(container, info))
             {
-                var type = info.FieldType;
-                var value = type.IsSubclassOf(typeof(ScriptableObject))
-                    ? ScriptableObject.CreateInstance(type)
-                    : Activator.CreateInstance(type);
+                var value = Activator.CreateInstance(type);
 
                 info.SetValue(
                     container,
@@ -127,17 +134,16 @@ namespace UnityEngine.Rendering
         {
             Assert.IsNotNull(array);
 
+            var type = array.GetType().GetElementType();
+            CheckReloadGroupSupportedType(type);
+
             if (IsNull(array.GetValue(index)))
             {
-                var type = array.GetType().GetElementType();
                 var value = type.IsSubclassOf(typeof(ScriptableObject))
                     ? ScriptableObject.CreateInstance(type)
                     : Activator.CreateInstance(type);
 
-                array.SetValue(
-                    value,
-                    index
-                );
+                array.SetValue(value, index);
                 return true;
             }
 
@@ -148,10 +154,7 @@ namespace UnityEngine.Rendering
         {
             if (IsNull(container, info) || ((Array)info.GetValue(container)).Length < length)
             {
-                info.SetValue(
-                    container,
-                    Activator.CreateInstance(info.FieldType, length)
-                );
+                info.SetValue(container, Activator.CreateInstance(info.FieldType, length));
                 return true;
             }
 
@@ -181,20 +184,37 @@ namespace UnityEngine.Rendering
         static bool IsNull(System.Object field)
             => field == null || field.Equals(null);
 
-        static UnityEngine.Object Load(string path, Type type, bool builtin)
+        static UnityEngine.Object Load(string path, Type type, ReloadAttribute.Package location)
         {
             // Check if asset exist.
             // Direct loading can be prevented by AssetDatabase being reloading.
             var guid = AssetDatabase.AssetPathToGUID(path);
-            if (!builtin && String.IsNullOrEmpty(guid))
+            if (location == ReloadAttribute.Package.Root && String.IsNullOrEmpty(guid))
                 throw new Exception($"Cannot load. Incorrect path: {path}");
 
             // Else the path is good. Attempt loading resource if AssetDatabase available.
             UnityEngine.Object result;
-            if (builtin && type == typeof(Shader))
-                result = Shader.Find(path);
-            else
-                result = AssetDatabase.LoadAssetAtPath(path, type);
+            switch (location)
+            {
+                case ReloadAttribute.Package.Builtin:
+                    if (type == typeof(Shader))
+                        result = Shader.Find(path);
+                    else
+                        result = Resources.GetBuiltinResource(type, path); //handle wrong path error
+                    break;
+                case ReloadAttribute.Package.BuiltinExtra:
+                    if (type == typeof(Shader))
+                        result = Shader.Find(path);
+                    else
+                        result = AssetDatabase.GetBuiltinExtraResource(type, path); //handle wrong path error
+                    break;
+                case ReloadAttribute.Package.Root:
+                    result = AssetDatabase.LoadAssetAtPath(path, type);
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown {location}");
+            }
+
             if (IsNull(result))
             {
                 var e = new Exception($"Cannot load. Path {path} is correct but AssetDatabase cannot load now.");
@@ -204,25 +224,24 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-
         static bool SetAndLoadIfNull(System.Object container, FieldInfo info,
-            string path, bool builtin)
+            string path, ReloadAttribute.Package location)
         {
             if (IsNull(container, info))
             {
-                info.SetValue(container, Load(path, info.FieldType, builtin));
+                info.SetValue(container, Load(path, info.FieldType, location));
                 return true;
             }
 
             return false;
         }
 
-        static bool SetAndLoadIfNull(Array array, int index, string path, bool builtin)
+        static bool SetAndLoadIfNull(Array array, int index, string path, ReloadAttribute.Package location)
         {
             var element = array.GetValue(index);
             if (IsNull(element))
             {
-                array.SetValue(Load(path, array.GetType().GetElementType(), builtin), index);
+                array.SetValue(Load(path, array.GetType().GetElementType(), location), index);
                 return true;
             }
 
@@ -271,7 +290,13 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Used for resources inside the package.
             /// </summary>
-            Root
+            Root,
+
+            /// <summary>
+            /// Used for builtin extra resources when the resource isn't part of the package (i.e. builtin
+            /// extra Sprite).
+            /// </summary>
+            BuiltinExtra,
         };
 
 #if UNITY_EDITOR
@@ -318,7 +343,7 @@ namespace UnityEngine.Rendering
         /// <param name="rangeMax">The array end index (exclusive)</param>
         /// <param name="package">The lookup method</param>
         public ReloadAttribute(string pathFormat, int rangeMin, int rangeMax,
-            Package package = Package.Root)
+                               Package package = Package.Root)
         {
 #if UNITY_EDITOR
             this.package = package;

@@ -1,6 +1,7 @@
 #pragma kernel LightVolumeGradient
 #pragma kernel LightVolumeColors
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -25,10 +26,10 @@ void LightVolumeGradient(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;
+    // Fetch the current pixel coordinate
+    uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;
 
-	// Lightcount at this pixel
+    // Lightcount at this pixel
     float lightCount = _DebugLightCountBuffer[COORD_TEXTURE2D_X(currentPixelCoordinate)].r;
 
     // Tonemap this pixel value
@@ -48,10 +49,10 @@ void LightVolumeColors(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;
+    // Fetch the current pixel coordinate
+    uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;
 
-	// Lightcount at this pixel
+    // Lightcount at this pixel
     float lightCount = _DebugLightCountBuffer[COORD_TEXTURE2D_X(currentPixelCoordinate)].r;
 
     // Look around this pixel to check if this should be displayed as a border
@@ -59,18 +60,18 @@ void LightVolumeColors(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
     bool isBorder = false;
     for (float radiusX = -_BorderRadius; radiusX <= _BorderRadius; ++radiusX)
     {
-    	for (float radiusY = -_BorderRadius; radiusY <= _BorderRadius; ++radiusY)
-    	{
-    		// Compute the target pixel
-    		int2 targetpixel = int2((uint)currentPixelCoordinate.x + radiusX, (uint)currentPixelCoordinate.y + radiusY);
-    		float neighborLightCount = _DebugLightCountBuffer[COORD_TEXTURE2D_X(targetpixel)].r;
-    		maxLightCount = max(maxLightCount, neighborLightCount);
-    		if(neighborLightCount != lightCount)
-    		{
-    			isBorder = true;
+        for (float radiusY = -_BorderRadius; radiusY <= _BorderRadius; ++radiusY)
+        {
+            // Compute the target pixel
+            int2 targetpixel = int2((uint)currentPixelCoordinate.x + radiusX, (uint)currentPixelCoordinate.y + radiusY);
+            float neighborLightCount = _DebugLightCountBuffer[COORD_TEXTURE2D_X(targetpixel)].r;
+            maxLightCount = max(maxLightCount, neighborLightCount);
+            if(neighborLightCount != lightCount)
+            {
+                isBorder = true;
                 break;
-    		}
-    	}
+            }
+        }
     }
 
     // Tonemap the light count

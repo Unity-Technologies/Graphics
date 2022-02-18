@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
         protected override string title
         {
-            get {return "Node"; }
+            get { return "Node"; }
         }
 
         string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
@@ -250,11 +250,11 @@ namespace UnityEditor.VFX.UI
             Array.Sort(subDirectories, (x, y) => String.Compare(x, y, true));
 
             foreach (var subDirectory in subDirectories)
-                AddTemplatesFromDirectory(subDirectory, subDirectory.Replace(directory,menuCategory), ref descriptors);
+                AddTemplatesFromDirectory(subDirectory, subDirectory.Replace(directory, menuCategory), ref descriptors);
 
             var discoveredTemplates = System.IO.Directory.GetFiles(directory).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 
-            var templateDescriptors = discoveredTemplates.Select(t => new Descriptor() { modelDescriptor = t, category = menuCategory.Replace("\\", "/"), name = System.IO.Path.GetFileNameWithoutExtension(t) });
+            var templateDescriptors = discoveredTemplates.Select(t => new Descriptor() { modelDescriptor = t, category = menuCategory.Replace("\\", "/"), name = ObjectNames.NicifyVariableName(System.IO.Path.GetFileNameWithoutExtension(t)) });
 
             descriptors = descriptors.Concat(templateDescriptors);
         }

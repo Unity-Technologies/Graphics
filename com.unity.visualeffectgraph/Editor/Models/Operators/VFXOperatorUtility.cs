@@ -33,6 +33,8 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> TauExpression = GenerateExpressionConstant(2.0f * Mathf.PI);
         public static readonly Dictionary<VFXValueType, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
         public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
+        public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonSqrExpression = GenerateExpressionConstant(1e-10f);
+
 
         public enum Base
         {
@@ -45,9 +47,9 @@ namespace UnityEditor.VFX
         {
             switch (_base)
             {
-                case Base.Base2:    return TwoExpression[type];
-                case Base.Base10:   return TenExpression[type];
-                case Base.BaseE:    return E_NapierConstantExpression[type];
+                case Base.Base2: return TwoExpression[type];
+                case Base.Base10: return TenExpression[type];
+                case Base.BaseE: return E_NapierConstantExpression[type];
                 default:
                     throw new NotImplementedException();
             }
@@ -268,8 +270,8 @@ namespace UnityEditor.VFX
 
         static public VFXExpression SafeNormalize(VFXExpression v)
         {
-            var sqrDist = Dot(v,v);
-            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
+            var sqrDist = Dot(v, v);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrDist, VFXOperatorUtility.EpsilonSqrExpression[VFXValueType.Float]);
             return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
         }
 
@@ -379,11 +381,17 @@ namespace UnityEditor.VFX
             return new VFXExpression[] { distance, theta, phi };
         }
 
-        static public VFXExpression CircleArea(VFXExpression radius)
+        static public VFXExpression CircleArea(VFXExpression radius, VFXExpression scale = null)
         {
             //pi * r * r
             var pi = VFXValue.Constant(Mathf.PI);
-            return (pi * radius * radius);
+            var area = pi * radius * radius;
+            if (scale != null) //Circle are inside z=0 plane
+            {
+                scale = new VFXExpressionAbs(scale);
+                area = area * scale.x * scale.y;
+            }
+            return area;
         }
 
         static public VFXExpression CircleCircumference(VFXExpression radius)
@@ -401,35 +409,46 @@ namespace UnityEditor.VFX
             return (components[0] * components[1] * components[2]);
         }
 
-        static public VFXExpression SphereVolume(VFXExpression radius)
+        static public VFXExpression SphereVolume(VFXExpression radius, VFXExpression scale = null)
         {
             //(4 / 3) * pi * r * r * r
             var multiplier = VFXValue.Constant((4.0f / 3.0f) * Mathf.PI);
-            return (multiplier * radius * radius * radius);
+            var volume = (multiplier * radius * radius * radius);
+            if (scale != null)
+            {
+                scale = new VFXExpressionAbs(scale);
+                volume = volume * scale.x * scale.y * scale.z;
+            }
+            return volume;
         }
 
-        static public VFXExpression CylinderVolume(VFXExpression radius, VFXExpression height)
-        {
-            //pi * r * r * h
-            var pi = VFXValue.Constant(Mathf.PI);
-            return (pi * radius * radius * height);
-        }
-
-        static public VFXExpression ConeVolume(VFXExpression radius0, VFXExpression radius1, VFXExpression height)
+        static public VFXExpression ConeVolume(VFXExpression radius0, VFXExpression radius1, VFXExpression height, VFXExpression scale = null)
         {
             //pi/3 * (r0 * r0 + r0 * r1 + r1 * r1) * h
             var piOver3 = VFXValue.Constant(Mathf.PI / 3.0f);
-            VFXExpression r0r0 = (radius0 * radius0);
-            VFXExpression r0r1 = (radius0 * radius1);
-            VFXExpression r1r1 = (radius1 * radius1);
-            VFXExpression result = (r0r0 + r0r1 + r1r1);
-            return (piOver3 * result * height);
+            var r0r0 = (radius0 * radius0);
+            var r0r1 = (radius0 * radius1);
+            var r1r1 = (radius1 * radius1);
+            var result = (r0r0 + r0r1 + r1r1);
+            var volume = (piOver3 * result * height);
+            if (scale != null)
+            {
+                scale = new VFXExpressionAbs(scale);
+                volume = volume * scale.x * scale.y * scale.z;
+            }
+            return volume;
         }
 
-        static public VFXExpression TorusVolume(VFXExpression majorRadius, VFXExpression minorRadius)
+        static public VFXExpression TorusVolume(VFXExpression majorRadius, VFXExpression minorRadius, VFXExpression scale = null)
         {
             //(pi * r * r) * (2 * pi * R)
-            return CircleArea(minorRadius) * CircleCircumference(majorRadius);
+            var volume = CircleArea(minorRadius) * CircleCircumference(majorRadius);
+            if (scale != null)
+            {
+                scale = new VFXExpressionAbs(scale);
+                volume = volume * scale.x * scale.y * scale.z;
+            }
+            return volume;
         }
 
         static public VFXExpression SignedDistanceToPlane(VFXExpression planePosition, VFXExpression planeNormal, VFXExpression position)
@@ -649,19 +668,54 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public VFXExpression GetPerspectiveMatrix(VFXExpression fov, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
+        static public VFXExpression GetPerspectiveMatrix(VFXExpression fov, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar, VFXExpression lensShift)
         {
             var fovHalf = fov / TwoExpression[VFXValueType.Float];
             var cotangent = new VFXExpressionCos(fovHalf) / new VFXExpressionSin(fovHalf);
             var deltaZ = zNear - zFar;
+            var minusTwoExp = MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float];
 
             var zero = ZeroExpression[VFXValueType.Float];
-            var m0 = new VFXExpressionCombine(cotangent / aspect,   zero,       zero,                                                               zero);
-            var m1 = new VFXExpressionCombine(zero,                 cotangent,  zero,                                                               zero);
-            var m2 = new VFXExpressionCombine(zero,                 zero,       MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ,                                       OneExpression[VFXValueType.Float]);
-            var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
+            var m0 = new VFXExpressionCombine(cotangent / aspect, zero, zero, zero);
+            var m1 = new VFXExpressionCombine(zero, cotangent, zero, zero);
+            var m2 = new VFXExpressionCombine(minusTwoExp * lensShift.x, minusTwoExp * lensShift.y, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+            var m3 = new VFXExpressionCombine(zero, zero, TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ, zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        static public VFXExpression GetOrthographicMatrix(VFXExpression orthoSize, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
+        {
+            var deltaZ = zNear - zFar;
+            var oneOverSize = OneExpression[VFXValueType.Float] / orthoSize;
+
+            var zero = ZeroExpression[VFXValueType.Float];
+            var m0 = new VFXExpressionCombine(oneOverSize / aspect, zero, zero, zero);
+            var m1 = new VFXExpressionCombine(zero, oneOverSize, zero, zero);
+            var m2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float] / deltaZ, zero);
+            var m3 = new VFXExpressionCombine(zero, zero, (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+
+            return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        static public VFXExpression IsTRSMatrixZeroScaled(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            var sqrLengthI = Dot(i, i);
+            var sqrLengthJ = Dot(j, j);
+            var sqrLengthK = Dot(k, k);
+
+            var epsilon = EpsilonSqrExpression[VFXValueType.Float];
+
+            var compareI = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthI, epsilon);
+            var compareJ = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthJ, epsilon);
+            var compareK = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthK, epsilon);
+
+            var condition = new VFXExpressionLogicalOr(compareI, new VFXExpressionLogicalOr(compareJ, compareK));
+            return condition;
         }
 
         static public VFXExpression Atan2(VFXExpression coord)
@@ -673,7 +727,7 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Max3(VFXExpression x, VFXExpression y, VFXExpression z)
         {
-            return new VFXExpressionMax( new VFXExpressionMax(x, y), z);
+            return new VFXExpressionMax(new VFXExpressionMax(x, y), z);
         }
 
         static public VFXExpression Max3(VFXExpression vector3)
@@ -696,7 +750,12 @@ namespace UnityEditor.VFX
             var z = new VFXExpressionExtractComponent(vector3, 2);
             return Min3(x, y, z);
         }
+
+        static public VFXExpression UniformScaleMatrix(VFXExpression scale)
+        {
+            var scale3 = new VFXExpressionCombine(scale, scale, scale);
+            var zero = ZeroExpression[VFXValueType.Float3];
+            return new VFXExpressionTRSToMatrix(zero, zero, scale3);
+        }
     }
-
-
 }

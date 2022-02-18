@@ -1,4 +1,4 @@
-﻿.unity-label {
+.unity-label {
     padding: 5px 2px 2px;
     margin: 2px 4px;
 }
@@ -81,6 +81,7 @@
 }
 
 .GraphSubWindow > .mainContainer > #content > #header {
+    overflow: hidden;
     flex-direction: row;
     align-items: stretch;
     background-color: #393939;
@@ -92,4 +93,3 @@
     padding-top: 4px;
     padding-bottom: 2px;
 }
-

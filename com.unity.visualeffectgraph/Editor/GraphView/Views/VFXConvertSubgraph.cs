@@ -19,10 +19,10 @@ namespace UnityEditor.VFX.UI
             ctx.ConvertToSubgraphContext(sourceView, controllers, rect, path);
         }
 
-        public static void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+        public static void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path = null)
         {
             var ctx = new Context();
-            ctx.ConvertToSubgraphOperator(sourceView, controllers, rect);
+            ctx.ConvertToSubgraphOperator(sourceView, controllers, rect, path);
         }
 
         public static void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
@@ -251,12 +251,22 @@ namespace UnityEditor.VFX.UI
                 UninitSmart();
             }
 
-            public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+            public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
-                    return;
+                if (path == null)
+                {
+                    if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
+                        return;
+                }
+                else
+                {
+                    m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>(path);
+                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController.useCount++;
+                    m_TargetControllers = new List<VFXNodeController>();
+                }
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
@@ -264,6 +274,13 @@ namespace UnityEditor.VFX.UI
                 TransferEdges();
                 TransfertOperatorOutputEdges();
                 Uninit();
+
+                //The PrepareSubgraphs was initially in compilation
+                //This change has been canceled to prevent creation of model in the wrong place
+                //Be sure the newly created operator has expected slot
+                var subGraphOperator = m_SourceNode as VFXSubgraphOperator;
+                subGraphOperator.RecreateCopy();
+                subGraphOperator.ResyncSlots(true);
             }
 
             List<VFXBlockController> m_SourceBlockControllers;
@@ -328,7 +345,9 @@ namespace UnityEditor.VFX.UI
                 var sourceBlock = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
                 m_SourceNode = sourceBlock;
                 sourceContextController.model.AddChild(m_SourceNode, m_SourceBlockControllers.Select(t => t.index).Min());
+                (m_SourceView.GetNodeByController(sourceContextController) as VFXContextUI).UpdateSelectionWithNewBlocks();
                 sourceContextController.ApplyChanges();
+
                 m_SourceNodeController = sourceContextController.blockControllers.First(t => t.model == m_SourceNode);
                 PostSetup();
                 m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
@@ -402,6 +421,7 @@ namespace UnityEditor.VFX.UI
             {
                 PostSetup();
                 m_SourceNode.position = m_Rect.center;
+                m_SourceView.UpdateSelectionWithNewNode();
                 m_SourceController.graph.AddChild(m_SourceNode);
                 m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceController.LightApplyChanges();

@@ -1,0 +1,198 @@
+#define VFXComputePixelOutputToDBuffer(i,outDBuffer) \
+{ \
+	DecalSurfaceData surfaceData; \
+    ZERO_INITIALIZE(DecalSurfaceData, surfaceData); \
+    VFXGetSurfaceDecalData(surfaceData,i); \
+ \
+    ENCODE_INTO_DBUFFER(surfaceData, outDBuffer); \
+}
+
+void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INPUTS i)
+{
+	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+	VFXTransformPSInputs(i);
+
+${VFXLoadParameter:{enableDecalLayers}}
+${VFXLoadParameter:{decalLayerMask}}
+
+DecalPrepassData material;
+ZERO_INITIALIZE(DecalPrepassData, material);
+//Check light layer
+if(_EnableDecalLayers)
+{
+	// Clip the decal if it does not pass the decal layer mask of the receiving material.
+	// Decal layer of the decal
+	DecodeFromDecalPrepass(i.pos.xy, material);
+
+	if ((decalLayerMask & material.decalLayerMask) == 0)
+	{
+		clip(-1);
+	}
+}
+
+	float3 clipPos;
+	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
+	clipPos.z = VFXSampleDepth(i.pos);
+	clipPos.y *= _ProjectionParams.x;
+
+    float4 hpositionWS = mul(UNITY_MATRIX_I_VP, float4(clipPos,1.0f));
+    float4 worldPos = float4(hpositionWS.xyz / hpositionWS.w, 1.0f);
+
+	float4x4 viewToElement;
+	viewToElement[0] = i.viewToDecal0;
+	viewToElement[1] = i.viewToDecal1;
+	viewToElement[2] = i.viewToDecal2;
+	viewToElement[3] = float4(0,0,0,1);
+
+    float4x4 worldToElement = mul(viewToElement, UNITY_MATRIX_V);
+    worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
+    float3 elementPos = mul(worldToElement, worldPos).xyz * 2.0f;
+	clip(1.0f - abs(elementPos));
+
+	float2 uv = elementPos.xy * 0.5f + 0.5f;
+	VFXUVData uvData = GetUVData(i,uv);
+    float angleFadeFactor = 1.0f;
+
+if(_EnableDecalLayers)
+{
+	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
+	{
+		float3 decalNormal = normalize(worldToElement[2].xyz);
+		float dotAngle = dot(material.geomNormalWS, decalNormal);
+		// See equation in DecalSystem.cs - simplified to a madd mul add here
+		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
+	}
+}
+	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
+	fadeFactor *= angleFadeFactor;
+
+//Compute color even for emissive, to have the correct opacity
+    float4 color = float4(1,1,1,1);
+    #if HDRP_USE_BASE_COLOR
+    color *= VFXGetParticleColor(i);
+    #elif HDRP_USE_ADDITIONAL_BASE_COLOR
+    #if defined(VFX_VARYING_COLOR)
+    color.xyz *= i.VFX_VARYING_COLOR;
+    #endif
+    #if defined(VFX_VARYING_ALPHA)
+    color.a *= i.VFX_VARYING_ALPHA;
+    #endif
+    #endif
+    #if HDRP_USE_BASE_COLOR_MAP
+    float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+    #if HDRP_USE_BASE_COLOR_MAP_COLOR
+    color.xyz *= colorMap.xyz;
+    #endif
+    #if HDRP_USE_BASE_COLOR_MAP_ALPHA
+    color.a *= colorMap.a;
+    #endif
+    #endif
+	color.a *= fadeFactor;
+    VFXClipFragmentColor(color.a,i);
+
+#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
+    surfaceData.baseColor.rgb = saturate(color.rgb);
+	surfaceData.baseColor.a = color.a;
+
+	float albedoMapBlend = surfaceData.baseColor.a;
+	float maskMapBlend = fadeFactor;
+    #ifdef DECALS_4RT
+        float metallic = 0.0f;
+        float ao = 0.0f;
+        #ifdef VFX_VARYING_METALLIC
+            metallic = i.VFX_VARYING_METALLIC;
+        #endif
+        #ifdef VFX_VARYING_AMBIENT_OCCLUSION
+            ao = i.VFX_VARYING_AMBIENT_OCCLUSION;
+        #endif
+    #endif
+
+        float smoothness = 0.5f;
+    #ifdef VFX_VARYING_SMOOTHNESS
+        smoothness = i.VFX_VARYING_SMOOTHNESS;
+    #endif
+
+
+    #if HDRP_USE_MASK_MAP
+        surfaceData.mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
+	    maskMapBlend = surfaceData.mask.z * fadeFactor;
+    #ifdef DECALS_4RT
+	    surfaceData.mask.x = lerp(0, metallic, surfaceData.mask.x);
+	    surfaceData.mask.y = lerp(0, ao, surfaceData.mask.y);
+    #endif
+	    surfaceData.mask.z = lerp(0, smoothness, surfaceData.mask.w);
+    #else //HDRP_USE_MASK_MAP
+    #ifdef DECALS_4RT
+        surfaceData.mask.xy = float2(metallic, ao);
+    #endif
+        surfaceData.mask.z = smoothness;
+    #endif
+
+    #if VFX_MASK_BLEND_BASE_COLOR_ALPHA
+	    surfaceData.mask.w = albedoMapBlend;
+    #elif VFX_MASK_BLEND_MASK_BLUE
+	    surfaceData.mask.w = maskMapBlend;
+    #endif
+
+        float normalScale = 1.0f;
+
+    #ifdef DECAL_SURFACE_GRADIENT
+
+        #if USE_NORMAL_MAP
+        #ifdef VFX_VARYING_NORMALSCALE
+        normalScale = i.VFX_VARYING_NORMALSCALE;
+        #endif
+	    float2 deriv = UnpackDerivativeNormalRGorAG(SampleTexture(VFX_SAMPLER(normalMap),uvData)) * normalScale;
+        #else // USE_NORMAL_MAP
+        float2 deriv = float2(0.0f,0.0f);
+        #endif  // USE_NORMAL_MAP
+        float3 normalWS = SurfaceGradientFromTBN(deriv, worldToElement._m00_m01_m02, worldToElement._m10_m11_m12);
+
+    #else //DECAL_SURFACE_GRADIENT
+        #if USE_NORMAL_MAP
+        #ifdef VFX_VARYING_NORMALSCALE
+        normalScale = i.VFX_VARYING_NORMALSCALE;
+        #endif
+        float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+        #else //USE_NORMAL_MAP
+	    float3 normalTS = float3(0.0f,0.0f,1.0f);
+	    #endif //USE_NORMAL_MAP
+        float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose((float3x3)worldToElement), normalTS), normalScale);
+	    normalWS = normalize(normalWS);
+    #endif //DECAL_SURFACE_GRADIENT
+
+
+	    surfaceData.normalWS.xyz = normalWS;
+	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
+	    surfaceData.normalWS.w = albedoMapBlend;
+	    #elif VFX_NORMAL_BLEND_MASK_BLUE
+	    surfaceData.normalWS.w = maskMapBlend;
+	    #endif
+
+	    surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
+	#endif
+	#if SHADERPASS == SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
+        surfaceData.emissive = float3(1,1,1) * fadeFactor;
+        #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+		surfaceData.emissive *= i.VFX_VARYING_EMISSIVE;
+		#endif
+		#ifdef HDRP_USE_EMISSIVE_MAP
+		float emissiveScale = 1.0f;
+		#ifdef VFX_VARYING_EMISSIVESCALE
+		emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+		#endif
+		surfaceData.emissive *= SampleTexture(VFX_SAMPLER(emissiveMap), uvData).rgb * emissiveScale;
+		#endif
+		// Inverse pre-expose using exposureWeight weight
+		float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
+		#ifdef VFX_VARYING_EXPOSUREWEIGHT
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, i.VFX_VARYING_EXPOSUREWEIGHT);
+		#elif VFX_BYPASS_EXPOSURE
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, 0.0f);
+		#else
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, 1.0f);
+		#endif
+        surfaceData.emissive *= saturate(color.a);
+	#endif
+}
+

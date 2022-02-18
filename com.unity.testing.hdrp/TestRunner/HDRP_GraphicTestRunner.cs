@@ -12,16 +12,17 @@ using System.IO;
 
 public class HDRP_GraphicTestRunner
 {
+    [UnityTest]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
-    [Timeout(300 * 1000)] // Set timeout to 5 minutes to handle complex scenes with many shaders (default timeout is 3 minutes)
+    [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
-        for (int i=0 ; i<5 ; ++i)
-            yield return null;
+        for (int i = 0; i < 5; ++i)
+            yield return new WaitForEndOfFrame();
 
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
@@ -35,26 +36,21 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
+        int waitFrames = settings.waitFrames;
+
         if (XRGraphicsAutomatedTests.enabled)
         {
-            if (settings.xrCompatible)
-            {
-                XRGraphicsAutomatedTests.running = true;
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, waitFrames, settings.ImageComparisonSettings);
 
-                // Increase tolerance to account for slight changes due to float precision
-                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
-                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            // Increase tolerance to account for slight changes due to float precision
+            settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
 
-                // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
-                foreach (var volume in GameObject.FindObjectsOfType<Volume>())
-                {
-                    if (volume.profile.TryGet<Fog>(out Fog fog))
-                        fog.volumeSliceCount.value *= 2;
-                }
-            }
-            else
+            // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
+            foreach (var volume in GameObject.FindObjectsOfType<Volume>())
             {
-                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+                if (volume.profile.TryGet<Fog>(out Fog fog))
+                    fog.volumeSliceCount.value *= 2;
             }
         }
 
@@ -63,14 +59,14 @@ public class HDRP_GraphicTestRunner
             settings.doBeforeTest.Invoke();
 
             // Wait again one frame, to be sure.
-            yield return null;
+            yield return new WaitForEndOfFrame();
         }
 
         // Reset temporal effects on hdCamera
         HDCamera.GetOrCreate(camera).Reset();
 
-        for (int i=0 ; i<settings.waitFrames ; ++i)
-            yield return null;
+        for (int i = 0; i < waitFrames; ++i)
+            yield return new WaitForEndOfFrame();
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
@@ -88,7 +84,7 @@ public class HDRP_GraphicTestRunner
                 try
                 {
                     // GC alloc from Camera.CustomRender (case 1206364)
-                    int gcAllocThreshold = 2;
+                    int gcAllocThreshold = 0;
 
                     ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
                 }
@@ -113,15 +109,15 @@ public class HDRP_GraphicTestRunner
 
             settingsSG.sgObjs.SetActive(true);
             settingsSG.biObjs.SetActive(false);
-            yield return null; // Wait a frame
-            yield return null;
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
             bool sgFail = false;
             bool biFail = false;
 
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -131,13 +127,13 @@ public class HDRP_GraphicTestRunner
             settingsSG.sgObjs.SetActive(false);
             settingsSG.biObjs.SetActive(true);
             settingsSG.biObjs.transform.position = settingsSG.sgObjs.transform.position; // Move to the same location.
-            yield return null; // Wait a frame
-            yield return null;
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
 
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -160,10 +156,10 @@ public class HDRP_GraphicTestRunner
     }
 
     [TearDown]
-    public void ResetSystemState()
+    public void TearDownXR()
     {
         XRGraphicsAutomatedTests.running = false;
     }
-#endif
 
+#endif
 }

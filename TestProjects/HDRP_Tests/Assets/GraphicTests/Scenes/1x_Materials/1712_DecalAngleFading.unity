@@ -52,7 +52,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 1
-    m_EnableRealtimeLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 12
     m_Resolution: 2
@@ -2264,8 +2264,8 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 235e456ff2b92bb48a30e758f2b3883a, type: 2}
   m_DrawDistance: 1000
   m_FadeScale: 0.9
-  m_StartAngleFade: 9
-  m_EndAngleFade: 90
+  m_StartAngleFade: 0
+  m_EndAngleFade: 40
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
@@ -2763,8 +2763,8 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 5dc222ba652768f4e95444d92f345b3a, type: 2}
   m_DrawDistance: 1000
   m_FadeScale: 0.9
-  m_StartAngleFade: 9
-  m_EndAngleFade: 90
+  m_StartAngleFade: 0
+  m_EndAngleFade: 40
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -2861,8 +2861,8 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 5dc222ba652768f4e95444d92f345b3a, type: 2}
   m_DrawDistance: 1000
   m_FadeScale: 0.9
-  m_StartAngleFade: 9
-  m_EndAngleFade: 90
+  m_StartAngleFade: 0
+  m_EndAngleFade: 40
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0

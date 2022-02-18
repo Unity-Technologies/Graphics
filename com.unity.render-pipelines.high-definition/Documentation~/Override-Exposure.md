@@ -9,6 +9,8 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** and click on **Exposure**. HDRP now applies **Exposure** correction to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-Exposure1.png)
@@ -57,7 +59,7 @@ The human eye can function in both very dark and very bright areas. However, at 
 
 ### Automatic Histogram
 
-The automatic histogram is an extension of the [**Automatic**](#AutomaticProperties) mode. In order to achieve a more stable exposure result, this mode calculates a histogram of the image which makes it possible exclude parts of the image from the exposure calculation. This is useful to discard very bright or very dark areas of the screen. 
+The automatic histogram is an extension of the [**Automatic**](#AutomaticProperties) mode. In order to achieve a more stable exposure result, this mode calculates a histogram of the image which makes it possible exclude parts of the image from the exposure calculation. This is useful to discard very bright or very dark areas of the screen.
 
 To control this process, in addition to the properties for **Automatic** mode, this mode includes the following properties:
 
@@ -84,24 +86,24 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
 ![](Images/Override-Exposure3.png)
 
 - **Mask Weighted**: The Camera applies a weight to every pixel in the buffer then uses the weights to measure the exposure. To specify the weighting, this technique uses the Texture set in the **Weight Texture Mask** field. Note that, if you do not provide a Texture, this metering mode is equivalent to **Average**.
-  
+
 - **Procedural Mask**: The Camera applies applies a weight to every pixel in the buffer then uses the weights to measure the exposure. The weights are generated using a mask that is procedurally generated with the following parameters:
-  
+
   | **Property**                      | **Description**                                              |
   | --------------------------------- | ------------------------------------------------------------ |
   | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.md). |
   | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is disabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
-  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |
+  | **Radius**                        | Sets the radiuses (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |
   | **Softness**                      | Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask. |
   | **Mask Min Intensity**            | All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
   | **Mask Max Intensity**            | All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
-  
+
 
 
 Next, set the **Limit Min** and **Limit Max** to define the minimum and maximum exposure values respectively. Move between light and dark areas of your Scene and alter each property until you find the perfect values for your Scene.
 
- 
+
 
 Now use the **Compensation** property to over or under-expose the Scene. This works in a similar way to how exposure compensation works on most cameras.
 
@@ -135,9 +137,9 @@ This mode mainly relies on the [Camera’s](https://docs.unity3d.com/Manual/clas
 
 ### Exposure Debug Modes
 
-HDRP offers several debug modes to help you to set the correct exposure for your scene. You can activate these in the [Debug window](Render-Pipeline-Debug-Window.md). 
+HDRP offers several debug modes to help you to set the correct exposure for your scene. You can activate these in the [Debug window](Render-Pipeline-Debug-Window.md).
 
-#### Scene EV<sup>100</sup> Values 
+#### Scene EV<sup>100</sup> Values
 
 This debug mode shows a heat map of the scene luminance converted to [EV<sup>100</sup>](Physical-Light-Units.md#EV) units across the screen. This is useful to determine the distribution of intensity across the screen which can help you to identify whether you have set the right exposure limits. It is also an informative view on how the brightness is distributed in your scene.
 
@@ -160,7 +162,7 @@ There are two places this debug mode displays information. On the screen and on 
 * **Red**: The brightness value is above the higher percentile and is excluded.
 * **White**: The brightness value is between the upper and lower percentiles and is accepted.
 
-At the bottom of the histogram, a yellow arrow points to the target exposure, while a grey arrow points at the current exposure.  
+At the bottom of the histogram, a yellow arrow points to the target exposure, while a grey arrow points at the current exposure.
 
 If you enable the **Show Tonemap Curve** option, the debug view overlays the curve used to tonemap to the histogram view.
 
@@ -174,7 +176,7 @@ The Metering Weighted debug view displays the scene alongside a picture of what 
 
 #### Final Image Histogram
 
-The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values. 
-This view can display both luminance histogram or RGB channels represented separately. 
+The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values.
+This view can display both luminance histogram or RGB channels represented separately.
 
 ![](Images/Override-Exposure7.png)

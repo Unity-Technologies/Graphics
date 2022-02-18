@@ -8,6 +8,40 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ParticlesInstancing.hlsl"
 
+struct ParticleParams
+{
+    float4 positionWS;
+    float4 vertexColor;
+    float4 projectedPosition;
+    half4 baseColor;
+    float3 blendUv;
+    float2 uv;
+};
+
+void InitParticleParams(VaryingsParticle input, out ParticleParams output)
+{
+    output = (ParticleParams) 0;
+    output.uv = input.texcoord;
+    output.vertexColor = input.color;
+
+    #if defined(_FLIPBOOKBLENDING_ON)
+        output.blendUv = input.texcoord2AndBlend;
+    #else
+        output.blendUv = float3(0,0,0);
+    #endif
+
+    #if !defined(PARTICLES_EDITOR_META_PASS)
+        output.positionWS = input.positionWS;
+        output.baseColor = _BaseColor;
+
+        #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+            output.projectedPosition = input.projectedPosition;
+        #else
+            output.projectedPosition = float4(0,0,0,0);
+        #endif
+    #endif
+}
+
 // Pre-multiplied alpha helper
 #if defined(_ALPHAPREMULTIPLY_ON)
     #define ALBEDO_MUL albedo
@@ -18,16 +52,16 @@
 #if defined(_ALPHAPREMULTIPLY_ON)
     #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * val
 #elif defined(_ALPHAMODULATE_ON)
-    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) half4(lerp(half3(1.0h, 1.0h, 1.0h), albedo.rgb, albedo.a * val), albedo.a * val)
+    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) half4(lerp(half3(1.0, 1.0, 1.0), albedo.rgb, albedo.a * val), albedo.a * val)
 #else
-    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * half4(1.0h, 1.0h, 1.0h, val)
+    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * half4(1.0, 1.0, 1.0, val)
 #endif
 
 // Color blending fragment function
-float4 MixParticleColor(float4 baseColor, float4 particleColor, float4 colorAddSubDiff)
+half4 MixParticleColor(half4 baseColor, half4 particleColor, half4 colorAddSubDiff)
 {
 #if defined(_COLOROVERLAY_ON) // Overlay blend
-    float4 output = baseColor;
+    half4 output = baseColor;
     output.rgb = lerp(1 - 2 * (1 - baseColor.rgb) * (1 - particleColor.rgb), 2 * baseColor.rgb * particleColor.rgb, step(baseColor.rgb, 0.5));
     output.a *= particleColor.a;
     return output;
@@ -37,7 +71,7 @@ float4 MixParticleColor(float4 baseColor, float4 particleColor, float4 colorAddS
     half3 rHSL = half3(bHSL.x, bHSL.y, aHSL.z);
     return half4(HsvToRgb(rHSL), baseColor.a * particleColor.a);
 #elif defined(_COLORADDSUBDIFF_ON) // Additive, Subtractive and Difference blends based on 'colorAddSubDiff'
-    float4 output = baseColor;
+    half4 output = baseColor;
     output.rgb = baseColor.rgb + particleColor.rgb * colorAddSubDiff.x;
     output.rgb = lerp(output.rgb, abs(output.rgb), colorAddSubDiff.y);
     output.a *= particleColor.a;
@@ -53,9 +87,24 @@ float SoftParticles(float near, float far, float4 projection)
     float fade = 1;
     if (near > 0.0 || far > 0.0)
     {
-        float sceneZ = LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r, _ZBufferParams);
+        float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r;
+        float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
-        fade = saturate (far * ((sceneZ - near) - thisZ));
+        fade = saturate(far * ((sceneZ - near) - thisZ));
+    }
+    return fade;
+}
+
+// Soft particles - returns alpha value for fading particles based on the depth to the background pixel
+float SoftParticles(float near, float far, ParticleParams params)
+{
+    float fade = 1;
+    if (near > 0.0 || far > 0.0)
+    {
+        float rawDepth = SampleSceneDepth(params.projectedPosition.xy / params.projectedPosition.w);
+        float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
+        float thisZ = LinearEyeDepth(params.positionWS.xyz, GetWorldToViewMatrix());
+        fade = saturate(far * ((sceneZ - near) - thisZ));
     }
     return fade;
 }
@@ -64,40 +113,41 @@ float SoftParticles(float near, float far, float4 projection)
 half CameraFade(float near, float far, float4 projection)
 {
     float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
-    return saturate((thisZ - near) * far);
+    return half(saturate((thisZ - near) * far));
 }
 
-half3 AlphaModulate(half3 albedo, half alpha)
+half3 AlphaModulateAndPremultiply(half3 albedo, half alpha)
 {
 #if defined(_ALPHAMODULATE_ON)
-    return lerp(half3(1.0h, 1.0h, 1.0h), albedo, alpha);
+    return AlphaModulate(albedo, alpha);
 #elif defined(_ALPHAPREMULTIPLY_ON)
-    return albedo * alpha;
+    return AlphaPremultiply(albedo, alpha);
 #endif
     return albedo;
 }
+
 
 half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, float4 projection)
 {
     float2 screenUV = (projection.xy / projection.w) + normal.xy * strength * baseColor.a;
     screenUV = UnityStereoTransformScreenSpaceTex(screenUV);
     float4 Distortion = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, screenUV);
-    return lerp(Distortion.rgb, baseColor.rgb, saturate(baseColor.a - blend));
+    return half3(lerp(Distortion.rgb, baseColor.rgb, saturate(baseColor.a - blend)));
 }
 
 // Sample a texture and do blending for texture sheet animation if needed
 half4 BlendTexture(TEXTURE2D_PARAM(_Texture, sampler_Texture), float2 uv, float3 blendUv)
 {
-    half4 color = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, uv);
+    half4 color = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, uv));
 #ifdef _FLIPBOOKBLENDING_ON
-    half4 color2 = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, blendUv.xy);
-    color = lerp(color, color2, blendUv.z);
+    half4 color2 = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, blendUv.xy));
+    color = lerp(color, color2, half(blendUv.z));
 #endif
     return color;
 }
 
 // Sample a normal map in tangent space
-half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = half(1.0))
 {
 #if defined(_NORMALMAP)
     half4 n = BlendTexture(TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), uv, blendUv);
@@ -107,7 +157,7 @@ half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler
         return UnpackNormalScale(n, scale);
     #endif
 #else
-    return half3(0.0h, 0.0h, 1.0h);
+    return half3(0.0, 0.0, 1.0);
 #endif
 }
 
@@ -117,7 +167,7 @@ half4 GetParticleColor(half4 color)
 #if !defined(UNITY_PARTICLE_INSTANCE_DATA_NO_COLOR)
     UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
     color = lerp(half4(1.0, 1.0, 1.0, 1.0), color, unity_ParticleUseMeshColors);
-    color *= UnpackFromR8G8B8A8(data.color);
+    color *= half4(UnpackFromR8G8B8A8(data.color));
 #endif
 #endif
     return color;

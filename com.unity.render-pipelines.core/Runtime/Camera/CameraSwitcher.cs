@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Utility component allowing users to setup many different static camera and cycle through their positions using the Debug Window.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Camera-Switcher" + Documentation.endURL)]
+    [CoreRPHelpURLAttribute("Camera-Switcher")]
     public class CameraSwitcher : MonoBehaviour
     {
         /// <summary>
@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering
         private Quaternion m_OriginalCameraRotation;
         private Camera m_CurrentCamera = null;
 
-        GUIContent[]    m_CameraNames = null;
-        int[]           m_CameraIndices = null;
+        GUIContent[] m_CameraNames = null;
+        int[] m_CameraIndices = null;
 
         DebugUI.EnumField m_DebugEntry;
 

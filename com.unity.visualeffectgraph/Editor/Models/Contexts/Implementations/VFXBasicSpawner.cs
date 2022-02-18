@@ -81,6 +81,11 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
+            var referenceContext = serializedObject.targetObject as VFXContext;
+            var resource = referenceContext.GetResource();
+            GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
+
+            DisplayName(referenceContext);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LoopDurationProperty);
             EditorGUILayout.PropertyField(m_LoopCountProperty);
@@ -152,6 +157,12 @@ namespace UnityEditor.VFX
                 }
             }
         }
+
+        private void DisplayName(VFXContext context)
+        {
+            var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
+            GUILayout.Label(label, VFXSlotContainerEditor.Styles.spawnStyle);
+        }
     }
 
     [VFXInfo]
@@ -183,7 +194,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private DelayMode delayAfterLoop = DelayMode.None;
 
-        public VFXBasicSpawner() : base(VFXContextType.Spawner, VFXDataType.SpawnEvent, VFXDataType.SpawnEvent) {}
+        public VFXBasicSpawner() : base(VFXContextType.Spawner, VFXDataType.SpawnEvent, VFXDataType.SpawnEvent) { }
         public override string name { get { return "Spawn"; } }
 
         protected override int inputFlowCount
@@ -220,6 +231,16 @@ namespace UnityEditor.VFX
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "DelayAfterLoop"), 0.1f);
                 else if (delayAfterLoop == DelayMode.Random)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "DelayAfterLoop"), new Vector2(0.1f, 0.3f));
+            }
+        }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadWrite);
+                foreach (var attribute in base.attributes)
+                    yield return attribute;
             }
         }
 

@@ -1,10 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 
-#if UNITY_EDITOR
-using UnityEditor.Experimental.SceneManagement;
-#endif
-
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class Light2DManager
     {
@@ -35,18 +32,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             foreach (var sortingLayer in light.affectedSortingLayers)
             {
                 // should this really trigger at runtime?
-                if(ContainsDuplicateGlobalLight(sortingLayer, light.blendStyleIndex))
+                if (ContainsDuplicateGlobalLight(sortingLayer, light.blendStyleIndex))
                     Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + light.blendStyleIndex);
             }
         }
 
         public static bool GetGlobalColor(int sortingLayerIndex, int blendStyleIndex, out Color color)
         {
-            var  foundGlobalColor = false;
+            var foundGlobalColor = false;
             color = Color.black;
 
             // This should be rewritten to search only global lights
-            foreach(var light in lights)
+            foreach (var light in lights)
             {
                 if (light.lightType != Light2D.LightType.Global ||
                     light.blendStyleIndex != blendStyleIndex ||
@@ -56,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var inCurrentPrefabStage = true;
 #if UNITY_EDITOR
                 // If we found the first global light in our prefab stage
-                inCurrentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
+                inCurrentPrefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
 #endif
 
                 if (inCurrentPrefabStage)
@@ -82,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var globalLightCount = 0;
 
             // This should be rewritten to search only global lights
-            foreach(var light in lights)
+            foreach (var light in lights)
             {
                 if (light.lightType == Light2D.LightType.Global &&
                     light.blendStyleIndex == blendStyleIndex &&
@@ -90,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
 #if UNITY_EDITOR
                     // If we found the first global light in our prefab stage
-                    if (PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage())
+                    if (UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(light.gameObject) == UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage())
 #endif
                     {
                         if (globalLightCount > 0)
@@ -106,14 +103,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static SortingLayer[] GetCachedSortingLayer()
         {
-            s_SortingLayers ??= SortingLayer.layers;
-#if UNITY_EDITOR
-            // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying)
+            if (s_SortingLayers is null)
                 s_SortingLayers = SortingLayer.layers;
-#endif
+
             return s_SortingLayers;
         }
 
+#if UNITY_EDITOR
+        static int s_NumLight = 0;
+        public static void UpdateSortingLayers(ref int[] targetSortingLayers)
+        {
+            ++s_NumLight;
+            var layers = SortingLayer.layers;
+            if (GetCachedSortingLayer().Length + 1 == layers.Length)
+            {
+                var sortingLayerList = targetSortingLayers.ToList();
+
+                // Remove any invalid layers
+                sortingLayerList.RemoveAll(id => !SortingLayer.IsValid(id));
+
+                // Add any new layers
+                var layer = layers.Except(s_SortingLayers).FirstOrDefault();
+                if (sortingLayerList.Count + 1 == layers.Length && !sortingLayerList.Contains(layer.id))
+                    sortingLayerList.Add(layer.id);
+
+                targetSortingLayers = sortingLayerList.ToArray();
+            }
+
+            if(s_NumLight == lights.Count)
+            {
+                s_SortingLayers = layers;
+                s_NumLight = 0;
+            }
+        }
+
+#endif
     }
 }

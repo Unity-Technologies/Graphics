@@ -1,0 +1,193 @@
+
+
+
+.VFXDataAnchor > #connector.portHighlight #hole #cap{
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
+}
+
+.VFXDataAnchor
+{
+    flex-direction: row;
+    align-items: center;
+    -unity-font-style: normal;
+    color: #BBB;
+    font-size: 11px;
+    padding-bottom:0;
+    min-height: 20px;
+    height: auto;
+    margin-bottom:0;
+    margin-right: 4px;
+}
+
+.VFXDataAnchor #lineSpacer
+{
+    flex:1 0 auto;
+}
+.VFXDataAnchor #line
+{
+    align-self:stretch;
+}
+
+
+.VFXDataAnchor.port #type
+{
+    margin-left:0;
+    margin-right:0;
+    padding-bottom:0;
+    margin-bottom:0;
+}
+
+
+.VFXDataAnchor.port #connector
+{
+    margin-right:0;
+}
+
+VFXContextUI #output .VFXDataAnchor.port #connector
+{
+    width:12px;
+}
+
+
+.superCollapsed .VFXDataAnchor.port #connector
+{
+    margin-left:0;
+}
+
+.VFXDataAnchor #connector #hole
+{
+    position:absolute;
+    right:0;
+    left:0;
+    top:0;
+    bottom:0;
+}
+.VFXDataAnchor #connector #hole #cap
+{
+    position:absolute;
+    right:0;
+    left:0;
+    top:0;
+    bottom:0;
+    width: -1px;
+    height: -1px;
+}
+
+
+.VFXDataAnchor.hidden
+{
+    max-height:0;
+    min-height:0;
+    height:0;
+}
+
+.VFXDataAnchor.hidden #connector
+{
+    margin-top: -12px;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    background-color:rgba(0,0,0,0);
+}
+
+.VFXDataAnchor.hidden .propertyrm
+{
+    display:none;
+}
+
+    .node #right > #output
+    {
+        right: 0;
+    }
+
+    .VFXDataAnchor.Output
+    {
+        right: 0;
+        padding-right: 0;
+        margin-left: 0;
+    }
+
+    VFXDataAnchor.Output #type
+    {
+        color: rgb(153,153,153);
+        -unity-text-align: middle-right;
+        flex: 1 0 auto;
+    }
+
+    .VFXDataAnchor .propertyrm
+    {
+        flex: 1 1 auto;
+    }
+
+    .VFXDataAnchor .space
+    {
+        border-radius: 4px;
+        border-left-width: 1px;
+        border-right-width: 1px;
+        border-top-width: 1px;
+        border-bottom-width: 1px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 2px;
+        margin-right: 10px;
+        border-color: rgb(153,153,153);
+        color: rgb(153,153,153);
+        -unity-text-align: middle-center;
+    }
+
+    .VFXOutputDataAnchor #icon
+    {
+        width: 13px;
+        height: 13px;
+    }
+
+    .VFXOutputDataAnchor.icon-expandable #icon
+    {
+        background-image: resource("IN foldout@2x.png");
+    }
+
+    .VFXOutputDataAnchor.icon-expandable #icon:hover
+    {
+        background-image: resource("IN foldout focus@2x.png");
+    }
+
+    .VFXOutputDataAnchor.icon-expandable #icon:hover:active
+    {
+        background-image: resource("IN foldout act@2x.png");
+    }
+
+    .VFXOutputDataAnchor.icon-expandable.icon-expanded #icon
+    {
+        background-image: resource("IN foldout on@2x.png");
+    }
+
+    .VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover
+    {
+        background-image: resource("IN foldout focus on@2x.png");
+    }
+
+    .VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover:active
+    {
+        background-image: resource("IN foldout act on@2x.png");
+    }
+
+    .VFXOutputDataAnchor #type
+    {
+        color: #c4c4c4;
+        margin-right: 12px;
+        flex-grow: 1;
+    }
+    /*Default*/
+    .VFXDataAnchor.connected > #connector
+    {
+        border-color: #787878;
+    }
+
+    TextElement:disabled
+    {
+        opacity: 0.5;
+    }

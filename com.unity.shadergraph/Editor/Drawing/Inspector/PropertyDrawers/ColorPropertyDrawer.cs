@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (valueChangedCallback != null)
             {
-                colorField.RegisterValueChangedCallback(evt => { valueChangedCallback((Color) evt.newValue); });
+                colorField.RegisterValueChangedCallback(evt => { valueChangedCallback((Color)evt.newValue); });
             }
 
             propertyColorField = colorField;
@@ -39,10 +39,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Color) propertyInfo.GetValue(actualObject),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
+                (Color)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

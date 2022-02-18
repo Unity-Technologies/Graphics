@@ -73,7 +73,6 @@ namespace UnityEditor.Rendering
         /// <returns>Return the error during the import otherwise null if no error</returns>
         public string ReadFile(string iesFilePath)
         {
-
             using (var iesReader = File.OpenText(iesFilePath))
             {
                 string versionLine = iesReader.ReadLine();

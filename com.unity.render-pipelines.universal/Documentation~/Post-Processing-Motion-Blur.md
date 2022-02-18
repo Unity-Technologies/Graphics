@@ -1,5 +1,11 @@
 # Motion Blur
 
+![Motion Blur off](Images/post-proc/motion-blur-off.png)
+<br/>_Scene with Motion Blur effect turned off._
+
+![Motion Blur on](Images/post-proc/motion-blur.png)
+<br/>_Scene with Motion Blur effect turned on._
+
 The Motion Blur effect simulates the blur that occurs in an image when a real-world camera films objects moving faster than the camera’s exposure time. This is usually due to rapidly moving objects, or a long exposure time.
 
 Universal Render Pipeline (URP) only blurs camera motions.
@@ -23,7 +29,7 @@ Universal Render Pipeline (URP) only blurs camera motions.
 
 ## Troubleshooting performance issues
 
-To decrease the performance impact of Motion Blur, you can: 
+To decrease the performance impact of Motion Blur, you can:
 
 * Reduce the **Quality**. A lower quality setting gives higher performance but may exhibit more visual artifacts.
 * Decrease the **Clamp** to reduce the maximum velocity that Unity takes into account. Lower values give higher performance.

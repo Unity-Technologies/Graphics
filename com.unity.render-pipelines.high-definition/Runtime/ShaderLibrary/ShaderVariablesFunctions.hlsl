@@ -6,11 +6,10 @@
 
 // Helper function for Rendering Layers
 #define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
-#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
 
 // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
 uint GetMeshRenderingLightLayer()
-{ 
+{
     return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
 }
 
@@ -136,7 +135,7 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
     tangentToWorld[0] = tangentToWorld[0] * renormFactor;
     tangentToWorld[1] = tangentToWorld[1] * renormFactor;
-    tangentToWorld[2] = tangentToWorld[2] * renormFactor;		// normalizes the interpolated vertex normal
+    tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
 }
@@ -145,18 +144,17 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
-    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
+    return normalize(mul((float3x3)UNITY_PREV_MATRIX_M, normalOS));
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
+    return normalize(mul(normalOS, (float3x3)UNITY_PREV_MATRIX_I_M));
 #endif
 }
 
 // Transforms local position to camera relative world space
 float3 TransformPreviousObjectToWorld(float3 positionOS)
 {
-    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
-    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
+    return mul(UNITY_PREV_MATRIX_M,  float4(positionOS, 1.0)).xyz;
 }
 
 
@@ -188,16 +186,15 @@ uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
     {
         // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
         s_elementIdx = WaveActiveMin(v_elementIdx);
-        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
-        if (s_elementIdx == -1)
-        {
-            return -1;
-        }
     }
-    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-    // However, we are certain at this point that the index is scalar.
-    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+    // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+    // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin.
+    // If that's not the case we make sure the index is put into a scalar register.
+    if (s_elementIdx != -1)
+    {
+        s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+    }
+
 #endif
     return s_elementIdx;
 }

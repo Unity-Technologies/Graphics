@@ -9,6 +9,8 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_URPMainLightDirection
+
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -40,9 +42,15 @@ float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 {
 #ifdef LIGHTMAP_ON
     if (applyScaling)
+    {
         uvStaticLightmap = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-
+        uvDynamicLightmap = uvDynamicLightmap * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    }
+#if defined(DYNAMICLIGHTMAP_ON)
+    return SampleLightmap(uvStaticLightmap, uvDynamicLightmap, normalWS);
+#else
     return SampleLightmap(uvStaticLightmap, normalWS);
+#endif
 #else
     return SampleSH(normalWS);
 #endif
@@ -54,10 +62,17 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
     return DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, lod), unity_SpecCube0_HDR);
 }
 
-void shadergraph_LWFog(float3 position, out float4 color, out float density)
+void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
-    density = ComputeFogFactor(TransformObjectToHClip(position).z);
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
+    float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    // ComputeFogFactorZ0ToFar returns the fog "occlusion" (0 for full fog and 1 for no fog) so this has to be inverted for density.
+    density = 1.0f - ComputeFogIntensity(ComputeFogFactorZ0ToFar(nearZ0ToFarZ));
+    #else
+    density = 0.0f;
+    #endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
@@ -77,9 +92,14 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
     tangentToWorld[0] = tangentToWorld[0] * renormFactor;
     tangentToWorld[1] = tangentToWorld[1] * renormFactor;
-    tangentToWorld[2] = tangentToWorld[2] * renormFactor;		// normalizes the interpolated vertex normal
+    tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
+}
+
+float3 shadergraph_URPMainLightDirection()
+{
+    return -GetMainLight().direction;
 }
 
 // Always include Shader Graph version

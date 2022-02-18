@@ -6,17 +6,17 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     class DiffusionProfileConstants
     {
-        public const int DIFFUSION_PROFILE_COUNT      = 16; // Max. number of profiles, including the slot taken by the neutral profile
+        public const int DIFFUSION_PROFILE_COUNT = 16; // Max. number of profiles, including the slot taken by the neutral profile
         public const int DIFFUSION_PROFILE_NEUTRAL_ID = 0;  // Does not result in blurring
-        public const int SSS_PIXELS_PER_SAMPLE        = 4;
+        public const int SSS_PIXELS_PER_SAMPLE = 4;
     }
 
     enum DefaultSssSampleBudgetForQualityLevel
     {
-        Low    = 20,
+        Low = 20,
         Medium = 40,
-        High   = 80,
-        Max    = 1000
+        High = 80,
+        Max = 1000
     }
 
     [Serializable]
@@ -35,21 +35,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [ColorUsage(false, true)]
-        public Color            scatteringDistance;         // Per color channel (no meaningful units)
+        public Color scatteringDistance;         // Per color channel (no meaningful units)
         [ColorUsage(false, true)]
-        public Color            transmissionTint;           // HDR color
-        public TexturingMode    texturingMode;
+        public Color transmissionTint;           // HDR color
+        public TexturingMode texturingMode;
         public TransmissionMode transmissionMode;
-        public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
-        public float            worldScale;                 // Size of the world unit in meters
-        public float            ior;                        // 1.4 for skin (mean ~0.028)
+        public Vector2 thicknessRemap;             // X = min, Y = max (in millimeters)
+        public float worldScale;                 // Size of the world unit in meters
+        public float ior;                        // 1.4 for skin (mean ~0.028)
 
-        public Vector3          shapeParam   { get; private set; }          // RGB = shape parameter: S = 1 / D
-        public float            filterRadius { get; private set; }          // In millimeters
-        public float            maxScatteringDistance { get; private set; } // No meaningful units
+        public Vector3 shapeParam { get; private set; }          // RGB = shape parameter: S = 1 / D
+        public float filterRadius { get; private set; }          // In millimeters
+        public float maxScatteringDistance { get; private set; } // No meaningful units
 
         // Unique hash used in shaders to identify the index in the diffusion profile array
-        public uint             hash = 0;
+        public uint hash = 0;
 
         // Here we need to have one parameter in the diffusion profile parameter because the deserialization call the default constructor
         public DiffusionProfile(bool dontUseDefaultConstructor)
@@ -72,8 +72,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
-            worldScale       = Mathf.Max(worldScale, 0.001f);
-            ior              = Mathf.Clamp(ior, 1.0f, 2.0f);
+            worldScale = Mathf.Max(worldScale, 0.001f);
+            ior = Mathf.Clamp(ior, 1.0f, 2.0f);
 
             UpdateKernel();
         }
@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Rather inconvenient to support (S = Inf).
             shapeParam = new Vector3(Mathf.Min(16777216, 1.0f / sd.x),
-                                     Mathf.Min(16777216, 1.0f / sd.y),
-                                     Mathf.Min(16777216, 1.0f / sd.z));
+                Mathf.Min(16777216, 1.0f / sd.y),
+                Mathf.Min(16777216, 1.0f / sd.z));
 
             // Filter radius is, strictly speaking, infinite.
             // The magnitude of the function decays exponentially, but it is never truly zero.
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             u = 1 - u; // Convert CDF to CCDF
 
             float g = 1 + (4 * u) * (2 * u + Mathf.Sqrt(1 + (4 * u) * u));
-            float n = Mathf.Pow(g, -1.0f/3.0f);                      // g^(-1/3)
+            float n = Mathf.Pow(g, -1.0f / 3.0f);                      // g^(-1/3)
             float p = (g * n) * n;                                   // g^(+1/3)
             float c = 1 + p + n;                                     // 1 + g^(+1/3) + g^(-1/3)
             float x = 3 * Mathf.Log(c / (4 * u));
@@ -185,18 +185,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (other == null)
                 return false;
 
-            return  scatteringDistance == other.scatteringDistance &&
-                    transmissionTint == other.transmissionTint &&
-                    texturingMode == other.texturingMode &&
-                    transmissionMode == other.transmissionMode &&
-                    thicknessRemap == other.thicknessRemap &&
-                    worldScale == other.worldScale &&
-                    ior == other.ior;
+            return scatteringDistance == other.scatteringDistance &&
+                transmissionTint == other.transmissionTint &&
+                texturingMode == other.texturingMode &&
+                transmissionMode == other.transmissionMode &&
+                thicknessRemap == other.thicknessRemap &&
+                worldScale == other.worldScale &&
+                ior == other.ior;
         }
     }
 
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+    /// <summary>
+    /// Class for Diffusion Profile settings
+    /// </summary>
+    [HDRPHelpURLAttribute("Diffusion-Profile")]
+    public partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]
         internal DiffusionProfile profile;
@@ -206,6 +209,47 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized] internal Vector4 transmissionTintAndFresnel0;                // RGB = color, A = fresnel0
         [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0;        // RGB = black, A = fresnel0 - For debug to remove the transmission
         [NonSerialized] internal int updateCount;
+
+        /// <summary>
+        /// Scattering distance. Determines the shape of the profile, and the blur radius of the filter per color channel. Alpha is ignored.
+        /// </summary>
+        public Color scatteringDistance
+        {
+            get => profile.scatteringDistance;
+            set { profile.scatteringDistance = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Effective radius of the filter (in millimeters).
+        /// </summary>
+        public float maximumRadius { get => profile.filterRadius; }
+
+        /// <summary>
+        /// Index of refraction. For reference, skin is 1.4 and most materials are between 1.3 and 1.5.
+        /// </summary>
+        public float indexOfRefraction
+        {
+            get => profile.ior;
+            set { profile.ior = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Size of the world unit in meters.
+        /// </summary>
+        public float worldScale
+        {
+            get => profile.worldScale;
+            set { profile.worldScale = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Color which tints transmitted light. Alpha is ignored.
+        /// </summary>
+        public Color transmissionTint
+        {
+            get => profile.transmissionTint;
+            set { profile.transmissionTint = value; profile.Validate(); UpdateCache(); }
+        }
 
         void OnEnable()
         {
@@ -238,14 +282,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);
             }
         }
+
 #endif
         internal void UpdateCache()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(profile.worldScale,
-                                                                     profile.filterRadius,
-                                                                     profile.thicknessRemap.x,
-                                                                     profile.thicknessRemap.y - profile.thicknessRemap.x);
-            shapeParamAndMaxScatterDist   = profile.shapeParam;
+                profile.filterRadius,
+                profile.thicknessRemap.x,
+                profile.thicknessRemap.y - profile.thicknessRemap.x);
+            shapeParamAndMaxScatterDist = profile.shapeParam;
             shapeParamAndMaxScatterDist.w = profile.maxScatteringDistance;
             // Convert ior to fresnel0
             float fresnel0 = (profile.ior - 1.0f) / (profile.ior + 1.0f);
@@ -264,11 +309,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Initialize the settings for the default diffusion profile.
         /// </summary>
-        public void SetDefaultParams()
+        internal void SetDefaultParams()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(1, 0, 0, 1);
-            shapeParamAndMaxScatterDist                = new Vector4(16777216, 16777216, 16777216, 0);
-            transmissionTintAndFresnel0.w              = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
+            shapeParamAndMaxScatterDist = new Vector4(16777216, 16777216, 16777216, 0);
+            transmissionTintAndFresnel0.w = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
         }
     }
 }

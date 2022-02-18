@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class DefineCollection : IEnumerable<DefineCollection.Item>
     {
-        public class Item : IConditional, IShaderString
+        public class Item : IConditional
         {
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
@@ -30,9 +30,19 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
+        public DefineCollection(DefineCollection defines)
+        {
+            m_Items = new List<Item>();
+
+            foreach (DefineCollection.Item item in defines)
+            {
+                m_Items.Add(item);
+            }
+        }
+
         public DefineCollection Add(DefineCollection defines)
         {
-            foreach(DefineCollection.Item item in defines)
+            foreach (DefineCollection.Item item in defines)
             {
                 m_Items.Add(item);
             }
@@ -48,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
         public DefineCollection Add(KeywordDescriptor descriptor, int index, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(descriptor, index, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(descriptor, index, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

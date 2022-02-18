@@ -1,12 +1,12 @@
-# Master Stack 
+# Master Stack
 
 ## Description
 
-The Master Stack is the end point of a Shader Graph that defines the final surface appearance of a shader. Your Shader Graph should always contain only one Master Stack. 
+The Master Stack is the end point of a Shader Graph that defines the final surface appearance of a shader. Your Shader Graph should always contain only one Master Stack.
 
 ![image](images/MasterStack_Populated.png)
 
-The content of the Master Stack might change depending on the [Graph Settings](Graph-Settings-Menu.md) you select. The Master Stack is made up of Contexts, which contain [Block nodes](Block-Node.md).
+The content of the Master Stack might change depending on the [Graph Settings](Graph-Settings-Tab.md) you select. The Master Stack is made up of Contexts, which contain [Block nodes](Block-Node.md).
 
 ## Contexts
 

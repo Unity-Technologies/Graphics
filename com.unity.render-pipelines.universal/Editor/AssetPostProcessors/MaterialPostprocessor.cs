@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Rendering.Universal.ShaderGUI;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using static Unity.Rendering.Universal.ShaderUtils;
+using BlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -31,13 +34,25 @@ namespace UnityEditor.Rendering.Universal
 
             int materialIdx = 0;
             int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
+
+            try
             {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
+                AssetDatabase.StartAssetEditing();
+
+                foreach (var asset in distinctGuids)
+                {
+                    materialIdx++;
+                    var path = AssetDatabase.GUIDToAssetPath(asset);
+                    EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
+                    AssetDatabase.ImportAsset(path);
+                }
             }
+            finally
+            {
+                // Ensure the AssetDatabase knows we're finished editing
+                AssetDatabase.StopAssetEditing();
+            }
+
             EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
@@ -68,9 +83,9 @@ namespace UnityEditor.Rendering.Universal
                         if (!inTestSuite && fileExist)
                         {
                             EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
-                                                        " Unity must upgrade them to be compatible with your current version of URP. \n" +
-                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                                        " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
+                                " Unity must upgrade them to be compatible with your current version of URP. \n" +
+                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                                " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
                         }
 
                         ReimportAllMaterials();
@@ -89,7 +104,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -119,23 +134,28 @@ namespace UnityEditor.Rendering.Universal
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            var upgradeLog = "UniversalRP Material log:";
+            string upgradeLog = "";
             var upgradeCount = 0;
 
             foreach (var asset in importedAssets)
             {
+                // we only care about materials
                 if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
+                // load the material and look for it's Universal ShaderID
+                // we only care about versioning materials using a known Universal ShaderID
+                // this skips any materials that only target other render pipelines, are user shaders,
+                // or are shaders we don't care to version
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                if (!ShaderUtils.IsLWShader(material.shader))
+                var shaderID = GetShaderID(material.shader);
+                if (shaderID == ShaderID.Unknown)
                     continue;
 
-                ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
+                var debug = "\n" + material.name + "(" + shaderID + ")";
 
-                var debug = "\n" + material.name;
-
+                // look for the Universal AssetVersion
                 AssetVersion assetVersion = null;
                 var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
                 foreach (var subAsset in allAssets)
@@ -154,21 +174,32 @@ namespace UnityEditor.Rendering.Universal
                     {
                         assetVersion.version = k_Upgraders.Length;
                         s_CreatedAssets.Remove(asset);
-                        InitializeLatest(material, id);
+                        InitializeLatest(material, shaderID);
+                        debug += " initialized.";
                     }
                     else
                     {
-                        assetVersion.version = 0;
+                        if (shaderID.IsShaderGraph())
+                        {
+                            // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
+                            // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
+                            assetVersion.version = 5;
+                            debug += $" shadergraph material assumed to be version 5 due to missing version.";
+                        }
+                        else
+                        {
+                            assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
+                            debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
+                        }
                     }
 
                     assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
                     AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                    debug += " initialized.";
                 }
 
                 while (assetVersion.version < k_Upgraders.Length)
                 {
-                    k_Upgraders[assetVersion.version](material, id);
+                    k_Upgraders[assetVersion.version](material, shaderID);
                     debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
                     assetVersion.version++;
                     wasUpgraded = true;
@@ -183,63 +214,77 @@ namespace UnityEditor.Rendering.Universal
                     s_NeedsSavingAssets = true;
                 }
             }
+
+            // Uncomment to show upgrade debug logs
+            //if (!string.IsNullOrEmpty(upgradeLog))
+            //    Debug.Log("UniversalRP Material log: " + upgradeLog);
         }
 
-        static void InitializeLatest(Material material, ShaderPathID id)
+        static void InitializeLatest(Material material, ShaderID id)
         {
-
+            // newly created materials should reset their keywords immediately (in case inspector doesn't get invoked)
+            Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial, id);
         }
 
-        static void UpgradeV1(Material material, ShaderPathID shaderID)
+        static void UpgradeV1(Material material, ShaderID shaderID)
         {
-            var shaderPath = ShaderUtils.GetShaderPath(shaderID);
+            if (shaderID.IsShaderGraph())
+                return;
+
+            var shaderPath = ShaderUtils.GetShaderPath((ShaderPathID)shaderID);
             var upgradeFlag = MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound;
 
             switch (shaderID)
             {
-                case ShaderPathID.Unlit:
+                case ShaderID.Unlit:
                     MaterialUpgrader.Upgrade(material, new UnlitUpdaterV1(shaderPath), upgradeFlag);
                     UnlitShader.SetMaterialKeywords(material);
                     break;
-                case ShaderPathID.SimpleLit:
+                case ShaderID.SimpleLit:
                     MaterialUpgrader.Upgrade(material, new SimpleLitUpdaterV1(shaderPath), upgradeFlag);
                     SimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
                     break;
-                case ShaderPathID.Lit:
+                case ShaderID.Lit:
                     MaterialUpgrader.Upgrade(material, new LitUpdaterV1(shaderPath), upgradeFlag);
                     LitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
                     break;
-                case ShaderPathID.ParticlesLit:
+                case ShaderID.ParticlesLit:
                     MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
                     ParticlesLitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
                     break;
-                case ShaderPathID.ParticlesSimpleLit:
+                case ShaderID.ParticlesSimpleLit:
                     MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
                     ParticlesSimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
                     break;
-                case ShaderPathID.ParticlesUnlit:
+                case ShaderID.ParticlesUnlit:
                     MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
             }
         }
 
-        static void UpgradeV2(Material material, ShaderPathID shaderID)
+        static void UpgradeV2(Material material, ShaderID shaderID)
         {
+            if (shaderID.IsShaderGraph())
+                return;
+
             // fix 50 offset on shaders
-            if(material.HasProperty("_QueueOffset"))
+            if (material.HasProperty("_QueueOffset"))
                 BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
-        static void UpgradeV3(Material material, ShaderPathID shaderID)
+        static void UpgradeV3(Material material, ShaderID shaderID)
         {
+            if (shaderID.IsShaderGraph())
+                return;
+
             switch (shaderID)
             {
-                case ShaderPathID.Lit:
-                case ShaderPathID.SimpleLit:
-                case ShaderPathID.ParticlesLit:
-                case ShaderPathID.ParticlesSimpleLit:
-                case ShaderPathID.ParticlesUnlit:
+                case ShaderID.Lit:
+                case ShaderID.SimpleLit:
+                case ShaderID.ParticlesLit:
+                case ShaderID.ParticlesSimpleLit:
+                case ShaderID.ParticlesUnlit:
                     var propertyID = Shader.PropertyToID("_EmissionColor");
                     if (material.HasProperty(propertyID))
                     {
@@ -251,6 +296,82 @@ namespace UnityEditor.Rendering.Universal
                         material.SetColor(propertyID, emissionLinear);
                     }
                     break;
+            }
+        }
+
+        static void UpgradeV4(Material material, ShaderID shaderID)
+        { }
+
+        static void UpgradeV5(Material material, ShaderID shaderID)
+        {
+            if (shaderID.IsShaderGraph())
+                return;
+
+            var propertyID = Shader.PropertyToID("_Surface");
+            if (material.HasProperty(propertyID))
+            {
+                float surfaceType = material.GetFloat(propertyID);
+                if (surfaceType >= 1.0f)
+                {
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+                else
+                {
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+            }
+        }
+
+        // Separate Preserve Specular Lighting from Premultiplied blend mode.
+        // Update materials params for backwards compatibility. (Keep the same end result).
+        // - Previous (incorrect) premultiplied blend mode --> Alpha blend mode + Preserve Specular Lighting
+        // - Otherwise keep the blend mode and disable Preserve Specular Lighting
+        // - Correct premultiply mode is not possible in V5.
+        //
+        // This is run both hand-written and shadergraph materials.
+        //
+        // Hand-written and overridable shadergraphs always have blendModePreserveSpecular property, which
+        // is assumed to be new since we only run this for V5 -> V6 upgrade.
+        //
+        // Fixed shadergraphs do not have this keyword and are filtered out.
+        // The blend mode is baked in the generated shader, so there's no material properties to be upgraded.
+        // The shadergraph upgrade on re-import will handle the fixed shadergraphs.
+        static void UpgradeV6(Material material, ShaderID shaderID)
+        {
+            var surfaceTypePID = Shader.PropertyToID(Property.SurfaceType);
+            bool isTransparent = material.HasProperty(surfaceTypePID) && material.GetFloat(surfaceTypePID) >= 1.0f;
+
+            if (isTransparent)
+            {
+                if (shaderID == ShaderID.Unlit)
+                {
+                    var blendModePID = Shader.PropertyToID(Property.BlendMode);
+                    var blendMode = (BaseShaderGUI.BlendMode)material.GetFloat(blendModePID);
+
+                    // Premultiply used to be "Premultiply (* alpha in shader)" aka Alpha blend
+                    if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
+                        material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
+                }
+                else
+                {
+                    var blendModePreserveSpecularPID = Shader.PropertyToID(Property.BlendModePreserveSpecular);
+                    if (material.HasProperty(blendModePreserveSpecularPID))
+                    {
+                        var blendModePID = Shader.PropertyToID(Property.BlendMode);
+                        var blendMode = (BaseShaderGUI.BlendMode)material.GetFloat(blendModePID);
+                        if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
+                        {
+                            material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
+                            material.SetFloat(blendModePreserveSpecularPID, 1.0f);
+                        }
+                        else
+                        {
+                            material.SetFloat(blendModePreserveSpecularPID, 0.0f);
+                        }
+
+                        BaseShaderGUI.SetMaterialKeywords(material);
+                    }
+                }
             }
         }
     }
@@ -265,11 +386,10 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
+            if (material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
-
         }
 
         public LitUpdaterV1(string oldShaderName)
@@ -336,7 +456,7 @@ namespace UnityEditor.Rendering.Universal
                 throw new ArgumentNullException("material");
 
             var smoothnessSource = 1 - (int)material.GetFloat("_GlossinessSource");
-            material.SetFloat("_SmoothnessSource" ,smoothnessSource);
+            material.SetFloat("_SmoothnessSource", smoothnessSource);
             if (material.GetTexture("_SpecGlossMap") == null)
             {
                 var col = material.GetColor("_SpecColor");
@@ -386,4 +506,3 @@ namespace UnityEditor.Rendering.Universal
     }
     #endregion
 }
-

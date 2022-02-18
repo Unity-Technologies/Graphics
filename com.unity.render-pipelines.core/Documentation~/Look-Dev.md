@@ -14,7 +14,7 @@ You can load two different Assets into Look Dev at the same time and compare the
 
 ## Using Look Dev
 
-To open Look Dev in the Unity Editor, select **Window > Render Pipeline > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Look-Dev-Environment-Library.html).
+To open Look Dev in the Unity Editor, select **Window > Rendering > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Look-Dev-Environment-Library.html).
 
 ### Viewports
 
@@ -30,7 +30,7 @@ Navigation with the Look Dev Camera works in a similar way to the [Scene view Ca
 - **Forward/backward:** Mouse wheel.
 - **First Person mode:** Right click + W, A,S, and D.
 
-### Loading Assets into Look Dev 
+### Loading Assets into Look Dev
 
 Look Dev lets you view:
 
@@ -38,7 +38,7 @@ Look Dev lets you view:
 
 **GameObjects** - To load a copy of a Hierarchy GameObject, drag the GameObject from the Hierarchy into the Look Dev viewport.
 
- 
+
 
 ## Viewport modes
 
@@ -59,7 +59,7 @@ By default, Look Dev displays a single viewport which contains the Prefab or Gam
 Use multiple viewports to compare different environments and settings for the same Asset. You can arrange viewports:
 
 - Vertically side-by-side. Use this mode to compare two different lighting conditions on the same Asset to check that the Asset behaves correctly.
-- Horizontally side-by-side. Use this mode to compare two different lighting conditions for horizontal objects, like an environment Asset, to check that the Asset behaves correctly. 
+- Horizontally side-by-side. Use this mode to compare two different lighting conditions for horizontal objects, like an environment Asset, to check that the Asset behaves correctly.
 - Split-screen. Use this mode investigate texture problems using a debug Shader mode (for example, use one screen to view Normal or Albedo shading, and the other for environment-lit mode).
 - Side-by-side and split-screen: Use this mode to compare two different versions of the same Asset using the same lighting conditions to see which changes improve the Asset’s quality.
 

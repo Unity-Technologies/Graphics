@@ -10,23 +10,25 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET 
-{    
+half4 frag(PackedVaryings packedInput) : SV_TARGET
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-
-    #if _AlphaClip
+    #if _ALPHATEST_ON
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
     MetaInput metaInput = (MetaInput)0;
     metaInput.Albedo = surfaceDescription.BaseColor;
     metaInput.Emission = surfaceDescription.Emission;
+#ifdef EDITOR_VISUALIZATION
+    metaInput.VizUV = unpacked.texCoord1.xy;
+    metaInput.LightCoord = unpacked.texCoord2;
+#endif
 
-    return MetaFragment(metaInput);
+    return UnityMetaFragment(metaInput);
 }
 
 #endif

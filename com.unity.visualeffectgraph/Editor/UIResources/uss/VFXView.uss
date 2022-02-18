@@ -1,0 +1,90 @@
+VFXView
+{
+    background-color:#1b1b1b;
+}
+
+.dragdisplay
+{
+    position:absolute;
+    left:0;
+    right: 0;
+    height: 4px;
+    margin-top: -2px;
+    background-color: rgb(210, 152, 0);
+}
+
+VFXView .unity-toolbar
+{
+    flex-wrap:wrap;
+    height:auto;
+}
+
+VFXView #no-asset
+{
+    align-items:center;
+    justify-content: center;
+}
+
+
+VFXView #no-asset *
+{
+    margin-top:128px;
+}
+
+ToolbarToggle
+{
+    border-right-width: 0px;
+}
+
+EditorToolbarDropdown
+{
+    flex-direction: Row;
+}
+
+EditorToolbarDropdown:disabled, ToolbarToggle:disabled
+{
+    opacity: 0.5;
+}
+
+#BackButton
+{
+    padding-top: 3px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    display: none;
+}
+
+#BackButton:hover
+{
+    background-color: var(--unity-colors-app_toolbar_button-background-hover);
+}
+
+#lock-auto-attach
+{
+    width: 20px;
+    height: 17px; /* Don't know why the real height is one pixel less than specified here */
+    padding:1px 0 4px 0;
+    align-self: center;
+    border-left-width: 0;
+    border-right-width: 1px;
+    background-image: var(--unity-icons-lock);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+#lock-auto-attach:checked
+{
+    background-color: var(--unity-colors-toolbar_button-background-checked);
+    background-image: var(--unity-icons-lock-checked);
+}
+
+#attach-toolbar-button
+{
+    margin-left: 6px;
+    border-right-width: 0;
+}
+
+#attach-toolbar-button.checked
+{
+    background-color: var(--unity-colors-toolbar_button-background-checked);
+}

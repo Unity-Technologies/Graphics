@@ -1,0 +1,138 @@
+${VFXPassForwardAdditionalPragma}
+
+struct ps_input
+{
+	float4 pos : SV_POSITION;
+	#if USE_FLIPBOOK_INTERPOLATION
+	float4 uv : TEXCOORD0;
+	#else
+	#if USE_FLIPBOOK_ARRAY_LAYOUT
+	float3 uv : TEXCOORD0;
+	#else
+	float2 uv : TEXCOORD0;	
+	#endif
+	#endif
+	#if VFX_NEEDS_COLOR_INTERPOLATOR
+	VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
+	#endif
+	#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT || VFX_FEATURE_MOTION_VECTORS_FORWARD
+	// x: inverse soft particles fade distance
+	// y: alpha threshold
+	// z: frame blending factor
+	// w: exposure weight
+	VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
+	#endif
+	#if USE_FLIPBOOK_MOTIONVECTORS
+	// x: motion vectors scale X
+	// y: motion vectors scale Y
+	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
+	#endif
+	#if VFX_NEEDS_POSWS_INTERPOLATOR
+	float3 posWS : TEXCOORD3;
+	#endif
+	
+	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	VFX_DECLARE_MOTION_VECTORS_STORAGE(4,5)
+	#endif
+	
+	#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+	float3 normal : TEXCOORD6;
+	#endif
+	#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+	float3 tangent : TEXCOORD7;
+	#endif
+
+	${VFXAdditionalInterpolantsDeclaration}
+	
+	UNITY_VERTEX_OUTPUT_STEREO
+};
+
+struct ps_output
+{
+	float4 color : SV_Target0;
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	float4 outMotionVector : SV_Target1;
+#endif
+};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
+#define VFX_VARYING_UV uv
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.w
+#endif
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
+#endif
+
+${VFXPassForwardDefine}
+
+#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+#define VFX_VARYING_NORMAL normal
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+#define VFX_VARYING_TANGENT tangent
+#endif
+	
+${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
+#if VFX_SHADERGRAPH
+${SHADERGRAPH_PIXEL_CODE_FORWARD}
+#endif
+	
+#pragma fragment frag
+ps_output frag(ps_input i,	
+	bool frontFace : SV_IsFrontFace)
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	ps_output o = (ps_output)0;
+	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+	
+#if VFX_SHADERGRAPH
+	${VFXAdditionalInterpolantsPreparation}
+	
+	${SHADERGRAPH_PIXEL_CALL_FORWARD}
+	
+	#if HAS_SHADERGRAPH_PARAM_BASECOLOR
+		o.color.rgb = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR}.rgb;
+		o.color = VFXApplyPreExposure(o.color, i);
+	#endif
+
+	#if HAS_SHADERGRAPH_PARAM_EMISSION
+		float4 emission = float4(OUTSG.${SHADERGRAPH_PARAM_EMISSION}.rgb, 0.0f);
+		emission = VFXApplyPreExposure(emission, 1.0f);
+		o.color.rgb += emission.rgb;
+	#endif
+	
+	#if HAS_SHADERGRAPH_PARAM_ALPHA 
+		o.color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+	#endif
+#else
+
+	#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
+	${VFXApplyColor}
+	o.color = VFXApplyPreExposure(o.color, i);
+#endif
+
+	o.color = VFXApplyFog(o.color,i);
+	VFXClipFragmentColor(o.color.a,i);
+	o.color.a = saturate(o.color.a);
+	o.color = VFXTransformFinalColor(o.color);
+	
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	${VFXComputeOutputMotionVector}
+	o.outMotionVector = encodedMotionVector;
+	o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
+#endif
+	return o;
+}

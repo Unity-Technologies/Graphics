@@ -11,7 +11,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
 
-#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS)
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS) && !defined(SCENEPICKINGPASS)
     // If we have a recursive raytrace object, we will not render it.
     // As we don't want to rely on renderqueue to exclude the object from the list,
     // we cull it by settings position to NaN value.
@@ -51,7 +51,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif
 
 void Frag(  PackedVaryingsToPS packedInput
-            #if defined(SCENESELECTIONPASS)
+            #if defined(SCENESELECTIONPASS) || defined(SCENEPICKINGPASS)
             , out float4 outColor : SV_Target0
             #else
                 #ifdef WRITE_MSAA_DEPTH
@@ -72,8 +72,8 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
             #endif
 
-            #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
             #endif
         )
 {
@@ -94,24 +94,33 @@ void Frag(  PackedVaryingsToPS packedInput
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-#ifdef _DEPTHOFFSET_ON
+#if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
     outputDepth = posInput.deviceDepth;
+
+
+#if SHADERPASS == SHADERPASS_SHADOWS
+    // If we are using the depth offset and manually outputting depth, the slope-scale depth bias is not properly applied
+    // we need to manually apply.
+    float bias = max(abs(ddx(posInput.deviceDepth)), abs(ddy(posInput.deviceDepth))) * _SlopeScaleDepthBias;
+    outputDepth += bias;
+#endif
+
 #endif
 
 #ifdef SCENESELECTIONPASS
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#elif defined(SCENEPICKINGPASS)
+    outColor = _SelectionID;
 #else
 
     // Depth and Alpha to coverage
     #ifdef WRITE_MSAA_DEPTH
-        // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-        depthColor = packedInput.vmesh.positionCS.z;
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
 
-        #ifdef _ALPHATOMASK_ON
-        // Alpha channel is used for alpha to coverage
-        depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-        #endif
+    // Alpha channel is used for alpha to coverage
+    depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
     #endif
 
     #if defined(WRITE_NORMAL_BUFFER)

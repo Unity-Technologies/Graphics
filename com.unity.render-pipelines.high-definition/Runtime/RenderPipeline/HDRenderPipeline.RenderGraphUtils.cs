@@ -1,10 +1,82 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RendererUtils;
+
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        class GenerateMipmapsPassData
+        {
+            public TextureHandle texture;
+        }
+
+        internal static void GenerateMipmaps(RenderGraph renderGraph, TextureHandle texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<GenerateMipmapsPassData>("Generate Mipmaps", out var passData))
+            {
+                passData.texture = builder.ReadWriteTexture(texture);
+
+                builder.SetRenderFunc(
+                    (GenerateMipmapsPassData data, RenderGraphContext context) =>
+                    {
+                        RTHandle tex = data.texture;
+                        Debug.Assert(tex.rt.autoGenerateMips == false);
+                        context.cmd.GenerateMips(tex);
+                    });
+            }
+        }
+
+        class SetGlobalTexturePassData
+        {
+            public int shaderID;
+            public Texture texture;
+        }
+
+        internal static void SetGlobalTexture(RenderGraph renderGraph, int shaderID, Texture texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalTexturePassData>("SetGlobalTexture", out var passData))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.shaderID = shaderID;
+                passData.texture = texture;
+
+                builder.SetRenderFunc(
+                    (SetGlobalTexturePassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalTexture(data.shaderID, data.texture);
+                    });
+            }
+        }
+
+        class SetGlobalBufferPassData
+        {
+            public int shaderID;
+            public ComputeBuffer buffer;
+        }
+
+        internal static void SetGlobalBuffer(RenderGraph renderGraph, int shaderID, ComputeBuffer buffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalBufferPassData>("SetGlobalBuffer", out var passData))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.shaderID = shaderID;
+                passData.buffer = buffer;
+
+                builder.SetRenderFunc(
+                    (SetGlobalBufferPassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalBuffer(data.shaderID, data.buffer);
+                    });
+            }
+        }
+
         static void DrawOpaqueRendererList(in RenderGraphContext context, in FrameSettings frameSettings, in RendererList rendererList)
         {
             DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
@@ -15,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawTransparentRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
         }
 
-        static int SampleCountToPassIndex(MSAASamples samples)
+        internal static int SampleCountToPassIndex(MSAASamples samples)
         {
             switch (samples)
             {
@@ -27,7 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 2;
                 case MSAASamples.MSAA8x:
                     return 3;
-            };
+            }
+            ;
             return 0;
         }
 
@@ -59,9 +132,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
+            if (CoreUtils.IsSceneFilteringEnabled())
+                clearColor.a = 0.0f;
+
+            // Get the background color from preferences if preview camera
+#if UNITY_EDITOR
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera) && hdCamera.camera.clearFlags != CameraClearFlags.SolidColor)
+            {
+                return CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
+
             return clearColor;
         }
-
 
         // XR Specific
         class XRRenderingPassData
@@ -78,10 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (XRRenderingPassData data, RenderGraphContext context) =>
-                    {
-                        data.xr.StartSinglePass(context.cmd);
-                    });
+                        (XRRenderingPassData data, RenderGraphContext context) =>
+                        {
+                            data.xr.StartSinglePass(context.cmd);
+                        });
                 }
             }
         }
@@ -95,32 +179,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (XRRenderingPassData data, RenderGraphContext context) =>
-                    {
-                        data.xr.StopSinglePass(context.cmd);
-                    });
-                }
-            }
-        }
-
-        class EndCameraXRPassData
-        {
-            public HDCamera hdCamera;
-        }
-
-        void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            if (hdCamera.xr.enabled)
-            {
-                using (var builder = renderGraph.AddRenderPass<EndCameraXRPassData>("End Camera", out var passData))
-                {
-                    passData.hdCamera = hdCamera;
-
-                    builder.SetRenderFunc(
-                    (EndCameraXRPassData data, RenderGraphContext ctx) =>
-                    {
-                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
-                    });
+                        (XRRenderingPassData data, RenderGraphContext context) =>
+                        {
+                            data.xr.StopSinglePass(context.cmd);
+                        });
                 }
             }
         }
@@ -135,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
+            if (hdCamera.xr.hasValidOcclusionMesh && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {
@@ -145,10 +207,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.clearColor = GetColorBufferClearColor(hdCamera);
 
                     builder.SetRenderFunc(
-                    (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
-                    {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
-                    });
+                        (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
+                        {
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer, ClearFlag.None, data.clearColor, 0, CubemapFace.Unknown, -1);
+
+                            ctx.cmd.SetGlobalVector(HDShaderIDs._ClearColor, data.clearColor);
+
+                            data.hdCamera.xr.RenderOcclusionMesh(ctx.cmd);
+                        });
                 }
             }
         }
@@ -170,10 +236,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipLevel = mipLevel;
                 passData.bilinear = bilinear;
                 builder.SetRenderFunc(
-                (BlitCameraTextureData data, RenderGraphContext ctx) =>
-                {
-                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
-                });
+                    (BlitCameraTextureData data, RenderGraphContext ctx) =>
+                    {
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
+                    });
             }
         }
     }

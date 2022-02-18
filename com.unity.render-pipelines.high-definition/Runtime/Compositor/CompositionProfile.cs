@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     {
         [SerializeField] List<ShaderProperty> m_ShaderProperties = new List<ShaderProperty>();
 
-        public void AddPropertiesFromShaderAndMaterial (CompositionManager compositor, Shader shader, Material material)
+        public void AddPropertiesFromShaderAndMaterial(CompositionManager compositor, Shader shader, Material material)
         {
             // reflect the non-texture shader properties
             List<string> propertyNames = new List<string>();
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // Check if property should be shown in the inspector
             bool hide = ((int)sp.flags & (int)ShaderPropertyFlags.NonModifiableTextureData) != 0
-                        || ((int)sp.flags & (int)ShaderPropertyFlags.HideInInspector) != 0;
+                || ((int)sp.flags & (int)ShaderPropertyFlags.HideInInspector) != 0;
 
             if (!hide)
             {

@@ -36,7 +36,7 @@ public class SceneTester : MonoBehaviour
         {
             Debug.Log("Switch to next scene.");
             // Load next scene or scene index 1 if looped
-            SceneManager.LoadScene( Mathf.Max( 1, ( SceneManager.GetActiveScene().buildIndex + 1 )%SceneManager.sceneCountInBuildSettings ) );
+            SceneManager.LoadScene(Mathf.Max(1, (SceneManager.GetActiveScene().buildIndex + 1) % SceneManager.sceneCountInBuildSettings));
         }
     }
 }

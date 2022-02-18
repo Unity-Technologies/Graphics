@@ -49,11 +49,8 @@ void GetPreIntegratedFGDCharlieAndFabricLambert(float NdotV, float perceptualRou
     // Read the texture
     float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_CharlieAndFabric, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
-    // Denormalize the value
-    preFGD.y = preFGD.y / (1 - preFGD.y);
+    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0) * 2.0f * PI;
 
-    specularFGD = preFGD.yyy * fresnel0;
-    
     // z = FabricLambert
     diffuseFGD = preFGD.z;
 

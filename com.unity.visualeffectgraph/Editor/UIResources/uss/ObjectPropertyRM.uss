@@ -1,0 +1,44 @@
+#PickIcon
+{
+    width: 12px;
+    height: 12px;
+    background-image: var(--unity-icons-picker);
+}
+
+#PickButton
+{
+    margin: 0px 1px 0px -21px;
+    padding: 0;
+    border-width: 0;
+    border-bottom-left-radius: 0px;
+    border-top-left-radius: 0px;
+    width:16px;
+    height:15px;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    background-color: var(--unity-colors-object_field_button-background);
+}
+
+#PickLabel
+{
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 1px 0;
+}
+
+
+#ValueIcon
+{
+    margin-left: 2px;
+    position: absolute;
+    align-self: center;
+    width: 12px;
+    height: 12px;
+}
+
+#PickLabel > TextInput
+{
+    margin-right: 4px;
+    padding: 0 22px 0 18px;
+}

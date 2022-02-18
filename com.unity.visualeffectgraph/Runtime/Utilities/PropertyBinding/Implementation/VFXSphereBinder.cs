@@ -9,12 +9,13 @@ namespace UnityEngine.VFX.Utility
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
-        [VFXPropertyBinding("UnityEditor.VFX.Sphere"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        [VFXPropertyBinding("UnityEditor.VFX.Sphere", "UnityEditor.VFX.TSphere"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Sphere";
         public SphereCollider Target = null;
 
-        private ExposedProperty Center;
-        private ExposedProperty Radius;
+        private ExposedProperty m_Old_Center;
+        private ExposedProperty m_New_Center;
+        private ExposedProperty m_Radius;
 
         protected override void OnEnable()
         {
@@ -29,19 +30,28 @@ namespace UnityEngine.VFX.Utility
 
         void UpdateSubProperties()
         {
-            Center = m_Property + "_center";
-            Radius = m_Property + "_radius";
+            //Support the new "TSphere" structure and the previous "Sphere" type
+            m_Old_Center = m_Property + "_center";
+            m_New_Center = m_Property + "_transform_position";
+            m_Radius = m_Property + "_radius";
         }
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3(Center) && component.HasFloat(Radius);
+            return Target != null
+                && (component.HasVector3(m_New_Center) || component.HasVector3(m_Old_Center))
+                && component.HasFloat(m_Radius);
         }
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3(Center, Target.transform.position + Target.center);
-            component.SetFloat(Radius, Target.radius * GetSphereColliderScale(Target.transform.localScale));
+            var center = Target.transform.position + Target.center;
+            if (component.HasVector3(m_New_Center))
+                component.SetVector3(m_New_Center, center);
+            else
+                component.SetVector3(m_Old_Center, center);
+
+            component.SetFloat(m_Radius, Target.radius * GetSphereColliderScale(Target.transform.localScale));
         }
 
         public float GetSphereColliderScale(Vector3 scale)

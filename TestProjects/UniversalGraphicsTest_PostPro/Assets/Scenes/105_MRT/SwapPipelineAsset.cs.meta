@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 2383b56288cd7514d91dcd5567c45ccf
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - defaultpipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
+  - test105pipeline: {fileID: 11400000, guid: 69e6b3d33694e1f47a8ee77ce18d30bb, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

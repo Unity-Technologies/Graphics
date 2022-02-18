@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
             m_SkipZeroDeltaTimeProperty = serializedObject.FindProperty("skipZeroDeltaUpdate");
         }
 
-        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate(VFXBasicUpdate context)
+        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate (VFXBasicUpdate context)
         {
             var property = typeof(VFXBasicUpdate).GetProperty("filteredOutSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             return property.GetValue(context) as IEnumerable<string>;
@@ -68,8 +68,12 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
-            DisplaySpace();
+            var referenceContext = serializedObject.targetObject as VFXContext;
+            var resource = referenceContext.GetResource();
+            GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
+
             DisplayName();
+            DisplaySpace();
 
             EditorGUILayout.LabelField(UpdateStyles.header, EditorStyles.boldLabel);
 
@@ -142,7 +146,7 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, filters out block execution if deltaTime is equal to 0.")]
         private bool skipZeroDeltaUpdate = false;
 
-        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) {}
+        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) { }
         public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
@@ -162,6 +166,31 @@ namespace UnityEditor.VFX
 
                 if (GetData().IsCurrentAttributeWritten(VFXAttribute.Alive) && GetData().dependenciesOut.Any(d => ((VFXDataParticle)d).hasStrip))
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
+
+                VFXDataParticle particleData = GetData() as VFXDataParticle;
+                if (particleData && particleData.NeedsComputeBounds())
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                }
+
+                if (GetData().IsAttributeUsed(VFXAttribute.Alive))
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                }
             }
         }
 
@@ -175,9 +204,9 @@ namespace UnityEditor.VFX
 
                 var data = GetData();
                 var lifeTime = data.IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = data.IsCurrentAttributeRead(VFXAttribute.Age);
+                var age = data.IsCurrentAttributeUsed(VFXAttribute.Age);
                 var positionVelocity = data.IsCurrentAttributeWritten(VFXAttribute.Velocity);
-                var angularVelocity =   data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
+                var angularVelocity = data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ);
 
@@ -225,7 +254,7 @@ namespace UnityEditor.VFX
                     yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
+                var age = GetData().IsCurrentAttributeUsed(VFXAttribute.Age);
 
                 if (age || lifeTime)
                 {
@@ -242,7 +271,13 @@ namespace UnityEditor.VFX
         {
             var mapper = base.GetExpressionMapper(target);
             if (target == VFXDeviceTarget.GPU && skipZeroDeltaUpdate)
-                mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", - 1);
+                mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
+            var dataParticle = GetData() as VFXDataParticle;
+
+            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds() && space == VFXCoordinateSpace.World)
+            {
+                mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+            }
             return mapper;
         }
 
@@ -258,6 +293,8 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
+                if ((GetData() as VFXDataParticle).NeedsComputeBounds())
+                    yield return "VFX_COMPUTE_BOUNDS";
             }
         }
     }

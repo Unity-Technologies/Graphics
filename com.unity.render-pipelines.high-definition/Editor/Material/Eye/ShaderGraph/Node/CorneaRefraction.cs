@@ -25,21 +25,20 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_CorneaRefraction(
             [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 PositionOS,
-            [Slot(1, Binding.None, 0, 0, 0, 0)] Vector3 CorneaNormalOS,
-            [Slot(2, Binding.None, 0, 0, 0, 0)] Vector1 CorneaIOR,
-            [Slot(3, Binding.None, 0, 0, 0, 0)] Vector1 IrisPlaneOffset,
-            [Slot(4, Binding.None)] out Vector3 RefractedPositionOS)
+            [Slot(1, Binding.None, 0, 0, 0, 0)] Vector3 ViewDirectionOS,
+            [Slot(2, Binding.None, 0, 0, 0, 0)] Vector3 CorneaNormalOS,
+            [Slot(3, Binding.None, 0, 0, 0, 0)] Vector1 CorneaIOR,
+            [Slot(4, Binding.None, 0, 0, 0, 0)] Vector1 IrisPlaneOffset,
+            [Slot(5, Binding.None)] out Vector3 RefractedPositionOS)
         {
             RefractedPositionOS = Vector3.zero;
             return
-                @"
+@"
                 {
-                    // Compute the refracted 
-                    $precision3 viewPositionOS = TransformWorldToObject($precision3(0.0, 0.0, 0.0));
-                    $precision3 viewDirectionOS = normalize(PositionOS - viewPositionOS);
                     float eta = 1.0 / (CorneaIOR);
                     CorneaNormalOS = normalize(CorneaNormalOS);
-                    $precision3 refractedViewDirectionOS = refract(viewDirectionOS, CorneaNormalOS, eta);
+                    ViewDirectionOS = -normalize(ViewDirectionOS);
+                    $precision3 refractedViewDirectionOS = refract(ViewDirectionOS, CorneaNormalOS, eta);
 
                     // Find the distance to intersection point
                     float t = -(PositionOS.z + IrisPlaneOffset) / refractedViewDirectionOS.z;

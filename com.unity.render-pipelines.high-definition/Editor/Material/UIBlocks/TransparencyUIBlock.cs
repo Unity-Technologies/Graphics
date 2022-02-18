@@ -10,29 +10,41 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class TransparencyUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents Transparency properties for materials.
+    /// </summary>
+    public class TransparencyUIBlock : MaterialUIBlock
     {
+        /// <summary>Transparency UI Block features. Use this to select which field you want to show.</summary>
         [Flags]
         public enum Features
         {
-            None        = 0,
-            Distortion  = 1 << 0,
-            Refraction  = 1 << 1,
-            All         = ~0
+            /// <summary>Hides all the fields.</summary>
+            None = 0,
+            /// <summary>Displays the distortion fields.</summary>
+            Distortion = 1 << 0,
+            /// <summary>Displays the refraction fields.</summary>
+            Refraction = 1 << 1,
+            /// <summary>Displays all the fields.</summary>
+            All = ~0
         }
 
-        public class Styles
+        internal class Styles
         {
-            public const string header = "Transparency Inputs";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Transparency Inputs");
         }
 
-        Expandable          m_ExpandableBit;
-        Features            m_Features;
+        Features m_Features;
         MaterialUIBlockList m_TransparencyBlocks;
 
-        public TransparencyUIBlock(Expandable expandableBit, Features features = Features.All)
+        /// <summary>
+        /// Constructs a TransparencyUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="features">Features of the Transparency block.</param>
+        public TransparencyUIBlock(ExpandableBit expandableBit, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
 
             m_TransparencyBlocks = new MaterialUIBlockList(parent);
@@ -42,30 +54,41 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_TransparencyBlocks.Add(new DistortionUIBlock());
         }
 
-        public override void LoadMaterialProperties() {}
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
+        public override void LoadMaterialProperties() { }
 
-        public override void OnGUI()
+        /// <summary>
+        /// If the section should be shown
+        /// </summary>
+        protected override bool showSection
         {
-            // Disable the block if one of the materials is not transparent:
-            if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
-                return ;
-
-            // If refraction model is not enabled in SG, we don't show the section
-            var shader = materials[0].shader;
-            if (shader.IsShaderGraph())
+            get
             {
-                var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
-                if (defaultRefractionModel == 0)
-                    return;
-            }
+                // Disable the block if one of the materials is not transparent:
+                if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
+                    return false;
 
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
+                // If refraction model is not enabled in SG, we don't show the section
+                if (materials[0].IsShaderGraph())
                 {
-                    m_TransparencyBlocks.OnGUI(materialEditor, properties);
+                    var shader = materials[0].shader;
+                    var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
+                    if (defaultRefractionModel == 0)
+                        return false;
                 }
+
+                return true;
             }
+        }
+
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
+        protected override void OnGUIOpen()
+        {
+            m_TransparencyBlocks.OnGUI(materialEditor, properties);
         }
     }
 }

@@ -21,6 +21,6 @@ Defines a constant **Texture 3D Asset** for use in the shader. To sample the **T
 The following example code represents one possible outcome of this node.
 
 ```
-TEXTURE3D(_Texture3DAsset); 
+TEXTURE3D(_Texture3DAsset);
 SAMPLER(sampler_Texture3DAsset);
 ```

@@ -16,7 +16,7 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     // We always remove the pre-exposure when we sample the scene color
-	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
+    return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
 }
@@ -25,6 +25,22 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 {
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+}
+
+float3 shadergraph_HDMainLightDirection()
+{
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
+    uint lightIndex = _DirectionalShadowIndex;
+    if (_DirectionalShadowIndex < 0)
+    {
+        if (_DirectionalLightCount == 0)
+            return 0.0f;
+        lightIndex = 0;
+    }
+    return _DirectionalLightDatas[lightIndex].forward;
+#else
+    return 0.0f;
+#endif
 }
 
 
@@ -44,6 +60,12 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 #undef SHADERGRAPH_BAKED_GI
 #endif
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+
+
+#ifdef SHADERGRAPH_MAIN_LIGHT_DIRECTION
+#undef SHADERGRAPH_MAIN_LIGHT_DIRECTION
+#endif
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_HDMainLightDirection
 
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED

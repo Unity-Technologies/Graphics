@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXDistortionQuadStripOutput : VFXAbstractDistortionOutput
@@ -19,10 +19,12 @@ namespace UnityEditor.VFX
 
         VFXDistortionQuadStripOutput() : base(true) { }
 
-        public override string name { get { return "Output Strip Distortion Quad"; } }
+        public override string name { get { return "Output Strip HDRP Distortion Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
+
 
         public class CustomUVInputProperties
         {

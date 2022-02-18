@@ -12,16 +12,15 @@ namespace UnityEditor.ShaderGraph
     {
         const int kIndentWidthInPixel = 15;
 
-        public int globalIndentLevel {get; set;} = 0;
+        public int globalIndentLevel { get; set; } = 0;
 
         public TargetPropertyGUIContext()
         {
-            
         }
 
         public void AddProperty<T>(string label, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, field, evt);
             }
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, indentLevel, field, evt);
             }
@@ -42,12 +41,20 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
         {
-            if(field is INotifyValueChanged<T> notifyValueChanged)
+            AddProperty<T>(label, string.Empty, indentLevel, field, evt);
+        }
+
+        public void AddProperty<T>(string label, string tooltip, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
+        {
+            if (field is INotifyValueChanged<T> notifyValueChanged)
             {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }
 
-            var propertyRow = new PropertyRow(new Label(label));
+            var propertyLabel = new Label(label);
+            propertyLabel.tooltip = tooltip;
+            var propertyRow = new PropertyRow(propertyLabel);
+
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
             this.hierarchy.Add(propertyRow);

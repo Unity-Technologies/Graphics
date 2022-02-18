@@ -12,19 +12,22 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
 using UnityObject = UnityEngine.Object;
+using VFXManager = UnityEngine.VFX.VFXManager;
 
 [CustomEditor(typeof(UnityEditor.VFXManager))]
 class VFXManagerEditor : Editor
 {
     SerializedProperty[] m_TimeProperties;
     SerializedProperty[] m_ShaderProperties;
+    SerializedProperty m_RuntimeResourcesProperty;
 
     void OnEnable()
     {
         m_TimeProperties = new SerializedProperty[]
         {
             serializedObject.FindProperty("m_FixedTimeStep"),
-            serializedObject.FindProperty("m_MaxDeltaTime")
+            serializedObject.FindProperty("m_MaxDeltaTime"),
+            serializedObject.FindProperty("m_MaxScrubTime")
         };
 
         m_ShaderProperties = new SerializedProperty[]
@@ -34,6 +37,8 @@ class VFXManagerEditor : Editor
             serializedObject.FindProperty("m_SortShader"),
             serializedObject.FindProperty("m_StripUpdateShader"),
         };
+
+        m_RuntimeResourcesProperty = serializedObject.FindProperty("m_RuntimeResources");
 
         CheckVFXManager();
         serializedObject.Update();
@@ -47,11 +52,15 @@ class VFXManagerEditor : Editor
 
         serializedObject.Update();
 
-        EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder.SRPAssetTypeStr);
+        GUI.enabled = AssetDatabase.IsOpenForEdit(target, StatusQueryOptions.UseCachedIfPossible);
 
+        EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder?.SRPAssetTypeStr);
+
+        GUILayout.Space(15);
         foreach (var property in m_TimeProperties)
         {
-            EditorGUILayout.PropertyField(property);
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
         }
 
         GUILayout.Space(15);
@@ -60,6 +69,11 @@ class VFXManagerEditor : Editor
         {
             if (property != null)
                 EditorGUILayout.PropertyField(property);
+        }
+
+        if (m_RuntimeResourcesProperty != null)
+        {
+            EditorGUILayout.PropertyField(m_RuntimeResourcesProperty);
         }
         serializedObject.ApplyModifiedProperties();
     }
@@ -80,6 +94,26 @@ class VFXManagerEditor : Editor
         return false;
     }
 
+    private static bool SetRuntimeResourcesIfNeeded(SerializedObject obj)
+    {
+        var resourcesProperty = obj.FindProperty("m_RuntimeResources");
+        if (resourcesProperty == null)
+        {
+            return false;
+        }
+        if (resourcesProperty.objectReferenceValue == null)
+        {
+            var runtimeResources = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Packages/com.unity.visualeffectgraph/Runtime/Utilities/RuntimeResources.asset");
+            if (runtimeResources != null)
+            {
+                resourcesProperty.objectReferenceValue = runtimeResources;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void CheckVFXManager()
     {
         UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
@@ -87,15 +121,20 @@ class VFXManagerEditor : Editor
         if (vfxmanager == null)
             return;
 
+        if (!AssetDatabase.IsOpenForEdit(vfxmanager, StatusQueryOptions.UseCachedIfPossible))
+            return;
+
         SerializedObject obj = new SerializedObject(vfxmanager);
         bool shaderModified = false;
 
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader",     "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader",   "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader",         "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader",  "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader", "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader", "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
+        bool runtimeResourcesModified = false;
+        runtimeResourcesModified = SetRuntimeResourcesIfNeeded(obj);
 
-        if (shaderModified)
+        if (shaderModified || runtimeResourcesModified)
             obj.ApplyModifiedPropertiesWithoutUndo();
     }
 }

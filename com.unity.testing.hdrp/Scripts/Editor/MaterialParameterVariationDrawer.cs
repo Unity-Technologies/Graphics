@@ -38,16 +38,16 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
         Rect valueRect = new Rect();
         Rect maxRect = new Rect();
         Rect countRect = new Rect();
-        if (!isMulti || (type == MaterialParameterVariation.ParamType.Texture) )
+        if (!isMulti || (type == MaterialParameterVariation.ParamType.Texture))
         {
             valueRect = new Rect(cellStart, position.y, remainingWidth, position.height);
         }
         else
         {
-            valueRect = new Rect(cellStart, position.y, remainingWidth/3f, position.height);
+            valueRect = new Rect(cellStart, position.y, remainingWidth / 3f, position.height);
             cellStart += valueRect.width;
             remainingWidth -= valueRect.width;
-            maxRect = new Rect(cellStart, position.y, remainingWidth/2f, position.height);
+            maxRect = new Rect(cellStart, position.y, remainingWidth / 2f, position.height);
             cellStart += maxRect.width;
             remainingWidth -= maxRect.width;
             countRect = new Rect(cellStart, position.y, remainingWidth, nonValueHeight);
@@ -90,7 +90,7 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
                     EditorGUI.PropertyField(maxRect, property.FindPropertyRelative("c_Value_Max"), GUIContent.none);
                 break;
         }
-        if (isMulti && (type != MaterialParameterVariation.ParamType.Bool) && (type != MaterialParameterVariation.ParamType.Texture) )
+        if (isMulti && (type != MaterialParameterVariation.ParamType.Bool) && (type != MaterialParameterVariation.ParamType.Texture))
             EditorGUI.PropertyField(countRect, property.FindPropertyRelative("count"), GUIContent.none);
 
         // Set indent back to what it was
@@ -105,7 +105,7 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
         return base.GetPropertyHeight(property, label) * mul;
     }
 
-    void DrawVector( Rect rect, SerializedProperty property)
+    void DrawVector(Rect rect, SerializedProperty property)
     {
         Vector4 v = property.vector4Value;
 
@@ -123,8 +123,8 @@ public class MaterialParameterVariationDrawer : PropertyDrawer
 
         Rect rx = new Rect(rect.x, rect.y, rect.width, rect.height / 4f);
         Rect ry = new Rect(rx.x, rect.y + rx.height, rx.width, rect.height / 4f);
-        Rect rz = new Rect(rx.x, rect.y + 2f*rx.height, rx.width, rect.height / 4f);
-        Rect rw = new Rect(rx.x, rect.y + 3f*rx.height, rx.width, rect.height / 4f);
+        Rect rz = new Rect(rx.x, rect.y + 2f * rx.height, rx.width, rect.height / 4f);
+        Rect rw = new Rect(rx.x, rect.y + 3f * rx.height, rx.width, rect.height / 4f);
 
         v.x = EditorGUI.FloatField(rx, v.x);
         v.y = EditorGUI.FloatField(ry, v.y);

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class GenericControl : Control
     {
@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
             if (position != null)
                 return position(index);
 
-            return base.GetPosition(guiState,index);
+            return base.GetPosition(guiState, index);
         }
 
         protected override float GetDistance(IGUIState guiState, int index)
@@ -69,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
             if (forward != null)
                 return forward(index);
 
-            return base.GetForward(guiState,index);
+            return base.GetForward(guiState, index);
         }
 
         protected override Vector3 GetUp(IGUIState guiState, int index)
@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
             if (up != null)
                 return up(index);
 
-            return base.GetUp(guiState,index);
+            return base.GetUp(guiState, index);
         }
 
         protected override Vector3 GetRight(IGUIState guiState, int index)
@@ -85,15 +85,15 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
             if (right != null)
                 return right(index);
 
-            return base.GetRight(guiState,index);
+            return base.GetRight(guiState, index);
         }
 
         protected override object GetUserData(IGUIState guiState, int index)
         {
             if (userData != null)
                 return userData(index);
-            
-            return base.GetUserData(guiState,index);
+
+            return base.GetUserData(guiState, index);
         }
     }
 }

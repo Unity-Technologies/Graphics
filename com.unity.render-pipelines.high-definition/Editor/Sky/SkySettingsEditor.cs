@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         GUIContent m_SkyIntensityModeLabel = new UnityEngine.GUIContent("Intensity Mode");
+        GUIContent m_ExposureCompensationLabel = new GUIContent("Exposure Compensation", "Sets the exposure compensation of the sky in EV.");
 
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
@@ -45,10 +46,10 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected bool m_EnableLuxIntensityMode = false;
 
-        GUIContent[]    m_IntensityModes = { new GUIContent("Exposure"), new GUIContent("Multiplier"), new GUIContent("Lux") };
-        int[]           m_IntensityModeValues = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier, (int)SkyIntensityMode.Lux };
-        GUIContent[]    m_IntensityModesNoLux = { new GUIContent("Exposure"), new GUIContent("Multiplier") };
-        int[]           m_IntensityModeValuesNoLux = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier };
+        GUIContent[] m_IntensityModes = { new GUIContent("Exposure"), new GUIContent("Multiplier"), new GUIContent("Lux") };
+        int[] m_IntensityModeValues = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier, (int)SkyIntensityMode.Lux };
+        GUIContent[] m_IntensityModesNoLux = { new GUIContent("Exposure"), new GUIContent("Multiplier") };
+        int[] m_IntensityModeValuesNoLux = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier };
 
         /// <summary>
         /// OnEnable implementation.
@@ -75,39 +76,38 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.SkyIntensity) != 0)
             {
-                using (new EditorGUILayout.HorizontalScope())
+                using (var scope = new OverridablePropertyScope(m_IntensityMode, m_SkyIntensityModeLabel, this))
                 {
-                    DrawOverrideCheckbox(m_IntensityMode);
-                    using (new EditorGUI.DisabledScope(!m_IntensityMode.overrideState.boolValue))
+                    if (scope.displayed)
                     {
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(rect, m_SkyIntensityModeLabel, m_IntensityMode.value);
                         if (m_EnableLuxIntensityMode)
-                        {
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
-                        }
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
                         else
-                        {
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
-                        }
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
+                        EditorGUI.EndProperty();
                     }
                 }
 
-                EditorGUI.indentLevel++;
-                if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
-                    PropertyField(m_SkyExposure);
-                else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
-                    PropertyField(m_SkyMultiplier);
-                else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
+                using (new IndentLevelScope())
                 {
-                    PropertyField(m_DesiredLuxValue);
+                    if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
+                        PropertyField(m_SkyExposure, m_ExposureCompensationLabel);
+                    else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
+                        PropertyField(m_SkyMultiplier);
+                    else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
+                    {
+                        PropertyField(m_DesiredLuxValue);
 
-                    // Show the multiplier
-                    EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
-                        m_UpperHemisphereLuxValue.value.floatValue,
-                        (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
-                    ), MessageType.Info);
+                        // Show the multiplier
+                        EditorGUILayout.HelpBox(System.String.Format(
+                            "Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
+                            m_UpperHemisphereLuxValue.value.floatValue,
+                            (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
+                            ), MessageType.Info);
+                    }
                 }
-
-                EditorGUI.indentLevel--;
             }
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Rotation) != 0)
                 PropertyField(m_SkyRotation);
@@ -117,9 +117,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_EnvUpdateMode);
                 if (!m_EnvUpdateMode.value.hasMultipleDifferentValues && m_EnvUpdateMode.value.intValue == (int)EnvironmentUpdateMode.Realtime)
                 {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_EnvUpdatePeriod);
-                    EditorGUI.indentLevel--;
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_EnvUpdatePeriod);
+                    }
                 }
             }
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.IncludeSunInBaking) != 0)

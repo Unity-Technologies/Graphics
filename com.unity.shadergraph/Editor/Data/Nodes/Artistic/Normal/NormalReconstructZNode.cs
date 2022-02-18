@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public NormalReconstructZNode()
         {
             name = "Normal Reconstruct Z";
+            synonyms = new string[] { "derive z" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.zero;
             return
-                @"
+@"
 {
     $precision reconstructZ = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
     $precision3 normalVector = $precision3(In.x, In.y, reconstructZ);

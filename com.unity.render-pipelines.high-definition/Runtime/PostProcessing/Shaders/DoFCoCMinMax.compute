@@ -1,0 +1,64 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma kernel KMainCoCMinMax
+
+TEXTURE2D_X(_InputTexture);
+
+// output texture with min / max tiles
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+// min-max tile size
+#define TILE_RES  8u
+
+#define GROUP_RES  8u
+#define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
+float4 InitMinMaxTile()
+{
+    // x: min far coc
+    // y: max far coc
+    // z: min near coc
+    // w: max near coc
+    const float bigNumber = 1000;   // should be small enough to fit in fp16
+    return float4(bigNumber, 0, -bigNumber, 0);
+}
+
+void UpdateMinMaxTile(inout float4 tile, float CoC)
+{
+    if (CoC >= 0)
+    {
+        tile.x = min(tile.x, CoC);
+        tile.y = max(tile.y, CoC);
+    }
+    else
+    {
+        tile.z = max(tile.z, CoC);
+        tile.w = min(tile.w, CoC);
+    }
+}
+
+[numthreads(GROUP_RES, GROUP_RES, 1)]
+void KMainCoCMinMax(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    float4 minMaxTile = InitMinMaxTile();
+
+    for (uint j = 0; j < TILE_RES; j++)
+    {
+        for (uint i = 0; i < TILE_RES; i++)
+        {
+            uint2 tiledCoords = dispatchThreadId.xy * TILE_RES + uint2(i, j);
+            tiledCoords = min(tiledCoords, _PostProcessScreenSize.xy - uint2(1, 1));
+            float CoC = _InputTexture[COORD_TEXTURE2D_X(tiledCoords)].x;
+
+            UpdateMinMaxTile(minMaxTile, CoC);
+        }
+    }
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = minMaxTile;
+}

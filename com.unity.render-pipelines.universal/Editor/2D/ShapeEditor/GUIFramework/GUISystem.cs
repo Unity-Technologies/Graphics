@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class GUISystem
     {
@@ -55,7 +55,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
                 m_ControlIDCheck = controlIDCheck;
             else if (m_GUIState.eventType != EventType.Used && m_ControlIDCheck != controlIDCheck)
                 Debug.LogWarning("GetControlID at event " + m_GUIState.eventType + " returns a controlID different from the one in Layout event");
-                
+
             var nearestLayoutData = LayoutData.zero;
 
             foreach (var control in m_Controls)

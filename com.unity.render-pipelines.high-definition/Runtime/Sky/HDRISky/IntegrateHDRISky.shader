@@ -18,11 +18,12 @@ Shader "Hidden/HDRP/IntegrateHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             struct Attributes
@@ -37,6 +38,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
             };
 
             TextureCube<float4> _Cubemap;
+            float4 _Cubemap_HDR;
 
             Varyings Vert(Attributes input)
             {
@@ -47,7 +49,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
 
                 return output;
             }
-            
+
 
             // With HDRI that have a large range (including the sun) it can be challenging to
             // compute the lux value without multiple importance sampling.
@@ -65,7 +67,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
                     {
                         // SphericalToCartesian function is for Z up, lets move to Y up with TransformGLtoDX
                         float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos(theta)));
-                        real3 val = SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb;
+                        real3 val = DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0), _Cubemap_HDR).rgb;
                         sum += (cos(theta)*sin(theta)*coef)*val;
                     }
                 }

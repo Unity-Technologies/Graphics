@@ -1,0 +1,356 @@
+VFXComponentBoard.graphElement
+{
+    position:Absolute;
+
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+
+
+
+
+    min-width: 286px;
+    min-height: 100px;
+}
+
+VFXComponentBoard.graphElement > .mainContainer
+{
+    flex: 1 1 auto;
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin-left:6px;
+    margin-right:6px;
+    margin-top:6px;
+    margin-bottom:6px;
+}
+
+ *
+{
+    font-size: 11px;
+}
+
+#divider {
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+}
+
+#divider.horizontal {
+    height: 0.05px;
+    border-bottom-width: 1px;
+}
+
+
+VFXComponentBoard .unity-scroll-view
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    flex: 1 1 auto;
+}
+
+VFXComponentBoard, #component-container
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    padding-top: 8px;
+}
+
+#header {
+    flex-direction: row;
+    align-items: stretch;
+    background-color: #393939;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+#header > #labelContainer {
+    flex:1 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+#header > #labelContainer > #titleLabel {
+    font-size : 14px;
+    color: #c1c1c1;
+}
+#header > #labelContainer > #subTitleLabel {
+    font-size: 11px;
+    color: #606060;
+    white-space: normal;
+}
+
+
+VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach, #select,#component-path
+{
+    height: 20px;
+}
+
+
+#attach, #select
+{
+    width: 60px;
+}
+
+#component-path
+{
+    flex:1;
+}
+
+#particle-count-container, #attach-container
+{
+    flex-direction:row;
+}
+
+#attach-container
+{
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+#particle-count-container > #particle-count
+{
+    flex:1 0 auto;
+}
+
+#toolbar
+{
+    flex-direction:row;
+}
+
+#toolbar .unity-button
+{
+    flex:1 0 auto;
+    height: 24px;
+    align-items:center;
+}
+
+#toolbar .unity-button#stop #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Stop.png");
+}
+#toolbar .unity-button#play #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Pause.png");
+}
+#toolbar .unity-button#play.paused #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Play.png");
+}
+#toolbar .unity-button#step #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Step.png");
+}
+#toolbar .unity-button#restart #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Restart.png");
+}
+
+
+
+#play-rate-container
+{
+    flex-direction:row;
+    height: 28px;
+    align-items: center;
+    padding-bottom: 8px;
+}
+
+#events-label
+{
+    padding-top: 8px;
+}
+
+#play-rate-container, #debug-tool-container, #events-tool-container, #bounds-tool-container
+{
+    margin: 8px;
+}
+
+#debug-container
+{
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+
+#debug-label
+{
+    padding-top: 10px;
+}
+
+
+
+#debug-box
+{
+    flex-grow: 1;
+    background-color:#222;
+    margin: auto;
+    width: 90%;
+    height: 150px;
+    overflow:hidden;
+    border-radius:6px;
+}
+
+#debug-settings-container
+{
+    flex:1 1 auto;
+    flex-direction:row;
+}
+
+#debug-settings-element-container
+{
+    flex-direction:column;
+    align-content:center;
+}
+
+#debug-box-axis-container
+{
+    flex-direction:column;
+    flex-grow: 1;
+    width: 10%;
+}
+
+#debug-plot-area {
+    flex-direction: row;
+    width: 100%;
+    margin-top: 7px;
+    margin-bottom: 12px;
+    padding-left:4px;
+}
+
+#debug-box-axis-100 {
+    flex-grow: 1;
+    -unity-text-align: upper-center;
+}
+#debug-box-axis-50 {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+#debug-box-axis-0 {
+    flex-grow: 1;
+    -unity-text-align: lower-center;
+}
+
+#debug-system-stat-container
+{
+    flex-direction:row;
+    height:200px;
+    width: 100%;
+}
+
+#debug-system-stat-title, #debug-system-stat-title-name {
+    font-size: 12px;
+    flex-grow: 1;
+    width: 20%;
+    -unity-text-align: middle-center;
+}
+
+#debug-system-stat-title-name {
+    width: 25%;
+}
+
+
+#debug-system-stat-entry-container
+{
+    flex-direction:row;
+    align-items:center;
+    flex-grow: 1;
+    width:100%;
+}
+
+#debug-system-stat-entry, #debug-system-stat-entry-name {
+    flex-grow: 1;
+    width: 20%;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+#debug-system-stat-entry-name {
+    width: 25%;
+}
+
+
+#play-rate-container #play-rate-slider
+{
+    flex:1 1 auto;
+}
+
+#play-rate-container #play-rate-field
+{
+    width: 80px;
+}
+
+#play-rate-container #play-rate-menu
+{
+    padding-left:0;
+    border-left-width:0;
+    border-top-width:0;
+    width: 40px;
+    height: 16px;
+}
+
+#system-bounds-container
+{
+    padding-bottom: 2px;
+}
+
+#bounds-actions-container
+{
+    flex-direction:row;
+    height: 30px;
+    align-items: center;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+#bounds-actions-container #bounds-label
+{
+    flex-grow: 1;
+}
+
+#bounds-actions-container #record
+{
+    height: 20px;
+    width: 30px;
+}
+
+
+#bounds-actions-container .unity-button#record #record-icon
+{
+    /*--unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Record\ On.png"); */
+        height: 16px;
+        width: 16px;
+}
+
+VFXComponentBoardEventUI
+{
+    flex-direction:row;
+    align-items:center;
+}
+VFXComponentBoardEventUI #event-name
+{
+    flex:1;
+}
+
+#subtitle
+{
+    flex-direction:row;
+    flex:1 0 auto;
+    align-items:center;
+}
+
+#subTitleLabel
+{
+    height: 16px;
+    flex-grow: 1;
+    -unity-text-align: lower-left;
+    margin-right: 4px;
+    overflow: hidden;
+}
+
+#subTitle-icon
+{
+    margin-right: 4px;
+}

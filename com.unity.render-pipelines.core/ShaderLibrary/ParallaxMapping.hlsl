@@ -13,7 +13,7 @@ half3 GetViewDirectionTangentSpace(half4 tangentWS, half3 normalWS, half3 viewDi
     half crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0); // we do not need to multiple GetOddNegativeScale() here, as it is done in vertex shader
     half3 bitang = crossSign * cross(normalWS.xyz, tangentWS.xyz);
 
-    half3 WorldSpaceNormal = renormFactor * normalWS.xyz;		// we want a unit length Normal Vector node in shader graph
+    half3 WorldSpaceNormal = renormFactor * normalWS.xyz;       // we want a unit length Normal Vector node in shader graph
 
     // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
     // This is explained in section 2.2 in "surface gradient based bump mapping framework"
@@ -26,6 +26,7 @@ half3 GetViewDirectionTangentSpace(half4 tangentWS, half3 normalWS, half3 viewDi
     return viewDirTS;
 }
 
+#ifndef BUILTIN_TARGET_API
 half2 ParallaxOffset1Step(half height, half amplitude, half3 viewDirTS)
 {
     height = height * amplitude - amplitude / 2.0;
@@ -33,6 +34,7 @@ half2 ParallaxOffset1Step(half height, half amplitude, half3 viewDirTS)
     v.z += 0.42;
     return height * (v.xy / v.z);
 }
+#endif
 
 float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv)
 {
@@ -41,4 +43,10 @@ float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 view
     return offset;
 }
 
+float2 ParallaxMappingChannel(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv, int channel)
+{
+    half h = SAMPLE_TEXTURE2D(heightMap, sampler_heightMap, uv)[channel];
+    float2 offset = ParallaxOffset1Step(h, scale, viewDirTS);
+    return offset;
+}
 #endif // UNIVERSAL_PARALLAX_MAPPING_INCLUDED

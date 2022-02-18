@@ -1,100 +1,508 @@
 project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
+  variables:
+    BOAT_ATTACK_BRANCH: master
+    BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
+
+reuse_blocks:
+  unity_config:
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+        retries: 3
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]:
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+        retries: 3
+
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
+
+    - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+    - [iPhone_Metal, OSX_Metal]: brew install unity-config
+
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco install unity-config
+
+    - [Linux_Vulkan]: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+    - [Linux_Vulkan]: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+    - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+    - [Linux_Vulkan]: sudo apt update
+    - [Linux_Vulkan]: sudo apt install -y unity-config
+
+    - [all]: unity-config settings project-path TestProjects/BoatAttack
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+    - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+    - [all]: unity-config project add dependency com.unity.addressables@1.16.7
+    - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.30
+    - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
+    - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+    - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+    - [all]: unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+    - [all]: unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+    - [all]: unity-config project add testable com.unity.cli-project-setup
+    - [all]: unity-config project add testable com.unity.test.performance.runtimesettings
+    - [all]: unity-config project add testable com.unity.test.metadata-manager
+    - [all]: unity-config project add testable com.unity.testing.graphics-performance
+    - [all]: unity-config project add testable com.unity.render-pipelines.core
+    - [all]: unity-config project add testable unity.graphictests.performance.universal
+    - [all]: unity-config project set project-update false
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: unity-config project add dependency com.unity.xr.management@4.0.1
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: unity-config project add dependency com.unity.xr.oculus@1.8.1
+
+  perf_utr_flags:
+    - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+    - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+    - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+    - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+    - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+    - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+    - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+    - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+    - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+    - [all]: --category=URP
+
+
 test_platforms:
   - type: Standalone
-    timeout_build:
-      Android: 2000
     name: performance_playmode_runtime
-    is_performance: True
-    extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=BoatAttack
-    extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup"
-      - --category=URP
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-      - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
-      - --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
-      - --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
-      - --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
-#  - type: editmode
-#    name: performance_editmode_build
-#    is_performance: True
-#    extra_utr_flags:
-#      - --testfilter=Build
-#      - --report-performance-data
-#      - --performance-project-id=BoatAttack
+    allow_cache: False
+    commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - [OSX_Metal]: <reuse_blocks.unity_config>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [iPhone_Metal]: --timeout=2400
+          - [iPhone_Metal,  Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersLow
+          - [OSX_Metal]: --testfilter=Low
+          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [iPhone_Metal]: --timeout=2400
+          - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersMedium
+          - [OSX_Metal]: --testfilter=Medium
+          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersHigh
+          - [OSX_Metal]: --testfilter=High
+          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
+
+    commands_build:
+      - <reuse_blocks.unity_config>
+      - [iPhone_Metal]:
+        - command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          retries: 2
+      - [iPhone_Metal]:
+        - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+          retries: 2
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
+          - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
+          - [all]: --testfilter=Low
+          - [all]: --player-save-path=playersLow
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+          - [all]: --player-save-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
+          - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
+          - [all]: --testfilter=Medium
+          - [all]: --player-save-path=playersMedium
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+          - [all]: --player-save-path=playersMedium
+      - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
+          - [all]: --testfilter=High
+          - [all]: --player-save-path=playersHigh
+
+  - type: playmode
+    name: performance_playmode_editor
+    allow_cache: False
+    commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - <reuse_blocks.unity_config>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=High
+
+  - type: editmode
+    name: performance_build_editmode
+    allow_cache: False
+    commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - <reuse_blocks.unity_config>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=High
+
 platforms:
   - name: Win
-    extra_utr_flags_build:
-      - --extra-editor-arg="-stripenginecode-" 
-      - --extra-editor-arg="-managedstrippinglevel=Low"
-      - --extra-editor-arg="-allowdebugging-" 
     apis:
-      - DX11
-#      - Vulkan
-#  - name: OSX
-#    apis:
-#      - Metal
-#      - OpenGLCore
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
   - name: Android
-    apis: 
-      - Vulkan
-      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-- name: il2cpp_apiNet4
-  scripting_backend: IL2CPP
-  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono_apiNet2
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-#        - performance_editmode_build
-#    - platform: OSX
-#      api: Metal
-#      build_config: il2cpp_apiNet4
-#      color_space: Linear
-#      test_platforms:
-#        #- performance_playmode_runtime
-#        - performance_editmode_build
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp_apiNet4
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-#        - performance_editmode_build
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp_apiNet4
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-#        - performance_editmode_build
-#    - platform: iPhone
-#      api: Metal
-#      build_config: il2cpp_apiNet4
-#      color_space: Linear
-#      test_platforms:
-#        - performance_playmode_runtime
-#        - performance_editmode_build
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+  - name: XRQuest
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.14-testing:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM::osx
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.large
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # https://fogbugz.unity3d.com/f/cases/1375124/
+          # - performance_playmode_runtime
+          # - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          #- performance_playmode_runtime
+          - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          #- performance_playmode_runtime https://fogbugz.unity3d.com/f/cases/1372763/
+          - performance_build_editmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      # - platform: XRQuest
+      #   api: OpenGLES3
+      #   build_config: il2cpp
+      #   color_space: Linear
+      #   test_platforms:
+      #     - performance_playmode_runtime
+      #- platform: XRQuest
+      #  api: Vulkan
+      #  build_config: il2cpp
+      #  color_space: Linear
+      #  test_platforms:
+      #    - performance_playmode_runtime

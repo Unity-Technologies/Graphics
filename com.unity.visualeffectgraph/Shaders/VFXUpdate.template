@@ -1,6 +1,8 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+${VFXInclude("Shaders/VFXParticleCommon.template")}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -15,11 +17,11 @@ RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
 #if VFX_USE_STRIPALIVE_CURRENT
-Buffer<uint> attachedStripDataBuffer;
+StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
 CBUFFER_START(updateParams)
@@ -38,10 +40,14 @@ void CSMain(uint3 groupId          : SV_GroupID,
 {
 	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	uint index = id;
+#if VFX_COMPUTE_BOUNDS
+	uint tid = groupThreadId.x;
+#endif
+
 	if (id < nbMax)
 	{
-        Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+        VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive|stripAlive}}
@@ -70,7 +76,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS			
+#if HAS_STRIPS
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
 				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
@@ -88,13 +94,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
         else if (attributes.stripAlive)
         {
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle 
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
                 uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
-            }            
+            }
         }
 #endif
 #else
@@ -117,5 +123,18 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		indirectBuffer[indirectIndex] = index;
 #endif
 #endif
+#if VFX_COMPUTE_BOUNDS
+		${VFXLoadSize}
+#if VFX_WORLD_SPACE
+        ${VFXLoadParameter:{worldToLocal}}
+#else
+        float4x4 worldToLocal = (float4x4)0;
+#endif
+		InitReduction(attributes, size3, tid, worldToLocal);
+#endif
+
 	}
+	#if VFX_COMPUTE_BOUNDS
+	PerformBoundsReduction(id, tid);
+	#endif
 }

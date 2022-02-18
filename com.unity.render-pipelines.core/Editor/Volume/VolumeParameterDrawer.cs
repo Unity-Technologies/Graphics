@@ -47,10 +47,10 @@ namespace UnityEditor.Rendering
     ///     public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
     ///     {
     ///         var value = parameter.value;
-    /// 
+    ///
     ///         if (value.propertyType != SerializedPropertyType.Float)
     ///             return false;
-    /// 
+    ///
     ///         var o = parameter.GetObjectRef&lt;ClampedFloatParameter&gt;();
     ///         EditorGUILayout.Slider(value, o.min, o.max, title);
     ///         value.floatValue = Mathf.Clamp(value.floatValue, o.min, o.max);

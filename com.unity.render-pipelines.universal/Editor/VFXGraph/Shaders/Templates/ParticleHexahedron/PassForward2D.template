@@ -1,0 +1,10 @@
+// 2D Pass
+Pass
+{		
+	Tags { "LightMode"=${VFXPassForward2D} }
+	
+	HLSLPROGRAM
+	#pragma target 4.5	
+	${VFXInclude("Shaders/ParticleHexahedron/PassBasicForwardCommon.template")}
+	ENDHLSL
+}

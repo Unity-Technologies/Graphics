@@ -7,12 +7,13 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class AutodeskInteractiveMaterialImport : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 3;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -970;
         public override uint GetVersion()
         {
             return k_Version;
         }
+
         public override int GetPostprocessOrder()
         {
             return k_Order;
@@ -20,8 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (HDRenderPipeline.currentAsset == null)
                 return;
 
             if (IsAutodeskInteractiveMaterial(description))
@@ -30,8 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Vector4 vectorProperty;
                 TexturePropertyDescription textureProperty;
 
-                bool isMasked = description.TryGetProperty("mask_threshold",out floatProperty);
-                bool isTransparent = description.TryGetProperty("opacity",out floatProperty);
+                bool isMasked = description.TryGetProperty("mask_threshold", out floatProperty);
+                bool isTransparent = description.TryGetProperty("opacity", out floatProperty);
 
                 Shader shader;
                 if (isMasked)
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (description.TryGetProperty("base_color", out vectorProperty))
                     material.SetColor("_Color", vectorProperty);
                 if (description.TryGetProperty("emissive", out vectorProperty))
-                    material.SetColor("_EmissionColor", vectorProperty);
+                    material.SetColor("_Emissive", vectorProperty);
 
                 if (description.TryGetProperty("roughness", out floatProperty))
                     material.SetFloat("_Roughness", floatProperty);

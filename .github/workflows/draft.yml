@@ -9,12 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false && github.event.pull_request.ready_for_review == false
     steps:
-    - uses: thollander/actions-comment-pull-request@1.0.0
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        message: |
-              It appears that you made a non-draft PR!
-              Please convert your PR to draft (button on the right side of the page)
-              and cancel any jobs that started on Yamato.
-              See the PR template for more information.
-              Thank you!
+      - uses: thollander/actions-comment-pull-request@v1.0.4
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            It appears that you made a non-draft PR!
+            Please convert your PR to draft (button on the right side of the page).
+            See the PR template for more information.
+            Thank you!

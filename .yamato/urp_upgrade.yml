@@ -1,0 +1,48 @@
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+name: URP_Upgrade
+test_editors:
+  - name: trunk
+  - name: CUSTOM-REVISION
+test_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    editor_path: .\.Editor
+    editor_cmd: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+
+---
+
+{% for editor in test_editors %}
+{% for platform in test_platforms %}
+{{name}}_test_{{platform.name}}_{{editor.name}}:
+    name: {{name}} - Test on {{platform.name}} {{editor.name}}
+    agent:
+        type: {{ platform.type }}
+        image: {{ platform.image }}
+        flavor: {{ platform.flavor}}
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        {% if editor.name == 'trunk' %}
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        {% elsif editor.name == 'CUSTOM-REVISION' %}
+        CUSTOM_REVISION: custom_revision_not_set
+        {% endif %}
+        UTR_VERSION: "current"
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
+      -  {{platform.editor_cmd}}
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci package test -u {{platform.editor_path}} --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalUpgradeTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:{{ editor.name }}:Win
+         rerun: on_new_revision
+{% endfor %}
+{% endfor %}

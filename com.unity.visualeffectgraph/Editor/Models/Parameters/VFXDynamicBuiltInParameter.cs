@@ -8,29 +8,28 @@ namespace UnityEditor.VFX
 {
     class DynamicBuiltInVariant : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
-        {
-            get
-            {
-                var builtInFlag =
-                Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
-                .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
-                .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None)
-                .Concat(
-                    new[]
-                    {
-                        VFXDynamicBuiltInParameter.s_allVFXTime,
-                        VFXDynamicBuiltInParameter.s_allGameTime
-                    });
+        protected sealed override Dictionary<string, object[]> variants { get; } = BuildVariants();
 
-                return new Dictionary<string, object[]>
+        private static Dictionary<string, object[]> BuildVariants()
+        {
+            var builtInFlag =
+                Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
+                    .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
+                    .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None)
+                    .Concat(
+                        new[]
+                        {
+                            VFXDynamicBuiltInParameter.s_allVFXTime,
+                            VFXDynamicBuiltInParameter.s_allGameTime
+                        });
+
+            return new Dictionary<string, object[]>
+            {
                 {
-                    {
-                        "m_BuiltInParameters",
-                        builtInFlag.Cast<object>().ToArray()
-                    }
-                };
-            }
+                    "m_BuiltInParameters",
+                    builtInFlag.Cast<object>().ToArray()
+                }
+            };
         }
     }
 
@@ -40,30 +39,30 @@ namespace UnityEditor.VFX
         [Flags]
         public enum BuiltInFlag
         {
-            None                        = 0,
+            None = 0,
 
             //VFX Time
-            VfxDeltaTime                = 1 << 0,
-            VfxUnscaledDeltaTime        = 1 << 1,
-            VfxTotalTime                = 1 << 2,
-            VfxFrameIndex               = 1 << 3,
-            VfxPlayRate                 = 1 << 4,
-            VfxManagerFixedTimeStep     = 1 << 5,
-            VfxManagerMaxDeltaTime      = 1 << 6,
+            VfxDeltaTime = 1 << 0,
+            VfxUnscaledDeltaTime = 1 << 1,
+            VfxTotalTime = 1 << 2,
+            VfxFrameIndex = 1 << 3,
+            VfxPlayRate = 1 << 4,
+            VfxManagerFixedTimeStep = 1 << 5,
+            VfxManagerMaxDeltaTime = 1 << 6,
 
             //Game Time
-            GameDeltaTime               = 1 << 7,
-            GameUnscaledDeltaTime       = 1 << 8,
-            GameSmoothDeltaTime         = 1 << 9,
-            GameTotalTime               = 1 << 10,
-            GameUnscaledTotalTime       = 1 << 11,
+            GameDeltaTime = 1 << 7,
+            GameUnscaledDeltaTime = 1 << 8,
+            GameSmoothDeltaTime = 1 << 9,
+            GameTotalTime = 1 << 10,
+            GameUnscaledTotalTime = 1 << 11,
             GameTotalTimeSinceSceneLoad = 1 << 12,
-            GameTimeScale               = 1 << 13,
+            GameTimeScale = 1 << 13,
 
             //Other
-            LocalToWorld                = 1 << 14,
-            WorldToLocal                = 1 << 15,
-            SystemSeed                  = 1 << 16,
+            LocalToWorld = 1 << 14,
+            WorldToLocal = 1 << 15,
+            SystemSeed = 1 << 16,
         }
 
         public static readonly BuiltInFlag s_allVFXTime = BuiltInFlag.VfxDeltaTime | BuiltInFlag.VfxUnscaledDeltaTime | BuiltInFlag.VfxTotalTime | BuiltInFlag.VfxFrameIndex | BuiltInFlag.VfxPlayRate | BuiltInFlag.VfxManagerFixedTimeStep | BuiltInFlag.VfxManagerMaxDeltaTime;
@@ -142,7 +141,7 @@ namespace UnityEditor.VFX
             {
                 bool anyVFXTime = (m_BuiltInParameters & s_allVFXTime) != 0;
                 bool anyGameTime = (m_BuiltInParameters & s_allGameTime) != 0;
-                bool shouldUseLongName = false; 
+                bool shouldUseLongName = false;
                 if (anyVFXTime || anyGameTime)
                 {
                     //When confusion is possible, use long name
@@ -176,6 +175,19 @@ namespace UnityEditor.VFX
                     return "Game Time";
 
                 return "Built-In Properties";
+            }
+        }
+
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            switch (m_BuiltInParameters)
+            {
+                case BuiltInFlag.LocalToWorld:
+                    return VFXCoordinateSpace.Local;
+                case BuiltInFlag.WorldToLocal:
+                    return VFXCoordinateSpace.World;
+                default:
+                    return (VFXCoordinateSpace)int.MaxValue;
             }
         }
 

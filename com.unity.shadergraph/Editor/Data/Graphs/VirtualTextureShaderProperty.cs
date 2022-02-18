@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph
                 result.Add(value.layers[layer].layerRefName);
             }
         }
+
         internal override void GetPropertyDisplayNames(List<string> result)
         {
             result.Add(displayName);
@@ -59,6 +60,21 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
                 }
             }
+            else
+            {
+                // For procedural VT, we only need to expose a single property, indicating the referenceName and the number of layers
+
+                // Adds a property as:
+                //   [ProceduralTextureStack.MyStack(1)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
+                // or:
+                //   [GlobalProceduralTextureStack.MyStack(2)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
+                string prefixString = value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial
+                    ? "ProceduralTextureStack"
+                    : "GlobalProceduralTextureStack";
+
+                int numLayers = value.layers.Count;
+                builder.AppendLine($"{hideTagString}[{prefixString}.{referenceName}({numLayers})][NoScaleOffset]{referenceName}(\"{"Procedural Virtual Texture"}\", 2D) = \"white\" {{}}");
+            }
         }
 
         internal override string GetPropertyBlockString()
@@ -74,11 +90,13 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                HLSLDeclaration decl = (value.procedural) ? value.shaderDeclaration : HLSLDeclaration.UnityPerMaterial;
+
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
-                        ssb.AppendIndentation();
+                        ssb.TryAppendIndentation();
                         ssb.Append("DECLARE_STACK_CB(");
                         ssb.Append(referenceName);
                         ssb.Append(");");
@@ -88,7 +106,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (!value.procedural)
                 {
-                    // declare regular texture properties (for fallback case)
+                    //declare regular texture properties (for fallback case)
                     for (int i = 0; i < numLayers; i++)
                     {
                         string layerRefName = value.layers[i].layerRefName;
@@ -100,7 +118,7 @@ namespace UnityEditor.ShaderGraph
                 Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
                     // declare texture stack
-                    builder.AppendIndentation();
+                    builder.TryAppendIndentation();
                     builder.Append("DECLARE_STACK");
                     builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                     builder.Append("(");
@@ -115,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
 
                     // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                    builder.AppendIndentation();
+                    builder.TryAppendIndentation();
                     builder.Append("#define ");
                     builder.Append(referenceName);
                     builder.Append(" AddTextureType(BuildVTProperties_");
@@ -131,7 +149,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
                 };
 
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_Global", HLSLDeclaration.Global, concretePrecision)
                 {
                     customDeclaration = customDecl
                 });
@@ -139,7 +157,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // argument string used to pass this property to a subgraph
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "VTPropertyWithTextureType " + referenceName;
         }
@@ -161,12 +179,10 @@ namespace UnityEditor.ShaderGraph
 
         internal override ShaderInput Copy()
         {
-            var vt =  new VirtualTextureShaderProperty
+            var vt = new VirtualTextureShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = new SerializableVirtualTexture(),
-                precision = precision
             };
 
             // duplicate layer data, but reset reference names (they should be unique)
@@ -185,11 +201,13 @@ namespace UnityEditor.ShaderGraph
             {
                 string layerRefName = value.layers[layer].layerRefName;
                 var layerTexture = value.layers[layer].layerTexture;
+                var texture = layerTexture != null ? layerTexture.texture : null;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerRefName,
-                    textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
+                    textureId = texture != null ? texture.GetInstanceID() : 0,
+                    dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
                     modifiable = true
                 };
                 infos.Add(textureInfo);
@@ -197,10 +215,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal override bool isAlwaysExposed => true;
+        internal override bool isCustomSlotAllowed => false;
 
         public override void OnAfterDeserialize(string json)
         {
-            // VT shader properties must always be exposed
+            // VT shader properties must be exposed so they can be picked up by the native-side VT system
             generatePropertyBlock = true;
         }
     }

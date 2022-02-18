@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
         {
             var expression = VFXBuiltInExpression.Find(m_expressionOp);
             if (expression == null)
-                return new VFXExpression[] {};
+                return new VFXExpression[] { };
             return new VFXExpression[] { expression };
         }
 

@@ -2,18 +2,32 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Material/Diffusion Profile Override")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Diffusion-Profile" + Documentation.endURL)]
-    sealed class DiffusionProfileOverride : VolumeComponent
+    /// <summary>
+    /// A volume component that holds Diffusion Profile Overrides.
+    /// </summary>
+    [Serializable, VolumeComponentMenuForRenderPipeline("Material/Diffusion Profile Override", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Override-Diffusion-Profile")]
+    public sealed class DiffusionProfileOverride : VolumeComponent
     {
+        /// <summary>
+        /// List of diffusion profiles used inside the volume.
+        /// </summary>
         [Tooltip("List of diffusion profiles used inside the volume.")]
         [SerializeField]
-        internal DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
+        public DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
     }
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="DiffusionProfileSettings"/> value.
+    /// </summary>
     [Serializable]
-    sealed class DiffusionProfileSettingsParameter : VolumeParameter<DiffusionProfileSettings[]>
+    public sealed class DiffusionProfileSettingsParameter : VolumeParameter<DiffusionProfileSettings[]>
     {
+        /// <summary>
+        /// Creates a new <see cref="DiffusionProfileSettingsParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
         public DiffusionProfileSettingsParameter(DiffusionProfileSettings[] value, bool overrideState = true)
             : base(value, overrideState) { }
     }

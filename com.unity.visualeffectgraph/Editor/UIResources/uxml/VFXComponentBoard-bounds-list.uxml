@@ -1,0 +1,9 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+  <vfx:VFXComponentBoardBoundsSystemUI name="container" pickingMode="Ignore">
+    <vfx:VFXBoundsRecorderField name="system-field">
+      <ui:Button name="system-button"/>
+    </vfx:VFXBoundsRecorderField>
+    <ui:VisualElement name="divider" class="horizontal"/>
+<!--    <vfx:VFXEnumField name="bounds-mode"/>-->
+  </vfx:VFXComponentBoardBoundsSystemUI>
+</UXML>

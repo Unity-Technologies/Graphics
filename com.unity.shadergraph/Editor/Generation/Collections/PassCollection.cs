@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public PassCollection Add(PassCollection passes)
         {
-            foreach(PassCollection.Item item in passes)
+            foreach (PassCollection.Item item in passes)
             {
                 m_Items.Add(item);
             }
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public PassCollection Add(PassDescriptor descriptor, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(descriptor, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

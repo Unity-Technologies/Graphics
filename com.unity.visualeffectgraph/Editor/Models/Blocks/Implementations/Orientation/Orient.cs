@@ -8,19 +8,13 @@ namespace UnityEditor.VFX.Block
 {
     class OrientationModeProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray()}
+        };
     }
 
-    [VFXInfo(category = "Orientation", variantProvider = typeof(OrientationModeProvider))]
+    [VFXInfo(category = "Attribute/orientation", variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {
         public enum Mode
@@ -30,8 +24,10 @@ namespace UnityEditor.VFX.Block
             LookAtPosition,
             LookAtLine,
             Advanced,
-            FixedAxis,
-            AlongVelocity,
+            FixedAxis, // non strips only
+            AlongVelocity, // non strips only
+            CustomZ, // strips only
+            CustomY, // strips only
         }
 
         public enum AxesPair
@@ -54,13 +50,32 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (mode != Mode.Advanced)
-                {
                     yield return "axes";
+            }
+        }
+
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        {
+            if (name == "mode" && canTestStrips)
+            {
+                if (hasStrips)
+                {
+                    yield return (int)Mode.FaceCameraPlane;
+                    yield return (int)Mode.FixedAxis;
+                    yield return (int)Mode.AlongVelocity;
+                }
+                else
+                {
+                    yield return (int)Mode.CustomZ;
+                    yield return (int)Mode.CustomY;
                 }
             }
         }
 
-        public override string name { get { return "Orient : " + ObjectNames.NicifyVariableName(mode.ToString()); } }
+        private bool canTestStrips => flattenedParent as VFXAbstractParticleOutput; // Cannot check strip in subblock context or not child of a context
+        private bool hasStrips => ((VFXAbstractParticleOutput)flattenedParent).HasStrips(); // direct cast as canTestStrips is supposed to have been called priorly
+
+        public override string name { get { return "Orient: " + ObjectNames.NicifyVariableName(mode.ToString()); } }
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
@@ -107,7 +122,27 @@ namespace UnityEditor.VFX.Block
                     case Mode.FixedAxis:
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Up"), new DirectionType() { direction = Vector3.up });
                         break;
+
+                    case Mode.CustomZ:
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Front"), new DirectionType() { direction = -Vector3.forward });
+                        break;
+
+                    case Mode.CustomY:
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Up"), new DirectionType() { direction = Vector3.up });
+                        break;
                 }
+            }
+        }
+
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                foreach (var exp in base.parameters)
+                    yield return exp;
+
+                if (canTestStrips && hasStrips && mode != Mode.Advanced)
+                    yield return new VFXNamedExpression(new VFXExpressionStripTangent(), "stripTangent");
             }
         }
 
@@ -118,6 +153,9 @@ namespace UnityEditor.VFX.Block
                 switch (mode)
                 {
                     case Mode.FaceCameraPlane:
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient mode (FaceCameraPlane) is not available for strips");
+
                         return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
 axisX = viewRot[0].xyz;
@@ -131,8 +169,34 @@ axisZ = normalize(axisZ);
 ";
 
                     case Mode.FaceCameraPosition:
-                        return @"
-if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
+                        if (canTestStrips && hasStrips)
+                        {
+                            return @"
+axisX = stripTangent;
+if (IsPerspectiveProjection())
+{
+    axisZ = position - GetViewVFXPosition();
+}
+else  // Face plane for ortho
+{
+    axisZ = -GetVFXToViewRotMatrix()[2].xyz;
+    #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
+    axisZ = normalize(axisZ);
+    #endif
+}
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
+axisZ = cross(axisX, axisY);
+";
+                        }
+                        else
+                            return @"
+if (IsPerspectiveProjection())
+{
+    axisZ = normalize(position - GetViewVFXPosition());
+    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+    axisY = cross(axisZ,axisX);
+}
+else // Face plane for ortho
 {
     float3x3 viewRot = GetVFXToViewRotMatrix();
     axisX = viewRot[0].xyz;
@@ -144,27 +208,39 @@ if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
     axisZ = normalize(axisZ);
     #endif
 }
-else
-{
-    axisZ = normalize(position - GetViewVFXPosition());
-    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
-    axisY = cross(axisZ,axisX);
-}
 ";
 
                     case Mode.LookAtPosition:
-                        return @"
+                        if (canTestStrips && hasStrips)
+                            return @"
+axisX = stripTangent;
+axisZ = -normalize(position - Position);
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
+axisZ = cross(axisX, axisY);
+";
+                        else
+                            return @"
 axisZ = normalize(position - Position);
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisX = VFXSafeNormalizedCross(GetVFXToViewRotMatrix()[1].xyz,axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.LookAtLine:
-                        return @"
+                        if (canTestStrips && hasStrips)
+                            return @"
+float3 lineDir = normalize(Line_end - Line_start);
+float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
+axisX = stripTangent;
+axisZ = normalize(position - target);
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
+axisZ = cross(axisX, axisY);
+";
+                        else
+                            return @"
 float3 lineDir = normalize(Line_end - Line_start);
 float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
 axisZ = normalize(position - target);
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisX = VFXSafeNormalizedCross(GetVFXToViewRotMatrix()[1].xyz,axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX);
 ";
 
@@ -183,19 +259,47 @@ axisY = cross(axisZ,axisX);
                     }
 
                     case Mode.FixedAxis:
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient (FixedAxis) mode is not available for strips");
+
                         return @"
 axisY = Up;
 axisZ = position - GetViewVFXPosition();
-axisX = normalize(cross(axisY,axisZ));
+axisX = VFXSafeNormalizedCross(axisY, axisZ, float3(1,0,0));
 axisZ = cross(axisX,axisY);
 ";
 
                     case Mode.AlongVelocity:
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient mode (AlongVelocity) is not available for strips");
+
                         return @"
 axisY = normalize(velocity);
 axisZ = position - GetViewVFXPosition();
-axisX = normalize(cross(axisY,axisZ));
+axisX = VFXSafeNormalizedCross(axisY, axisZ, float3(1,0,0));
 axisZ = cross(axisX,axisY);
+";
+
+                    case Mode.CustomZ:
+                        if (canTestStrips && !hasStrips)
+                            throw new NotImplementedException("This orient mode (CustomZ) is only available for strips");
+
+                        return
+@"axisX = stripTangent;
+axisZ = -Front;
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
+axisZ = cross(axisX, axisY);
+";
+
+                    case Mode.CustomY:
+                        if (canTestStrips && !hasStrips)
+                            throw new NotImplementedException("This orient mode (CustomY) is only available for strips");
+
+                        return
+@"axisX = stripTangent;
+axisY = Up;
+axisZ = VFXSafeNormalizedCross(axisX, axisY, float3(0,0,1));
+axisY = cross(axisZ, axisX);
 ";
 
                     default:
@@ -211,12 +315,36 @@ axisZ = cross(axisX,axisY);
                 /* Slot of type position has changed from undefined VFXSlot to VFXSlotPosition*/
                 if (GetNbInputSlots() > 0 && !(GetInputSlot(0) is VFXSlotPosition))
                 {
-                    var oldValue = GetInputSlot(0).value;
-                    RemoveSlot(GetInputSlot(0));
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue));
+                    VFXSlot oldSlot = GetInputSlot(0);
+                    var oldValue = oldSlot.value;
+                    VFXSlot newSlot = VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue);
+                    ReplaceSlot(oldSlot, newSlot);
                 }
             }
             base.Sanitize(version);
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (!canTestStrips)
+                return;
+
+            bool hasInvalidMode = false;
+            if (hasStrips)
+                hasInvalidMode =
+                    mode == Mode.FaceCameraPlane ||
+                    mode == Mode.FixedAxis ||
+                    mode == Mode.AlongVelocity;
+            else
+                hasInvalidMode =
+                    mode == Mode.CustomZ ||
+                    mode == Mode.CustomY;
+
+            if (hasInvalidMode)
+            {
+                string outputTypeStr = hasStrips ? "strip" : "non strip";
+                manager.RegisterError("InvalidOrientMode", VFXErrorType.Error, string.Format("Orient mode {0} is invalid with {1} output", mode, outputTypeStr));
+            }
         }
 
         private void AxesPairToHLSL(AxesPair axes, out string axis1, out string axis2, out string axis3)

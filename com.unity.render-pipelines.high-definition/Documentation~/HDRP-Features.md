@@ -71,13 +71,13 @@ Use the Lit Shader to easily create realistic Materials and includes options for
 
 ![](Images/HDRPFeatures-LayeredLitShader.png)
 
-The Layered Lit Shader combines a main Material with other tileable Materials in order to produce visuals with a similar quality to a single high-resolution texture, but at a lower performance cost than a [Lit Shader](Lit-Shader) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader).
+The Layered Lit Shader combines a main Material with other tileable Materials in order to produce visuals with a similar quality to a single high-resolution texture, but at a lower performance cost than a [Lit Shader](Lit-Shader.md) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader.md).
 
 ### Unlit Shader
 
 ![](Images/HDRPFeatures-UnlitShader.png)
 
-The Unlit Shader allows you to create Materials that are not affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader).
+The Unlit Shader allows you to create Materials that are not affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader.md).
 
 With the **Shadow Matte** option in the settings, we can have the surface receive shadow without lighting. We have Opaque or Transparent shadow with alpha for each of them.
 
@@ -91,19 +91,19 @@ The StackLit Shader improves on the Lit Shader in favor of quality over performa
 
 ![](Images/HDRPFeatures-HairShader.png)
 
-The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader documentation](Master-Node-Hair).
+The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader](hair-shader.md) and [Hair Master Stack](master-stack-hair.md) documentation.
 
 ### Fabric Shader
 
 ![](Images/HDRPFeatures-FabricShader.png)
 
-The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Fabric Shader documentation](Master-Node-Fabric).
+The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Cotton/Wool Shader](cotton-wool-shader.md), [Silk Shader](silk-shader.md), and [Fabric Master Stack](master-stack-fabric.md) documentation.
 
 ### AxF Shader
 
 ![](Images/HDRPFeatures-AxFShader.png)
 
-The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets. For more information, including a full list of Shader properties, see the [AxF Shader documentation](AxF-Shader).
+The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets. For more information, including a full list of Shader properties, see the [AxF Shader documentation](AxF-Shader.md).
 
 ### Decals
 
@@ -111,7 +111,7 @@ The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Mat
 
 HDRP allows you to apply decals to surfaces in your Scene. To apply a decal to a surface, you can either use the [Decal Projector component](Decal-Projector.md) to project the decal onto the surface, or assign the decal shader directly to a Mesh and then place the Mesh on the surface. For more information, see the [Decal documentation](Decal.md).
 
-HDRP also supports Decal Layers which allows you to control which GameObjects receive decals or not. 
+HDRP also supports Decal Layers which allows you to control which GameObjects receive decals or not.
 
 ### Terrain Shader
 
@@ -167,11 +167,18 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
+### Lens Flare
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have multiple elements that you can control individually. HDRP also provides a [new asset](shared/lens-flare/lens-flare-asset.md) and a [new component](shared/lens-flare/lens-flare-component.md) which you can attach to any GameObject.
+
 ### Reflection probes
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
 
-HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection optionaly support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
 ### Planar reflection probe
 
@@ -183,7 +190,7 @@ For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
 
 ### Screen-space reflection and refraction
 
-HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP.md#ScreenSpaceRefraction) documentation.
 
 ### Screen-space global illumination
 
@@ -197,7 +204,7 @@ HDRP provides a screen-space solution for distortion. Distortion is similar to r
 
 ### Exposure
 
-HDRP allows you to calculate exposure using several methods. This includes: 
+HDRP allows you to calculate exposure using several methods. This includes:
 
 ##### Histogram exposure
 
@@ -217,7 +224,7 @@ For more information, see [Exposure](Override-Exposure.md).
 
 ![](Images/HDRPFeatures-Emission.png)
 
-HDRP Materials support light [emission](Lit-Shader.md#EmissionInputs), which allows you to make a Material into a self-illuminated visible source of light. Global illumination takes emission into account and you can use [physical light units](#PLU) to set the intensity based on real-world lights. 
+HDRP Materials support light [emission](Lit-Shader.md#EmissionInputs), which allows you to make a Material into a self-illuminated visible source of light. Global illumination takes emission into account and you can use [physical light units](#PLU) to set the intensity based on real-world lights.
 
 ### Shadows
 
@@ -231,15 +238,15 @@ HDRP uses multiple methods to calculate shadows:
 
 To decrease aliasing for the main cascade shadow maps, you can apply different filters to them, like PCF or PCSS.
 
-For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](Shadows-in-HDRP.md#FilteringQualities).
+For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
+
+HDRP also allows you to cache shadow maps. This means you can update shadow maps when you request an update or update them for dynamic objects only. This method can improve performance significantly. For more information, see [Shadows](Shadows-in-HDRP.md#ShadowUpdateMode).
 
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
 
-<a name="SkyOverview"></a>
+### Sky
 
-### Sky 
-
-![](Images/HDRPFeatures-Sky.png) 
+![](Images/HDRPFeatures-Sky.png)
 
 In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky settings, or even the type of sky itself, depending on the position of the Camera in the Scene. HDRP allows you to separate the visual sky from the sky that you use for environment lighting. HDRP includes the following built-in sky types for you to use in your Unity Project:
 
@@ -250,8 +257,14 @@ In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky
 
 HDRP is able to handle multiple skies seen by different Cameras.
 
-<a name="FogOverview"></a>
-om
+### Clouds
+
+![](Images/HDRPFeatures-CloudLayer.png)
+
+In HDRP, you set up clouds inside a [Volume](Volumes.md), so you can change clouds settings, or even the type of clouds itself, depending on the position of the Camera in the Scene. HDRP allows you to separate the clouds in the visual sky from the clouds that you use for environment lighting. HDRP includes the following built-in cloud type for you to use in your Unity Project:
+
+- [Cloud Layer](Override-Cloud-Layer.md): Renders a cloud texture with options to simulate clouds self-shadows and projected shadows on the ground.
+
 ### Fog
 
 ![](Images/HDRPFeatures-Fog.png)
@@ -259,15 +272,21 @@ om
 In HDRP, you set up fog, inside a [Volume](Volumes.md), so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP implements an exponential [fog](Override-Fog.md) with optional volumetric effects.
 
 
-### Light Layers 
+### Local Volumetric Fog
+
+![](Images/LocalVolumetricFog.png)
+
+In addition to fog, HDRP also supports local volumetric fog. You can use this to control the density of fog in an area. For more detailed control, you can use a 3D Mask texture to control the color and the density inside the volume itself. For more information see the [Local Volumetric Fog section](Local-Volumetric-Fog.md)
+
+### Light Layers
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
-Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).  
+Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).
 
-Light layers In the shadow map dropdown can also be used to control which object receives a shadow from which light. By default both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent (When an object receives light it also casts shadows). For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers)
+You can use Light layers in the shadow map dropdown to control which GameObject receives a shadow from which light. By default, both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent. This means that when a GameObject receives light it also casts shadows. For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers).
 
-### Screen space ambient occlusion 
+### Screen space ambient occlusion
 
 HDRP includes a [screen space ambient occlusion](Override-Ambient-Occlusion.md) effect that approximates ambient occlusion in real time. It approximates the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject.
 
@@ -295,7 +314,13 @@ Real time raytracing effect are currently in Preview and behavior could change i
 - [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
+
+### Light count limit
+
+HDRP has a maximum limit on the number of lights a single pixel can get influence from. You can change this limit with a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`.
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
 
 <a name="Camera"></a>
 
@@ -305,9 +330,9 @@ Real time raytracing effect are currently in Preview and behavior could change i
 
 ![](Images/HDRPFeatures-PostProcessing.png)
 
-HDRP includes its own purpose-built implementation for post-processing to produce exceptionally high-quality graphics. You can use post-processing to apply full-screen filters and effects to the Camera to drastically improve the visuals of your Unity Project with little set-up time. For an overview on HDRP post-processing, see the [post-processing documentation](Post-Processing-Main).
+HDRP includes its own purpose-built implementation for post-processing to produce exceptionally high-quality graphics. You can use post-processing to apply full-screen filters and effects to the Camera to drastically improve the visuals of your Unity Project with little set-up time. For an overview on HDRP post-processing, see the [post-processing documentation](Post-Processing-Main.md).
 
-### Accumulation motion blur 
+### Accumulation motion blur
 
 ![](Images/Path_tracing_recording-Feature.png)
 
@@ -317,11 +342,11 @@ For information about this feature, and for some example scripts, see [Multifram
 
 ### Anti-Aliasing
 
-![](Images/HDRPFeatures-AntiAliasing.png) 
+![](Images/HDRPFeatures-AntiAliasing.png)
 
 HDRP includes the following [anti-aliasing](Anti-Aliasing.md) methods to help you remove aliasing effects with performance and quality in mind:
 
-- [Multisample anti-aliasing](Anti-Aliasing.md#MSAA)(MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. You can use an alpha to mask out an area to use MSAA. This is the most resource intensive anti-aliasing technique in HDRP. 
+- [Multisample anti-aliasing](Anti-Aliasing.md#MSAA)(MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. You can use an alpha to mask out an area to use MSAA. This is the most resource intensive anti-aliasing technique in HDRP.
 - [Temporal anti-aliasing](Anti-Aliasing.md#TAA)(TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
 - [Subpixel morphological anti-aliasing](Anti-Aliasing.md#SMAA)(SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
 - [Fast approximate anti-aliasing](Anti-Aliasing.md#FXAA)(FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
@@ -382,6 +407,19 @@ Path tracing now supports fog absorption. Like SSS, to use this feature, enable 
 
 For information on fog in HDRP, see [fog](Override-Fog.md).
 
+#### Materials support
+
+![](Images/Path-traced-materials-Feature.png)
+
+Path tracing can render the following rasterization engine [Materials](#Material):
+- Lit
+- Layered Lit
+- Unlit
+- Stacklit
+- Fabric
+- AxF
+When path tracing is enabled, objects that use non-HDRP Materials won't appear in the final image.
+
 <a name="Tools"></a>
 
 ## Tools
@@ -390,9 +428,9 @@ For information on fog in HDRP, see [fog](Override-Fog.md).
 
 To help you set up HDRP quickly and correctly, HDRP provides the Render Pipeline Wizard. Use the wizard to fix configuration issues with a single button click, and create a template Scene that is already configured with default Scene settings. For more information on the Render Pipeline Wizard, including a description of how to use it, see the [Render Pipeline Wizard documentation](Render-Pipeline-Wizard.md).
 
-### Render Pipeline Debugger
+### Rendering Debugger
 
-The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, including a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debug-Window.md).
+The Rendering Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Rendering Debugger, including a description of how to use it, see the [Rendering Debugger documentation](Render-Pipeline-Debug-Window.md).
 
 ### LookDev
 ![](Images/HDRPFeatures-LookDev.png)
@@ -418,15 +456,15 @@ To help you to debug lighting in your Scene, HDRP includes various lighting debu
 
 HDRP includes a [light layer](Light-Layers.md) debug mode that displays the light layers assigned to each GameObject or highlights GameObjects that match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 #### Volume debug mode
 
-The Render Pipeline Debug window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera. 
+The [Rendering Debugger](Render-Pipeline-Debug-Window.md) has a Volume panel that you can use to visualize the Volume components that affect a specific Camera.
 
-For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. 
+For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
 
-For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
@@ -445,12 +483,17 @@ In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting b
 
 ![](Images/HDRPFeatures-HDRISky.png)
 
-From the [HDRI Sky](Override-HDRI-Sky.md), you can directly project the bottom part onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.  
+From the [HDRI Sky](Override-HDRI-Sky.md), you can directly project the bottom part onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.
 To match the scale of the GameObjects in your Scene, you can vary the pixel footprint.
+
+### LichrAnchor
+![](Images/lightanchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ### Light Explorer
 
-The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog volumes
+The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog Global Volumes
 
 ![](Images/LightExplorer.png)
 

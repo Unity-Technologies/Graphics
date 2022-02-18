@@ -4,7 +4,7 @@ Tonemapping is the process of remapping the HDR values of an image to a new rang
 
 ## Using Tonemapping
 
-**Tonemapping**  uses the [Volume](Volumes.md) system, so to enable and modify **Tonemapping** properties, you must add a **Tonemapping** override to a [Volume](Volumes.md) in your Scene. 
+**Tonemapping**  uses the [Volume](Volumes.md) system, so to enable and modify **Tonemapping** properties, you must add a **Tonemapping** override to a [Volume](Volumes.md) in your Scene.
 
 To add **Tonemapping** to a Volume:
 
@@ -17,5 +17,4 @@ To add **Tonemapping** to a Volume:
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Mode**     | Select a tonemapping algorithm to use for color grading. The options are:<br />&#8226; **None**: Use this option if you do not want to apply tonemapping.<br />&#8226; **Neutral**: Use this option if you only want range-remapping with minimal impact on color hue & saturation. It is generally a good starting point for extensive color grading.<br />&#8226; **ACES**: Use this option to apply a close approximation of the reference ACES tonemapper, for a more cinematic look. It is more contrasted than Neutral, and has an effect on actual color hue & saturation. If you use this tonemapper, Unity does all the grading operations in the ACES color spaces, for optimal precision and results. |
-
+| **Mode**     | Select a tonemapping algorithm to use for color grading. The options are:<br />&#8226; **None**: Use this option if you do not want to apply tonemapping.<br />&#8226; **Neutral**: Use this option if you only want range-remapping with minimal impact on color hue & saturation. It is generally a good starting point for extensive color grading.<br />&#8226; **ACES**: Use this option to apply a close approximation of the reference ACES tonemapper, for a more cinematic look. It is more contrasted than Neutral, and has an effect on actual color hue & saturation. If you use this tonemapper, Unity does all the grading operations in the ACES color spaces, for optimal precision and results.<br>ACES HDR tonemapping is not supported on Android devices with Adreno 300 series GPU. |

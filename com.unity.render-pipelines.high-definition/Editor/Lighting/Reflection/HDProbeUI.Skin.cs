@@ -7,9 +7,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static readonly GUIContent k_ProxyVolumeContent = EditorGUIUtility.TrTextContent("Proxy Volume");
 
-        const string k_NoProxyHelpBoxText = "Influence shape will be used as Projection shape too.";
-        const string k_NoProxyInfiniteHelpBoxText = "Projection will be at infinite.";
-        const string k_ProxyInfluenceShapeMismatchHelpBoxText = "Proxy volume and influence volume have different shapes, this is not supported.";
+        static readonly string k_NoProxyHelpBoxText = L10n.Tr("Influence shape will be used as Projection shape too.");
+        static readonly string k_NoProxyInfiniteHelpBoxText = L10n.Tr("Projection will be at infinite.");
+        static readonly string k_ProxyInfluenceShapeMismatchHelpBoxText = L10n.Tr("Proxy volume and influence volume have different shapes, this is not supported.");
+        internal static readonly string k_UnsupportedPresetPropertiesMessage = L10n.Tr("Presets of HDRP Reflection Probe are not supported.");
 
         internal static readonly GUIContent k_ProxySettingsHeader = EditorGUIUtility.TrTextContent("Projection Settings");
         internal static readonly GUIContent k_InfluenceVolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
@@ -21,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
             "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
             "'Custom' can be used if a custom capture is wanted. \n" +
             "'Realtime' can be used to dynamically re-render the capture during runtime (every frame).");
+        internal static readonly GUIContent k_TimeSlicingContent = EditorGUIUtility.TrTextContent("Time Slicing",
+            "Enable time slicing to distribute realtime updates over 7 frames (one for each cubemap face then one to process the result) instead of fully updating in a single frame.");
         internal static readonly GUIContent k_CustomTextureContent = EditorGUIUtility.TrTextContent("Texture");
 
         static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>
@@ -40,6 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
             "ReflectionProbe Gizmo"
 #endif
-            ;
+        ;
     }
 }

@@ -9,12 +9,12 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class DiffusionProfileSettingsListUI
     {
-        ReorderableList         m_DiffusionProfileList;
-        SerializedProperty      m_Property;
-        string                  m_ListName;
+        ReorderableList m_DiffusionProfileList;
+        SerializedProperty m_Property;
+        string m_ListName;
 
-        const string            k_DefaultListName = "Diffusion Profile List";
-        const string            k_MultiEditionUnsupported = "Diffusion Profile List: Multi-edition is not supported";
+        const string k_DefaultListName = "Diffusion Profile List";
+        const string k_MultiEditionUnsupported = "Diffusion Profile List: Multi-edition is not supported";
 
 
         public DiffusionProfileSettingsListUI(string listName = k_DefaultListName)
@@ -40,28 +40,30 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.EndVertical();
         }
 
-        public Action<SerializedProperty, Rect, int>    drawElement;
+        public Action<SerializedProperty, Rect, int> drawElement;
 
         void CreateReorderableList(SerializedProperty parameter)
         {
             m_Property = parameter;
             m_DiffusionProfileList = new ReorderableList(parameter.serializedObject, parameter, true, true, true, true);
 
-            m_DiffusionProfileList.drawHeaderCallback = (rect) => {
+            m_DiffusionProfileList.drawHeaderCallback = (rect) =>
+            {
                 EditorGUI.LabelField(rect, m_ListName);
             };
 
-            m_DiffusionProfileList.drawElementCallback = (rect, index, active, focused) => {
+            m_DiffusionProfileList.drawElementCallback = (rect, index, active, focused) =>
+            {
                 rect.height = EditorGUIUtility.singleLineHeight;
-                if (drawElement != null)
-                    drawElement(parameter.GetArrayElementAtIndex(index), rect, index);
+                drawElement?.Invoke(parameter.GetArrayElementAtIndex(index), rect, index);
             };
 
-            m_DiffusionProfileList.onAddCallback = (l) => {
+            m_DiffusionProfileList.onAddCallback = (l) =>
+            {
                 if (parameter.arraySize >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
                 {
                     Debug.LogError("Limit of 15 diffusion profiles reached.");
-                    return ;
+                    return;
                 }
 
                 parameter.InsertArrayElementAtIndex(parameter.arraySize);

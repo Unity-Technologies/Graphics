@@ -265,6 +265,21 @@ float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float wei
     return result;
 }
 
+float2 BlendLayeredVector2(float2 x0, float2 x1, float2 x2, float2 x3, float weight[4])
+{
+    float2 result = float2(0.0, 0.0);
+
+    result = x0 * weight[0] + x1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += (x2 * weight[2]);
+#endif
+#if _LAYER_COUNT >= 4
+    result += x3 * weight[3];
+#endif
+
+    return result;
+}
+
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
 {
     float result = 0.0;
@@ -324,7 +339,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
                             _LayerMaskMap_ST.xy, _LayerMaskMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             positionWS, _TexWorldScaleBlendMask,
-                            mappingType, layerTexCoord);
+                            mappingType, false, layerTexCoord);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -345,6 +360,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
+    bool objectSpaceMapping = false;
+
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask0, _UVDetailsMappingMask0,
                             _BaseColorMap0_ST.xy, _BaseColorMap0_ST.zw, _DetailMap0_ST.xy, _DetailMap0_ST.zw, 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
@@ -352,7 +369,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             #endif
                             , _LinkDetailsWithBase0
                             , positionWS, _TexWorldScale0,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR1)
@@ -363,7 +380,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask1, _UVDetailsMappingMask1,
                             _BaseColorMap1_ST.xy, _BaseColorMap1_ST.zw, _DetailMap1_ST.xy, _DetailMap1_ST.zw, tileObjectScale, _LinkDetailsWithBase1,
                             positionWS, _TexWorldScale1,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR2)
@@ -374,7 +391,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask2, _UVDetailsMappingMask2,
                             _BaseColorMap2_ST.xy, _BaseColorMap2_ST.zw, _DetailMap2_ST.xy, _DetailMap2_ST.zw, tileObjectScale, _LinkDetailsWithBase2,
                             positionWS, _TexWorldScale2,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR3)
@@ -385,7 +402,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask3, _UVDetailsMappingMask3,
                             _BaseColorMap3_ST.xy, _BaseColorMap3_ST.zw, _DetailMap3_ST.xy, _DetailMap3_ST.zw, tileObjectScale, _LinkDetailsWithBase3,
                             positionWS, _TexWorldScale3,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 }
 
 // This is call only in this file
@@ -489,14 +506,10 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
-    // Wind uses vertex alpha as an intensity parameter.
-    // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
-    // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
-    float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= saturate(maskVertexColor);
+    blendMasks *= saturate(vertexColor);
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
+    blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
 #endif
 
     return blendMasks;
@@ -655,7 +668,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // When using lightmaps, the uv1 is always valid but we don't update _UVMappingMask.y to 1
     // So when we are using them, we just need to keep the UVs as is.
 #if !defined(LIGHTMAP_ON) && defined(SURFACE_GRADIENT)
-    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y) > 0) ? input.texCoord1 : 0;
+    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y + _UVMappingMaskEmissive.y) > 0) ? input.texCoord1 : 0;
 #endif
 
 // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
@@ -762,17 +775,27 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
-
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.specularOcclusion = 1.0;
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-#if HAVE_DECALS
+#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+    }
+#endif
+
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif

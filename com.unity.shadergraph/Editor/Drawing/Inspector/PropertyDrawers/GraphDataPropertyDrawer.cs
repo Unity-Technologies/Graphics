@@ -16,27 +16,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
+        public delegate void ChangeGraphDefaultPrecisionCallback(GraphPrecision newDefaultGraphPrecision);
         public delegate void PostTargetSettingsChangedCallback();
 
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
-        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+        ChangeGraphDefaultPrecisionCallback m_changeGraphDefaultPrecisionCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
-            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+            ChangeGraphDefaultPrecisionCallback changeGraphDefaultPrecisionCallback)
         {
             m_postChangeTargetSettingsCallback = postChangeValueCallback;
-            m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
+            m_changeGraphDefaultPrecisionCallback = changeGraphDefaultPrecisionCallback;
         }
 
         VisualElement GetSettings(GraphData graphData, Action onChange)
         {
             var element = new VisualElement() { name = "graphSettings" };
 
-            if(graphData.isSubGraph)
+            if (graphData.isSubGraph)
                 return element;
 
             void RegisterActionToUndo(string actionName)
@@ -59,24 +59,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
-                {
-                    RegisterActionToUndo("Add Target");
-                    graphData.SetTargetActive(addMenuOptionIndex);
-                    m_postChangeTargetSettingsCallback();
-                };
+            {
+                RegisterActionToUndo("Add Target");
+                graphData.SetTargetActive(addMenuOptionIndex);
+                m_postChangeTargetSettingsCallback();
+            };
 
             targetList.RemoveItemCallback +=
                 (list, itemIndex) =>
-                {
-                    RegisterActionToUndo("Remove Target");
-                    graphData.SetTargetInactive(list[itemIndex].value);
-                    m_postChangeTargetSettingsCallback();
-                };
+            {
+                RegisterActionToUndo("Remove Target");
+                graphData.SetTargetInactive(list[itemIndex].value);
+                m_postChangeTargetSettingsCallback();
+            };
 
             element.Add(targetList);
 
             // Iterate active TargetImplementations
-            foreach(var target in graphData.activeTargets)
+            foreach (var target in graphData.activeTargets)
             {
                 // Ensure enabled state is being tracked and get value
                 bool foldoutActive;
@@ -102,17 +102,55 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
+                    // Indent the content of the foldout
+                    context.globalIndentLevel++;
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
+                    context.globalIndentLevel--;
                     element.Add(context);
                 }
             }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            // Inform the user that VFXTarget is deprecated, if they are using one.
+            var activeTargetSRP = graphData.m_ActiveTargets.Where(t => !(t.value is VFXTarget));
+            if (graphData.m_ActiveTargets.Any(t => t.value is VFXTarget) //Use Old VFXTarget
+                && activeTargetSRP.Any()
+                && activeTargetSRP.All(o => o.value.CanSupportVFX()))
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Info);
+
+                var vfxWarningLabel = new Label("The Visual Effect target is deprecated.\n" +
+                    "Use the SRP target(s) instead, and enable 'Support VFX Graph' in the Graph Inspector.\n" +
+                    "Then, you can remove the Visual Effect Target.");
+
+                vfxWarningLabel.style.color = new StyleColor(Color.white);
+                vfxWarningLabel.style.whiteSpace = WhiteSpace.Normal;
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
+            }
+#endif
+
             return element;
         }
 
+        // used to display UI to select GraphPrecision in the GraphData inspector
+        enum UI_GraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+        };
+
+        enum UI_SubGraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+            Switchable = GraphPrecision.Graph,
+        };
+
         internal VisualElement CreateGUI(GraphData graphData)
         {
-            var propertySheet = new VisualElement() {name = "graphSettings"};
+            var propertySheet = new VisualElement() { name = "graphSettings" };
 
             if (graphData == null)
             {
@@ -120,13 +158,42 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return propertySheet;
             }
 
-            var enumPropertyDrawer = new EnumPropertyDrawer();
-            propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision) newValue); },
-                graphData.concretePrecision,
-                "Precision",
-                ConcretePrecision.Single,
-                out var propertyVisualElement));
+            if (!graphData.isSubGraph)
+            {
+                // precision selector for shader graphs
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                    (UI_GraphPrecision)graphData.graphDefaultPrecision,
+                    "Precision",
+                    UI_GraphPrecision.Single,
+                    out var propertyVisualElement));
+            }
+
+            if (graphData.isSubGraph)
+            {
+                {
+                    var enum2PropertyDrawer = new EnumPropertyDrawer();
+                    propertySheet.Add(enum2PropertyDrawer.CreateGUI(
+                        newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                        (UI_SubGraphPrecision)graphData.graphDefaultPrecision,
+                        "Precision",
+                        UI_SubGraphPrecision.Switchable,
+                        out var propertyVisualElement2));
+                }
+
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        graphData.owner.RegisterCompleteObjectUndo("Change Preview Mode");
+                        graphData.previewMode = (PreviewMode)newValue;
+                    },
+                    graphData.previewMode,
+                    "Preview",
+                    PreviewMode.Inherit,
+                    out var propertyVisualElement));
+            }
 
             propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));
 
@@ -139,5 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI((GraphData)actualObject);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

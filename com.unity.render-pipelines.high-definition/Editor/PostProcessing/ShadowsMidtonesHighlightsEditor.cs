@@ -1,14 +1,21 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
-    [VolumeComponentEditor(typeof(ShadowsMidtonesHighlights))]
+    [CustomEditor(typeof(ShadowsMidtonesHighlights))]
     sealed class ShadowsMidtonesHighlightsEditor : VolumeComponentEditor
     {
+        static class Styles
+        {
+            public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
+            public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
+            public static readonly GUIContent highlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Apply a hue to the highlights and adjust their level.");
+        }
+
         SerializedDataParameter m_Shadows;
         SerializedDataParameter m_Midtones;
         SerializedDataParameter m_Highlights;
@@ -28,13 +35,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<ShadowsMidtonesHighlights>(serializedObject);
 
-            m_Shadows         = Unpack(o.Find(x => x.shadows));
-            m_Midtones        = Unpack(o.Find(x => x.midtones));
-            m_Highlights      = Unpack(o.Find(x => x.highlights));
-            m_ShadowsStart    = Unpack(o.Find(x => x.shadowsStart));
-            m_ShadowsEnd      = Unpack(o.Find(x => x.shadowsEnd));
+            m_Shadows = Unpack(o.Find(x => x.shadows));
+            m_Midtones = Unpack(o.Find(x => x.midtones));
+            m_Highlights = Unpack(o.Find(x => x.highlights));
+            m_ShadowsStart = Unpack(o.Find(x => x.shadowsStart));
+            m_ShadowsEnd = Unpack(o.Find(x => x.shadowsEnd));
             m_HighlightsStart = Unpack(o.Find(x => x.highlightsStart));
-            m_HighlightsEnd   = Unpack(o.Find(x => x.highlightsEnd));
+            m_HighlightsEnd = Unpack(o.Find(x => x.highlightsEnd));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Shadows Midtones Highlights Curve"));
         }
@@ -43,20 +50,17 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, EditorGUIUtility.TrTextContent("Shadows"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, Styles.shadowsLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, EditorGUIUtility.TrTextContent("Midtones"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, Styles.midtonesLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, EditorGUIUtility.TrTextContent("Highlights"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, Styles.highlightsLabel, GetWheelValue);
             }
             EditorGUILayout.Space();
 
             // Reserve GUI space
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.Space(EditorGUI.indentLevel * 15f);
-                m_CurveRect = GUILayoutUtility.GetRect(128, 80);
-            }
+            m_CurveRect = GUILayoutUtility.GetRect(128, 80);
+            m_CurveRect.xMin += EditorGUI.indentLevel * 15f;
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -77,17 +81,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawSolidRectangleWithOutline(m_CurveRect, Color.clear, Color.white * 0.4f);
             }
 
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Shadow Limits", EditorStyles.miniLabel);
             PropertyField(m_ShadowsStart, EditorGUIUtility.TrTextContent("Start"));
             m_ShadowsStart.value.floatValue = Mathf.Min(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
             PropertyField(m_ShadowsEnd, EditorGUIUtility.TrTextContent("End"));
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Highlight Limits", EditorStyles.miniLabel);
             PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
             PropertyField(m_HighlightsEnd, EditorGUIUtility.TrTextContent("End"));
@@ -99,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_CurveTex == null || !m_CurveTex.IsCreated() || m_CurveTex.width != width || m_CurveTex.height != height)
             {
                 CoreUtils.Destroy(m_CurveTex);
-                m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+                m_CurveTex = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
         }
