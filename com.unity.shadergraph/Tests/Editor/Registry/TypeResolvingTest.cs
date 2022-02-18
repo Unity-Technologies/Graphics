@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             m_registry.Register<Types.GraphType>();
 
             // create the graph
-            m_graph = GraphUtil.CreateGraph();
+            m_graph = new GraphHandler();
         }
 
         [Test]

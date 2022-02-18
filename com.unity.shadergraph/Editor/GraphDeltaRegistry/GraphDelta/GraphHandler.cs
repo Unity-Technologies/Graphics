@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    public class GraphHandler
+    public class GraphHandler 
     {
         internal GraphDelta graphDelta;
 
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string ToSerializedFormat()
         {
-            return EditorJsonUtility.ToJson(graphDelta.m_data);
+            return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
         internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);

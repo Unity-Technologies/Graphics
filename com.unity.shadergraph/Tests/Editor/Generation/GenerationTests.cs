@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [SetUp]
         public static void Setup()
         {
-            graph = GraphDelta.GraphUtil.CreateGraph();
+            graph = new GraphHandler();
             registry = new Registry.Registry();
 
             registry.Register<Types.GraphType>();

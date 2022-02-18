@@ -2,6 +2,7 @@ using NUnit.Framework;
 using com.unity.shadergraph.defs;
 using System.Collections.Generic;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Registry.UnitTests
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
         [Test]
         public void RegistryPlaceholderTest()
         {
-            var graph = GraphDelta.GraphUtil.CreateGraph();
+            var graph = new GraphHandler();
             var registry = new Registry();
 
             registry.Register<Types.GraphType>();
@@ -71,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             registry.Register<Types.GraphType>();
 
             // create the graph
-            var graph = GraphDelta.GraphUtil.CreateGraph();
+            var graph = new GraphHandler();
             FunctionDescriptor fd = new(
                 1,
                 "Test",

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
 
@@ -54,7 +55,7 @@ Shader ""Hidden/GraphErrorShader2""
     Fallback Off
 }";
 
-        private Shader GetShader(AssetImportContext ctx)
+        private Shader GetShader(AssetImportContext ctx, GraphHandler graph)
         {
             return ShaderUtil.CreateShaderAsset(ctx, k_ErrorShader, false);
         }
@@ -66,14 +67,15 @@ Shader ""Hidden/GraphErrorShader2""
             ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
             EditorJsonUtility.FromJsonOverwrite(fileText, helper);
 
-            //GraphDelta.GraphDelta graph = new GraphDelta.GraphDelta(helper.GraphDeltaJSON);
+            GraphHandler graph = new GraphHandler(helper.GraphDeltaJSON);
 
             ShaderGraphAssetModel model = ScriptableObject.CreateInstance<ShaderGraphAssetModel>();
+            model.name = "View";
             model.CreateGraph("foo", typeof(ShaderGraphStencil));
             EditorJsonUtility.FromJsonOverwrite(helper.GTFJSON, model);
             model.Init();
 
-            var shader = GetShader(ctx);
+            var shader = GetShader(ctx, graph);
             Material mat = new Material(shader);
 
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
