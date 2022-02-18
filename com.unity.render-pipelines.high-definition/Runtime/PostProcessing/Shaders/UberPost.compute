@@ -1,16 +1,13 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ScreenCoordOverride.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel Uber
 
-#pragma multi_compile _ SCREEN_COORD_OVERRIDE
 #pragma multi_compile _ CHROMATIC_ABERRATION
 #pragma multi_compile _ VIGNETTE
 #pragma multi_compile _ LENS_DISTORTION
@@ -121,7 +118,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _PostProcessScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(posInputs.positionNDC.xy);
+    float2 uv = posInputs.positionNDC;
     float2 uvDistorted = DistortUV(uv);
     CTYPE color = 0.0;
     CTYPE inputColor = 0.0;
@@ -133,7 +130,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 coords = 2.0 * uv - 1.0;
     float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
     float2 diff = end - uv;
-    int samples = clamp(int(length(SCREEN_SIZE_OVERRIDE.xy * diff / 2.0)), 3, ChromaMaxSamples);
+    int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
     float2 delta = diff / samples;
     float2 pos = uv;
     float3 sum = 0.0, filterSum = 0.0;
@@ -141,7 +138,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (int i = 0; i < samples; i++)
     {
         float t = (i + 0.5) / samples;
-        float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(pos))), 0.0).xyz;
+        float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(DistortUV(pos)), 0.0).xyz;
         float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
         sum += s * filter;
@@ -151,12 +148,12 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     color.xyz = sum / filterSum;
 #ifdef ENABLE_ALPHA
-    inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)), 0.0);
+    inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0);
     color.w = inputColor.w;
 #endif
 
 #else
-    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)), 0.0).CTYPE_SWIZZLE;
+    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0).CTYPE_SWIZZLE;
     inputColor = color;
 #endif
 
@@ -165,9 +162,9 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (BloomEnabled)
     {
         #if 0 // Bilinear
-        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)), 0.0).xyz;
+        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
         #else
-        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted) * _RTHandlePostProcessScale.xy, _BloomBicubicParams, _RTHandlePostProcessScale.xy, unity_StereoEyeIndex).xyz;
+        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _RTHandlePostProcessScale.xy, _BloomBicubicParams, _RTHandlePostProcessScale.xy, unity_StereoEyeIndex).xyz;
         #endif
 
         float3 thresholdedColor = QuadraticThreshold(color.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
@@ -179,7 +176,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
             // UVs for the dirt texture should be DistortUV(uv * DirtScale + DirtOffset) but
             // considering we use a cover-style scale on the dirt texture the difference isn't massive
             // so we chose to save a few ALUs here instead in case lens distortion is active
-            float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted) * DirtScale + DirtOffset, 0.0).xyz;
+            float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
             color.xyz += bloom * dirt * DirtIntensity;
         }
 
@@ -196,14 +193,14 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (VignetteMode == 0u) // Procedural
     {
         float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-        d.x *= lerp(1.0, SCREEN_SIZE_OVERRIDE.x / SCREEN_SIZE_OVERRIDE.y, VignetteRounded);
+        d.x *= lerp(1.0, _PostProcessScreenSize.x / _PostProcessScreenSize.y, VignetteRounded);
         d = pow(saturate(d), VignetteRoundness);
         float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
         color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);
     }
     else // Masked
     {
-        float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), 0).w;
+        float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
         vfactor = FastSRGBToLinear(vfactor);
         float3 newColor = color.xyz * lerp(VignetteColor, (1.0).xxx, vfactor);
         color.xyz = lerp(color.xyz, newColor, VignetteOpacity);

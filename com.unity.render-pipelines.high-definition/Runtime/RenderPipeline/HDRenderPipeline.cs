@@ -448,10 +448,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
+                    stateBlendShader = defaultResources.shaders.probeVolumeBlendStatesCS,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
@@ -1048,8 +1050,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Raise or remove the depth msaa flag based on the frame setting
                 CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
-
-                CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
             }
         }
 

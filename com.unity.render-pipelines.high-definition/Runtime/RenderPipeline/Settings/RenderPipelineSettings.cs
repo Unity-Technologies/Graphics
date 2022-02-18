@@ -139,6 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 lightProbeSystem = LightProbeSystem.LegacyLightProbes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeBlendingMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
@@ -362,8 +363,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Determines what system to use.</summary>
         public LightProbeSystem lightProbeSystem;
-        /// <summary>Support Probe Volumes.</summary>
+        /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volume Blending Memory Budget.</summary>
+        public ProbeVolumeTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>

@@ -218,17 +218,18 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.ProbeVolumes)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)
                 {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
                 }
             }
         }

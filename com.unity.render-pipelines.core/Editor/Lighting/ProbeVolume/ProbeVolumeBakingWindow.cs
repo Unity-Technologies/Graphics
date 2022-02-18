@@ -333,7 +333,6 @@ namespace UnityEngine.Rendering
                 }
             };
 
-            m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
             UpdateBakingStatesStatuses();
         }
 
@@ -703,6 +702,7 @@ namespace UnityEngine.Rendering
                 var stateTitleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
                 EditorGUI.LabelField(stateTitleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
                 EditorGUILayout.Space();
+                m_BakingStates.Select(GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState));
                 m_BakingStates.DoLayoutList();
             }
             else
