@@ -45,7 +45,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -137,7 +137,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -223,7 +223,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -309,7 +309,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -401,7 +401,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -487,7 +487,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12

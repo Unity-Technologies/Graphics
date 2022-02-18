@@ -4,9 +4,8 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
-using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
@@ -48,17 +47,37 @@ namespace UnityEditor.Experimental.Rendering
 
             probeVolume.mightNeedRebaking = hasChanges;
 
+            bool drawInspector = true;
+
+            if (ProbeReferenceVolume._GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+            {
+                EditorGUILayout.HelpBox("The Probe Volume feature is not supported when using Enlighten.", MessageType.Warning, wide: true);
+                drawInspector = false;
+            }
+
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+            {
+                if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
+                {
+                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
+                }
+
+                drawInspector = false;
+
+            }
+
+            if (drawInspector)
             {
                 serializedObject.Update();
 
                 ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
             }
-            else
-            {
-                EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
-            }
+
 
             m_SerializedProbeVolume.Apply();
         }

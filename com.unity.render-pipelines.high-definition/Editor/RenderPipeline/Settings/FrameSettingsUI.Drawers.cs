@@ -179,9 +179,6 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
 
-            var isEditingCamera = owner is HDCameraEditor;
-            area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => isEditingCamera);
-
             var hdrpAsset = GetHDRPAssetFor(owner);
             RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
             area.AmmendInfo(
@@ -265,11 +262,6 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
-
-            //TODO: Remove hideUI when out of experimental. I don't like hideUI it make things more difficult to add a FrameSettings at a given position.
-            //      This should not be used except for experimental stuff (it is not compliant with the remaining of UX flows anyway)
-            area.AmmendInfo(FrameSettingsField.ProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
-            area.AmmendInfo(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
 
             area.AmmendInfo(
                 FrameSettingsField.SssQualityMode,

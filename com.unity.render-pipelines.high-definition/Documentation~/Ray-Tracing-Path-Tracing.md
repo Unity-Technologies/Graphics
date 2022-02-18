@@ -29,6 +29,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
 4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
 
+
 ![](Images/RayTracingPathTracing3.png)
 
 ## Properties
@@ -38,8 +39,14 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
-| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
-| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and very intense spots (like a sun, or street lights). Although, it can be detrimental when you use a smooth, uniform sky. It is active by default for HDRI skies only, but you can also turn it On and Off, regardless of the sky in use. |
+| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
+| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
+| **Denoising** | Enable this feature to denoise the output of the the path tracer. This feature is only available if the **Unity Denoising Package** is installed in your project. There are three available options in HDRP:<br />
+- **None**: Disables denoising (this is the default option).<br />
+- **Intel Open Image Denoise** : Performs denoising using the Intel Open Image Denoise library.<br />
+- **NVIDIA OptiX** : Performs denoising using NVIDIA OptiX.<br /><br />You can also enable two additional settings:<br />
+- **Use AOVs** (Arbitrary Output Variables): Enable this option to increase detail retention after denoising.<br />
+- **Temporal**: Enable this option to improve temporal consistency for denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -138,9 +145,9 @@ A double-sided surface with Transmission enabled.
 
 Path tracing can easily compute the complex multiple scattering events that occur within a head of hair, crucial for producing the volumetric look of lighter colored hair.
 
-The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it is required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
+The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it's required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
 
-Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure is not equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
+Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure isn't equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
 
 The path traced **Physical** hair mode shares the exact same meaning for its parameters as its rasterized counterpart. However, the underlying model for path tracing differs: it performs a much more rigorous evaluation of the scattering within the fiber, while the rasterized version is only an approximated version of this result. Additionally, path tracing a volume of densely packed hair fibers allows you to compute the complex multiple scattering "for free", whereas in rasterizing we again must approximate this.
 
@@ -170,3 +177,15 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - MSAA.
   - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
   - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
+
+### Unsupported shader graph nodes for path tracing
+
+When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
+- DDX, DDY, DDXY, NormalFromHeight and HDSceneColor nodes.
+- All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
+Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) aren't supported in ray/path tracing.
+
+### Unsupported features of ray tracing
+
+For information about unsupported features of ray tracing in general, see [Ray tracing limitations](Ray-Tracing-Getting-Started.md#limitations).
+

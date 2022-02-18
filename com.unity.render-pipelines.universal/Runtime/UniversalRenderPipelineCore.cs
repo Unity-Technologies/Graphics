@@ -39,7 +39,10 @@ namespace UnityEngine.Rendering.Universal
         Linear,
 
         /// Nearest-Neighbor filtering
-        Point
+        Point,
+
+        /// FidelityFX Super Resolution
+        FSR
     }
 
     public struct RenderingData
@@ -139,8 +142,11 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
-        public bool clearDepth;
+        internal bool fsrOverrideSharpness;
+        internal float fsrSharpness;
+        internal HDRColorBufferPrecision hdrColorBufferPrecision;
         public CameraType cameraType;
+        public bool clearDepth;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
@@ -151,9 +157,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
-#endif
         internal bool requireSrgbConversion
         {
             get
@@ -199,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
                 bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -211,8 +215,9 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         internal XRPass xr;
+        internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
-        [Obsolete("Please use xr.enabled instead.")]
+        [Obsolete("Please use xr.enabled instead.", true)]
         public bool isStereoEnabled;
 
         public float maxShadowDistance;
@@ -370,10 +375,22 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
+    /// <summary>
+    /// Settings used for Post Processing.
+    /// </summary>
     public struct PostProcessingData
     {
+        /// <summary>
+        /// The <c>ColorGradingMode</c> to use.
+        /// </summary>
+        /// <seealso cref="ColorGradingMode"/>
         public ColorGradingMode gradingMode;
+
+        /// <summary>
+        /// The size of the Look Up Table (LUT)
+        /// </summary>
         public int lutSize;
+
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
@@ -436,6 +453,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
         public static readonly string PointSampling = "_POINT_SAMPLING";
+        public static readonly string Rcas = "_RCAS";
+        public static readonly string Gamma20 = "_GAMMA_20";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
@@ -508,7 +527,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
         /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.enabled instead.")]
+        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
         public static bool IsStereoEnabled(Camera camera)
         {
             if (camera == null)
@@ -524,20 +543,6 @@ namespace UnityEngine.Rendering.Universal
         public static UniversalRenderPipelineAsset asset
         {
             get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-        }
-
-        /// <summary>
-        /// Checks if a camera is rendering in MultiPass stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.singlePassEnabled instead.")]
-        static bool IsMultiPassStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return false;
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
@@ -557,11 +562,12 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+        internal static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, bool needsAlpha)
         {
             if (isHdrEnabled)
             {
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
                 if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
@@ -572,7 +578,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
+            bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
             int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
@@ -584,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = scaledWidth;
                 desc.height = scaledHeight;
-                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
+                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
@@ -910,6 +916,7 @@ namespace UnityEngine.Rendering.Universal
         Bloom,
         LensFlareDataDriven,
         MotionVectors,
+        DrawFullscreen,
 
         FinalBlit
     }
