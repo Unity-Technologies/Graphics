@@ -32,3 +32,5 @@ Unity now uses the bounding box of an object as a fallback approximation to comp
 The old Unity material ball has been modified to remove all references to the old Unity logo.
 
 The new Unity material ball with the new Unity logo can be accessed from com.unity.render-pipelines.high-definition\Runtime\RenderPipelineResources\Prefab.
+
+Material Samples have been updated accordinly.
