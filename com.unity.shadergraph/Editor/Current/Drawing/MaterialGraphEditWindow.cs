@@ -654,7 +654,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
                 string oldDirectory = Path.GetDirectoryName(oldFilePath);
 
-                var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
+                var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporterLegacy.Extension;
                 var newFilePath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(oldFilePath), extension, "", oldDirectory);
                 newFilePath = newFilePath.Replace(Application.dataPath, "Assets");
 
@@ -671,7 +671,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (success)
                         {
                             if (openWhenSaved)
-                                ShaderGraphImporterEditor.ShowGraphEditWindow(newFilePath);
+                                ShaderGraphImporterLegacyEditor.ShowGraphEditWindow(newFilePath);
                             OnSaveGraph(newFilePath);
                             savedFilePath = newFilePath;
                         }
@@ -1204,7 +1204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 bool isSubGraph;
                 switch (extension)
                 {
-                    case ShaderGraphImporter.Extension:
+                    case ShaderGraphImporterLegacy.Extension:
                         isSubGraph = false;
                         break;
                     case ShaderSubGraphImporter.Extension:

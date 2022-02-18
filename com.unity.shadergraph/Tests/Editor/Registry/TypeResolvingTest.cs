@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
     class TypeResolving
     {
         private Registry m_registry;
-        private IGraphHandler m_graph;
+        private GraphHandler m_graph;
 
         private void SetupGraph()
         {

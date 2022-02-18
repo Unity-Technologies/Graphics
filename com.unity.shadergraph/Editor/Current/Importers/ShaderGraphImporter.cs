@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
     [ScriptedImporter(126, Extension, -902)]
-    class ShaderGraphImporter : ScriptedImporter
+    class ShaderGraphImporterLegacy : ScriptedImporter
     {
         public const string Extension = "shadergraph";
         public const string LegacyExtension = "ShaderGraph";

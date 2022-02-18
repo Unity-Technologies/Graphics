@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 Debug.Assert(importer != null, "importer != null");
-                ShaderGraphImporterEditor.ShowGraphEditWindow(importer.assetPath);
+                ShaderGraphImporterLegacyEditor.ShowGraphEditWindow(importer.assetPath);
             }
 
             ApplyRevertGUI();

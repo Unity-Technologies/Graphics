@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Registry.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed class GraphDelta : IGraphHandler
+    internal sealed class GraphDelta 
     {
         internal readonly GraphStorage m_data;
 
@@ -26,9 +26,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data = new GraphStorage();
         }
 
+        public GraphDelta(string serializedData) : this()
+        {
+            EditorJsonUtility.FromJsonOverwrite(serializedData, m_data);
+        }
+
+        public string ToSerializedFormat()
+        {
+            return EditorJsonUtility.ToJson(m_data);
+        }
+
         private List<string> contextNodes = new List<string>();
 
-         INodeWriter IGraphHandler.AddNode<T>(string name, Registry.Registry registry) // where T : Registry.Defs.INodeDefinitionBuilder
+        internal INodeWriter AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
         {
             var key = Registry.Registry.ResolveKey<T>();
             return AddNode(key, name, registry);

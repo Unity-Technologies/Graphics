@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
         Registry.Registry m_RegistryInstance = new ();
 
-        IGraphHandler m_InterpreterTestsGraph;
+        GraphHandler m_InterpreterTestsGraph;
 
         [OneTimeSetUp]
         public void Setup()

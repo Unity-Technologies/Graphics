@@ -38,7 +38,7 @@ public class ShaderGraphTestRenderer
     {
         List<PropertyCollector.TextureInfo> lti;
         var assetCollection = new AssetCollection();
-        ShaderGraphImporter.GetShaderText(graphPath, out lti, assetCollection, out var graph);
+        ShaderGraphImporterLegacy.GetShaderText(graphPath, out lti, assetCollection, out var graph);
         Assert.NotNull(graph, $"Invalid graph data found for {graphPath}");
         graph.OnEnable();
         graph.ValidateGraph();

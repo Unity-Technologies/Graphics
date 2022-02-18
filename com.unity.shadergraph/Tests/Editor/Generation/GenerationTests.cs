@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
     class GraphGenerationFixture
     {
 
-        private static IGraphHandler graph;
+        private static GraphHandler graph;
         private static Registry.Registry registry;
 
         [SetUp]

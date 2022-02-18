@@ -2,12 +2,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public static class GraphUtil
     {
-        public static IGraphHandler CreateGraph()
+        public static GraphHandler CreateGraph()
         {
-            return new GraphDelta();
+            return new GraphHandler();
         }
 
-        public static IGraphHandler OpenGraph(string assetPath)
+        public static GraphHandler OpenGraph(string assetPath)
         {
             throw new System.NotImplementedException();
         }
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             throw new System.NotImplementedException();
         }
 
-        public static bool SaveGraph(IGraphHandler graph, string assetPath, bool overwrite)
+        public static bool SaveGraph(GraphHandler graph, string assetPath, bool overwrite)
         {
             throw new System.NotImplementedException();
         }

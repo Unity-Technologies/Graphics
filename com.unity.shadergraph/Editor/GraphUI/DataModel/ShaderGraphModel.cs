@@ -18,11 +18,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class ShaderGraphModel : GraphModel
     {
-        IGraphHandler m_GraphHandler;
+        GraphHandler m_GraphHandler;
 
         // TODO: This will eventually delegate to real serialized data. For now, it's kept here ephemerally. Until
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
-        public IGraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
+        public GraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
 
         public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 

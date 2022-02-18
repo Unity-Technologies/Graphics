@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Registry
     public class Registry
     {
         readonly Dictionary<RegistryKey, IRegistryEntry> builders = new Dictionary<RegistryKey, IRegistryEntry>();
-        public IGraphHandler defaultTopologies = GraphDelta.GraphUtil.CreateGraph();
+        public GraphHandler defaultTopologies = GraphDelta.GraphUtil.CreateGraph();
 
         public Registry()
         {

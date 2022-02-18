@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Handle to the graph object we are currently generating preview data for
         /// </summary>
-        IGraphHandler m_GraphHandle;
+        GraphHandler m_GraphHandle;
 
         Registry.Registry m_RegistryInstance;
 
@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Used to set which graph this preview manager gets its node data from.
         /// </summary>
-        public void SetActiveGraph(IGraphHandler activeGraphReference)
+        public void SetActiveGraph(GraphHandler activeGraphReference)
         {
             m_GraphHandle = activeGraphReference;
         }
