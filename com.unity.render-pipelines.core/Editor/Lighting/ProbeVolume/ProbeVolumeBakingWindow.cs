@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            k_Foldouts =  new(k_ExpandableDefault, "APV");
+            k_Foldouts = new(k_ExpandableDefault, "APV");
 
             m_SearchField = new SearchField();
             titleContent = new GUIContent("Probe Volume Settings (Experimental)");
@@ -756,8 +756,8 @@ namespace UnityEngine.Rendering
                                 sharedCost += data.GetDiskSizeOfScenarioData(scenario);
                         }
 
-                        EditorGUILayout.LabelField(Styles.scenarioCostStat, EditorGUIUtility.TrTextContent((scenarioCost / (float)(1000 * 1000)).ToString("F1")  + " MB"));
-                        EditorGUILayout.LabelField(Styles.totalCostStat, EditorGUIUtility.TrTextContent((sharedCost  / (float)(1000 * 1000)).ToString("F1") + " MB"));
+                        EditorGUILayout.LabelField(Styles.scenarioCostStat, EditorGUIUtility.TrTextContent((scenarioCost / (float)(1000 * 1000)).ToString("F1") + " MB"));
+                        EditorGUILayout.LabelField(Styles.totalCostStat, EditorGUIUtility.TrTextContent((sharedCost / (float)(1000 * 1000)).ToString("F1") + " MB"));
                     }
                     else
                         EditorGUILayout.HelpBox("Somes scenes of the set are not currently loaded. Stats can't be displayed", MessageType.Info);
