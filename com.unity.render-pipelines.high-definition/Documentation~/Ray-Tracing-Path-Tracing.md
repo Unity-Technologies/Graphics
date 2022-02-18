@@ -53,32 +53,41 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 **Minimum Depth** set to 2, **Maximum Depth** set to 2: indirect lighting only (1 bounce)
 
-## Setting path tracing parameters for Materials
+## How path tracing affects Material properties
 
+Path tracing changes how the following Material properties behave in your scene: 
 
-Path tracing in HDRP makes your scene appear more realistic. To do this, path tracing implements more precise light transport simulations than rasterization. The result is more realistic effects, especially for:
+- [How transmissive objects absorb light](#surface-types)
+- [How light refracts in transmissive objects](#refraction-models)
+- [Subsurface scattering](#subsurface-scattering)
 
+This is because path tracing in HDRP implements more precise light transport simulations than rasterization. To do this, path tracing computes all lighting effects and how light interacts with Materials at the same time.This means path tracing makes the Material appear darker than in a rasterized scene.
 
-- Light refraction in transmissive objects.
-- Light absorption in transmissive objects.
-- Subsurface scattering.
+The images below display the difference between transparent, double-sided materials in a rasterized and a path-traced scene:
 
-Rasterization uses separate methods to approximate lighting effects, which require multiple Material parameters. Path tracing computes all lighting effects and how light interacts with Materials at the same time.
+![Surface_Options](Images/HDRP_PathtracingBoxes_Raster.png)
 
-Some parameters have no effect when you use path tracing, and path tracing also changes how a Lit Material’s refraction model behaves. For more information, see [Refraction models](#refraction-models).
+GameObjects without path tracing (rasterized).
 
-## How to enable path tracing on a Material
+![Surface_Options](Images/HDRP_PathtracingBoxes_Raster.png)
 
-Path tracing only works on [Lit materials](Lit-Shader.md).
+GameObjects with path tracing enabled.
 
-For path tracing to appear on a Lit Material, configure the following settings (pictured below): 
+<a name="surface-types"></a>
 
-1. Set the [**Surface type]**(Surface-Type.md) property to **Transparent** (A)**.**
-2. Set the surface Material to **Double-Sided** (C)**.**
+## Path tracing and double-sided materials
 
-For surface types that represent solid objects like a crystal ball, set the **Normal mode** to **None** (C). This allows the ray to intersect with a front [normal](https://en.wikipedia.org/wiki/Normal_(geometry)) to represent entering the medium (for example, from air into glass), and then back normal to represent leaving it.
+When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If the **Double-sided** property is disabled, rays cannot exit the GameObject. 
 
-![Surface_Options](Images/Surface_Options.png)
+The following images display the same GameObjects with a single-sided Material and a double-sided material:
+
+![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
+
+GameObjects with a single-sided Material and path tracing enabled 
+
+![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
+
+GameObjects with a double-sided Material and path tracing enabled 
 
 <a name="refraction-models"></a>
 
@@ -88,7 +97,7 @@ Path tracing changes the way refraction models on a Lit Material behave.
 
 To change the type of refraction model a Lit Material uses, in the **Transparency Inputs** section, select a model from the **Refraction model** dropdown, displayed in the following image:
 
-![Refraction_model](C:\Users\Vic Cooper\Documents\GitHub\Graphics\com.unity.render-pipelines.high-definition\Documentation~\Images\Refraction_model.png)
+![Refraction_model](Images/refraction_model.png)
 
 The following table describes how each refraction model behaves when you enable path tracing:
 
@@ -98,9 +107,17 @@ The following table describes how each refraction model behaves when you enable 
 | **Thin**               | A thin surface type with [infinitesimal](<https://en.wikipedia.org/wiki/Infinitesimal>) thickness. Select this for thin, window-like surfaces.  When you enable path tracing, the behavior of the **Thin** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
 | **None**               | A thin, refractive surface hardcoded to be smooth to simulate alpha blending. When you enable path tracing, the behavior of the **None** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
 
+![](Images/HDRP_PathtracingBalls_Raster.png)
+
+From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode without path tracing (rasterized).
+
+![](Images/HDRP_PathtracingBalls_PathTraced.png)
+
+From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode with path tracing enabled.
+
 ### Path tracing and subsurface scattering
 
-To use [subsurface scattering's](Subsurface-Scattering.md) **Transmission** property (A) with path tracing:
+For [subsurface scattering's](Subsurface-Scattering.md) **Transmission** property (A) to work correctly with path tracing, you need to do the following:
 
 1. Open the **Surface Options** window.
 2. Enable the **Double-Sided** property (B). 
@@ -111,11 +128,11 @@ The following example images display a sheet of fabric lit from below by a point
 
 ![](Images/Path-traced-SSS-Single-sided.png)
 
-A single-sided surface with no transmission.
+A single-sided surface with Transmission disabled.
 
 ![](Images/Path-traced-SSS-Double-sided.png)
 
-A double-sided surface with transmission.
+A double-sided surface with Transmission enabled.
 
 ### Hair
 
