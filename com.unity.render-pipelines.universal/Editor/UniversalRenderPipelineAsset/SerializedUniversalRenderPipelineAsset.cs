@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
+        public SerializedProperty hdrColorBufferPrecisionProp { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
@@ -63,8 +64,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty colorGradingLutSize { get; }
         public SerializedProperty useFastSRGBLinearConversion { get; }
 
-        public SerializedProperty useScreenCoordOverride { get; }
-
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
 #endif
@@ -84,6 +83,7 @@ namespace UnityEditor.Rendering.Universal
             supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
+            hdrColorBufferPrecisionProp = serializedObject.FindProperty("m_HDRColorBufferPrecision");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
@@ -135,8 +135,6 @@ namespace UnityEditor.Rendering.Universal
             colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
             useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
-
-            useScreenCoordOverride = serializedObject.FindProperty("m_UseScreenCoordOverride");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

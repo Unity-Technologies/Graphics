@@ -1130,8 +1130,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
-            var additionalCameraDataIsNull = m_AdditionalCameraData == null;
-
             cb._ViewMatrix = mainViewConstants.viewMatrix;
             cb._CameraViewMatrix = mainViewConstants.viewMatrix;
             cb._InvViewMatrix = mainViewConstants.invViewMatrix;
@@ -1188,18 +1186,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale = exposureMultiplierForProbes;
 
-            cb._DeExposureMultiplier = additionalCameraDataIsNull ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
+            cb._DeExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
             // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
             // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
             // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
-
-            cb._ScreenSizeOverride = additionalCameraDataIsNull ? cb._ScreenSize : m_AdditionalCameraData.screenSizeOverride;
-
-            // Default to identity scale-bias.
-            cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Vector4(1, 1, 0, 0) : m_AdditionalCameraData.screenCoordScaleBias;
         }
 
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)
@@ -1841,8 +1834,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            // In XR mode, or if explicitely required, use a more generic matrix to account for asymmetry in the projection
-            var useGenericMatrix = xr.enabled || frameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection);
+            // In XR mode, use a more generic matrix to account for asymmetry in the projection
+            var useGenericMatrix = xr.enabled;
 
             // Asymmetry is also possible from a user-provided projection, so we must check for it too.
             // Note however, that in case of physical camera, the lens shift term is the only source of

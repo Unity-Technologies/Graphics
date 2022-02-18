@@ -295,6 +295,14 @@ namespace UnityEditor.Rendering
     [DebugUIDrawer(typeof(DebugUI.EnumField))]
     public sealed class DebugUIDrawerEnumField : DebugUIFieldDrawer<int, DebugUI.EnumField, DebugStateEnum>
     {
+        /// <summary>
+        /// Does the GUI implementation for editor
+        /// </summary>
+        /// <param name="rect"><see cref="Rect"/> the rect where to render the field</param>
+        /// <param name="label"><see cref="GUIContent"/> the label</param>
+        /// <param name="field"><see cref="DebugUI.EnumField"/>The enum field</param>
+        /// <param name="state"><see cref="DebugStateEnum"/>The serialized state of the enum</param>
+        /// <returns>The index selected on the enum</returns>
         protected override int DoGUI(Rect rect, GUIContent label, DebugUI.EnumField field, DebugStateEnum state)
         {
             int index = Mathf.Max(0, field.currentIndex); // Fallback just in case, we may be handling sub/sectioned enums here
