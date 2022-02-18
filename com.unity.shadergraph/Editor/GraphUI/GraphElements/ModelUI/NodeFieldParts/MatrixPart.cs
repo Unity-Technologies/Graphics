@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,12 +18,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         VisualElement m_Root;
         FloatField[,] m_MatrixElementFields; // row, col
+        string m_PortName;
+        int m_Size;
 
         public override VisualElement Root => m_Root;
 
-        // TODO: Need to specify what field
-        public MatrixPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName) { }
+        public MatrixPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName, int size)
+            : base(name, model, ownerElement, parentClassName)
+        {
+            m_PortName = portName;
+            m_Size = size;
+        }
 
         void CreateMatrixElementUIs(VisualElement container, int size)
         {
@@ -36,15 +42,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 for (var j = 0; j < size; j++)
                 {
-                    // Need to copy values so changes don't get captured
-                    int row = i, col = j;
-
-                    // TODO: Read the default/existing value instead of setting to 0
-                    var fieldVisualElement = new FloatField {name = $"sg-matrix-element-{row}-{col}", value = 0};
+                    var fieldVisualElement = new FloatField {name = $"sg-matrix-element-{i}-{j}", value = 0};
 
                     fieldVisualElement.AddToClassList(k_MatrixElementClass);
-                    fieldVisualElement.RegisterValueChangedCallback(c => OnMatrixElementChanged(row, col, c));
-                    fieldVisualElement.tooltip = $"Element {row}, {col}";
+                    fieldVisualElement.RegisterValueChangedCallback(OnMatrixElementChanged);
+                    fieldVisualElement.tooltip = $"Element {i}, {j}";
 
                     m_MatrixElementFields[i, j] = fieldVisualElement;
                     rowVisualElement.Add(fieldVisualElement);
@@ -54,10 +56,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void OnMatrixElementChanged(int row, int col, ChangeEvent<float> change)
+        void OnMatrixElementChanged(ChangeEvent<float> change)
         {
-            // TODO: Get the node writer and update the user's data
-            Debug.Log($"Matrix element {row}, {col} is now {change.newValue}");
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+
+            var values = new float[m_Size * m_Size];
+            for (var i = 0; i < m_Size; i++)
+            {
+                for (var j = 0; j < m_Size; j++)
+                {
+                    var flatIndex = i * m_Size + j;
+                    values[flatIndex] = m_MatrixElementFields[i, j].value;
+                }
+            }
+
+            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel, m_PortName, values));
         }
 
         protected override void BuildPartUI(VisualElement parent)
@@ -65,23 +78,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Root = new VisualElement {name = PartName};
             GraphElementHelper.LoadTemplateAndStylesheet(m_Root, k_MatrixPartTemplate, PartName);
 
-            // TODO: Determine from data
-            const int size = 4;
-            CreateMatrixElementUIs(m_Root.Q<VisualElement>(k_MatrixContainerName), size);
+            CreateMatrixElementUIs(m_Root.Q<VisualElement>(k_MatrixContainerName), m_Size);
 
             parent.Add(m_Root);
         }
 
         protected override void UpdatePartFromModel()
         {
-            // TODO: Recreate matrix controls if necessary?
-            //  Delete elements and call CreateMatrixElementUIs again
-
-            // TODO: Update values
-            //  i.e., change at (i, j): m_MatrixElementFields[i, j].value = newValue
-
             if (m_Model is not GraphDataNodeModel model) return;
-            if (!model.TryGetNodeReader(out var reader)) return;
+            if (!model.TryGetNodeReader(out var nodeReader)) return;
+            if (!nodeReader.TryGetPort(m_PortName, out var portReader)) return;
+
+            for (var i = 0; i < m_Size; i++)
+            {
+                for (var j = 0; j < m_Size; j++)
+                {
+                    var flatIndex = i * m_Size + j;
+                    if (!portReader.GetField($"c{flatIndex}", out float value)) value = 0;
+                    m_MatrixElementFields[i, j].SetValueWithoutNotify(value);
+                }
+            }
         }
     }
 }

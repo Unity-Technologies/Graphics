@@ -124,7 +124,7 @@ namespace com.unity.shadergraph.defs
             IPortWriter port = nodeWriter.AddPort<GraphType>(
                 nodeReader,
                 param.Name,
-                param.Usage == Usage.In,
+                param.Usage is Usage.In or Usage.Static,
                 registry
             );
             TypeDescriptor paramType = param.TypeDescriptor;
@@ -142,6 +142,9 @@ namespace com.unity.shadergraph.defs
             port.SetField(kHeight, resolvedType.Height);
             port.SetField(kPrecision, resolvedType.Precision);
             port.SetField(kPrimitive, resolvedType.Primitive);
+
+            if (param.Usage == Usage.Static) port.SetField("IsStatic", true);
+
             return port;
         }
 
