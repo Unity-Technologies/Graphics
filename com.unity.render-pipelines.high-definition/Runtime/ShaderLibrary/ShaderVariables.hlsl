@@ -289,6 +289,17 @@ float SampleCustomDepth(float2 uv)
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
+bool IsSky(uint2 pixelCoord)
+{
+    float deviceDepth = LoadCameraDepth(pixelCoord);
+    return deviceDepth == UNITY_RAW_FAR_CLIP_VALUE; // We assume the sky is the part of the depth buffer that haven't been written.
+}
+
+bool IsSky(float2 uv)
+{
+    return IsSky(uint2(uv * _ScreenSize.xy));
+}
+
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
     // Matrix format (x = non-constant value).
@@ -305,6 +316,14 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 }
 
 // Helper to handle camera relative space
+
+float3 GetCameraPositionWS()
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return 0;
+#endif
+    return _WorldSpaceCameraPos;
+}
 
 float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
