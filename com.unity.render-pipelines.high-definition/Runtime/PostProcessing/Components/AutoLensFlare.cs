@@ -16,13 +16,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter vignetteInfluence = new ClampedFloatParameter(1f, 0f, 1f);
 
         public ClampedFloatParameter chromaticAbberationIntensity = new ClampedFloatParameter(0.025f, 0f, 1f);
-        public ClampedIntParameter chromaticAbberationSampleCount = new ClampedIntParameter(16, 2, 64);
+        public ClampedIntParameter chromaticAbberationSampleCount = new ClampedIntParameter(8, 2, 24);
 
         public ClampedFloatParameter firstFlareIntensity = new ClampedFloatParameter(0.1f, 0f, 1f);
         public ClampedFloatParameter secondaryFlareIntensity = new ClampedFloatParameter(0.1f, 0f, 1f);
         public ClampedFloatParameter polarFlareIntensity = new ClampedFloatParameter(0.1f, 0f, 1f);
 
-        public ClampedFloatParameter blurContribution = new ClampedFloatParameter(0.5f, 0f, 1f);
+        public ClampedFloatParameter blurContribution = new ClampedFloatParameter(0.0f, 0f, 1f);
         public ClampedFloatParameter chromaContribution = new ClampedFloatParameter(1f, 0f, 1f);
 
         /// <summary>
