@@ -32,6 +32,7 @@ URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
