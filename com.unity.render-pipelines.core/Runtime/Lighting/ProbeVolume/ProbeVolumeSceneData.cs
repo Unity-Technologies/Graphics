@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     // Add Profile and baking settings.
     /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
@@ -96,18 +96,24 @@ namespace UnityEngine.Experimental.Rendering
         internal List<BakingSet> bakingSets;
 
         [SerializeField] string m_BakingState = ProbeReferenceVolume.defaultBakingState;
-        internal string bakingState
+        internal string bakingState => m_BakingState;
+
+        internal string previousBakingState;
+
+        internal bool SetBakingState(string state, float transitionTime)
         {
-            get => m_BakingState;
-            set
-            {
-                if (value == m_BakingState)
-                    return;
-                m_BakingState = value;
-                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                    data.SetBakingState(value);
-                ProbeReferenceVolume.instance.onBakingStateChanged?.Invoke(value);
-            }
+            if (state == bakingState)
+                return false;
+
+            if (bakingState == null)
+                transitionTime = 0.0f;
+            previousBakingState = (transitionTime == 0.0f) ? null : bakingState;
+            m_BakingState = state;
+
+            ProbeReferenceVolume.instance.stateTransitionTime = transitionTime;
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.UpdateBakingState(bakingState, previousBakingState);
+            return true;
         }
 
         /// <summary>
@@ -449,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering
             var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
             foreach (var volume in volumes)
             {
-                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
+                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID && volume.isActiveAndEnabled)
                 {
                     hasProbeVolumes[sceneGUID] = true;
                     return;

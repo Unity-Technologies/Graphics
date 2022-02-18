@@ -22,6 +22,7 @@ uniform float _OffsetSize;
 
 UNITY_INSTANCING_BUFFER_START(Props)
     UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
+    UNITY_DEFINE_INSTANCED_PROP(float, _TouchupedByVolume)
     UNITY_DEFINE_INSTANCED_PROP(float4, _IndexInAtlas)
     UNITY_DEFINE_INSTANCED_PROP(float4, _Offset)
     UNITY_DEFINE_INSTANCED_PROP(float, _RelativeSize)

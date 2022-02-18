@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTerrainHole = false,
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
+                waterCPUSimulation = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -126,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeBlendingMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
@@ -190,6 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
+        /// <summary>Enable water CPU simulation.</summary>
+        public bool waterCPUSimulation;
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
@@ -344,8 +348,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         public bool supportProbeVolume;
-        /// <summary>Support Probe Volumes.</summary>
+        /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volume Blending Memory Budget.</summary>
+        public ProbeVolumeTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>

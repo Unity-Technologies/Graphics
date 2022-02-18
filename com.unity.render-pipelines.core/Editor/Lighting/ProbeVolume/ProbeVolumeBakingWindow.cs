@@ -3,14 +3,13 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ProbeVolumeBakingWindow : EditorWindow
     {
@@ -82,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeSceneData sceneData => ProbeReferenceVolume.instance.sceneData;
 
-        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
+        [MenuItem("Window/Rendering/Probe Volume Settings")]
         static void OpenWindow()
         {
             // Get existing open window or if none, make a new one:
@@ -93,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             m_SearchField = new SearchField();
-            titleContent = new GUIContent("Probe Volume Settings (Experimental)");
+            titleContent = new GUIContent("Probe Volume Settings");
 
             RefreshSceneAssets();
             m_DrawHorizontalSplitter = typeof(EditorGUIUtility).GetMethod("DrawHorizontalSplitter", BindingFlags.NonPublic | BindingFlags.Static);
@@ -334,7 +333,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
             };
 
-            m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
             UpdateBakingStatesStatuses();
         }
 
@@ -704,6 +702,7 @@ namespace UnityEngine.Experimental.Rendering
                 var stateTitleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
                 EditorGUI.LabelField(stateTitleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
                 EditorGUILayout.Space();
+                m_BakingStates.Select(GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState));
                 m_BakingStates.DoLayoutList();
             }
             else
@@ -750,8 +749,21 @@ namespace UnityEngine.Experimental.Rendering
                 if (GUILayout.Button("Generate Lighting", "DropDownButton", GUILayout.ExpandWidth(true)))
                 {
                     var menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Bake the set"), false, () => BakeLightingForSet(GetCurrentBakingSet()));
-                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () => Lightmapping.BakeAsync());
+                    menu.AddItem(new GUIContent("Bake the set"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        BakeLightingForSet(GetCurrentBakingSet());
+                    });
+                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = false;
+                        Lightmapping.BakeAsync();
+                    });
+                    menu.AddItem(new GUIContent("Bake active scene"), false, () =>
+                    {
+                        ProbeGIBaking.isBakingOnlyActiveScene = true;
+                        Lightmapping.BakeAsync();
+                    });
                     menu.ShowAsContext();
                 }
             }

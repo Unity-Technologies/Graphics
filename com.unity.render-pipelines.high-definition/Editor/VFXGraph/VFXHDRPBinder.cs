@@ -87,6 +87,18 @@ namespace UnityEditor.VFX.HDRP
             return blendMode;
         }
 
+        public override bool GetSupportsMotionVectorPerVertex(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
+        {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<HDMetadata>(out var metaData))
+            {
+                if (metaData.hasVertexModificationInMotionVector)
+                    return false;
+            }
+            return true;
+        }
+
         public override bool TransparentMotionVectorEnabled(Material material)
         {
             if (!material.HasProperty(HDMaterialProperties.kSurfaceType) ||

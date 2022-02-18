@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        internal const string k_ShaderTagName = "UniversalPipeline";
+        public const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
         {
@@ -130,7 +130,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                bool isMobile = Application.isMobilePlatform;
+                // Must match: Input.hlsl, MAX_VISIBLE_LIGHTS
+                bool isMobile = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
                 if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 

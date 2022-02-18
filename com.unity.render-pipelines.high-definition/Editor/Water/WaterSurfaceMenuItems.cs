@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 1.0f;
-            waterSurface.maxAbsorptionDistance = 1.0f;
+            waterSurface.absorptionDistance = 1.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.3f, 0.25f);
             waterSurface.windSpeed = 30.0f;
             waterSurface.causticsIntensity = 0.1f;
@@ -75,14 +75,14 @@ namespace UnityEditor.Rendering
             waterSurface.waterMaxPatchSize = 20.0f;
 
             // The two bands have very little amplitude
-            waterSurface.highBandCount = false;
+            waterSurface.highFrequencyBands = false;
             waterSurface.amplitude.x = 1.0f;
             waterSurface.amplitude.y = 1.0f;
 
             // Scattering & transparency data
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 0.5f;
-            waterSurface.maxAbsorptionDistance = 10.0f;
+            waterSurface.absorptionDistance = 10.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.40f, 0.75f);
 
             // No choppiness for the water
@@ -95,7 +95,6 @@ namespace UnityEditor.Rendering
             waterSurface.causticsIntensity = 0.4f;
             waterSurface.causticsTiling = 1.5f;
             waterSurface.causticsSpeed = 0.0f;
-            waterSurface.causticsPlaneOffset = 0.5f;
         }
     }
 }

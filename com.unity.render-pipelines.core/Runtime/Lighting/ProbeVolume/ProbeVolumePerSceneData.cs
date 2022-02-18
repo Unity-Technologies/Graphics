@@ -6,7 +6,7 @@ using System.IO;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A component that stores baked probe volume state and data references. Normally hidden from the user.
@@ -31,13 +31,14 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
-        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks data
+        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
         [SerializeField] List<SerializablePerStateDataItem> serializedStates = new();
 
         internal Dictionary<string, PerStateData> states = new();
 
-        string currentState = null;
+        bool assetLoaded = false;
+        string currentState = null, transitionState = null;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -68,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         void DeleteAsset(Object asset)
         {
-            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
+            if (asset != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long instanceID))
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 AssetDatabase.DeleteAsset(assetPath);
@@ -137,20 +138,37 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        internal bool ResolveCells()
+        internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerStateCellData();
+
+        bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
+        bool ResolvePerStateCellData()
         {
-            if (currentState == null || !states.TryGetValue(currentState, out var stateData))
-                return false;
-            return asset.ResolveCells(stateData.cellDataAsset, stateData.cellOptionalDataAsset, cellSharedDataAsset, cellSupportDataAsset);
+            int loadedCount = 0;
+            string state0 = transitionState != null ? transitionState : currentState;
+            string state1 = transitionState != null ? currentState : null;
+            if (state0 != null && states.TryGetValue(state0, out var data0))
+            {
+                if (asset.ResolvePerStateCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
+                    loadedCount++;
+            }
+            if (state1 != null && states.TryGetValue(state1, out var data1))
+            {
+                if (asset.ResolvePerStateCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
+                    loadedCount++;
+            }
+            for (var i = 0; i < asset.cells.Length; ++i)
+                asset.cells[i].hasTwoStates = loadedCount == 2;
+            return loadedCount != 0;
         }
 
         internal void QueueAssetLoading()
         {
-            if (asset == null || !ResolveCells())
+            if (asset == null || !ResolvePerStateCellData())
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.AddPendingAssetLoading(asset);
+            assetLoaded = true;
 #if UNITY_EDITOR
             if (refVol.sceneData != null)
                 refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
@@ -161,6 +179,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (asset != null)
                 ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+            assetLoaded = false;
         }
 
         void OnEnable()
@@ -168,30 +187,44 @@ namespace UnityEngine.Experimental.Rendering
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
 
             if (ProbeReferenceVolume.instance.sceneData != null)
-                SetBakingState(ProbeReferenceVolume.instance.bakingState);
+                Initialize();
             // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
         }
 
         void OnDisable()
         {
-            OnDestroy();
+            QueueAssetRemoval();
+            currentState = transitionState = null;
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
-        void OnDestroy()
+        internal void Initialize()
         {
+            ResolveSharedCellData();
+
             QueueAssetRemoval();
-            currentState = null;
+            currentState = ProbeReferenceVolume.instance.sceneData.bakingState;
+            transitionState = null;
+            QueueAssetLoading();
         }
 
-        internal void SetBakingState(string state)
+        internal void UpdateBakingState(string state, string previousState)
         {
-            if (state == currentState)
+            if (asset == null)
                 return;
 
-            QueueAssetRemoval();
+            // if we just change state, don't need to queue anything
+            // Just load state cells from disk and wait for blending to stream updates to gpu
+            // When blending factor is < 0.5, streaming will upload cell from transition state
+            // After that, it will always upload cells from current state
+            // So gradually, all loaded cells, will be either blended towards new state, or replaced by streaming
+
             currentState = state;
-            QueueAssetLoading();
+            transitionState = previousState;
+            if (!assetLoaded)
+                QueueAssetLoading();
+            else if (!ResolvePerStateCellData())
+                QueueAssetRemoval();
         }
 
 #if UNITY_EDITOR

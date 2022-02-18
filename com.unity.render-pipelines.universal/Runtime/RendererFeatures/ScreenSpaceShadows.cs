@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
 
             public void Dispose()
             {
-                m_RenderTarget.Release();
+                m_RenderTarget?.Release();
             }
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
                     : GraphicsFormat.B8G8R8A8_UNorm;
 
                 RenderingUtils.ReAllocateIfNeeded(ref m_RenderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
+                cmd.SetGlobalTexture(m_RenderTarget.name, m_RenderTarget.nameID);
 
                 ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
