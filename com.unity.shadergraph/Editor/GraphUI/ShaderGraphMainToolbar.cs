@@ -65,6 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ShowInProjectButton.ChangeClickEvent(OnShowInProjectButton);
             Add(m_ShowInProjectButton);
 
+            // TODO: (Sai) Uncomment when the functionality for this button exists
             //m_CheckOutButton = this.MandatoryQ<ToolbarButton>(CheckOutButton);
             //m_CheckOutButton.ChangeClickEvent(OnCheckOutButton);
             //Add(m_CheckOutButton);
@@ -76,6 +77,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var flexibleSpacer = this.MandatoryQ<ToolbarSpacer>(Spacer);
             Add(flexibleSpacer);
 
+
+            // TODO: (Sai) Uncomment when the functionality for this dropdown and these buttons exist
             //Add(new Label("Color Mode"));
 
             //m_ColorModeDropdown = this.MandatoryQ<EnumField>(ColorModeDropdown);
