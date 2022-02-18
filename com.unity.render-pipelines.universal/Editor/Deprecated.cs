@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal
     /// Editor script for a <c>ForwardRendererData</c> class.
     /// </summary>
     [Obsolete("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead (UnityUpgradable) -> UniversalRendererDataEditor", true)]
-    internal class ForwardRendererDataEditor : ScriptableRendererDataEditor
+    public class ForwardRendererDataEditor : ScriptableRendererDataEditor
     {
         /// <inheritdoc />
         public override void OnInspectorGUI()

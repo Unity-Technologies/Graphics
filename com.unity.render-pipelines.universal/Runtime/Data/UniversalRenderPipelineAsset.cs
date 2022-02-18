@@ -126,6 +126,21 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The default color buffer format in HDR (only).
+    /// Affects camera rendering and postprocessing color buffers.
+    /// </summary>
+    public enum HDRColorBufferPrecision
+    {
+        /// <summary> Typically R11G11B10f for faster rendering. Recommend for mobile.
+        /// R11G11B10f can cause a subtle blue/yellow banding in some rare cases due to lower precision of the blue component.</summary>
+        [Tooltip("Use 32-bits per pixel for HDR rendering.")]
+        _32Bits,
+        /// <summary>Typically R16G16B16A16f for better quality. Can reduce banding at the cost of memory and performance.</summary>
+        [Tooltip("Use 64-bits per pixel for HDR rendering.")]
+        _64Bits,
+    }
+
+    /// <summary>
     /// Options for setting MSAA Quality.
     /// This defines how many samples URP computes per pixel for evaluating the effect.
     /// </summary>
@@ -365,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
+        [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
@@ -423,7 +439,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
-        [SerializeField] bool m_UseScreenCoordOverride = false;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -437,15 +452,15 @@ namespace UnityEngine.Rendering.Universal
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
-        internal const int k_MinLutSize = 16;
-        internal const int k_MaxLutSize = 65;
+        public const int k_MinLutSize = 16;
+        public const int k_MaxLutSize = 65;
 
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
 
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
-        internal static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -894,6 +909,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Graphics format requested for HDR color buffers.
+        /// </summary>
+        public HDRColorBufferPrecision hdrColorBufferPrecision
+        {
+            get { return m_HDRColorBufferPrecision; }
+            set { m_HDRColorBufferPrecision = value; }
+        }
+
         /// Specifies the msaa sample count used by this <c>UniversalRenderPipelineAsset</c>
         /// </summary>
         /// <see cref="SampleCount"/>
@@ -1237,14 +1260,6 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion
         {
             get { return m_UseFastSRGBLinearConversion; }
-        }
-
-        /// <summary>
-        /// Returns true if cameras may use Screen Coordinates Override.
-        /// </summary>
-        public bool useScreenCoordOverride
-        {
-            get { return m_UseScreenCoordOverride; }
         }
 
         /// <summary>

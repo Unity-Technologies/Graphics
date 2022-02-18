@@ -313,10 +313,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
-        [SerializeField] bool m_UseScreenCoordOverride;
-        [SerializeField] Vector4 m_ScreenSizeOverride;
-        [SerializeField] Vector4 m_ScreenCoordScaleBias;
-
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -400,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
-        /// Overlay cameras have no stack and will return null.
+        /// Will return null if it is not a Base camera.
         /// <seealso cref="CameraRenderType"/>.
         /// </summary>
         public List<Camera> cameraStack
@@ -414,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
                     return null;
                 }
 
-                if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
+                if (!scriptableRenderer.SupportsCameraStackingType(CameraRenderType.Base))
                 {
                     var camera = gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
@@ -624,33 +620,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AllowXRRendering;
             set => m_AllowXRRendering = value;
-        }
-
-        /// <summary>
-        /// Returns true if the camera uses Screen Coordinates Override.
-        /// </summary>
-        public bool useScreenCoordOverride
-        {
-            get => m_UseScreenCoordOverride;
-            set => m_UseScreenCoordOverride = value;
-        }
-
-        /// <summary>
-        /// Screen size used when Screen Coordinates Override is active.
-        /// </summary>
-        public Vector4 screenSizeOverride
-        {
-            get => m_ScreenSizeOverride;
-            set => m_ScreenSizeOverride = value;
-        }
-
-        /// <summary>
-        /// Transform applied to screen coordinates when Screen Coordinates Override is active.
-        /// </summary>
-        public Vector4 screenCoordScaleBias
-        {
-            get => m_ScreenCoordScaleBias;
-            set => m_ScreenCoordScaleBias = value;
         }
 
         /// <inheritdoc/>

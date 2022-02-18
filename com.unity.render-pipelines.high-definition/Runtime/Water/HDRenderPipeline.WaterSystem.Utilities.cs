@@ -10,12 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                {
-                    rowKernel = fourierTransformCS.FindKernel("RowPassTi_512");
-                    columnKernel = fourierTransformCS.FindKernel("ColPassTi_512");
-                }
-                break;
                 case WaterSimulationResolution.High256:
                 {
                     rowKernel = fourierTransformCS.FindKernel("RowPassTi_256");
@@ -43,18 +37,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static internal float EvaluateFrequencyOffset(WaterSimulationResolution resolution)
+        {
+            switch (resolution)
+            {
+                case WaterSimulationResolution.High256:
+                    return 0.5f;
+                case WaterSimulationResolution.Medium128:
+                    return 0.25f;
+                case WaterSimulationResolution.Low64:
+                    return 0.125f;
+                default:
+                    return 0.5f;
+            }
+        }
+
         static internal int EvaluateWaterNoiseSampleOffset(WaterSimulationResolution resolution)
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                    return 0;
                 case WaterSimulationResolution.High256:
-                    return 128;
+                    return 0;
                 case WaterSimulationResolution.Medium128:
-                    return 192;
+                    return 64;
                 case WaterSimulationResolution.Low64:
-                    return 224;
+                    return 96;
                 default:
                     return 0;
             }
@@ -103,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that loops thought all the current waves and computes the maximal wave height
-        internal void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
+        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
         {
             // Initialize the band data
             float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
@@ -170,8 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (resolution)
             {
-                case WaterSimulationResolution.Ultra512:
-                    return 3;
                 case WaterSimulationResolution.High256:
                     return 2;
                 case WaterSimulationResolution.Medium128:

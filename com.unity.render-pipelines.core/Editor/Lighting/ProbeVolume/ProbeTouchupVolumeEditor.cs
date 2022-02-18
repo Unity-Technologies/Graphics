@@ -4,9 +4,23 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
+using System;
+using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreferences;
 
 namespace UnityEditor.Rendering
 {
+    internal class ProbeTouchupColorPreferences
+    {
+        internal static Func<Color> GetColorPrefProbeVolumeGizmoColor;
+        internal static Color s_ProbeTouchupVolumeGizmoColorDefault = new Color32(222, 132, 144, 45);
+
+        static ProbeTouchupColorPreferences()
+        {
+            GetColorPrefProbeVolumeGizmoColor = RuntimeSRPPreferences.RegisterPreferenceColor("Scene/Probe Touchup Volume Gizmo", s_ProbeTouchupVolumeGizmoColorDefault);
+        }
+
+    }
+
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeTouchupVolume))]
     internal class ProbeTouchupVolumeEditor : Editor
@@ -19,17 +33,19 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_OverrideDilationThreshold = new GUIContent("Override Dilation Threshold", "Whether to override the dilation threshold used for probes falling within this probe touch-up volume.");
             internal static readonly GUIContent s_OverriddenDilationThreshold = new GUIContent("Dilation Threshold", "The dilation threshold to use for this probe volume.");
 
-            internal static readonly Color k_GizmoColorBase = new Color32(222, 132, 144, 255);
+            internal static readonly Color k_GizmoColorBase = ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault;
 
             internal static readonly Color[] k_BaseHandlesColor = new Color[]
             {
-                k_GizmoColorBase,
-                k_GizmoColorBase,
-                k_GizmoColorBase,
-                k_GizmoColorBase,
-                k_GizmoColorBase,
-                k_GizmoColorBase
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
+                ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault
             };
+
+
         }
 
 
@@ -106,7 +122,7 @@ namespace UnityEditor.Rendering
                 // Bounding box.
                 s_ShapeBox.center = Vector3.zero;
                 s_ShapeBox.size = touchupVolume.size;
-                s_ShapeBox.baseColor = new Color(0.75f, 0.2f, 0.18f);
+                s_ShapeBox.SetBaseColor(ProbeTouchupColorPreferences.GetColorPrefProbeVolumeGizmoColor());
                 s_ShapeBox.DrawHull(true);
             }
         }
@@ -128,7 +144,7 @@ namespace UnityEditor.Rendering
                 s_ShapeBox.DrawHandle();
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Undo.RecordObjects(new Object[] { touchupVolume, touchupVolume.transform }, "Change Probe Touchup Volume Bounding Box");
+                    Undo.RecordObjects(new UnityEngine.Object[] { touchupVolume, touchupVolume.transform }, "Change Probe Touchup Volume Bounding Box");
 
                     touchupVolume.size = s_ShapeBox.size;
                     Vector3 delta = touchupVolume.transform.rotation * s_ShapeBox.center - touchupVolume.transform.position;
