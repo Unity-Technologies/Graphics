@@ -24,7 +24,9 @@ namespace UnityEngine.Rendering
         public Brick[] bricks;
         public Vector3[] probePositions;
         public SphericalHarmonicsL2[] sh;
-        public uint[] validity;
+        public byte[] validityNeighbourMask;
+        public float[] validity;
+        public uint[] validityOld;
         public Vector3[] offsetVectors;
 
         public int minSubdiv;
@@ -600,7 +602,9 @@ namespace UnityEngine.Rendering
                 Debug.Assert(numProbes > 0);
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
-                cell.validity = new uint[numProbes];
+                cell.validity = new float[numProbes];
+                cell.validityNeighbourMask = new byte[numProbes];
+                cell.validityOld = new uint[numProbes];
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
@@ -712,7 +716,9 @@ namespace UnityEngine.Rendering
 
                     float currValidity = invalidatedProbe ? 1.0f : validity[j];
                     byte currValidityNeighbourMask = 255;
-                    cell.validity[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(currValidity, currValidityNeighbourMask);
+                    cell.validity[i] = currValidity;
+                    cell.validityNeighbourMask[i] = currValidityNeighbourMask;
+                    cell.validityOld[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(currValidity, currValidityNeighbourMask);
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
@@ -937,7 +943,9 @@ namespace UnityEngine.Rendering
                 index = cell.index,
                 bricks = cell.bricks.ToArray(),
                 probePositions = cell.probePositionsOld.ToArray(),
-                validity = cell.validityOld.ToArray(),
+                validityOld = cell.validityOld.ToArray(),
+                validity = cell.validity.ToArray(),
+                validityNeighbourMask = cell.validityNeighMaskData.ToArray(),
                 offsetVectors = cell.offsetVectors.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
@@ -1009,7 +1017,8 @@ namespace UnityEngine.Rendering
             outCell.probePositions = new Vector3[numberOfProbes];
             outCell.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
-            outCell.validity = new uint[numberOfProbes];
+            outCell.validity = new float[numberOfProbes];
+            outCell.validityNeighbourMask = new byte[numberOfProbes];
             outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
             outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
 
@@ -1027,6 +1036,7 @@ namespace UnityEngine.Rendering
                     outCell.probePositions[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].probePositions[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.validityNeighbourMask[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validityNeighbourMask[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                 }
             }
 
@@ -1144,7 +1154,7 @@ namespace UnityEngine.Rendering
             // CellSupportData
             using var positionsOld = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var packedValidity = new NativeArray<uint>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
@@ -1195,7 +1205,7 @@ namespace UnityEngine.Rendering
                     var probesTargetL1BL1Rz = probesL1BL1Rz.GetSubArray(shChunkOffset, shChunkSize);
                     var validityNeighboorMaskChunkTarget = validityNeighbourMask.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var packedValidityChunkTarget = packedValidity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
 
                     NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
                     NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
@@ -1234,7 +1244,8 @@ namespace UnityEngine.Rendering
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
 
                                         validityNeighboorMaskChunkTarget[index] = 0;
-                                        packedValidityChunkTarget[index] = 0;
+                                        validityChunkTarget[index] = 0.0f;
+                                        validityNeighboorMaskChunkTarget[index] = 255;
                                         positionsChunkTarget[index] = Vector3.zero;
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -1247,9 +1258,8 @@ namespace UnityEngine.Rendering
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
 
-                                        var packedValidityValue = bakingCell.validity[shidx];
-                                        packedValidityChunkTarget[index] = packedValidityValue;
-                                        validityNeighboorMaskChunkTarget[index] = Cell.GetValidityNeighMaskFromPacked(packedValidityValue);
+                                        validityChunkTarget[index] = bakingCell.validity[shidx];
+                                        validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -1284,7 +1294,7 @@ namespace UnityEngine.Rendering
                 }
 
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
-                validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
+                validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validityOld);
                 positionsOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
@@ -1335,7 +1345,7 @@ namespace UnityEngine.Rendering
                 {
                     fs.Write(new ReadOnlySpan<byte>(positionsOld.GetUnsafeReadOnlyPtr(), positionsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new ReadOnlySpan<byte>(packedValidity.GetUnsafeReadOnlyPtr(), packedValidity.Length * UnsafeUtility.SizeOf<uint>()));
+                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
                 }

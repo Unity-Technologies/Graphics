@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering
                 return false;
             var positionsOldData = hasSupportData ? cellSupportData.GetSubArray(0, positionsOldByteCount).Reinterpret<Vector3>(1) : default;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(positionsByteStart, positionsByteCount).Reinterpret<Vector3>(1) : default;
-            var packedValidityData = hasSupportData ? cellSupportData.GetSubArray(packedValidityByteStart, packedValidityByteCount).Reinterpret<uint>(1) : default;
+            var packedValidityData = hasSupportData ? cellSupportData.GetSubArray(packedValidityByteStart, packedValidityByteCount).Reinterpret<float>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
 
             var startCounts = new CellCounts();
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering
                     cell.probePositionsOld = positionsOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.probePositions = positionsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
-                    cell.packedValidity = packedValidityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
+                    cell.validity = packedValidityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
                 }
 
                 startCounts.Add(counts);

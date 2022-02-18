@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering
             public NativeArray<Vector3> probePositionsOld { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
-            public NativeArray<uint> packedValidity { get; internal set; }
+            public NativeArray<float> validity { get; internal set; }
 
             // Per state data
             public NativeArray<ushort> shL0L1RxData { get; internal set; }
@@ -432,8 +432,8 @@ namespace UnityEngine.Rendering
 
             internal float GetValidity(int probeIdx)
             {
-                Debug.Assert(probeIdx < packedValidity.Length);
-                return GetValidityFromPacked(packedValidity[probeIdx]);
+                Debug.Assert(probeIdx < validity.Length);
+                return validity[probeIdx];
             }
 
             internal static float GetValidityFromPacked(uint packedValidity)

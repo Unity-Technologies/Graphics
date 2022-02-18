@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering
                                 }
                                 else
                                 {
-                                    StoreScratchData(ix, iy, iz, locSize.x, locSize.y, ProbeReferenceVolume.Cell.GetValidityFromPacked(cell.validity[shidx]), shidx);
+                                    StoreScratchData(ix, iy, iz, locSize.x, locSize.y, ProbeReferenceVolume.Cell.GetValidityFromPacked(cell.validityOld[shidx]), shidx);
 
                                     // Check if we need to do some extra check on this probe.
                                     bool hasFreeNeighbourhood = false;
@@ -191,7 +191,9 @@ namespace UnityEngine.Rendering
                                 byte mask = forceAllValid ? (byte)255 : Convert.ToByte(PackValidity(validities));
                                 float validity = probeValidity;
 
-                                cell.validity[outIdx] = ProbeReferenceVolume.Cell.PackValidityAndMask(validity, mask);
+                                cell.validity[outIdx] = validity;
+                                cell.validityNeighbourMask[outIdx] = mask;
+                                cell.validityOld[outIdx] = ProbeReferenceVolume.Cell.PackValidityAndMask(validity, mask);
                             }
                         }
                     }
