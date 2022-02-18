@@ -176,31 +176,15 @@ namespace com.unity.shadergraph.defs
             ShaderContainer container,
             Registry registry)
         {
-            // Get the ShaderType for the first output port we find.
-            string outPortName = null;
-            foreach (var param in m_functionDescriptor.Parameters)
-            {
-                if (param.Usage == Usage.Out)
-                {
-                    outPortName = param.Name;
-                    break;
-                }
-            }
-            if (outPortName == null)
-            {
-                // No out port was found.
-                throw new Exception("No output port found for ");
-            }
-
-            data.TryGetPort(outPortName, out var port);
-            var shaderType = registry.GetShaderType((IFieldReader)port, container);
-
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
+                data.TryGetPort(param.Name, out var port);
+                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
                 if (param.Usage == Usage.In || param.Usage == Usage.Static)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);

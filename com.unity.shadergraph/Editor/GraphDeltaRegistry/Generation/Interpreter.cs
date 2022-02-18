@@ -11,6 +11,22 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
+        public static string GetFunctionCode(INodeReader node, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
+            builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
+
+        public static string GetBlockCode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
+            foreach (var func in block.Functions)
+                builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
 
         public static string GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
@@ -109,7 +125,10 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             else
             {
-                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
+                var port = rootNode.GetOutputPorts().First();
+                var outType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
+                string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()}");
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");
             }
             mainBodyFunctionBuilder.AddLine("return output;");
 
@@ -240,6 +259,17 @@ namespace UnityEditor.ShaderGraph.Generation
                 arguments = arguments.Remove(arguments.Length - 2, 2); // trim the trailing ", "
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
 
+        }
+
+        private static string ConvertToFloat3(ShaderType type, string name)
+        {
+            switch(type.VectorDimension)
+            {
+                case 4: return $"{name}.xyz";
+                case 2: return $"float3({name}.x, {name}.y, 0)";
+                case 1: return $"float3({name}, {name}, {name})";
+                default: return name;
+            }
         }
 
         private static IEnumerable<INodeReader> GatherTreeLeafFirst(INodeReader rootNode)
