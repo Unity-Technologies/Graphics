@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
  - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
  - Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
+ - Fixed Built-in Target calculation of world space view direction to work better on devices that use half precision. [case 1398576](https://issuetracker.unity3d.com/issues/android-ios-gameobject-with-lit-shader-graph-has-light-gray-ring-on-android-slash-ios-platform-when-its-260-units-away-from-camera)
 
 ## [14.0.0] - 2021-11-17
 
