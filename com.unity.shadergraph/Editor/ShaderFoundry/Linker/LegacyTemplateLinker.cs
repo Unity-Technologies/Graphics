@@ -53,8 +53,27 @@ namespace UnityEditor.ShaderFoundry
                 GenerateSubShaderTags(m_LegacySubShader, templateInstance, builder);
 
                 var template = templateInstance.Template;
+
+                // To be SRP Batch compatible, we need to gather all properties up-front.
+                // Generate all pass blocks, then unify properties, then declare each pass with the unified properties.
+                var legacyEntryPointsList = new List<LegacyEntryPoints>();
                 foreach (var pass in template.Passes)
-                    GenerateShaderPass(template, pass, templateInstance.CustomizationPointInstances, builder);
+                {
+                    var entryPoints = GeneratePassBlocks(template, pass, templateInstance.CustomizationPointInstances);
+                    legacyEntryPointsList.Add(entryPoints);
+                }
+
+                var shaderProperties = new ShaderPropertyCollection();
+                BuildShaderProperties(legacyEntryPointsList, shaderProperties);
+                shaderProperties.SetReadOnly();
+
+                var passIndex = 0;
+                foreach (var pass in template.Passes)
+                {
+                    var entryPoints = legacyEntryPointsList[passIndex];
+                    GenerateShaderPass(template, pass, entryPoints, shaderProperties, builder);
+                    ++passIndex;
+                }
             }
         }
 
@@ -77,22 +96,44 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances, ShaderBuilder builder)
+        LegacyEntryPoints GeneratePassBlocks(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
+        {
+            var passCustomizationPointInstances = FindCustomizationPointsForPass(pass, customizationPointInstances);
+
+            var legacyBlockLinker = new SimpleLegacyBlockLinker(Container);
+            var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointInstances);
+            return legacyEntryPoints;
+        }
+
+        void BuildShaderProperties(IEnumerable<LegacyEntryPoints> legacyEntryPoints, ShaderPropertyCollection shaderProperties)
+        {
+            void AddBlockInstanceProperties(BlockInstance blockInstance)
+            {
+                if (!blockInstance.IsValid)
+                    return;
+
+                foreach (var property in blockInstance.Block.Properties())
+                    shaderProperties.Add(property);
+            }
+
+            foreach (var legacyEntryPoint in legacyEntryPoints)
+            {
+                AddBlockInstanceProperties(legacyEntryPoint.vertexDescBlockInstance);
+                AddBlockInstanceProperties(legacyEntryPoint.fragmentDescBlockInstance);
+            }
+        }
+
+        void GenerateShaderPass(Template template, TemplatePass pass, LegacyEntryPoints legacyEntryPoints, ShaderPropertyCollection shaderProperties, ShaderBuilder builder)
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
             if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
                 throw new Exception("Shouldn't happen");
 
-            var passCustomizationPointInstances = FindCustomizationPointsForPass(pass, customizationPointInstances);
-
-            var legacyBlockLinker = new SimpleLegacyBlockLinker(Container);
-            var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointInstances);
-
             ActiveFields targetActiveFields, shaderGraphActiveFields;
             var customInterpolatorFields = new List<FieldDescriptor>();
             BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields, customInterpolatorFields);
 
-            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, new PropertyCollector());
+            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, shaderProperties);
         }
 
         List<CustomizationPointInstance> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
@@ -470,17 +511,20 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, PropertyCollector subShaderProperties)
+        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, ShaderPropertyCollection shaderProperties)
         {
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderProperties = new List<BlockProperty>();
             var shaderCommands = new List<CommandDescriptor>();
             var shaderDefines = new List<DefineDescriptor>();
             var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>();
             var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>();
             var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+
+            var shaderUniforms = new ShaderUniformCollection();
+            shaderUniforms.Add(shaderProperties);
+            shaderUniforms.SetReadOnly();
 
             void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
@@ -491,7 +535,6 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockInstance.Block;
-                    shaderProperties.AddRange(block.Properties());
                     shaderCommands.AddRange(block.Commands);
                     shaderDefines.AddRange(block.Defines);
                     shaderIncludes.AddRange(block.Includes);
@@ -794,21 +837,12 @@ namespace UnityEditor.ShaderFoundry
             // Graph Properties
 
             {
-                var propertyBuilder = new ShaderBuilder();
-                UniformDeclarationContext context = new UniformDeclarationContext
-                {
-                    PerMaterialBuilder = new ShaderBuilder(),
-                    GlobalBuilder = new ShaderBuilder(),
-                };
+                var uniformCollection = new UniformBufferCollection();
+                foreach (var uniformDeclaration in shaderUniforms.Uniforms)
+                    uniformDeclaration.Declare(uniformCollection);
 
-                var visitedProperties = new HashSet<string>();
-                foreach (var prop in shaderProperties)
-                {
-                    if (visitedProperties.Contains(prop.Name))
-                        continue;
-                    visitedProperties.Add(prop.Name);
-                    UniformDeclaration.Declare(context, prop);
-                }
+                var propertyBuilder = new ShaderBuilder();
+                uniformCollection.AddDeclarations(propertyBuilder);
 
                 //if (m_Mode == GenerationMode.VFX)
                 //{
@@ -824,12 +858,6 @@ namespace UnityEditor.ShaderFoundry
                 //    }
                 //}
 
-
-                propertyBuilder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                propertyBuilder.Append(context.PerMaterialBuilder.ToString());
-                propertyBuilder.AppendLine("CBUFFER_END");
-                propertyBuilder.Append(context.GlobalBuilder.ToString());
-
                 var propertiesStr = propertyBuilder.ToString();
                 if (string.IsNullOrEmpty(propertiesStr))
                     propertiesStr = "// GraphProperties: <None>";
@@ -839,15 +867,7 @@ namespace UnityEditor.ShaderFoundry
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsProperties = false;
-            {
-                foreach (var h in shaderProperties)
-                {
-                    if (h.Attributes.GetDeclaration() == HLSLDeclaration.HybridPerInstance)
-                        hasDotsProperties = true;
-                }
-            }
-            //subShaderProperties.HasDotsProperties();
+            bool hasDotsProperties = shaderUniforms.HasDotsProperties();
 
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
@@ -859,9 +879,9 @@ namespace UnityEditor.ShaderFoundry
                         dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
 
                         int count = 0;
-                        foreach (var prop in shaderProperties)
+                        foreach (var uniformDeclaration in shaderUniforms.Uniforms)
                         {
-                            if (prop.Attributes.GetDeclaration() != HLSLDeclaration.HybridPerInstance)
+                            if (uniformDeclaration.DataSource == UniformDataSource.PerInstance)
                                 continue;
 
                             // Combine multiple UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
@@ -872,9 +892,9 @@ namespace UnityEditor.ShaderFoundry
                                 dotsInstancedPropertyBuilder.AppendNewLine();
                             }
                             dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
-                            dotsInstancedPropertyBuilder.Append(prop.Type.Name);
+                            dotsInstancedPropertyBuilder.Append(uniformDeclaration.Type.Name);
                             dotsInstancedPropertyBuilder.Append(", ");
-                            dotsInstancedPropertyBuilder.Append(prop.Name);
+                            dotsInstancedPropertyBuilder.Append(uniformDeclaration.Name);
                             dotsInstancedPropertyBuilder.Append(")");
                             count++;
                         }

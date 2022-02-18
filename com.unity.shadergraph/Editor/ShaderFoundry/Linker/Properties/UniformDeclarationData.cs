@@ -2,63 +2,88 @@ namespace UnityEditor.ShaderFoundry
 {
     class UniformDeclarationData
     {
-        internal ShaderType Type;
-        internal string Name;
-        internal UniformDataSource dataSource;
+        readonly internal ShaderType Type;
+        readonly internal string Name;
+        readonly internal UniformDataSource DataSource;
+        readonly internal string CustomBufferName;
         // If non-null, this string is used to as the declaration instead of it being auto generated from the type and name.
-        internal string DeclarationOverride = null;
+        readonly internal string DeclarationOverride = null;
 
-        internal static UniformDeclarationData BuildSimple(FieldPropertyContext context, FieldPropertyData resultProperty)
+        public UniformDeclarationData(ShaderType uniformType, string uniformName, UniformDataSource dataSource, string customBufferName)
         {
-            return BuildSimple(context.FieldType, context.UniformName, context.DataSource, resultProperty);
+            Type = uniformType;
+            Name = uniformName;
+            DataSource = dataSource;
+            CustomBufferName = customBufferName;
         }
 
-        internal static UniformDeclarationData BuildSimple(ShaderType uniformType, string uniformName, UniformDataSource dataSource, FieldPropertyData resultProperty)
+        public UniformDeclarationData(string uniformName, string declarationOverride, UniformDataSource dataSource, string customBufferName)
+        {
+            Name = uniformName;
+            DataSource = dataSource;
+            CustomBufferName = customBufferName;
+            DeclarationOverride = declarationOverride;
+        }
+
+        internal static UniformDeclarationData BuildFromField(FieldPropertyContext context, FieldPropertyData resultProperty)
+        {
+            return Build(context.FieldType, context.UniformName, context.DataSource, context.CustomBufferName, resultProperty);
+        }
+
+        internal static UniformDeclarationData BuildFromFieldWithOverrides(FieldPropertyContext context, ShaderType fieldType, string uniformName, FieldPropertyData resultProperty)
+        {
+            return Build(fieldType, uniformName, context.DataSource, context.CustomBufferName, resultProperty);
+        }
+
+        internal static UniformDeclarationData Build(ShaderType uniformType, string uniformName, UniformDataSource dataSource, string customBufferName, FieldPropertyData resultProperty)
         {
             if (dataSource == UniformDataSource.None)
                 return null;
 
-            var uniformInfo = new UniformDeclarationData
-            {
-                Type = uniformType,
-                Name = uniformName,
-                dataSource = dataSource,
-            };
+            var uniformInfo = new UniformDeclarationData(uniformType, uniformName, dataSource, customBufferName);
             resultProperty.UniformDeclarations.Add(uniformInfo);
             return uniformInfo;
         }
 
-        internal void Declare(UniformDeclarationContext context)
+        internal static UniformDeclarationData BuildWithCustomDeclaration(string uniformName, string declarationOverride, UniformDataSource dataSource, string customBufferName, FieldPropertyData resultProperty)
+        {
+            if (dataSource == UniformDataSource.None)
+                return null;
+
+            var uniformInfo = new UniformDeclarationData(uniformName, declarationOverride, dataSource, customBufferName);
+            resultProperty.UniformDeclarations.Add(uniformInfo);
+            return uniformInfo;
+        }
+
+        internal void Declare(UniformBufferCollection uniformCollection)
         {
             if (DeclarationOverride != null)
             {
-                DeclareUniform(context, DeclarationOverride, dataSource);
+                DeclareUniform(uniformCollection, DeclarationOverride, DataSource, CustomBufferName);
                 return;
             }
 
             if (Type == Type.Container._Texture2D)
-                DeclareUniform(context, $"TEXTURE2D({Name})", UniformDataSource.Global);
+                DeclareUniform(uniformCollection, $"TEXTURE2D({Name})", UniformDataSource.Global, null);
             else if (Type == Type.Container._Texture2DArray)
-                DeclareUniform(context, $"TEXTURE2D_ARRAY({Name})", UniformDataSource.Global);
+                DeclareUniform(uniformCollection, $"TEXTURE2D_ARRAY({Name})", UniformDataSource.Global, null);
             else if (Type == Type.Container._TextureCube)
-                DeclareUniform(context, $"TEXTURECUBE({Name})", UniformDataSource.Global);
+                DeclareUniform(uniformCollection, $"TEXTURECUBE({Name})", UniformDataSource.Global, null);
             else if (Type == Type.Container._Texture3D)
-                DeclareUniform(context, $"TEXTURE3D({Name})", UniformDataSource.Global);
+                DeclareUniform(uniformCollection, $"TEXTURE3D({Name})", UniformDataSource.Global, null);
             else if (Type == Type.Container._SamplerState)
-                DeclareUniform(context, $"SAMPLER({Name})", UniformDataSource.Global);
+                DeclareUniform(uniformCollection, $"SAMPLER({Name})", UniformDataSource.Global, null);
             else
-                DeclareUniform(context, $"{Type.Name} {Name}", dataSource);
+                DeclareUniform(uniformCollection, $"{Type.Name} {Name}", DataSource, CustomBufferName);
         }
 
-        static void DeclareUniform(UniformDeclarationContext context, string uniformDeclaration, UniformDataSource dataSource)
+        static void DeclareUniform(UniformBufferCollection uniformCollection, string uniformDeclaration, UniformDataSource dataSource, string customBufferName)
         {
             if (uniformDeclaration == null || dataSource == UniformDataSource.None)
                 return;
 
-            // TODO @ SHADERS: This currently only handles global and per-material cbuffers. We need to update this later to be more robust.
-            var builder = context.PerMaterialBuilder;
-            if (dataSource == UniformDataSource.Global)
-                builder = context.GlobalBuilder;
+            var bufferObj = uniformCollection.FindOrCreateBuffer(dataSource, customBufferName);
+            var builder = bufferObj.Builder;
 
             if (dataSource == UniformDataSource.PerInstance)
             {

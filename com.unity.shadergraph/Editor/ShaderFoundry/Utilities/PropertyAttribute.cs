@@ -57,6 +57,12 @@ namespace UnityEditor.ShaderFoundry
 
             var result = new PropertyAttribute();
             AttributeParsing.Parse(attribute, AttributeSignature, result);
+            // A custom data source without a custom buffer name doesn't make sense.
+            if (result.DataSource == UniformDataSource.Custom && string.IsNullOrEmpty(result.CustomBufferName))
+            {
+                ErrorHandling.ReportError($"Data source of {UniformDataSource.Custom} must specify a valid {CustomBufferParamName}. Will fallback to data source '{UniformDataSource.Global}'");
+                result.DataSource = UniformDataSource.Global;
+            }
             return result;
         }
     }
