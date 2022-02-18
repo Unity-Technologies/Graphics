@@ -8,8 +8,6 @@ This page provides an overview of different ways to perform a blit operation in 
 
 Avoid using the [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API in URP projects. 
 
-The [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API is the legacy API. It implicitly runs extra operations related to changing states, binding textures, and setting render targets. Those operations happen under the hood in SRP projects and are not transparent to the user.
-
 The API has compatibility issues with the URP XR integration. Using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
 
 The [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API is not compatible with `NativeRenderPass` and `RenderGraph`.
