@@ -37,6 +37,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// The available Probe system used.
+        /// </summary>
+        public enum LightProbeSystem
+        {
+            /// <summary>The legacy light probe system.</summary>
+            LegacyLightProbes = 0,
+            /// <summary>Probe Volume system.</summary>
+            ProbeVolumes = 1,
+        }
+
+
+        /// <summary>
         /// Color Buffer format.
         /// </summary>
         public enum ColorBufferFormat
@@ -125,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                supportProbeVolume = false,
+                lightProbeSystem = LightProbeSystem.LegacyLightProbes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeBlendingMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
@@ -340,14 +352,17 @@ namespace UnityEngine.Rendering.HighDefinition
             get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
             set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
         }
+
+        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);
+
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
-        /// <summary>Support Probe Volumes.</summary>
-        public bool supportProbeVolume;
+        /// <summary>Determines what system to use.</summary>
+        public LightProbeSystem lightProbeSystem;
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
         /// <summary>Probe Volume Blending Memory Budget.</summary>

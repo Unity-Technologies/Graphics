@@ -137,6 +137,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with shader graph custom velocity and VFX (case 1388149)
 - Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 - Fixed probe volume baking not generating any probes on mac.
+- Fix a few UX issues in APV.
 
 ## [14.0.0] - 2021-11-17
 

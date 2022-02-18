@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering
 
         ProbeVolumeSceneData sceneData => ProbeReferenceVolume.instance.sceneData;
 
-        [MenuItem("Window/Rendering/Probe Volume Settings")]
+        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
         static void OpenWindow()
         {
             // Get existing open window or if none, make a new one:
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
         void OnEnable()
         {
             m_SearchField = new SearchField();
-            titleContent = new GUIContent("Probe Volume Settings");
+            titleContent = new GUIContent("Probe Volume Settings (Experimental)");
 
             RefreshSceneAssets();
             m_DrawHorizontalSplitter = typeof(EditorGUIUtility).GetMethod("DrawHorizontalSplitter", BindingFlags.NonPublic | BindingFlags.Static);
