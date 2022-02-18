@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ScreenSpaceShadows target which was not bound during draw. [case 1388353](https://issuetracker.unity3d.com/product/unity/issues/guid/1388353/)
 - Fixed an issue where the "Skip Iterations" option on Bloom could cause the effect to not run at all, which would cause flickering due to the Bloom texture being uninitialized. [case 1382991](https://issuetracker.unity3d.com/product/unity/issues/guid/1382991/)
 - Fixed camera sorting layer render target not being allocated in the 2d renderer [case 1389780](https://issuetracker.unity3d.com/issues/urp-2d-renderer-setrendertarget-function-throws-exception-after-upgrading-project-from-2021-dot-1-to-2022-dot-1)
+- Fixed rendering on overlay cameras in 2d with no post-processing [case 1387283](https://issuetracker.unity3d.com/product/unity/issues/guid/1387283)
 
 ## [13.1.6] - 2022-01-14
 
