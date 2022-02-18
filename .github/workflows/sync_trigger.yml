@@ -1,0 +1,54 @@
+# A sync-repo trigger to be fired from Partner repos
+# (docs: https://github.cds.internal.unity3d.com/unity/git-remotes-sync)
+# NOTE: This workflow will/should only be run on the partner repos
+#       notice the trigger-sync['if'] item.
+name: Trigger-sync-with-partner
+on:
+  push:
+    branches:
+      # List of partner branches that needs to be synced
+      - 'partner/crazyhunter**'
+
+jobs:
+  trigger-sync:
+    # Only run gh-actions sync-trigger from partner end
+    if: >-
+      ! contains(github.repository_owner, 'unity')
+    runs-on: ubuntu-latest
+
+    # Please coordinate with partner (The github env on the partner's github org that has access to the GH_CDS secrets)
+    environment: prd
+
+    env:
+
+      # Set by partner
+      GH_CDS_USER: ${{ secrets.GH_CDS_USER }}
+      GH_CDS_TOKEN: ${{ secrets.GH_CDS_TOKEN }}
+
+      # Params of the sync repo (this repo, should have being already set up)
+      SYNC_REPO_OWNER: "unity"
+      SYNC_REPO_NAME: "bonfire-unity-graphics-sync"
+      SYNC_API_URL: "https://api.github.cds.internal.unity3d.com"
+      SYNC_WORKFLOW_PATH: "main.yml"
+      SYNC_WORKFLOW_BRANCH: "main"
+
+    steps:
+      - name: Trigger sync with partner
+        run: |
+            sync_workflow_dispatch_endpoint="${SYNC_API_URL}/repos/${SYNC_REPO_OWNER}/${SYNC_REPO_NAME}/actions/workflows/${SYNC_WORKFLOW_PATH}/dispatches"
+
+            echo "The pushing repo name: \"${GITHUB_REPOSITORY}\""
+            echo "The pushing repo branch: \"${GITHUB_REF_NAME}\""
+            curl -k "${sync_workflow_dispatch_endpoint}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -H "Content-Type: application/json" \
+                -u "${GH_CDS_USER}:${GH_CDS_TOKEN}" \
+                --data \
+                    "{
+                        \"ref\"     : \"${SYNC_WORKFLOW_BRANCH}\",
+                        \"inputs\"  : {
+                            \"PUSHED_REPO\"   : \"${GITHUB_REPOSITORY}\",
+                            \"PUSHED_BRANCH\" : \"${GITHUB_REF_NAME}\"
+                        }
+                    }"
+
