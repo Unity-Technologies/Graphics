@@ -43,6 +43,8 @@ public class RenderPipelineManagerCallbackTests
     [Test]
     public void BeginAndEndCameraRenderingCallbackMatch_Camera()
     {
+        if (XRGraphicsAutomatedTests.enabled)
+            yield break;
         var camera = SetupTest();
         for (int i = 0; i < k_RenderCount; i++)
             camera.Render();
@@ -63,6 +65,8 @@ public class RenderPipelineManagerCallbackTests
     [Test]
     public void BeginAndEndCameraRenderingCallbackMatch_CustomRender()
     {
+        if (XRGraphicsAutomatedTests.enabled)
+            yield break;
         var camera = SetupTest();
         var additionalData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
         additionalData.customRender += (_, _) => { };
