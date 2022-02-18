@@ -126,7 +126,6 @@ The version number for this package has increased due to a version update of a r
 - Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
-- Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 - Fix IsFrontFace shader graph node for VFX.
 - Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
 - Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
