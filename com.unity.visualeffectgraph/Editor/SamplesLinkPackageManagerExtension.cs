@@ -1,16 +1,9 @@
-﻿#if UNITY_2018_2_OR_NEWER
-#define NEW_PACKMAN
 
 using System;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
-
-#if UNITY_2019_1_OR_NEWER
 using UnityEngine.UIElements;
-#else
-using UnityEngine.Experimental.UIElements;
-#endif
 
 [UnityEditor.InitializeOnLoad]
 internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
@@ -59,4 +52,3 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
     void IPackageManagerExtension.OnPackageRemoved(PackageInfo packageInfo) { }
 }
 
-#endif
