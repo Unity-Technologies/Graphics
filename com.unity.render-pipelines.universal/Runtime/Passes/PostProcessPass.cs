@@ -267,12 +267,12 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
         }
 
-        private void ResetHistory()
+        public void ResetHistory()
         {
             m_ResetHistory = true;
         }
 
-        private bool CanRunOnTile()
+        public bool CanRunOnTile()
         {
             // Check builtin & user effects here
             return false;

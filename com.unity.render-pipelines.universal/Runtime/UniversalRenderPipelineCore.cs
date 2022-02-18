@@ -217,6 +217,9 @@ namespace UnityEngine.Rendering.Universal
         internal XRPass xr;
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
+        [Obsolete("Please use xr.enabled instead.", true)]
+        public bool isStereoEnabled;
+
         public float maxShadowDistance;
         public bool postProcessEnabled;
 
@@ -517,6 +520,20 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
             return camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+        }
+
+        /// <summary>
+        /// Checks if a camera is rendering in stereo mode.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
+        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
+        public static bool IsStereoEnabled(Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         /// <summary>
