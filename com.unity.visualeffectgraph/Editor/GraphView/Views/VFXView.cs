@@ -2145,7 +2145,7 @@ namespace UnityEditor.VFX.UI
 
         private void SelectAssetInInspector()
         {
-            var inspector = EditorWindow.HasOpenInstances<InspectorWindow>() ? EditorWindow.GetWindow<InspectorWindow>() : null;
+            var inspector = EditorWindow.HasOpenInstances<InspectorWindow>() ? EditorWindow.GetWindow<InspectorWindow>(null, false) : null;
 
             if (inspector == null)
             {
