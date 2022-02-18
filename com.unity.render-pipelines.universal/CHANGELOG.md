@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing depth for Depth of Field in an overlay camera. [case 1365623](https://issuetracker.unity3d.com/product/unity/issues/guid/1365623/)
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed Screen Space Decal to work with fog. [1383719](https://issuetracker.unity3d.com/issues/decal-is-not-displayed-when-fog-is-enabled)
+- Fixed rendering on overlay cameras in 2d with no post-processing [case 1387283](https://issuetracker.unity3d.com/product/unity/issues/guid/1387283)
 
 ## [14.0.0] - 2021-11-17
 
