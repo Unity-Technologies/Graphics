@@ -98,39 +98,61 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Add(m_OptionsButton);
         }
 
+        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
         void OnSaveButton()
         {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return;
         }
 
+        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
         void OnSaveAsButton()
         {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return;
         }
 
         void OnShowInProjectButton()
         {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return;
+
             var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
             var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
             EditorGUIUtility.PingObject(asset);
         }
 
+        // TODO (Sai): Add implementation for this button
         void OnCheckOutButton()
         {
+            Debug.Log("Currently the Check Out button is unimplemented!");
         }
 
+        // TODO (Sai): Add implementation for this dropdown
         void OnColorModeChanged(ChangeEvent<Enum> evt)
         {
+            Debug.Log("Currently the Color Mode dropdown is unimplemented!");
         }
 
+        // TODO (Sai): Add implementation for this button
         void OnToggleBlackboardButton()
         {
+            Debug.Log("Currently the Toggle Blackboard button is unimplemented!");
         }
 
+        // TODO (Sai): Add implementation for this button
         void OnToggleInspectorButton()
         {
+            Debug.Log("Currently the Toggle Inspector button is unimplemented!");
         }
 
+        // TODO (Sai): Add implementation for this button
         void OnTogglePreviewButton()
         {
+            Debug.Log("Currently the Toggle Preview button is unimplemented!");
         }
 
         protected override void BuildOptionMenu(GenericMenu menu)
