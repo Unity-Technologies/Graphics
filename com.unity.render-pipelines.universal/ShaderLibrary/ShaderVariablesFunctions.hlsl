@@ -106,11 +106,6 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
     }
 }
 
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
-{
-    return normalize(GetWorldSpaceViewDir(positionWS));
-}
-
 // Computes the object space view direction (pointing towards the viewer).
 half3 GetObjectSpaceNormalizeViewDir(float3 positionOS)
 {
