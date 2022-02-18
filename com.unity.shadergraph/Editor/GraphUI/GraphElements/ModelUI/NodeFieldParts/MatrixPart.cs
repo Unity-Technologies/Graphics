@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -70,7 +71,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel, m_PortName, values));
+            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel, m_PortName, (GraphType.Length)m_Size, (GraphType.Height)m_Size, values));
         }
 
         protected override void BuildPartUI(VisualElement parent)
