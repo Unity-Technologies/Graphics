@@ -56,6 +56,27 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This setting controls if the camera editor should display the camera stack category.
+        /// If your renderer is not supporting stacking this one should return 0.
+        /// For the UI to show the Camera Stack widget this must support CameraRenderType.Base.
+        /// <see cref="CameraRenderType"/>
+        /// Returns the bitmask of the supported camera render types in the renderer's current state.
+        /// </summary>
+        public virtual int SupportedCameraStackingTypes()
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns true if the given camera render type is supported in the renderer's current state.
+        /// </summary>
+        /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
+        {
+            return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
+        }
+
+        /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }
@@ -72,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
             /// <see cref="CameraRenderType"/>
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             /// </summary>
+            [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead.", false)]
             public bool cameraStacking { get; set; } = false;
 
             /// <summary>
