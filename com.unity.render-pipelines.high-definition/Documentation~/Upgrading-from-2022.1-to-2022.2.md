@@ -26,3 +26,9 @@ Objects with Transparent Materials and a Refraction Model enabled now fall back 
 Previously, Materials did not contain a refraction result unless you configured a Reflection Probe and the GameObject was within the probe's extents.
 
 Unity now uses the bounding box of an object as a fallback approximation to compute the Refraction. When you upgrade a project, refractive objects that are not within the extents of a Reflection Probe demonstrate this improved behavior.
+
+## Material Ball
+
+The old material ball one has been modified to remove all references to the old logo.
+
+The new material ball with the new unity logo can be accessed from com.unity.render-pipelines.high-definition\Runtime\RenderPipelineResources\Prefab.
