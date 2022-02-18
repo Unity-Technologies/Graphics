@@ -67,14 +67,6 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. <br/>Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
 | **Area**        | Projects light from a surface. Light shines in all directions uniformly from the surface of the rectangle. |
 
-**Note**: Area Lights don't currently support Fabric or Hair Materials. This means they don't illuminate or cast shadows for Materials that use any of the following:
-
-* [Cotton/Wool Shader](cotton-wool-shader)
-* [Silk Shader](silk-shader)
-* [Hair Shader](hair-shader)
-* [Fabric Master Stack](master-stack-fabric)
-* [Hair Master Stack](master-stack-hair)
-
 <a name="Shape"></a>
 
 ### Shape
