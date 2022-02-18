@@ -96,10 +96,11 @@ namespace UnityEngine.Rendering
         internal List<BakingSet> bakingSets;
 
         [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
-        internal string lightingScenario => m_LightingScenario;
-
-        internal string m_OtherScenario = null;
+        string m_OtherScenario = null;
         internal float m_ScenarioBlendingFactor = 0.0f;
+
+        internal string lightingScenario => m_LightingScenario;
+        internal string otherScenario => m_OtherScenario;
 
         internal void SetActiveScenario(string scenario)
         {

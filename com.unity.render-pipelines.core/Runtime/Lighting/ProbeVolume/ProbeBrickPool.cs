@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering
 
         internal static void Initialize(in ProbeVolumeSystemParameters parameters)
         {
-            stateBlendShader = parameters.stateBlendShader;
+            stateBlendShader = parameters.scenarioBlendingShader;
             stateBlendKernel = stateBlendShader ? stateBlendShader.FindKernel("BlendStates") : -1;
         }
 

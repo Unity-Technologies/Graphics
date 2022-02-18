@@ -294,9 +294,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Shader offsetDebugShader;
         /// <summary>
-        /// The compute shader used to interpolate between two baking states.
+        /// The compute shader used to interpolate between two lighting scenarios.
+        /// Set to null if blending is not supported.
         /// </summary>
-        public ComputeShader stateBlendShader;
+        public ComputeShader scenarioBlendingShader;
         /// <summary>
         /// The <see cref="ProbeVolumeSceneData"/>
         /// </summary>
@@ -770,6 +771,8 @@ namespace UnityEngine.Rendering
         private int m_NumberOfCellsLoadedPerFrame = 2;
 #endif
 
+        internal int numberOfCellsLoadedPerFrame => m_NumberOfCellsLoadedPerFrame;
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeBlendingTextureMemoryBudget m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
@@ -793,7 +796,7 @@ namespace UnityEngine.Rendering
         public float scenarioBlendingFactor
         {
             get => sceneData.m_ScenarioBlendingFactor;
-            set => sceneData.BlendLightingScenario(sceneData.m_OtherScenario, value);
+            set => sceneData.BlendLightingScenario(sceneData.otherScenario, value);
         }
 
         /// <summary>Allows smooth transitions between two lighting scenarios. This only affects the runtime data used for lighting.</summary>
@@ -1522,7 +1525,7 @@ namespace UnityEngine.Rendering
             blendingCell.chunkList.Clear();
 
             // If no blending is needed, bypass the blending pool and directly udpate uploaded cells
-            bool bypassBlending = sceneData.m_OtherScenario == null || !cell.hasTwoScenarios;
+            bool bypassBlending = sceneData.otherScenario == null || !cell.hasTwoScenarios;
 
             // Try to allocate texture space
             if (!bypassBlending && !m_BlendingPool.Allocate(ProbeBrickPool.GetChunkCount(bricks.Length), blendingCell.chunkList))

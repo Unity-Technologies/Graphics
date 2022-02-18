@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
+        public int otherStateIndex = 0;
     }
 
     public partial class ProbeReferenceVolume
@@ -82,6 +83,7 @@ namespace UnityEngine.Rendering
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
         Plane[] m_DebugFrustumPlanes = new Plane[6];
+        GUIContent[] m_ScenarioNames = new GUIContent[0];
 
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
@@ -233,6 +235,8 @@ namespace UnityEngine.Rendering
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
+            streamingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Loaded Per Frame", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 0 });
+
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
@@ -245,6 +249,58 @@ namespace UnityEngine.Rendering
             if (parameters.supportStreaming)
             {
                 widgetList.Add(streamingContainer);
+            }
+
+            if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
+            {
+                HashSet<string> allScenarios = new();
+                foreach (var set in parameters.sceneData.bakingSets)
+                {
+                    foreach (var scenario in set.lightingScenarios)
+                        allScenarios.Add(scenario);
+                }
+
+                int i = 0;
+                ArrayExtensions.ResizeArray(ref m_ScenarioNames, allScenarios.Count + 1);
+                var enumValues = new int[m_ScenarioNames.Length];
+                m_ScenarioNames[0] = new GUIContent("None");
+                enumValues[0] = 0;
+                foreach (var scenario in allScenarios)
+                {
+                    i++;
+                    m_ScenarioNames[i] = new GUIContent(scenario);
+                    enumValues[i] = i;
+                }
+
+                var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
+                blendingContainer.children.Add(new DebugUI.EnumField { displayName = "Scenario To Blend With", enumNames = m_ScenarioNames, enumValues = enumValues,
+                    getIndex = () => {
+                        debugDisplay.otherStateIndex = 0;
+                        if (!string.IsNullOrEmpty(sceneData.otherScenario))
+                        {
+                            for (int i = 1; i < m_ScenarioNames.Length; i++)
+                            {
+                                if (m_ScenarioNames[i].text == sceneData.otherScenario)
+                                {
+                                    debugDisplay.otherStateIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        return debugDisplay.otherStateIndex;
+                    },
+                    setIndex = value => {
+                        string other = value == 0 ? null : m_ScenarioNames[value].text;
+                        sceneData.BlendLightingScenario(other, sceneData.m_ScenarioBlendingFactor);
+                        debugDisplay.otherStateIndex = value;
+                    },
+                    getter = () => debugDisplay.otherStateIndex,
+                    setter = (value) => debugDisplay.otherStateIndex = value,
+                });
+
+                blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Scenario Blending Factor", getter = () => instance.scenarioBlendingFactor, setter = value => instance.scenarioBlendingFactor = value, min = () => 0.0f, max = () => 1.0f });
+
+                widgetList.Add(blendingContainer);
             }
 
             if (widgetList.Count > 0)
