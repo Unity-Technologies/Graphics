@@ -62,7 +62,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var fdMethod = t.GetMethod(m);
                     if (t != interfaceType && fdMethod != null)
                     {
-                        var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
+                        var fd = ((IStandardNode)Activator.CreateInstance(t)).FunctionDescriptor;
+                        //var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
                         RegistryInstance.Register(fd);
                     }
                 }

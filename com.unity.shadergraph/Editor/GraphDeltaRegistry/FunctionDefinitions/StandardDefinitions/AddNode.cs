@@ -6,7 +6,7 @@ namespace com.unity.shadergraph.defs
 
     internal class AddNode : IStandardNode
     {
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
             "Add", // Name
             "Out = A + B;",
@@ -15,7 +15,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
-        public static Dictionary<string, string> UIStrings => new()
+        public Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "Addition, Sum" },
             { "Tooltip", "Addition Function" },
