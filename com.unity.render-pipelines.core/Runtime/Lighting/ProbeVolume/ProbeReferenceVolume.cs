@@ -396,6 +396,7 @@ namespace UnityEngine.Rendering
             public NativeArray<byte> validityNeighMaskData { get; internal set; }
             public NativeArray<Vector3> probePositionsOld { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<Vector3> offsetVectorsOld { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
             public NativeArray<float> validity { get; internal set; }
 

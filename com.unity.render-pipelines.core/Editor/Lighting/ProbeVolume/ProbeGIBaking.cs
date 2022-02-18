@@ -946,7 +946,7 @@ namespace UnityEngine.Rendering
                 validityOld = cell.validityOld.ToArray(),
                 validity = cell.validity.ToArray(),
                 validityNeighbourMask = cell.validityNeighMaskData.ToArray(),
-                offsetVectors = cell.offsetVectors.ToArray(),
+                offsetVectors = cell.offsetVectorsOld.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
@@ -1155,7 +1155,8 @@ namespace UnityEngine.Rendering
             using var positionsOld = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var offsetsOld = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var offsets = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
             var startCounts = new ProbeVolumeAsset.CellCounts();
@@ -1206,6 +1207,7 @@ namespace UnityEngine.Rendering
                     var validityNeighboorMaskChunkTarget = validityNeighbourMask.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var offsetChunkTarget = offsets.GetSubArray(chunkSizeInProbes, chunkSizeInProbes);
 
                     NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
                     NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
@@ -1246,6 +1248,7 @@ namespace UnityEngine.Rendering
                                         validityNeighboorMaskChunkTarget[index] = 0;
                                         validityChunkTarget[index] = 0.0f;
                                         positionsChunkTarget[index] = Vector3.zero;
+                                        offsetChunkTarget[index] = Vector3.zero;
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                             WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
@@ -1260,6 +1263,7 @@ namespace UnityEngine.Rendering
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
+                                        offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                         {
@@ -1295,7 +1299,7 @@ namespace UnityEngine.Rendering
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
                 validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validityOld);
                 positionsOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
-                offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
+                offsetsOld.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
                 startCounts.Add(cellCounts);
             }
@@ -1346,6 +1350,8 @@ namespace UnityEngine.Rendering
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(offsetsOld.GetUnsafeReadOnlyPtr(), offsetsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
                 }
