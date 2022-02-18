@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decal compilation issue on mac.
 - Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
 
+## Fixed
+- Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
+
 ## [13.1.4] - 2021-12-04
 
 ### Fixed
