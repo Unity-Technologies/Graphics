@@ -4,6 +4,8 @@ The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.md#Cha
 
 This document describes the format of the mask map and detail map so that you can author your own to use in HDRP.
 
+**Note**: When you import your texture into Unity, in the **Image Importer** Inspector window, make sure you disable **sRGB (Color Texture)** and you set **Texture Type** to **Default**.
+
 <a name="MaskMap"></a>
 
 ## Mask map
@@ -17,25 +19,17 @@ The mask map contains four grayscale textures, one in each color channel. The de
 | **Blue**          | Detail mask |
 | **Alpha**         | Smoothness  |
 
+To create a mask map, create a linear composited map in a photo editor, using the channels as described in the table above.
+
 The following example image demonstrates the individual components of a full mask map.
 
 ![](Images/MaskMapAndDetailMap2.png)
-
-To create a mask map using Adobe Photoshop:
-
-1. Import your grayscale textures onto separate layers.
-2. Hide all layers except one.
-3. Under **Adjustments**, select **Curves**.
-4. Set the outputs of the channels to 0 and the inputs to 4, apart from the channel you are using for your texture. For information about which texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
-5. Repeat steps 3 to 6 for your other layers.
-6. Export your image.
-7. When you import the image into Unity, in the **Image Importer** Inspector window, make sure you deselect **sRGB (Color Texture)** and you set **Texture Type** to **Default**.
 
 <a name="DetailMap"></a>
 
 ## Detail map
 
-The detail map enables you to overlay a second set of textures on top of the base surface information. Typically, the detail map scales several times across the object’s surface to add small details to a material. The detail map contains two grayscale textures and one two-component texture, which is the Material's detail normal map. When you import the detail map, disable the **sRGB** checkbox in the **Import Settings** window to make it work as expected.
+The detail map enables you to overlay a second set of textures on top of the base surface information. Typically, the detail map scales several times across the object’s surface to add small details to a material. The detail map contains two grayscale textures and one two-component texture, which is the Material's detail normal map.
 
 | **Color channel** | **Map**            |
 | ----------------- | ------------------ |
@@ -43,6 +37,8 @@ The detail map enables you to overlay a second set of textures on top of the bas
 | **Green**         | Normal Y           |
 | **Blue**          | Smoothness         |
 | **Alpha**         | Normal X           |
+
+To create a detail map, create a linear composited map in a photo editor, using the channels as described in the table above.
 
 The following example image demonstrates the individual components of a full detail map.
 
