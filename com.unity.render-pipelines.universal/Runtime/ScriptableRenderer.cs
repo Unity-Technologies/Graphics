@@ -852,6 +852,14 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, Profiling.addRenderPasses);
 
+            // Disable Native RenderPass for any passes that were directly injected prior to our passes and renderer features
+            int count = activeRenderPassQueue.Count;
+            for (int i = 0; i < count; i++)
+            {
+                if (activeRenderPassQueue[i] != null)
+                    activeRenderPassQueue[i].useNativeRenderPass = false;
+            }
+
             // Add render passes from custom renderer features
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -868,7 +876,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Remove any null render pass that might have been added by user by mistake
-            int count = activeRenderPassQueue.Count;
+            count = activeRenderPassQueue.Count;
             for (int i = count - 1; i >= 0; i--)
             {
                 if (activeRenderPassQueue[i] == null)
