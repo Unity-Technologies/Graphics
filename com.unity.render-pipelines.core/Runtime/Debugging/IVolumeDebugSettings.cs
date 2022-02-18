@@ -14,10 +14,13 @@ namespace UnityEngine.Rendering
         int selectedComponent { get; set; }
 
         /// <summary>Current camera to debug.</summary>
-        Camera selectedCamera { get; set; }
+        Camera selectedCamera { get; }
 
         /// <summary>Returns the collection of registered cameras.</summary>
         IEnumerable<Camera> cameras { get; }
+
+        /// <summary>Selected camera index.</summary>
+        int selectedCameraIndex { get; set; }
 
         /// <summary>Selected camera volume stack.</summary>
         VolumeStack selectedCameraVolumeStack { get; }

@@ -1,0 +1,114 @@
+Pass
+{
+    $splice(PassName)
+
+// Render State
+$splice(RenderState)
+
+// Debug
+$splice(Debug)
+
+// --------------------------------------------------
+// Pass
+
+HLSLPROGRAM
+
+// Pragmas
+$splice(PassPragmas)
+// #pragma enable_d3d11_debug_symbols
+
+$splice(DotsInstancingOptions)
+$splice(HybridV1InjectedBuiltinProperties)
+
+// Keywords
+$splice(PassKeywords)
+$splice(GraphKeywords)
+
+#define FULLSCREEN_SHADERGRAPH
+
+// Defines
+$SurfaceType.Transparent:           // UBER SHADER NOW:  #define _SURFACE_TYPE_TRANSPARENT 1
+$Attributes.normalOS: #define ATTRIBUTES_NEED_NORMAL
+$Attributes.tangentOS: #define ATTRIBUTES_NEED_TANGENT
+$Attributes.uv0: #define ATTRIBUTES_NEED_TEXCOORD0
+$Attributes.uv1: #define ATTRIBUTES_NEED_TEXCOORD1
+$Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
+$Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
+$Attributes.color: #define ATTRIBUTES_NEED_COLOR
+$Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+$Varyings.positionWS: #define VARYINGS_NEED_POSITION_WS
+$Varyings.normalWS: #define VARYINGS_NEED_NORMAL_WS
+$Varyings.tangentWS: #define VARYINGS_NEED_TANGENT_WS
+$Varyings.texCoord0: #define VARYINGS_NEED_TEXCOORD0
+$Varyings.texCoord1: #define VARYINGS_NEED_TEXCOORD1
+$Varyings.texCoord2: #define VARYINGS_NEED_TEXCOORD2
+$Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
+$Varyings.color: #define VARYINGS_NEED_COLOR
+$Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
+$Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
+$Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
+$Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+$Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
+$features.graphVertex: #define FEATURES_GRAPH_VERTEX
+
+// Force depth texture because we need it for almost every nodes
+// TODO: dependency system that triggers this define from position or view direction usage
+#define REQUIRE_DEPTH_TEXTURE
+#define REQUIRE_NORMAL_TEXTURE
+
+$splice(PassInstancing)
+$splice(GraphDefines)
+
+// custom interpolator pre-include
+$splice(sgci_CustomInterpolatorPreInclude)
+
+// Includes
+$splice(PreGraphIncludes)
+
+// --------------------------------------------------
+// Structs and Packing
+
+// custom interpolators pre packing
+$splice(CustomInterpolatorPrePacking)
+
+$splice(PassStructs)
+
+$splice(InterpolatorPack)
+
+// --------------------------------------------------
+// Graph
+
+// Graph Properties
+$splice(GraphProperties)
+
+// Graph Includes
+$splice(GraphIncludes)
+
+// Graph Functions
+$splice(GraphFunctions)
+
+// Custom interpolators pre vertex
+$splice(CustomInterpolatorPreVertex)
+
+// Graph Vertex
+$splice(GraphVertex)
+
+// Custom interpolators, pre surface
+$splice(CustomInterpolatorPreSurface)
+
+// Graph Pixel
+$splice(GraphPixel)
+
+// --------------------------------------------------
+// Build Graph Inputs
+
+$features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
+$features.graphPixel: $include("SharedCode.template.hlsl")
+
+// --------------------------------------------------
+// Main
+
+$splice(PostGraphIncludes)
+
+ENDHLSL
+}
