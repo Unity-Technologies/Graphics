@@ -57,7 +57,7 @@ This part shows how to create a scriptable Renderer Feature and implement the me
 4. The class must implement the following methods:
 
     * `Create`: Unity calls this method on the following events:
-    
+
         * When the Renderer Feature loads the first time.
 
         * When you enable or disable the Renderer Feature.
@@ -82,11 +82,11 @@ public class LensFlareRendererFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer,
     ref RenderingData renderingData)
-    { }    
+    { }
 }
 ```
 
-Add the Renderer Feature you created to the the Universal Renderer asset. [Follow this link to read how to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md). 
+Add the Renderer Feature you created to the the Universal Renderer asset. [Follow this link to read how to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
 
 ![Add the Lens Flare Renderer Feature to the Universal Renderer.](../Images/customizing-urp/custom-renderer-feature/add-new-renderer-feature.png)<br/>*Add the Lens Flare Renderer Feature to the Universal Renderer.*
 
@@ -184,7 +184,7 @@ This part shows how to implement custom logic in the Execute method.
     context.ExecuteCommandBuffer(cmd);
     CommandBufferPool.Release(cmd);
     ```
-    
+
     Now the boilerplate part is ready and we can proceed to implementing the custom rendering logic.
 
 The following steps implement the custom rendering logic.
@@ -319,7 +319,7 @@ This section shows how to create a Material for the lens flare effect and how to
 The following steps show the changes that are specific to the effect implementation in this example. They are for illustrative purposes.
 
 1. Add the following lines in the `Execute` method. Place them after the `cmd` object declaration. These lines ensure that Unity draws the quad with the flare in the following way:
-    
+
     <ul>
         <li>In the screen space.</li>
         <li>With the correct aspect ratio.</li>
