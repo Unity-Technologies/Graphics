@@ -11,7 +11,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
     name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -52,7 +52,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
     name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -93,7 +93,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -134,7 +134,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

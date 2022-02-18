@@ -11,7 +11,7 @@ Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk:
     name: Universal_BatchRendererGroup on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -42,7 +42,7 @@ Build_Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build Universal_BatchRendererGroup on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -78,7 +78,7 @@ Universal_BatchRendererGroup_Win_DX11_playmode_mono_Linear_trunk:
     name: Universal_BatchRendererGroup on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -111,7 +111,7 @@ Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_BatchRendererGroup on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -142,7 +142,7 @@ Build_Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISI
     name: Build Universal_BatchRendererGroup on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -178,7 +178,7 @@ Universal_BatchRendererGroup_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: Universal_BatchRendererGroup on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
