@@ -61,7 +61,7 @@ Path tracing changes how the following Material properties behave in your scene:
 - [How light refracts in transmissive objects](#refraction-models)
 - [Subsurface scattering](#subsurface-scattering)
 
-This is because path tracing in HDRP implements more precise light transport simulations than rasterization. To do this, path tracing computes all lighting effects and how light interacts with Materials at the same time.This means path tracing makes the Material appear darker than in a rasterized scene.
+This is because path tracing in HDRP implements more precise light transport simulations than rasterization. To do this, path tracing computes all lighting effects and how light interacts with Materials at the same time. This changes the appearance of Materials in path-traced scenes. For example, in the images below, the Material appears darker.
 
 The images below display the difference between transparent, double-sided materials in a rasterized and a path-traced scene:
 
@@ -69,7 +69,7 @@ The images below display the difference between transparent, double-sided materi
 
 GameObjects without path tracing (rasterized).
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Raster.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_PathTraced.png)
 
 GameObjects with path tracing enabled.
 
