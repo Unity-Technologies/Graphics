@@ -14,7 +14,8 @@ namespace UnityEditor.Rendering.Universal
     public abstract class ScriptableRendererFeaturePropertyDrawer : PropertyDrawer
     {
         private bool toggle = true;
-        private static Dictionary<long, float> typeSizeMap = new();
+        //protected static Dictionary<long, SerializedProperty> rendererFeaturePropMap = new(); TODO investigate if this caching is posible.
+        protected static Dictionary<long, float> rendererFeaturePropSizeMap = new();
 
         private struct Styles
         {
@@ -32,7 +33,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(position, label, property);
             toggle = shouldToggle(property);
             OnGUIHelper(ref position, property, label);
-            typeSizeMap[property.managedReferenceId] = position.y - startHeight;
+            rendererFeaturePropSizeMap[property.managedReferenceId] = position.y - startHeight;
             EditorGUI.EndProperty();
         }
 
@@ -72,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
 
         public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return typeSizeMap.TryGetValue(property.managedReferenceId, out var value) ? value : EditorGUIUtility.singleLineHeight + 2;
+            return rendererFeaturePropSizeMap.TryGetValue(property.managedReferenceId, out var value) ? value : EditorGUIUtility.singleLineHeight + 2;
         }
 
         protected static void DrawProperty(ref Rect position, SerializedProperty property, GUIContent content)
