@@ -10,7 +10,7 @@
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
 // Define the correct matrices
-#ifndef UNITY_DOTS_INSTANCING_ENABLED
+#if !defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
 
 #undef unity_ObjectToWorld
 #undef unity_MatrixPreviousM
@@ -42,7 +42,6 @@ float4x4 glstate_matrix_projection;
 
 #undef UNITY_MATRIX_P
 #define UNITY_MATRIX_P glstate_matrix_projection
-
 
 // Overwrite the SpaceTransforms functions
 #define GetObjectToWorldMatrix GetObjectToWorldMatrix_Picking
@@ -98,6 +97,9 @@ float4x4 ScenePickingGetCameraViewProjMatrix()
 #undef UNITY_SPACE_TRANSFORMS_INCLUDED
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
+#if defined(HAVE_VFX_MODIFICATION)
+#define VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX 1
+#endif
 
 #endif
 #endif

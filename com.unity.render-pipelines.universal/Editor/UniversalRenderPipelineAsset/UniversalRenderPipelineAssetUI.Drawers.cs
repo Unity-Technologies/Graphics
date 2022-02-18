@@ -476,8 +476,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
-
-            EditorGUILayout.PropertyField(serialized.useScreenCoordOverride, Styles.useScreenCoordOverride);
         }
 
         static void DrawPostProcessingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

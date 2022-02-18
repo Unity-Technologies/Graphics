@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering
         /// <param name="index">The zero-based starting index of the range of elements to remove</param>
         /// <param name="count">The number of elements to remove.</param>
         /// <param name="error">The exception raised by the implementation</param>
-        /// <typeparam name="TList">The type of the input list</typeparam>
         /// <typeparam name="TValue">The value type stored on the list</typeparam>
         /// <returns>True if succeed, false otherwise</returns>
         [CollectionAccess(CollectionAccessType.ModifyExistingContent)]

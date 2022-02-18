@@ -104,10 +104,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/240_DepthPriming.unity
     guid: 06d3d04c77b97ba40969b415bc9a25dd
-  - enabled: 1
-    path: Assets/Scenes/250_ScreenCoordOverrideRenderPass.unity
-    guid: 730b87866923e784fb8f8eb057d3ddcb
-  - enabled: 1
-    path: Assets/Scenes/251_ScreenCoordOverridePostProcess.unity
-    guid: edebe9dafa8a5764185b64def86b98a7
   m_configObjects: {}
