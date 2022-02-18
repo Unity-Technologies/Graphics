@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         FSR
     }
 
+    /// <summary>
     /// Struct that flattens several rendering settings used to render a camera stack.
     /// URP builds the <c>RenderingData</c> settings from several places, including the pipeline asset, camera and light settings.
     /// The settings also might vary on different platforms and depending on if Adaptive Performance is used.
