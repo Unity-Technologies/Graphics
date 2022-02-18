@@ -15,14 +15,14 @@ namespace UnityEngine.Rendering
         Vector3 m_FrozenCameraPosition;
 
         float m_TransitionTimeToLerpFactor;
-        float m_BakingStateLerpFactor = 1.0f;
+        float m_ScenarioLerpFactor = 1.0f;
         bool m_HasRemainingCellsToBlend = false;
-        internal float stateTransitionTime
+        internal float transitionTime
         {
             set
             {
                 m_TransitionTimeToLerpFactor = value > 0.0f ? 1.0f / value : 0.0f;
-                m_BakingStateLerpFactor = value > 0.0f ? 0.0f : 1.0f;
+                m_ScenarioLerpFactor = value > 0.0f ? 0.0f : 1.0f;
                 m_HasRemainingCellsToBlend = false;
                 // Abort any blending operation in progress
                 UnloadAllBlendingCells();
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < cells.size; ++i)
             {
                 var cellInfo = cells[i].cellInfo;
-                if (m_BakingStateLerpFactor >= 1.0f && cells[i].blendingFactor >= 1.0f) // Finished blending
+                if (m_ScenarioLerpFactor >= 1.0f && cells[i].blendingFactor >= 1.0f) // Finished blending
                 {
                     cells[i].streamingScore = float.MaxValue;
                 }
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering
                     // to leave room for other cells (only useful for very slow transitions)
                     cells[i].streamingScore = cellInfo.streamingScore;
                     if (areUploaded)
-                        cells[i].blendingFactor = m_BakingStateLerpFactor;
+                        cells[i].blendingFactor = m_ScenarioLerpFactor;
                 }
             }
         }
@@ -201,13 +201,13 @@ namespace UnityEngine.Rendering
 
             // Handle cell streaming for blending
             if (UpdateBlendingCellStreaming())
-                m_BlendingPool.PerformBlending(m_BakingStateLerpFactor, m_Pool);
+                m_BlendingPool.PerformBlending(m_ScenarioLerpFactor, m_Pool);
         }
 
         void TickBlending()
         {
             // Compute lerping factor between states
-            if (m_BakingStateLerpFactor < 1.0f)
+            if (m_ScenarioLerpFactor < 1.0f)
             {
                 float deltaTime = Time.deltaTime;
 #if UNITY_EDITOR
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
                     deltaTime = 0.033f;
 #endif
 
-                m_BakingStateLerpFactor = Mathf.Min(m_BakingStateLerpFactor + deltaTime * m_TransitionTimeToLerpFactor, 1.0f);
+                m_ScenarioLerpFactor = Mathf.Min(m_ScenarioLerpFactor + deltaTime * m_TransitionTimeToLerpFactor, 1.0f);
             }
         }
 
@@ -225,11 +225,11 @@ namespace UnityEngine.Rendering
             {
                 if (!m_HasRemainingCellsToBlend)
                     return false;
-                if (m_BakingStateLerpFactor < 1.0f)
+                if (m_ScenarioLerpFactor < 1.0f)
                     return m_LoadedBlendingCells.size != 0;
 
                 for (int i = 0; i < m_LoadedBlendingCells.size; ++i)
-                    m_LoadedBlendingCells[i].blendingFactor = m_BakingStateLerpFactor;
+                    m_LoadedBlendingCells[i].blendingFactor = m_ScenarioLerpFactor;
                 m_HasRemainingCellsToBlend = false;
                 return true;
             }

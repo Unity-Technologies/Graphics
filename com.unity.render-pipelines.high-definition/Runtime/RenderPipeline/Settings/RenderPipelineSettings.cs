@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightProbeSystem lightProbeSystem;
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
-        /// <summary>Probe Volume Blending Memory Budget.</summary>
+        /// <summary>Probe Volume Memory Budget for scenario blending.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
