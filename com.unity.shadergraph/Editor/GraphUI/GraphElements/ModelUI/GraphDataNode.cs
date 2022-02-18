@@ -37,6 +37,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
                 }
+
+                if (length == GraphType.Length.One)
+                {
+                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
+                    switch (primitive)
+                    {
+                        case GraphType.Primitive.Bool:
+                            // TODO: Checkbox
+                            break;
+                        case GraphType.Primitive.Int:
+                            PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
+                            break;
+                        case GraphType.Primitive.Float:
+                            PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                            break;
+                        case GraphType.Primitive.Any:
+                        default:
+                            break;
+                    }
+                }
             }
 
             // GraphType:
