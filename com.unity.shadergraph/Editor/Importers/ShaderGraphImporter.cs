@@ -190,7 +190,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             if (shader != null)
             {
-                Material material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) + " Material" };
+                Material material = new Material(shader) { name = "Material/" + Path.GetFileNameWithoutExtension(path) };
                 ctx.AddObjectToAsset("Material", material);
             }
 

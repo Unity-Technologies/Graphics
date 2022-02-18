@@ -9,7 +9,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.29",
+    "com.unity.test-framework": "1.1.30",
     "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
     "com.unity.timeline": "1.2.9",
