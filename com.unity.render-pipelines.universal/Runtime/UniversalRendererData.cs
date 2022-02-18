@@ -72,6 +72,9 @@ namespace UnityEngine.Rendering.Universal
 
         const int k_LatestAssetVersion = 2;
         [SerializeField] int m_AssetVersion = 0;
+        [SerializeField] bool m_RequireDepthTexture = false;
+        [SerializeField] bool m_RequireOpaqueTexture = false;
+        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
@@ -141,6 +144,15 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
             return new UniversalRenderer(this);
+        }
+
+
+        public bool supportsCameraOpaqueTexture { get { return m_RequireDepthTexture; } set { m_RequireDepthTexture = value; } }
+        public bool supportsCameraDepthTexture { get { return m_RequireOpaqueTexture; } set { m_RequireOpaqueTexture = value; } }
+
+        public Downsampling opaqueDownsampling
+        {
+            get { return m_OpaqueDownsampling; }
         }
 
         public LightRenderingMode mainLightRenderingMode

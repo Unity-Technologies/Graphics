@@ -552,7 +552,6 @@ namespace UnityEngine.Rendering.Universal
             return Mathf.Max(UniversalRenderPipeline.minRenderScale, Mathf.Min(value, UniversalRenderPipeline.maxRenderScale));
         }
 
-
         public virtual bool supportsCameraOpaqueTexture { get { return false; } set { } }
         public virtual bool supportsCameraDepthTexture { get { return false; } set { } }
 

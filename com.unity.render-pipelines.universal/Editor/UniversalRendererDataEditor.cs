@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.Universal
 
     class CachedUniversalRendererDataEditor : CachedScriptableRendererDataEditor
     {
+        public SerializedProperty depthTextureProp;
+        public SerializedProperty opaqueTextureProp;
+        public SerializedProperty opaqueTextureDownsamplingProp;
         public SerializedProperty opaqueLayerMask;
         public SerializedProperty transparentLayerMask;
         public SerializedProperty renderingMode;
@@ -71,6 +74,10 @@ namespace UnityEditor.Rendering.Universal
         public CachedUniversalRendererDataEditor(SerializedProperty serializedProperty)
             : base(serializedProperty)
         {
+            depthTextureProp = serializedProperty.FindPropertyRelative("m_RequireDepthTexture");
+            opaqueTextureProp = serializedProperty.FindPropertyRelative("m_RequireOpaqueTexture");
+            opaqueTextureDownsamplingProp = serializedProperty.FindPropertyRelative("m_OpaqueDownsampling");
+
             opaqueLayerMask = serializedProperty.FindPropertyRelative("m_OpaqueLayerMask");
             transparentLayerMask = serializedProperty.FindPropertyRelative("m_TransparentLayerMask");
             renderingMode = serializedProperty.FindPropertyRelative("m_RenderingMode");
@@ -134,6 +141,9 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows", "Settings that configure how shadows look and behave, and can be used to balance between the visual quality and performance of shadows.");
             public static GUIContent rendererFeatureSettingsText = EditorGUIUtility.TrTextContent("Renderer Features", "Settings that configure the renderer features used by the renderer.");
 
+            public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
+            public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
+            public static GUIContent opaqueDownsamplingText = EditorGUIUtility.TrTextContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
 
             public static readonly GUIContent RendererTitle = EditorGUIUtility.TrTextContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
             public static readonly GUIContent FilteringSectionLabel = EditorGUIUtility.TrTextContent("Filtering", "Settings that controls and define which layers the renderer draws.");
@@ -241,6 +251,14 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRendererAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor) { }
         static void DrawGeneral(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
+            EditorGUILayout.PropertyField(cachedEditorData.depthTextureProp, Styles.requireDepthTextureText);
+            EditorGUILayout.PropertyField(cachedEditorData.opaqueTextureProp, Styles.requireOpaqueTextureText);
+            if (cachedEditorData.opaqueTextureProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(cachedEditorData.opaqueTextureDownsamplingProp, Styles.opaqueDownsamplingText);
+                EditorGUI.indentLevel--;
+            }
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(cachedEditorData.opaqueLayerMask, Styles.OpaqueMask);

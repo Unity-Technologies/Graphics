@@ -101,16 +101,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] float m_RenderScale = 1.0f;
 
-        //General Settings
-        [SerializeField] bool m_RequireDepthTexture = false;
-        [SerializeField] bool m_RequireOpaqueTexture = false;
-        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
-
-
-
-
-
-
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
         static List<int> m_ShadowResolutionData = new List<int>();
@@ -118,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
 
         public Downsampling opaqueDownsampling
         {
-            get { return m_OpaqueDownsampling; }
+            get { return rendererData.opaqueDownsampling; }
         }
 
 
@@ -393,8 +383,8 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
-        public override bool supportsCameraOpaqueTexture { get { return m_RequireOpaqueTexture; } set { m_RequireOpaqueTexture = value; } }
-        public override bool supportsCameraDepthTexture { get { return m_RequireDepthTexture; } set { m_RequireDepthTexture = value; } }
+        public override bool supportsCameraOpaqueTexture { get { return rendererData.supportsCameraOpaqueTexture; } set { rendererData.supportsCameraOpaqueTexture = value; } }
+        public override bool supportsCameraDepthTexture { get { return rendererData.supportsCameraOpaqueTexture; } set { rendererData.supportsCameraOpaqueTexture = value; } }
 
         public override void InitializeRenderingDataFunc(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, out RenderingData renderingData)
@@ -1057,7 +1047,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
-                Downsampling downsamplingMethod = m_OpaqueDownsampling;
+                Downsampling downsamplingMethod = rendererData.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }

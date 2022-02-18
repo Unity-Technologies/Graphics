@@ -11,7 +11,6 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty requireDepthTextureProp { get; }
         public SerializedProperty requireOpaqueTextureProp { get; }
-        public SerializedProperty opaqueDownsamplingProp { get; }
 
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }

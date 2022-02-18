@@ -34,8 +34,6 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty useNativeRenderPass { get; }
 
-        public SerializedProperty debugLevelProp { get; }
-
         public SerializedProperty shaderVariantLogLevel { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
@@ -79,8 +77,6 @@ namespace UnityEditor.Rendering.Universal
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
 
-
-            debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");

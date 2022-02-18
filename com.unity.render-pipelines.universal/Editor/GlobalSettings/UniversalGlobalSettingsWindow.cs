@@ -355,7 +355,6 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
                     EditorGUILayout.Space();
                     EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
-                    EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
                     if (changed.changed)
                     {
                         serialized.serializedObject?.ApplyModifiedProperties();

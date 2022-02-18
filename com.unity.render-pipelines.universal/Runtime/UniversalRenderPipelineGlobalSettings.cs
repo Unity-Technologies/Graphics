@@ -213,8 +213,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsTerrainHoles; }
         }
 
-
-        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
         public ShaderVariantLogLevel shaderVariantLogLevel
         {
