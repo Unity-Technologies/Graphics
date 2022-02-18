@@ -25,4 +25,26 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
     }
+
+    internal class TempIntNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TempInt", // Name
+            "Out = float4(In, In, In, In);",
+            new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TempFloatNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TempFloat", // Name
+            "Out = float4(In, In, In, In);",
+            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
 }
