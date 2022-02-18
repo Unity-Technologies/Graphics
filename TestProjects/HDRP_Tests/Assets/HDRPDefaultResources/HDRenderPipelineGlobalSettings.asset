@@ -73,7 +73,6 @@ MonoBehaviour:
   - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
-  - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses:
   - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   lightLayerName0: Light Layer default
@@ -137,7 +136,7 @@ MonoBehaviour:
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
-      bakingStates:
+      lightingScenarios:
       - Default
-    m_BakingState: Default
+    m_LightingScenario: Default
   m_Version: 3

@@ -136,9 +136,6 @@ namespace UnityEngine.Rendering.Universal
         public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
-        internal bool useScreenCoordOverride;
-        internal Vector4 screenSizeOverride;
-        internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
         internal int pixelHeight;
         internal float aspectRatio;
@@ -218,6 +215,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal XRPass xr;
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
+
+        [Obsolete("Please use xr.enabled instead.", true)]
+        public bool isStereoEnabled;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
@@ -346,8 +346,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
-        public static readonly int screenCoordScaleBias = Shader.PropertyToID("_ScreenCoordScaleBias");
-        public static readonly int screenSizeOverride = Shader.PropertyToID("_ScreenSizeOverride");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
@@ -492,8 +490,6 @@ namespace UnityEngine.Rendering.Universal
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
-
-        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -523,6 +519,20 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
             return camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+        }
+
+        /// <summary>
+        /// Checks if a camera is rendering in stereo mode.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
+        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
+        public static bool IsStereoEnabled(Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         /// <summary>

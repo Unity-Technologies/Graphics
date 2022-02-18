@@ -65,94 +65,76 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteContextWithBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
-
+            // Create a BasicInitialize context
+            var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
-
             m_ViewController.ApplyChanges();
-
-            Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
-
-            var contextController = m_ViewController.allChildren.OfType<VFXContextController>().First();
-
+            Assert.AreEqual(1, m_ViewController.allChildren.Count(t => t is VFXContextController));
+            var contextController = m_ViewController.allChildren.OfType<VFXContextController>().Single();
             Assert.AreEqual(contextController.model, newContext);
 
+            // Add a block to that context
             var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
-
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
-
             m_ViewController.ApplyChanges();
 
+            // Select the created context (which now contains a single block)
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
             VFXView view = window.graphView;
             view.controller = m_ViewController;
-
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
             {
                 view.AddToSelection(element);
             }
 
+            // Set the original block slot values
             VFXSlot boundsSlot = newContext.GetInputSlot(0);
-
-            AABox originalBounds = new AABox() { center = Vector3.one, size = Vector3.one * 10 };
+            AABox originalBounds = new AABox { center = Vector3.one, size = Vector3.one * 10 };
             boundsSlot.value = originalBounds;
-
             VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().model;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
-
-
             float originalMinValue = 123.456f;
             minValueSlot.value = originalMinValue;
 
+            // Copy selection
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-
-            boundsSlot.value = new AABox() { center = Vector3.zero, size = Vector3.zero };
+            // Than change value to check the original value is pasted (not the modified one after copy)
+            boundsSlot.value = new AABox { center = Vector3.zero, size = Vector3.zero };
             minValueSlot.value = 789f;
 
+            // Paste selection
             view.UnserializeAndPasteElements("paste", copyData);
-            var elements = view.Query().OfType<GraphElement>().ToList();
 
-            var contexts = elements.OfType<VFXContextUI>().ToArray();
-            var copyContext = elements.OfType<VFXContextUI>().Select(t => t.controller).First(t => t.model != newContext).model;
+            // Get the only context that has a different model than the original one (which means it's the context that we just pasted)
+            var copyContextModel = view.Query()
+                .OfType<VFXContextUI>()
+                .ToList()
+                .Select(x => x.controller)
+                .Single(x => x.model != newContext).model;
 
-            var copyBoundsSlot = copyContext.GetInputSlot(0);
-            var copyMinSlot = copyContext[0].GetInputSlot(0);
+            var copyBoundsSlot = copyContextModel.GetInputSlot(0);
+            var copyMinSlot = copyContextModel[0].GetInputSlot(0);
 
             Assert.AreEqual((AABox)copyBoundsSlot.value, originalBounds);
             Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
-            Assert.AreNotEqual(copyContext.position, newContext.position);
-
-
-            view.UnserializeAndPasteElements("paste", copyData);
-
-            elements = view.Query().OfType<GraphElement>().ToList();
-            contexts = elements.OfType<VFXContextUI>().ToArray();
-
-            var copy2Context = contexts.First(t => t.controller.model != newContext && t.controller.model != copyContext).controller.model;
-
-            Assert.AreNotEqual(copy2Context.position, newContext.position);
-            Assert.AreNotEqual(copy2Context.position, copyContext.position);
+            Assert.AreEqual(view.pasteCenter + newContext.position, copyContextModel.position);
         }
 
         [Test]
         public void CopyPasteOperator()
         {
-            var crossOperatorDesc = VFXLibrary.GetOperators().Where(t => t.name == "Cross Product").First();
-
+            // Create an operator
+            var crossOperatorDesc = VFXLibrary.GetOperators().First(t => t.name == "Cross Product");
             var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
-
             m_ViewController.ApplyChanges();
-            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
-
+            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().Single();
             Assert.AreEqual(operatorController.model, newOperator);
 
+            // Select the newly created operator
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
             VFXView view = window.graphView;
             view.controller = m_ViewController;
-
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
             {
@@ -160,165 +142,134 @@ namespace UnityEditor.VFX.Test
             }
 
 
+            // Setup original operator slot values
             VFXSlot aSlot = newOperator.GetInputSlot(0);
-
             Vector3 originalA = Vector3.one * 123;
             aSlot.value = originalA;
 
+            // Copy selection and modify operator slot value afterwards
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-
             aSlot.value = Vector3.one * 456;
 
+            // Paste selection
             view.UnserializeAndPasteElements("paste", copyData);
 
-            var elements = view.Query().OfType<GraphElement>().ToList();
+            // Retrieve the pasted operator
+            var copyOperator = view.Query()
+                .OfType<GraphElement>()
+                .ToList()
+                .OfType<VFXOperatorUI>()
+                .Single(x => x.controller.model != newOperator);
 
-            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator);
-
-            var copaASlot = copyOperator.controller.model.GetInputSlot(0);
-
-            Assert.AreEqual((Vector3)copaASlot.value, originalA);
-
-            Assert.AreNotEqual(copyOperator.controller.model.position, newOperator.position);
-
-            view.UnserializeAndPasteElements("paste", copyData);
-
-            elements = view.Query().OfType<GraphElement>().ToList();
-            var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator && t != copyOperator);
-
-            Assert.AreNotEqual(copy2Operator.controller.model.position, newOperator.position);
-            Assert.AreNotEqual(copy2Operator.controller.model.position, copyOperator.controller.model.position);
+            var copyASlot = copyOperator.controller.model.GetInputSlot(0);
+            Assert.AreEqual(originalA, (Vector3)copyASlot.value);
+            Assert.AreEqual(view.pasteCenter + newOperator.position, copyOperator.controller.model.position);
         }
 
         [Test]
         public void CopyPasteSpacableOperator()
         {
-            var inlineOperatorDesc = VFXLibrary.GetOperators().Where(t => t.modelType == typeof(VFXInlineOperator)).First();
-
+            // Create a spaceable operator
+            var inlineOperatorDesc = VFXLibrary.GetOperators().First(t => t.modelType == typeof(VFXInlineOperator));
             var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc);
             newOperator.SetSettingValue("m_Type", new SerializableType(typeof(DirectionType)));
-
             m_ViewController.ApplyChanges();
             var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
+            Assert.AreEqual(newOperator, operatorController.model);
 
-            Assert.AreEqual(operatorController.model, newOperator);
-
+            // Select the newly created operator
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
             VFXView view = window.graphView;
             view.controller = m_ViewController;
-
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
             {
                 view.AddToSelection(element);
             }
 
-
+            // Setup original operator slot value
             VFXSlot aSlot = newOperator.GetInputSlot(0);
-
             Assert.IsTrue(aSlot.spaceable);
-
             aSlot.space = VFXCoordinateSpace.World;
 
+            // Copy selection and then modify the slot value
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-
             aSlot.space = VFXCoordinateSpace.Local;
 
+            // Paste selection
             view.UnserializeAndPasteElements("paste", copyData);
 
-            var elements = view.Query().OfType<GraphElement>().ToList();
-
-            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator);
+            // Retrieve the pasted operator
+            var copyOperator = view.Query()
+                .OfType<GraphElement>()
+                .ToList()
+                .OfType<VFXOperatorUI>()
+                .Single(x => x.controller.model != newOperator);
 
             var copyASlot = copyOperator.controller.model.GetInputSlot(0);
-
             Assert.AreEqual(VFXCoordinateSpace.World, copyASlot.space);
         }
 
         [Test]
         public void CopyPasteEdges()
         {
+            // Load a pre-made vfx asset into a VFX Graph window
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/AllTests/Editor/Tests/CopyPasteTest.vfx");
-
             VFXViewController controller = VFXViewController.GetController(asset.GetResource(), true);
-
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView;
-
             view.controller = controller;
-
             view.ClearSelection();
 
 
+            // Select all nodes in the graph
             var originalElements = view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>().ToArray();
-
-            Assert.AreNotEqual(originalElements.Length, 0);
-
+            Assert.AreNotEqual(0, originalElements.Length);
             foreach (var element in originalElements)
             {
                 view.AddToSelection(element);
             }
 
+            // Copy / Paste selection
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-
             view.controller = m_ViewController;
-
             view.UnserializeAndPasteElements("paste", copyData);
 
-            m_ViewController.ApplyChanges();
-
-            VFXParameterUI[] parameters = view.Query().OfType<VFXParameterUI>().ToList().ToArray();
-
-            Assert.AreEqual(parameters.Length, 2);
-
+            var parameters = view.Query().OfType<VFXParameterUI>().ToList();
+            Assert.AreEqual(2, parameters.Count);
             if (parameters[0].title == "Vector3")
             {
-                var tmp = parameters[0];
-                parameters[0] = parameters[1];
-                parameters[1] = tmp;
+                (parameters[0], parameters[1]) = (parameters[1], parameters[0]);
             }
 
-            VFXOperatorUI[] operators = view.Query().OfType<VFXOperatorUI>().ToList().ToArray();
+            var operators = view.Query().OfType<VFXOperatorUI>().ToList();
+            Assert.AreEqual(2, operators.Count);
 
-            Assert.AreEqual(operators.Length, 2);
-
-            VFXContextUI[] contexts = view.Query().OfType<VFXContextUI>().ToList().ToArray();
-
-            Assert.AreEqual(contexts.Length, 2);
+            var contexts = view.Query().OfType<VFXContextUI>().ToList();
+            Assert.AreEqual(2, contexts.Count);
 
             if (contexts[0].controller.model is VFXBasicUpdate)
             {
-                var tmp = contexts[0];
-                contexts[0] = contexts[1];
-                contexts[1] = tmp;
+                (contexts[0], contexts[1]) = (contexts[1], contexts[0]);
             }
 
 
-            VFXDataEdge[] dataEdges = view.Query().OfType<VFXDataEdge>().ToList().ToArray();
+            var dataEdges = view.Query().OfType<VFXDataEdge>().ToList();
 
-            Assert.AreEqual(dataEdges.Length, 4);
+            Assert.AreEqual(4, dataEdges.Count);
 
-            Assert.IsNotNull(dataEdges.Where(t =>
-                t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
-                operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())
-                ).FirstOrDefault());
+            Assert.IsNotNull(dataEdges.SingleOrDefault(t => t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
+                                                           operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())));
 
-            Assert.IsNotNull(dataEdges.Where(t =>
-                operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>()) &&
-                operators.Contains(t.output.GetFirstAncestorOfType<VFXOperatorUI>()) &&
-                t.output.GetFirstAncestorOfType<VFXNodeUI>() != t.input.GetFirstAncestorOfType<VFXNodeUI>()
-                ).FirstOrDefault());
+            Assert.IsNotNull(dataEdges.SingleOrDefault(t => operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>()) &&
+                                                           operators.Contains(t.output.GetFirstAncestorOfType<VFXOperatorUI>()) &&
+                                                           t.output.GetFirstAncestorOfType<VFXNodeUI>() != t.input.GetFirstAncestorOfType<VFXNodeUI>()));
 
-            Assert.IsNotNull(dataEdges.Where(t =>
-                t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
-                t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]
-                ).FirstOrDefault());
+            Assert.IsNotNull(dataEdges.SingleOrDefault(t => t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
+                                                           t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]));
 
-            Assert.IsNotNull(dataEdges.Where(t =>
-                operators.Contains(t.output.GetFirstAncestorOfType<VFXNodeUI>()) &&
-                t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].GetAllBlocks().First()
-                ).FirstOrDefault());
+            Assert.IsNotNull(dataEdges.FirstOrDefault(t => operators.Contains<VFXNodeUI>(t.output.GetFirstAncestorOfType<VFXNodeUI>()) &&
+                                                           t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].GetAllBlocks().First()));
 
 
             VFXFlowEdge flowEdge = view.Query().OfType<VFXFlowEdge>();
@@ -332,56 +283,52 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
-
+            // Create a new BasicInitialize context
+            var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
-
             m_ViewController.ApplyChanges();
-            Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
-
+            Assert.AreEqual(1, m_ViewController.allChildren.Count(t => t is VFXContextController));
             var contextController = m_ViewController.allChildren.OfType<VFXContextController>().First();
-
             Assert.AreEqual(contextController.model, newContext);
 
+            // Add a block to that context
             var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
-
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
-
             var newBlock = contextController.model.children.First();
-
             m_ViewController.ApplyChanges();
 
+            // Select the created context
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
             VFXView view = window.graphView;
             view.controller = m_ViewController;
-
             view.ClearSelection();
             foreach (var element in view.Query().OfType<VFXBlockUI>().ToList().OfType<ISelectable>())
             {
                 view.AddToSelection(element);
             }
 
-            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().model;
+            // Set original block slots values
+            VFXBlock flipBookBlock = contextController.blockControllers.First().model;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
-
             float originalMinValue = 123.456f;
             minValueSlot.value = originalMinValue;
 
+            // Copy selection and change the block value
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-
             minValueSlot.value = 789f;
 
+            // Paste selection
             view.UnserializeAndPasteElements("Paste", copyData);
 
-            view.controller.ApplyChanges();
+            // Retrieve the block from the copied context
+            var copyBlock = view.Query()
+                .OfType<VFXBlockUI>()
+                .ToList()
+                .Select(x => x.controller)
+                .First(x => x.model != newBlock).model;
 
-            var elements = view.Query().OfType<VFXBlockUI>().ToList();
-
-            var copyBlock = elements.Select(t => t.controller).First(t => t.model != newBlock).model;
-
+            // Check the block slot value is the same as the original (not the modified value after copy operation)
             var copyMinSlot = copyBlock.GetInputSlot(0);
-
             Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
         }
 
@@ -417,20 +364,19 @@ namespace UnityEditor.VFX.Test
             }
             view.CopySelectionCallback();
             view.PasteCallback();
+            m_ViewController.ApplyChanges();
 
             // Query unique names
             var systemNames = view.controller.graph.systemNames;
-            var uniqueNames = new List<string>();
-            foreach (var system in spawners)
-                uniqueNames.Add(systemNames.GetUniqueSystemName(system));
-            var GPUSystems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
-            uniqueNames = uniqueNames.Concat(GPUSystems.Select(system => system.controller.title)).ToList();
 
-            // Remove null or empty names, and duplicates
-            uniqueNames = uniqueNames.Where(name => !string.IsNullOrEmpty(name)).Distinct().ToList();
+            var uniqueNames = m_ViewController.graph.children.OfType<VFXBasicSpawner>()
+                .Select(x => systemNames.GetUniqueSystemName(x))
+                .Union(m_ViewController.graph.children.OfType<VFXBasicInitialize>().Select(x => systemNames.GetUniqueSystemName(x.GetData())))
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToList();
 
             // Assert all names are unique, and the expected number of elements was obtained
-            Assert.IsTrue(uniqueNames.Count() == spawnerCount + GPUSystemsCount, "Some systems have the same name or are null or empty.");
+            Assert.AreEqual(2 * (spawnerCount + GPUSystemsCount), uniqueNames.Count, "Some systems have the same name or are null or empty.");
         }
     }
 }
