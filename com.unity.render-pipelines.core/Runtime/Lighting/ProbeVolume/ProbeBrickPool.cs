@@ -577,10 +577,12 @@ namespace UnityEngine.Rendering
         static readonly int _Out_L2_2 = Shader.PropertyToID("_Out_L2_2");
         static readonly int _Out_L2_3 = Shader.PropertyToID("_Out_L2_3");
 
+        internal static bool isInitialized => stateBlendShader != null;
+
         internal static void Initialize(in ProbeVolumeSystemParameters parameters)
         {
             stateBlendShader = parameters.stateBlendShader;
-            stateBlendKernel = stateBlendShader.FindKernel("BlendStates");
+            stateBlendKernel = stateBlendShader ? stateBlendShader.FindKernel("BlendStates") : -1;
         }
 
         const uint s_UnmappedChunk = unchecked((uint)-1);

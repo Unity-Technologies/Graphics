@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
             m_TempCellToUnloadList.Clear();
 
             // Handle cell streaming for blending
-            if (UpdateBlendingCellStreaming())
+            if (ProbeBrickBlendingPool.isInitialized && UpdateBlendingCellStreaming())
                 m_BlendingPool.PerformBlending(scenarioBlendingFactor, m_Pool);
         }
 

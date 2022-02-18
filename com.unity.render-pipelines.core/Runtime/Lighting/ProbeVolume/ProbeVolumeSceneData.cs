@@ -113,15 +113,26 @@ namespace UnityEngine.Rendering
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
 
-            // Trigger blending system to replace old cells with the one from the new active scenario.
-            // Although we technically don't need blending for that, it is better than unloading all cells
-            // because it will replace them progressively. There is no real performance cost to using blending
-            // rather than regular load thanks to the bypassBlending branch in AddBlendingBricks.
-            ProbeReferenceVolume.instance.ScenarioBlendingChanged(true);
+            if (ProbeBrickBlendingPool.isInitialized)
+            {
+                // Trigger blending system to replace old cells with the one from the new active scenario.
+                // Although we technically don't need blending for that, it is better than unloading all cells
+                // because it will replace them progressively. There is no real performance cost to using blending
+                // rather than regular load thanks to the bypassBlending branch in AddBlendingBricks.
+                ProbeReferenceVolume.instance.ScenarioBlendingChanged(true);
+            }
+            else
+                ProbeReferenceVolume.instance.UnloadAllCells();
         }
 
         internal void BlendLightingScenario(string otherScenario, float blendingFactor)
         {
+            if (!ProbeBrickBlendingPool.isInitialized)
+            {
+                Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
+                return;
+            }
+
             blendingFactor = Mathf.Clamp01(blendingFactor);
 
             if (otherScenario == m_LightingScenario)
