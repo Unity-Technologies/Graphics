@@ -83,7 +83,12 @@ namespace UnityEngine.Rendering
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
         Plane[] m_DebugFrustumPlanes = new Plane[6];
-        GUIContent[] m_ScenarioNames = new GUIContent[0];
+
+        // Scenario blending debug data
+        GUIContent[] m_DebugScenarioNames = new GUIContent[0];
+        int[] m_DebugScenarioValues = new int[0];
+        string m_DebugActiveSceneGUID;
+        DebugUI.EnumField m_DebugScenarioField;
 
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
@@ -253,34 +258,51 @@ namespace UnityEngine.Rendering
 
             if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
             {
-                HashSet<string> allScenarios = new();
-                foreach (var set in parameters.sceneData.bakingSets)
+                void RefreshScenarioNames(string guid)
                 {
-                    foreach (var scenario in set.lightingScenarios)
-                        allScenarios.Add(scenario);
-                }
+                    HashSet<string> allScenarios = new();
+                    foreach (var set in parameters.sceneData.bakingSets)
+                    {
+                        if (!set.sceneGUIDs.Contains(guid))
+                            continue;
+                        foreach (var scenario in set.lightingScenarios)
+                            allScenarios.Add(scenario);
+                    }
 
-                int i = 0;
-                ArrayExtensions.ResizeArray(ref m_ScenarioNames, allScenarios.Count + 1);
-                var enumValues = new int[m_ScenarioNames.Length];
-                m_ScenarioNames[0] = new GUIContent("None");
-                enumValues[0] = 0;
-                foreach (var scenario in allScenarios)
-                {
-                    i++;
-                    m_ScenarioNames[i] = new GUIContent(scenario);
-                    enumValues[i] = i;
+                    if (m_DebugActiveSceneGUID == guid && allScenarios.Count + 1 == m_DebugScenarioNames.Length)
+                        return;
+
+                    int i = 0;
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioNames, allScenarios.Count + 1);
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioValues, allScenarios.Count + 1);
+                    m_DebugScenarioNames[0] = new GUIContent("None");
+                    m_DebugScenarioValues[0] = 0;
+                    foreach (var scenario in allScenarios)
+                    {
+                        i++;
+                        m_DebugScenarioNames[i] = new GUIContent(scenario);
+                        m_DebugScenarioValues[i] = i;
+                    }
+
+                    m_DebugActiveSceneGUID = guid;
+                    m_DebugScenarioField.enumNames = m_DebugScenarioNames;
+                    m_DebugScenarioField.enumValues = m_DebugScenarioValues;
+                    if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)
+                        debugDisplay.otherStateIndex = 0;
                 }
 
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
-                blendingContainer.children.Add(new DebugUI.EnumField { displayName = "Scenario To Blend With", enumNames = m_ScenarioNames, enumValues = enumValues,
+                m_DebugScenarioField = new DebugUI.EnumField { displayName = "Scenario To Blend With",
+                    enumNames = m_DebugScenarioNames, enumValues = m_DebugScenarioValues,
                     getIndex = () => {
+                        RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+
                         debugDisplay.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(sceneData.otherScenario))
                         {
-                            for (int i = 1; i < m_ScenarioNames.Length; i++)
+                            for (int i = 1; i < m_DebugScenarioNames.Length; i++)
                             {
-                                if (m_ScenarioNames[i].text == sceneData.otherScenario)
+                                if (m_DebugScenarioNames[i].text == sceneData.otherScenario)
                                 {
                                     debugDisplay.otherStateIndex = i;
                                     break;
@@ -290,14 +312,15 @@ namespace UnityEngine.Rendering
                         return debugDisplay.otherStateIndex;
                     },
                     setIndex = value => {
-                        string other = value == 0 ? null : m_ScenarioNames[value].text;
-                        sceneData.BlendLightingScenario(other, sceneData.m_ScenarioBlendingFactor);
+                        string other = value == 0 ? null : m_DebugScenarioNames[value].text;
+                        sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
                         debugDisplay.otherStateIndex = value;
                     },
                     getter = () => debugDisplay.otherStateIndex,
                     setter = (value) => debugDisplay.otherStateIndex = value,
-                });
+                };
 
+                blendingContainer.children.Add(m_DebugScenarioField);
                 blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Scenario Blending Factor", getter = () => instance.scenarioBlendingFactor, setter = value => instance.scenarioBlendingFactor = value, min = () => 0.0f, max = () => 1.0f });
 
                 widgetList.Add(blendingContainer);

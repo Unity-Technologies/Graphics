@@ -795,7 +795,7 @@ namespace UnityEngine.Rendering
         /// <summary>The blending factor currently used to blend probe data. A value of 0 means blending is not active.</summary>
         public float scenarioBlendingFactor
         {
-            get => sceneData.m_ScenarioBlendingFactor;
+            get => sceneData.scenarioBlendingFactor;
             set => sceneData.BlendLightingScenario(sceneData.otherScenario, value);
         }
 

@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering
 
         internal ProbeBrickBlendingPool(ProbeVolumeBlendingTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
-            // Casting to other memory budget struct works cause it's caster to int in the end anyway
+            // Casting to other memory budget struct works cause it's casted to int in the end anyway
             m_State0 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
             m_State1 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
 

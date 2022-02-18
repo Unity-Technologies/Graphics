@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering
             OnBakingSetSelected(m_BakingSets);
         }
 
-        void SetActiveScenatio(string scenario)
+        void SetActiveScenario(string scenario)
         {
             if (scenario == ProbeReferenceVolume.instance.lightingScenario)
                 return;
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering
                                         data.RenameScenario(scenarioName, name);
                                 }
                                 bakingSet.lightingScenarios[index] = name;
-                                SetActiveScenatio(name);
+                                SetActiveScenario(name);
                             }
                             finally
                             {
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering
 
             m_Scenarios.onSelectCallback = (ReorderableList list) =>
             {
-                SetActiveScenatio(GetCurrentBakingSet().lightingScenarios[list.index]);
+                SetActiveScenario(GetCurrentBakingSet().lightingScenarios[list.index]);
                 SceneView.RepaintAll();
                 Repaint();
             };
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering
                 finally
                 {
                     AssetDatabase.StopAssetEditing();
-                    SetActiveScenatio(set.lightingScenarios[0]);
+                    SetActiveScenario(set.lightingScenarios[0]);
                     UpdateScenariosStatuses();
                 }
             };
@@ -386,7 +386,7 @@ namespace UnityEngine.Rendering
                 string sceneGUID = sceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                    SetActiveScenatio(set.lightingScenarios[0]);
+                    SetActiveScenario(set.lightingScenarios[0]);
             }
             UpdateScenariosStatuses();
         }

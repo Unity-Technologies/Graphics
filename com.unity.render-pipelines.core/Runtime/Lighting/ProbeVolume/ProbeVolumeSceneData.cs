@@ -97,10 +97,11 @@ namespace UnityEngine.Rendering
 
         [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
         string m_OtherScenario = null;
-        internal float m_ScenarioBlendingFactor = 0.0f;
+        float m_ScenarioBlendingFactor = 0.0f;
 
         internal string lightingScenario => m_LightingScenario;
         internal string otherScenario => m_OtherScenario;
+        internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
 
         internal void SetActiveScenario(string scenario)
         {
@@ -140,7 +141,7 @@ namespace UnityEngine.Rendering
                 otherScenario = null;
             if (otherScenario == null)
                 blendingFactor = 0.0f;
-            if (otherScenario == m_OtherScenario && blendingFactor == m_ScenarioBlendingFactor)
+            if (otherScenario == m_OtherScenario && Mathf.Approximately(blendingFactor, m_ScenarioBlendingFactor))
                 return;
 
             bool requestUnloading = otherScenario != m_OtherScenario;

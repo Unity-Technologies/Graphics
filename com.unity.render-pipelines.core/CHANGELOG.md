@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
 - Added Screen Coordinates Override shader utilities.
 - Added API to blend between baking states for Probe Volumes.
+- Aded explicit control over scenario blending factor and a debug mode for visualization.
 
 ### Changed
 - Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
