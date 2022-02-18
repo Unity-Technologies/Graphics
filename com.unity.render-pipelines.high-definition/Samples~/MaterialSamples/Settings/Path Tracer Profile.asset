@@ -20,7 +20,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
-      m_Bits: 823
+      m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 0
     m_Value: 256
@@ -33,6 +33,12 @@ MonoBehaviour:
   maximumIntensity:
     m_OverrideState: 0
     m_Value: 10
+  skyImportanceSampling:
+    m_OverrideState: 0
+    m_Value: 0
+  tilingParameters:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1, z: 0, w: 0}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

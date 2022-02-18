@@ -36,7 +36,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.burst": {
-      "version": "1.6.0",
+      "version": "1.6.4",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -107,7 +107,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
+      "version": "2.0.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -129,13 +129,13 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
-        "com.unity.burst": "1.5.0",
-        "com.unity.render-pipelines.core": "13.1.1",
-        "com.unity.shadergraph": "13.1.1"
+        "com.unity.burst": "1.6.4",
+        "com.unity.render-pipelines.core": "14.0.1",
+        "com.unity.shadergraph": "14.0.1"
       }
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.19.3",
+      "version": "1.19.5",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -153,7 +153,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "13.1.1",
+        "com.unity.render-pipelines.core": "14.0.1",
         "com.unity.searcher": "4.9.1"
       }
     },
@@ -167,11 +167,11 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.test-framework": {
-      "version": "1.1.18",
+      "version": "1.1.30",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.ext.nunit": "1.0.0",
+        "com.unity.ext.nunit": "1.0.6",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0"
       },
@@ -233,8 +233,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "13.1.1",
-        "com.unity.render-pipelines.core": "13.1.1"
+        "com.unity.shadergraph": "14.0.1",
+        "com.unity.render-pipelines.core": "14.0.1"
       }
     },
     "com.unity.xr.legacyinputhelpers": {
