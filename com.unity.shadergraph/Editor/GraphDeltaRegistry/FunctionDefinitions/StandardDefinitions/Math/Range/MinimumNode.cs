@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Minimum", // Name
             "Out = min(A, B);",
             new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
+            new ParameterDescriptor("B", TYPE.Any, Usage.In), //defaults to 1
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
@@ -20,8 +20,6 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Range" },
             { "Name.Synonyms", "least, littlest, smallest, lesser" },
             { "Tooltip", "returns the smaller of A and B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the lesser of A or B" }
         };
     }
