@@ -302,7 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_AdditionalGIBakeRequestsBakingID, sh, validity, bakedProbeOctahedralDepth))
             {
                 SetSHCoefficients(sh);
-                PushSHCoefficientsToReflectionProbes();
             }
             else
             {
@@ -320,15 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < sh.Length; ++i)
             {
                 m_SHCoefficients[i] = sh[i];
-            }
-        }
-
-        private void PushSHCoefficientsToReflectionProbes()
-        {
-            List<HDProbe> hdProbes = HDProbe.GetInstances();
-            foreach (var hdProbe in hdProbes)
-            {
-                hdProbe.TryUpdateLuminanceSHL2ForNormalization();
             }
         }
 

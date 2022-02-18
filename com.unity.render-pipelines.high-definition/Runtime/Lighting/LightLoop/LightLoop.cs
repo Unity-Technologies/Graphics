@@ -2120,14 +2120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.envIndex = envIndex;
 
             envLightData.normalizeWithProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
-            if (envLightData.normalizeWithProbeVolumes > 0)
-            {
-                if (!probe.GetLuminanceSHL2ForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
-                {
-                    // We don't have valid data, hence we disable the feature.
-                    envLightData.normalizeWithProbeVolumes = 0;
-                }
-            }
 
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;
