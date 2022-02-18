@@ -85,6 +85,7 @@ If you disable some of these settings, the relevant [keywords](shader-stripping.
 | __Per Object Limit__  | This slider sets the limit for how many additional lights can affect each GameObject. |
 | __Cast Shadows__      | Check this box to make the additional lights cast shadows in your Scene. |
 | __Shadow Resolution__ | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| __Mixed Lighting__         | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) to configure the pipeline to include mixed lighting shader variants in the build. |
 
 ### Shadows
 

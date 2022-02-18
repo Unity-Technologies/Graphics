@@ -204,6 +204,7 @@ namespace UnityEditor.VFX.UI
         VisualElement m_NoAssetLabel;
         VisualElement m_LockedElement;
         Button m_BackButton;
+        Vector2 m_pastCenter;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -663,6 +664,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
+            RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
+
 
             graphViewChanged = VFXGraphViewChanged;
             elementResized = VFXElementResized;
@@ -686,6 +689,7 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             UnregisterCallback<KeyDownEvent>(OnKeyDownEvent);
             UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
+            UnregisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
 
@@ -2363,16 +2367,10 @@ namespace UnityEditor.VFX.UI
                 controller.CreateLink(targetSlot, controller.dataEdges.First(t => t.input == sourceSlot).output);
         }
 
-        Vector2 pasteCenter
+        internal Vector2 pasteCenter
         {
-            get
-            {
-                Vector2 center = layout.size * 0.5f;
-
-                center = this.ChangeCoordinatesTo(contentViewContainer, center);
-
-                return center;
-            }
+            get => contentViewContainer.WorldToLocal(m_pastCenter);
+            private set => m_pastCenter = value; // Should be used only for unit testing
         }
 
         private bool VFXCanPaste(string data)
@@ -2474,6 +2472,11 @@ namespace UnityEditor.VFX.UI
                 DuplicateBlackboardFieldSelection();
                 DuplicateBlackBoardCategorySelection();
             }
+        }
+
+        private void OnMouseMoveEvent(MouseMoveEvent evt)
+        {
+            pasteCenter = evt.mousePosition;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)

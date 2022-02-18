@@ -55,28 +55,28 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
-    class RuntimeProfilerTests : RuntimeProfilerTestBase
-    {
-        [UnityTest]
-        public IEnumerator RuntimeProfilerGivesNonZeroOutput()
-        {
-            yield return Warmup();
+    // [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
+    // class RuntimeProfilerTests : RuntimeProfilerTestBase
+    // {
+    //     [UnityTest]
+    //     public IEnumerator RuntimeProfilerGivesNonZeroOutput()
+    //     {
+    //         yield return Warmup();
 
-            m_ToCleanup = new GameObject();
-            var camera = m_ToCleanup.AddComponent<Camera>();
-            for (int i = 0; i < k_NumFramesToRender; i++)
-            {
-                m_DebugFrameTiming.UpdateFrameTiming();
-                camera.Render();
-                yield return null;
-            }
+    //         m_ToCleanup = new GameObject();
+    //         var camera = m_ToCleanup.AddComponent<Camera>();
+    //         for (int i = 0; i < k_NumFramesToRender; i++)
+    //         {
+    //             m_DebugFrameTiming.UpdateFrameTiming();
+    //             camera.Render();
+    //             yield return null;
+    //         }
 
-            Assert.True(
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.Balanced > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
-        }
-    }
+    //         Assert.True(
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.Balanced > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
+    //     }
+    // }
 }

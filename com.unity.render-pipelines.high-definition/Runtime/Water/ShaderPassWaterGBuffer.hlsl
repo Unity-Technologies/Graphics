@@ -7,40 +7,6 @@ struct VaryingsToPS
     VaryingsMeshToPS vmesh;
 };
 
-VaryingsMeshToPS VertMeshWater(AttributesMesh input)
-{
-    VaryingsMeshToPS output;
-    ZERO_INITIALIZE(VaryingsMeshToPS, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
-
-    // Set up the instance data
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-
-    // Apply the mesh modifications that come from the shader graph
-    float3 positionOS;
-    float3 normalOS;
-    float4 uv0;
-    float4 uv1;
-    ApplyMeshModification(input, _TimeParameters.xyz, positionOS, normalOS, uv0, uv1);
-
-    // This return the camera relative position (if enabled)
-    float3 positionRWS = TransformObjectToWorld(positionOS);
-    float3 normalWS = TransformObjectToWorldNormal(normalOS);
-
-    // Do vertex modification in camera relative space (if enabled)
-#if defined(HAVE_VERTEX_MODIFICATION)
-    ApplyVertexModification(input, normalWS, positionRWS, _TimeParameters.xyz);
-#endif
-
-    // Output to the fragment
-    output.positionCS = TransformWorldToHClip(positionRWS);
-    output.positionRWS = positionRWS;
-    output.normalWS = normalWS;
-    output.texCoord0 = uv0;
-    output.texCoord1 = uv1;
-    return output;
-}
-
 struct PackedVaryingsToPS
 {
     PackedVaryingsMeshToPS vmesh;
@@ -69,6 +35,9 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
     return output;
 }
 
+// We only need the tessellation version
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterVertexTessellation.hlsl"
+
 FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS packedInput)
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -86,17 +55,11 @@ FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS packedInput)
     return input;
 }
 
-PackedVaryingsToPS Vert(AttributesMesh inputMesh)
-{
-    VaryingsToPS varyingsType;
-    varyingsType.vmesh = VertMeshWater(inputMesh);
-    return PackVaryingsToPS(varyingsType);
-}
-
 void Frag(PackedVaryingsToPS packedInput,
-    out uint4 outGBuffer0 : SV_Target0,
+    out float4 outGBuffer0 : SV_Target0,
     out float4 outGBuffer1 : SV_Target1,
-    out uint2 outGBuffer2 : SV_Target2)
+    out float4 outGBuffer2 : SV_Target2,
+    out float4 outGBuffer3 : SV_Target3)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
@@ -123,80 +86,21 @@ void Frag(PackedVaryingsToPS packedInput,
     builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
 
     // We manually set the ambient probe as this is not a mesh renderer
-    builtinData.bakeDiffuseLighting = _WaterAmbientProbe;
+    builtinData.bakeDiffuseLighting = _WaterAmbientProbe.xyz;
 
     // Compute the BSDF Data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-#ifdef DEBUG_DISPLAY
-    // Initialize for the debug
-    outGBuffer0 = uint4(0, 0, 0, 0);
-    outGBuffer1 = float4(0, 0, 0, 0);
-    outGBuffer2 = uint4(0, 0, 0, 0);
 
-    // Same code in ShaderPassForwardUnlit.shader
-    // Reminder: _DebugViewMaterialArray[i]
-    //   i==0 -> the size used in the buffer
-    //   i>0  -> the index used (0 value means nothing)
-    // The index stored in this buffer could either be
-    //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
-    //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    bool viewMaterial = false;
-    int bufferSize = _DebugViewMaterialArray[0].x;
-    if (bufferSize != 0)
+    // If the camera is in the underwater region of this surface and the the camera is under the surface
+    if (_CameraInUnderwaterRegion && _WaterCameraHeightBuffer[0] < 0.0)
     {
-        bool needLinearToSRGB = false;
-        float3 result = float3(1.0, 0.0, 1.0);
-
-        // Loop through the whole buffer
-        // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
-        for (int index = 1; index <= bufferSize; index++)
-        {
-            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-
-            // skip if not really in use
-            if (indexMaterialProperty != 0)
-            {
-                viewMaterial = true;
-
-                GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-                GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-                GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-                GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-            }
-        }
-
-        // TEMP!
-        // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
-        if (!needLinearToSRGB && _DebugAOVOutput == 0)
-            result = SRGBToLinear(max(0, result));
-
-        outGBuffer1 = float4(result, 1.0);
+        // For now we simply flip the normals and kill the caustics
+        bsdfData.normalWS = -bsdfData.normalWS;
+        bsdfData.lowFrequencyNormalWS = -bsdfData.lowFrequencyNormalWS;
+        // TODO: This invalidation should happen earlier based on the CPU under water test
+        bsdfData.caustics = 0;
     }
 
-    if (!viewMaterial)
-    {
-        if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
-        {
-            float3 result = float3(0.0, 0.0, 0.0);
-
-            GetPBRValidatorDebug(surfaceData, result);
-
-            outGBuffer1 = float4(result, 1.0f);
-        }
-        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
-        {
-            float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
-            outGBuffer1 = result;
-        }
-        else
-        #endif
-        {
-            // Encode the water into the gbuffer
-            EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2);
-        }
-#ifdef DEBUG_DISPLAY
-    }
-#endif
+    // Encode the water into the gbuffer
+    EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3);
 }

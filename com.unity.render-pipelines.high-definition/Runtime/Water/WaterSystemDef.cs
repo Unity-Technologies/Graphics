@@ -14,11 +14,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
         public uint lightLayers;
-        public float padding0;
+        public int cameraUnderWater;
 
         // Refraction data Data
         public Vector3 transparencyColor;
         public float outScatteringCoefficient;
+
+        // Scattering color
+        public Vector3 scatteringColor;
+        public float padding0;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -36,6 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Individual heights of the wave bands.
         public Vector4 _WaveAmplitude;
 
+        // Maximal horizontal displacements due to each wave
+        public Vector4 _WaveDisplacement;
+
         // Individual sizes of the wave bands
         public Vector4 _BandPatchSize;
 
@@ -51,14 +58,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Smoothness of the simulation foam
         public float _SimulationFoamSmoothness;
-        // Intensity of the simulation foam
-        public float _SimulationFoamIntensity;
+        // Controls the amount of drag of the simulation foam
+        public float _JacobianDrag;
         // Amount of surface foam
         public float _SimulationFoamAmount;
         // TODO WRITE
         public float _SSSMaskCoefficient;
 
-        public float _DispersionAmount;
+        // Maximal horizontal displacement
+        public float _MaxWaveDisplacement;
         public float _ScatteringBlur;
         // Maximum refraction distance
         public float _MaxRefractionDistance;
@@ -78,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ScatteringColorTips;
 
         public float _DisplacementScattering;
-        public float _ScatteringIntensity;
+        public int _WaterInitialFrame;
         public int _SurfaceIndex;
         public float _CausticsRegionSize;
 
@@ -89,9 +97,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoefficient;
         public float _FoamSmoothness;
         public float _HeightBasedScattering;
-        public float _PaddingW0;
+        public float _WindSpeedMultiplier;
 
         public Vector4 _FoamJacobianLambda;
+
+        // Offsets used to guarantee the coherence between the different simulation resolutions
+        public int _WaterRefSimRes;
+        public float _WaterSpectrumOffset;
+        public int _WaterSampleOffset;
+        public int _WaterBandCount;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -108,12 +122,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ambient probe used to render the water
         public Vector4 _WaterAmbientProbe;
 
-        // Resolution (in quads) of the current water patch
-        public uint _GridRenderingResolution;
-        // Mask that defines the tessellation pattern
-        public uint _TesselationMasks;
-        // Earth radius
-        public float _EarthRadius;
+        // Number of LODs used to render infinite water surfaces
+        public uint _WaterLODCount;
+        // Number of water patches that need to be rendered
+        public uint _NumWaterPatches;
+        // Padding
+        public float _PaddingWR0;
         // Intensity of the water caustics
         public float _CausticsIntensity;
 
@@ -131,8 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _CausticsOffset;
         // Tiling factor of the caustics
         public float _CausticsTiling;
-        // Vertical shift on when the caustics start
-        public float _CausticsPlaneOffset;
+        public float _PaddingWR1;
 
         // Blend distance
         public float _CausticsPlaneBlendDistance;
@@ -143,5 +156,31 @@ namespace UnityEngine.Rendering.HighDefinition
         // Is this surface infinite or finite
         public int _InfiniteSurface;
 
+        // Max tessellation factor
+        public float _WaterMaxTessellationFactor;
+        // Distance at which the fade of the tessellation starts
+        public float _WaterTessellationFadeStart;
+        // Size of the range of the tessellation
+        public float _WaterTessellationFadeRange;
+        // Flag that defines if the camera is in the underwater volume of this surface
+        public int _CameraInUnderwaterRegion;
+    }
+
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesUnderWater
+    {
+        // Refraction color of the water surface
+        public Vector4 _WaterRefractionColor;
+        // Scattering color of the water surface
+        public Vector4 _WaterScatteringColor;
+
+        // Multiplier of the view distance when under water
+        public float _MaxViewDistanceMultiplier;
+        // Scattering coefficent for the absorption
+        public float _OutScatteringCoeff;
+        // Vertical transition size of the water
+        public float _WaterTransitionSize;
+        // Padding
+        public float _PaddingUW;
     }
 }

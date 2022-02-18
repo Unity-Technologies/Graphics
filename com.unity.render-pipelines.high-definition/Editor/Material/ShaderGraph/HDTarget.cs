@@ -243,10 +243,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public ScriptableObject GetMetadataObject()
+        public ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
 
             return null;
         }
@@ -433,6 +433,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDStructs.VaryingsMeshToDS },
             { HDStructs.VaryingsMeshToPS },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        public static StructCollection BasicProceduralTessellation = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
             { Structs.SurfaceDescriptionInputs },
         };
 
@@ -1114,6 +1123,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Debug Display",
             referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ProceduralInstancing = new KeywordDescriptor()
+        {
+            displayName = "Procedural Instancing",
+            referenceName = "PROCEDURAL_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor StereoInstancing = new KeywordDescriptor()
+        {
+            displayName = "Stereo Instancing",
+            referenceName = "STEREO_INSTANCING_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
