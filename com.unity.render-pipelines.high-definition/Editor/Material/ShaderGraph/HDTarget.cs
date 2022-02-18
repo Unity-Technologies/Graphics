@@ -63,8 +63,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        public SubTarget activeSubTarget
+        {
+            get => m_ActiveSubTarget.value;
+            set => m_ActiveSubTarget = value;
+        }
+
         [SerializeField]
-        List<JsonData<HDTargetData>> m_Datas = new List<JsonData<HDTargetData>>();
+        List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -75,7 +81,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
             // Currently there is not support for VFX decals via HDRP master node.
-            typeof(DecalSubTarget)
+            typeof(DecalSubTarget),
+            typeof(HDFullscreenSubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => false;
@@ -85,7 +92,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            if (activeSubTarget.IsActive())
+                worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public HDTarget()
@@ -243,10 +257,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public ScriptableObject GetMetadataObject()
+        public ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
 
             return null;
         }
@@ -271,12 +285,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void ProcessSubTargetDatas(SubTarget subTarget)
         {
-            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
             foreach (var type in typeCollection)
             {
+                if (type.IsGenericType)
+                    continue;
+
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(SetDataOnSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { subTarget });
             }
@@ -291,13 +308,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(ValidateDataForSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
             }
         }
 
-        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
                 return;
@@ -314,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             requiresData.data = data;
         }
 
-        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
             {
@@ -433,6 +450,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDStructs.VaryingsMeshToDS },
             { HDStructs.VaryingsMeshToPS },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        public static StructCollection BasicProceduralTessellation = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
             { Structs.SurfaceDescriptionInputs },
         };
 
@@ -1114,6 +1140,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Debug Display",
             referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ProceduralInstancing = new KeywordDescriptor()
+        {
+            displayName = "Procedural Instancing",
+            referenceName = "PROCEDURAL_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor StereoInstancing = new KeywordDescriptor()
+        {
+            displayName = "Stereo Instancing",
+            referenceName = "STEREO_INSTANCING_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

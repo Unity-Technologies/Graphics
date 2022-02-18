@@ -364,6 +364,17 @@ This version of HDRP introduces performance improvements for Decal Projectors:
 
 <a name="Fixed-Dynamic-Resolution-Scaling"></a>
 
+
+## CPU Light Loop Performance Improvements
+
+This version of HDRP introduces performance improvements for the CPU culling light loop. The new CPU light loop optimizations include:
+- Introduction of the new object HDLightEntityCollection - a master singleton object that keeps render side state of light objects.
+- Replacement of the flat ProcessVisibleLightsLoop with a parallel job using the HDVisibleLightEntities helper.
+- Burstification and parallelization of ProcessVisibleLights.
+- Introduction new sorting functions introduced in the core package.
+
+For a more detailed information please check the [Lightloop-Burstification](Lightloop-Burstification.md) documentation entry.
+
 ## Fixed
 
 ### Dynamic Resolution Scaling

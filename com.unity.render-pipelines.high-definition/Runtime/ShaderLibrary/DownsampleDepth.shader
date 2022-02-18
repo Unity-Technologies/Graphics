@@ -70,7 +70,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
             float4 depths = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, input.texcoord * _ScaleBias.xy + _ScaleBias.zw);
             outputDepth = MinDepth(depths);
 #else
-            uint2 fullResUpperCorner = uint2(input.positionCS.xy * 2.0);
+            uint2 fullResUpperCorner = uint2((((float2)input.positionCS.xy - 0.5f) * 2.0) + 0.5f);
             float4 depths;
             depths.x = LoadCameraDepth(fullResUpperCorner);
             depths.y = LoadCameraDepth(fullResUpperCorner + uint2(0, 1));

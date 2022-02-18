@@ -176,6 +176,12 @@ MonoBehaviour:
   samplingNoise:
     m_OverrideState: 1
     m_Value: 0.078
+  leakReductionMode:
+    m_OverrideState: 1
+    m_Value: 1
+  minValidDotProductValue:
+    m_OverrideState: 0
+    m_Value: 0.1
 --- !u!114 &-4145478425724808730
 MonoBehaviour:
   m_ObjectHideFlags: 3
