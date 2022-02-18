@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal
     /// URP builds the <c>RenderingData</c> settings from several places, including the pipeline asset, camera and light settings.
     /// The settings also might vary on different platforms and depending on if Adaptive Performance is used.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public struct RenderingData
     {
         /// <summary>
@@ -105,7 +104,6 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Struct that holds settings related to lights.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public struct LightData
     {
         /// <summary>
@@ -153,7 +151,6 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Struct that holds settings related to camera.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
