@@ -40,16 +40,15 @@ MonoBehaviour:
         m_Untranslated: "Settings for post-processing, Fog, Sky, etc. can be applied
           to all scenes in this project by default, by using a <b>Default Volume
           Profile Asset.</b> It is particulalry useful to rely on this system to
-          ensure the consistency of the HDRP settings between all the scenes.\n\r\n1.
+          ensure the consistency of the HDRP settings between all the scenes.\n\n1.
           Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
           Global Settings</b> and review the <b>Default Volume Profile Asset</b>
-          assigned to the project.\r\n\r\n2. Disable HDRI Sky. \n\nSee that the Sky
-          in the Scene has now disappeared and fallen back on the Background color
-          defined in <b>Edit</b> > <b>Preferences</b> > <b>Colors</b> (dark grey
-          by default).\n\r\n3. Undo your changes.\r\n\r\nFor convenience and quick
-          access, we also added an instance of these settings in the Scene. You can
-          access them with the <i>Hierarchy,</i> in <b>Lighting</b> > <b>Volumes</b>
-          > <b>Volume Global.</b> \r"
+          assigned to the project.\n\n2. Disable HDRI Sky. \n\nSee that the Sky in
+          the Scene has now disappeared and fallen back on the Background color defined
+          in <b>Edit</b> > <b>Preferences</b> > <b>Colors</b> (dark grey by default).\n\n3.
+          Undo your changes.\n\nFor convenience and quick access, we also added an
+          instance of these settings in the Scene. You can access them with the <i>Hierarchy,</i>
+          in <b>Lighting</b> > <b>Volumes</b> > <b>Volume Global.</b> "
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -69,8 +68,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: -0.24293423, y: 16.892998, z: 0.4729514}
-    m_Rotation: {x: -0.2963085, y: 0.4868354, z: 0.17992301, w: 0.80177695}
+    m_Pivot: {x: 1.4249535, y: 11.85667, z: -0.61060524}
+    m_Rotation: {x: -0.122098796, y: 0.7653294, z: 0.15235212, w: 0.61334294}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

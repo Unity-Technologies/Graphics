@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -21,11 +22,13 @@ namespace UnityEngine.Rendering
 
             public static readonly GUIContent advanced = EditorGUIUtility.TrTextContent("Advanced");
 
-            public static readonly string dilationSettingsTitle = "Dilation Settings";
-            public static readonly string virtualOffsetSettingsTitle = "Virtual Offset Settings";
+            public static readonly GUIContent dilationSettingsTitle = EditorGUIUtility.TrTextContent("Dilation Settings");
+            public static readonly GUIContent virtualOffsetSettingsTitle = EditorGUIUtility.TrTextContent("Virtual Offset Settings");
         }
 
-        bool m_VirtualOffsetShowAdvanced;
+        // PropertyDrawer are not made to use GUILayout, so it will try to reserve a rect before calling OnGUI
+        // Tell we have a height of 0 so it doesn't interfere with our usage of GUILayout
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => 0;
 
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -39,10 +42,13 @@ namespace UnityEngine.Rendering
 
             property.serializedObject.Update();
 
-            DrawDilationSettings(dilationSettings);
+            EditorGUI.FloatField(position, 100f);
+
+            if (ProbeVolumeBakingWindow.Foldout(Styles.dilationSettingsTitle, ProbeVolumeBakingWindow.Expandable.Dilation))
+                DrawDilationSettings(dilationSettings);
             EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            DrawVirtualOffsetSettings(virtualOffsetSettings);
+            if (ProbeVolumeBakingWindow.Foldout(Styles.virtualOffsetSettingsTitle, ProbeVolumeBakingWindow.Expandable.VirtualOffset))
+                DrawVirtualOffsetSettings(virtualOffsetSettings);
             EditorGUI.EndProperty();
 
             property.serializedObject.ApplyModifiedProperties();
@@ -57,7 +63,6 @@ namespace UnityEngine.Rendering
             var dilationIterations = dilationSettings.FindPropertyRelative("dilationIterations");
             var dilationInvSquaredWeight = dilationSettings.FindPropertyRelative("squaredDistWeighting");
 
-            EditorGUILayout.LabelField(Styles.dilationSettingsTitle, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             enableDilation.boolValue = EditorGUILayout.Toggle(Styles.enableDilation, enableDilation.boolValue);
             EditorGUI.BeginDisabledGroup(!enableDilation.boolValue);
@@ -66,8 +71,8 @@ namespace UnityEngine.Rendering
             dilationValidityThreshold.floatValue = Mathf.Max(0.05f, 1.0f - dilationValidityThresholdInverted);
             dilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, dilationIterations.intValue, 1, 5);
             dilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, dilationInvSquaredWeight.boolValue);
-            EditorGUI.indentLevel--;
             EditorGUI.EndDisabledGroup();
+            EditorGUI.indentLevel--;
 
             if (Unsupported.IsDeveloperMode())
             {
@@ -81,7 +86,6 @@ namespace UnityEngine.Rendering
 
         void DrawVirtualOffsetSettings(SerializedProperty virtualOffsetSettings)
         {
-            EditorGUILayout.LabelField(Styles.virtualOffsetSettingsTitle, EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             {
                 var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
@@ -89,7 +93,7 @@ namespace UnityEngine.Rendering
 
                 using (new EditorGUI.DisabledScope(!enableVirtualOffset.boolValue))
                 {
-                    if (m_VirtualOffsetShowAdvanced = EditorGUILayout.Foldout(m_VirtualOffsetShowAdvanced, Styles.advanced))
+                    EditorGUILayout.LabelField(Styles.advanced);
                     {
                         using (new EditorGUI.IndentLevelScope())
                         {

@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
         /// <summary>
-        /// The memory budget determining the size of the textures used for blending between baking states.
+        /// The memory budget determining the size of the textures used for blending between scenarios.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering
             public int indexChunkCount;
             public int shChunkCount;
 
-            public bool hasTwoStates;
+            public bool hasTwoScenarios;
 
             public ProbeVolumeSHBands shBands;
 
@@ -407,13 +407,13 @@ namespace UnityEngine.Rendering
             public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view.
             public NativeArray<Vector3> offsetVectors { get; internal set; }
 
-            // Two states for blending. When baking, only state0 is used
-            [NonSerialized] public PerStateData state0;
-            [NonSerialized] public PerStateData state1;
+            // Two scenarios for blending. When baking, only scenario0 is used
+            [NonSerialized] public PerScenarioData scenario0;
+            [NonSerialized] public PerScenarioData scenario1;
 
-            public PerStateData bakingState => state0;
+            public PerScenarioData bakingScenario => scenario0;
 
-            public struct PerStateData
+            public struct PerScenarioData
             {
                 public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
                 public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
@@ -766,28 +766,28 @@ namespace UnityEngine.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
-        /// <summary>The current baking state.</summary>
-        public string bakingState
+        /// <summary>The current lighting scenario.</summary>
+        public string lightingScenario
         {
-            get => sceneData.bakingState;
-            set => SetBakingState(value, 0.0f);
+            get => sceneData.lightingScenario;
+            set => SetLightingScenario(value, 0.0f);
         }
-        /// <summary>The current baking state factor when transitioning from another state. 1 means state is fully active.</summary>
-        public float bakingStateLerp => m_BakingStateLerpFactor;
+        /// <summary>The lerp factor when transitioning from between two scenarios. 1 means active scenario is fully active.</summary>
+        public float lightingScenarioLerp => m_ScenarioLerpFactor;
 
-        /// <summary>Set the baking state.</summary>
-        /// <param name="state">The new baking state.</param>
-        /// <param name="transitionTime">The time in seconds to smoothly transition from the current state to the new state.</param>
-        public void SetBakingState(string state, float transitionTime)
+        /// <summary>Set the active lighting scenario.</summary>
+        /// <param name="scenario">The name of the scenario to load.</param>
+        /// <param name="transitionTime">The time in seconds to smoothly transition from the current scenario to the new scenario.</param>
+        public void SetLightingScenario(string scenario, float transitionTime)
         {
-            bool changedState = sceneData.SetBakingState(state, transitionTime);
+            bool changedState = sceneData.SetLightingScenario(scenario, transitionTime);
 #if UNITY_EDITOR
             if (changedState)
                 EditorUtility.SetDirty(sceneData.parentAsset);
 #endif
         }
 
-        internal static string defaultBakingState = "Default";
+        internal static string defaultLightingScenario = "Default";
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
@@ -976,7 +976,7 @@ namespace UnityEngine.Rendering
                 blendingCell.chunkList.Clear();
                 blendingCell.blending = false;
             }
-            blendingCell.blendingFactor = m_BakingStateLerpFactor;
+            blendingCell.blendingFactor = m_ScenarioLerpFactor;
         }
 
         internal void UnloadAllCells()
@@ -1508,7 +1508,7 @@ namespace UnityEngine.Rendering
             blendingCell.chunkList.Clear();
 
             // If transition if finished, bypass the blending pool and directly udpate uploaded cells
-            bool bypassBlending = (m_BakingStateLerpFactor >= 1.0f) || !cell.hasTwoStates;
+            bool bypassBlending = (m_ScenarioLerpFactor >= 1.0f) || !cell.hasTwoScenarios;
 
             // Try to allocate texture space
             if (!bypassBlending && !m_BlendingPool.Allocate(ProbeBrickPool.GetChunkCount(bricks.Length), blendingCell.chunkList))
@@ -1527,9 +1527,9 @@ namespace UnityEngine.Rendering
                     // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
                     // no index or chunk data must change, so only probe values need to be updated
 
-                    bool useState0 = !cell.hasTwoStates;
-                    var shL0L1Data = useState0 ? cell.state0.shL0L1Data : cell.state1.shL0L1Data;
-                    var shL2Data = useState0 ? cell.state0.shL2Data : cell.state1.shL2Data;
+                    bool useState0 = !cell.hasTwoScenarios;
+                    var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
+                    var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
 
                     ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
                         cell.shBands, shL0L1Data, shL2Data, cell.validity,
@@ -1546,7 +1546,7 @@ namespace UnityEngine.Rendering
 
                 // state0
                 ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
-                    cell.state0.shL0L1Data, cell.state0.shL2Data, cell.validity,
+                    cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validity,
                     chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     m_SHBands);
@@ -1556,7 +1556,7 @@ namespace UnityEngine.Rendering
 
                 // state1
                 ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
-                    cell.state1.shL0L1Data, cell.state1.shL2Data, cell.validity,
+                    cell.scenario1.shL0L1Data, cell.scenario1.shL2Data, cell.validity,
                     chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     m_SHBands);
@@ -1565,7 +1565,7 @@ namespace UnityEngine.Rendering
             }
 
             blendingCell.blending = true;
-            blendingCell.blendingFactor = bypassBlending ? 1.0f : m_BakingStateLerpFactor;
+            blendingCell.blendingFactor = bypassBlending ? 1.0f : m_ScenarioLerpFactor;
 
             Profiler.EndSample();
 
@@ -1588,16 +1588,16 @@ namespace UnityEngine.Rendering
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
-            bool useState0 = m_BakingStateLerpFactor < 0.5f || !cell.hasTwoStates;
-            cellInfo.blendingCell.blendingFactor = m_BakingStateLerpFactor < 0.5f ? 0.0f : 1.0f;
+            bool useState0 = m_ScenarioLerpFactor < 0.5f || !cell.hasTwoScenarios;
+            cellInfo.blendingCell.blendingFactor = m_ScenarioLerpFactor < 0.5f ? 0.0f : 1.0f;
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                var shL0L1Data = useState0 ? cell.state0.shL0L1Data : cell.state1.shL0L1Data;
-                var shL2Data = useState0 ? cell.state0.shL2Data : cell.state1.shL2Data;
+                var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
+                var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
 
                 ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
                     cell.shBands, shL0L1Data, shL2Data, cell.validity,

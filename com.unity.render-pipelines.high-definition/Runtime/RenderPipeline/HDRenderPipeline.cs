@@ -440,7 +440,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            if (IsAPVEnabled())
+            bool apvIsEnabled = IsAPVEnabled();
+            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
@@ -458,6 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
+                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);

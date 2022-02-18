@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IsAPVEnabled()
         {
-            return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_GlobalSettings.supportProbeVolumes;
+            return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
         }
 
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)

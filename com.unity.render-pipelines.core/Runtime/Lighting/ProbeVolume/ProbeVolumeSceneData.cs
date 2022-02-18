@@ -56,26 +56,26 @@ namespace UnityEngine.Rendering
             public ProbeVolumeBakingProcessSettings settings;
             public ProbeReferenceVolumeProfile profile;
 
-            public List<string> bakingStates = new List<string>();
+            public List<string> lightingScenarios = new List<string>();
 
-            internal string CreateBakingState(string name)
+            internal string CreateScenario(string name)
             {
-                if (bakingStates.Contains(name))
+                if (lightingScenarios.Contains(name))
                 {
                     string renamed;
                     int index = 1;
                     do
                         renamed = $"{name} ({index++})";
-                    while (bakingStates.Contains(renamed));
+                    while (lightingScenarios.Contains(renamed));
                     name = renamed;
                 }
-                bakingStates.Add(name);
+                lightingScenarios.Add(name);
                 return name;
             }
 
-            internal bool RemoveBakingState(string name)
+            internal bool RemoveScenario(string name)
             {
-                return bakingStates.Remove(name);
+                return lightingScenarios.Remove(name);
             }
         }
 
@@ -95,24 +95,24 @@ namespace UnityEngine.Rendering
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
         internal List<BakingSet> bakingSets;
 
-        [SerializeField] string m_BakingState = ProbeReferenceVolume.defaultBakingState;
-        internal string bakingState => m_BakingState;
+        [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+        internal string lightingScenario => m_LightingScenario;
 
-        internal string previousBakingState;
+        internal string previousScenario;
 
-        internal bool SetBakingState(string state, float transitionTime)
+        internal bool SetLightingScenario(string scenario, float transitionTime)
         {
-            if (state == bakingState)
+            if (scenario == lightingScenario)
                 return false;
 
-            if (bakingState == null)
+            if (lightingScenario == null)
                 transitionTime = 0.0f;
-            previousBakingState = (transitionTime == 0.0f) ? null : bakingState;
-            m_BakingState = state;
+            previousScenario = (transitionTime == 0.0f) ? null : lightingScenario;
+            m_LightingScenario = scenario;
 
-            ProbeReferenceVolume.instance.stateTransitionTime = transitionTime;
+            ProbeReferenceVolume.instance.transitionTime = transitionTime;
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.UpdateBakingState(bakingState, previousBakingState);
+                data.UpdateActiveScenario(lightingScenario, previousScenario);
             return true;
         }
 
@@ -185,8 +185,8 @@ namespace UnityEngine.Rendering
                 sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
             }
 
-            if (string.IsNullOrEmpty(m_BakingState))
-                m_BakingState = ProbeReferenceVolume.defaultBakingState;
+            if (string.IsNullOrEmpty(m_LightingScenario))
+                m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
 
             foreach (var set in serializedBakingSets)
             {
@@ -205,8 +205,8 @@ namespace UnityEngine.Rendering
                 // Small migration code to ensure that old sets have correct settings
                 if (set.profile == null)
                     InitializeBakingSet(set, set.name);
-                if (set.bakingStates.Count == 0)
-                    InitializeBakingStates(set);
+                if (set.lightingScenarios.Count == 0)
+                    InitializeScenarios(set);
             }
 
             // Initialize baking set in case it's empty:
@@ -293,12 +293,12 @@ namespace UnityEngine.Rendering
             set.profile = newProfile;
             set.settings = ProbeVolumeBakingProcessSettings.Default;
 
-            InitializeBakingStates(set);
+            InitializeScenarios(set);
         }
 
-        void InitializeBakingStates(BakingSet set)
+        void InitializeScenarios(BakingSet set)
         {
-            set.bakingStates = new List<string>() { ProbeReferenceVolume.defaultBakingState };
+            set.lightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
         }
 
         internal void SyncBakingSetSettings()
