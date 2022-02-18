@@ -52,7 +52,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
         }
     }
 
-    // Fallback subshader for platform that don't support geometry shaders 
+    // Fallback subshader for platform that don't support geometry shaders
     SubShader
     {
         Tags { "RenderType"="Opaque" }
