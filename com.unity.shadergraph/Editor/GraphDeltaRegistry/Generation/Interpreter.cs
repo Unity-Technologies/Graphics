@@ -125,7 +125,10 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             else
             {
-                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
+                var port = rootNode.GetOutputPorts().First();
+                var outType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
+                string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()}");
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");
             }
             mainBodyFunctionBuilder.AddLine("return output;");
 
@@ -256,6 +259,17 @@ namespace UnityEditor.ShaderGraph.Generation
                 arguments = arguments.Remove(arguments.Length - 2, 2); // trim the trailing ", "
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
 
+        }
+
+        private static string ConvertToFloat3(ShaderType type, string name)
+        {
+            switch(type.VectorDimension)
+            {
+                case 4: return $"{name}.xyz";
+                case 2: return $"float3({name}.x, {name}.y, 0)";
+                case 1: return $"float3({name}, {name}, {name})";
+                default: return name;
+            }
         }
 
         private static IEnumerable<INodeReader> GatherTreeLeafFirst(INodeReader rootNode)

@@ -993,7 +993,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Triplanar Direction Masks",
+    "m_Name": "TriplanarDirectionMasks",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

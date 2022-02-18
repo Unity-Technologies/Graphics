@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static IModelUI CreateEdge(
             this ElementBuilder elementBuilder,
-            CommandDispatcher store,
             EdgeModel model)
         {
             var ui = new RedirectableEdge();

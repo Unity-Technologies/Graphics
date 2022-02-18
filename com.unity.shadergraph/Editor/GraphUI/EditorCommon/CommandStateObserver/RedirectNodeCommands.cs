@@ -18,10 +18,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultHandler(
+            UndoStateComponent undoState,
             GraphViewStateComponent graphViewState,
             AddRedirectNodeCommand command
         )
         {
+            using (var undoUpdater = undoState.UpdateScope)
+            {
+                undoUpdater.SaveSingleState(graphViewState, command);
+            }
+
             var graphModel = graphViewState.GraphModel;
             using var updater = graphViewState.UpdateScope;
 

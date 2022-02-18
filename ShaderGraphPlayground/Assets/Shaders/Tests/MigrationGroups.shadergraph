@@ -1052,10 +1052,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 375.49969482421877,
+            "x": -1232.5001220703125,
+            "y": 1749.0001220703125,
             "width": 145.0,
-            "height": 128.5003662109375
+            "height": 128.5
         }
     },
     "m_Slots": [
@@ -7173,7 +7173,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "3702fc0531f641caa168b9be41480142",
     "m_Title": "Complex Dynamic",
-    "m_Content": "12",
+    "m_Content": "14",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -8033,7 +8033,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Altitude Mask",
+    "m_Name": "AltitudeMask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -8342,7 +8342,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Triplanar",
+    "m_Name": "UVTriplanar",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -8716,7 +8716,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Triplanar Direction Masks",
+    "m_Name": "TriplanarDirectionMasks",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -9785,7 +9785,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Face Normal",
+    "m_Name": "FaceNormal",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -10254,7 +10254,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "51de35bfe4d34816aacea83d2a2b84f6",
     "m_Title": "Medium Texture",
-    "m_Content": "10",
+    "m_Content": "11",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -12940,10 +12940,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2832.0009765625,
-            "y": 1328.5001220703125,
+            "x": -2842.00048828125,
+            "y": 499.50006103515627,
             "width": 127.5,
-            "height": 93.9996337890625
+            "height": 94.0
         }
     },
     "m_Slots": [
@@ -13372,7 +13372,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Sphere Map",
+    "m_Name": "UVSphereMap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -14635,10 +14635,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 950.4996337890625,
-            "width": 125.999755859375,
-            "height": 118.00048828125
+            "x": -2845.50048828125,
+            "y": 121.5000228881836,
+            "width": 126.0,
+            "height": 118.0000228881836
         }
     },
     "m_Slots": [
@@ -15586,10 +15586,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2832.0009765625,
-            "y": 1210.4996337890625,
-            "width": 126.0009765625,
-            "height": 118.00048828125
+            "x": -2842.00048828125,
+            "y": 381.50006103515627,
+            "width": 126.0,
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -16692,7 +16692,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Lat Long",
+    "m_Name": "UVLatLong",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -17879,7 +17879,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Color To Grayscale",
+    "m_Name": "ColorToGrayscale",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -18607,10 +18607,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 125.4997329711914,
-            "width": 183.00048828125,
-            "height": 249.99996948242188
+            "x": 128.5,
+            "y": 1592.000244140625,
+            "width": 183.00003051757813,
+            "height": 250.0
         }
     },
     "m_Slots": [
@@ -19365,7 +19365,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "a852014a7b924e12a26bb183dfaacaf7",
     "m_Title": "Referable",
-    "m_Content": "16",
+    "m_Content": "17",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -21381,10 +21381,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 504.00006103515627,
-            "width": 129.500732421875,
-            "height": 121.4996337890625
+            "x": 758.4998779296875,
+            "y": 2214.000244140625,
+            "width": 127.50006103515625,
+            "height": 122.5
         }
     },
     "m_Slots": [
@@ -22047,7 +22047,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Alpha Merge",
+    "m_Name": "AlphaMerge",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -22626,7 +22626,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Alpha Split",
+    "m_Name": "AlphaSplit",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -23096,7 +23096,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Flow Map",
+    "m_Name": "UVFlowMap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -23993,10 +23993,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 832.4998168945313,
-            "width": 125.999755859375,
-            "height": 117.99981689453125
+            "x": -1567.0,
+            "y": 2522.0,
+            "width": 125.9998779296875,
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -24257,10 +24257,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2832.0009765625,
-            "y": 1068.5001220703125,
-            "width": 126.0009765625,
-            "height": 141.99951171875
+            "x": -2842.00048828125,
+            "y": 239.5000457763672,
+            "width": 126.0,
+            "height": 142.00001525878907
         }
     },
     "m_Slots": [
@@ -25913,7 +25913,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Interior Cubemap",
+    "m_Name": "UVInteriorCubemap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -27295,10 +27295,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -2835.500732421875,
-            "y": 625.4996948242188,
+            "x": 758.5000610351563,
+            "y": 2336.500244140625,
             "width": 160.0,
-            "height": 207.0001220703125
+            "height": 207.0
         }
     },
     "m_Slots": [
@@ -27683,7 +27683,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Camera Distance Mask",
+    "m_Name": "CameraDistanceMask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -27805,7 +27805,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Flow Map Time",
+    "m_Name": "FlowMapTime",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

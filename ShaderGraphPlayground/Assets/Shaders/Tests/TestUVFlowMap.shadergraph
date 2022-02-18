@@ -1066,7 +1066,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UV Flow Map",
+    "m_Name": "UVFlowMap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2363,7 +2363,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Flow Map Time",
+    "m_Name": "FlowMapTime",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
