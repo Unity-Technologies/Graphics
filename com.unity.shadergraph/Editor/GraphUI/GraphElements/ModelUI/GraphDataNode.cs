@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 if (height > GraphType.Height.One)
                 {
-                    PartList.InsertPartBefore("node-preview", new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
+                    PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
                 }
             }
 

@@ -9,9 +9,9 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TempMat3", // Name
-            "Out = float3(In[0][0], In[1][1], In[2][2]);",
+            "Out = float4(In[0][0], In[1][1], In[2][2], 1.0);",
             new ParameterDescriptor("In", TYPE.Mat3, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
     }
 
@@ -20,9 +20,9 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TempMat4", // Name
-            "Out = float3(In[0][0], In[1][1], In[2][2]);",
+            "Out = float4(In[0][0], In[1][1], In[2][2], In[3][3]);",
             new ParameterDescriptor("In", TYPE.Mat4, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
     }
 }
