@@ -51,4 +51,3 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
 
     void IPackageManagerExtension.OnPackageRemoved(PackageInfo packageInfo) { }
 }
-
