@@ -85,16 +85,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalTexture(m_B.name, m_B.rtResolve);
         }
 
-        public void Clear(CommandBuffer cmd)
+        public void Clear()
         {
             m_AisBackBuffer = true;
             m_AllowMSAA = m_A.msaa > 1 || m_B.msaa > 1;
         }
 
-        public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
+        public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
         {
-            Clear(cmd); //SetCameraSettings is called when new stack starts rendering. Make sure the targets are updated to use the new descriptor.
-
             desc.depthBufferBits = 0;
             m_Desc = desc;
             m_FilterMode = filterMode;
@@ -104,8 +102,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_Desc.msaaSamples > 1)
                 EnableMSAA(true);
-
-            ReAllocate(cmd);
         }
 
         public RTHandle GetBufferA()
