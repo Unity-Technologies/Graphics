@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering
             debugData.props = props;
 
             int idxInBatch = 0;
-            for (int i = 0; i < cell.probePositions.Length; i++)
+            for (int i = 0; i < cell.probePositionsOld.Length; i++)
             {
                 var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
@@ -394,8 +394,8 @@ namespace UnityEngine.Rendering
                 int indexInSlice = indexInBrick % 16;
                 Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
-                probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = cell.GetValidity(i);
+                probeBuffer.Add(Matrix4x4.TRS(cell.probePositionsOld[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                validity[idxInBatch] = cell.GetValidityOld(i);
                 texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                 relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
                 if (offsets != null)
@@ -411,7 +411,7 @@ namespace UnityEngine.Rendering
                     }
                     else
                     {
-                        var position = cell.probePositions[i] + offset;
+                        var position = cell.probePositionsOld[i] + offset;
                         var orientation = Quaternion.LookRotation(-offset);
                         var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
                         offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering
                 }
                 idxInBatch++;
 
-                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
+                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositionsOld.Length - 1)
                 {
                     idxInBatch = 0;
                     MaterialPropertyBlock prop = new MaterialPropertyBlock();

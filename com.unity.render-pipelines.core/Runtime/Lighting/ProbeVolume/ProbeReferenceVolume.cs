@@ -392,10 +392,12 @@ namespace UnityEngine.Rendering
             public ProbeVolumeSHBands shBands;
 
             public NativeArray<Brick> bricks { get; internal set; }
-            public NativeArray<uint> validity { get; internal set; }
-            public NativeArray<byte> packedValidityData { get; internal set; }
+            public NativeArray<uint> validityOld { get; internal set; }
+            public NativeArray<byte> validityNeighMaskData { get; internal set; }
+            public NativeArray<Vector3> probePositionsOld { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
+            public NativeArray<uint> packedValidity { get; internal set; }
 
             // Per state data
             public NativeArray<ushort> shL0L1RxData { get; internal set; }
@@ -422,10 +424,16 @@ namespace UnityEngine.Rendering
                 return outValue;
             }
 
+            internal float GetValidityOld(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validityOld.Length);
+                return GetValidityFromPacked(validityOld[probeIdx]);
+            }
+
             internal float GetValidity(int probeIdx)
             {
-                Debug.Assert(probeIdx < validity.Length);
-                return GetValidityFromPacked(validity[probeIdx]);
+                Debug.Assert(probeIdx < packedValidity.Length);
+                return GetValidityFromPacked(packedValidity[probeIdx]);
             }
 
             internal static float GetValidityFromPacked(uint packedValidity)
@@ -441,8 +449,8 @@ namespace UnityEngine.Rendering
 
             internal byte GetNeighbourhoodValidityMask(int probeIdx)
             {
-                Debug.Assert(probeIdx < validity.Length);
-                return GetValidityNeighMaskFromPacked(validity[probeIdx]); // TODO_FCC: TMP.
+                Debug.Assert(probeIdx < validityOld.Length);
+                return GetValidityNeighMaskFromPacked(validityOld[probeIdx]); // TODO_FCC: TMP.
             }
 
         }
@@ -1410,7 +1418,7 @@ namespace UnityEngine.Rendering
                     m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(chunkOffset, nativeArraySize), 0);
                     m_TemporaryDataLocation.TexL1_B_rz.Apply(false);
 
-                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.packedValidityData, 0);
+                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.validityNeighMaskData, 0);
                     m_TemporaryDataLocation.TexValidity.Apply(false);
 
                     if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -1441,7 +1449,7 @@ namespace UnityEngine.Rendering
                 else
                 {
                     int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands, cell.shL0L1Data, cell.shL2Data, cell.validity, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands, cell.shL0L1Data, cell.shL2Data, cell.validityOld, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                     // copy chunks into pool
                     m_TmpSrcChunks.Clear();
