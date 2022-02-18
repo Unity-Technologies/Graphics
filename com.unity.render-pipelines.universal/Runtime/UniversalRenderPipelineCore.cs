@@ -128,6 +128,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NativeArray<VisibleLight> visibleLights;
 
+        internal NativeArray<int> originalIndices;
+
         /// <summary>
         /// True if additional lights should be shaded in vertex shader, otherwise additional lights will be shaded per pixel.
         /// </summary>
@@ -239,7 +241,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
         internal HDRColorBufferPrecision hdrColorBufferPrecision;
-        
+
 
         /// <summary>
         /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>
