@@ -171,21 +171,10 @@ namespace UnityEditor.Rendering.Universal
             // Main light
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
-            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled the main light can be a shadow casting light.");
-            public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
 
             // Additional lights
             public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");
-            public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled shadows will be supported for spot lights.\n");
-            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
-            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
-            public static GUIContent[] additionalLightsShadowResolutionTierNames =
-            {
-                new GUIContent("Low"),
-                new GUIContent("Medium"),
-                new GUIContent("High")
-            };
             public static GUIContent additionalLightsCookieResolution = EditorGUIUtility.TrTextContent("Cookie Atlas Resolution", "All additional lights are packed into a single cookie atlas. This setting controls the atlas size.");
             public static GUIContent additionalLightsCookieFormat = EditorGUIUtility.TrTextContent("Cookie Atlas Format", "All additional lights are packed into a single cookie atlas. This setting controls the atlas format.");
 
@@ -202,6 +191,21 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ");
 
             // Shadow settings
+            public static string supportsMainLightShadowsWithoutMainLightHelpText = "Will not be able to cast main light shadows because main light is turned off.";
+            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Main Light Shadows", "If enabled the main light can be a shadow casting light.");
+            public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
+
+            public static string supportsAdditionalLightShadowsWithoutMainLightHelpText = "Will not be able to cast additional light shadows because additional light is not Per Pixel.";
+            public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Additional Light Shadows", "If enabled shadows will be supported for spot lights.\n");
+            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
+            public static GUIContent[] additionalLightsShadowResolutionTierNames =
+            {
+                new GUIContent("Low"),
+                new GUIContent("Medium"),
+                new GUIContent("High")
+            };
+
             public static GUIContent shadowWorkingUnitText = EditorGUIUtility.TrTextContent("Working Unit", "The unit in which Unity measures the shadow cascade distances. The exception is Max Distance, which will still be in meters.");
             public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Max Distance", "Maximum shadow rendering distance.");
             public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascade Count", "Number of cascade splits used for directional shadows.");
@@ -275,17 +279,19 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(cachedEditorData.accurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
                 EditorGUI.indentLevel--;
             }
-
-            if (cachedEditorData.renderingMode.intValue == (int)RenderingMode.Forward)
+            else if (cachedEditorData.renderingMode.intValue == (int)RenderingMode.Forward)
             {
                 EditorGUI.indentLevel++;
 
                 if (CachedUniversalRendererDataEditor.s_EnableClusteredUI)
                 {
                     EditorGUILayout.PropertyField(cachedEditorData.clusteredRendering, Styles.clusteredRenderingLabel);
-                    EditorGUI.BeginDisabledGroup(!cachedEditorData.clusteredRendering.boolValue);
-                    EditorGUILayout.PropertyField(cachedEditorData.tileSize);
-                    EditorGUI.EndDisabledGroup();
+                    if (cachedEditorData.clusteredRendering.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(cachedEditorData.tileSize);
+                        EditorGUI.indentLevel--;
+                    }
                 }
 
                 EditorGUILayout.PropertyField(cachedEditorData.depthPrimingMode, Styles.DepthPrimingModeLabel);
@@ -296,6 +302,7 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel--;
             }
+
             EditorGUILayout.PropertyField(cachedEditorData.copyDepthMode, Styles.CopyDepthModeLabel);
             EditorGUI.indentLevel--;
 
@@ -351,59 +358,21 @@ namespace UnityEditor.Rendering.Universal
         static void DrawLighting(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
             // Main Light
-            bool disableGroup = false;
-            EditorGUI.BeginDisabledGroup(disableGroup);
             CoreEditorUtils.DrawPopup(Styles.mainLightRenderingModeText, cachedEditorData.mainLightRenderingModeProp, Styles.mainLightOptions);
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUI.indentLevel++;
-            disableGroup |= !cachedEditorData.mainLightRenderingModeProp.boolValue;
-
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
-            EditorGUI.EndDisabledGroup();
-
-            disableGroup |= !cachedEditorData.mainLightShadowsSupportedProp.boolValue;
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
 
             // Additional light
             EditorGUILayout.PropertyField(cachedEditorData.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
-            EditorGUI.indentLevel++;
-
-            disableGroup = cachedEditorData.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            cachedEditorData.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, cachedEditorData.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
-            EditorGUI.EndDisabledGroup();
-
-            disableGroup |= (cachedEditorData.additionalLightsPerObjectLimitProp.intValue == 0 || cachedEditorData.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
-            EditorGUI.EndDisabledGroup();
-
-            disableGroup |= !cachedEditorData.additionalLightShadowsSupportedProp.boolValue;
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
-            DrawShadowResolutionTierSettings(cachedEditorData, ownerEditor);
-            EditorGUI.EndDisabledGroup();
-
+            if (cachedEditorData.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.Disabled)
+            {
+                EditorGUI.indentLevel++;
+                cachedEditorData.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, cachedEditorData.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+                EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
+                EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
+                EditorGUI.indentLevel--;
+            }
             EditorGUILayout.Space();
-            disableGroup = cachedEditorData.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
 
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
-            EditorGUI.EndDisabledGroup();
 
-            EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
 
             // Reflection Probes
             EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
@@ -462,6 +431,35 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawShadows(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
+            //Main light shadow
+            EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
+            if (cachedEditorData.mainLightShadowsSupportedProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                if (!cachedEditorData.mainLightRenderingModeProp.boolValue)
+                {
+                    EditorGUILayout.HelpBox(Styles.supportsMainLightShadowsWithoutMainLightHelpText, MessageType.Warning);
+                }
+                EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
+
+            // Additional light shadows
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
+            if (cachedEditorData.additionalLightShadowsSupportedProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                if (cachedEditorData.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel)
+                {
+                    EditorGUILayout.HelpBox(Styles.supportsAdditionalLightShadowsWithoutMainLightHelpText, MessageType.Warning);
+                }
+                EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+                DrawShadowResolutionTierSettings(cachedEditorData, ownerEditor);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.Space();
+
             EditorGUILayout.PropertyField(cachedEditorData.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
             cachedEditorData.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, cachedEditorData.shadowDistanceProp.floatValue));
             EditorUtils.Unit unit = EditorUtils.Unit.Metric;
