@@ -115,15 +115,15 @@ namespace UnityEngine.Rendering
             var positionsOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
             var positionsByteStart = positionsOldByteCount;
             var positionsByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<Vector3>();
-            var packedValidityByteStart = AlignUp16(positionsByteStart + positionsByteCount);
-            var packedValidityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<uint>();
-            var offsetByteStart = AlignUp16(packedValidityByteStart + packedValidityByteCount);
+            var validityByteStart = AlignUp16(positionsByteStart + positionsByteCount);
+            var validityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<float>();
+            var offsetByteStart = AlignUp16(validityByteStart + validityByteCount);
             var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
             if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
                 return false;
             var positionsOldData = hasSupportData ? cellSupportData.GetSubArray(0, positionsOldByteCount).Reinterpret<Vector3>(1) : default;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(positionsByteStart, positionsByteCount).Reinterpret<Vector3>(1) : default;
-            var packedValidityData = hasSupportData ? cellSupportData.GetSubArray(packedValidityByteStart, packedValidityByteCount).Reinterpret<float>(1) : default;
+            var validityData = hasSupportData ? cellSupportData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
 
             var startCounts = new CellCounts();
@@ -134,14 +134,14 @@ namespace UnityEngine.Rendering
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
                 cell.validityOld = validityOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                cell.validityNeighMaskData = validityNeighMaskData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
+                cell.validityNeighMaskData = validityNeighMaskData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
 
                 if (hasSupportData)
                 {
                     cell.probePositionsOld = positionsOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                    cell.probePositions = positionsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
+                    cell.probePositions = positionsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
-                    cell.validity = packedValidityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, chunkSizeInProbeCount);
+                    cell.validity = validityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                 }
 
                 startCounts.Add(counts);

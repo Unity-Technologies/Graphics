@@ -1405,31 +1405,33 @@ namespace UnityEngine.Rendering
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
-            int chunkOffset = 0;
-            int nativeArraySize = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal * 4;
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    m_TemporaryDataLocation.TexL0_L1rx.SetPixelData(cell.shL0L1RxData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
+                    var chunkOffsetInProbes = chunkIndex * chunkSizeInProbes;
+                    var shChunkSize = chunkSizeInProbes * 4;
+                    var shChunkOffset = chunkIndex * shChunkSize;
+                    m_TemporaryDataLocation.TexL0_L1rx.SetPixelData(cell.shL0L1RxData.GetSubArray(shChunkOffset, shChunkSize), 0);
                     m_TemporaryDataLocation.TexL0_L1rx.Apply(false);
-                    m_TemporaryDataLocation.TexL1_G_ry.SetPixelData(cell.shL1GL1RyData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    m_TemporaryDataLocation.TexL1_G_ry.SetPixelData(cell.shL1GL1RyData.GetSubArray(shChunkOffset, shChunkSize), 0);
                     m_TemporaryDataLocation.TexL1_G_ry.Apply(false);
-                    m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(shChunkOffset, shChunkSize), 0);
                     m_TemporaryDataLocation.TexL1_B_rz.Apply(false);
 
-                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.validityNeighMaskData, 0);
+                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.validityNeighMaskData.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes), 0);
                     m_TemporaryDataLocation.TexValidity.Apply(false);
 
                     if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
-                        m_TemporaryDataLocation.TexL2_0.SetPixelData(cell.shL2Data_0.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_0.SetPixelData(cell.shL2Data_0.GetSubArray(shChunkOffset, shChunkSize), 0);
                         m_TemporaryDataLocation.TexL2_0.Apply(false);
-                        m_TemporaryDataLocation.TexL2_1.SetPixelData(cell.shL2Data_1.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_1.SetPixelData(cell.shL2Data_1.GetSubArray(shChunkOffset, shChunkSize), 0);
                         m_TemporaryDataLocation.TexL2_1.Apply(false);
-                        m_TemporaryDataLocation.TexL2_2.SetPixelData(cell.shL2Data_2.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_2.SetPixelData(cell.shL2Data_2.GetSubArray(shChunkOffset, shChunkSize), 0);
                         m_TemporaryDataLocation.TexL2_2.Apply(false);
-                        m_TemporaryDataLocation.TexL2_3.SetPixelData(cell.shL2Data_3.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_3.SetPixelData(cell.shL2Data_3.GetSubArray(shChunkOffset, shChunkSize), 0);
                         m_TemporaryDataLocation.TexL2_3.Apply(false);
                     }
 
@@ -1444,7 +1446,6 @@ namespace UnityEngine.Rendering
                     m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
 
                     chunkIndex++;
-                    chunkOffset += nativeArraySize;
                 }
                 else
                 {

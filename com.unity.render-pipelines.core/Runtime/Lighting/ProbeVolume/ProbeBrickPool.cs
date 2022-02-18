@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering
         static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
-        static DynamicArray<byte> s_PackedValidity_locData = new DynamicArray<byte>();
+        static DynamicArray<byte> s_ValidityNeighMask_locData = new DynamicArray<byte>();
 
         static DynamicArray<Color> s_L2_0_locData = null;
         static DynamicArray<Color> s_L2_1_locData = null;
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering
             s_L0L1Rx_locData.Resize(size);
             s_L1GL1Ry_locData.Resize(size);
             s_L1BL1Rz_locData.Resize(size);
-            s_PackedValidity_locData.Resize(size);
+            s_ValidityNeighMask_locData.Resize(size);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, kZZZH);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
-                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, 0);
+                                SetPixel(s_ValidityNeighMask_locData, ix, iy, iz, loc.width, loc.height, 0);
 
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
-                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityNeighMaskFromPacked(validityPtr[shidx]));
+                                SetPixel(s_ValidityNeighMask_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityNeighMaskFromPacked(validityPtr[shidx]));
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -518,7 +518,7 @@ namespace UnityEngine.Rendering
             loc.TexL1_B_rz.SetPixels(s_L1BL1Rz_locData);
             loc.TexL1_B_rz.Apply(false);
 
-            loc.TexValidity.SetPixelData<byte>(s_PackedValidity_locData, 0);
+            loc.TexValidity.SetPixelData<byte>(s_ValidityNeighMask_locData, 0);
             loc.TexValidity.Apply(false);
 
             if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)

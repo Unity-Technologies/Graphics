@@ -1245,7 +1245,6 @@ namespace UnityEngine.Rendering
 
                                         validityNeighboorMaskChunkTarget[index] = 0;
                                         validityChunkTarget[index] = 0.0f;
-                                        validityNeighboorMaskChunkTarget[index] = 255;
                                         positionsChunkTarget[index] = Vector3.zero;
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -1345,6 +1344,7 @@ namespace UnityEngine.Rendering
                 {
                     fs.Write(new ReadOnlySpan<byte>(positionsOld.GetUnsafeReadOnlyPtr(), positionsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
