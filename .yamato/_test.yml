@@ -1,0 +1,88 @@
+{% metadata_file .yamato/_cache_config.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
+Affected_jobs:
+    name: Affected jobs
+    variables:
+      CUSTOM_REVISION: '{{trunk.changeset.id}}'
+      UTR_VERSION: "current"
+      TEST_FILTER: .*
+      CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_XR_mono_Linear_trunk
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_trunk
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
+      - .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
+      - .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_trunk
+      - .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
+      - .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
+      - .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
+      - .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
+      - .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_trunk
+      - .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
+      - .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
+      - .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_trunk
+      - .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_trunk
+      - .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_trunk
+      - .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_trunk
+      - .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_XR_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_mono_Linear_trunk
+      - .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_mono_Linear_trunk
+      - .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_Standalone_mono_Linear_trunk
+      - .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_playmode_mono_Linear_trunk
+      - .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_XR_mono_Linear_trunk
+      - .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_trunk
+      - .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
+      - .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_trunk
+      - .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_trunk
+      - .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_XR_mono_Linear_trunk
+      - .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_mono_Linear_trunk
+      - .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_Linear_trunk
+      - .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk
+      - .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk
+      - .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
+      - .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk
+      - .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk
+      - .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
+      - .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_trunk
+      - .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_2d-android-opengles3.yml#URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_2d-android-vulkan.yml#URP_2D_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_foundation-android-opengles3.yml#URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_foundation-android-vulkan.yml#URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
+      - .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
+      - .yamato/urp_postpro-android-opengles3.yml#URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_postpro-android-vulkan.yml#URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_terrain-android-opengles3.yml#URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+      - .yamato/urp_terrain-android-vulkan.yml#URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      - .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
+      - .yamato/vikingvillage_builtin-android-vulkan.yml#VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
+      - .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
+      - .yamato/vikingvillage_urp-android-vulkan.yml#VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
