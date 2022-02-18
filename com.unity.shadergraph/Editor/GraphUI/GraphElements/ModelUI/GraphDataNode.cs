@@ -1,5 +1,7 @@
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -18,14 +20,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PartList.AppendPart(m_NodePreviewPart);
 
             // TODO: Build out fields from node definition
+            if (Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
-            // TODO: Temporary to preview UIs
-            PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
-            PartList.InsertPartBefore("node-preview", new ColorPart("temp-color", Model, this, ussClassName));
-            PartList.InsertPartBefore("node-preview", new GradientPart("temp-gradient", Model, this, ussClassName));
-            PartList.InsertPartBefore("node-preview", new ObjectPart("temp-object", Model, this, ussClassName));
-            PartList.InsertPartBefore("node-preview", new IntPart("temp-int", Model, this, ussClassName));
-            PartList.InsertPartBefore("node-preview", new FloatPart("temp-float", Model, this, ussClassName));
+            foreach (var portReader in nodeReader.GetPorts())
+            {
+                // Only add new node parts for static ports.
+                if (!portReader.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
+                if (portReader.GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+
+                // Figure out the correct part to display based on the port's fields.
+                if (!portReader.GetField(GraphType.kHeight, out GraphType.Height height)) continue;
+                if (!portReader.GetField(GraphType.kLength, out GraphType.Length length)) continue;
+
+                if (height > GraphType.Height.One)
+                {
+                    PartList.InsertPartBefore("node-preview", new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
+                }
+            }
+
+            // GraphType:
+            // PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
+            // PartList.InsertPartBefore("node-preview", new IntPart("temp-int", Model, this, ussClassName));
+            // PartList.InsertPartBefore("node-preview", new FloatPart("temp-float", Model, this, ussClassName));
+
+            // Others:
+            // PartList.InsertPartBefore("node-preview", new ColorPart("temp-color", Model, this, ussClassName));
+            // PartList.InsertPartBefore("node-preview", new GradientPart("temp-gradient", Model, this, ussClassName));
+            // PartList.InsertPartBefore("node-preview", new ObjectPart("temp-object", Model, this, ussClassName));
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
