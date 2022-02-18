@@ -16,6 +16,7 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
+
 using PositionType = UnityEngine.UIElements.Position;
 using Task = UnityEditor.VersionControl.Task;
 
@@ -1202,7 +1203,12 @@ namespace UnityEditor.VFX.UI
             }
 
             UpdateVCSState();
-            UpdateGlobalSelection();
+            // When we get the focus by clicking on a selected node we should update the editor selection
+            // Otherwise (when we clicked in the void) don't discard the current selection (keep the selected GO for instance)
+            if (selection.Any(x => x.HitTest(m_pastCenter)))
+            {
+                UpdateGlobalSelection();
+            }
 
             m_LockedElement.PlaceInFront(contentViewContainer);
         }
@@ -2132,20 +2138,13 @@ namespace UnityEditor.VFX.UI
         {
             base.ClearSelection();
 
-            // Delay the selection to see if anything has been added to the selection in the mean time
-            // Which means we did not clicked in the void
+            // Wait for next frame to see if anything has been selected.
+            // If not, it means we clicked in the void and then we can select the VFX asser
             EditorApplication.delayCall += SelectAssetInInspector;
         }
 
         private void SelectAssetInInspector()
         {
-            // Only select the vfx asset if the selection is empty
-            // Which means we clicked in the void
-            if (selection.Count > 0)
-            {
-                return;
-            }
-
             var inspector = EditorWindow.HasOpenInstances<InspectorWindow>() ? EditorWindow.GetWindow<InspectorWindow>() : null;
 
             if (inspector == null)
@@ -2154,7 +2153,8 @@ namespace UnityEditor.VFX.UI
             }
 
             var inspectorObject = inspector.GetInspectedObject();
-            if (inspectorObject == null || inspectorObject is VFXObject)
+
+            if (inspectorObject is VFXObject && selection.Count == 0)
             {
                 var assetToSelect = controller != null && controller.model != null
                     ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
