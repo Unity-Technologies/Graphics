@@ -922,6 +922,7 @@ namespace UnityEngine.Rendering.Universal
         Bloom,
         LensFlareDataDriven,
         MotionVectors,
+        DrawFullscreen,
 
         FinalBlit
     }
