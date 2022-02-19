@@ -52,7 +52,7 @@ Right clicking within the workspace will open a context menu. Note that right cl
 | Duplicate | Duplicates selected [Nodes](Node.md) |
 | Select / Unused Nodes | Selects all nodes on the graph that are not contributing to the final shader output from the Master Stack. |
 | View / Collapse Ports | Collapses unused ports on all selected [Nodes](Node.md) |
-| Vierw / Expand Ports | Expands unused ports on all selected [Nodes](Node.md) |
+| View / Expand Ports | Expands unused ports on all selected [Nodes](Node.md) |
 | View / Collapse Previews | Collapses previews on all selected [Nodes](Node.md) |
 | View / Expand Previews | Expands previews on all selected [Nodes](Node.md) |
 | Precision / Inherit | Sets precision of all selected Nodes to Inherit. |
