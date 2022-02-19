@@ -1,10 +1,11 @@
-﻿{
+{
   "name": "Unity.ShaderGraph.HeadlessPreview.Tests",
   "rootNamespace": "",
   "references": [
     "Unity.ShaderGraph.Editor",
     "ContextLayeredDataStorage",
-    "Unity.ShaderGraph.GraphDeltaRegistry"
+    "Unity.ShaderGraph.GraphDeltaRegistry",
+    "Unity.ShaderGraph.StandardDefinitions"
   ],
   "includePlatforms": [
     "Editor"

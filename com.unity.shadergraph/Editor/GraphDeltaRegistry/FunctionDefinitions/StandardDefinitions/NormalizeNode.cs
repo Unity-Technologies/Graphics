@@ -6,7 +6,7 @@ namespace com.unity.shadergraph.defs
 
     internal class NormalizeNode : IStandardNode
     {
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public FunctionDescriptor FunctionDescriptor => new(
             1,              // Version
             "Normalize",    // Name
             "Out = normalize(In);",
@@ -14,7 +14,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
-        public static Dictionary<string, string> UIStrings => new()
+        public Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "Normalize, Unitize" },
             { "Tooltip", "Normalization Function" },

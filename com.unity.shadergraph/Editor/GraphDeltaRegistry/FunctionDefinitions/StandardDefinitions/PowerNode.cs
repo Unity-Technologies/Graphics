@@ -6,7 +6,7 @@ namespace com.unity.shadergraph.defs
 
     internal class PowerNode : IStandardNode
     {
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public FunctionDescriptor FunctionDescriptor => new(
             1,          // Version
             "Power",    // Name
             "Out = pow(Base, Exp);",
@@ -15,7 +15,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
-        public static Dictionary<string, string> UIStrings => new()
+        public Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "Power, Exponentiation" },
             { "Tooltip", "Power function" },
