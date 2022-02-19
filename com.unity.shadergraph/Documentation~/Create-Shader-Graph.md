@@ -15,7 +15,7 @@ A sub menu for each installed render pipeline may be present containing template
 
 For a full list of provided options, see the [Universal Render Pipeline]() and [High Definition Render Pipeline]() documentation.
 
-For this example, Universal is installed so a Unversal Lit Shader Graph has been created.
+For this example, Universal is installed so a Universal Lit Shader Graph has been created.
 
 Double-click your newly created Shader Graph Asset to open it in the Shader Graph window.
 
