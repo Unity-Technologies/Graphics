@@ -16,9 +16,6 @@ jobs:
       ! contains(github.repository_owner, 'unity')
     runs-on: ubuntu-latest
 
-    # Please coordinate with partner (The github env on the partner's github org that has access to the GH_CDS secrets)
-    environment: "..."
-
     env:
 
       # Set by partner
