@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private GraphicsFormat depthStencilFormat;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
+        internal SortingCriteria? sortingCriteriaOverride { get; set; } = null;
+
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                var sortFlags = sortingCriteriaOverride ?? renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
