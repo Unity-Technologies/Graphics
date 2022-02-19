@@ -305,6 +305,7 @@ namespace UnityEngine.Rendering
 
     /// <summary> LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP </summary>
     [System.Serializable]
+    [CreateAssetMenu(fileName = "New Lens Flare (SRP).asset", menuName = "Lens Flare (SRP)", order = UnityEngine.Rendering.CoreUtils.Priorities.srpLensFlareMenuPriority)]
     public sealed class LensFlareDataSRP : ScriptableObject
     {
         /// <summary> Initialize default value </summary>
