@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
 - Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
 - Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
+- Fixed an issue where the "Skip Iterations" option on Bloom could cause the effect to not run at all, which would cause flickering due to the Bloom texture being uninitialized. [case 1382991](https://issuetracker.unity3d.com/product/unity/issues/guid/1382991/)
 
 ## [12.1.4] - 2021-12-07
 
