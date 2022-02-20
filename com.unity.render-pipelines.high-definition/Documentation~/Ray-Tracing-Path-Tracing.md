@@ -1,10 +1,10 @@
 # Path tracing
 
-Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a "path".
+Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a path.
 
-It enables HDRP to compute many effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
+It enables HDRP to compute various effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
-A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
+A notable downside to path tracing is noise. Noise vanishes as more paths accumulate and converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
 ![](Images/RayTracingPathTracing1.png)
 
@@ -25,9 +25,10 @@ Path tracing shares the general requirements and setup as other ray tracing effe
 Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature, and modify its properties, you must add a Path Tracing override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, select **Add Override** > **Ray Tracing** > **Path Tracing**.
+2. In the Inspector, select Add Override > Ray Tracing > Path Tracing.
 3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
-4. If the image doesn't converge over time, in the Scene view toolbar, select the drop-down next to the effect toggle and enable Always Refresh.
+4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
+
 
 ![](Images/RayTracingPathTracing3.png)
 
@@ -40,13 +41,11 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
 | **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
 | **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
-| **Denoising** | Enable this feature to denoise the output of the the path tracer. This feature is only available if the **Unity Denoising Package** is installed in your project. There are three available options in HDRP: <br>
-- **None**: Disables denoising (this is the default option).
-- **Intel Open Image Denoise** : Performs denoising using the Intel Open Image Denoise library.
-- **NVIDIA OptiX** : Performs denoising using NVIDIA OptiX.
-
-You can also enable two additional settings:
-- **Use AOVs** (Arbitrary Output Variables): Enable this option to increase detail retention after denoising.
+| **Denoising** | Enable this feature to denoise the output of the the path tracer. This feature is only available if the **Unity Denoising Package** is installed in your project. There are three available options in HDRP:<br />
+- **None**: Disables denoising (this is the default option).<br />
+- **Intel Open Image Denoise** : Performs denoising using the Intel Open Image Denoise library.<br />
+- **NVIDIA OptiX** : Performs denoising using NVIDIA OptiX.<br /><br />You can also enable two additional settings:<br />
+- **Use AOVs** (Arbitrary Output Variables): Enable this option to increase detail retention after denoising.<br />
 - **Temporal**: Enable this option to improve temporal consistency for denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
@@ -61,47 +60,86 @@ You can also enable two additional settings:
 
 **Minimum Depth** set to 2, **Maximum Depth** set to 2: indirect lighting only (1 bounce)
 
-## Materials parameterization
+## How path tracing affects Material properties
 
-Some light phenomena can be expressed more naturally in path tracing than in rasterization, for instance:
+Path tracing changes how the following Material properties behave in your scene: 
 
-- Light refraction in transmissive objects.
-- Light absorption in transmissive objects.
-- Subsurface scattering.
+- [How transmissive objects absorb light](#surface-types)
+- [How light refracts in transmissive objects](#refraction-models)
+- [Subsurface scattering](#subsurface-scattering)
 
-Rasterization uses various methods to approximate complex lighting effects, with each of those methods relying on dedicated Material parameters. Path tracing computes those same effects all at once, without the need for as many parameters.
+This is because path tracing in HDRP implements more precise light transport simulations than rasterization. To do this, path tracing computes all lighting effects and how light interacts with Materials at the same time. This changes the appearance of Materials in path-traced scenes. For example, in the images below, the Material appears darker.
 
-For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+The images below display the difference between transparent, double-sided materials in a rasterized and a path-traced scene:
 
-### Refraction model
+![Surface_Options](Images/HDRP_PathtracingBoxes_Raster.png)
 
-In the Lit family of materials, when the surface type is set to *Transparent*, you can select between None, Box, Sphere or Thin refraction models.
+GameObjects without path tracing (rasterized).
 
-For path tracing, the distinction between Box or Sphere is irrelevant (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, Thin conveys the same idea as its rasterized version, and None is a special case of thin refractive surface, simulating alpha blending.
+![Surface_Options](Images/HDRP_PathtracingBoxes_PathTraced.png)
 
-Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+GameObjects with path tracing enabled.
 
-| Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
-|-------------------|---------------------------------------------------|---------------------------------------------------|
-| Box or Sphere | Thick object (e.g magnifying paperweight)       | Double sided, with None normal mode             |
-| Thin            | Thin object (e.g soap bubble or window)         | Double sided, with Flip or Mirror normal mode |
-| None            | Thin object, with smoothness = 1 and no Fresnel | Double sided, with Flip or Mirror normal mode |
+<a name="surface-types"></a>
 
-The reason why normal mode should be set to None for thick objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
+## Path tracing and double-sided materials
 
-### Subsurface scattering
+When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If the you disable **Double-sided** property, rays which exit the GameObject will not behave correctly.
 
-In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be Double-Sided (any normal mode will do), in which case it will receive light from both sides.
+The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
-Here is an example of a sheet of fabric, lit from below by a point light:
+![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
+
+GameObjects with a single-sided Material and path tracing enabled 
+
+![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
+
+GameObjects with a double-sided Material and path tracing enabled 
+
+<a name="refraction-models"></a>
+
+## How path tracing affects refraction models
+
+Path tracing changes the way refraction models on a Lit Material behave. 
+
+To change the refraction model a Lit Material uses, in the **Transparency Inputs** section, select a model from the **Refraction model** dropdown, displayed in the following image:
+
+![Refraction_model](Images/refraction_model.png)
+
+The following table describes how each refraction model behaves when you enable path tracing:
+
+| **Refraction model**   | **Path tracing behavior**                                    | **Compatible Surface sides**                                 |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Box** and **Sphere** | A surface type that represents thick objects like a paperweight or a crystal ball. When you enable path tracing, the **Box** and **Sphere** models behave in the same way. Rays can intersect the GameObjects in the scene and HDRP doesb't need to approximate transparent surfaces | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to **None**. |
+| **Thin**               | A thin surface type with [infinitesimal](<https://en.wikipedia.org/wiki/Infinitesimal>) thickness. Select this for thin, window-like surfaces. When you enable path tracing, the behavior of the **Thin** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
+| **None**               | A thin, refractive surface hardcoded to be smooth to simulate alpha blending. When you enable path tracing, the behavior of the **None** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
+
+![](Images/HDRP_PathtracingBalls_Raster.png)
+
+From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode without path tracing (rasterized).
+
+![](Images/HDRP_PathtracingBalls_PathTraced.png)
+
+From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode with path tracing enabled.
+
+### Path tracing and subsurface scattering
+
+For [subsurface scattering's](Subsurface-Scattering.md) **Transmission** property (A) to work correctly with path tracing, you need to do the following:
+
+1. Open the **Surface Options** window.
+2. Enable the **Double-Sided** property (B). 
+
+![Surface_Options_B](Images/Surface_Options_B.png)
+
+The following example images display a sheet of fabric lit from below by a point light. The first image shows a single-sided surface, and the second shows a double-sided surface:
 
 ![](Images/Path-traced-SSS-Single-sided.png)
 
-Single-sided or no Transmission
+A single-sided surface with Transmission disabled.
 
 ![](Images/Path-traced-SSS-Double-sided.png)
 
-Double-sided + Transmission
+A double-sided surface with Transmission enabled.
 
 ### Hair
 
@@ -121,21 +159,24 @@ This section contains information on the limitations of HDRP's path tracing impl
 
 ### Unsupported features of path tracing
 
-There is no support for path tracing on platforms other than DX12 for now.
+Currently, you can only use HDR path tracing on platforms that use DX12.
 
 HDRP path tracing in Unity 2020.2 has the following limitations:
 
-- If a Mesh in your scene has a Material assigned that doesn't have the `HDRenderPipeline` tag, the mesh won't appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
-- Doesn't support 3D Text and TextMeshPro.
-- Doesn't support decals.
-- Doesn't support tessellation.
-- Doesn't support Tube and Disc-shaped Area Lights.
-- Doesn't support Translucent Opaque Materials.
-- Doesn't support several of HDRP's Materials. This includes Eye, non-physical Hair and Decal.
-- Doesn't support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Doesn't support MSAA.
-- Doesn't support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
-- Doesn't support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
+- If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
+- Path tracing in HDRP doesn't support the following:  
+  - 3D Text and TextMeshPro.
+  - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
+  - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
+  - Decals.
+  - Tessellation.
+  - Tube and Disc-shaped Area Lights.
+  - Translucent Opaque Materials.
+  - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
+  - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
+  - MSAA.
+  - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+  - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 ### Unsupported shader graph nodes for path tracing
 
@@ -147,3 +188,4 @@ Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shade
 ### Unsupported features of ray tracing
 
 For information about unsupported features of ray tracing in general, see [Ray tracing limitations](Ray-Tracing-Getting-Started.md#limitations).
+
