@@ -84,7 +84,7 @@ GameObjects with path tracing enabled.
 
 ## Path tracing and double-sided materials
 
-When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If the you disable **Double-sided** property, rays can't exit the GameObject. 
+When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If the you disable **Double-sided** property, rays which exit the GameObject will not behave correctly.
 
 The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
