@@ -380,7 +380,6 @@ namespace UnityEngine.Rendering
         /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
