@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.UI
 
         public static bool CloseIfNotLast(VFXView vfxView)
         {
-            var noAssetWindows = s_VFXWindows.Where(x => x.graphView.controller?.graph == null).ToArray();
+            var noAssetWindows = s_VFXWindows.Where(x => x.graphView?.controller?.graph == null).ToArray();
             if (noAssetWindows.Length > 1)
             {
                 var window = noAssetWindows.Single(x => x.graphView == vfxView);
@@ -242,6 +242,7 @@ namespace UnityEditor.VFX.UI
             InternalLoadResource(m_ResourceHistory.Last());
 
             m_ResourceHistory.RemoveAt(m_ResourceHistory.Count - 1);
+            graphView.ClearSelection();
         }
 
         protected void CreateGUI()
@@ -351,6 +352,12 @@ namespace UnityEditor.VFX.UI
         {
             if (graphView != null) // OnFocus can be somehow called before OnEnable
                 graphView.OnFocus();
+        }
+
+        void OnLostFocus()
+        {
+            if (graphView != null)
+                graphView.ClearSelectionOnly();
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)

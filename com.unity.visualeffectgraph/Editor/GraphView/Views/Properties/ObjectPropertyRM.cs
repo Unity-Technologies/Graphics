@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -30,7 +31,7 @@ namespace UnityEditor.VFX.UI
             m_TextField = new TextField { name = "PickLabel", isReadOnly = true };
             var button = new Button { name = "PickButton" };
             var icon = new VisualElement { name = "PickIcon" };
-            m_ValueIcon = new Image { name = "TextureIcon" };
+            m_ValueIcon = new Image { name = "ValueIcon" };
 
             button.clicked += OnPickObject;
             button.Add(icon);
@@ -64,9 +65,17 @@ namespace UnityEditor.VFX.UI
             try
             {
                 m_Value = (UnityObject)obj;
-                m_ValueIcon.image = obj != null
-                    ? AssetPreview.GetMiniTypeThumbnail(m_Value)
-                    : AssetPreview.GetMiniTypeThumbnail(m_Provider.portType);
+                if (m_Provider.portType == typeof(ShaderGraphVfxAsset))
+                {
+                    //m_ValueIcon.image = AssetPreview.GetMiniTypeThumbnail(typeof(Shader));
+                    m_ValueIcon.image = Resources.Load<Texture2D>("Icons/sg_graph_icon");
+                }
+                else
+                {
+                    m_ValueIcon.image = obj != null
+                        ? AssetPreview.GetMiniTypeThumbnail(m_Value)
+                        : AssetPreview.GetMiniTypeThumbnail(m_Provider.portType);
+                }
                 m_TextField.value = m_Value?.name ?? $"None ({m_Provider.portType.Name})";
             }
             catch (Exception)

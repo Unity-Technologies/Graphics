@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateTipThickness_Water (Preview)")]
-    class EvaluateTipThickness_Water : AbstractMaterialNode, IGeneratesBodyCode
+    class EvaluateTipThickness_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection
     {
         public EvaluateTipThickness_Water()
         {
@@ -21,16 +21,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("EvaluateTipThickness_Water");
 
-        const int kViewWSInputSlotId = 0;
-        const string kViewWSInputSlotName = "ViewWS";
-
-        const int kLowFrequencyNormalWSInputSlotId = 1;
+        const int kLowFrequencyNormalWSInputSlotId = 0;
         const string kLowFrequencyNormalWSInputSlotName = "LowFrequencyNormalWS";
 
-        const int kLowFrequencyHeightInputSlotId = 2;
+        const int kLowFrequencyHeightInputSlotId = 1;
         const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
 
-        const int kTipThicknessOutputSlotId = 3;
+        const int kTipThicknessOutputSlotId = 2;
         const string kTipThicknessOutputSlotName = "TipThickness";
 
         public override bool hasPreview { get { return false; } }
@@ -38,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             // Input
-            AddSlot(new Vector3MaterialSlot(kViewWSInputSlotId, kViewWSInputSlotName, kViewWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kLowFrequencyNormalWSInputSlotId, kLowFrequencyNormalWSInputSlotName, kLowFrequencyNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
 
@@ -48,7 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(new[]
             {
                 // Input
-                kViewWSInputSlotId,
                 kLowFrequencyNormalWSInputSlotId,
                 kLowFrequencyHeightInputSlotId,
 
@@ -62,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (generationMode == GenerationMode.ForReals)
             {
                 // Evaluate the refraction parameters
-                string viewWS = GetSlotValue(kViewWSInputSlotId, generationMode);
+                string viewWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)}";
                 string lfNormalWS = GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode);
                 string lfHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
 
@@ -77,6 +72,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 sb.AppendLine("$precision {0} = 0.0;", GetVariableNameForSlot(kTipThicknessOutputSlotId));
             }
+        }
+
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
+        {
+            return NeededCoordinateSpace.World;
         }
     }
 }

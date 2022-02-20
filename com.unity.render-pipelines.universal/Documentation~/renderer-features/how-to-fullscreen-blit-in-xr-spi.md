@@ -1,6 +1,6 @@
-# How to perform a full screen blit in Single Pass Instanced rendering in XR
+# Perform a full screen blit in URP
 
-The example on this page describes how to create a custom Renderer Feature that performs a full screen blit in Single Pass Instanced rendering in XR.
+The example on this page describes how to create a custom Renderer Feature that performs a full screen blit.
 
 ## Example overview
 
@@ -53,11 +53,16 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType == CameraType.Game)
+                renderer.EnqueuePass(m_RenderPass);
+        }
+
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        {
+            if (renderingData.cameraData.cameraType == CameraType.Game)
             {
                 //Calling ConfigureInput with the ScriptableRenderPassInput.Color argument ensures that the opaque texture is available to the Render Pass
                 m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
-                m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
-                renderer.EnqueuePass(m_RenderPass);
+                m_RenderPass.SetTarget(renderer.cameraColorTargetHandle, m_Intensity);
             }
         }
 
@@ -91,7 +96,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     {
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorBlit");
         Material m_Material;
-        RenderTargetIdentifier m_CameraColorTarget;
+        RTHandle m_CameraColorTarget;
         float m_Intensity;
 
         public ColorBlitPass(Material material)
@@ -100,7 +105,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
         }
 
-        public void SetTarget(RenderTargetIdentifier colorHandle, float intensity)
+        public void SetTarget(RTHandle colorHandle, float intensity)
         {
             m_CameraColorTarget = colorHandle;
             m_Intensity = intensity;
@@ -108,7 +113,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
+            ConfigureTarget(m_CameraColorTarget);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -124,7 +129,6 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 m_Material.SetFloat("_Intensity", m_Intensity);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
                 //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
             }
@@ -213,7 +217,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
     For this example, set the Intensity property to 1.5.
 
-5. To visualize the example, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
+5. To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
 
     ![Configure MockHMD](../Images/how-to/blit-xr/xr-plugin-mockhmd.png)
 

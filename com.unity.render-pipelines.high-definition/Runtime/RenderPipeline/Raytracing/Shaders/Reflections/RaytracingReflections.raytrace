@@ -69,6 +69,19 @@ void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload
     rayIntersection.t = _RaytracingRayMaxLength;
 }
 
+// Function that evaluates the normal data for a given pixel
+NormalData EvaluateNormalData(uint2 sourceCoord)
+{
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(sourceCoord, normalData);
+
+    // Override the roughness by the clearcoat value of this is a clear coat
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, sourceCoord);
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    return normalData;
+}
+
 [shader("raygeneration")]
 void RayGenIntegration()
 {
@@ -103,11 +116,7 @@ void RayGenIntegration()
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord, normalData);
-    // Override the roughness by the clearcoat value of this is a clear coat
-    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
-    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    NormalData normalData = EvaluateNormalData(currentCoord);
 
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);

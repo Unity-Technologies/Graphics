@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: d69ba50c5030c154ca8ed64a2d0fef3f
 ModelImporter:
-  serializedVersion: 21202
+  serializedVersion: 22102
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -122,9 +122,10 @@ ModelImporter:
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 16
     useFileScale: 1
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
-    normalImportMode: 0
+    normalImportMode: 1
     tangentImportMode: 3
     normalCalculationMode: 4
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
@@ -154,6 +155,7 @@ ModelImporter:
   humanoidOversampling: 1
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 0
+  importBlendShapeDeformPercent: 0
   additionalBone: 0
   userData: 
   assetBundleName: 
