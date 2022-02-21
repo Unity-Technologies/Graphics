@@ -217,7 +217,7 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
             payload.segmentID = segmentID;
 
             // Trace our continuation ray
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
             // Add the segment contribution to our overall radiance value
