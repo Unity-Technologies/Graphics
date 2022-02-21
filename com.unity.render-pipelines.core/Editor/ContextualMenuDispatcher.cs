@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Helper methods for overriding contextual menus
     /// </summary>
-    static class ContextualMenuDispatcher
+    public static class ContextualMenuDispatcher
     {
         [MenuItem("CONTEXT/ReflectionProbe/Remove Component")]
         static void RemoveReflectionProbeComponent(MenuCommand command)
@@ -54,91 +54,83 @@ namespace UnityEditor.Rendering
             RemoveComponent<Camera>(command);
         }
 
-        [InitializeOnLoadMethod]
-        static void RegisterAdditionalDataMenus()
+        /// <summary>
+        /// Removes a <see cref="IAdditionalData"/> and it's components defined by <see cref="RequireComponent"/>
+        /// </summary>
+        /// <typeparam name="T">A <see cref="MonoBehaviour"/> that is an <see cref="IAdditionalData"/></typeparam>
+        /// <exception cref="Exception">If the given <see cref="MonoBehaviour"/> is not an <see cref="IAdditionalData"/></exception>
+        public static void RemoveAdditionalData<T>(MenuCommand command)
+            where T : Component, IAdditionalData
         {
-            foreach (var additionalData in TypeCache.GetTypesDerivedFrom<IAdditionalData>())
+            if (typeof(T).GetCustomAttributes(typeof(RequireComponent), true).FirstOrDefault() is RequireComponent rc)
             {
-                if (additionalData.GetCustomAttributes(typeof(RequireComponent), true).FirstOrDefault() is RequireComponent rc)
+                using (ListPool<Type>.Get(out var componentsToRemove))
                 {
-                    string types = rc.m_Type0.Name;
+                    componentsToRemove.Add(rc.m_Type0);
                     if (rc.m_Type1 != null)
-                        types += $", {rc.m_Type1.Name}";
+                        componentsToRemove.Add(rc.m_Type1);
                     if (rc.m_Type2 != null)
-                        types += $", {rc.m_Type2.Name}";
+                        componentsToRemove.Add(rc.m_Type2);
 
-                    MenuManager.AddMenuItem($"CONTEXT/{additionalData.Name}/Remove Component",
-                        string.Empty,
-                        false,
-                        0,
-                        () => EditorUtility.DisplayDialog($"Remove {additionalData.Name} is blocked", $"You can not delete this component, you will have to remove the {types}.", "OK"),
-                        () => true);
+                    if (EditorUtility.DisplayDialog(
+                        title: $"Are you sure you want to proceed?",
+                        message: $"This operation will also remove {string.Join($"{Environment.NewLine} - ", componentsToRemove)}.",
+                        ok: $"Remove everything",
+                        cancel: "Cancel"))
+                    {
+                        T additionalData = command.context as T;
+                        foreach (var type in componentsToRemove)
+                        {
+                            RemoveComponent(type, additionalData.GetComponent(type));
+                        }
+                    }
                 }
             }
+            else
+                throw new Exception($"Missing attribute {typeof(RequireComponent).FullName} on type {typeof(T).FullName}");
         }
 
         static void RemoveComponent<T>(MenuCommand command)
             where T : Component
         {
             T comp = command.context as T;
+            RemoveComponent(typeof(T), comp);
+        }
 
-            if (!DispatchRemoveComponent<T>(comp))
+        /// <summary>
+        /// Removes the component and it's additional datas
+        /// </summary>
+        /// <param name="type">Type to remove</param>
+        /// <param name="comp">The component</param>
+        public static void RemoveComponent(Type type, Component comp)
+        {
+            if (!RemoveAdditionalDataUtils.RemoveComponent(type, comp, RemoveComponentUtils.ComponentDependencies(comp)))
             {
                 //preserve built-in behavior
                 if (RemoveComponentUtils.CanRemoveComponent(comp, RemoveComponentUtils.ComponentDependencies(comp)))
-                    Undo.DestroyObjectImmediate(command.context);
-            }
-        }
-
-        static bool DispatchRemoveComponent<T>(T component)
-            where T : Component
-        {
-            try
-            {
-                var instance = new RemoveAdditionalDataContextualMenu<T>();
-                instance.RemoveComponent(component, RemoveComponentUtils.ComponentDependencies(component));
-                return true;
-            }
-            catch
-            {
-                return false;
+                    Undo.DestroyObjectImmediate(comp);
             }
         }
     }
 
-    /// <summary>
-    /// Interface that should be used with [ScriptableRenderPipelineExtension(type))] attribute to dispatch ContextualMenu calls on the different SRPs
-    /// </summary>
-    /// <typeparam name="T">This must be a component that require AdditionalData in your SRP</typeparam>
-    [Obsolete("The menu items are handled automatically for components with the AdditionalComponentData attribute", false)]
-    public interface IRemoveAdditionalDataContextualMenu<T>
-        where T : Component
+    static class RemoveAdditionalDataUtils
     {
         /// <summary>
         /// Remove the given component
         /// </summary>
+        /// <param name="type">The type of the component</param>
         /// <param name="component">The component to remove</param>
         /// <param name="dependencies">Dependencies.</param>
-        void RemoveComponent(T component, IEnumerable<Component> dependencies);
-    }
-
-    internal class RemoveAdditionalDataContextualMenu<T>
-        where T : Component
-    {
-        /// <summary>
-        /// Remove the given component
-        /// </summary>
-        /// <param name="component">The component to remove</param>
-        /// <param name="dependencies">Dependencies.</param>
-        public void RemoveComponent(T component, IEnumerable<Component> dependencies)
+        public static bool RemoveComponent(Type type, Component component, IEnumerable<Component> dependencies)
         {
             var additionalDatas = dependencies
-                .Where(c => c != component && typeof(IAdditionalData).IsAssignableFrom(c.GetType()))
-                .ToList();
+                    .Where(c => c != component && typeof(IAdditionalData).IsAssignableFrom(c.GetType()))
+                    .ToList();
 
             if (!RemoveComponentUtils.CanRemoveComponent(component, dependencies.Where(c => !additionalDatas.Contains(c))))
-                return;
+                return false;
 
+            bool removed = true;
             var isAssetEditing = EditorUtility.IsPersistent(component);
             try
             {
@@ -146,7 +138,7 @@ namespace UnityEditor.Rendering
                 {
                     AssetDatabase.StartAssetEditing();
                 }
-                Undo.SetCurrentGroupName($"Remove {typeof(T)} additional data components");
+                Undo.SetCurrentGroupName($"Remove {type} and additional data components");
 
                 // The components with RequireComponent(typeof(T)) also contain the AdditionalData attribute, proceed with the remove
                 foreach (var additionalDataComponent in additionalDatas)
@@ -158,6 +150,10 @@ namespace UnityEditor.Rendering
                 }
                 Undo.DestroyObjectImmediate(component);
             }
+            catch
+            {
+                removed = false;
+            }
             finally
             {
                 if (isAssetEditing)
@@ -165,6 +161,8 @@ namespace UnityEditor.Rendering
                     AssetDatabase.StopAssetEditing();
                 }
             }
+
+            return removed;
         }
     }
 }

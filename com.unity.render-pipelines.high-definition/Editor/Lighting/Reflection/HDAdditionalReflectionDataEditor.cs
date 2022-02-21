@@ -9,5 +9,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
         }
+
+        [MenuItem("CONTEXT/HDAdditionalReflectionData/Remove Component")]
+        static void RemoveComponent(MenuCommand command)
+        {
+            ContextualMenuDispatcher.RemoveAdditionalData<HDAdditionalReflectionData>(command);
+        }
     }
 }

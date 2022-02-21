@@ -14,5 +14,11 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
         }
+
+        [MenuItem("CONTEXT/UniversalAdditionalLightData/Remove Component")]
+        static void RemoveComponent(MenuCommand command)
+        {
+            ContextualMenuDispatcher.RemoveAdditionalData<UniversalAdditionalLightData>(command);
+        }
     }
 }
