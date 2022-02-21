@@ -4509,9 +4509,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // float lthresh = Mathf.GammaToLinearSpace(m_AutoLensFlare.threshold.value);
             // float knee = lthresh * k_Softness + 1e-5f;
             // return new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
-            data.autoLensFlareParameters = new Vector4(m_AutoLensFlare.intensity.value, m_AutoLensFlare.blurSize.value, m_AutoLensFlare.blurSampleCount.value, m_AutoLensFlare.blurContribution.value);
-            data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.chromaticAbberationIntensity.value, m_AutoLensFlare.chromaticAbberationSampleCount.value, m_AutoLensFlare.chromaContribution.value, m_AutoLensFlare.intensity.value > 0 ? 1 : 0);
-            data.autoLensFlareParameters3 = new Vector4(m_AutoLensFlare.firstFlareIntensity.value, m_AutoLensFlare.secondaryFlareIntensity.value, m_AutoLensFlare.polarFlareIntensity.value, m_AutoLensFlare.vignetteInfluence.value);
+            data.autoLensFlareParameters1 = new Vector4(m_AutoLensFlare.intensityMultiplier.value, m_AutoLensFlare.firstFlareIntensity.value, m_AutoLensFlare.secondaryFlareIntensity.value, m_AutoLensFlare.warpedFlareIntensity.value);
+            data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.vignetteIntensity.value, m_AutoLensFlare.chromaticAbberationIntensity.value / 20f, m_AutoLensFlare.chromaticAbberationSampleCount.value, 1.0f);
+
         }
 
         void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
@@ -4646,9 +4646,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture spectralLut;
             public Vector4 chromaticAberrationParameters;
 
-            public Vector4 autoLensFlareParameters;
+            public Vector4 autoLensFlareParameters1;
             public Vector4 autoLensFlareParameters2;
-            public Vector4 autoLensFlareParameters3;
 
             public Vector4 vignetteParams1;
             public Vector4 vignetteParams2;
@@ -4747,9 +4746,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
                         // AutoLensFlare
-                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams, data.autoLensFlareParameters);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams1, data.autoLensFlareParameters1);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams2, data.autoLensFlareParameters2);
-                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams3, data.autoLensFlareParameters3);
 
                         // Color grading
                         ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._LogLut3D, data.logLut);

@@ -37,9 +37,8 @@ SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_VignetteMask);
 
 CBUFFER_START(cb0)
-    float4 _AutoLensFlareParams;
+    float4 _AutoLensFlareParams1;
     float4 _AutoLensFlareParams2;
-    float4 _AutoLensFlareParams3;
     float4 _ChromaParams;
     float4 _VignetteParams1;
     float4 _VignetteParams2;
@@ -63,22 +62,14 @@ CBUFFER_END
 #define DistScale               _DistortionParams2.z
 #define DistIntensity           _DistortionParams2.w
 
-#define AutoLensFlareAmount     _AutoLensFlareParams.x
-#define AutoLensFlareBlurSize   _AutoLensFlareParams.y
-#define AutoLensFlareBlurSample _AutoLensFlareParams.z
-#define AutoLensFlareBlurContribution   _AutoLensFlareParams.w
+#define AutoLensFlareAmount                 _AutoLensFlareParams1.x
+#define AutoLensFlareFirstIntensity         _AutoLensFlareParams1.y
+#define AutoLensFlareSecondaryIntensity     _AutoLensFlareParams1.z
+#define AutoLensFlarePolarIntensity         _AutoLensFlareParams1.w
 
-#define ChromaticAbberationIntensity        _AutoLensFlareParams2.x
-#define ChromaticAbberationSample           _AutoLensFlareParams2.y
-#define ChromaticAbberationContribution     _AutoLensFlareParams2.z
-#define AutoLensFlareEnabled                _AutoLensFlareParams2.w
-
-#define AutoLensFlareFirstIntensity         _AutoLensFlareParams3.x
-#define AutoLensFlareSecondaryIntensity     _AutoLensFlareParams3.y
-#define AutoLensFlarePolarIntensity         _AutoLensFlareParams3.z
-#define AutoLensFlareVignetteInfluence      _AutoLensFlareParams3.w
-
-
+#define AutoLensFlareVignetteIntensity      _AutoLensFlareParams2.x
+#define ChromaticAbberationIntensity        _AutoLensFlareParams2.y
+#define ChromaticAbberationSample           _AutoLensFlareParams2.z
 
 #define ChromaAmount            _ChromaParams.x
 #define ChromaMaxSamples        int(_ChromaParams.y)
@@ -190,19 +181,16 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
 
     float chromaIntensityDampen = 0.05f;            //0 and 1 max
 
-    float chromaAmount = ChromaticAbberationIntensity;          //0 and 1 max
-    float chromSampleCount = ChromaticAbberationSample;
-
-    float blurSize = AutoLensFlareBlurSize; // 0 /8
-    float blurSampleCount = AutoLensFlareBlurSample;        // 3 and 16 max
+    // float blurSize = AutoLensFlareBlurSize; // 0 /8
+    // float blurSampleCount = AutoLensFlareBlurSample;        // 3 and 16 max
 
     uv = DistortUV(uv);
 
     //Chromatic
     float2 coords = 2.0 * uv - 1.0;
-    float2 end = uv - coords * dot(coords, coords) * chromaAmount;  //Amount
+    float2 end = uv - coords * dot(coords, coords) * ChromaticAbberationIntensity;  //Amount
     float2 diff = end - uv;
-    int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, chromSampleCount); //max sample
+    int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, ChromaticAbberationSample); //max sample
     float2 delta = diff / samples;
     float2 pos = uv;
 
@@ -256,8 +244,8 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
     // return lerp(float3(0,0,0), ca.xyz, mask.xyz) * intensity;
 
     return (
-                blurTexture.xyz * AutoLensFlareBlurContribution
-                +  pow(chromaTexture.xyz,1) * ChromaticAbberationContribution
+                /*blurTexture.xyz * AutoLensFlareBlurContribution
+                + */ pow(chromaTexture.xyz,1)
             ) * intensity;
     // return pow(ca.xyz,1) * intensity;
     // return ca.xyz * mask.xyz * intensity;
@@ -370,7 +358,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef AUTOLENSFLARE
 
     UNITY_BRANCH
-    if(AutoLensFlareEnabled)
+    if(AutoLensFlareAmount > 0)
     {
         //Parameters
         float vignettePow = 2.0;
@@ -383,7 +371,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         float vignetteY = pow(abs(2 * uvVignette.y - 1) , (vignetteSquaredness));
         float vignetteRound = pow((vignetteX + vignetteY),(vignettePow));
 
-        vignetteRound = lerp(1,vignetteRound,pow(abs(AutoLensFlareVignetteInfluence),0.25f));
+        vignetteRound = lerp(1,vignetteRound,pow(abs(AutoLensFlareVignetteIntensity),0.25f));
 
         float3 classicInv = GetFlareTexture(uv, 4.0f,AutoLensFlareFirstIntensity, true, false);
         float3 classic = GetFlareTexture(uv, 4.0f,AutoLensFlareSecondaryIntensity, false, false);
@@ -405,7 +393,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
                             ) * AutoLensFlareAmount;
 
-        color = color.xyz + final.xyz;
+        color += final.xyz;
 
         // color = final;
         // color = vignetteRound;
@@ -420,9 +408,6 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         // color += final;
 
         //Debug
-        // color = ca;
-        // color = mask;
-        // color = (mask) * (ca);
         // color = vignette;
 
     }
