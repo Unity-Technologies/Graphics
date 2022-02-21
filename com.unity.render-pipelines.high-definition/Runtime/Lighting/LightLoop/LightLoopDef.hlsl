@@ -183,8 +183,11 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         color.rgb = ClampToFloat16Max(color.rgb);
 
 #ifdef APPLY_FOG_ON_SKY_REFLECTIONS
-        float4 fogAttenuation = EvaluateFogForSkyReflections(lightLoopContext.positionWS, texCoord);
-        color.rgb = color.rgb * fogAttenuation.a + fogAttenuation.rgb;
+        if (_FogEnabled)
+        {
+            float4 fogAttenuation = EvaluateFogForSkyReflections(lightLoopContext.positionWS, texCoord);
+            color.rgb = color.rgb * fogAttenuation.a + fogAttenuation.rgb;
+        }
 #endif
     }
 
