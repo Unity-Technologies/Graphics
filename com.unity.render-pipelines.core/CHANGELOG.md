@@ -11,8 +11,17 @@ The version number for this package has increased due to a version update of a r
 
 ## [12.1.5] - 2022-01-14
 
+### Added
+- Added common support code for FSR
+
 ### Fixed
 - Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ## [12.1.4] - 2021-12-07
 

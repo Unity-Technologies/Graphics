@@ -221,6 +221,14 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
             cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(cameraWidth, cameraHeight, 1.0f / cameraWidth, 1.0f / cameraHeight));
+
+            // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
+            // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
+            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
+
+            //Set per camera matrices.
+            SetCameraMatrices(cmd, ref cameraData, true);
         }
 
         /// <summary>
@@ -642,7 +650,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Initialize Camera Render State
                 ClearRenderingState(cmd);
-                SetPerCameraShaderVariables(cmd, ref cameraData);
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -686,12 +693,12 @@ namespace UnityEngine.Rendering.Universal
                     if (cameraData.renderType == CameraRenderType.Base)
                     {
                         context.SetupCameraProperties(camera);
-                        SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                     }
                     else
                     {
                         // Set new properties
-                        SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                         SetPerCameraClippingPlaneProperties(cmd, in cameraData);
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
                     }
