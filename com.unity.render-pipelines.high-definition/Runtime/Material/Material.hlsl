@@ -122,7 +122,7 @@ float4 EvaluateFogForSkyReflections(float3 positionWS, float3 R)
 
     float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
     float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-            _HeightFogExponents, cosZenith, startHeight);
+            _HeightFogExponents, cosZenith, startHeight, _MaxFogDistance);
     float  trFallback = TransmittanceFromOpticalDepth(odFallback);
 
     float3 fog = GetFogColor(-R, _MaxFogDistance) * volAlbedo * (1 - trFallback);
