@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering
         /// <param name="type">The type of the component</param>
         /// <param name="component">The component to remove</param>
         /// <param name="dependencies">Dependencies.</param>
-        public static bool RemoveComponent(Type type, Component component, IEnumerable<Component> dependencies)
+        public static bool RemoveComponent([DisallowNull] Component component, IEnumerable<Component> dependencies)
         {
             var additionalDatas = dependencies
                     .Where(c => c != component && c is IAdditionalData)
