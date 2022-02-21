@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -104,6 +105,7 @@ namespace UnityEditor.VFX.Test
             minValueSlot.value = 789f;
 
             // Paste selection
+            var pasteCenter = view.pasteCenter;
             view.UnserializeAndPasteElements("paste", copyData);
 
             // Get the only context that has a different model than the original one (which means it's the context that we just pasted)
@@ -118,7 +120,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual((AABox)copyBoundsSlot.value, originalBounds);
             Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
-            Assert.AreEqual(view.pasteCenter + newContext.position, copyContextModel.position);
+            Assert.AreEqual(pasteCenter + newContext.position, copyContextModel.position);
         }
 
         [Test]
@@ -152,6 +154,7 @@ namespace UnityEditor.VFX.Test
             aSlot.value = Vector3.one * 456;
 
             // Paste selection
+            var pasteCenter = view.pasteCenter;
             view.UnserializeAndPasteElements("paste", copyData);
 
             // Retrieve the pasted operator
@@ -163,7 +166,7 @@ namespace UnityEditor.VFX.Test
 
             var copyASlot = copyOperator.controller.model.GetInputSlot(0);
             Assert.AreEqual(originalA, (Vector3)copyASlot.value);
-            Assert.AreEqual(view.pasteCenter + newOperator.position, copyOperator.controller.model.position);
+            Assert.AreEqual(pasteCenter + newOperator.position, copyOperator.controller.model.position);
         }
 
         [Test]
