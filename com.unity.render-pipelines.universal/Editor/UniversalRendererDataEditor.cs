@@ -396,6 +396,8 @@ namespace UnityEditor.Rendering.Universal
             // UI code adapted from HDRP U.I logic implemented in com.unity.render-pipelines.high-definition/Editor/RenderPipeline/Settings/SerializedScalableSetting.cs )
 
             var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            // Removing the added border when calling GetRect
+            rect.x += 2.6f;
             var contentRect = EditorGUI.PrefixLabel(rect, Styles.additionalLightsShadowResolutionTiers);
 
             EditorGUI.BeginChangeCheck();
@@ -441,6 +443,29 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.supportsMainLightShadowsWithoutMainLightHelpText, MessageType.Warning);
                 }
                 EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+
+
+                EditorUtils.Unit unit = EditorUtils.Unit.Metric;
+                if (cachedEditorData.shadowCascadeCountProp.intValue != 0)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, cachedEditorData.state.value);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        cachedEditorData.state.value = unit;
+                    }
+                }
+                EditorGUILayout.IntSlider(cachedEditorData.shadowCascadeCountProp, UniversalRendererData.k_ShadowCascadeMinCount, UniversalRendererData.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
+
+                int cascadeCount = cachedEditorData.shadowCascadeCountProp.intValue;
+
+                bool useMetric = unit == EditorUtils.Unit.Metric;
+                float baseMetric = cachedEditorData.shadowDistanceProp.floatValue;
+                int cascadeSplitCount = cascadeCount - 1;
+
+                DrawCascadeSliders(cachedEditorData, cascadeSplitCount, useMetric, baseMetric);
+
+                DrawCascades(cachedEditorData, cascadeCount, useMetric, baseMetric);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
@@ -460,39 +485,20 @@ namespace UnityEditor.Rendering.Universal
             }
             EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(cachedEditorData.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
-            cachedEditorData.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, cachedEditorData.shadowDistanceProp.floatValue));
-            EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-            if (cachedEditorData.shadowCascadeCountProp.intValue != 0)
+            if (cachedEditorData.mainLightShadowsSupportedProp.boolValue || cachedEditorData.additionalLightShadowsSupportedProp.boolValue)
             {
-                EditorGUI.BeginChangeCheck();
-                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, cachedEditorData.state.value);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    cachedEditorData.state.value = unit;
-                }
+                EditorGUI.indentLevel--;
+                EditorGUILayout.BeginVertical("GroupBox");
+                EditorGUILayout.PropertyField(cachedEditorData.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
+                cachedEditorData.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, cachedEditorData.shadowDistanceProp.floatValue));
+
+                cachedEditorData.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, cachedEditorData.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                cachedEditorData.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, cachedEditorData.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                EditorGUILayout.PropertyField(cachedEditorData.softShadowsSupportedProp, Styles.supportsSoftShadows);
+
+                EditorGUILayout.EndVertical();
+                EditorGUI.indentLevel++;
             }
-
-            EditorGUILayout.IntSlider(cachedEditorData.shadowCascadeCountProp, UniversalRendererData.k_ShadowCascadeMinCount, UniversalRendererData.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
-
-            int cascadeCount = cachedEditorData.shadowCascadeCountProp.intValue;
-            EditorGUI.indentLevel++;
-
-            bool useMetric = unit == EditorUtils.Unit.Metric;
-            float baseMetric = cachedEditorData.shadowDistanceProp.floatValue;
-            int cascadeSplitCount = cascadeCount - 1;
-
-            DrawCascadeSliders(cachedEditorData, cascadeSplitCount, useMetric, baseMetric);
-
-            EditorGUI.indentLevel--;
-            DrawCascades(cachedEditorData, cascadeCount, useMetric, baseMetric);
-            EditorGUI.indentLevel++;
-
-            cachedEditorData.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, cachedEditorData.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-            cachedEditorData.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, cachedEditorData.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-            EditorGUILayout.PropertyField(cachedEditorData.softShadowsSupportedProp, Styles.supportsSoftShadows);
-
-            EditorGUI.indentLevel--;
         }
 
         static void DrawShadowsAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
