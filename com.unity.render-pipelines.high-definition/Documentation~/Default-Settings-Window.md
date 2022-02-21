@@ -9,7 +9,7 @@ The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's
 
 The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Global Settings**.
 
-## Volume Profiles
+## <a name="volume-profiles"></a> Volume Profiles
 
 You can use the **Volume Profiles** section to assign and edit a [Volume Profile](Volume-Profile.md) that [Volumes](Volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
 
@@ -50,12 +50,18 @@ HDRP provides one list for each post processing injection point. See the [Custom
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
-| Shader Variant Log Level              | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. <br/>&#8226; **Disabled**: HDRP doesn’t log any Shader variant information.<br/>&#8226; **Only HDRP Shaders**: Only log Shader variant information for HDRP Shaders.<br/>&#8226; **All Shaders**: Log Shader variant information for every Shader type. |
 | Lens Attenuation Mode                 | Set the attenuation mode of the lens that HDRP uses to compute exposure. <br/> &#8226;**Imperfect lens**: This mode loses some energy when HDRP converts from EV100 to the exposure multiplier.<br/> &#8226;**Perfect lens**: This mode has no attenuation and doesn't lose any energy. |
 | Dynamic Render Pass Culling           | When you enable this option, HDRP uses the RendererList API to skip drawing passes based on the type of GameObjects visible in the current frame objects. For example, if HDRP doesn't draw an object with distortion, it skips the Render Graph passes that draw the distortion effect and their dependencies, like the color pyramid generation. |
 | Use DLSS Custom Project ID           | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
 | DLSS Custom Project ID               | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
 | Runtime Debug Shaders                 | When enabled, Unity includes shader variants that let you use the Rendering Debugger window to debug your build. When disabled, Unity excludes (strips) these variants. Enable this when you want to debug your shaders in the Rendering Debugger window, and disable it otherwise. |
+
+## Shader Stripping
+
+| **Property**              | **Description**                                              |
+| --------------------------| ------------------------------------------------------------ |
+| Shader Variant Log Level  | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only SRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
+| Export Shader Variants | Controls whether to output shader variant information to a file. |
 
 ## Resources
 

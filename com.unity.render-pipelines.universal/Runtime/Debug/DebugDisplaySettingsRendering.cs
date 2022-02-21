@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Whether debug overdraw mode is active.
         /// </summary>
+        [Obsolete("overdraw has been deprecated. Use overdrawMode instead.", false)]
+
         public bool overdraw
         {
             get => m_Overdraw;
@@ -56,6 +58,28 @@ namespace UnityEngine.Rendering.Universal
                 UpdateDebugSceneOverrideMode();
             }
         }
+
+        DebugOverdrawMode m_OverdrawMode = DebugOverdrawMode.None;
+
+        /// <summary>
+        /// Which overdraw debug mode is active.
+        /// </summary>
+        public DebugOverdrawMode overdrawMode
+        {
+            get => m_OverdrawMode;
+            set
+            {
+                m_OverdrawMode = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
+        /// <summary>
+        /// Maximum overdraw count for a single pixel.
+        ///
+        /// This is used to setup the feedback range in when <see cref="overdrawMode"/> is active.
+        /// </summary>
+        public int maxOverdrawCount { get; set; } = 10;
 
         void UpdateDebugSceneOverrideMode()
         {
@@ -71,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
                     sceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
                     break;
                 default:
-                    sceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
+                    sceneOverrideMode = overdrawMode != DebugOverdrawMode.None ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
                     break;
             }
         }
@@ -136,7 +160,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
-            public static readonly NameAndTooltip Overdraw = new() { name = "Overdraw", tooltip = "Debug anywhere pixels are overdrawn on top of each other." };
+            public static readonly NameAndTooltip OverdrawMode = new() { name = "Overdraw Mode", tooltip = "Debug anywhere materials that overdrawn pixels top of each other." };
+            public static readonly NameAndTooltip MaxOverdrawCount = new() { name = "Max Overdraw Count", tooltip = "Maximum overdraw count allowed for a single pixel." };
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
             public static readonly NameAndTooltip HDR = new() { name = "HDR", tooltip = "Use the checkbox to disable High Dynamic Range in the scene." };
@@ -155,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.fullScreenDebugMode,
-                setter = (value) => { },
+                setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value,
                 getIndex = () => (int)data.fullScreenDebugMode,
                 setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
@@ -181,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(DebugWireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => { },
+                setter = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 getIndex = () => (int)data.wireframeMode,
                 setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -209,11 +234,31 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreateOverdraw(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            internal static DebugUI.Widget CreateOverdrawMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField()
             {
-                nameAndTooltip = Strings.Overdraw,
-                getter = () => data.overdraw,
-                setter = (value) => data.overdraw = value
+                nameAndTooltip = Strings.OverdrawMode,
+                autoEnum = typeof(DebugOverdrawMode),
+                getter = () => (int)data.overdrawMode,
+                setter = (value) => data.overdrawMode = (DebugOverdrawMode)value,
+                getIndex = () => (int)data.overdrawMode,
+                setIndex = (value) => data.overdrawMode = (DebugOverdrawMode)value
+            };
+
+            internal static DebugUI.Widget CreateMaxOverdrawCount(DebugDisplaySettingsRendering data) => new DebugUI.Container()
+            {
+                isHiddenCallback = () => data.overdrawMode == DebugOverdrawMode.None,
+                children =
+                {
+                    new DebugUI.IntField
+                    {
+                        nameAndTooltip = Strings.MaxOverdrawCount,
+                        getter = () => data.maxOverdrawCount,
+                        setter = value => data.maxOverdrawCount = value,
+                        incStep = 10,
+                        min = () => 1,
+                        max = () => 500
+                    }
+                }
             };
 
             internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -245,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => { },
+                setter = (value) => data.validationMode = (DebugValidationMode)value,
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -256,7 +301,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => { },
+                setter = (value) => data.validationChannels = (PixelValidationChannels)value,
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };
@@ -300,7 +345,8 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreatePostProcessing(data),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
                         WidgetFactory.CreateWireframeNotSupportedWarning(data),
-                        WidgetFactory.CreateOverdraw(data)
+                        WidgetFactory.CreateOverdrawMode(data),
+                        WidgetFactory.CreateMaxOverdrawCount(data),
                     }
                 });
 

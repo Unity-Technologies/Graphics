@@ -49,14 +49,13 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
-    allow_cache: True
+    allow_cache: False
     disable_split_build_run_for: [OSX_Metal, OSX_Apple_Silicon_Metal]
     utr_flags:
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
-      - [all]: --zero-tests-are-ok=1
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -157,11 +156,10 @@ test_platforms:
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       # - [all]: --reruncount=2
@@ -208,7 +206,6 @@ test_platforms:
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       # - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -356,7 +353,7 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - chmod +x utr
-          - command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+          - command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
             retries: 2
           - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
             retries: 2

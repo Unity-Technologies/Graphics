@@ -25,6 +25,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool m_CopyResolvedDepth;
         internal bool m_ShouldClear;
 
+        /// <summary>
+        /// Creates a new <c>CopyDepthPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
+        /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
@@ -47,17 +54,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.MssaSamples = -1;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             var isDepth = (destination.rt && destination.rt.graphicsFormat == GraphicsFormat.None);
             descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
 #if UNITY_EDITOR
-            ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
-#else
-            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                ConfigureTarget(destination, destination);
+            else
 #endif
+            ConfigureTarget(destination);
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -70,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
                 return;
             }
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 int cameraSamples = 0;
@@ -134,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -167,9 +180,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                 }
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

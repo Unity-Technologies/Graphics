@@ -44,7 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.transparentWritesMotionVec = hairMasterNode.m_TransparentWritesMotionVec;
             builtinData.addPrecomputedVelocity = hairMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = hairMasterNode.m_depthOffset;
-            builtinData.alphaToMask = hairMasterNode.m_AlphaToMask;
 
             builtinData.alphaTestShadow = hairMasterNode.m_AlphaTestShadow;
             builtinData.backThenFrontRendering = hairMasterNode.m_BackThenFrontRendering;

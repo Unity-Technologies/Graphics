@@ -17,6 +17,8 @@ Shader "HDRP/Lit"
         _MetallicRemapMax("MetallicRemapMax", Float) = 1.0
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        _AlphaRemapMin("AlphaRemapMin", Float) = 0.0
+        _AlphaRemapMax("AlphaRemapMax", Float) = 1.0
         _AORemapMin("AORemapMin", Float) = 0.0
         _AORemapMax("AORemapMax", Float) = 1.0
 
@@ -131,8 +133,6 @@ Shader "HDRP/Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
-        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
-        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
@@ -152,6 +152,7 @@ Shader "HDRP/Lit"
         [Enum(Auto, 0, On, 1, Off, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
+        [Enum(WorldSpace, 0, ObjectSpace, 1)] _ObjectSpaceUVMapping("Mapping space", Float) = 0.0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
@@ -185,6 +186,7 @@ Shader "HDRP/Lit"
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Base, 6)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(WorldSpace, 0, ObjectSpace, 1)] _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -226,7 +228,6 @@ Shader "HDRP/Lit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
-    #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
@@ -516,7 +517,7 @@ Shader "HDRP/Lit"
         }
 
         // Extracts information for lightmapping, GI (emission, albedo, ...)
-        // This pass it not used during regular rendering.
+        // This pass is not used during regular rendering.
         Pass
         {
             Name "META"
@@ -594,7 +595,7 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "DepthOnly" }
 
             Cull[_CullMode]
-            AlphaToMask [_AlphaToMask]
+            AlphaToMask [_AlphaCutoffEnable]
 
             // To be able to tag stencil with disableSSR information for forward
             Stencil
@@ -657,7 +658,7 @@ Shader "HDRP/Lit"
             }
 
             Cull[_CullMode]
-            AlphaToMask [_AlphaToMask]
+            AlphaToMask [_AlphaCutoffEnable]
 
             ZWrite On
 
@@ -1243,6 +1244,9 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+
+        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
+        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "Rendering.HighDefinition.LitGUI"

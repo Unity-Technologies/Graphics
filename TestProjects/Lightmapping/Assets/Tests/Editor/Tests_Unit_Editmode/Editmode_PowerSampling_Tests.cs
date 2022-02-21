@@ -55,86 +55,88 @@ public class Editmode_PowerSampling_Tests
         Application.OpenURL(fullpath);
     }
 
-    // Case 1352923
-    [Test]
-    public void GPULM_BakeSceneWithProgressiveUpdates_MatchesBakeWithoutProgressiveUpdates()
-    {
-        // Open the initial scene
-        EditorSceneManager.OpenScene(sceneFileName);
-
-        // Clear baked data and cache
-        clearAll();
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-        lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
-
-        lightingSettings.numRaysToShootPerTexel = 1;
-
-        int startSPP = 8;
-        int nbIteration = 5;
-        int spp = startSPP;
-
-        lightingSettings.prioritizeView = true;
-        for (int i = 0; i < nbIteration; i++)
+    /* Unstable. Tracked here: Case 1386902.
+        // Case 1352923
+        [Test]
+        public void GPULM_BakeSceneWithProgressiveUpdates_MatchesBakeWithoutProgressiveUpdates()
         {
-            lightingSettings.directSampleCount = spp;
-            lightingSettings.indirectSampleCount = spp;
-            lightingSettings.environmentSampleCount = spp;
+            // Open the initial scene
+            EditorSceneManager.OpenScene(sceneFileName);
 
-            // Bake the scene GI
-            Lightmapping.Bake();
-
-            Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
-
-            takeScreenshot("on_" + spp + ".png");
-
-            spp = spp * 2;
+            // Clear baked data and cache
             clearAll();
-        }
 
-        lightingSettings.prioritizeView = false;
-        spp = startSPP;
-        for (int i = 0; i < nbIteration; i++)
-        {
-            lightingSettings.directSampleCount = spp;
-            lightingSettings.indirectSampleCount = spp;
-            lightingSettings.environmentSampleCount = spp;
+            LightingSettings lightingSettings = null;
+            Lightmapping.TryGetLightingSettings(out lightingSettings);
+            Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
+            lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
 
-            // Bake the scene GI
-            Lightmapping.Bake();
+            lightingSettings.numRaysToShootPerTexel = 1;
 
-            Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
+            int startSPP = 8;
+            int nbIteration = 5;
+            int spp = startSPP;
 
-            takeScreenshot("off_" + spp + ".png");
+            lightingSettings.prioritizeView = true;
+            for (int i = 0; i < nbIteration; i++)
+            {
+                lightingSettings.directSampleCount = spp;
+                lightingSettings.indirectSampleCount = spp;
+                lightingSettings.environmentSampleCount = spp;
 
-            spp = spp * 2;
+                // Bake the scene GI
+                Lightmapping.Bake();
+
+                Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
+
+                takeScreenshot("on_" + spp + ".png");
+
+                spp = spp * 2;
+                clearAll();
+            }
+
+            lightingSettings.prioritizeView = false;
+            spp = startSPP;
+            for (int i = 0; i < nbIteration; i++)
+            {
+                lightingSettings.directSampleCount = spp;
+                lightingSettings.indirectSampleCount = spp;
+                lightingSettings.environmentSampleCount = spp;
+
+                // Bake the scene GI
+                Lightmapping.Bake();
+
+                Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
+
+                takeScreenshot("off_" + spp + ".png");
+
+                spp = spp * 2;
+                clearAll();
+            }
+
+            // Get Test settings.
+            var graphicsTestSettingsCustom = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
+            Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
+
+            AssetDatabase.Refresh();
+
+            spp = startSPP;
+            for (int i = 0; i < nbIteration; i++)
+            {
+                string offImagePath = sceneOutputPath + "/off_" + spp + ".png";
+                string onImagePath = sceneOutputPath + "/on_" + spp + ".png";
+                var offImage = AssetDatabase.LoadAssetAtPath<Texture2D>(offImagePath);
+                var onImage = AssetDatabase.LoadAssetAtPath<Texture2D>(onImagePath);
+                makeTextureReadable(offImagePath);
+                makeTextureReadable(onImagePath);
+
+                Debug.Log("Compare " + spp);
+                ImageAssert.AreEqual(offImage, onImage, graphicsTestSettingsCustom.ImageComparisonSettings);
+                spp = spp * 2;
+            }
+
             clearAll();
+            AssetDatabase.DeleteAsset(sceneOutputPath);
         }
-
-        // Get Test settings.
-        var graphicsTestSettingsCustom = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
-        Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
-
-        AssetDatabase.Refresh();
-
-        spp = startSPP;
-        for (int i = 0; i < nbIteration; i++)
-        {
-            string offImagePath = sceneOutputPath + "/off_" + spp + ".png";
-            string onImagePath = sceneOutputPath + "/on_" + spp + ".png";
-            var offImage = AssetDatabase.LoadAssetAtPath<Texture2D>(offImagePath);
-            var onImage = AssetDatabase.LoadAssetAtPath<Texture2D>(onImagePath);
-            makeTextureReadable(offImagePath);
-            makeTextureReadable(onImagePath);
-
-            Debug.Log("Compare " + spp);
-            ImageAssert.AreEqual(offImage, onImage, graphicsTestSettingsCustom.ImageComparisonSettings);
-            spp = spp * 2;
-        }
-
-        clearAll();
-        AssetDatabase.DeleteAsset(sceneOutputPath);
-    }
+    */
 }

@@ -16,7 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Reflection = 0x10,
         GlobalIllumination = 0x20,
         RecursiveRendering = 0x40,
-        PathTracing = 0x80
+        PathTracing = 0x80,
+        All = Opaque | CastShadow | AmbientOcclusion | Reflection | GlobalIllumination | RecursiveRendering | PathTracing,
     }
 
     /// <summary>
@@ -41,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Data used for runtime evaluation
+        static readonly string m_RTASDebugRTKernel = "RTASDebug";
         HDRTASManager m_RTASManager;
         HDRaytracingLightCluster m_RayTracingLightCluster;
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
@@ -393,11 +395,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDLightRenderEntity lightRenderEntity = lightEntities.lightEntities[lightIdx];
                 HDAdditionalLightData hdLight = lightEntities.hdAdditionalLightData[lightIdx];
-                if (hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
+                if (hdLight != null && hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
                 {
-                    // Check if there is a ray traced shadow in the scene
-                    m_RayTracedShadowsRequired |= hdLight.useRayTracedShadows;
-                    m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
+                    // Flag that needs to be overriden by the light and tells us if the light will need the RTAS
+                    bool hasRayTracedShadows = false;
 
                     // Indicates that a transform has changed in our scene (mesh or light)
                     transformDirty |= hdLight.transform.hasChanged;
@@ -406,13 +407,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (hdLight.type)
                     {
                         case HDLightType.Directional:
+                        {
+                            hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useScreenSpaceShadows && hdLight.useRayTracedShadows;
                             m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
-                            break;
+                        }
+                        break;
                         case HDLightType.Point:
                         case HDLightType.Spot:
+                        {
+                            hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
                             m_RayTracingLights.hdPointLightArray.Add(lightRenderEntity);
-                            break;
+                        }
+                        break;
                         case HDLightType.Area:
+                        {
+                            hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
                             switch (hdLight.areaLightShape)
                             {
                                 case AreaLightShape.Rectangle:
@@ -424,7 +433,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                     //TODO: case AreaLightShape.Disc:
                             }
                             break;
+                        }
                     }
+
+                    // Check if there is a ray traced shadow in the scene
+                    m_RayTracedShadowsRequired |= hasRayTracedShadows;
+                    m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
                 }
             }
 
@@ -440,7 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
                 // Add it to the list if enabled
                 // Skip the probe if the probe has never rendered (in real time cases) or if texture is null
-                if (reflectionProbe.enabled
+                if (reflectionProbe != null
+                    && reflectionProbe.enabled
                     && reflectionProbe.ReflectionProbeIsEnabled()
                     && reflectionProbe.gameObject.activeSelf
                     && reflectionProbe.HasValidRenderedData())
@@ -568,6 +583,117 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the user fed a non null ray tracing acceleration structure, then we are all set.
                 if (hdCamera.rayTracingAccelerationStructure != null)
                     m_ValidRayTracingState = true;
+            }
+        }
+
+        class RTASDebugPassData
+        {
+            // Camera data
+            public int actualWidth;
+            public int actualHeight;
+            public int viewCount;
+
+            // Evaluation parameters
+            public int debugMode;
+            public uint layerMask;
+            public Matrix4x4 pixelCoordToViewDirWS;
+
+            // Other parameters
+            public RayTracingShader debugRTASRT;
+            public RayTracingAccelerationStructure rayTracingAccelerationStructure;
+
+            // Output
+            public TextureHandle outputTexture;
+        }
+
+        static uint LayerFromRTASDebugView(RTASDebugView debugView, HDCamera hdCamera)
+        {
+            switch (debugView)
+            {
+                case RTASDebugView.Shadows:
+                {
+                    return (uint)RayTracingRendererFlag.CastShadow;
+                }
+                case RTASDebugView.AmbientOcclusion:
+                {
+                    return (uint)RayTracingRendererFlag.AmbientOcclusion;
+                }
+                case RTASDebugView.GlobalIllumination:
+                {
+                    return (uint)RayTracingRendererFlag.GlobalIllumination;
+                }
+                case RTASDebugView.Reflections:
+                {
+                    return (uint)RayTracingRendererFlag.Reflection;
+                }
+                case RTASDebugView.RecursiveRayTracing:
+                {
+                    return (uint)RayTracingRendererFlag.RecursiveRendering;
+                }
+                case RTASDebugView.PathTracing:
+                {
+                    return (uint)RayTracingRendererFlag.PathTracing;
+                }
+                default:
+                {
+                    return (uint)RayTracingRendererFlag.All;
+                }
+            }
+        }
+
+        internal void EvaluateRTASDebugView(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            // If the ray tracing state is not valid, we cannot evaluate the debug view
+            if (!m_ValidRayTracingState)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<RTASDebugPassData>("Debug view of the RTAS", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
+            {
+                RTASDebugPassData debugPass = new RTASDebugPassData();
+
+                builder.EnableAsyncCompute(false);
+
+                // Camera data
+                passData.actualWidth = hdCamera.actualWidth;
+                passData.actualHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+
+                // Evaluation parameters
+                passData.debugMode = (int)m_CurrentDebugDisplaySettings.data.rtasDebugMode;
+                passData.layerMask = LayerFromRTASDebugView(m_CurrentDebugDisplaySettings.data.rtasDebugView, hdCamera);
+                passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+
+                // Other parameters
+                passData.debugRTASRT = m_GlobalSettings.renderPipelineRayTracingResources.rtasDebug;
+                passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
+
+                // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
+                passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "RTAS Debug" }));
+
+                builder.SetRenderFunc(
+                    (RTASDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        // Define the shader pass to use for the reflection pass
+                        ctx.cmd.SetRayTracingShaderPass(data.debugRTASRT, "DebugDXR");
+
+                        // Set the acceleration structure for the pass
+                        ctx.cmd.SetRayTracingAccelerationStructure(data.debugRTASRT, HDShaderIDs._RaytracingAccelerationStructureName, data.rayTracingAccelerationStructure);
+
+                        // Layer mask
+                        ctx.cmd.SetRayTracingIntParam(data.debugRTASRT, "_DebugMode", data.debugMode);
+                        ctx.cmd.SetRayTracingIntParam(data.debugRTASRT, "_LayerMask", (int)data.layerMask);
+                        ctx.cmd.SetRayTracingMatrixParam(data.debugRTASRT, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
+
+                        // Set the output texture
+                        ctx.cmd.SetRayTracingTextureParam(data.debugRTASRT, "_OutputDebugBuffer", data.outputTexture);
+
+                        // Evaluate the debug view
+                        ctx.cmd.DispatchRays(data.debugRTASRT, m_RTASDebugRTKernel, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
+                    });
+
+                // Use the debug texture to do the full screen debug
+                PushFullScreenDebugTexture(renderGraph, passData.outputTexture, FullScreenDebugMode.RayTracingAccelerationStructure);
             }
         }
 
