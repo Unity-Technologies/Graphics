@@ -61,7 +61,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
     name: Build URP_Performance_LostCrypt on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -131,7 +131,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -251,7 +251,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
     name: Build URP_Performance_LostCrypt on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -321,7 +321,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

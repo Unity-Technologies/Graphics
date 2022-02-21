@@ -326,16 +326,16 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
       performance_build_editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: Android
     apis:
@@ -356,11 +356,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: XRQuest
     apis:
@@ -381,11 +381,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: iPhone
     apis:

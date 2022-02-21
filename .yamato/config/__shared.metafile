@@ -502,7 +502,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -570,7 +570,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:

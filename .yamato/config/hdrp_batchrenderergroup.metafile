@@ -33,21 +33,21 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
       standalone:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
   - name: OSX
     apis:

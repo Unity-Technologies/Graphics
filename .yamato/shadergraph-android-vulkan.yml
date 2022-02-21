@@ -50,7 +50,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -125,7 +125,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

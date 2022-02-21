@@ -12,7 +12,7 @@ URP_PostPro_Win_DX12_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -43,7 +43,7 @@ Build_URP_PostPro_Win_DX12_Standalone_mono_Linear_trunk:
     name: Build URP_PostPro on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -81,7 +81,7 @@ URP_PostPro_Win_DX12_playmode_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -115,7 +115,7 @@ URP_PostPro_Win_DX12_editmode_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -149,7 +149,7 @@ URP_PostPro_Win_DX12_playmode_XR_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -183,7 +183,7 @@ URP_PostPro_Win_DX12_Standalone_XR_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -214,7 +214,7 @@ Build_URP_PostPro_Win_DX12_Standalone_XR_mono_Linear_trunk:
     name: Build URP_PostPro on Win_DX12_mono_Linear_Standalone_XR_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -252,7 +252,7 @@ URP_PostPro_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -283,7 +283,7 @@ Build_URP_PostPro_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build URP_PostPro on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -321,7 +321,7 @@ URP_PostPro_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -355,7 +355,7 @@ URP_PostPro_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -389,7 +389,7 @@ URP_PostPro_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -423,7 +423,7 @@ URP_PostPro_Win_DX12_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -454,7 +454,7 @@ Build_URP_PostPro_Win_DX12_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     name: Build URP_PostPro on Win_DX12_mono_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

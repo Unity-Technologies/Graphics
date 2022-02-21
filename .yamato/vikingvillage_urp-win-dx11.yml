@@ -11,7 +11,7 @@ VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
     name: VikingVillage_URP on Win_DX11_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
         model: rtx2080
     variables:
@@ -45,7 +45,7 @@ Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
     name: Build VikingVillage_URP on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -105,7 +105,7 @@ VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
     name: VikingVillage_URP on Win_DX11_performance_playmode_editor_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
         model: rtx2080
     variables:
@@ -163,7 +163,7 @@ VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_trunk:
     name: VikingVillage_URP on Win_DX11_performance_build_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -220,7 +220,7 @@ VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVIS
     name: VikingVillage_URP on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
         model: rtx2080
     variables:
@@ -254,7 +254,7 @@ Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM
     name: Build VikingVillage_URP on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -314,7 +314,7 @@ VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISI
     name: VikingVillage_URP on Win_DX11_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
         model: rtx2080
     variables:
@@ -372,7 +372,7 @@ VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISIO
     name: VikingVillage_URP on Win_DX11_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

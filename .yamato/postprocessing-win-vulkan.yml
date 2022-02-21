@@ -11,7 +11,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -45,7 +45,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -78,7 +78,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -110,7 +110,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -146,7 +146,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -180,7 +180,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -213,7 +213,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -245,7 +245,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

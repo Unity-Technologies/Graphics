@@ -11,7 +11,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -43,7 +43,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -80,7 +80,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -114,7 +114,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -148,7 +148,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -180,7 +180,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -217,7 +217,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -251,7 +251,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:latest
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
