@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
@@ -958,29 +958,21 @@ namespace UnityEngine.Rendering.Universal
             // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (lightType != LightType.Directional)
             {
-                // Light attenuation in universal matches the unity vanilla one.
+                // Light attenuation in universal matches the unity vanilla one (HINT_NICE_QUALITY).
                 // attenuation = 1.0 / distanceToLightSqr
-                // We offer two different smoothing factors.
-                // The smoothing factors make sure that the light intensity is zero at the light range limit.
-                // The first smoothing factor is a linear fade starting at 80 % of the light range.
-                // smoothFactor = (lightRangeSqr - distanceToLightSqr) / (lightRangeSqr - fadeStartDistanceSqr)
-                // We rewrite smoothFactor to be able to pre compute the constant terms below and apply the smooth factor
-                // with one MAD instruction
-                // smoothFactor =  distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
-                //                 distanceSqr *           oneOverFadeRangeSqr             +              lightRangeSqrOverFadeRangeSqr
+                // The smoothing factor makes sure that the light intensity is zero at the light range limit.
+                // (We used to offer two different smoothing factors.)
 
-                // The other smoothing factor matches the one used in the Unity lightmapper but is slower than the linear one.
-                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightrangeSqr)^2))^2
+                // The current smoothing factor matches the one used in the Unity lightmapper.
+                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightRangeSqr)^2))^2
                 float lightRangeSqr = lightRange * lightRange;
                 float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
                 float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
-                float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
 
-                // On untethered devices: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
-                // On other devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                // On all devices: Use the smoothing factor that matches the GI.
+                lightAttenuation.x = oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
             }
 
