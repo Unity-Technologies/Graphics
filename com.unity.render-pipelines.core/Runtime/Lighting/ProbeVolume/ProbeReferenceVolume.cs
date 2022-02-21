@@ -381,6 +381,7 @@ namespace UnityEngine.Rendering
         internal const int kTemporaryDataLocChunkCount = 8;
 
         [Serializable]
+        [DebuggerDisplay("Index = {index} position = {position}")]
         internal class Cell
         {
             public Vector3Int position;
