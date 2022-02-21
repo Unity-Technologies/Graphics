@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering
         /// <param name="comp">The component</param>
         static void RemoveComponent(Component comp)
         {
-            if (!RemoveAdditionalDataUtils.RemoveComponent(type, comp, RemoveComponentUtils.ComponentDependencies(comp)))
+            if (!RemoveAdditionalDataUtils.RemoveComponent(comp, RemoveComponentUtils.ComponentDependencies(comp)))
             {
                 //preserve built-in behavior
                 if (RemoveComponentUtils.CanRemoveComponent(comp, RemoveComponentUtils.ComponentDependencies(comp)))
