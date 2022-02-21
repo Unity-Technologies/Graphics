@@ -723,6 +723,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8209_CustomPassNodes.unity
     guid: beda2df19b812c944a26a77591f54588
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8210_Fullscreen.unity
+    guid: 74b447ba1a6ee064fb7ebe7a6e56c62d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8210_Refract_and_Fresnel.unity
     guid: 88673d3037ade164680a1fce99a2119e
   - enabled: 1

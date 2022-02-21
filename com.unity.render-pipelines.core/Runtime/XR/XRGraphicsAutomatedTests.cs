@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set by automated test framework and read by render pipelines.
         /// </summary>
-        public static bool running { get; set; } = false;
+        public static bool running = false;
 
         // Helper function to override the XR default layout using settings of new camera
         internal static void OverrideLayout(XRLayout layout, Camera camera)
