@@ -220,9 +220,9 @@ namespace UnityEngine
                 viewToWorld = viewToWorld.inverse;
             }
 
-            if (m_FrameSpace == UpDirection.World)
+            if (m_FrameSpace == UpDirection.Local)
             {
-                Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
+                Vector3 viewUp = Camera.main.transform.up;
                 Quaternion worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);
                 viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
             }
