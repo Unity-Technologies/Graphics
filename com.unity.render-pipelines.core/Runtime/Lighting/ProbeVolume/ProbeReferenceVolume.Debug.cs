@@ -295,7 +295,8 @@ namespace UnityEngine.Rendering
                 m_DebugScenarioField = new DebugUI.EnumField
                 {
                     displayName = "Scenario To Blend With",
-                    enumNames = m_DebugScenarioNames, enumValues = m_DebugScenarioValues,
+                    enumNames = m_DebugScenarioNames,
+                    enumValues = m_DebugScenarioValues,
                     getIndex = () =>
                     {
                         RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
