@@ -4,14 +4,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
-    }
     /// <summary>
     /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
     /// </summary>
@@ -26,11 +18,51 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Options for selecting Color Grading modes, Low Dynamic Range (LDR) or High Dynamic Range (HDR)
+    /// </summary>
+    public enum ColorGradingMode
+    {
+        /// <summary>
+        /// This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.
+        /// </summary>
+        LowDynamicRange,
+
+        /// <summary>
+        /// This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.
+        /// </summary>
+        HighDynamicRange
+    }
+
+    /// <summary>
+    /// Defines the update frequency for the Volume Framework.
+    /// </summary>
+    public enum VolumeFrameworkUpdateMode
+    {
+        /// <summary>
+        /// Use this to have the Volume Framework update every frame.
+        /// </summary>
+        [InspectorName("Every Frame")]
+        EveryFrame = 0,
+
+        /// <summary>
+        /// Use this to disable Volume Framework updates or to update it manually via scripting.
+        /// </summary>
+        [InspectorName("Via Scripting")]
+        ViaScripting = 1,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
+        [InspectorName("Use Pipeline Settings")]
+        UsePipelineSettings = 2,
+    }
+
+    /// <summary>
     /// Universal Render Pipeline's Global Settings.
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("URP-Global-Settings")]
+    [URPHelpURL("urp-global-settings")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
@@ -136,7 +168,8 @@ namespace UnityEngine.Rendering.Universal
                         AssetDatabase.CreateFolder("Assets", folderPath);
                     assetCreated = Create(path);
 
-                    Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                    // TODO: Reenable after next urp template is published
+                    //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
                 }
                 else
                 {
@@ -208,16 +241,13 @@ namespace UnityEngine.Rendering.Universal
         // General settings
         [SerializeField] bool m_SupportsTerrainHoles = true;
 
+        /// <summary>
+        /// This settings controls if the asset <c>UniversalRenderPipelineAsset</c> supports terrain holes.
+        /// </summary>
+        /// <see href="https://docs.unity3d.com/Manual/terrain-PaintHoles.html"/>
         public bool supportsTerrainHoles
         {
             get { return m_SupportsTerrainHoles; }
-        }
-
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
         }
 
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
@@ -242,13 +272,23 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
+        /// <summary>
+        /// Resources needed for Post Processing.
+        /// </summary>
         public PostProcessData postProcessData = null;
+        /// <summary>
+        /// Returns the selected ColorGradingMode in the URP Asset.
+        /// <see cref="ColorGradingMode"/>
+        /// </summary>
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
             set { m_ColorGradingMode = value; }
         }
 
+        /// <summary>
+        /// Specifies the color grading LUT (lookup table) size in the URP Asset.
+        /// </summary>
         public int colorGradingLutSize
         {
             get { return m_ColorGradingLutSize; }
@@ -262,6 +302,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseFastSRGBLinearConversion; }
         }
+
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>

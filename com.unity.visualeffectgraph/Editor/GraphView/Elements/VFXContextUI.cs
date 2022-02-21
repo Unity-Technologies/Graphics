@@ -290,12 +290,12 @@ namespace UnityEditor.VFX.UI
 
             m_Label = this.Q<Label>("user-label");
             m_TextField = this.Q<TextField>("user-title-textfield");
+            m_TextField.maxLength = 175;
             m_TextField.style.display = DisplayStyle.None;
 
             m_Label.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
-            m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur);
-            m_Label.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+            m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -711,7 +711,8 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -792,7 +793,8 @@ namespace UnityEditor.VFX.UI
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
         void ConvertContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
@@ -902,19 +904,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UpdateTitleFieldRect()
-        {
-            Rect rect = m_Label.layout;
-
-            m_Label.parent.ChangeCoordinatesTo(m_TextField.parent, rect);
-
-
-            m_TextField.style.top = rect.yMin - 3;
-            m_TextField.style.left = rect.xMin - 1;
-            m_TextField.style.right = m_Label.resolvedStyle.marginRight + m_Label.resolvedStyle.borderRightWidth;
-            m_TextField.style.height = rect.height - m_Label.resolvedStyle.marginTop - m_Label.resolvedStyle.marginBottom;
-        }
-
         void OnTitleMouseDown(MouseDownEvent e)
         {
             if (e.clickCount == 2)
@@ -928,9 +917,9 @@ namespace UnityEditor.VFX.UI
         public void OnRename()
         {
             m_Label.RemoveFromClassList("empty");
+            m_Label.style.display = DisplayStyle.None;
             m_TextField.value = m_Label.text;
             m_TextField.style.display = DisplayStyle.Flex;
-            UpdateTitleFieldRect();
             m_TextField.Q(TextField.textInputUssName).Focus();
             m_TextField.SelectAll();
         }
@@ -950,12 +939,7 @@ namespace UnityEditor.VFX.UI
                 .Replace("|", "")
             ;
             m_TextField.style.display = DisplayStyle.None;
-        }
-
-        void OnTitleRelayout(GeometryChangedEvent e)
-        {
-            if (m_TextField.style.display != DisplayStyle.None)
-                UpdateTitleFieldRect();
+            m_Label.style.display = DisplayStyle.Flex;
         }
 
         void OnTitleChange(ChangeEvent<string> e)

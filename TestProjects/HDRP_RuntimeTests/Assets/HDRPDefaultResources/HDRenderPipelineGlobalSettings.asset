@@ -86,6 +86,7 @@ MonoBehaviour:
   decalLayerName7: 
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
@@ -147,6 +148,8 @@ MonoBehaviour:
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: c5b7fcbfc6aa87e458cb1c1893973b7c, type: 2}
+      lightingScenarios:
+      - Default
     - name: Test
       sceneGUIDs:
       - 5028fc98db6fe304c90852113dca5b00
@@ -162,4 +165,6 @@ MonoBehaviour:
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+      lightingScenarios:
+      - Default
   m_Version: 3

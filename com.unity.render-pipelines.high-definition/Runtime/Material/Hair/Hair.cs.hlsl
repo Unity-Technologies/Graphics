@@ -77,9 +77,10 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1483)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1484)
 #define DEBUGVIEW_HAIR_BSDFDATA_PERCEPTUAL_ROUGHNESS_RADIAL (1485)
-#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE (1486)
-#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_SHADOW_BIAS (1487)
-#define DEBUGVIEW_HAIR_BSDFDATA_SPLINE_VISIBILITY (1488)
+#define DEBUGVIEW_HAIR_BSDFDATA_DISTRIBUTION_NORMALIZATION_FACTOR (1486)
+#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE (1487)
+#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_SHADOW_BIAS (1488)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPLINE_VISIBILITY (1489)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -147,6 +148,7 @@ struct BSDFData
     float roughnessTT;
     float roughnessTRT;
     float perceptualRoughnessRadial;
+    float3 distributionNormalizationFactor;
     float4 strandCountProbe;
     float strandShadowBias;
     float splineVisibility;
@@ -352,6 +354,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_PERCEPTUAL_ROUGHNESS_RADIAL:
             result = bsdfdata.perceptualRoughnessRadial.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_DISTRIBUTION_NORMALIZATION_FACTOR:
+            result = bsdfdata.distributionNormalizationFactor;
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE:
             result = bsdfdata.strandCountProbe.xyz;

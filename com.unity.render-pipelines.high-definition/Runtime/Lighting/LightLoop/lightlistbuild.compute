@@ -328,7 +328,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {
         int nrLightsFinal = ldsCategoryListCount[category];
-        int nrLightsFinalClamped = nrLightsFinal<LIGHT_LIST_MAX_PRUNED_ENTRIES ? nrLightsFinal : LIGHT_LIST_MAX_PRUNED_ENTRIES;
+        int nrLightsFinalClamped = nrLightsFinal<SHADEROPTIONS_FPTLMAX_LIGHT_COUNT ? nrLightsFinal : SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
 
         const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
         for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
@@ -337,7 +337,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
             uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
             uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
-            g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
+            g_vLightList[LIGHT_DWORD_PER_FPTL_TILE*offs + l] = (uLow&0xffff) | (uHigh<<16);
         }
 
         localOffs += nrLightsFinal;
@@ -400,18 +400,18 @@ int GetCoarseLightIndex(int l, int iNrCoarseLights)
 
 groupshared uint s_lightVolumesCache[LIGHT_LIST_MAX_COARSE_ENTRIES];
 
-void StoreLightVolumeCache(int lightIndex, int coarseIndex, uint volumeType)
+void StoreLightVolumeCache(int lightIndex, int coarseIndex, int volumeType)
 {
     // 3 bits for the volume type, in case we have a corrupted one we can early out of the switch statement.
     // 29 bits for a coarse light index.
-    s_lightVolumesCache[lightIndex] = (volumeType & 0x7) | (coarseIndex << 3);
+    s_lightVolumesCache[lightIndex] = (uint)(volumeType & 0x7) | (uint)(coarseIndex << 3);
 }
 
 void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out int volumeType)
 {
-    int data = s_lightVolumesCache[lightIndex];
-    coarseIndex = data >> 3;
-    volumeType = data & 0x7;
+    uint data = s_lightVolumesCache[lightIndex];
+    coarseIndex = (int)(data >> 3);
+    volumeType = (int)(data & 0x7);
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.
@@ -433,8 +433,8 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
     if (threadID < (uint)iNrCoarseLights)
     {
-        int idxCoarse = GetCoarseLightIndex(threadID, iNrCoarseLights);
-        uint uLightVolume = _LightVolumeData[idxCoarse].lightVolume;
+        int idxCoarse = GetCoarseLightIndex((int)threadID, iNrCoarseLights);
+        int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
         StoreLightVolumeCache(threadID, idxCoarse, uLightVolume);
     }
 
@@ -447,14 +447,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     for (; l < iNrCoarseLights; ++l)
     {
         int idxCoarse;
-        uint uLightVolume;
+        int uLightVolume;
         LoadLightVolumeCache(l, idxCoarse, uLightVolume);
         bool lightValid = false;
         if (uLightVolume == LIGHTVOLUMETYPE_CONE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
             const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -469,20 +469,22 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 float2 V = abs( float2( dot(fromLight, lightData.lightAxisX.xyz), dot(fromLight, lightData.lightAxisY.xyz) ) );
 
                 float fDist2D = bIsSpotDisc ? length(V) : max(V.x,V.y);
-                bool isValid = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) );
+                bool validInPixel = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) );
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 //a wave is on the same tile, and the loop is uniform for the wave.
                 // thus we early out if at least 1 thread in the wave passed this light, saving some ALU.
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
             }
         }
         else if (uLightVolume == LIGHTVOLUMETYPE_SPHERE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -494,18 +496,20 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 float3 toLight = vLp - vVPos;
                 float distSq = dot(toLight,toLight);
 
-                bool isValid = lightData.radiusSq>distSq;
+                bool validInPixel = lightData.radiusSq>distSq;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
            }
         }
         else if (uLightVolume ==  LIGHTVOLUMETYPE_BOX)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -517,12 +521,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
                 float3 dist = float3( dot(toLight, lightData.lightAxisX), dot(toLight, lightData.lightAxisY), dot(toLight, lightData.lightAxisZ) );
                 dist = (abs(dist) - lightData.boxInnerDist) * lightData.boxInvRange;        // not as efficient as it could be
-                bool isValid = max(max(dist.x, dist.y), dist.z)<1;                       // but allows us to not write out OuterDists
+                bool validInPixel = max(max(dist.x, dist.y), dist.z)<1;                       // but allows us to not write out OuterDists
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-                lightValid = WaveActiveAnyTrue(isValid);
+                lightValid = WaveActiveAnyTrue(validInPixel);
 #else
-                lightValid = isValid;
+                lightValid = validInPixel;
 #endif
+                if (lightValid)
+                    break;
             }
         }
         else

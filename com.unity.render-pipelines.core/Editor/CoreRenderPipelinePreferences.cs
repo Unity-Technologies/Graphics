@@ -34,23 +34,14 @@ namespace UnityEditor.Rendering
             {
                 guiHandler = searchContext =>
                 {
-                    var labelWidth = EditorGUIUtility.labelWidth;
-                    EditorGUIUtility.labelWidth = 251;
-
-                    using (new EditorGUILayout.HorizontalScope())
+                    using (new SettingsProviderGUIScope())
                     {
-                        EditorGUILayout.Space(10, false);
-                        using (new EditorGUILayout.VerticalScope())
+                        foreach (var providers in s_Providers)
                         {
-                            foreach (var providers in s_Providers)
-                            {
-                                EditorGUILayout.LabelField(providers.header, EditorStyles.boldLabel);
-                                providers.PreferenceGUI();
-                            }
+                            EditorGUILayout.LabelField(providers.header, EditorStyles.boldLabel);
+                            providers.PreferenceGUI();
                         }
                     }
-
-                    EditorGUIUtility.labelWidth = labelWidth;
                 }
             };
 

@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
@@ -33,11 +33,11 @@ URP_Performance_BoatAttack_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-osx-metal.yml#URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -49,10 +49,6 @@ URP_Performance_BoatAttack_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on_new_revision
 URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on CUSTOM-REVISION
     variables:
@@ -60,7 +56,7 @@ URP_Performance_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
@@ -79,11 +75,11 @@ URP_Performance_BoatAttack_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-osx-metal.yml#URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -94,8 +90,4 @@ URP_Performance_BoatAttack_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

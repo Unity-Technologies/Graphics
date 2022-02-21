@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
@@ -8,7 +9,7 @@
 // https://www.pbrt.org/hair.pdf
 float2 DemuxFloat(float x)
 {
-    uint64_t v = x * (1ull << 32);
+    uint64_t v = x * (((uint64_t)1) << 32);
 
     uint2 bits = uint2(Compact1By1(v), Compact1By1(v >> 1));
 
@@ -22,7 +23,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
-#if 1
+#if 0
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
     bsdfData.h = -1 + 2 * InterleavedGradientNoise(pathIntersection.pixelCoord, _RaytracingSampleIndex);
@@ -112,4 +113,10 @@ float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist
     // TODO
 
     return value;
+}
+
+void GetAOVData(MaterialData mtlData, out AOVData aovData)
+{
+    aovData.albedo = mtlData.bsdfData.diffuseColor;
+    aovData.normal = mtlData.bsdfData.normalWS;
 }

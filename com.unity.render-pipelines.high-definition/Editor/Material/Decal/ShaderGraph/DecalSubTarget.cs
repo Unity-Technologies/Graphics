@@ -482,9 +482,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static PragmaCollection InstancedDecal = new PragmaCollection
             {
                 { CorePragmas.Basic },
-#if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
-#endif
             };
         }
         #endregion

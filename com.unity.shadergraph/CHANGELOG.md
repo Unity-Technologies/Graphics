@@ -4,21 +4,67 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+
+### Added
+ - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+### Fixed
+ - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+ - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
+ - Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
+ - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
+
+## [14.0.0] - 2021-11-17
+
+### Fixed
+ - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+ - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
+ - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
+ - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+ - Fixed the behavior of checkerboard node with raytracing
+ - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+ - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
+
+### Added
+ - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+## [13.1.2] - 2021-11-05
+
+### Added
+ - Added ability to set "Global" or "Per Material" shader declaration in PVT node settings [1372152]
+ - Show PVT stack names (needed for binding) under the Properties in the Shader Inspector
+
+### Fixed
+ - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
  - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
  - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
  - Added normal transforms to the Transform node
+ - Added an automatically generated material subasset on ShaderGraphs.
 
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
+ - Updated searcher package dependency version to 4.9.1
+ - Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
 
 ### Fixed
+ - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
+ - Fixed bug that causes search results to not be visible sometimes in the searcher window [1366061]
+ - Fixed bug that causes exceptions to be thrown when using the up/down arrow keys with search list focused [1358016]
+ - Fixed bug that causes some searcher items to be irreversibly collapsed due to expand icon disappearing on collapsing those items [1366074]
+ - Fixed bug that caused incorrect search results with non whitespaced queries for nodes with spaces in their name and for subgraphs [1359158]
  - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
  - Fixed errors in the ShaderGraph Transform node [1368082]
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+ - Fixed a bug where node preview doesn't update when a texture is changed in the explorer [1363784](https://issuetracker.unity3d.com/product/unity/issues/guid/1363784/)
+ - Fixed missing shader keyword stage during keyword copying.
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed upgrade warnings on SpeedTree8 subgraphs.
 
 ## [13.1.0] - 2021-09-24
 
@@ -28,9 +74,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
 
 ## [13.0.0] - 2021-09-01
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.

@@ -134,53 +134,42 @@ InitStripAttributes(index, attributes, stripData);
 ${VFXEnd}
 
 ${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
-#if VFX_FEATURE_MOTION_VECTORS
-#if defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)
+#if VFX_FEATURE_MOTION_VECTORS && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS) && defined(VFX_VARYING_VELOCITY_CPOS)
+
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-uint viewTotal = asuint(cameraXRSettings.x);
-uint viewCount = asuint(cameraXRSettings.y);
-uint viewOffset = asuint(cameraXRSettings.z);
-uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = o.VFX_VARYING_VELOCITY_CPOS = (float2)0.0f;
 #else
-uint elementToVFXBaseIndex = index * 13;
+	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = o.VFX_VARYING_VELOCITY_CPOS = float4(0.0f, 0.0f, 0.0f, 1.0f);
 #endif
-uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f, 0.0f, 0.0f, 1.0f);
-if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
+
+uint elementToVFXBaseIndex;
+if (TryGetElementToVFXBaseIndex(index, elementToVFXBaseIndex))
 {
+float4 cPos = TransformPositionVFXToNonJitteredClip(vPos);
+
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-#if HAS_STRIPS
-	uint vertIndex = (id / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = VFXGetPreviousClipPosition(elementToVFXBaseIndex, id).xy;
+	o.VFX_VARYING_VELOCITY_CPOS = cPos.xy / cPos.w;
 #else
-	uint vertIndex = id % VFX_FEATURE_MOTION_VECTORS_VERTS;
-#endif
-	uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
-	elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
-	elementToVFXIndex += unity_StereoEyeIndex * 2;
-	uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
-	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy = asfloat(read);
-	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
-	o.VFX_VARYING_VELOCITY_CPOS /= o.VFX_VARYING_VELOCITY_CPOS.w;
-#else
-	float4x4 previousElementToVFX = (float4x4)0;
-	previousElementToVFX[3] = float4(0,0,0,1);
-	UNITY_UNROLL
-	for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
-	{
-		uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
-		previousElementToVFX[itIndexMatrixRow] = asfloat(read);
-	}
+	float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
 	float3 oldvPos = mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz;
 	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = TransformPositionVFXToPreviousClip(oldvPos);
-	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
+	o.VFX_VARYING_VELOCITY_CPOS = cPos;
 #endif
+
 }
-#endif
 #endif
 ${VFXEnd}
 
 ${VFXBegin:VFXComputeOutputMotionVector}
+
+//No w division with fast path of motion vectors
+#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+float2 velocity = i.VFX_VARYING_VELOCITY_CPOS - i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS;
+#else
 float2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w) - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);
+#endif
+
 #if UNITY_UV_STARTS_AT_TOP
 	velocity.y = -velocity.y;
 #endif
@@ -224,6 +213,8 @@ ${VFXBegin:VFXPassDepthCommonFragmentUnlit}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+float4 _SelectionID;
 #endif
 
 #pragma fragment frag
@@ -243,7 +234,7 @@ void frag(ps_input i
     #else
     , out float4 dummy : SV_Target0
     #endif
-#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
     , out float4 outSelection : SV_Target0
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
     , out float4 dummy : SV_Target0
@@ -282,9 +273,11 @@ void frag(ps_input i
 		outMotionVector = encodedMotionVector;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+		outSelection = _SelectionID;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		#ifndef WRITE_MSAA_DEPTH
-			dummy = (float4)0;
+		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
 		#endif
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		dummy = (float4)0;
@@ -322,4 +315,38 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 	return normalize(prevTangent + nextTangent);
 }
 ${VFXEnd}
+
+${VFXBegin:VFXFeedSortingKeys}
+                Kvp output;
+#if VFX_CUSTOM_SORT_KEY
+                ${VFXLoadParameter:{sortKey}}
+                output.sortKey = -1.0f * sortKey; //Lowest values are rendered first
+#elif VFX_DISTANCE_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 camToPos = posRWS - GetCurrentViewPosition();
+
+                output.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
+#elif VFX_DEPTH_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 zAxisCam = -GetWorldToViewMatrix()[2].xyz;
+                float depth = dot(posRWS, zAxisCam);
+                output.sortKey = depth;
+
+#elif VFX_YOUNGEST_SORT_KEY
+                ${VFXLoadAttributes:{age}}
+                output.sortKey = attributes.age;
+
+#endif //VFX_[CRITERION]_SORT_KEY
+                output.index = index;
+                output.sortKey *= SORTING_SIGN;
+${VFXEnd}
+
 

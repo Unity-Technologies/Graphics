@@ -1,13 +1,5 @@
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.RegId;
-using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     internal class ProbeCellIndices
     {
@@ -16,6 +8,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal struct IndexMetaData
         {
+            static uint[] s_PackedValues = new uint[kUintPerEntry];
+
             internal Vector3Int minLocalIdx;
             internal Vector3Int maxLocalIdx;
             internal int firstChunkIndex;
@@ -23,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering
 
             internal void Pack(out uint[] vals)
             {
-                vals = new uint[kUintPerEntry];
+                vals = s_PackedValues;
                 for (int i = 0; i < kUintPerEntry; ++i)
                 {
                     vals[i] = 0;
@@ -97,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering
             return GetFlatIndex(normalizedPos);
         }
 
-        internal void AddCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        internal void UpdateCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
             int minSubdivCellSize = ProbeReferenceVolume.CellSize(cellUpdateInfo.minSubdivInCell);
             IndexMetaData metaData = new IndexMetaData();

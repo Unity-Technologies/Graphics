@@ -2,15 +2,12 @@
 
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
 using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
 
@@ -32,7 +29,6 @@ namespace UnityEngine.Experimental.Rendering
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
             public int maxSubdivLevelInsideVolume;
-            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -472,11 +468,11 @@ namespace UnityEngine.Experimental.Rendering
                                 for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
                                 {
                                     props.SetInt(_AxisSwizzle, 0);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 1, props);
                                     props.SetInt(_AxisSwizzle, 1);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 1, props);
                                     props.SetInt(_AxisSwizzle, 2);
-                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 1, props);
                                 }
                             }
                         }
@@ -501,11 +497,11 @@ namespace UnityEngine.Experimental.Rendering
 
                         int terrainTileCount = terrainData.heightmapResolution * terrainData.heightmapResolution;
                         props.SetInt(_AxisSwizzle, 0);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
                         props.SetInt(_AxisSwizzle, 1);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
                         props.SetInt(_AxisSwizzle, 2);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
                     }
                 }
             }
@@ -621,7 +617,6 @@ namespace UnityEngine.Experimental.Rendering
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         maxSubdivLevelInsideVolume = subdivLevel,
-                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

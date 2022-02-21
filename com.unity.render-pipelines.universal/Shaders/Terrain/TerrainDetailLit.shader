@@ -175,7 +175,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma target 2.0

@@ -9,7 +9,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
-    inputData.viewDirectionWS = input.viewDirectionWS;
     #else
     inputData.positionWS = half3(0, 0, 0);
     inputData.normalWS = half3(0, 0, 1);
@@ -44,8 +43,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #elif _SURFACE_TYPE_TRANSPARENT
         half alpha = surfaceDescription.Alpha;
     #else
-        half alpha = 1;
+        half alpha = half(1.0);
     #endif
+
+#if defined(_ALPHAMODULATE_ON)
+    surfaceDescription.BaseColor = AlphaModulate(surfaceDescription.BaseColor, alpha);
+#endif
 
 #if defined(_DBUFFER)
     ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);

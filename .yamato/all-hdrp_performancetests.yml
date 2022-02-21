@@ -20,6 +20,10 @@ HDRP_PerformanceTests_trunk:
          rerun: on_new_revision
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/hdrp_performancetests-linux-vulkan.yml#HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_trunk
+         rerun: on_new_revision
 HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on CUSTOM-REVISION
     variables:
@@ -32,4 +36,8 @@ HDRP_PerformanceTests_CUSTOM-REVISION:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp_performancetests-linux-vulkan.yml#HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

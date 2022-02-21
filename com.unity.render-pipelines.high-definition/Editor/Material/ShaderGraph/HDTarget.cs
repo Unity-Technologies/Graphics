@@ -63,8 +63,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        public SubTarget activeSubTarget
+        {
+            get => m_ActiveSubTarget.value;
+            set => m_ActiveSubTarget = value;
+        }
+
         [SerializeField]
-        List<JsonData<HDTargetData>> m_Datas = new List<JsonData<HDTargetData>>();
+        List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -75,7 +81,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
             // Currently there is not support for VFX decals via HDRP master node.
-            typeof(DecalSubTarget)
+            typeof(DecalSubTarget),
+            typeof(HDFullscreenSubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => false;
@@ -85,7 +92,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            if (activeSubTarget.IsActive())
+                worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public HDTarget()
@@ -243,10 +257,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public ScriptableObject GetMetadataObject()
+        public ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
 
             return null;
         }
@@ -271,12 +285,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void ProcessSubTargetDatas(SubTarget subTarget)
         {
-            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
             foreach (var type in typeCollection)
             {
+                if (type.IsGenericType)
+                    continue;
+
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(SetDataOnSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { subTarget });
             }
@@ -291,13 +308,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(ValidateDataForSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
             }
         }
 
-        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
                 return;
@@ -314,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             requiresData.data = data;
         }
 
-        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
             {
@@ -408,6 +425,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region StructCollections
     static class CoreStructCollections
     {
+        public static StructCollection BasicProcedural = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
         public static StructCollection Basic = new StructCollection
         {
             { HDStructs.AttributesMesh },
@@ -425,6 +450,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDStructs.VaryingsMeshToDS },
             { HDStructs.VaryingsMeshToPS },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        public static StructCollection BasicProceduralTessellation = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
             { Structs.SurfaceDescriptionInputs },
         };
 
@@ -675,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
-            public static readonly string alphaToMask = "[_AlphaToMask]";
+            public static readonly string alphaCutoffEnable = "[_AlphaCutoffEnable]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -731,7 +765,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -745,7 +779,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -761,7 +795,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
         };
 
 
@@ -793,7 +828,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
@@ -846,39 +882,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
-        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
+        public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
-        {
-            { DotsInstancedInV1AndV2 },
             { Pragma.EditorSyncCompilation },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
     }
     #endregion
@@ -1030,6 +1044,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLightLoopDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl";
         public const string kPunctualLightCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl";
         public const string kHDShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl";
+        public const string kHDRaytracingShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/HDRaytracingShadowLoop.hlsl";
         public const string kNormalSurfaceGradient = "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl";
         public const string kLighting = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl";
         public const string kLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl";
@@ -1125,6 +1140,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Debug Display",
             referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ProceduralInstancing = new KeywordDescriptor()
+        {
+            displayName = "Procedural Instancing",
+            referenceName = "PROCEDURAL_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor StereoInstancing = new KeywordDescriptor()
+        {
+            displayName = "Stereo Instancing",
+            referenceName = "STEREO_INSTANCING_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1411,15 +1444,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local
-        };
-
-        public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
-        {
-            displayName = "Alpha To Mask",
-            referenceName = "_ALPHATOMASK_ON",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
         };
 
         public static KeywordDescriptor TransparentColorShadow = new KeywordDescriptor()

@@ -69,6 +69,24 @@ Nightly_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_trunk
          rerun: on_new_revision
+All_URP_on_Win_DX11_playmode_trunk:
+    name: All URP on Win DX11 playmode on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
 PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION
     variables:
@@ -130,4 +148,22 @@ Nightly_URP_CUSTOM-REVISION:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_CUSTOM-REVISION
+         rerun: on_new_revision
+All_URP_on_Win_DX11_playmode_CUSTOM-REVISION:
+    name: All URP on Win DX11 playmode on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -69,18 +69,30 @@ namespace UnityEditor.Rendering
             return s_KelvinGradientTexture;
         }
 
+        /// <summary>
+        /// Constructs the temperature slider
+        /// </summary>
+        /// <param name="descriptor">The descriptor</param>
         public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
         {
             var halfValue = 6500;
             PrepareExponentialConstraints(m_Descriptor.sliderRange.x, halfValue, m_Descriptor.sliderRange.y);
         }
 
+        /// <summary>
+        /// Setups the light editor
+        /// </summary>
+        /// <param name="settings">The light editor from the light</param>
         public void Setup(LightEditor.Settings settings)
         {
             m_Settings = settings;
         }
 
-        // The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
+        /// <summary>
+        /// The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
+        /// </summary>
+        /// <param name="value">The value to update</param>
+        /// <param name="preset">The preset range</param>
         protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
             m_Settings.Update();
@@ -90,6 +102,12 @@ namespace UnityEditor.Rendering
             m_Settings.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// Draws the slider
+        /// </summary>
+        /// <param name="rect">The <see cref="Rect"/> to draw the slider.</param>
+        /// <param name="value">The current value, and also returns the modified value.</param>
+        /// <param name="sliderRange">The ranges of the slider.</param>
         protected override void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
             SliderWithTextureNoTextField(rect, ref value, sliderRange, m_Settings);

@@ -40,8 +40,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.enable.value)
                 {
                     bool allowSsgi = hdCamera.colorPyramidHistoryIsValid && !hdCamera.isFirstFrame;
-                    // RTGI is only valid if raytracing is enabled
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching;
+
+                    // We can use the ray tracing version of the effect if:
+                    // - It is enabled in the frame settings
+                    // - It is enabled in the volume
+                    // - The RTAS has been build validated
+                    // - The RTLightCluster has been validated
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching && GetRayTracingState() && GetRayTracingClusterState();
                     mode = raytracing ? IndirectDiffuseMode.Raytrace : (allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off);
                 }
             }

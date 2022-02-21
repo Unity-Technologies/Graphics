@@ -21,6 +21,8 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel TraceGlobalIllumination          TRACE_GLOBAL_ILLUMINATION=TraceGlobalIllumination GI_TRACE
 #pragma kernel TraceGlobalIlluminationHalf      TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
 #pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
@@ -197,21 +199,21 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Compute the pixel position to process
-    uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
-
+    uint2 inputCoord = dispatchThreadId.xy;
+    uint2 currentCoord = dispatchThreadId.xy;
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    currentCoord = currentCoord * 2;
+    inputCoord = inputCoord * 2;
 #endif
 
     // Read the depth and compute the position
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    uint2 tileIndex = uint2(currentCoord) / GetTileSize();
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
+    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, inputCoord).x;
+    uint2 tileIndex = uint2(inputCoord) / GetTileSize();
+    PositionInputs posInput = GetPositionInput(inputCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
 
     // Read the pixel normal
     NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+    DecodeFromNormalBuffer(inputCoord.xy, normalData);
 
     // Generete a new direction to follow
     float2 newSample;
@@ -306,5 +308,5 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     color = HsvToRgb(color);
 
     // Write the output to the target pixel
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color;
+    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = color;
 }

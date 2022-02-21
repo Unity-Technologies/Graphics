@@ -74,33 +74,38 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
+
 #ifdef UNITY_VIRTUAL_TEXTURING
-#define VT_BUFFER_TARGET SV_Target1
-#define EXTRA_BUFFER_TARGET SV_Target2
+    #ifdef OUTPUT_SPLIT_LIGHTING
+    #define DIFFUSE_LIGHTING_TARGET SV_Target2
+    #define SSS_BUFFER_TARGET SV_Target3
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+    #define MOTION_VECTOR_TARGET SV_Target2
+    #endif
 #else
-#define EXTRA_BUFFER_TARGET SV_Target1
+    #ifdef OUTPUT_SPLIT_LIGHTING
+    #define DIFFUSE_LIGHTING_TARGET SV_Target1
+    #define SSS_BUFFER_TARGET SV_Target2
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+    #define MOTION_VECTOR_TARGET SV_Target1
+    #endif
 #endif
 
-void Frag(PackedVaryingsToPS packedInput,
-        #ifdef OUTPUT_SPLIT_LIGHTING
-            out float4 outColor : SV_Target0,  // outSpecularLighting
-            #ifdef UNITY_VIRTUAL_TEXTURING
-                out float4 outVTFeedback : VT_BUFFER_TARGET,
-            #endif
-            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
-            OUTPUT_SSSBUFFER(outSSSBuffer)
-        #else
-            out float4 outColor : SV_Target0
-            #ifdef UNITY_VIRTUAL_TEXTURING
-                ,out float4 outVTFeedback : VT_BUFFER_TARGET
-            #endif
-        #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
-        #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
-        #endif // OUTPUT_SPLIT_LIGHTING
-        #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
-        #endif
+void Frag(PackedVaryingsToPS packedInput
+    , out float4 outColor : SV_Target0  // outSpecularLighting when outputting split lighting
+    #ifdef UNITY_VIRTUAL_TEXTURING
+        , out float4 outVTFeedback : SV_Target1
+    #endif
+    #ifdef OUTPUT_SPLIT_LIGHTING
+        , out float4 outDiffuseLighting : DIFFUSE_LIGHTING_TARGET
+        , OUTPUT_SSSBUFFER(outSSSBuffer) : SSS_BUFFER_TARGET
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+          , out float4 outMotionVec : MOTION_VECTOR_TARGET
+    #endif
+    #ifdef _DEPTHOFFSET_ON
+        , out float outputDepth : DEPTH_OFFSET_SEMANTIC
+    #endif
 )
 {
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -146,49 +151,7 @@ void Frag(PackedVaryingsToPS packedInput,
     ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 #endif
 
-
-
-    // Same code in ShaderPassForwardUnlit.shader
-    // Reminder: _DebugViewMaterialArray[i]
-    //   i==0 -> the size used in the buffer
-    //   i>0  -> the index used (0 value means nothing)
-    // The index stored in this buffer could either be
-    //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
-    //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    bool viewMaterial = false;
-    int bufferSize = _DebugViewMaterialArray[0].x;
-    if (bufferSize != 0)
-    {
-        bool needLinearToSRGB = false;
-        float3 result = float3(1.0, 0.0, 1.0);
-
-        // Loop through the whole buffer
-        // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
-        for (int index = 1; index <= bufferSize; index++)
-        {
-            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-
-            // skip if not really in use
-            if (indexMaterialProperty != 0)
-            {
-                viewMaterial = true;
-
-                GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-                GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-                GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-                GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-            }
-        }
-
-        // TEMP!
-        // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
-        if (!needLinearToSRGB && _DebugAOVOutput == 0)
-            result = SRGBToLinear(max(0, result));
-
-        outColor = float4(result, 1.0);
-    }
+    bool viewMaterial = GetMaterialDebugColor(outColor, input, builtinData, posInput, surfaceData, bsdfData);
 
     if (!viewMaterial)
     {
@@ -244,6 +207,12 @@ void Frag(PackedVaryingsToPS packedInput,
             VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
             bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
             // outMotionVec is already initialize at the value of forceNoMotion (see above)
+
+             //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+            forceNoMotion = true;
+#endif
+
             if (!forceNoMotion)
             {
                 float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);

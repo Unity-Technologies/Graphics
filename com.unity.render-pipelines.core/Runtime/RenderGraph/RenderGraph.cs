@@ -56,6 +56,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public CommandBuffer commandBuffer;
     }
 
+    /// <summary>
+    /// This struct is used to define the scope where the Render Graph is recorded before the execution.
+    /// When this struct goes out of scope or is disposed, the Render Graph will be automatically executed.
+    /// </summary>
+    /// <seealso cref="RenderGraph.RecordAndExecute(in RenderGraphParameters)"/>
+    public struct RenderGraphExecution : IDisposable
+    {
+        RenderGraph renderGraph;
+
+        /// <summary>
+        /// Internal constructor for RenderGraphExecution
+        /// </summary>
+        /// <param name="renderGraph">renderGraph</param>
+        internal RenderGraphExecution(RenderGraph renderGraph)
+            => this.renderGraph = renderGraph;
+
+        /// <summary>
+        /// This function triggers the Render Graph to be executed.
+        /// </summary>
+        public void Dispose() => renderGraph.Execute();
+    }
+
     class RenderGraphDebugParams
     {
         DebugUI.Widget[] m_DebugItems;
@@ -360,6 +382,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
+            m_RenderGraphPool.Cleanup();
 
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
@@ -467,6 +490,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 throw new InvalidOperationException("A shared texture can only be created outside of render graph execution.");
 
             return m_Resources.CreateSharedTexture(desc, explicitRelease);
+        }
+
+        /// <summary>
+        /// Refresh a shared texture with a new descriptor.
+        /// </summary>
+        /// <param name="handle">Shared texture that needs to be updated.</param>
+        /// <param name="desc">New Descriptor for the texture.</param>
+        public void RefreshSharedTextureDesc(TextureHandle handle, in TextureDesc desc)
+        {
+            m_Resources.RefreshSharedTextureDesc(handle, desc);
         }
 
         /// <summary>
@@ -597,15 +630,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Begin using the render graph.
+        /// Starts the recording of the the render graph and then automatically execute when the return value goes out of scope.
         /// This must be called before adding any pass to the render graph.
         /// </summary>
         /// <param name="parameters">Parameters necessary for the render graph execution.</param>
-        public void Begin(in RenderGraphParameters parameters)
+        /// <example>
+        /// This shows how to increment an integer.
+        /// <code>
+        /// using (renderGraph.RecordAndExecute(parameters))
+        /// {
+        ///     // Add your render graph passes here.
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="RenderGraphExecution"/>
+        /// <returns><see cref="RenderGraphExecution"/></returns>
+        public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
-            m_CurrentExecutionName = parameters.executionName;
+            m_CurrentExecutionName = parameters.executionName != null ? parameters.executionName : "RenderGraphExecution";
             m_HasRenderGraphBegun = true;
+            m_RendererListCulling = parameters.rendererListCulling;
 
             m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
@@ -641,19 +686,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
+
+            return new RenderGraphExecution(this);
         }
 
         /// <summary>
         /// Execute the Render Graph in its current state.
         /// </summary>
-        public void Execute()
+        internal void Execute()
         {
             m_ExecutionExceptionWasRaised = false;
 
             try
             {
                 if (m_RenderGraphContext.cmd == null)
-                    throw new InvalidOperationException("RenderGraph.Begin was not called before executing the render graph.");
+                    throw new InvalidOperationException("RenderGraph.RecordAndExecute was not called before executing the render graph.");
 
 
                 if (!m_DebugParameters.immediateMode)

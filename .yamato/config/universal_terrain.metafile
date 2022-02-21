@@ -16,6 +16,7 @@ reuse_blocks:
 
 test_platforms:
   - type: Standalone
+    allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -34,15 +35,18 @@ test_platforms:
           - [all]: --timeout=3000
 
   - type: playmode
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_with_utr>
 
   - type: editmode
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_with_utr>
 
   - type: playmode
     name: playmode_XR
+    allow_cache: False
     commands:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
@@ -52,6 +56,7 @@ test_platforms:
 
   - type: Standalone
     name: Standalone_XR
+    allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>

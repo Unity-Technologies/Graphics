@@ -65,9 +65,6 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
                         float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
 {
-    // We have to account for handedness.
-    coordNDC.z = 1 - coordNDC.z;
-
     float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
     float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
     float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
@@ -189,7 +186,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
             const OrientedBBox obb = _VolumeBounds[volumeIndex];
 
-            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
             const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
 
             // Express the voxel center in the local coordinate system of the box.

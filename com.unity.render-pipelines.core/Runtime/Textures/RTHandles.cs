@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -64,6 +65,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -86,8 +88,55 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
+        }
+
+        /// <summary>
+        /// Allocate a new fixed sized RTHandle with the default RTHandle System.
+        /// </summary>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            var result = s_DefaultInstance.Alloc(
+                descriptor.width,
+                descriptor.height,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
+                name
+            );
+            return result;
         }
 
         /// <summary>
@@ -110,6 +159,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>A new RTHandle.</returns>
         public static RTHandle Alloc(
@@ -130,6 +180,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -151,6 +202,53 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
+                name
+            );
+        }
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
+        /// </summary>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            Vector2 scaleFactor,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            return s_DefaultInstance.Alloc(
+                scaleFactor,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
                 name
             );
         }
@@ -175,6 +273,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -195,6 +294,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -216,6 +316,53 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
+                name
+            );
+        }
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
+        /// </summary>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(
+            ScaleFunc scaleFunc,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = ""
+        )
+        {
+            return s_DefaultInstance.Alloc(
+                scaleFunc,
+                descriptor.volumeDepth,
+                (DepthBits)descriptor.depthBufferBits,
+                descriptor.graphicsFormat,
+                filterMode,
+                wrapMode,
+                descriptor.dimension,
+                descriptor.enableRandomWrite,
+                descriptor.useMipMap,
+                descriptor.autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                (MSAASamples)descriptor.msaaSamples,
+                descriptor.bindMS,
+                descriptor.useDynamicScale,
+                descriptor.memoryless,
+                descriptor.vrUsage,
                 name
             );
         }

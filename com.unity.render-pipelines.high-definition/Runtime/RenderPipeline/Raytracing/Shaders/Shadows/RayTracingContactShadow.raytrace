@@ -30,7 +30,7 @@
 TEXTURE2D_X(_DepthTexture);
 
 [shader("miss")]
-void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissShaderShadows(inout RayIntersectionVisibility rayIntersection : SV_RayPayload)
 {
     rayIntersection.color = float3(1.0, 1.0, 1.0);
 }
@@ -52,8 +52,8 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
         // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
         ApplyCameraRelativeXR(rayDescriptor.Origin);
 
-        // Create and init the RayIntersection structure for this
-        RayIntersection rayIntersection;
+        // Create and init the RayIntersectionVisibility structure for this
+        RayIntersectionVisibility rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         rayIntersection.pixelCoord = posInput.positionSS;
 
@@ -94,10 +94,9 @@ void RayGenContactShadows()
     uint contactShadowMask = 0;
     UnpackContactShadowData(_ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)], fade, contactShadowMask);
 
-    // Let's first process the directional shadow
-    if (_DirectionalShadowIndex >= 0)
+	for (int i = 0; i < _DirectionalLightCount; ++i)
     {
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        DirectionalLightData light = _DirectionalLightDatas[i];
 
         if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 1.0)
         {

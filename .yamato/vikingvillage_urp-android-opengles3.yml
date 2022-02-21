@@ -35,7 +35,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -71,22 +71,23 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/Viking-Village-Perf
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -132,22 +133,23 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/Viking-Village-Perf
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -161,7 +163,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -201,7 +203,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_C
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
@@ -237,22 +239,23 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/Viking-Village-Perf
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -298,22 +301,23 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
+      -  unity-config settings project-path TestProjects/Viking-Village-Perf
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -327,7 +331,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0

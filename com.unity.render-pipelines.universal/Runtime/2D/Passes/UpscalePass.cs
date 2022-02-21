@@ -6,54 +6,45 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingScope = new ProfilingSampler("Upscale Pass");
 
-        RenderTargetHandle m_Source;
-        RenderTargetHandle m_UpscaleHandle;
-        int m_UpscaleWidth;
-        int m_UpscaleHeight;
-        FilterMode m_filterMode;
+        RTHandle m_Source;
+        RTHandle m_UpscaleHandle;
 
         public UpscalePass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
         }
 
-        public void Setup(RenderTargetHandle colorTargetHandle, int width, int height, FilterMode mode, out RenderTargetHandle upscaleHandle)
+        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
         {
             m_Source = colorTargetHandle;
-            m_UpscaleWidth = width;
-            m_UpscaleHeight = height;
-            m_filterMode = mode;
 
-            m_UpscaleHandle.Init("_UpscaleTexture");
+            ref CameraData cameraData = ref renderingData.cameraData;
+            RenderTextureDescriptor desc = cameraData.cameraTargetDescriptor;
+            desc.width = width;
+            desc.height = height;
+            desc.depthBufferBits = 0;
+            RenderingUtils.ReAllocateIfNeeded(ref m_UpscaleHandle, desc, mode, TextureWrapMode.Clamp, name: "_UpscaleTexture");
+
             upscaleHandle = m_UpscaleHandle;
+        }
+
+        public void Dispose()
+        {
+            m_UpscaleHandle?.Release();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
             var cmd = CommandBufferPool.Get();
-
             using (new ProfilingScope(cmd, m_ProfilingScope))
             {
-                RenderTextureDescriptor upscaleDesc = cameraData.cameraTargetDescriptor;
-                upscaleDesc.width = m_UpscaleWidth;
-                upscaleDesc.height = m_UpscaleHeight;
-                cmd.GetTemporaryRT(m_UpscaleHandle.id, upscaleDesc, m_filterMode);
-
-                cmd.SetRenderTarget(m_UpscaleHandle.id,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-
-                cmd.Blit(m_Source.id, m_UpscaleHandle.id);
+                CoreUtils.SetRenderTarget(cmd, m_UpscaleHandle,
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    ClearFlag.None, Color.clear);
+                Blit(cmd, m_Source, m_UpscaleHandle);
             }
-
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        public override void OnFinishCameraStackRendering(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_UpscaleHandle.id);
         }
     }
 }

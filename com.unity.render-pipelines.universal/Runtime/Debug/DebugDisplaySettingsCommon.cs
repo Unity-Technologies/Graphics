@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
                 AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
 
                 var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
-                var materialSettingsData = debugDisplaySettings.MaterialSettings;
+                var materialSettingsData = debugDisplaySettings.materialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = debugDisplaySettings.LightingSettings;
+                var lightingSettingsData = debugDisplaySettings.lightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = debugDisplaySettings.RenderingSettings;
+                var renderingSettingsData = debugDisplaySettings.renderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -88,7 +88,8 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
-                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdrawMode(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMaxOverdrawCount(renderingSettingsData),
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
                     {
@@ -103,11 +104,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-        UniversalRenderPipelineDebugDisplaySettings debugDisplaySettings => UniversalRenderPipelineDebugDisplaySettings.Instance;
-        public bool AreAnySettingsActive => debugDisplaySettings.AreAnySettingsActive;
-        public bool IsPostProcessingAllowed => debugDisplaySettings.IsPostProcessingAllowed;
-        public bool IsLightingActive => debugDisplaySettings.IsLightingActive;
-        public bool TryGetScreenClearColor(ref Color color) => debugDisplaySettings.TryGetScreenClearColor(ref color);
+
+        // All common settings are owned by another panel, so they are treated as inactive here.
+
+        public bool AreAnySettingsActive => false;
+        public bool IsPostProcessingAllowed => true;
+        public bool IsLightingActive => true;
+        public bool TryGetScreenClearColor(ref Color _) => false;
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {

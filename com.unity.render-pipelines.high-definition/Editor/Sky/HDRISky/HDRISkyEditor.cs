@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(HDRISky))]
+    [CustomEditor(typeof(HDRISky))]
     class HDRISkyEditor : SkySettingsEditor
     {
         class Styles

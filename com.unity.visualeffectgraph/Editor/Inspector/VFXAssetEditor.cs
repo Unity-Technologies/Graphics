@@ -115,16 +115,15 @@ class VisualEffectAssetEditor : Editor
             Selection.activeInstanceID = instanceID;
             return true;
         }
-        else if (obj is VisualEffectAsset)
+        else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
             return true;
         }
         else if (obj is Material || obj is ComputeShader)
@@ -164,7 +163,7 @@ class VisualEffectAssetEditor : Editor
         var systemName = context.GetGraph().systemNames.GetUniqueSystemName(context.GetData());
         var contextLetter = context.letter;
         var contextName = string.IsNullOrEmpty(context.label) ? context.libraryName : context.label;
-        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName);
+        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName.Replace('\n', ' '));
 
         EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));
     }
@@ -422,6 +421,96 @@ class VisualEffectAssetEditor : Editor
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
+    public static void DisplayPrewarmInspectorGUI(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
+    {
+        if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
+        {
+            var currentDeltaTime = prewarmDeltaTime.floatValue;
+            var currentStepCount = prewarmStepCount.uintValue;
+            var currentTotalTime = currentDeltaTime * currentStepCount;
+            EditorGUI.BeginChangeCheck();
+            currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1u;
+                }
+
+                currentDeltaTime = currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentStepCount = (uint)EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                {
+                    prewarmStepCount.uintValue = currentStepCount = 1;
+                }
+
+                currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                prewarmStepCount.uintValue = currentStepCount;
+                resourceObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                {
+                    prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                }
+
+                if (currentDeltaTime > currentTotalTime)
+                {
+                    currentTotalTime = currentDeltaTime;
+                }
+
+                if (currentTotalTime != 0.0f)
+                {
+                    var candidateStepCount_A = (uint)Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_B = (uint)Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                    var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                    var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                    if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                    {
+                        currentStepCount = candidateStepCount_A;
+                    }
+                    else
+                    {
+                        currentStepCount = candidateStepCount_B;
+                    }
+
+                    prewarmStepCount.uintValue = currentStepCount;
+                }
+                prewarmDeltaTime.floatValue = currentDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+        else
+        {
+            //Multi selection case, can't resolve total time easily
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
+            EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
+                    prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                resourceObject.ApplyModifiedProperties();
+            }
+        }
+    }
+
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
@@ -526,108 +615,43 @@ class VisualEffectAssetEditor : Editor
                 }
             }
         }
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
 
-        EditorGUILayout.BeginHorizontal();
-        EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
-        EditorGUI.BeginChangeCheck();
-        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
-        if (EditorGUI.EndChangeCheck())
+        //The following should be working, and works for newly created systems, but fails for old systems,
+        //due probably to incorrectly pasting the VFXData when creating them.
+        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
-            cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-            resourceObject.ApplyModifiedProperties();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+            string forceSimulateTooltip = hasAutomaticBoundsSystems
+                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                : "";
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
+            EditorGUI.BeginChangeCheck();
+
+            int newOption =
+                EditorGUILayout.Popup(
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                    k_CullingOptionsContents);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                resourceObject.ApplyModifiedProperties();
+            }
         }
+
         EditorGUILayout.EndHorizontal();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
-            if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
-            {
-                var currentDeltaTime = prewarmDeltaTime.floatValue;
-                var currentStepCount = prewarmStepCount.intValue;
-                var currentTotalTime = currentDeltaTime * currentStepCount;
-                EditorGUI.BeginChangeCheck();
-                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
-                    {
-                        prewarmStepCount.intValue = currentStepCount = 1;
-                    }
-
-                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    prewarmStepCount.intValue = currentStepCount;
-                    resourceObject.ApplyModifiedProperties();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
-                    {
-                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
-                    }
-
-                    if (currentDeltaTime > currentTotalTime)
-                    {
-                        currentTotalTime = currentDeltaTime;
-                    }
-
-                    if (currentTotalTime != 0.0f)
-                    {
-                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
-                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
-
-                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
-                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
-
-                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
-                        {
-                            currentStepCount = candidateStepCount_A;
-                        }
-                        else
-                        {
-                            currentStepCount = candidateStepCount_B;
-                        }
-
-                        prewarmStepCount.intValue = currentStepCount;
-                    }
-                    prewarmDeltaTime.floatValue = currentDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
-            else
-            {
-                //Multi selection case, can't resolve total time easily
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
-                EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
-                        prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
-                    resourceObject.ApplyModifiedProperties();
-                }
-            }
+            DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
         }
 
         if (initialEventName != null)
@@ -643,8 +667,8 @@ class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectAsset asset = (VisualEffectAsset)target;
-            VisualEffectResource resource = asset.GetResource();
+            asset = (VisualEffectAsset)target;
+            resource = asset.GetResource();
 
             m_OutputContexts.Clear();
             m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
@@ -676,7 +700,7 @@ class VisualEffectAssetEditor : Editor
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
-                    GUI.Label(labelR, shader.name);
+                    GUI.Label(labelR, shader.name.Replace('\n', ' '));
 
                     if (index >= 0)
                     {

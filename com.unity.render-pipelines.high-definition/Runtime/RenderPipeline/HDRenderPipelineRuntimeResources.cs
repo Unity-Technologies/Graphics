@@ -27,6 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugColorPickerPS;
             [Reload("Runtime/Debug/DebugExposure.Shader")]
             public Shader debugExposurePS;
+            [Reload("Runtime/Debug/DebugHDR.Shader")]
+            public Shader debugHDRPS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -37,8 +39,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugViewVirtualTexturingBlit;
             [Reload("Runtime/Debug/MaterialError.Shader")]
             public Shader materialError;
+            [Reload("Runtime/Debug/MaterialLoading.shader")]
+            public Shader materialLoading;
+            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
+            public ComputeShader clearDebugBufferCS;
+
+            // APV
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
+            public Shader probeVolumeOffsetDebugShader;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
+            public ComputeShader probeVolumeBlendStatesCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -167,6 +179,18 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
 
+            // Water
+            [Reload("Runtime/Water/WaterSimulation.compute")]
+            public ComputeShader waterSimulationCS;
+            [Reload("Runtime/Water/FourierTransform.compute")]
+            public ComputeShader fourierTransformCS;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
+            public Shader waterPS;
+            [Reload("Runtime/Water/WaterLighting.compute")]
+            public ComputeShader waterLightingCS;
+            [Reload("Runtime/Water/WaterCaustics.shader")]
+            public Shader waterCausticsPS;
+
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -257,6 +281,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
             public ComputeShader debugImageHistogramCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHDRxyMapping.compute")]
+            public ComputeShader debugHDRxyMappingCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -319,6 +345,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader lensFlareMergeOcclusionCS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
             public Shader DLSSBiasColorMaskPS;
+            [Reload("Runtime/PostProcessing/Shaders/CompositeWithUIAndOETF.shader")]
+            public Shader compositeUIAndOETFApplyPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
@@ -329,11 +357,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCoCMinMaxCS;
             [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
             public ComputeShader dofMinMaxDilateCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCombine.compute")]
+            public ComputeShader dofCombineCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
-            [Reload("Runtime/PostProcessing/Shaders/RobustContrastAdaptiveSharpen.compute")]
-            public ComputeShader robustContrastAdaptiveSharpenCS;
             [Reload("Runtime/PostProcessing/Shaders/EdgeAdaptiveSpatialUpsampling.compute")]
             public ComputeShader edgeAdaptiveSpatialUpsamplingCS;
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
@@ -342,6 +370,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Accumulation
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
             public ComputeShader accumulationCS;
+
+            [Reload("Runtime/RenderPipeline/Accumulation/Shaders/BlitAndExpose.compute")]
+            public ComputeShader blitAndExposeCS;
 
             // Compositor
             [Reload("Runtime/Compositor/Shaders/AlphaInjection.shader")]
@@ -432,6 +463,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
             public Texture3D perlinNoise32RGB;
 
+            // Water textures
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
+            public Texture2D foamSurface;
+
             // Post-processing
             [Reload(new[]
             {
@@ -481,6 +516,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh sphereMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
             public Mesh probeDebugSphere;
+            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugPyramid.fbx")]
+            public Mesh pyramidMesh;
         }
 
         public ShaderResources shaders;

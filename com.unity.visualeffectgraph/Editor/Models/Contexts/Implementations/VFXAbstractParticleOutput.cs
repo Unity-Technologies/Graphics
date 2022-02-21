@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
+using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
@@ -52,12 +53,13 @@ namespace UnityEditor.VFX
             Always
         }
 
-        public enum SortMode
+        public enum SortActivationMode
         {
             Auto,
             Off,
             On
         }
+
         protected enum StripTilingMode
         {
             Stretch,
@@ -93,7 +95,13 @@ namespace UnityEditor.VFX
         protected int vfxSystemSortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether to use GPU sorting for transparent particles.")]
-        protected SortMode sort = SortMode.Auto;
+        protected SortActivationMode sort = SortActivationMode.Auto;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the draw order of particles. They can be sorted by their distance, age, depth, or by a custom value.")]
+        protected SortCriteria sortMode = SortCriteria.DistanceToCamera;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Reverses the drawing order of the particles.")]
+        internal bool revertSorting = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used.")]
         protected bool indirectDraw = false;
@@ -126,10 +134,17 @@ namespace UnityEditor.VFX
         public virtual void SetupMaterial(Material material) { }
 
         public bool HasIndirectDraw() { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
-        public virtual bool HasSorting() { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+        public virtual bool HasSorting() { return (sort == SortActivationMode.On || (sort == SortActivationMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+
+        public bool HasCustomSortingCriterion() { return HasSorting() && sortMode == VFXSortingUtility.SortCriteria.Custom; }
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
         public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+
+        public bool needsOwnSort = false;
+
+        public SortCriteria GetSortCriterion() { return sortMode; }
+
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
         {
@@ -140,8 +155,13 @@ namespace UnityEditor.VFX
                     features |= VFXOutputUpdate.Features.MotionVector;
                 if (HasComputeCulling())
                     features |= VFXOutputUpdate.Features.Culling;
-                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                    features |= VFXOutputUpdate.Features.Sort;
+                if (HasSorting() && (VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort))
+                {
+                    if (IsPerCamera(sortMode))
+                        features |= VFXOutputUpdate.Features.CameraSort;
+                    else
+                        features |= VFXOutputUpdate.Features.Sort;
+                }
                 if (HasFrustumCulling())
                     features |= VFXOutputUpdate.Features.FrustumCulling;
                 return features;
@@ -302,6 +322,12 @@ namespace UnityEditor.VFX
             public Gradient gradient = VFXResources.defaultResources.gradientMapRamp;
         }
 
+        public class InputPropertiesSortKey
+        {
+            [Tooltip("Sets the value for particle sorting in this output. Particles with lower values are rendered first and appear behind those with higher values.")]
+            public float sortKey = 0.0f;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -349,6 +375,11 @@ namespace UnityEditor.VFX
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
+                if (HasCustomSortingCriterion())
+                {
+                    foreach (var property in PropertiesFromType("InputPropertiesSortKey"))
+                        yield return property;
+                }
             }
         }
 
@@ -495,6 +526,11 @@ namespace UnityEditor.VFX
                 }
                 if (!subOutput.supportsExcludeFromTAA)
                     yield return "excludeFromTAA";
+                if (sort == SortActivationMode.Off || HasStrips(true))
+                {
+                    yield return "sortMode";
+                    yield return "revertSorting";
+                }
             }
         }
 
@@ -585,7 +621,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
             switch (taskType)
             {
@@ -617,7 +653,7 @@ namespace UnityEditor.VFX
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
             {
                 var modifiedBounds = children
                     .SelectMany(b =>
@@ -628,9 +664,53 @@ namespace UnityEditor.VFX
                             || attr.attrib.name.Contains("scale")
                             || attr.attrib.name.Contains("pivot")));
                 if (modifiedBounds && CanBeCompiled())
-                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation during recording is based on Position and Size in the Update Context." +
+                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning,
+                        $"Bounds computation during recording is based on Position and Size in the Update Context." +
                         $" Changing these properties now could lead to incorrect bounds." +
                         $" Use padding to mitigate this discrepancy.");
+            }
+
+            if (HasSorting())
+            {
+                if (!needsOwnSort)
+                {
+                    var modifiedAttributes = children
+                        .Where(c => c.enabled)
+                        .SelectMany(b => b.attributes)
+                        .Where(a => a.mode.HasFlag(VFXAttributeMode.Write))
+                        .Select(a => a.attrib);
+                    bool isCriterionModified = false;
+
+                    if (HasCustomSortingCriterion())
+                    {
+                        HashSet<VFXExpression> sortKeyExpressions = new HashSet<VFXExpression>();
+                        var sortKeyExp = inputSlots.First(s => s.name == "sortKey").GetExpression();
+                        VFXExpression.CollectParentExpressionRecursively(sortKeyExp, sortKeyExpressions);
+
+                        foreach (var modifiedAttribute in modifiedAttributes)
+                            isCriterionModified |=
+                                sortKeyExpressions.Contains(new VFXAttributeExpression(modifiedAttribute));
+                    }
+                    else
+                    {
+                        var usedAttributesInSorting = VFXSortingUtility.GetSortingDependantAttributes(sortMode);
+                        isCriterionModified = usedAttributesInSorting.Intersect(modifiedAttributes).Any();
+                    }
+
+                    if (isCriterionModified)
+                    {
+                        manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
+                            $"Sorting happens in Update, before the attributes were modified in the Output context." +
+                            $" All the modifications made here will not be taken into account during sorting.");
+                    }
+                }
+
+                if (sortMode == SortCriteria.YoungestInFront)
+                {
+                    if (!GetData().IsAttributeUsed(VFXAttribute.Age))
+                        manager.RegisterError("NoAgeToSort", VFXErrorType.Warning,
+                            $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.");
+                }
             }
         }
     }

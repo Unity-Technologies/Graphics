@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: test/implement for other platforms.
             return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5NGGC &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
@@ -298,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState() && GetRayTracingClusterState())
             {
                 RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffer,
                     lightingBuffers.sssBuffer, lightingBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, lightingBuffers.ssgiLightingBuffer);

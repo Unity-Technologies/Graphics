@@ -1,18 +1,9 @@
 using System;
 using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Experimental;
 using UnityEditor.VFX;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX.UI;
-
-using Object = UnityEngine.Object;
-using UnityEditorInternal;
-using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
@@ -26,7 +17,7 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
-    protected new void OnEnable()
+    protected void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
         if (allData.Length > 0)
@@ -41,8 +32,6 @@ class VFXContextEditor : VFXSlotContainerEditor
         }
 
         subOutputObjectInitialized = false;
-
-        base.OnEnable();
     }
 
     protected override SerializedProperty FindProperty(VFXSetting setting)
@@ -248,10 +237,39 @@ class VFXContextEditor : VFXSlotContainerEditor
     {
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VFXContext model = (VFXContext)target;
-            if (model != null && model.letter != '\0') //TODO: Is it still relevant ?
+            if (target is VFXContext context)
             {
-                GUILayout.Label(model.letter.ToString(), Styles.letter);
+                var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
+                GUIStyle style = null;
+                switch (context.contextType)
+                {
+                    case VFXContextType.Event:
+                    case VFXContextType.SpawnerGPU:
+                    case VFXContextType.Spawner:
+                    case VFXContextType.Init:
+                        style = Styles.spawnStyle;
+                        break;
+                    case VFXContextType.Update:
+                    case VFXContextType.Output:
+                        switch (context.inputType)
+                        {
+                            case VFXDataType.Particle:
+                                style = Styles.particleStyle;
+                                break;
+                            case VFXDataType.ParticleStrip:
+                                style = Styles.particleStripeStyle;
+                                break;
+                            case VFXDataType.Mesh:
+                                style = Styles.meshStyle;
+                                break;
+                        }
+                        break;
+                }
+
+                if (label != null && style != null)
+                {
+                    GUILayout.Label(label, style);
+                }
             }
         }
     }

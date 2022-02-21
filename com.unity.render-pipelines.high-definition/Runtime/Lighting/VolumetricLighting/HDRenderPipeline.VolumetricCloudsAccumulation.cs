@@ -162,10 +162,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableIntegration = true;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
+            // If this is a default camera, we want the improved blending, otherwise we don't (in the case of a planar)
+            parameters.commonData.cloudsCB._ImprovedTransmittanceBlend = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default ? 1 : 0;
+            parameters.commonData.cloudsCB._CubicTransmittance = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default && hdCamera.msaaEnabled ? 1 : 0;
+
             return parameters;
         }
 
-        static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters,
+        static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters, ComputeBuffer ambientProbe,
             RTHandle colorBuffer, RTHandle depthPyramid, RTHandle motionVectors, RTHandle volumetricLightingTexture, RTHandle scatteringFallbackTexture, RTHandle maxZMask,
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
@@ -198,8 +202,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.commonData.cloudsCB._HistoryViewportSize = new Vector2(previousViewportSize.x, previousViewportSize.y);
             parameters.commonData.cloudsCB._HistoryBufferSize = new Vector2(previousHistory0Buffer.rt.width, previousHistory0Buffer.rt.height);
 
-            // Bind the constant buffer
-            ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            // Bind the constant buffer (global as we need it for the .shader as well)
+            ConstantBuffer.PushGlobal(cmd, parameters.commonData.cloudsCB, HDShaderIDs._ShaderVariablesClouds);
 
             RTHandle currentDepthBuffer = depthPyramid;
 
@@ -230,8 +234,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
+                cmd.SetComputeBufferParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, ambientProbe);
+
+                // Output buffers
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsLightingTextureRW, intermediateLightingBuffer0);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsDepthTextureRW, intermediateDepthBuffer1);
+
                 cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, traceTX, traceTY, parameters.viewCount);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
             }
@@ -293,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.cloudCombinePass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Composite the clouds into the MSAA target via hardware blending.
-                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer);
+                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer, null, 0);
 
                     CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", false);
                 }
@@ -318,6 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
             public TextureHandle motionVectors;
             public TextureHandle maxZMask;
+            public ComputeBufferHandle ambientProbeBuffer;
 
             public TextureHandle volumetricLighting;
             public TextureHandle scatteringFallbackTexture;
@@ -340,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType,
             TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
+            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -350,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
                 passData.maxZMask = settings.localClouds.value ? renderGraph.defaultResources.blackTextureXR : builder.ReadTexture(maxZMask);
+                passData.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsProbeBuffer));
 
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
@@ -394,16 +404,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VolumetricCloudsAccumulationData data, RenderGraphContext ctx) =>
                     {
-                        TraceVolumetricClouds_Accumulation(ctx.cmd, data.parameters,
+                        TraceVolumetricClouds_Accumulation(ctx.cmd, data.parameters, data.ambientProbeBuffer,
                             data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting, data.scatteringFallbackTexture, data.maxZMask,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0, data.currentHistoryBuffer1, data.previousHistoryBuffer1,
                             data.intermediateBuffer0, data.intermediateBuffer1, data.intermediateBufferDepth0, data.intermediateBufferDepth1, data.intermediateBufferDepth2,
                             data.intermediateColorBufferCopy, data.intermediateBufferUpscale);
                     });
 
+                // Push the texture to the debug menu
                 PushFullScreenDebugTexture(m_RenderGraph, passData.currentHistoryBuffer0, FullScreenDebugMode.VolumetricClouds);
 
-                return passData.colorBuffer;
+                // We return the volumetric clouds buffers rendered at half resolution. We should ideally return the full resolution transmittance, but
+                // this should be enough for the initial case (which is the lens flares). The transmittance can be found in the alpha channel.
+                return passData.currentHistoryBuffer0;
             }
         }
     }

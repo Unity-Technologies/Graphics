@@ -289,11 +289,11 @@ namespace UnityEditor.VFX.UI
             // Copy node infos
             node.position = model.position;
             node.type = model.GetType();
-            node.flags = 0;
+            node.flags = (model as VFXBlock)?.enabled != false ? Node.Flags.Enabled : 0;
             if (model.collapsed)
-                node.flags = Node.Flags.Collapsed;
+                node.flags |= Node.Flags.Collapsed;
             if (model.superCollapsed)
-                node.flags = Node.Flags.SuperCollapsed;
+                node.flags |= Node.Flags.SuperCollapsed;
 
             uint id = 0;
             if (model is VFXOperator)

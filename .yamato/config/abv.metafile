@@ -24,6 +24,7 @@ jobs:
       - .yamato/_templates.yml#all_template_ci_<TRACK>
       - .yamato/all-lightmapping.yml#Lightmapping_<TRACK>
       - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
+      - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
         recurring:
@@ -39,10 +40,14 @@ jobs:
       - .yamato/_projectcontext.yml#all_package_ci_project_<TRACK>
       - .yamato/_formatting.yml#formatting
       - .yamato/all-smoke_test.yml#Smoke_Test_<TRACK>
+      - .yamato/_find_missing_docs.yml#find_missing_docs_core
+      - .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
+      - .yamato/_find_missing_docs.yml#find_missing_docs_hdrp_config
+      - .yamato/_find_missing_docs.yml#find_missing_docs_vfx_graph
 
   - name: Safety net
     triggers:
-      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"]'
+      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
     dependencies:
       - .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_<TRACK>
       - .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_<TRACK>

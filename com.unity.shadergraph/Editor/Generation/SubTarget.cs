@@ -22,6 +22,10 @@ namespace UnityEditor.ShaderGraph
         public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
         public virtual void ProcessPreviewMaterial(Material material) { }
         public virtual object saveContext => null;
+        public virtual bool IsNodeAllowedBySubTarget(Type nodeType) => true;
+
+        // Call after SubTarget parent Target has been deserialized and Subtarget.target has been set to a non-null value.
+        internal virtual void OnAfterParentTargetDeserialized() { }
     }
 
     [GenerationAPI] // TODO: Public

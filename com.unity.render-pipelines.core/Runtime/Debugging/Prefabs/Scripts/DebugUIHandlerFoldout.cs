@@ -15,8 +15,8 @@ namespace UnityEngine.Rendering.UI
         DebugUI.Foldout m_Field;
         DebugUIHandlerContainer m_Container;
 
-        const float xDecal = 60f;
-        const float xDecalInit = 230f;
+        const float k_FoldoutXOffset = 215f;
+        const float k_XOffset = 230f;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.UI
             nameLabel.text = m_Field.displayName;
 
             int columnNumber = m_Field.columnLabels?.Length ?? 0;
+            float columnOffset = columnNumber > 0 ? k_XOffset / (float)columnNumber : 0f;
             for (int index = 0; index < columnNumber; ++index)
             {
                 var column = Instantiate(nameLabel.gameObject, GetComponent<DebugUIHandlerContainer>().contentHolder);
@@ -35,7 +36,7 @@ namespace UnityEngine.Rendering.UI
                 rectTransform.anchorMax = rectTransform.anchorMin = new Vector2(0, 1);
                 rectTransform.sizeDelta = new Vector2(100, 26);
                 Vector3 pos = originalTransform.anchoredPosition;
-                pos.x += (index + 1) * xDecal + xDecalInit;
+                pos.x += (index + 1) * columnOffset + k_FoldoutXOffset;
                 rectTransform.anchoredPosition = pos;
                 rectTransform.pivot = new Vector2(0, 0.5f);
                 rectTransform.eulerAngles = new Vector3(0, 0, 13);

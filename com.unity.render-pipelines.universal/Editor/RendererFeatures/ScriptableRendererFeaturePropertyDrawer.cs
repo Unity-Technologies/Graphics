@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
             if (DrawHeaderToggleRect(ref position, new GUIContent(
                 name.stringValue == rendererFeatureName ? name.stringValue : $"{name.stringValue} ({rendererFeatureName})",
                 type.GetCustomAttribute<TooltipAttribute>()?.tooltip),
-                property, isActiveState, attribute?.Documentation))
+                property, isActiveState, type.GetCustomAttribute<URPHelpURLAttribute>()?.URL))
             {
                 using (new EditorGUI.DisabledScope(!isActiveState.boolValue))
                 {

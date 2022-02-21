@@ -19,21 +19,18 @@ namespace UnityEditor.VFX.UI
         const string k_SamplesUrl = @"https://github.com/Unity-Technologies/VisualEffectGraph-Samples";
         const string k_VfxGraphUrl = @"https://unity.com/visual-effect-graph";
 
-        readonly VFXView m_VFXView;
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
 
-        public VFXHelpDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
+        public VFXHelpDropdownButton(VFXView vfxView)
             : base(
-                parentWindow,
+                vfxView,
                 "VFXHelpDropdownPanel",
                 "Open the user manual of Visual Effect Graph",
                 "help-button",
                 EditorResources.iconsPath + "_Help.png",
                 true)
         {
-            m_VFXView = vfxView;
-
             m_installSamplesButton = m_PopupContent.Q<Button>("installSamples");
             m_installSamplesButton.clicked += OnInstallSamples;
 

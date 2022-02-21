@@ -150,7 +150,6 @@
 #define GATHER_GREEN_TEXTURE2D(textureName, samplerName, coord2)          textureName.GatherGreen(samplerName, coord2)
 #define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)           textureName.GatherBlue(samplerName, coord2)
 #define GATHER_ALPHA_TEXTURE2D(textureName, samplerName, coord2)          textureName.GatherAlpha(samplerName, coord2)
-
-#if defined(SHADER_API_MOBILE)
+#if defined(UNITY_FRAMEBUFFER_FETCH_AVAILABLE)
 #define PLATFORM_SUPPORTS_NATIVE_RENDERPASS
 #endif

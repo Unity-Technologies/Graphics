@@ -31,61 +31,49 @@ void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdf
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
 {
-    #if SHADER_API_VULKAN || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_GLCORE
-        // Something about this function is problematic for HLSLcc (generates forbidden 'uintBitsToFloat' intrinsics).
-        // Re-enable when this is fixed.
-        return false;
-    #else
-        bool changed = false;
+    bool changed = false;
 
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS)
+    {
+        surfaceData.albedo = 1;
+        surfaceData.emission = 0;
+        surfaceData.specular = 0;
+        surfaceData.occlusion = 1;
+        surfaceData.clearCoatMask = 0;
+        surfaceData.clearCoatSmoothness = 1;
+        surfaceData.metallic = 0;
+        surfaceData.smoothness = 0;
+        changed = true;
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
+    {
+        surfaceData.albedo = 0;
+        surfaceData.emission = 0;
+        surfaceData.occlusion = 1;
+        surfaceData.clearCoatMask = 0;
+        surfaceData.clearCoatSmoothness = 1;
+        surfaceData.specular = 1;
+        surfaceData.metallic = 0;
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
         {
-            surfaceData.albedo = 1;
-            surfaceData.emission = 0;
-            surfaceData.specular = 0;
-            surfaceData.occlusion = 1;
-            surfaceData.clearCoatMask = 0;
-            surfaceData.clearCoatSmoothness = 1;
-            surfaceData.metallic = 0;
-            surfaceData.smoothness = 0;
-            changed = true;
+            surfaceData.smoothness = 1;
         }
-        else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
-        {
-            surfaceData.albedo = 0;
-            surfaceData.emission = 0;
-            surfaceData.occlusion = 1;
-            surfaceData.clearCoatMask = 0;
-            surfaceData.clearCoatSmoothness = 1;
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
-            {
-                surfaceData.specular = 1;
-                surfaceData.metallic = 0;
-                surfaceData.smoothness = 1;
-            }
-            else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
-            {
-                surfaceData.specular = 0;
-                surfaceData.metallic = 1;
-                surfaceData.smoothness = 0;
-            }
-            changed = true;
-        }
+        changed = true;
+    }
 
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
-        {
-            const half3 normalTS = half3(0, 0, 1);
-            #if defined(_NORMALMAP)
-            inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-            #else
-            inputData.normalWS = inputData.normalWS;
-            #endif
-            surfaceData.normalTS = normalTS;
-            changed = true;
-        }
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
+    {
+        const half3 normalTS = half3(0, 0, 1);
+        #if defined(_NORMALMAP)
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        #else
+        inputData.normalWS = inputData.normalWS;
+        #endif
+        surfaceData.normalTS = normalTS;
+        changed = true;
+    }
 
-        return changed;
-    #endif
+    return changed;
 }
 
 bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugColor)

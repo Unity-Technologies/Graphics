@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,11 +17,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
             : base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
         {
+            RenameKeywordToFloat("EFFECT_BILLBOARD", "_DoubleSidedEnable", 0, 1);
+            RenameFloat("_TwoSided", "_CullMode");
+            RenameFloat("_TwoSided", "_CullModeForward");
         }
 
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
             SetHDSpeedTree8Defaults(mat);
+
+            // Need to call this again after reconfiguring keyword toggles
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
 
@@ -51,9 +57,19 @@ namespace UnityEditor.Rendering.HighDefinition
         private const string kDefaultDiffusionProfileName = "Foliage";
         private static void SetHDSpeedTree8Defaults(Material mat)
         {
+            SetupHDPropertiesOnImport(mat);
+            SetDefaultDiffusionProfile(mat);
+        }
+
+        private static void SetupHDPropertiesOnImport(Material mat)
+        {
+            // When importing a new SpeedTree8, upgrade/convert has not run beforehand,
+            // so setup HD-specific properties based on builtin configuration.
+            // TODO: Only do this if called during OnPostprocessSpeedTree.
+
             // Since _DoubleSidedEnable controls _CullMode in HD,
             // disable it for billboard LOD.
-            if (mat.IsKeywordEnabled("EFFECT_BILLBOARD"))
+            if (mat.GetFloat("EFFECT_BILLBOARD") > 0)
             {
                 mat.SetFloat("_DoubleSidedEnable", 0.0f);
             }
@@ -62,7 +78,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 mat.SetFloat("_DoubleSidedEnable", 1.0f);
             }
 
-            SetDefaultDiffusionProfile(mat);
+            if (mat.HasFloat("_TwoSided"))
+            {
+                mat.SetFloat("_CullMode", mat.GetFloat("_TwoSided"));
+                mat.SetFloat("_CullModeForward", mat.GetFloat("_TwoSided"));
+            }
         }
 
         private static void SetDefaultDiffusionProfile(Material mat)
@@ -100,6 +120,19 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 mat.SetVector("Diffusion_Profile_Asset", HDUtils.ConvertGUIDToVector4(guid));
                 mat.SetFloat("Diffusion_Profile", HDShadowUtils.Asfloat(diffusionProfileHash));
+            }
+        }
+    }
+
+    class HDSpeedTree8PostProcessor : AssetPostprocessor
+    {
+        public void OnPostprocessSpeedTree(GameObject speedTree)
+        {
+            context.DependsOnCustomDependency("srp/default-pipeline");
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline)
+            {
+                SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+                SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
             }
         }
     }

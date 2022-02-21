@@ -123,8 +123,6 @@ Shader "HDRP/AxF"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
-        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
-        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
@@ -186,7 +184,6 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ _PLANAR_LOCAL
 
     #pragma shader_feature_local _ALPHATEST_ON
-    #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
     #pragma shader_feature_local_fragment _DISABLE_DECALS
@@ -242,6 +239,8 @@ Shader "HDRP/AxF"
             Cull [_CullMode]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             // Note: Require _SelectionID variable
 
@@ -377,7 +376,7 @@ Shader "HDRP/AxF"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
-            AlphaToMask [_AlphaToMask]
+            AlphaToMask [_AlphaCutoffEnable]
 
             ZWrite On
 
@@ -430,7 +429,7 @@ Shader "HDRP/AxF"
             }
 
             Cull[_CullMode]
-            AlphaToMask [_AlphaToMask]
+            AlphaToMask [_AlphaCutoffEnable]
 
             ZWrite On
 
@@ -479,7 +478,8 @@ Shader "HDRP/AxF"
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
-            ColorMask [_ColorMaskTransparentVel] 1
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
 
             HLSLPROGRAM
 
@@ -796,6 +796,9 @@ Shader "HDRP/AxF"
 
             ENDHLSL
         }
+
+        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
+        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "Rendering.HighDefinition.AxFGUI"

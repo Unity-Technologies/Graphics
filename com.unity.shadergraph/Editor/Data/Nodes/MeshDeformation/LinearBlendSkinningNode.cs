@@ -76,9 +76,7 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = "_SkinMatrixIndex",
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
-#if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
-#endif
                 value = 0
             });
 
@@ -88,9 +86,7 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = "_SkinMatricesOffset",
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
-#if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
-#endif
                 value = 0
             });
 #endif
@@ -101,9 +97,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-#if ENABLE_HYBRID_RENDERER_V2
             sb.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
-#endif
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kPositionOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kTangentOutputSlotId));
@@ -119,13 +113,11 @@ namespace UnityEditor.ShaderGraph
                     $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
                     $"{GetVariableNameForSlot(kTangentOutputSlotId)});");
             }
-#if ENABLE_HYBRID_RENDERER_V2
             sb.AppendLine("#else");
             sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kPositionOutputSlotId), GetSlotValue(kPositionSlotId, generationMode));
             sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kNormalOutputSlotId), GetSlotValue(kNormalSlotId, generationMode));
             sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kTangentOutputSlotId), GetSlotValue(kTangentSlotId, generationMode));
             sb.AppendLine("#endif");
-#endif
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -156,11 +148,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{");
                     using (sb.IndentScope())
                     {
-#if HYBRID_RENDERER_0_6_0_OR_NEWER
                         sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatrixIndex,float))];");
-#else
-                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + (int)UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatricesOffset,float)];");
-#endif
                         sb.AppendLine("$precision3 vtransformed = mul(skinMatrix, $precision4(positionIn, 1));");
                         sb.AppendLine("$precision3 ntransformed = mul(skinMatrix, $precision4(normalIn, 0));");
                         sb.AppendLine("$precision3 ttransformed = mul(skinMatrix, $precision4(tangentIn, 0));");

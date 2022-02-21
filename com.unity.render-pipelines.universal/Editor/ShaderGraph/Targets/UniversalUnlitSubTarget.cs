@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
@@ -11,6 +12,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     sealed class UniversalUnlitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
+
+        public override int latestVersion => 1;
 
         public UniversalUnlitSubTarget()
         {
@@ -130,6 +133,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
+        internal override void OnAfterParentTargetDeserialized()
+        {
+            Assert.IsNotNull(target);
+
+            if (this.sgVersion < latestVersion)
+            {
+                // Upgrade old incorrect Premultiplied blend (with alpha multiply in shader) into
+                // equivalent Alpha blend mode for backwards compatibility.
+                if (this.sgVersion < 1)
+                {
+                    if (target.alphaMode == AlphaMode.Premultiply)
+                    {
+                        target.alphaMode = AlphaMode.Alpha;
+                    }
+                }
+                ChangeVersion(latestVersion);
+            }
+        }
+
         #region SubShader
         static class SubShaders
         {
@@ -189,10 +211,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
 
-                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
 
                 return result;
             }
@@ -297,8 +319,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 public static readonly FieldCollection Unlit = new FieldCollection()
                 {
                     StructFields.Varyings.positionWS,
-                    StructFields.Varyings.normalWS,
-                    StructFields.Varyings.viewDirectionWS,
+                    StructFields.Varyings.normalWS
                 };
 
                 public static readonly FieldCollection DepthNormalsOnly = new FieldCollection()

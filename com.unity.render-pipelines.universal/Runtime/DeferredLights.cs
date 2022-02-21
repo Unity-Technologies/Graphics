@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -80,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _CookieLightIndex = Shader.PropertyToID("_CookieLightIndex");
         }
 
-        static readonly string[] k_GBufferNames = new string[]
+        internal static readonly string[] k_GBufferNames = new string[]
         {
             "_GBuffer0",
             "_GBuffer1",
@@ -187,17 +188,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int RenderHeight { get; set; }
 
         // Output lighting result.
-        internal RenderTargetHandle[] GbufferAttachments { get; set; }
-        internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
+        internal RTHandle[] GbufferAttachments { get; set; }
+        internal RTHandle[] DeferredInputAttachments { get; set; }
+        internal bool[] DeferredInputIsTransient { get; set; }
         // Input depth texture, also bound as read-only RT
-        internal RenderTargetHandle DepthAttachment { get; set; }
+        internal RTHandle DepthAttachment { get; set; }
         //
-        internal RenderTargetHandle DepthCopyTexture { get; set; }
+        internal RTHandle DepthCopyTexture { get; set; }
 
-        internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
         internal GraphicsFormat[] GbufferFormats { get; set; }
-        internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
-        internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
+        internal RTHandle DepthAttachmentHandle { get; set; }
 
         // Visible lights indices rendered using stencil volumes.
         NativeArray<ushort> m_stencilVisLights;
@@ -362,10 +362,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
-                this.GbufferAttachments = new RenderTargetHandle[gbufferSliceCount];
+                this.GbufferAttachments = new RTHandle[gbufferSliceCount];
+                this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
                 for (int i = 0; i < gbufferSliceCount; ++i)
-                    this.GbufferAttachments[i].Init(k_GBufferNames[i]);
+                {
+                    this.GbufferAttachments[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
+                    this.GbufferFormats[i] = this.GetGBufferFormat(i);
+                }
             }
+        }
+
+        internal void UpdateDeferredInputAttachments()
+        {
+            this.DeferredInputAttachments[0] = this.GbufferAttachments[0];
+            this.DeferredInputAttachments[1] = this.GbufferAttachments[1];
+            this.DeferredInputAttachments[2] = this.GbufferAttachments[2];
+            this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
         }
 
         internal bool IsRuntimeSupportedThisFrame()
@@ -379,9 +391,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
-            RenderTargetHandle depthCopyTexture,
-            RenderTargetHandle depthAttachment,
-            RenderTargetHandle colorAttachment)
+            RTHandle depthCopyTexture,
+            RTHandle depthAttachment,
+            RTHandle colorAttachment)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
@@ -392,37 +404,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
-            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
-                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
-                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
-            }
-            for (int i = 0; i < this.GbufferAttachments.Length; ++i)
-            {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
-                this.GbufferFormats[i] = this.GetGBufferFormat(i);
-            }
-            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
-            {
-                this.DeferredInputAttachments = new RenderTargetIdentifier[4]
+                this.DeferredInputAttachments = new RTHandle[4]
                 {
-                    this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
-                    this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                    GbufferAttachments[0], GbufferAttachments[1], GbufferAttachments[2], GbufferAttachments[4],
+                };
+
+                this.DeferredInputIsTransient = new bool[4]
+                {
+                    true, true, true, false
                 };
             }
-            this.DepthAttachmentIdentifier = depthAttachment.Identifier();
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
-            if (renderingData.cameraData.xr.enabled)
-            {
-                this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
-
-                for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
-                    this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
-                this.DepthAttachmentIdentifier = new RenderTargetIdentifier(this.DepthAttachmentIdentifier, 0, CubemapFace.Unknown, -1);
-            }
-#endif
+            this.DepthAttachmentHandle = this.DepthAttachment;
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)

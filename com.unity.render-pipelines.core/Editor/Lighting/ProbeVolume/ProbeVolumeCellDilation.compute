@@ -1,5 +1,7 @@
 #pragma kernel DilateCell
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -26,11 +28,11 @@ CBUFFER_END
 #define _ProbeCount (uint)_DilationParameters.x
 #define _ValidityThreshold _DilationParameters.y
 #define _SearchRadius _DilationParameters.z
-#define _MinBrickSize _DilationParameters.w
+#define _MinBrickSizeForDilation _DilationParameters.w
 
 #define _SquaredDistanceWeight (_DilationParameters2.x > 0)
 
-StructuredBuffer<float> _ValidityBuffer;
+StructuredBuffer<int> _NeedDilating;
 StructuredBuffer<float3> _ProbePositionsBuffer;
 
 RWStructuredBuffer<DilatedProbe> _OutputProbes;
@@ -88,8 +90,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
     {
         int probeIdx = id.x;
 
-        float validity = _ValidityBuffer[probeIdx];
-        if (validity > _ValidityThreshold)
+        if (_NeedDilating[probeIdx] > 0)
         {
             float3 centralPosition = _ProbePositionsBuffer[probeIdx];
             DilatedProbe probe = (DilatedProbe)0;
@@ -99,9 +100,10 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
             float totalWeight = 0;
             float3 uvwDelta = rcp(_PoolDim);
 
-            if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv))
+            float3 biasedPosWS;
+            if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv, biasedPosWS))
             {
-                float stepSize = _MinBrickSize / 3.0f;
+                float stepSize = _MinBrickSizeForDilation / 3.0f;
 
                 // Inflate search radius a bit.
                 float radius = 1.5f * _SearchRadius;

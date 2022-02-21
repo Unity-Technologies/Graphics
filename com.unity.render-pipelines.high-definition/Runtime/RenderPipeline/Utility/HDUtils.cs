@@ -19,8 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
 
         /// <summary>Default HDAdditionalReflectionData</summary>
@@ -490,9 +492,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="properties">Optional Material Property block.</param>
         /// <param name="shaderPassId">Optional pass index to use.</param>
         /// <param name="depthSlice">Optional depth slice to render to.</param>
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
+        /// <param name="cubemapFace">Optional cubemap face to render to.</param>
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, cubemapFace, depthSlice);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -591,10 +594,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
-            public Vector2Int hardwareTextureSize;
             public int mipLevelCount;
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
+
+            private Vector2 cachedTextureScale;
+            private Vector2Int cachedHardwareTextureSize;
 
             private bool m_OffsetBufferWillNeedUpdate;
 
@@ -610,13 +615,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+                Vector2Int hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
+                Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
+
                 // No work needed.
-                if (viewportSize == mipLevelSizes[0])
+                if (cachedHardwareTextureSize == hardwareTextureSize && cachedTextureScale == textureScale)
                     return;
 
-                bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
-                hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
-                Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
+                cachedHardwareTextureSize = hardwareTextureSize;
+                cachedTextureScale = textureScale;
 
                 mipLevelSizes[0] = hardwareTextureSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -720,6 +728,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
                 graphicDevice == GraphicsDeviceType.PlayStation4 ||
                 graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5NGGC ||
                 graphicDevice == GraphicsDeviceType.XboxOne ||
                 graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                 graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
@@ -752,12 +761,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
+            bool editor = false;
+#if UNITY_EDITOR
+            editor = !UnityEditor.BuildPipeline.isBuildingPlayer;
+#endif
+
+            if (editor)  // In the editor we use the current graphics device instead of the list to avoid blocking the rendering if an invalid API is added but not enabled.
             {
-                if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                return HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType);
+            }
+            else
+            {
+                foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
                 {
-                    unsupportedGraphicDevice = graphicAPI;
-                    return false;
+                    if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                    {
+                        unsupportedGraphicDevice = graphicAPI;
+                        return false;
+                    }
                 }
             }
             return true;
@@ -903,7 +924,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
+            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
         }
 
         // These two convertion functions are used to store GUID assets inside materials,
@@ -1176,6 +1197,51 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalReflectionData>.Release();
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
+        }
+
+        internal static float InterpolateOrientation(float fromValue, float toValue, float t)
+        {
+            // Compute the direct distance
+            float directDistance = Mathf.Abs(toValue - fromValue);
+            float outputValue = 0.0f;
+
+            // Handle the two cases
+            if (fromValue < toValue)
+            {
+                float upperRange = 360.0f - toValue;
+                float lowerRange = fromValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue - 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue < 0.0f)
+                        outputValue += 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+            else
+            {
+                float upperRange = 360.0f - fromValue;
+                float lowerRange = toValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue + 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue > 360.0f)
+                        outputValue -= 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+
+            return outputValue;
         }
     }
 }

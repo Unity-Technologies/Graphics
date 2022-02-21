@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             return null;
         }
 
-        public override void OnEnableInEditor()
+        private void InitializeSpriteEditorPrefs()
         {
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
@@ -70,6 +70,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Awake()
         {
+            // Initialize Light Blend Styles
             if (m_LightBlendStyles != null)
             {
                 for (int i = 0; i < m_LightBlendStyles.Length; ++i)

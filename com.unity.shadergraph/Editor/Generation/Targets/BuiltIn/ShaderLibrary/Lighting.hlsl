@@ -362,7 +362,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
     half oneMinusReflectivity = 1.0 - reflectivity;
-    half3 brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 brdfSpecular = specular;
 #else
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
@@ -647,7 +647,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
 //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
     half3 irradiance = encodedIrradiance.rgb;
 #else
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);

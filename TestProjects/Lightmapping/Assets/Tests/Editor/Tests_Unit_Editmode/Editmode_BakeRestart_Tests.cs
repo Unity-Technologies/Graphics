@@ -205,45 +205,46 @@ public class Editmode_BakeRestart_Tests
         Lightmapping.ClearLightingDataAsset();
     }
 
-    [Test] // Case1356714
-    public void GPULM_ChangeLightBetweenBakes_DoesNotFallbackToCPU()
-    {
-        // Open the initial scene
-        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/GPU-Rebake.unity");
+    /* Disable test due to stability issues: case 1382157
+        [Test] // Case1356714
+        public void GPULM_ChangeLightBetweenBakes_DoesNotFallbackToCPU()
+        {
+            // Open the initial scene
+            EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/GPU-Rebake.unity");
 
-        // Clear baked data and cache
-        clearAll();
+            // Clear baked data and cache
+            clearAll();
 
-        // VerifySettings are correct
-        SetupLightingSettings();
+            // VerifySettings are correct
+            SetupLightingSettings();
 
-        // Get the settings to be able to check for a fallback to CPU
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-        Assert.IsTrue(lightingSettings != null, "Lighting settings are available.");
+            // Get the settings to be able to check for a fallback to CPU
+            LightingSettings lightingSettings = null;
+            Lightmapping.TryGetLightingSettings(out lightingSettings);
+            Assert.IsTrue(lightingSettings != null, "Lighting settings are available.");
 
-        // Get the light
-        Light light = GameObject.Find("Directional Light").GetComponent<Light>();
-        Assert.IsNotNull(light);
+            // Get the light
+            Light light = GameObject.Find("Directional Light").GetComponent<Light>();
+            Assert.IsNotNull(light);
 
-        // Set the light color
-        light.color = Color.red;
+            // Set the light color
+            light.color = Color.red;
 
-        // Bake the scene GI
-        Lightmapping.Bake();
+            // Bake the scene GI
+            Lightmapping.Bake();
 
-        Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
+            Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
-        // Change the light color
-        light.color = Color.blue;
+            // Change the light color
+            light.color = Color.blue;
 
-        //Bake the scene GI
-        Lightmapping.Bake();
+            //Bake the scene GI
+            Lightmapping.Bake();
 
-        Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after subsequent bake.");
+            Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after subsequent bake.");
 
-        clearAll();
-    }
+            clearAll();
+        }
 
     [Test] // Case1356714
     public void GPULM_ChangeSamplesBetweenBakes_DoesNotFallbackToCPU()
@@ -278,4 +279,57 @@ public class Editmode_BakeRestart_Tests
 
         clearAll();
     }
+    */
+    /* Unstable test, see case 1383020
+    [UnityTest] // Case 1364204
+    public IEnumerator RadeonProDenoiser_DisablingRadeonProDenoiserDuringABake_DoesNotFallbackToCPU()
+    {
+        // Open the initial scene
+        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
+        yield return null;
+
+        LightingSettings lightingSettings = null;
+        Lightmapping.TryGetLightingSettings(out lightingSettings);
+
+        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
+
+        lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
+        lightingSettings.prioritizeView = true;
+
+        Lightmapping.lightingSettings.filteringMode = LightingSettings.FilterMode.Advanced;
+        Lightmapping.lightingSettings.denoiserTypeDirect = LightingSettings.DenoiserType.RadeonPro;
+        Lightmapping.lightingSettings.denoiserTypeIndirect = LightingSettings.DenoiserType.RadeonPro;
+        Lightmapping.lightingSettings.denoiserTypeAO = LightingSettings.DenoiserType.RadeonPro;
+
+        Lightmapping.Clear();
+        Lightmapping.BakeAsync();
+
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+
+        // Make sure it is still baking before we turn off denoising
+        Assert.IsTrue(Lightmapping.isBaking);
+
+        // Disable radeon pro denoiser and restart the bake manually
+        Lightmapping.lightingSettings.filteringMode = LightingSettings.FilterMode.None;
+        Lightmapping.Clear();
+        Lightmapping.BakeAsync();
+
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+
+        // Check that baking is still running
+        Assert.IsTrue(Lightmapping.isBaking);
+        // Check that we did not fallback to CPULM
+        Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
+
+        Lightmapping.Cancel();
+        Lightmapping.Clear();
+        Lightmapping.ClearLightingDataAsset();
+    }
+    */
 }

@@ -21,32 +21,60 @@ namespace UnityEngine.Rendering.Universal
         AfterTransparents
     }
 
+    /// <summary>
+    /// Class containing resources needed for the <c>UniversalRenderer</c>.
+    /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
+    [URPHelpURL("urp-universal-renderer")]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// Class containing shader resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            /// <summary>
+            /// Blit shader.
+            /// </summary>
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            /// <summary>
+            /// Copy Depth shader.
+            /// </summary>
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
+            /// <summary>
+            /// Screen Space Shadows shader.
+            /// </summary>
             [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
+            /// <summary>
+            /// Sampling shader.
+            /// </summary>
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            /// <summary>
+            /// Stencil Deferred shader.
+            /// </summary>
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
+            /// <summary>
+            /// Fallback error shader.
+            /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
 
-            [Reload("Shaders/Utils/MaterialError.shader")]
-            public Shader materialErrorPS;
+            /// <summary>
+            /// Fallback loading shader.
+            /// </summary>
+            [Reload("Shaders/Utils/FallbackLoading.shader")]
+            public Shader fallbackLoadingPS;
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
@@ -55,19 +83,30 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
-
+            /// <summary>
+            /// Camera Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]
             public Shader cameraMotionVector;
 
+            /// <summary>
+            /// Object Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/ObjectMotionVectors.shader")]
             public Shader objectMotionVector;
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>
+        /// Shader resources needed in URP for XR.
+        /// </summary>
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
 
+        /// <summary>
+        /// Shader resources used in URP.
+        /// </summary>
         public ShaderResources shaders = null;
 
         const int k_LatestAssetVersion = 2;
@@ -81,12 +120,12 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
-        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;  // TODO: the new default should be CopyDepthMode.AfterTransparents.
+        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
-        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
 
         public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
@@ -146,15 +185,28 @@ namespace UnityEngine.Rendering.Universal
             return new UniversalRenderer(this);
         }
 
-
-        public bool supportsCameraOpaqueTexture { get { return m_RequireDepthTexture; } set { m_RequireDepthTexture = value; } }
+        /// <summary>
+        /// When true, the pipeline creates a depth texture that can be read in shaders. The depth texture can be accessed as _CameraDepthTexture. This setting can be overridden per camera.
+        /// </summary>
         public bool supportsCameraDepthTexture { get { return m_RequireOpaqueTexture; } set { m_RequireOpaqueTexture = value; } }
+        /// <summary>
+        /// When true, the pipeline creates a texture that contains a copy of the color buffer after rendering opaque objects. This texture can be accessed in shaders as _CameraOpaqueTexture. This setting can be overridden per camera.
+        /// </summary>
+        public bool supportsCameraOpaqueTexture { get { return m_RequireDepthTexture; } set { m_RequireDepthTexture = value; } }
 
+        /// <summary>
+        /// Returns the downsampling method used when copying the camera color texture after rendering opaques.
+        /// </summary>
         public Downsampling opaqueDownsampling
         {
             get { return m_OpaqueDownsampling; }
         }
 
+        /// <summary>
+        /// Specifies the <c>LightRenderingMode</c> for the main light used by this <c>UniversalRenderPipelineAsset</c>.
+        /// </summary>
+        /// <see cref="LightRenderingMode"/>
+        /// </summary>
         public LightRenderingMode mainLightRenderingMode
         {
             get { return m_MainLightRenderingMode; }
@@ -315,7 +367,10 @@ namespace UnityEngine.Rendering.Universal
             internal set { m_SoftShadowsSupported = value; }
         }
 
-
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports mixed lighting, false otherwise.
+        /// </summary>
+        /// <see href="https://docs.unity3d.com/Manual/LightMode-Mixed.html"/>
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
@@ -559,6 +614,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public override void OnValidate()
         {
             base.OnValidate();
@@ -568,6 +624,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public override void OnEnable()
         {
             base.OnEnable();
@@ -586,6 +643,10 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+
+            if (UniversalRenderPipelineGlobalSettings.instance.postProcessData != null)
+                ResourceReloader.TryReloadAllNullIn(UniversalRenderPipelineGlobalSettings.instance.postProcessData, UniversalRenderPipelineAsset.packagePath);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif

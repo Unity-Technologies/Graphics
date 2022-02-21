@@ -60,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
         public void SetShapePath(Vector3[] path)
         {
             m_ShapePath = path;
-            UpdateMesh(true);
         }
     }
 }

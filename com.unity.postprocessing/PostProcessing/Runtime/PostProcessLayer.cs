@@ -713,6 +713,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     // The camera must be reset on precull and post render to avoid issues with alpha when toggling TAA.
                     m_Camera.ResetProjectionMatrix();
+#if (ENABLE_VR_MODULE && ENABLE_VR)
                     if (m_CurrentContext.stereoActive)
                     {
                         if (RuntimeUtilities.isSinglePassStereoEnabled || m_Camera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Right)
@@ -723,6 +724,7 @@ namespace UnityEngine.Rendering.PostProcessing
                                 m_Camera.projectionMatrix = m_Camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
                         }
                     }
+#endif
                 }
             }
         }
@@ -1246,7 +1248,13 @@ namespace UnityEngine.Rendering.PostProcessing
                 m_LogHistogram.Generate(context);
 
             // Uber effects
+            // 1336238: override xrActiveEye in multipass with the currently rendered eye to fix flickering issue.
+            int xrActiveEyeBackup = context.xrActiveEye;
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
+                context.xrActiveEye = eye;
             RenderEffect<AutoExposure>(context);
+            context.xrActiveEye = xrActiveEyeBackup; // restore the eye
+
             uberSheet.properties.SetTexture(ShaderIDs.AutoExposureTex, context.autoExposureTexture);
 
             RenderEffect<LensDistortion>(context);

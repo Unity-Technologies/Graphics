@@ -59,8 +59,12 @@ namespace UnityEditor.ShaderGraph
 @"
 {
     $precision2 d = abs(UV * 2 - 1) - $precision2(Width, Height);
-    d = 1 - d / fwidth(d);
-    Out = saturate(min(d.x, d.y));
+#if defined(SHADER_STAGE_RAY_TRACING)
+    d = saturate((1 - saturate(d * 1e7)));
+#else
+    d = saturate(1 - d / fwidth(d));
+#endif
+    Out = min(d.x, d.y);
 }";
         }
 
@@ -75,10 +79,15 @@ namespace UnityEditor.ShaderGraph
 {
     UV = UV * 2.0 - 1.0;
     $precision2 w = $precision2(Width, Height);     // rectangle width/height
+#if defined(SHADER_STAGE_RAY_TRACING)
+    $precision2 o = saturate(0.5f + 1e7 * (w - abs(UV)));
+    o = min(o, 1e7 * w * 2.0f);
+#else
     $precision2 f = min(fwidth(UV), 0.5f);
     $precision2 k = 1.0f / f;
     $precision2 o = saturate(0.5f + k * (w - abs(UV)));
     o = min(o, k * w * 2.0f);
+#endif
     Out = o.x * o.y;
 }";
         }

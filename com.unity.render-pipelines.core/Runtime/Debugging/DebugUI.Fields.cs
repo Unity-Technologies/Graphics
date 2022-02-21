@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -82,7 +83,7 @@ namespace UnityEngine.Rendering
             /// Set the value of the field.
             /// </summary>
             /// <param name="value">Input value.</param>
-            public void SetValue(T value)
+            public virtual void SetValue(T value)
             {
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
@@ -289,7 +290,9 @@ namespace UnityEngine.Rendering
             public int[] enumValues;
 
             internal int[] quickSeparators;
-            internal int[] indexes;
+
+            private int[] m_Indexes;
+            internal int[] indexes => m_Indexes ??= Enumerable.Range(0, enumNames?.Length ?? 0).ToArray();
 
             /// <summary>
             /// Get the enumeration value index.
@@ -303,7 +306,11 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Current enumeration value index.
             /// </summary>
-            public int currentIndex { get => getIndex(); set => setIndex(value); }
+            public int currentIndex
+            {
+                get => getIndex();
+                set => setIndex(value);
+            }
 
             /// <summary>
             /// Generates enumerator values and names automatically based on the provided type.
@@ -314,7 +321,6 @@ namespace UnityEngine.Rendering
                 {
                     enumNames = EnumUtility.MakeEnumNames(value);
                     enumValues = EnumUtility.MakeEnumValues(value);
-                    InitIndexes();
                     InitQuickSeparators();
                 }
             }
@@ -343,17 +349,38 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            internal void InitIndexes()
+            /// <summary>
+            /// Set the value of the field.
+            /// </summary>
+            /// <param name="value">Input value.</param>
+            public override void SetValue(int value)
             {
-                if (enumNames == null)
-                    enumNames = new GUIContent[0];
+                Assert.IsNotNull(setter);
+                var validValue = ValidateValue(value);
 
-                indexes = new int[enumNames.Length];
-                for (int i = 0; i < enumNames.Length; i++)
+                // There might be cases that the value does not map the index, look for the correct index
+                var newCurrentIndex = Array.IndexOf(enumValues, validValue);
+
+                if (currentIndex != newCurrentIndex && !validValue.Equals(getter()))
                 {
-                    indexes[i] = i;
+                    setter(validValue);
+                    onValueChanged?.Invoke(this, validValue);
+
+                    if (newCurrentIndex > -1)
+                        currentIndex = newCurrentIndex;
                 }
             }
+        }
+
+        /// <summary>
+        /// Object PopupField
+        /// </summary>
+        public class ObjectPopupField : Field<Object>
+        {
+            /// <summary>
+            /// Callback to obtain the elemtents of the pop up
+            /// </summary>
+            public Func<IEnumerable<Object>> getObjects { get; set; }
         }
 
         /// <summary>
@@ -528,6 +555,28 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Object field.
+        /// </summary>
+        public class ObjectField : Field<Object>
+        {
+            /// <summary>
+            /// Object type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
+        /// Object list field.
+        /// </summary>
+        public class ObjectListField : Field<Object[]>
+        {
+            /// <summary>
+            /// Objects type.
+            /// </summary>
+            public Type type = typeof(Object);
+        }
+
+        /// <summary>
         /// Simple message box widget, providing a couple of different styles.
         /// </summary>
         public class MessageBox : Widget
@@ -537,8 +586,17 @@ namespace UnityEngine.Rendering
             /// </summary>
             public enum Style
             {
+                /// <summary>
+                /// Info category
+                /// </summary>
                 Info,
+                /// <summary>
+                /// Warning category
+                /// </summary>
                 Warning,
+                /// <summary>
+                /// Error category
+                /// </summary>
                 Error
             }
 

@@ -16,24 +16,6 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: ebaa785ec5cfd50448e6b1fca17c280f, type: 3}
-    - {fileID: 102900000, guid: ebaa785ec5cfd50448e6b1fca17c280f, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1351595/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: ebaa785ec5cfd50448e6b1fca17c280f, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1351595/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 0379b72b85eee8045afdaec3b1362957, type: 3}
     - {fileID: 102900000, guid: 2744a8931e888734bae7f74874fefdf5, type: 3}
     - {fileID: 102900000, guid: 04855e9751809c7488746e5e54ae0cfa, type: 3}
@@ -42,7 +24,7 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/
+    Reason: See https://fogbugz.unity3d.com/f/cases/1118812/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 0379b72b85eee8045afdaec3b1362957, type: 3}
@@ -53,4 +35,22 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/
+    Reason: See https://fogbugz.unity3d.com/f/cases/1118812/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 810f6e5fbd289164eb3fe0ba8eb32588, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: See https://fogbugz.unity3d.com/f/cases/1398537/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 810f6e5fbd289164eb3fe0ba8eb32588, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: See https://fogbugz.unity3d.com/f/cases/1398537/

@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using System;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
@@ -20,11 +21,10 @@ namespace UnityEngine.Rendering
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild)
-                return;
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.enableRuntimeUI)
                 EnableRuntime();
+#endif
         }
 
         internal static void SetEnabled(bool enabled)

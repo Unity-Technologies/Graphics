@@ -12,13 +12,10 @@ namespace UnityEditor.Rendering.Universal
     {
         enum Expandable
         {
-            Rendering = 1 << 1,
-            Quality = 1 << 2,
-            Lighting = 1 << 3,
-            Shadows = 1 << 4,
-            PostProcessing = 1 << 5,
+            Quality = 1 << 1,
+            Rendering = 1 << 2,
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            AdaptivePerformance = 1 << 6,
+            AdaptivePerformance = 1 << 3,
 #endif
         }
 
@@ -127,7 +124,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
             }
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
-            //serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
         }
         static void DrawQualityAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {

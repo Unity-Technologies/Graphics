@@ -16,6 +16,13 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 | UV      | Input | Vector 3    | None  | 3 dimnensional UV coordinates |
 | Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
 | RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
+| LOD | Input | Float | LOD | Available when mip sampling mode is LOD. The actual mip to sample from. |
+
+## Controls
+
+| Name                     | Type     | Options         | Description |
+|:------------------------ |:---------|:----------------|:-------------------------|
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. |
 
 ## Generated Code Example
 

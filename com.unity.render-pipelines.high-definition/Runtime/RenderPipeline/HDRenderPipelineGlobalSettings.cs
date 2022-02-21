@@ -10,17 +10,16 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    enum ShaderVariantLogLevel
-    {
-        Disabled,
-        OnlyHDRPShaders,
-        AllShaders,
-    }
-
     enum LensAttenuationMode
     {
         ImperfectLens,
         PerfectLens
+    }
+
+    enum ColorGradingSpace
+    {
+        AcesCg = 0,
+        sRGB        // Legacy.
     }
 
     /// <summary>
@@ -531,6 +530,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();
 
+        /// <summary>
+        /// Returns true if the custom post process type in parameter has been registered
+        /// </summary>
+        /// <param name="customPostProcessType"></param>
+        public bool IsCustomPostProcessRegistered(Type customPostProcessType)
+        {
+            string type = customPostProcessType.AssemblyQualifiedName;
+            return beforeTransparentCustomPostProcesses.Contains(type)
+                || beforePostProcessCustomPostProcesses.Contains(type)
+                || afterPostProcessBlursCustomPostProcesses.Contains(type)
+                || afterPostProcessCustomPostProcesses.Contains(type)
+                || beforeTAACustomPostProcesses.Contains(type);
+        }
+
         #endregion
 
         #region Rendering Layer Names [Light + Decal]
@@ -769,12 +782,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Misc.
-
-        [SerializeField]
-        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
         [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
+
+        [SerializeField]
+        internal ColorGradingSpace colorGradingSpace;
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];

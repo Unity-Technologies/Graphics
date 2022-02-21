@@ -316,5 +316,53 @@ namespace UnityEditor.ShaderGraph.UnitTests
             ReportTests();
             yield break;
         }
+
+        [UnityTest]
+        public IEnumerator ScreenPositionDefault()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionDefault.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionDefault");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator ScreenPositionVertex()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionVertex");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator PixelPosition()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPosition.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPosition");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator PixelPositionVertex()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPositionVertex");
+            ReportTests();
+            yield break;
+        }
     }
 }

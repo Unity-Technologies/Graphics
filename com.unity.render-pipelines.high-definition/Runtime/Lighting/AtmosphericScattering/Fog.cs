@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ClampedFloatParameter m_VolumetricFogBudget = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
         /// <summary>Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.</summary>
-        /// <remarks>A value of 0 means Unity allocates all of the resources to the XY resolution, which reduces aliasing, but increases noise. A value of 1 means Unity allocates all of the resources to the Z resolution, which reduces noise, but increases aliasing. This property allows for linear interpolation between the two configurations.<remarks>
+        /// <remarks>A value of 0 means Unity allocates all of the resources to the XY resolution, which reduces aliasing, but increases noise. A value of 1 means Unity allocates all of the resources to the Z resolution, which reduces noise, but increases aliasing. This property allows for linear interpolation between the two configurations.</remarks>
         public float resolutionDepthRatio
         {
             get
@@ -138,6 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_ResolutionDepthRatio.value = value; }
         }
+
+        /// <summary>Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.</summary>
         [AdditionalProperty]
         [SerializeField, FormerlySerializedAs("resolutionDepthRatio")]
         [Tooltip("Controls how Unity shares resources between Screen (x-axis and y-axis) and Depth (z-axis) resolutions.")]

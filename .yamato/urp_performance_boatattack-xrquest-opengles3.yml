@@ -17,7 +17,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -36,7 +36,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -48,7 +48,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -73,7 +73,7 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -83,28 +83,29 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+      -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+      -  unity-config project add dependency com.unity.xr.management@4.0.1
+      -  unity-config project add dependency com.unity.xr.oculus@1.8.1
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
@@ -159,7 +160,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -169,28 +170,29 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+      -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+      -  unity-config project add dependency com.unity.xr.management@4.0.1
+      -  unity-config project add dependency com.unity.xr.oculus@1.8.1
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
@@ -209,7 +211,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -221,7 +223,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -244,7 +246,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -263,7 +265,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -275,7 +277,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -300,7 +302,7 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -310,28 +312,29 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+      -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+      -  unity-config project add dependency com.unity.xr.management@4.0.1
+      -  unity-config project add dependency com.unity.xr.oculus@1.8.1
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
@@ -386,7 +389,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -396,28 +399,29 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
+      -  unity-config settings project-path TestProjects/BoatAttack
+      -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+      -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+      -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+      -  unity-config project add dependency com.unity.addressables@1.16.7
+      -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
+      -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
+      -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+      -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+      -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add testable com.unity.cli-project-setup
+      -  unity-config project add testable com.unity.test.performance.runtimesettings
+      -  unity-config project add testable com.unity.test.metadata-manager
+      -  unity-config project add testable com.unity.testing.graphics-performance
+      -  unity-config project add testable com.unity.render-pipelines.core
+      -  unity-config project add testable unity.graphictests.performance.universal
+      -  unity-config project set project-update false
+      -  unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+      -  unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+      -  unity-config project add dependency com.unity.xr.management@4.0.1
+      -  unity-config project add dependency com.unity.xr.oculus@1.8.1
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
@@ -436,7 +440,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -448,7 +452,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
-                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+                set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack
                 python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     after:
       -  command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0

@@ -15,6 +15,9 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string AlphaClip = "_AlphaClip";
         public static readonly string SrcBlend = "_SrcBlend";
         public static readonly string DstBlend = "_DstBlend";
+        public static readonly string SrcBlendAlpha = "_SrcBlendAlpha";
+        public static readonly string DstBlendAlpha = "_DstBlendAlpha";
+        public static readonly string BlendModePreserveSpecular = "_BlendModePreserveSpecular";
         public static readonly string ZWrite = "_ZWrite";
         public static readonly string CullMode = "_Cull";
         public static readonly string CastShadows = "_CastShadows";

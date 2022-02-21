@@ -4,14 +4,25 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+    /// <summary>
+    /// The queue type for the objects to render.
+    /// </summary>
     public enum RenderQueueType
     {
+        /// <summary>
+        /// Use this for opaque objects.
+        /// </summary>
         Opaque,
+
+        /// <summary>
+        /// Use this for transparent objects.
+        /// </summary>
         Transparent,
     }
 
-    [RendererFeatureInfo("Universal Render Pipeline/Render Objects (Experimental)", false, "https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.1/manual/urp-renderer-feature.html")]
+    [RendererFeatureInfo("Universal Render Pipeline/Render Objects (Experimental)", false)]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
+    [URPHelpURL("urp-renderer-feature", "#render-objects-renderer-featurea-namerender-objects-renderer-featurea")]
     public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]
@@ -62,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         RenderObjectsPass renderObjectsPass;
 
+        /// <inheritdoc/>
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;
@@ -89,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
         }
 
+        /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(renderObjectsPass);

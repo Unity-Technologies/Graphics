@@ -131,6 +131,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// PropertyDrawer script for a <c>UniversalRendererData</c> class.
+    /// </summary>
     [CustomPropertyDrawer(typeof(UniversalRendererData), false)]
     public class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {

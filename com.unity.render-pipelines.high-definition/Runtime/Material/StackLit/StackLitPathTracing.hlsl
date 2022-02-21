@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
 
 // StackLit Material Data:
 //
@@ -51,8 +52,9 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     bsdfData.soFixupStrengthFactor = 0.0;
 #endif
 
-    // We restore the original coatIor (see StackLit.hlsl, l471)
-    bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
+    // We restore the original coatIor by reverting the premultiplication, when possible (see StackLit.hlsl, l471)
+    if (bsdfData.coatMask > 0.001)
+        bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
 
     // Override exctinction, that we won't need, with the transmission value for the incoming segment
     float sinThetaI = sqrt(1.0 - Sq(NdotV));
@@ -374,4 +376,10 @@ float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist
 {
     // No absorption here
     return value;
+}
+
+void GetAOVData(MaterialData mtlData, out AOVData aovData)
+{
+    aovData.albedo = mtlData.bsdfData.diffuseColor;
+    aovData.normal = mtlData.bsdfData.normalWS;
 }

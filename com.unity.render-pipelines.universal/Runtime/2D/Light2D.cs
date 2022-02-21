@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -184,6 +185,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
+        internal bool forceUpdate = false;
 
         /// <summary>
         /// The light's current type
@@ -194,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
             set
             {
                 if (m_LightType != value)
-                    UpdateMesh(true);
+                    UpdateMesh();
 
                 m_LightType = value;
                 Light2DManager.ErrorIfDuplicateGlobalLight(this);
@@ -254,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
+        public Sprite lightCookieSprite { get => m_LightCookieSprite; set => m_LightCookieSprite = value; }
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
@@ -288,6 +290,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
+        internal void MarkForUpdate()
+        {
+            forceUpdate = true;
+        }
 
         internal void CacheValues()
         {
@@ -325,7 +331,7 @@ namespace UnityEngine.Rendering.Universal
             return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
-        internal void UpdateMesh(bool forceUpdate)
+        internal void UpdateMesh(bool forceUpdate = false)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
             var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
@@ -337,8 +343,9 @@ namespace UnityEngine.Rendering.Universal
             var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
                 parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+
             // Mesh Rebuilding
-            if (hashChanged && forceUpdate)
+            if (hashChanged || forceUpdate)
             {
                 switch (m_LightType)
                 {
@@ -388,6 +395,12 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
+#if UNITY_EDITOR
+            // Default target sorting layers to "All"
+            if (m_ApplyToSortingLayers == null)
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
+#endif
+
             if (m_LightCookieSprite != null)
             {
                 bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
@@ -414,11 +427,17 @@ namespace UnityEngine.Rendering.Universal
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
+#endif
+
             if (m_LightType == LightType.Global)
                 return;
 
-            UpdateMesh(true);
+            UpdateMesh(forceUpdate);
             UpdateBoundingSphere();
+
+            forceUpdate = false;
         }
 
         /// <summary>

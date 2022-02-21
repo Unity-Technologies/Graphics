@@ -118,6 +118,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // State needed to handle TAAU.
         internal bool previousFrameWasTAAUpsampled = false;
 
+        /// <summary>Ray tracing acceleration structure that is used in case the user specified the build mode as manual for the RTAS.</summary>
+        public RayTracingAccelerationStructure rayTracingAccelerationStructure = null;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its transform changed.</summary>
+        public bool transformsDirty = false;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its material changed.</summary>
+        public bool materialsDirty = false;
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
@@ -250,6 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float verticalErosionOffset;
         }
 
+#if ENABLE_SENSOR_SDK
+        internal RayTracingShader pathTracingShaderOverride = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays = null;
+#endif
+
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
@@ -315,9 +327,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector4 m_PostProcessScreenSize = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
         private Vector4 m_PostProcessRTScales = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         private Vector4 m_PostProcessRTScalesHistory = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        private Vector2Int m_PostProcessRTHistoryMaxReference = new Vector2Int(1, 1);
 
         internal Vector2 postProcessRTScales { get { return new Vector2(m_PostProcessRTScales.x, m_PostProcessRTScales.y); } }
-        internal Vector2 postProcessRTScalesHistory { get { return new Vector2(m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y); } }
+        internal Vector4 postProcessRTScalesHistory { get { return m_PostProcessRTScalesHistory; } }
+        internal Vector2Int postProcessRTHistoryMaxReference { get { return m_PostProcessRTHistoryMaxReference; } }
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usage
@@ -726,6 +740,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool deepLearningSuperSamplingUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomAttributes;
         internal bool deepLearningSuperSamplingUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseOptimalSettings;
         internal float deepLearningSuperSamplingSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.deepLearningSuperSamplingSharpening;
+        internal bool fsrOverrideSharpness => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fsrOverrideSharpness;
+        internal float fsrSharpness => m_AdditionalCameraData == null ? FSRUtils.kDefaultSharpnessLinear : m_AdditionalCameraData.fsrSharpness;
 
         internal bool RequiresCameraJitter()
         {
@@ -829,8 +845,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The condition inside controls whether we perform init/deinit or not.
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion) || frameSettings.IsEnabled(FrameSettingsField.Water);
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSREnabled(true) || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
@@ -973,7 +989,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.SetReferenceSize(actualWidth, actualHeight);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
-            m_PostProcessRTScalesHistory = m_HistoryRTSystem.CalculateRatioAgainstMaxSize(actualWidth, actualHeight);
             SetPostProcessScreenSize(actualWidth, actualHeight);
 
             foreach (var aovHistory in m_AOVHistoryRTSystem)
@@ -986,9 +1001,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetPostProcessScreenSize(int width, int height)
         {
             m_PostProcessScreenSize = new Vector4((float)width, (float)height, 1.0f / (float)width, 1.0f / (float)height);
-
             Vector2 scales = RTHandles.CalculateRatioAgainstMaxSize(width, height);
             m_PostProcessRTScales = new Vector4(scales.x, scales.y, m_PostProcessRTScales.x, m_PostProcessRTScales.y);
+        }
+
+        internal void SetPostProcessHistorySizeAndReference(int width, int height, int referenceWidth, int referenceHeight)
+        {
+            m_PostProcessRTHistoryMaxReference = new Vector2Int(Math.Max(referenceWidth, m_PostProcessRTHistoryMaxReference.x), Math.Max(referenceHeight, m_PostProcessRTHistoryMaxReference.y));
+            m_PostProcessRTScalesHistory = new Vector4((float)width / (float)m_PostProcessRTHistoryMaxReference.x, (float)height / (float)m_PostProcessRTHistoryMaxReference.y, m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -1168,6 +1188,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._DeExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
+            // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
+            // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
@@ -1318,12 +1341,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                             // Resetting the visual sky hash will ensure that.
                             visualSky.skyParametersHash = -1;
-
-                            m_LightingOverrideSky.skySettings = newSkyOverride;
-                            m_LightingOverrideSky.cloudSettings = newCloudOverride;
-                            m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
-                            lightingSky = m_LightingOverrideSky;
                         }
+
+                        m_LightingOverrideSky.skySettings = newSkyOverride;
+                        m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                        m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
+                        lightingSky = m_LightingOverrideSky;
                     }
                 }
             }
@@ -1382,6 +1405,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect? m_OverridePixelRect = null;
+
+        internal bool hasCaptureActions => m_RecorderCaptureActions != null;
 
         // Keep track of the previous DLSS state
         private DynamicResolutionHandler.UpsamplerScheduleType m_PrevUpsamplerSchedule = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
@@ -1643,6 +1668,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal static int GetSceneViewLayerMaskFallback()
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+            // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+            if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                return -1;
+
+            // Remove lighting override mask and layer 31 which is used by preview/lookdev
+            return (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
+
+        }
+
         void UpdateVolumeAndPhysicalParameters()
         {
             volumeAnchor = null;
@@ -1677,15 +1715,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (needFallback)
                     {
-                        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                        if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                            volumeLayerMask = -1;
-                        else
-                            // Remove lighting override mask and layer 31 which is used by preview/lookdev
-                            volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
-
+                        volumeLayerMask = GetSceneViewLayerMaskFallback();
                         // Use the default physical camera values so the exposure will look reasonable
                         physicalParameters = HDPhysicalCamera.GetDefaults();
                     }

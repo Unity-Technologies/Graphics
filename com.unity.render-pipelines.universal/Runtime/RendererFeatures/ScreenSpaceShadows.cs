@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (shouldEnqueue)
             {
-                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
+                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingModeRequested == RenderingMode.Deferred;
 
                 m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
                     ? RenderPassEvent.AfterRenderingGbuffer
@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            m_SSShadowsPass?.Dispose();
+            m_SSShadowsPass = null;
             CoreUtils.Destroy(m_Material);
         }
 
@@ -101,16 +103,16 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
-            private RenderTextureDescriptor m_RenderTextureDescriptor;
-            private RenderTargetHandle m_RenderTarget;
-
-            // Constants
-            private const string k_SSShadowsTextureName = "_ScreenSpaceShadowmapTexture";
+            private RTHandle m_RenderTarget;
 
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
-                m_RenderTarget.Init(k_SSShadowsTextureName);
+            }
+
+            public void Dispose()
+            {
+                m_RenderTarget?.Release();
             }
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
@@ -125,17 +127,17 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
-                m_RenderTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                m_RenderTextureDescriptor.depthBufferBits = 0;
-                m_RenderTextureDescriptor.msaaSamples = 1;
-                m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+                var desc = renderingData.cameraData.cameraTargetDescriptor;
+                desc.depthBufferBits = 0;
+                desc.msaaSamples = 1;
+                desc.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
                     ? GraphicsFormat.R8_UNorm
                     : GraphicsFormat.B8G8R8A8_UNorm;
 
-                cmd.GetTemporaryRT(m_RenderTarget.id, m_RenderTextureDescriptor, FilterMode.Point);
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
+                cmd.SetGlobalTexture(m_RenderTarget.name, m_RenderTarget.nameID);
 
-                RenderTargetIdentifier renderTargetTexture = m_RenderTarget.Identifier();
-                ConfigureTarget(renderTargetTexture);
+                ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -162,8 +164,7 @@ namespace UnityEngine.Rendering.Universal
                     else
                     {
                         // Avoid setting and restoring camera view and projection matrices when in stereo.
-                        RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        cmd.Blit(null, screenSpaceShadowTexture, m_Material);
+                        cmd.Blit(null, m_RenderTarget.nameID, m_Material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -174,17 +175,6 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-
-            /// <inheritdoc/>
-            public override void OnCameraCleanup(CommandBuffer cmd)
-            {
-                if (cmd == null)
-                {
-                    throw new ArgumentNullException("cmd");
-                }
-
-                cmd.ReleaseTemporaryRT(m_RenderTarget.id);
-            }
         }
 
         private class ScreenSpaceShadowsPostPass : ScriptableRenderPass
@@ -192,10 +182,11 @@ namespace UnityEngine.Rendering.Universal
             // Profiling tag
             private static string m_ProfilerTag = "ScreenSpaceShadows Post";
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+            private static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
 
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
-                ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+                ConfigureTarget(k_CurrentActive);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

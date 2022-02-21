@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new SubShaderDescriptor
             {
                 generatesPreview = true,
-                passes = GetPasses()
+                passes = GetPasses(),
             };
 
             PassCollection GetPasses()
@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 generatesPreview = false,
                 passes = GetPasses(),
+                usePassList = new List<string>() { "HDRP/RayTracingDebug/DebugDXR" }
             };
 
             PassCollection GetPasses()
@@ -147,10 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
             if (pass.IsDepthOrMV())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true));
                 pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
-            }
 
             pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
             pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
@@ -368,7 +366,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.surfaceType,
                 systemData.blendMode,
                 systemData.sortPriority,
-                builtinData.alphaToMask,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
                 systemData.opaqueCullMode,

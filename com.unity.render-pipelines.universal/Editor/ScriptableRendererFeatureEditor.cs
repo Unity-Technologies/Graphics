@@ -10,6 +10,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// PropertyDrawer script for a <c>ScriptableRendererFeature</c> class.
+    /// </summary>
     public class ScriptableRendererFeatureEditor
     {
         private class Styles

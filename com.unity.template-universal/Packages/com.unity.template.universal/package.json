@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.universal",
   "displayName": "Universal Render Pipeline",
-  "version": "13.1.0",
+  "version": "13.2.1",
   "type": "template",
   "unity": "2022.1",
   "host": "hub",
@@ -15,6 +15,7 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.6.2",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.legacyinputhelpers": "2.1.8"
+    "com.unity.xr.legacyinputhelpers": "2.1.8",
+    "com.unity.visualscripting": "1.7.7"
   }
 }

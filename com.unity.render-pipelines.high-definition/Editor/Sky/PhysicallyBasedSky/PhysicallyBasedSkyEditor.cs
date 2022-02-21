@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(PhysicallyBasedSky))]
+    [CustomEditor(typeof(PhysicallyBasedSky))]
     class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Type;

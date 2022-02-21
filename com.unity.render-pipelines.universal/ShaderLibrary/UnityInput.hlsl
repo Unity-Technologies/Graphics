@@ -59,6 +59,10 @@ float4 _ProjectionParams;
 // w = 1 + 1.0/height
 float4 _ScreenParams;
 
+// x = Mip Bias
+// y = 2.0 ^ [Mip Bias]
+float2 _GlobalMipBias;
+
 // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
 // x = 1-far/near
 // y = far/near
@@ -97,6 +101,8 @@ float4x4 unity_CameraToWorld;
 #endif
 
 // ----------------------------------------------------------------------------
+
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
 
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
@@ -151,6 +157,8 @@ float4x4 unity_MatrixPreviousMI;
 //W : Camera only
 float4 unity_MotionVectorsParams;
 CBUFFER_END
+
+#endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

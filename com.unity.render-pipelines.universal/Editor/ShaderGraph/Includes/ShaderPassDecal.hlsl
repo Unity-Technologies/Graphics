@@ -77,8 +77,8 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
-    inputData.fogCoord = half(input.fogFactorAndVertexLight.x);
-    inputData.vertexLighting = half3(input.fogFactorAndVertexLight.yzw);
+    inputData.fogCoord = InitializeInputDataFog(float4(positionWS, 1.0), input.fogFactorAndVertexLight.x);
+    inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 #endif
 
 #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
@@ -95,7 +95,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
     inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
     #endif
-    #if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV && LIGHTMAP_ON)
+    #if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV) && defined(LIGHTMAP_ON)
     inputData.staticLightmapUV = input.staticLightmapUV;
     #elif defined(VARYINGS_NEED_SH)
     inputData.vertexSH = input.sh;
@@ -181,10 +181,18 @@ void Frag(PackedVaryings packedInput,
 
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
+#if _RENDER_PASS_ENABLED
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy);
+#else
     float depth = LoadSceneDepth(input.positionCS.xy);
+#endif
+#else
+#if _RENDER_PASS_ENABLED
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy));
 #else
     // Adjust z to match NDC for OpenGL
     float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(input.positionCS.xy));
+#endif
 #endif
 #endif
 

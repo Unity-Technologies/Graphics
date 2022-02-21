@@ -7,7 +7,6 @@ jobs:
     #   expression: pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       - .yamato/all-universal_split.yml#PR_Universal_Split_<TRACK>
-#      - .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_<TRACK>
       - .yamato/all-universal_stereo.yml#PR_Universal_Stereo_<TRACK>
       - .yamato/all-urpupdate.yml#PR_URPUpdate_<TRACK>
       - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
@@ -16,7 +15,6 @@ jobs:
   - name: Extra <PROJECT_NAME>
     dependencies:
       - .yamato/all-universal_split.yml#Extra_Universal_Split_<TRACK>
-#      - .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_<TRACK>
 #      - .yamato/all-universal_stereo.yml#Extra_Universal_Stereo_<TRACK>
 #      - .yamato/all-urpupdate.yml#Extra_URPUpdate_<TRACK>
 #      - .yamato/all-shadergraph.yml#Extra_ShaderGraph_Stereo_<TRACK>
@@ -28,11 +26,17 @@ jobs:
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#<PROJECT_NAME>_<TRACK>
-#      - .yamato/all-universal_hybrid.yml#Universal_Hybrid_<TRACK>
+      #- .yamato/all-universal_batchrenderergroup.yml#Universal_BatchRendererGroup_<TRACK>
       - .yamato/all-universal_stereo.yml#Universal_Stereo_<TRACK>
       - .yamato/all-urpupdate.yml#URPUpdate_<TRACK>
       - .yamato/all-urp_perf.yml#URP_Perf_<TRACK>
 #     - .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_<TRACK>
       - .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_<TRACK>
       - .yamato/urp_upgrade.yml#URP_Upgrade_test_win_<TRACK>
-
+  - name: All <PROJECT_NAME> on Win DX11 playmode
+    dependencies:
+      - .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_<TRACK>

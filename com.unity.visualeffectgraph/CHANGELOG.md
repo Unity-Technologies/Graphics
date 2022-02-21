@@ -4,11 +4,70 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+### Added
+- New Timeline Integration which supports scrubbing
+
+### Fixed
+- Creating a new VFX of the same name as an already opened VFX will reuse the existing window [Case 1382841](https://issuetracker.unity3d.com/product/unity/issues/guid/1382841/)
+- Incorrect behavior of Tangent Space in ShaderGraph [Case 1363279](https://issuetracker.unity3d.com/product/unity/issues/guid/1363279/)
+- ShaderGraph made with new VFX SG integration where not listed when searching for a shader graph output [Case 1379523](https://issuetracker.unity3d.com/product/unity/issues/guid/1379523/)
+- Enable/disable state of VFX blocks and operators are preserved after copy/paste
+- Blackboard "Add" button for output could be hidden when the panel is too small (https://issuetracker.unity3d.com/product/unity/issues/guid/1389927/)
+- Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
+- VFX Subgraph operator and block windows now have dedicated icons
+- Some operators were missing in node search window (gradient for instance)
+- Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)
+- Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
+- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
+- Sticky note title keeps the selected font sizewhen being edited
+- Collision with zero scale lead to undefined behavior [Case 1381562](https://issuetracker.unity3d.com/product/unity/issues/guid/1381562/)
+- Fixed GPU event particle init after restarting VisualEffect [Case 1378335](https://issuetracker.unity3d.com/product/unity/issues/guid/1378335/)
+- No more exception raised when selecting all nodes with CTRL+A and then deleting them
+- Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
+- Resize custom operator (multiply, add...) to the minimum size when changing input types
+- Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
+- Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
+- Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
+- Fixed possible NaNs in Vortex Subgraph node
+- Better node position when created by dragging an edge
+- Fixed an exception when setting when changing the space of a shape to world [Case 1389076](https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
+- Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
+- In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
+- Picking and Selection passes [Case 1382788](https://issuetracker.unity3d.com/product/unity/issues/guid/1382788/), [Case 1402283](https://issuetracker.unity3d.com/product/unity/issues/guid/1402283/)
+
+## [14.0.0] - 2021-11-17
+
+### Fixed
+- Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+- Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)
+- Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
+- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
+
+## [13.1.2] - 2021-11-05
+
+### Fixed
+- Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)
+
 ## [13.1.1] - 2021-10-04
+### Added
+- Multiple VFX graphs can be opened at the same time
+
+### Changed
+- Search window now lists more nodes variants and they are organized by attribute first instead of operation
 
 ### Fixed
 - Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
 - Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
+- Fix SDF Baker fail on PS4 & PS5 [Case 1351595](https://fogbugz.unity3d.com/f/cases/1351595/)
+- Particles were rendered pink with some debug modes [Case 1342276](https://issuetracker.unity3d.com/product/unity/issues/guid/1342276/)
+- Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)
+- Extract position from a transform is wrong on GPU [Case 1353533](https://issuetracker.unity3d.com/product/unity/issues/guid/1353533/)
+- Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
+- Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
+- Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
+- Fixed Collision with Depth when using a physical camera. [Case 1344733](https://issuetracker.unity3d.com/product/unity/issues/guid/1344733/)
+- Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 
 ## [13.1.0] - 2021-09-24
 
@@ -16,6 +75,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [13.0.0] - 2021-09-01
+### Added
+- New options to select how to sort particles in the Output Context.
+
 
 ### Fixed
 - Prevent vector truncation error in HDRP Decal template

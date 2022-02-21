@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             throw new NotSupportedException(k_ErrorMessage);
         }
 
-        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             throw new NotImplementedException();
         }
@@ -69,19 +69,60 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Previously contained the settings to control how many cascades to use. It is now deprecated.
+    /// </summary>
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
     public enum ShadowCascadesOption
     {
+        /// <summary>
+        /// No cascades used for the shadows
+        /// </summary>
         NoCascades,
+        /// <summary>
+        /// Two cascades used for the shadows
+        /// </summary>
         TwoCascades,
+        /// <summary>
+        /// Four cascades used for the shadows
+        /// </summary>
         FourCascades,
     }
+
+    [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
+    public enum ShaderVariantLogLevel
+    {
+        Disabled,
+        [InspectorName("Only URP Shaders")]
+        OnlyUniversalRPShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
+    }
+
     public partial class UniversalRenderPipelineAsset
     {
+        [SerializeField] int m_ShaderVariantLogLevel;
+
+#pragma warning disable 618 // Obsolete warning
+        /// <summary>
+        /// Previously returned the shader variant log level for this Render Pipeline Asset but is now deprecated.
+        /// </summary>
+        [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", false)]
+        public ShaderVariantLogLevel shaderVariantLogLevel
+        {
+            get { return (ShaderVariantLogLevel)UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel; }
+            set { UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel)value; }
+        }
+#pragma warning restore 618 // Obsolete warning
+
 #pragma warning disable 618 // Obsolete warning
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
         /*
+
+        /// <summary>
+        /// Previously used insted of shadowCascadeCount. Please use that instead.
+        /// </summary>
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         public ShadowCascadesOption shadowCascadeOption
         {
@@ -124,7 +165,15 @@ namespace UnityEngine.Rendering.Universal
         [EditorBrowsable(EditorBrowsableState.Never)]
         public RenderTargetIdentifier cameraDepth
         {
-            get => m_CameraDepthTarget;
+            get => m_CameraDepthTarget.nameID;
         }
+    }
+
+    public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
+    {
+        // Deprecated in 13.x.x
+        [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }
 }

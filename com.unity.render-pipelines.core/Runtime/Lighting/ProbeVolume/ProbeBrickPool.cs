@@ -1,12 +1,16 @@
 using System.Diagnostics;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Profiling;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     internal class ProbeBrickPool
     {
+        const int kProbePoolChunkSize = 128;
+
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
         {
@@ -17,15 +21,17 @@ namespace UnityEngine.Experimental.Rendering
 
         public struct DataLocation
         {
-            internal Texture3D TexL0_L1rx;
+            internal Texture TexL0_L1rx;
 
-            internal Texture3D TexL1_G_ry;
-            internal Texture3D TexL1_B_rz;
+            internal Texture TexL1_G_ry;
+            internal Texture TexL1_B_rz;
 
-            internal Texture3D TexL2_0;
-            internal Texture3D TexL2_1;
-            internal Texture3D TexL2_2;
-            internal Texture3D TexL2_3;
+            internal Texture TexL2_0;
+            internal Texture TexL2_1;
+            internal Texture TexL2_2;
+            internal Texture TexL2_3;
+
+            internal Texture3D TexValidity;
 
             internal int width;
             internal int height;
@@ -43,6 +49,8 @@ namespace UnityEngine.Experimental.Rendering
                 CoreUtils.Destroy(TexL2_2);
                 CoreUtils.Destroy(TexL2_3);
 
+                CoreUtils.Destroy(TexValidity);
+
                 TexL0_L1rx = null;
 
                 TexL1_G_ry = null;
@@ -52,43 +60,61 @@ namespace UnityEngine.Experimental.Rendering
                 TexL2_1 = null;
                 TexL2_2 = null;
                 TexL2_3 = null;
+                TexValidity = null;
             }
         }
 
         internal const int kBrickCellCount = 3;
         internal const int kBrickProbeCountPerDim = kBrickCellCount + 1;
         internal const int kBrickProbeCountTotal = kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim;
+        internal const int kChunkProbeCountPerDim = kProbePoolChunkSize * kBrickProbeCountPerDim;
 
         internal int estimatedVMemCost { get; private set; }
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        int m_AllocationSize;
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
-        DataLocation m_Pool;
+        internal DataLocation m_Pool; // internal to access it from blending pool only
         BrickChunkAlloc m_NextFreeChunk;
         Stack<BrickChunkAlloc> m_FreeList;
+        int m_AvailableChunkCount;
 
         ProbeVolumeSHBands m_SHBands;
+        internal ProbeVolumeSHBands shBands => m_SHBands;
 
-        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        // Temporary buffers for updating SH textures.
+        static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
+        static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
+        static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
+        static DynamicArray<byte> s_PackedValidity_locData = new DynamicArray<byte>();
+
+        static DynamicArray<Color> s_L2_0_locData = null;
+        static DynamicArray<Color> s_L2_1_locData = null;
+        static DynamicArray<Color> s_L2_2_locData = null;
+        static DynamicArray<Color> s_L2_3_locData = null;
+
+        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
-            m_AllocationSize = allocationSize;
             m_MemoryBudget = memoryBudget;
             m_SHBands = shBands;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
-            int width, height, depth;
-            DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
-            int estimatedCost = 0;
-            m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
+            DerivePoolSizeFromBudget(memoryBudget, out int width, out int height, out int depth);
+            m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", true, out int estimatedCost);
             estimatedVMemCost = estimatedCost;
 
+            m_AvailableChunkCount = (m_Pool.width / (kProbePoolChunkSize * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
+
             Profiler.EndSample();
+        }
+
+        public int GetRemainingChunkCount()
+        {
+            return m_AvailableChunkCount;
         }
 
         internal void EnsureTextureValidity()
@@ -97,29 +123,30 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Pool.TexL0_L1rx == null)
             {
                 m_Pool.Cleanup();
-                int estimatedCost = 0;
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, out estimatedCost);
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, "APV", true, out int estimatedCost);
                 estimatedVMemCost = estimatedCost;
             }
         }
 
-        internal int GetChunkSize() { return m_AllocationSize; }
-        internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
+        internal static int GetChunkSize() { return kProbePoolChunkSize; }
+        internal static int GetChunkSizeInProbeCount() { return kProbePoolChunkSize * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
         internal Vector3Int GetPoolDimensions() { return new Vector3Int(m_Pool.width, m_Pool.height, m_Pool.depth); }
         internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
         {
-            rr.L0_L1rx = m_Pool.TexL0_L1rx;
+            rr.L0_L1rx = m_Pool.TexL0_L1rx as RenderTexture;
 
-            rr.L1_G_ry = m_Pool.TexL1_G_ry;
-            rr.L1_B_rz = m_Pool.TexL1_B_rz;
+            rr.L1_G_ry = m_Pool.TexL1_G_ry as RenderTexture;
+            rr.L1_B_rz = m_Pool.TexL1_B_rz as RenderTexture;
 
-            rr.L2_0 = m_Pool.TexL2_0;
-            rr.L2_1 = m_Pool.TexL2_1;
-            rr.L2_2 = m_Pool.TexL2_2;
-            rr.L2_3 = m_Pool.TexL2_3;
+            rr.L2_0 = m_Pool.TexL2_0 as RenderTexture;
+            rr.L2_1 = m_Pool.TexL2_1 as RenderTexture;
+            rr.L2_2 = m_Pool.TexL2_2 as RenderTexture;
+            rr.L2_3 = m_Pool.TexL2_3 as RenderTexture;
+
+            rr.Validity = m_Pool.TexValidity;
         }
 
         internal void Clear()
@@ -128,25 +155,33 @@ namespace UnityEngine.Experimental.Rendering
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
         }
 
-        internal void Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
+        internal static int GetChunkCount(int brickCount)
+        {
+            int chunkSize = GetChunkSize();
+            return (brickCount + chunkSize - 1) / chunkSize;
+        }
+
+        internal bool Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
         {
             while (m_FreeList.Count > 0 && numberOfBrickChunks > 0)
             {
                 outAllocations.Add(m_FreeList.Pop());
                 numberOfBrickChunks--;
+                m_AvailableChunkCount--;
             }
 
             for (uint i = 0; i < numberOfBrickChunks; i++)
             {
                 if (m_NextFreeChunk.z >= m_Pool.depth)
                 {
-                    Debug.Assert(false, "Cannot allocate more brick chunks, probevolume brick pool is full.");
-                    break; // failure case, pool is full
+                    Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
+                    return false; // failure case, pool is full
                 }
 
                 outAllocations.Add(m_NextFreeChunk);
+                m_AvailableChunkCount--;
 
-                m_NextFreeChunk.x += m_AllocationSize * kBrickProbeCountPerDim;
+                m_NextFreeChunk.x += kProbePoolChunkSize * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
                 {
                     m_NextFreeChunk.x = 0;
@@ -158,30 +193,34 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
+
+            return true;
         }
 
         internal void Deallocate(List<BrickChunkAlloc> allocations)
         {
+            m_AvailableChunkCount += allocations.Count;
+
             foreach (var brick in allocations)
                 m_FreeList.Push(brick);
         }
 
-        internal void Update(DataLocation source, List<BrickChunkAlloc> srcLocations, List<BrickChunkAlloc> dstLocations, ProbeVolumeSHBands bands)
+        internal void Update(DataLocation source, List<BrickChunkAlloc> srcLocations, List<BrickChunkAlloc> dstLocations, int destStartIndex, ProbeVolumeSHBands bands)
         {
-            Debug.Assert(srcLocations.Count == dstLocations.Count);
-
             for (int i = 0; i < srcLocations.Count; i++)
             {
                 BrickChunkAlloc src = srcLocations[i];
-                BrickChunkAlloc dst = dstLocations[i];
+                BrickChunkAlloc dst = dstLocations[destStartIndex + i];
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kProbePoolChunkSize * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
+
+                    Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
 
                     if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
@@ -194,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        internal static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -222,40 +261,61 @@ namespace UnityEngine.Experimental.Rendering
             return new Vector3Int(width, height, depth);
         }
 
-        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, out int allocatedBytes)
+        public static Texture CreateDataTexture(int width, int height, int depth, GraphicsFormat format, string name, bool allocateRendertexture, ref int allocatedBytes)
+        {
+            int elementSize = format == GraphicsFormat.R16G16B16A16_SFloat ? 8 :
+                format == GraphicsFormat.R8G8B8A8_UNorm ? 4 : 1;
+
+            Texture texture;
+            allocatedBytes += (width * height * depth) * elementSize;
+            if (allocateRendertexture)
+            {
+                texture = new RenderTexture(new RenderTextureDescriptor()
+                {
+                    width = width,
+                    height = height,
+                    volumeDepth = depth,
+                    graphicsFormat = format,
+                    mipCount = 1,
+                    enableRandomWrite = true,
+                    dimension = TextureDimension.Tex3D,
+                    msaaSamples = 1,
+                });
+            }
+            else
+                texture = new Texture3D(width, height, depth, format, TextureCreationFlags.None, 1);
+
+            texture.hideFlags = HideFlags.HideAndDontSave;
+            texture.name = name;
+
+            if (allocateRendertexture)
+                (texture as RenderTexture).Create();
+            return texture;
+        }
+
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, string name, bool allocateRendertexture, out int allocatedBytes)
         {
             Vector3Int locSize = ProbeCountToDataLocSize(numProbes);
             int width = locSize.x;
             int height = locSize.y;
             int depth = locSize.z;
 
-            int texelCount = width * height * depth;
-
             DataLocation loc;
+            var L0Format = GraphicsFormat.R16G16B16A16_SFloat;
+            var L1L2Format = compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
 
             allocatedBytes = 0;
-            loc.TexL0_L1rx = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
-            allocatedBytes += texelCount * 8;
-
-            loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            allocatedBytes += texelCount * (compressed ? 1 : 4);
-
-            loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            allocatedBytes += texelCount * (compressed ? 1 : 4);
+            loc.TexL0_L1rx = CreateDataTexture(width, height, depth, L0Format, $"{name}_TexL0_L1rx", allocateRendertexture, ref allocatedBytes);
+            loc.TexL1_G_ry = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_G_ry", allocateRendertexture, ref allocatedBytes);
+            loc.TexL1_B_rz = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
+            loc.TexValidity = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_Validity", false, ref allocatedBytes) as Texture3D;
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
-                loc.TexL2_0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-                allocatedBytes += texelCount * (compressed ? 1 : 4);
-
-                loc.TexL2_1 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-                allocatedBytes += texelCount * (compressed ? 1 : 4);
-
-                loc.TexL2_2 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-                allocatedBytes += texelCount * (compressed ? 1 : 4);
-
-                loc.TexL2_3 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-                allocatedBytes += texelCount * (compressed ? 1 : 4);
+                loc.TexL2_0 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_0", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_1 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_1", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_2 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_2", allocateRendertexture, ref allocatedBytes);
+                loc.TexL2_3 = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL2_3", allocateRendertexture, ref allocatedBytes);
             }
             else
             {
@@ -272,38 +332,106 @@ namespace UnityEngine.Experimental.Rendering
             return loc;
         }
 
-        static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
+        static void ValidateTemporaryBuffers(in DataLocation loc, ProbeVolumeSHBands bands)
+        {
+            var size = loc.width * loc.height * loc.depth;
+
+            s_L0L1Rx_locData.Resize(size);
+            s_L1GL1Ry_locData.Resize(size);
+            s_L1BL1Rz_locData.Resize(size);
+            s_PackedValidity_locData.Resize(size);
+
+            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                if (s_L2_0_locData == null)
+                {
+                    s_L2_0_locData = new DynamicArray<Color>();
+                    s_L2_1_locData = new DynamicArray<Color>();
+                    s_L2_2_locData = new DynamicArray<Color>();
+                    s_L2_3_locData = new DynamicArray<Color>();
+                }
+
+                s_L2_0_locData.Resize(size);
+                s_L2_1_locData.Resize(size);
+                s_L2_2_locData.Resize(size);
+                s_L2_3_locData.Resize(size);
+            }
+            else
+            {
+                s_L2_0_locData = null;
+                s_L2_1_locData = null;
+                s_L2_2_locData = null;
+                s_L2_3_locData = null;
+            }
+        }
+
+        static void SetPixel(DynamicArray<Color> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
         {
             int index = x + dataLocWidth * (y + dataLocHeight * z);
             data[index] = value;
         }
 
-        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, ProbeVolumeSHBands bands)
+        static void SetPixelAlpha(DynamicArray<Color> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, float value)
         {
-            int numBricks = shl2.Length / kBrickProbeCountTotal;
-            int shidx = 0;
-            int bx = 0, by = 0, bz = 0;
-            Color c = new Color();
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index].a = value;
+        }
 
-            Color[] L0L1Rx_locData = new Color[loc.width * loc.height * loc.depth * 2];
-            Color[] L1GL1Ry_locData = new Color[loc.width * loc.height * loc.depth * 2];
-            Color[] L1BL1Rz_locData = new Color[loc.width * loc.height * loc.depth * 2];
+        static void SetPixel(DynamicArray<byte> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, byte value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
 
-            Color[] L2_0_locData = null;
-            Color[] L2_1_locData = null;
-            Color[] L2_2_locData = null;
-            Color[] L2_3_locData = null;
+        static void SetPixel(DynamicArray<float> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, float value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
 
+        static float GetData(DynamicArray<float> data, int x, int y, int z, int dataLocWidth, int dataLocHeight)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            return data[index];
+        }
 
-            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+        static int PackValidity(float[] validity)
+        {
+            int outputByte = 0;
+            for (int i = 0; i < 8; ++i)
             {
-                L2_0_locData = new Color[loc.width * loc.height * loc.depth];
-                L2_1_locData = new Color[loc.width * loc.height * loc.depth];
-                L2_2_locData = new Color[loc.width * loc.height * loc.depth];
-                L2_3_locData = new Color[loc.width * loc.height * loc.depth];
+                int val = (validity[i] > 0.05f) ? 0 : 1;
+                outputByte |= (val << i);
             }
+            return outputByte;
+        }
 
-            for (int brickIdx = 0; brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
+        static Vector3Int GetSampleOffset(int i)
+        {
+            return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
+        }
+
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<uint> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
+        {
+            // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
+            // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
+
+            var inputProbesCount = shL0L1Data.Length / ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
+
+            // Coefficient constants that end up as black after shader probe data decoding
+            var kZZZH = new Color(0f, 0f, 0f, 0.5f);
+            var kHHHH = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+
+            int shidx = startIndex;
+            int bx = 0, by = 0, bz = 0;
+
+            ValidateTemporaryBuffers(loc, dstBands);
+
+            var shL0L1Ptr = (float*)shL0L1Data.GetUnsafeReadOnlyPtr();
+            var validityPtr = (uint*)validity.GetUnsafeReadOnlyPtr();
+            var shL2Ptr = (float*)(shL2Data.IsCreated ? shL2Data.GetUnsafeReadOnlyPtr() : default);
+
+            for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
                 {
@@ -315,51 +443,52 @@ namespace UnityEngine.Experimental.Rendering
                             int iy = by + y;
                             int iz = bz + z;
 
-                            c.r = shl2[shidx][0, 0]; // L0.r
-                            c.g = shl2[shidx][1, 0]; // L0.g
-                            c.b = shl2[shidx][2, 0]; // L0.b
-                            c.a = shl2[shidx][0, 1]; // L1_R.r
-                            SetPixel(ref L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            c.r = shl2[shidx][1, 1]; // L1_G.r
-                            c.g = shl2[shidx][1, 2]; // L1_G.g
-                            c.b = shl2[shidx][1, 3]; // L1_G.b
-                            c.a = shl2[shidx][0, 2]; // L1_R.g
-                            SetPixel(ref L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            c.r = shl2[shidx][2, 1]; // L1_B.r
-                            c.g = shl2[shidx][2, 2]; // L1_B.g
-                            c.b = shl2[shidx][2, 3]; // L1_B.b
-                            c.a = shl2[shidx][0, 3]; // L1_R.b
-                            SetPixel(ref L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                            // We are processing chunks at a time.
+                            // So in practice we can go over the number of SH we have in the input list.
+                            // We fill with encoded black to avoid copying garbage in the final atlas.
+                            if (shidx >= inputProbesCount)
                             {
-                                c.r = shl2[shidx][0, 4];
-                                c.g = shl2[shidx][0, 5];
-                                c.b = shl2[shidx][0, 6];
-                                c.a = shl2[shidx][0, 7];
-                                SetPixel(ref L2_0_locData, ix, iy, iz, loc.width, loc.height, c);
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, kZZZH);
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, 0);
 
-                                c.r = shl2[shidx][1, 4];
-                                c.g = shl2[shidx][1, 5];
-                                c.b = shl2[shidx][1, 6];
-                                c.a = shl2[shidx][1, 7];
-                                SetPixel(ref L2_1_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                                c.r = shl2[shidx][2, 4];
-                                c.g = shl2[shidx][2, 5];
-                                c.b = shl2[shidx][2, 6];
-                                c.a = shl2[shidx][2, 7];
-                                SetPixel(ref L2_2_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                                c.r = shl2[shidx][0, 8];
-                                c.g = shl2[shidx][1, 8];
-                                c.b = shl2[shidx][2, 8];
-                                c.a = 1;
-                                SetPixel(ref L2_3_locData, ix, iy, iz, loc.width, loc.height, c);
+                                if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                {
+                                    SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                }
                             }
+                            else
+                            {
+                                var shL0L1ColorPtr = (Color*)(shL0L1Ptr + shidx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
+                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityNeighMaskFromPacked(validityPtr[shidx]));
 
+                                if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                {
+                                    if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                    {
+                                        var shL2ColorPtr = (Color*)(shL2Ptr + shidx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[0]);
+                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[1]);
+                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[2]);
+                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[3]);
+                                    }
+                                    else
+                                    {
+                                        // We want L2 output, but only have L0L1 input. Fill with encoded black to preserve L0L1 lighting data.
+                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    }
+                                }
+                            }
                             shidx++;
                         }
                     }
@@ -374,32 +503,35 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         by = 0;
                         bz += kBrickProbeCountPerDim;
-                        Debug.Assert(bz < loc.depth || brickIdx == shl2.Length - kBrickProbeCountTotal, "Location depth exceeds data texture.");
+                        Debug.Assert(bz < loc.depth || brickIdx == (startIndex + count - kBrickProbeCountTotal), "Location depth exceeds data texture.");
                     }
                 }
             }
 
-            loc.TexL0_L1rx.SetPixels(L0L1Rx_locData);
-            loc.TexL0_L1rx.Apply(false);
-            loc.TexL1_G_ry.SetPixels(L1GL1Ry_locData);
-            loc.TexL1_G_ry.Apply(false);
-            loc.TexL1_B_rz.SetPixels(L1BL1Rz_locData);
-            loc.TexL1_B_rz.Apply(false);
+            (loc.TexL0_L1rx as Texture3D).SetPixels(s_L0L1Rx_locData);
+            (loc.TexL0_L1rx as Texture3D).Apply(false);
+            (loc.TexL1_G_ry as Texture3D).SetPixels(s_L1GL1Ry_locData);
+            (loc.TexL1_G_ry as Texture3D).Apply(false);
+            (loc.TexL1_B_rz as Texture3D).SetPixels(s_L1BL1Rz_locData);
+            (loc.TexL1_B_rz as Texture3D).Apply(false);
 
-            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            loc.TexValidity.SetPixelData<byte>(s_PackedValidity_locData, 0);
+            loc.TexValidity.Apply(false);
+
+            if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
-                loc.TexL2_0.SetPixels(L2_0_locData);
-                loc.TexL2_0.Apply(false);
-                loc.TexL2_1.SetPixels(L2_1_locData);
-                loc.TexL2_1.Apply(false);
-                loc.TexL2_2.SetPixels(L2_2_locData);
-                loc.TexL2_2.Apply(false);
-                loc.TexL2_3.SetPixels(L2_3_locData);
-                loc.TexL2_3.Apply(false);
+                (loc.TexL2_0 as Texture3D).SetPixels(s_L2_0_locData);
+                (loc.TexL2_0 as Texture3D).Apply(false);
+                (loc.TexL2_1 as Texture3D).SetPixels(s_L2_1_locData);
+                (loc.TexL2_1 as Texture3D).Apply(false);
+                (loc.TexL2_2 as Texture3D).SetPixels(s_L2_2_locData);
+                (loc.TexL2_2 as Texture3D).Apply(false);
+                (loc.TexL2_3 as Texture3D).SetPixels(s_L2_3_locData);
+                (loc.TexL2_3 as Texture3D).Apply(false);
             }
         }
 
-        void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        void DerivePoolSizeFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.
@@ -411,6 +543,212 @@ namespace UnityEngine.Experimental.Rendering
         internal void Cleanup()
         {
             m_Pool.Cleanup();
+        }
+    }
+
+    internal class ProbeBrickBlendingPool
+    {
+        static ComputeShader stateBlendShader;
+        static int stateBlendKernel = -1;
+
+        static readonly int _ChunkDim_LerpFactor = Shader.PropertyToID("_ChunkDim_LerpFactor");
+        static readonly int _ChunkMapping = Shader.PropertyToID("_ChunkMapping");
+        static readonly int _PoolDims = Shader.PropertyToID("_PoolDims");
+
+        static readonly int _State0_L0_L1Rx = Shader.PropertyToID("_State0_L0_L1Rx");
+        static readonly int _State0_L1G_L1Ry = Shader.PropertyToID("_State0_L1G_L1Ry");
+        static readonly int _State0_L1B_L1Rz = Shader.PropertyToID("_State0_L1B_L1Rz");
+        static readonly int _State0_L2_0 = Shader.PropertyToID("_State0_L2_0");
+        static readonly int _State0_L2_1 = Shader.PropertyToID("_State0_L2_1");
+        static readonly int _State0_L2_2 = Shader.PropertyToID("_State0_L2_2");
+        static readonly int _State0_L2_3 = Shader.PropertyToID("_State0_L2_3");
+
+        static readonly int _State1_L0_L1Rx = Shader.PropertyToID("_State1_L0_L1Rx");
+        static readonly int _State1_L1G_L1Ry = Shader.PropertyToID("_State1_L1G_L1Ry");
+        static readonly int _State1_L1B_L1Rz = Shader.PropertyToID("_State1_L1B_L1Rz");
+        static readonly int _State1_L2_0 = Shader.PropertyToID("_State1_L2_0");
+        static readonly int _State1_L2_1 = Shader.PropertyToID("_State1_L2_1");
+        static readonly int _State1_L2_2 = Shader.PropertyToID("_State1_L2_2");
+        static readonly int _State1_L2_3 = Shader.PropertyToID("_State1_L2_3");
+
+        static readonly int _Out_L0_L1Rx = Shader.PropertyToID("_Out_L0_L1Rx");
+        static readonly int _Out_L1G_L1Ry = Shader.PropertyToID("_Out_L1G_L1Ry");
+        static readonly int _Out_L1B_L1Rz = Shader.PropertyToID("_Out_L1B_L1Rz");
+        static readonly int _Out_L2_0 = Shader.PropertyToID("_Out_L2_0");
+        static readonly int _Out_L2_1 = Shader.PropertyToID("_Out_L2_1");
+        static readonly int _Out_L2_2 = Shader.PropertyToID("_Out_L2_2");
+        static readonly int _Out_L2_3 = Shader.PropertyToID("_Out_L2_3");
+
+        internal static void Initialize(in ProbeVolumeSystemParameters parameters)
+        {
+            stateBlendShader = parameters.stateBlendShader;
+            stateBlendKernel = stateBlendShader.FindKernel("BlendStates");
+        }
+
+        const uint s_UnmappedChunk = unchecked((uint)-1);
+
+        List<uint> m_IndexMapping;
+        ComputeBuffer m_ChunkMapping;
+        bool m_MappingNeedsReupload = true;
+        int m_MappedChunks = 0;
+
+        ProbeBrickPool m_State0, m_State1;
+        internal int estimatedVMemCost => m_State0.estimatedVMemCost + m_State1.estimatedVMemCost;
+
+        internal int MaxAvailablebrickCount => GetPoolWidth() * GetPoolHeight() * GetPoolHeight() / ProbeBrickPool.kBrickProbeCountTotal;
+
+        internal int GetPoolWidth() { return m_State0.m_Pool.width; }
+        internal int GetPoolHeight() { return m_State0.m_Pool.height; }
+        internal int GetPoolDepth() { return m_State0.m_Pool.depth; }
+
+
+        internal ProbeBrickBlendingPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        {
+            m_State0 = new ProbeBrickPool(memoryBudget, shBands);
+            m_State1 = new ProbeBrickPool(memoryBudget, shBands);
+
+            m_IndexMapping = new List<uint>(MaxAvailablebrickCount);
+            for (int i = 0; i < MaxAvailablebrickCount; i++)
+                m_IndexMapping.Add(s_UnmappedChunk);
+            m_ChunkMapping = new ComputeBuffer(m_IndexMapping.Count, sizeof(uint));
+            Upload();
+        }
+        internal void Update(ProbeBrickPool.DataLocation source, List<ProbeBrickPool.BrickChunkAlloc> srcLocations, List<ProbeBrickPool.BrickChunkAlloc> dstLocations, int destStartIndex, ProbeVolumeSHBands bands, int state)
+        {
+            (state == 0 ? m_State0 : m_State1).Update(source, srcLocations, dstLocations, destStartIndex, bands);
+        }
+
+        void Upload()
+        {
+            if (m_MappingNeedsReupload)
+            {
+                m_ChunkMapping.SetData(m_IndexMapping);
+                m_MappingNeedsReupload = false;
+            }
+        }
+
+        static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+
+        internal void PerformBlending(float factor, ProbeBrickPool dstPool)
+        {
+            if (m_MappedChunks == 0)
+                return;
+
+            Upload();
+
+            stateBlendShader.SetTexture(stateBlendKernel, _State0_L0_L1Rx, m_State0.m_Pool.TexL0_L1rx);
+            stateBlendShader.SetTexture(stateBlendKernel, _State0_L1G_L1Ry, m_State0.m_Pool.TexL1_G_ry);
+            stateBlendShader.SetTexture(stateBlendKernel, _State0_L1B_L1Rz, m_State0.m_Pool.TexL1_B_rz);
+
+            stateBlendShader.SetTexture(stateBlendKernel, _State1_L0_L1Rx, m_State1.m_Pool.TexL0_L1rx);
+            stateBlendShader.SetTexture(stateBlendKernel, _State1_L1G_L1Ry, m_State1.m_Pool.TexL1_G_ry);
+            stateBlendShader.SetTexture(stateBlendKernel, _State1_L1B_L1Rz, m_State1.m_Pool.TexL1_B_rz);
+
+            stateBlendShader.SetTexture(stateBlendKernel, _Out_L0_L1Rx, dstPool.m_Pool.TexL0_L1rx);
+            stateBlendShader.SetTexture(stateBlendKernel, _Out_L1G_L1Ry, dstPool.m_Pool.TexL1_G_ry);
+            stateBlendShader.SetTexture(stateBlendKernel, _Out_L1B_L1Rz, dstPool.m_Pool.TexL1_B_rz);
+
+            if (m_State0.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                stateBlendShader.EnableKeyword("PROBE_VOLUMES_L2");
+
+                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_0, m_State0.m_Pool.TexL2_0);
+                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_1, m_State0.m_Pool.TexL2_1);
+                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_2, m_State0.m_Pool.TexL2_2);
+                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_3, m_State0.m_Pool.TexL2_3);
+
+                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_0, m_State1.m_Pool.TexL2_0);
+                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_1, m_State1.m_Pool.TexL2_1);
+                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_2, m_State1.m_Pool.TexL2_2);
+                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_3, m_State1.m_Pool.TexL2_3);
+
+                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_0, dstPool.m_Pool.TexL2_0);
+                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_1, dstPool.m_Pool.TexL2_1);
+                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_2, dstPool.m_Pool.TexL2_2);
+                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_3, dstPool.m_Pool.TexL2_3);
+            }
+            else
+                stateBlendShader.DisableKeyword("PROBE_VOLUMES_L2");
+
+            var poolDims = new Vector4(
+                GetPoolWidth() / ProbeBrickPool.kChunkProbeCountPerDim,
+                GetPoolHeight() / ProbeBrickPool.kBrickProbeCountPerDim,
+                dstPool.GetPoolWidth(),
+                dstPool.GetPoolHeight());
+
+            var chunkDim_LerpFactor = new Vector4(ProbeBrickPool.kChunkProbeCountPerDim, ProbeBrickPool.kBrickProbeCountPerDim, ProbeBrickPool.kBrickProbeCountPerDim, factor);
+
+            stateBlendShader.SetBuffer(stateBlendKernel, _ChunkMapping, m_ChunkMapping);
+            stateBlendShader.SetVector(_ChunkDim_LerpFactor, chunkDim_LerpFactor);
+            stateBlendShader.SetVector(_PoolDims, poolDims);
+
+            const int numthreads = 4;
+            int threadX = DivRoundUp(GetPoolWidth(), numthreads);
+            int threadY = DivRoundUp(GetPoolHeight(), numthreads);
+            int threadZ = DivRoundUp(GetPoolDepth(), numthreads);
+            stateBlendShader.Dispatch(stateBlendKernel, threadX, threadY, threadZ);
+        }
+
+        int GetChunkIndex(ProbeBrickPool.BrickChunkAlloc chunk)
+        {
+            Vector3Int chunkIndex = new Vector3Int(
+                chunk.x / ProbeBrickPool.kChunkProbeCountPerDim,
+                chunk.y / ProbeBrickPool.kBrickProbeCountPerDim,
+                chunk.z / ProbeBrickPool.kBrickProbeCountPerDim);
+
+            Vector2Int chunkCount = new Vector2Int(
+                GetPoolWidth() / ProbeBrickPool.kChunkProbeCountPerDim,
+                GetPoolHeight() / ProbeBrickPool.kBrickProbeCountPerDim);
+
+            return chunkIndex.z * chunkCount.x * chunkCount.y + chunkIndex.y * chunkCount.x + chunkIndex.x;
+        }
+
+        internal void MapChunk(ProbeBrickPool.BrickChunkAlloc chunk, int dst)
+        {
+            int src = GetChunkIndex(chunk);
+            Debug.Assert(m_IndexMapping[src] == s_UnmappedChunk);
+
+            m_MappingNeedsReupload = true;
+            m_IndexMapping[src] = (uint)dst;
+
+            m_MappedChunks++;
+        }
+
+        internal void Clear()
+            => m_State0.Clear();
+
+        public int GetRemainingChunkCount()
+            => m_State0.GetRemainingChunkCount();
+
+        internal bool Allocate(int numberOfBrickChunks, List<ProbeBrickPool.BrickChunkAlloc> outAllocations)
+            => m_State0.Allocate(numberOfBrickChunks, outAllocations);
+
+        internal void Deallocate(List<ProbeBrickPool.BrickChunkAlloc> allocations)
+        {
+            m_State0.Deallocate(allocations);
+
+            m_MappingNeedsReupload |= allocations.Count != 0;
+            foreach (var brick in allocations)
+            {
+                int index = GetChunkIndex(brick);
+                Debug.Assert(m_IndexMapping[index] != s_UnmappedChunk);
+                m_IndexMapping[index] = s_UnmappedChunk;
+            }
+
+            m_MappedChunks -= allocations.Count;
+        }
+
+        internal void EnsureTextureValidity()
+        {
+            m_State0.EnsureTextureValidity();
+            m_State1.EnsureTextureValidity();
+        }
+
+        internal void Cleanup()
+        {
+            m_State0.Cleanup();
+            m_State1.Cleanup();
+            m_ChunkMapping.Release();
         }
     }
 }

@@ -97,6 +97,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         List<string> m_SubTargetNames;
         int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
 
+        // Subtarget Data
+        [SerializeField]
+        List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
+
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
@@ -153,6 +157,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public string renderType
@@ -285,6 +290,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
             bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
 
+            if (activeSubTarget.IsActive())
+                worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
+
             return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
@@ -300,6 +308,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.Setup(ref context);
         }
 
@@ -307,6 +316,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+
+            // OnAfterMultiDeserialize order is not guaranteed to be hierarchical (target->subtarget).
+            // Update active subTarget (only, since the target is shared and non-active subTargets could override active settings)
+            // after Target has been deserialized and target <-> subtarget references are intact.
+            m_ActiveSubTarget.value.OnAfterParentTargetDeserialized();
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -325,10 +339,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            if (!(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>))
+            {
+                context.AddBlock(BlockFields.VertexDescription.Position);
+                context.AddBlock(BlockFields.VertexDescription.Normal);
+                context.AddBlock(BlockFields.VertexDescription.Tangent);
+                context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            }
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -366,6 +383,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Material");
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
             });
 
@@ -526,11 +544,73 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (subTarget.GetType().Equals(subTargetType))
                 {
                     m_ActiveSubTarget = subTarget;
+                    ProcessSubTargetDatas(m_ActiveSubTarget);
                     return true;
                 }
             }
 
             return false;
+        }
+
+        void ProcessSubTargetDatas(SubTarget subTarget)
+        {
+            var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
+            foreach (var type in typeCollection)
+            {
+                if (type.IsGenericType)
+                    continue;
+
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(UniversalTarget).GetMethod(nameof(SetDataOnSubTarget));
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { subTarget });
+            }
+        }
+
+        void ClearUnusedData()
+        {
+            for (int i = 0; i < m_Datas.Count; i++)
+            {
+                var data = m_Datas[i];
+                var type = data.value.GetType();
+
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(UniversalTarget).GetMethod(nameof(ValidateDataForSubTarget));
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
+            }
+        }
+
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : JsonObject
+        {
+            if (!(subTarget is IRequiresData<T> requiresData))
+                return;
+
+            // Ensure data object exists in list
+            var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            if (data == null)
+            {
+                data = Activator.CreateInstance(typeof(T)) as T;
+                m_Datas.Add(data);
+            }
+
+            // Apply data object to SubTarget
+            requiresData.data = data;
+        }
+
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : JsonObject
+        {
+            if (!(subTarget is IRequiresData<T> requiresData))
+            {
+                m_Datas.Remove(data);
+            }
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            ClearUnusedData();
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -675,11 +755,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        ScriptableObject IHasMetadata.GetMetadataObject()
+        ScriptableObject IHasMetadata.GetMetadataObject(GraphDataReadOnly graph)
         {
             // defer to subtarget
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
             return null;
         }
 
@@ -697,7 +777,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
         }
 
-        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target)
+        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             // the surface settings can either be material controlled or target controlled
             if (target.allowMaterialOverride)
@@ -705,15 +785,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // setup material control of via keyword
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
                 pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaModulateOn);
             }
             else
             {
                 // setup target control via define
                 if (target.surfaceType == SurfaceType.Transparent)
+                {
                     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
 
-                if (target.alphaMode == AlphaMode.Premultiply)
-                    pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    // alpha premultiply in shader only needed when alpha is different for diffuse & specular
+                    if ((target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive) && blendModePreserveSpecular)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    else if (target.alphaMode == AlphaMode.Multiply)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+                }
             }
 
             AddAlphaClipControlToPass(ref pass, target);
@@ -964,8 +1050,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1002,8 +1088,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1158,7 +1244,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         // used by lit/unlit subtargets
-        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target)
+        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             if (target.allowMaterialOverride)
                 return MaterialControlledRenderState;
@@ -1187,21 +1273,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.Blend(Blend.One, Blend.Zero));
                 }
                 else
+                {
+                    // Lift alpha multiply from ROP to shader in preserve spec for different diffuse and specular blends.
+                    Blend blendSrcRGB = blendModePreserveSpecular ? Blend.One : Blend.SrcAlpha;
+
                     switch (target.alphaMode)
                     {
                         case AlphaMode.Alpha:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Premultiply:
                             result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Additive:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.One, Blend.One, Blend.One));
                             break;
                         case AlphaMode.Multiply:
-                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One)); // Multiply RGB only, keep A
                             break;
                     }
+                }
+
 
                 return result;
             }
@@ -1242,7 +1334,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.On) },
                 { UberSwitchedCullRenderState(target) },
-                { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.ColorMask("ColorMask R") },
             };
 
             return result;
@@ -1560,6 +1652,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor AlphaModulateOn = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._ALPHAMODULATE_ON,
+            referenceName = ShaderKeywordStrings._ALPHAMODULATE_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
@@ -1583,6 +1685,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Vertex,
         };
 
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
@@ -1607,6 +1710,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
@@ -1616,6 +1720,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
@@ -1625,6 +1730,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
@@ -1634,6 +1740,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
@@ -1670,6 +1777,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
@@ -1679,6 +1787,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
@@ -1738,6 +1847,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
@@ -1753,7 +1863,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
                 new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
                 new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
-            }
+            },
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
@@ -1763,6 +1874,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
@@ -1794,6 +1906,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()

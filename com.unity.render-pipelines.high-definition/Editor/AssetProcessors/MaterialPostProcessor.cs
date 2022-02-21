@@ -286,6 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static List<string> s_CreatedAssets = new List<string>();
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
+        internal static Dictionary<string, int> s_ImportedMaterialCounter = new Dictionary<string, int>();
         internal static bool s_NeedsSavingAssets = false;
 
         // Important: This should only be called by the RegisterUpgraderReimport(), ie the shadegraph/material version
@@ -324,9 +325,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
-
-            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }
@@ -374,6 +372,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     // we would miss re-importing that dependency.
                     if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
                     {
+                        s_ImportedMaterialCounter.TryGetValue(asset, out var importCounter);
+                        s_ImportedMaterialCounter[asset] = ++importCounter;
+
+                        // CheckHDShaderGraphVersionsForUpgrade always return true if a ShaderGraph don't have an HDMetaData attached
+                        // we need a check to avoid importing the same assets over and over again.
+                        if (importCounter > 2)
+                            continue;
+
                         var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                         AssetDatabase.ImportAsset(shaderPath);
 
@@ -477,12 +483,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     s_NeedsSavingAssets = true;
                 }
             }
-        }
-
-        public void OnPostprocessSpeedTree(GameObject speedTree)
-        {
-            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
         }
 
         // Note: It is not possible to separate migration step by kind of shader
@@ -692,11 +692,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AlphaToMaskUIFix(Material material, ShaderID id)
         {
-            if (material.HasProperty(kAlphaToMask) && material.HasProperty(kAlphaToMaskInspector))
-            {
-                material.SetFloat(kAlphaToMaskInspector, material.GetFloat(kAlphaToMask));
-                HDShaderUtils.ResetMaterialKeywords(material);
-            }
+            // Not used anymore, alpha to mask option is removed
         }
 
         static void MigrateDecalRenderQueue(Material material, ShaderID id)

@@ -8,29 +8,28 @@ namespace UnityEditor.VFX
 {
     class DynamicBuiltInVariant : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
-        {
-            get
-            {
-                var builtInFlag =
-                    Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
-                        .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
-                        .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None)
-                        .Concat(
-                            new[]
-                            {
-                                VFXDynamicBuiltInParameter.s_allVFXTime,
-                                VFXDynamicBuiltInParameter.s_allGameTime
-                            });
+        protected sealed override Dictionary<string, object[]> variants { get; } = BuildVariants();
 
-                return new Dictionary<string, object[]>
+        private static Dictionary<string, object[]> BuildVariants()
+        {
+            var builtInFlag =
+                Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
+                    .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
+                    .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None)
+                    .Concat(
+                        new[]
+                        {
+                            VFXDynamicBuiltInParameter.s_allVFXTime,
+                            VFXDynamicBuiltInParameter.s_allGameTime
+                        });
+
+            return new Dictionary<string, object[]>
+            {
                 {
-                    {
-                        "m_BuiltInParameters",
-                        builtInFlag.Cast<object>().ToArray()
-                    }
-                };
-            }
+                    "m_BuiltInParameters",
+                    builtInFlag.Cast<object>().ToArray()
+                }
+            };
         }
     }
 

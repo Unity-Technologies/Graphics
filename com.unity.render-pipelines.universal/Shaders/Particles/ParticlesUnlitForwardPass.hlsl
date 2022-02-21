@@ -63,7 +63,6 @@ void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfac
     surfaceData.smoothness = 1;
     surfaceData.occlusion = 1;
 
-    surfaceData.albedo = AlphaModulate(surfaceData.albedo, albedo.a);
     surfaceData.alpha = albedo.a;
 
     surfaceData.clearCoatMask       = 0;

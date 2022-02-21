@@ -16,6 +16,8 @@ Decals in HDRP have changed in the following ways:
 
 * When you write a shader for a surface that recieves decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
 
+An optimization performed on decals modified the rendering order between of decals that shares the same **Draw Order** value. If some of the decals in your scene overlaps, check the draw order in their material to ensure that they use different numbers.
+
 ### Tessellation
 HDRP 2021.2 has various tessellation shader code to enable tessellation support in [Master Stacks](master-stack-hdrp.md).  has changed the tessellation shader code in the following ways:
 
@@ -33,7 +35,8 @@ The algorithm to calculate the contribution of ambient occlusion and specular oc
 
 ### Light list
 
-The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
+- HDRP version 2021.2 includes a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`. You can use this setting to set the maximum number of lights per tile on the GPU. To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+- The `g_vLightListGlobal` uniform has been renamed to the explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This fix corrects unexpected behavior on the console.
 
 ## Density Volumes
 
@@ -42,6 +45,9 @@ Density Volumes are now known as **Local Volumetric Fog**.
 If a Scene uses Density Volumes, HDRP automatically changes the GameObjects to use the new component name, with all the same properties set for the Density Volume.
 
 However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. This warning may stop your Project from compiling in future versions of HDRP. To resolve this, change your code to target the new component.
+
+The sampling axis of **3DTexture** in the **Density Volume** component has been corrected to match Unity's axis convention.
+To accommodate this change you will have to mirror the **3DTextures** you are using along their **Z axis**.
 
 ## ClearFlag
 
@@ -95,3 +101,7 @@ From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are 
 From version 12.0 HDRP sets the **Ambient Mode** parameter in the **Visual Environment** volume component to **Dynamic** by default. This might impact existing projects where no default volume profile overrides the **Ambient Mode** parameter. To change this behavior:
 1. Add a **Visual Environment** component to the default volume profile.
 2. Change the **Ambient Mode** to **Static**.
+
+## Custom Pass
+
+Starting from HDRP 14.x, the default custom color buffer format changed from R8G8B8A8_SNorm to R8G8B8A8_UNorm. The old option is still available in the custom color format so you can revert back to the SNorm format if you need to.

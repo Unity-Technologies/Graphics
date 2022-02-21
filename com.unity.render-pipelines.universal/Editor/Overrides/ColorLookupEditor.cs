@@ -2,7 +2,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(ColorLookup))]
+    [CustomEditor(typeof(ColorLookup))]
     sealed class ColorLookupEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Texture;

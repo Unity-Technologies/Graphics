@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>ScriptableRendererData</c> class.
+    /// </summary>
     public abstract class CachedScriptableRendererDataEditor
     {
         public SerializedProperty serializedProperty;
@@ -56,6 +60,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected abstract CachedScriptableRendererDataEditor Init(SerializedProperty property);
 
+        /// <inheritdoc/>
         public override sealed void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             CurrentIndex = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
@@ -180,6 +185,7 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             return true;
         }
+
         static void ParseRenderer(SerializedProperty property)
         {
             string text = EditorGUIUtility.systemCopyBuffer;

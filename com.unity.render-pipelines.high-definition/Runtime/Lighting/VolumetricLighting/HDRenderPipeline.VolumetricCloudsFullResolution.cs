@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void TraceVolumetricClouds_FullResolution(CommandBuffer cmd, VolumetricCloudsParameters_FullResolution parameters,
+        static void TraceVolumetricClouds_FullResolution(CommandBuffer cmd, VolumetricCloudsParameters_FullResolution parameters, ComputeBuffer ambientProbeBuffer,
             RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture, RTHandle scatteringFallbackTexture, RTHandle maxZMask,
             RTHandle intermediateLightingBuffer0, RTHandle intermediateDepthBuffer0,
             RTHandle intermediateColorBuffer, RTHandle intermediateUpscaleBuffer)
@@ -105,8 +105,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
+                cmd.SetComputeBufferParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, ambientProbeBuffer);
+
+                // Output buffers
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsLightingTextureRW, intermediateLightingBuffer0);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsDepthTextureRW, intermediateDepthBuffer0);
+
                 cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, finalTX, finalTY, parameters.viewCount);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
             }
@@ -169,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle maxZMask;
+            public ComputeBufferHandle ambientProbeBuffer;
 
             public TextureHandle volumetricLighting;
             public TextureHandle scatteringFallbackTexture;
@@ -191,6 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.maxZMask = settings.localClouds.value ? renderGraph.defaultResources.blackTextureXR : builder.ReadTexture(maxZMask);
+                passData.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsProbeBuffer));
 
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
@@ -216,13 +222,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VolumetricCloudsFullResolutionData data, RenderGraphContext ctx) =>
                     {
-                        TraceVolumetricClouds_FullResolution(ctx.cmd, data.parameters,
+                        TraceVolumetricClouds_FullResolution(ctx.cmd, data.parameters, data.ambientProbeBuffer,
                             data.colorBuffer, data.depthPyramid, data.volumetricLighting, data.scatteringFallbackTexture, data.maxZMask,
                             data.intermediateLightingBuffer, data.intermediateBufferDepth,
                             data.intermediateColorBufferCopy, data.intermediateBufferUpscale);
                     });
 
-                return passData.colorBuffer;
+                // In the case of reflection probes, we don't expect any pass that will need the transmittance mask of the clouds so we return white.
+                return renderGraph.defaultResources.whiteTextureXR;
             }
         }
     }

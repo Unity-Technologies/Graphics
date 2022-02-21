@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 139549384114013
-      data2: 4539628434053070872
+      data2: 4539628468412809240
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -67,12 +67,14 @@ MonoBehaviour:
   - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforePostProcessCustomPostProcesses:
   - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   afterPostProcessBlursCustomPostProcesses:
   - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   afterPostProcessCustomPostProcesses:
   - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses:
   - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   lightLayerName0: Light Layer default
@@ -93,6 +95,7 @@ MonoBehaviour:
   decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
   - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
@@ -112,9 +115,30 @@ MonoBehaviour:
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
-  supportProbeVolumes: 0
+  supportProbeVolumes: 1
   supportRuntimeDebugDisplay: 0
-  apvScenesBounds:
+  apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
+    serializedProfiles: []
+    serializedBakeSettings: []
+    serializedBakingSets:
+    - name: Default
+      sceneGUIDs:
+      - fc784678bf952de4482e78aea61ccdc8
+      settings:
+        dilationSettings:
+          enableDilation: 1
+          dilationDistance: 1
+          dilationValidityThreshold: 0.25
+          dilationIterations: 1
+          squaredDistWeighting: 1
+        virtualOffsetSettings:
+          useVirtualOffset: 1
+          outOfGeoOffset: 0.01
+          searchMultiplier: 0.2
+      profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
+      lightingScenarios:
+      - Default
+    m_LightingScenario: Default
   m_Version: 3

@@ -203,8 +203,8 @@ namespace UnityEditor.VFX
                     GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                     if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
-                        VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
                         var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                        VFXViewWindow window = VFXViewWindow.GetWindow(asset, true);
                         window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
                     }
                 }
@@ -751,23 +751,18 @@ namespace UnityEditor.VFX
 
         private void AutoAttachToSelection()
         {
-            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            if ((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>() is VisualEffect visualEffect)
             {
-                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                if (window.graphView?.locked == false)
+                foreach (var window in VFXViewWindow.GetAllWindows())
                 {
-                    window.graphView.AttachToSelection();
+                    window.AttachTo(visualEffect);
                 }
             }
         }
 
         private void DetachIfDeleted()
         {
-            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
-            {
-                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                window.graphView.DetachIfDeleted();
-            }
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.DetachIfDeleted());
         }
     }
 }

@@ -16,9 +16,9 @@ comment:
         - TestProjects/HDRP*/**/*
       body: |
         **HDRP**
-        `/jobDefinition/.yamato%2Fall-hdrp.yml%23HDRP_trunk`
+        `/jobDefinition/.yamato%2Fall-hdrp.yml%23PR_HDRP_trunk`
         With changes to HDRP packages, you should also run
-        `/jobDefinition/.yamato%252Fall-lightmapper.yml%2523PR_LightMapper_trunk`
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_trunk`
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
@@ -28,7 +28,7 @@ comment:
         **URP**
         `/jobDefinition/.yamato%252Fall-urp.yml%2523PR_URP_trunk`
         With changes to URP packages, you should also run
-        `/jobDefinition/.yamato%252Fall-lightmapper.yml%2523PR_LightMapper_trunk`
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_trunk`
     - id: ShaderGraph
       files:
         - com.unity.shadergraph/**/*
