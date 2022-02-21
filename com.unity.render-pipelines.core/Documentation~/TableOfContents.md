@@ -13,7 +13,7 @@
   * [RTHandle fundamentals](rthandle-system-fundamentals.md)
   * [Using the RTHandle system](rthandle-system-using.md)
 * [Custom Material Inspector](custom-material-inspector.md)
-* [Exposing preferences in the menu](exposing-preferences.md)
+* [Adding properties in the menu](adding-properties.md)
 * [Synchronizing shader code and C#](generating-shader-includes.md)
 * [Look Dev](Look-Dev.md)
   * [Environment Library](Look-Dev-Environment-Library.md)
