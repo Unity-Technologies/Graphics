@@ -7,7 +7,7 @@ Autodesk® Maya or Autodesk® 3DsMax also include two variants of this shader, w
 - [Autodesk Interactive Masked](Autodesk-Interactive-Shader-Masked.md)
 - [Autodesk Interactive Transparent](Autodesk-Interactive-Shader-Transparent.md)
 
-Note that this shader is implemented as a [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html).
+**Note**: This shader is implemented as a [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html).
 
 ## Creating an Autodesk Interactive material
 
