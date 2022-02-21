@@ -52,12 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (capsuleShadows.enableIndirectShadows.value && capsuleShadows.indirectRangeFactor.value > 0.0f)
             {
-                m_Casters.Add(new CapsuleShadowCaster()
-                {
-                    casterType = (uint)CapsuleShadowCasterType.Indirect, // TODO: other indirect types
-                    sliceIndex = 0,
-                    // TODO: other fields
-                });
+                // TODO: other fields
+                m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Indirect, 0));
             }
         }
 
@@ -78,10 +74,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case LightType.Directional:
                 {
                     float theta = Mathf.Max(additionalLightData.angularDiameter, additionalLightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
-                    m_Casters.Add(new CapsuleShadowCaster()
+                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Directional, m_Casters.Count)
                     {
-                        casterType = (uint)CapsuleShadowCasterType.Directional,
-                        sliceIndex = (uint)m_Casters.Count,
                         shadowRange = additionalLightData.capsuleShadowRange,
                         tanTheta = Mathf.Tan(theta),
                         directionWS = -light.transform.forward.normalized,
@@ -98,10 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         originWS = hdCamera.camera.transform.position;
 
                     float minTheta = additionalLightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f;
-                    m_Casters.Add(new CapsuleShadowCaster()
+                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Point, m_Casters.Count)
                     {
-                        casterType = (uint)CapsuleShadowCasterType.Point,
-                        sliceIndex = (uint)m_Casters.Count,
+                        lightRange = light.range,
                         shadowRange = Mathf.Min(additionalLightData.capsuleShadowRange, light.range),
                         cosTheta = Mathf.Cos(minTheta),
                         positionRWS = light.transform.position - originWS,
@@ -187,14 +180,14 @@ namespace UnityEngine.Rendering.HighDefinition
             float singleCasterTanTheta = 0.0f;
             for (int i = 0; i < m_CapsuleShadowAllocator.m_Casters.Count; ++i)
             {
-                if (m_CapsuleShadowAllocator.m_Casters[i].isIndirect)
+                if (m_CapsuleShadowAllocator.m_Casters[i].casterType == CapsuleShadowCasterType.Indirect)
                 {
                     enableIndirectShadows = true;
                 }
                 else
                 {
                     enableDirectShadows = true;
-                    if (m_CapsuleShadowAllocator.m_Casters[i].isDirectional && singleCasterRange == 0.0f)
+                    if (m_CapsuleShadowAllocator.m_Casters[i].casterType == CapsuleShadowCasterType.Directional && singleCasterRange == 0.0f)
                     {
                         singleCasterDir = m_CapsuleShadowAllocator.m_Casters[i].directionWS;
                         singleCasterRange = m_CapsuleShadowAllocator.m_Casters[i].shadowRange;
@@ -411,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int i = 0; i < m_CapsuleShadowAllocator.m_Casters.Count; ++i)
                     {
-                        if (m_CapsuleShadowAllocator.m_Casters[i].isIndirect)
+                        if (m_CapsuleShadowAllocator.m_Casters[i].casterType == CapsuleShadowCasterType.Indirect)
                             directCountAndFlags |= (uint)CapsuleShadowFlags.IndirectEnabledBit;
                         else 
                             directCountAndFlags |= (uint)CapsuleShadowFlags.DirectEnabledBit;

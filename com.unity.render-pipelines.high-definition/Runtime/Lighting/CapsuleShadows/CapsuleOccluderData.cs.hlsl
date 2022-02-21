@@ -63,8 +63,8 @@ struct CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleShadowCaster
 {
-    uint casterType;
-    uint sliceIndex;
+    uint header;
+    float lightRange;
     float shadowRange;
     float tanTheta;
     float3 directionWS;

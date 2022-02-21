@@ -55,36 +55,48 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 
 bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, float tileRadiusWS)
 {
+    CapsuleShadowCaster lightData = volume.caster;
     CapsuleOccluderData capsuleData = volume.occluder;
 
-    float3 offsetWS = capsuleData.centerRWS - tileCenterWS;
-    float centerToCenterDistSq = dot(offsetWS, offsetWS);
+    float3 tileToCapsuleVec = capsuleData.centerRWS - tileCenterWS;
+    float tileToCapsuleDistSq = dot(tileToCapsuleVec, tileToCapsuleVec);
+
+    uint casterType = GetCapsuleCasterType(lightData);
 
     bool intersectsTile;
-    if (volume.caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+    if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
     {
-        float3 casterDirectionWS = volume.caster.directionWS;
-        float casterTanTheta = volume.caster.tanTheta;
-        float casterShadowRange = volume.caster.shadowRange;
-
-        float offsetDotLight = dot(offsetWS, casterDirectionWS);
-        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, casterDirectionWS));
+        float tileToCapsuleDotLight = dot(tileToCapsuleVec, lightData.directionWS);
+        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, lightData.directionWS));
         float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
-        float lightT = offsetDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius;   // farthest point along light axis
-        float tileRadiusTowardsCapsule = tileRadiusWS + min(lightT, casterShadowRange)*casterTanTheta;
+        float lightT = tileToCapsuleDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius;   // farthest point along light axis
+        float tileRadiusTowardsCapsule = tileRadiusWS + min(lightT, lightData.shadowRange)*lightData.tanTheta;
         float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
-        float3 checkOffsetWS = offsetWS - offsetDotLight*casterDirectionWS;
+        float3 checkOffsetWS = tileToCapsuleVec - tileToCapsuleDotLight*lightData.directionWS;
         bool intersectsPenumbra = (lightT > 0.f) && (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
 
-        float directRangeWS = capsuleData.offset + capsuleData.radius + casterShadowRange;
-        bool intersectsRange = (centerToCenterDistSq < Sq(directRangeWS + tileRadiusWS));
+        float capsuleRangeWS = capsuleData.offset + capsuleData.radius + lightData.shadowRange;
+        bool intersectsRange = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
 
         intersectsTile = intersectsPenumbra && intersectsRange;
     }
-    else
+    else if (casterType == CAPSULESHADOWCASTERTYPE_POINT)
     {
-        float indirectRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
-        intersectsTile = (centerToCenterDistSq < Sq(indirectRangeWS + tileRadiusWS));
+        float3 tileToLightVec = lightData.positionRWS - tileCenterWS;
+        bool lightIntersectsTile = (dot(tileToLightVec, tileToLightVec) < Sq(lightData.lightRange + tileRadiusWS));
+
+        float3 lightToCapsuleVec = capsuleData.centerRWS - lightData.positionRWS;
+        bool lightIntersectsCapsule = (dot(lightToCapsuleVec, lightToCapsuleVec) < Sq(lightData.lightRange + capsuleData.offset + capsuleData.radius));
+
+        float capsuleRangeWS = capsuleData.offset + capsuleData.radius + lightData.shadowRange;
+        bool intersectsRange = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
+
+        intersectsTile = lightIntersectsTile && lightIntersectsCapsule && intersectsRange;
+    }
+    else // casterType == CAPSULESHADOWCASTERTYPE_INDIRECT
+    {
+        float capsuleRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
+        intersectsTile = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
     }
     return intersectsTile;
 }
@@ -195,26 +207,10 @@ void CapsuleShadowLoop(
             uint volumeIndex = volumeBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
             CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
+            uint casterType = GetCapsuleCasterType(volume.caster);
+
             float occlusion;
-            if (volume.caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
-            {
-                occlusion = EvaluateCapsuleOcclusion(
-                    GetCapsuleDirectOcclusionFlags(),
-                    volume.caster.directionWS,
-                    false,
-                    volume.caster.cosTheta,
-                    volume.occluder.centerRWS - positionWS,
-                    volume.occluder.axisDirWS,
-                    volume.occluder.offset,
-                    volume.occluder.radius,
-                    volume.caster.shadowRange,
-                    normalWS);
-#ifdef CAPSULE_TILE_DEBUG
-                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT)
-                    ++processedCapsuleCounter;
-#endif
-            }
-            else // volume.caster.casterType == CAPSULESHADOWCASTERTYPE_INDIRECT
+            if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
             {
                 uint method = _CapsuleIndirectShadowMethod;
                 if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
@@ -247,7 +243,42 @@ void CapsuleShadowLoop(
                     ++processedCapsuleCounter;
 #endif
             }
-            UpdateVisibility(flatThreadIndex, volume.caster.sliceIndex, occlusion);
+            else
+            {
+                if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+                {
+                    occlusion = EvaluateCapsuleOcclusion(
+                        GetCapsuleDirectOcclusionFlags(),
+                        volume.caster.directionWS,
+                        false,
+                        volume.caster.cosTheta,
+                        volume.occluder.centerRWS - positionWS,
+                        volume.occluder.axisDirWS,
+                        volume.occluder.offset,
+                        volume.occluder.radius,
+                        volume.caster.shadowRange,
+                        normalWS);
+                }
+                else // casterType == CAPSULESHADOWCASTERTYPE_POINT
+                {
+                    occlusion = EvaluateCapsuleOcclusion(
+                        GetCapsuleDirectOcclusionFlags(),
+                        volume.caster.positionRWS - positionWS,
+                        true,
+                        volume.caster.cosTheta,
+                        volume.occluder.centerRWS - positionWS,
+                        volume.occluder.axisDirWS,
+                        volume.occluder.offset,
+                        volume.occluder.radius,
+                        volume.caster.shadowRange,
+                        normalWS);
+                }
+#ifdef CAPSULE_TILE_DEBUG
+                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT)
+                    ++processedCapsuleCounter;
+#endif
+            }
+            UpdateVisibility(flatThreadIndex, GetCapsuleSliceIndex(volume.caster), occlusion);
         }
     }
 }

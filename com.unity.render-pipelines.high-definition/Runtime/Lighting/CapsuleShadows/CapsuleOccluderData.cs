@@ -80,20 +80,31 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleShadowCaster
     {
-        public uint casterType;
-        public uint sliceIndex;
+        public uint header;             // [15:8]=sliceIndex, [7:0]=casterType
+        public float lightRange;        // point/spot light only
         public float shadowRange;
         public float tanTheta;          // directional light only
 
         public Vector3 directionWS;     // directional light, or spot axis
         public float cosTheta;          // directional light, or maxCosTheta for point/spot
 
-        public Vector3 positionRWS;     // point/spot light
-        public float radiusWS;          // point/spot light
+        public Vector3 positionRWS;     // point/spot light only
+        public float radiusWS;          // point/spot light only
 
-        internal bool isDirectional { get { return casterType == (uint)CapsuleShadowCasterType.Directional; } }
+        internal CapsuleShadowCaster(CapsuleShadowCasterType casterType, int sliceIndex)
+        {
+            header = ((uint)sliceIndex << 8) | (uint)casterType;
+            lightRange = 0.0f;
+            shadowRange = 0.0f;
+            tanTheta = 1.0f;
+            directionWS = Vector3.zero;
+            cosTheta = 1.0f;
+            positionRWS = Vector3.zero;
+            radiusWS = 0.0f;
+        }
 
-        internal bool isIndirect {  get {  return casterType == (uint)CapsuleShadowCasterType.Indirect; } }
+        internal CapsuleShadowCasterType casterType { get { return (CapsuleShadowCasterType)(header & 0xffU); } }
+        internal uint sliceIndex { get { return (header >> 8) & 0xffU; } }
     }
 
     internal static class CapsuleOccluderExt

@@ -510,6 +510,10 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
         float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(light.positionRWS, true, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
         shadow *= capsuleShadow;
     }
+    if (_CapsuleDirectShadowsEnabled && !_CapsuleShadowInLightLoop && light.capsuleCasterIndex != -1)
+    {
+        shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, light.capsuleCasterIndex).x);
+    }
 #endif
 
 #ifdef DEBUG_DISPLAY
