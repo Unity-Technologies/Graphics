@@ -56,8 +56,9 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRendererData()
         {
             name = this.GetType().Name;
-            Awake();
-            OnEnable();
+            //TODO: Check if this is required.
+            //Awake();
+            //OnEnable();
         }
 
         /// <summary>
