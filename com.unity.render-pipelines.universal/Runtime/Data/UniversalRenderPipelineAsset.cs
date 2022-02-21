@@ -917,6 +917,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_HDRColorBufferPrecision = value; }
         }
 
+        /// <summary>
         /// Specifies the msaa sample count used by this <c>UniversalRenderPipelineAsset</c>
         /// </summary>
         /// <see cref="SampleCount"/>
