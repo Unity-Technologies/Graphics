@@ -292,9 +292,12 @@ namespace UnityEngine.Rendering
                 }
 
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
-                m_DebugScenarioField = new DebugUI.EnumField { displayName = "Scenario To Blend With",
+                m_DebugScenarioField = new DebugUI.EnumField
+                {
+                    displayName = "Scenario To Blend With",
                     enumNames = m_DebugScenarioNames, enumValues = m_DebugScenarioValues,
-                    getIndex = () => {
+                    getIndex = () =>
+                    {
                         RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
                         debugDisplay.otherStateIndex = 0;
@@ -311,7 +314,8 @@ namespace UnityEngine.Rendering
                         }
                         return debugDisplay.otherStateIndex;
                     },
-                    setIndex = value => {
+                    setIndex = value =>
+                    {
                         string other = value == 0 ? null : m_DebugScenarioNames[value].text;
                         sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
                         debugDisplay.otherStateIndex = value;

@@ -25,7 +25,7 @@ public class LightScenario : MonoBehaviour
 #endif
     }
 
-    private void Start()
+    private void Update()
     {
         if (Application.isPlaying)
         {
@@ -40,11 +40,11 @@ public class LightScenario : MonoBehaviour
     {
         Lightmapping.bakeStarted -= SetupLight;
     }
-#endif
 
     void SetupLight()
     {
         var color = ProbeReferenceVolume.instance.lightingScenario == scenario1 ? scenario1Color : scenario2Color;
         GetComponent<Light>().color = color;
     }
+#endif
 }
