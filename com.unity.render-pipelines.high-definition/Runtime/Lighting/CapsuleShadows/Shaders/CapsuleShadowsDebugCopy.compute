@@ -1,0 +1,23 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
+
+TEXTURE2D_ARRAY(_CapsuleShadowsTexture);
+RW_TEXTURE2D_X(float, _CapsuleShadowsDebugOutput);
+
+[numthreads(8,8,1)]
+void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 pixelCoord = dispatchThreadId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = _CapsuleShadowsTexture[uint3(pixelCoord, _CapsuleDebugCasterIndex)];
+}

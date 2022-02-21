@@ -138,6 +138,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CapsuleOccluders.bounds = null;
         }
 
+        internal int GetMaxCapsuleShadows()
+        {
+            return CapsuleShadowAllocator.k_MaxCasters - 1;
+        }
+
         void BuildCapsuleCastersListForLightLoop(HDCamera hdCamera, CullingResults cullResults, CapsuleShadowsVolumeComponent capsuleShadows)
         {
             if (capsuleShadows.enableDirectShadows.value)
@@ -467,6 +472,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader cs;
             public int kernel;
 
+            public uint debugCasterIndex;
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
@@ -492,6 +498,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle upscaleOutput;
             public TextureHandle renderOutput;
             public TextureHandle depthPyramid;
+        }
+
+        class CapsuleShadowsDebugCopyPassData
+        {
+            public ComputeShader cs;
+            public int kernel;
+
+            public Vector2Int upscaledSize;
+            public TextureHandle upscaleOutput;
+            public TextureHandle debugOutput;
         }
 
         struct CapsuleBuildVolumeOutput
@@ -565,6 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cs = defaultResources.shaders.capsuleShadowsRenderCS;
                 passData.kernel = passData.cs.FindKernel("Main");
 
+                passData.debugCasterIndex = m_CurrentDebugDisplaySettings.data.capsuleShadowIndex;
                 passData.tileDebugMode = parameters.tileDebugMode;
                 if (parameters.tileDebugMode != CapsuleTileDebugMode.None)
                 {
@@ -603,8 +620,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DepthPyramidTextureSize = sizeAndRcp(data.depthPyramidTextureSize);
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
-                        cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
                         cb._CapsuleCasterCount = (uint)data.casterCount;
+                        cb._CapsuleDebugCasterIndex = data.debugCasterIndex;
+                        cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
                         ConstantBuffer.Push(ctx.cmd, cb, data.cs, HDShaderIDs.ShaderVariablesCapsuleShadows);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
@@ -669,6 +687,43 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        TextureHandle DebugCopyCapsuleShadows(
+            RenderGraph renderGraph,
+            TextureHandle upscaleOutput,
+            in CapsuleShadowParameters parameters)
+        {
+            using (var builder = renderGraph.AddRenderPass<CapsuleShadowsDebugCopyPassData>("Capsule Shadows Debug Copy", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsDebugCopy)))
+            {
+                var debugOutput = renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one, dynamicResolution: true, xrReady: true)
+                    {
+                        colorFormat = parameters.textureFormat,
+                        enableRandomWrite = true,
+                        name = "Capsule Shadows Debug"
+                    });
+
+                passData.cs = defaultResources.shaders.capsuleShadowsDebugCopyCS;
+                passData.kernel = passData.cs.FindKernel("Main");
+
+                passData.upscaledSize = parameters.upscaledSize;
+                passData.upscaleOutput = builder.ReadTexture(upscaleOutput);
+                passData.debugOutput = builder.WriteTexture(debugOutput);
+
+                builder.SetRenderFunc(
+                    (CapsuleShadowsDebugCopyPassData data, RenderGraphContext ctx) =>
+                    {
+                        ConstantBuffer.Set<ShaderVariablesCapsuleShadows>(ctx.cmd, data.cs, HDShaderIDs.ShaderVariablesCapsuleShadows);
+
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsTexture, data.upscaleOutput);
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsDebugOutput, data.debugOutput);
+
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, HDUtils.DivRoundUp(data.upscaledSize.x, 8), HDUtils.DivRoundUp(data.upscaledSize.y, 8), 1);
+                    });
+
+                return debugOutput;
+            }
+        }
+
         internal TextureHandle RenderCapsuleShadows(
             RenderGraph renderGraph,
             HDCamera hdCamera,
@@ -724,9 +779,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         depthMipInfo,
                         in parameters);
                 }
-            }
 
-            PushFullScreenDebugTexture(m_RenderGraph, result, FullScreenDebugMode.CapsuleShadows);
+                if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.CapsuleShadows)
+                {
+                    var debug = DebugCopyCapsuleShadows(
+                        renderGraph,
+                        result,
+                        in parameters);
+
+                    PushFullScreenDebugTexture(renderGraph, debug, FullScreenDebugMode.CapsuleShadows);
+                }
+            }
             return result;
         }
     }

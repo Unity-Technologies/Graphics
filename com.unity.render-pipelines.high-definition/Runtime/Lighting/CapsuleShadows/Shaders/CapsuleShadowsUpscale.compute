@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
 TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput);
-RW_TEXTURE2D_ARRAY(float2, _CapsuleShadowsTexture);
+RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsTexture);
 
 float SumElements(float4 v)
 {
@@ -19,7 +19,7 @@ float SumElements(float4 v)
 }
 
 [numthreads(8,8,1)]
-void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : SV_GroupIndex)
+void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);

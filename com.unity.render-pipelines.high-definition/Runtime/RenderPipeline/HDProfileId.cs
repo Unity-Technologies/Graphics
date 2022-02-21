@@ -191,6 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         CapsuleShadowsBuildVolumes,
         CapsuleShadowsRender,
         CapsuleShadowsUpscale,
+        CapsuleShadowsDebugCopy,
 
         // Misc
         VolumeUpdate,

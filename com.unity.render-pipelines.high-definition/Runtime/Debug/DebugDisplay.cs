@@ -308,6 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
+            /// <summary>Index of capsule shadow to display.</summary>
+            public uint capsuleShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
             public uint maxQuadCost = 5;
             /// <summary>Max vertex density for vertex density display.</summary>
@@ -1285,6 +1287,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fullscreen debug
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
             public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
+            public static readonly NameAndTooltip CapsuleShadowIndex = new() { name = "Capsule Shadow Index", tooltip = "Select the index of the capsule shadows to view with the slider. There must be a Light in the scene that uses Capsule Shadows or Indirect Capsule Shadows must be enabled." };
             public static readonly NameAndTooltip DepthPyramidDebugMip = new() { name = "Debug Mip", tooltip = "Enable to view a lower-resolution mipmap." };
             public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "Enable remapping of displayed depth values for better vizualization." };
             public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "Distance at which depth values remap starts (0 is near plane, 1 is far plane)" };
@@ -1613,6 +1616,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
             {
                 list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex, getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() });
+            }
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.CapsuleShadows)
+            {
+                list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.CapsuleShadowIndex, getter = () => data.capsuleShadowIndex, setter = value => data.capsuleShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxCapsuleShadows() });
             }
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)

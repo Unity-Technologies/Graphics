@@ -12,8 +12,12 @@ CBUFFER_START(ShaderVariablesCapsuleShadows)
     float4 _DepthPyramidTextureSize;
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;
-    uint _CapsuleTileDebugMode;
     uint _CapsuleCasterCount;
+    uint _CapsulePad0;
+    uint _CapsuleDebugCasterIndex;
+    uint _CapsuleTileDebugMode;
+    uint _CapsulePad1;
+    uint _CapsulePad2;
 CBUFFER_END
 
 
