@@ -26,14 +26,14 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 6
   compensation:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   limitMin:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1.5
   limitMax:
     m_OverrideState: 1
-    m_Value: 6
+    m_Value: 8
   curveMap:
     m_OverrideState: 0
     m_Value:

@@ -1,5 +1,5 @@
 # Universal Render Pipeline Asset
-To use the Universal Render Pipeline (URP), you have to [create a URP Asset and assign the asset in the Graphics settings](configuring-universalrp-for-use.md).
+Any Unity project that uses the Universal Render Pipeline (URP) needs a URP Asset to drive the settings. If the project was created using a URP template these will already be assigned in Project Settings and the assets will live in the **Settings** project folder. If URP is being added to an existing project, you have to [create a URP Asset and assign the asset in the Graphics settings](configuring-universalrp-for-use.md).
 
 The URP Asset controls several graphical features and quality settings for the Universal Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the URP. You can then adjust the corresponding settings directly in the URP, instead of looking for them elsewhere.
 
@@ -120,7 +120,6 @@ This section allows you to fine-tune global post-processing settings.
 | __Grading Mode__ | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<br />&#8226; __High Dynamic Range__: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.<br />&#8226; __Low Dynamic Range__: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping. |
 | __LUT Size__     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 | __Fast sRGB/Liner Conversions__ | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
-| __Screen Coordinates Override__ | Select this option to allow cameras to use Screen Coordinates Override.|
 | __Volume Update Mode__ | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.|
 
 

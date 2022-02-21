@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
             //It is possible that the given color target is now the frontbuffer
             if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
@@ -161,9 +161,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

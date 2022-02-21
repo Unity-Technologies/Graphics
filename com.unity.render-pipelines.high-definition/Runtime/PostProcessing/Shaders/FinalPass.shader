@@ -6,7 +6,6 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ FXAA
         #pragma multi_compile_local_fragment _ GRAIN
         #pragma multi_compile_local_fragment _ DITHER
@@ -19,7 +18,6 @@ Shader "Hidden/HDRP/FinalPass"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
@@ -145,7 +143,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if GRAIN
             {
                 // Grain in range [0;1] with neutral at 0.5
-                float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (SCREEN_COORD_APPLY_SCALEBIAS(positionNDC) * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
+                float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (positionNDC * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
 
                 // Remap [-1;1]
                 grain = (grain - 0.5) * 2.0;
