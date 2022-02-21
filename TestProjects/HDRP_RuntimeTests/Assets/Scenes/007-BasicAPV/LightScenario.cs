@@ -27,7 +27,7 @@ public class LightScenario : MonoBehaviour
 
     private void Update()
     {
-        if (Application.isPlaying)
+        if (Application.isPlaying && ProbeReferenceVolume.instance.isInitialized)
         {
             ProbeReferenceVolume.instance.SetNumberOfCellsLoadedPerFrame(100);
             ProbeReferenceVolume.instance.lightingScenario = scenario1;

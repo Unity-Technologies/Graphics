@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
         // Scenario blending debug data
         GUIContent[] m_DebugScenarioNames = new GUIContent[0];
         int[] m_DebugScenarioValues = new int[0];
-        string m_DebugActiveSceneGUID;
+        string m_DebugActiveSceneGUID, m_DebugActiveScenario;
         DebugUI.EnumField m_DebugScenarioField;
 
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
@@ -269,7 +269,8 @@ namespace UnityEngine.Rendering
                             allScenarios.Add(scenario);
                     }
 
-                    if (m_DebugActiveSceneGUID == guid && allScenarios.Count + 1 == m_DebugScenarioNames.Length)
+                    allScenarios.Remove(sceneData.lightingScenario);
+                    if (m_DebugActiveSceneGUID == guid && allScenarios.Count + 1 == m_DebugScenarioNames.Length && m_DebugActiveScenario == sceneData.lightingScenario)
                         return;
 
                     int i = 0;
@@ -285,6 +286,7 @@ namespace UnityEngine.Rendering
                     }
 
                     m_DebugActiveSceneGUID = guid;
+                    m_DebugActiveScenario = sceneData.lightingScenario;
                     m_DebugScenarioField.enumNames = m_DebugScenarioNames;
                     m_DebugScenarioField.enumValues = m_DebugScenarioValues;
                     if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)

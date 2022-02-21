@@ -746,7 +746,8 @@ namespace UnityEngine.Rendering
         bool m_ProbeReferenceVolumeInit = false;
         bool m_EnabledBySRP = false;
 
-        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        /// <summary>Is Probe Volume initialized.</summary>
+        public bool isInitialized => m_ProbeReferenceVolumeInit;
         internal bool enabledBySRP => m_EnabledBySRP;
 
         internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;

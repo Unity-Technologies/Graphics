@@ -171,15 +171,18 @@ namespace UnityEngine.Rendering
             {
                 // Draw the renamable label for the baking set name
                 string key = k_RenameFocusKey + index;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedBakingSet = false;
-                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                if (active)
                 {
-                    if (rect.Contains(Event.current.mousePosition))
-                        m_RenameSelectedBakingSet = true;
+                    if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                        m_RenameSelectedBakingSet = false;
+                    if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                    {
+                        if (rect.Contains(Event.current.mousePosition))
+                            m_RenameSelectedBakingSet = true;
+                    }
+                    if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                        m_RenameSelectedBakingSet = false;
                 }
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedBakingSet = false;
 
                 var set = sceneData.bakingSets[index];
 
@@ -278,15 +281,18 @@ namespace UnityEngine.Rendering
 
                 // Event
                 string key = k_RenameFocusKey + index;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedScenario = false;
-                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                if (active)
                 {
-                    if (rect.Contains(Event.current.mousePosition))
-                        m_RenameSelectedScenario = true;
+                    if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                        m_RenameSelectedScenario = false;
+                    if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                    {
+                        if (rect.Contains(Event.current.mousePosition))
+                            m_RenameSelectedScenario = true;
+                    }
+                    if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                        m_RenameSelectedScenario = false;
                 }
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedScenario = false;
 
                 // Name
                 var scenarioName = bakingSet.lightingScenarios[index];
