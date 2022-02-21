@@ -107,7 +107,6 @@ namespace UnityEngine.Rendering.Universal
         /// True if post-processing effect is enabled while rendering the camera stack.
         /// </summary>
         public bool postProcessingEnabled;
-        public bool supportsDynamicBatching;
     }
 
     /// <summary>
