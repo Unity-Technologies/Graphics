@@ -93,7 +93,6 @@ namespace UnityEditor.Rendering
         static void RemoveComponent<T>(MenuCommand command)
             where T : Component
         {
-            T comp = command.context as T;
             RemoveComponent(typeof(T), comp);
         }
 
