@@ -1170,9 +1170,10 @@ namespace UnityEngine.Rendering
             using var validityNeighbourMask = new NativeArray<byte>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData
-            using var touchupVolumeInteraction = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var positionsOld = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var touchupVolumeInteractionOld = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var touchupVolumeInteraction = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsetsOld = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -1227,6 +1228,7 @@ namespace UnityEngine.Rendering
                     var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var offsetChunkTarget = offsets.GetSubArray(chunkSizeInProbes, chunkSizeInProbes);
+                    var touchupVolumeInteractionChunkTarget = touchupVolumeInteraction.GetSubArray(chunkSizeInProbes, chunkSizeInProbes);
 
                     NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
                     NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
@@ -1268,6 +1270,7 @@ namespace UnityEngine.Rendering
                                         validityChunkTarget[index] = 0.0f;
                                         positionsChunkTarget[index] = Vector3.zero;
                                         offsetChunkTarget[index] = Vector3.zero;
+                                        touchupVolumeInteractionChunkTarget[index] = 0.0f;
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                             WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
@@ -1283,6 +1286,7 @@ namespace UnityEngine.Rendering
                                         validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
                                         offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
+                                        touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                         {
@@ -1319,7 +1323,7 @@ namespace UnityEngine.Rendering
                 validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validityOld);
                 positionsOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
                 offsetsOld.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
-                touchupVolumeInteraction.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.touchupVolumeInteraction);
+                touchupVolumeInteractionOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.touchupVolumeInteraction);
 
                 startCounts.Add(cellCounts);
             }
@@ -1374,6 +1378,8 @@ namespace UnityEngine.Rendering
                 {
                     fs.Write(new ReadOnlySpan<byte>(positionsOld.GetUnsafeReadOnlyPtr(), positionsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteractionOld.GetUnsafeReadOnlyPtr(), touchupVolumeInteractionOld.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
                     fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteraction.GetUnsafeReadOnlyPtr(), touchupVolumeInteraction.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
