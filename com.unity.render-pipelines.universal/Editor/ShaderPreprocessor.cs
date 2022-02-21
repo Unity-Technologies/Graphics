@@ -942,7 +942,7 @@ namespace UnityEditor.Rendering.Universal
                 if (renderer is UniversalRenderer)
                 {
                     UniversalRenderer universalRenderer = (UniversalRenderer)renderer;
-                    if (universalRenderer.renderingMode == RenderingMode.Deferred)
+                    if (universalRenderer.renderingModeRequested == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
                         accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;

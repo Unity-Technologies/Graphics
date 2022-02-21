@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using CurveState = InspectorCurveEditor.CurveState;
 
-    [VolumeComponentEditor(typeof(ColorCurves))]
+    [CustomEditor(typeof(ColorCurves))]
     sealed class ColorCurvesEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Master;

@@ -1196,6 +1196,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Safely release a Graphics Buffer.
+        /// </summary>
+        /// <param name="buffer">Graphics Buffer that needs to be released.</param>
+        public static void SafeRelease(GraphicsBuffer buffer)
+        {
+            if (buffer != null)
+                buffer.Release();
+        }
+
+        /// <summary>
         /// Safely release a Compute Buffer.
         /// </summary>
         /// <param name="buffer">Compute Buffer that needs to be released.</param>

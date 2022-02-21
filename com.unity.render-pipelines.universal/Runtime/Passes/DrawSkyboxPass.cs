@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class DrawSkyboxPass : ScriptableRenderPass
     {
+        /// <summary>
+        /// Creates a new <c>DrawSkyboxPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public DrawSkyboxPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));

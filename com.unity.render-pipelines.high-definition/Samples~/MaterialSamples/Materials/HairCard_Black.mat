@@ -1,0 +1,186 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-572299072162324025
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
+--- !u!21 &2100000
+Material:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HairCard_Black
+  m_Shader: {fileID: -6465566751694194690, guid: e11d5421cda40b14dae6c72e99f321bd, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ShaderKeywords: _ALPHATEST_ON _CONSERVATIVE_DEPTH_OFFSET _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT
+    _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _RECALCULATE_CARD_NORMALS _SURFACE_TYPE_TRANSPARENT
+    _TRANSPARENT_WRITES_MOTION_VEC
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 1
+  m_CustomRenderQueue: 2750
+  stringTagMap:
+    MotionVector: User
+    RenderType: Transparent
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  - TransparentDepthPostpass
+  - TransparentBackface
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Alpha:
+        m_Texture: {fileID: 2800000, guid: c555d93bea2ae764b94ce79beeb63a4e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlphaDepth:
+        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Alpha_Depth:
+        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Masks:
+        m_Texture: {fileID: 2800000, guid: 90f9510c5abe671408314d014b0924cc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_4adae90930c444c9a4e1cdcce51a7545_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6900a676e9d22024f9d13cb6bde68e8c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f635909c9f214acdb43680cbe1ed69c9_Texture_1:
+        m_Texture: {fileID: 2800000, guid: c555d93bea2ae764b94ce79beeb63a4e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f8ff6e28a7944a5d84f9b56701df7a50_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6509a7ee5bea3e5488a24ad5c5fa37e9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AddPrecomputedVelocity: 0
+    - _AlphaCutoffEnable: 1
+    - _AlphaDstBlend: 10
+    - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
+    - _Alpha_Threshold: 0
+    - _Ambient_Occlusion: 0.5
+    - _Baked_Ambient_Occlusion: 0.696
+    - _Baked_Ambient_Occlusion_Intensity: 0.697
+    - _BlendMode: 0
+    - _ConservativeDepthOffsetEnable: 1
+    - _CullMode: 0
+    - _CullModeForward: 0
+    - _Cuticle_Angle: 4
+    - _DepthOffsetEnable: 1
+    - _Depth_Offset: 0.025
+    - _Dither: -2.17
+    - _Dithering_Fading: 0.087
+    - _DoubleSidedEnable: 1
+    - _DoubleSidedGIMode: 0
+    - _DoubleSidedNormalMode: 2
+    - _DstBlend: 10
+    - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableFogOnTransparent: 1
+    - _Float: 1
+    - _Going_Grey: 0
+    - _Length_Smoothness: 0.7
+    - _MaxRadius: 0.006
+    - _MaxSmoothness: 0.75
+    - _Max_Opacity: 1
+    - _Max_Smoothness: 0.7
+    - _MinRadius: 0.002
+    - _MinSmoothness: 0.6
+    - _Min_Smoothness: 0.6
+    - _Opacity_Fading: 0.1
+    - _Opacity_Threshold: 0.75
+    - _OpaqueCullMode: 2
+    - _Per_Strand_Hue_Variation: 0.05
+    - _Per_Strand_Smoothness_Variation: 0.147
+    - _RECALCULATE_CARD_NORMALS: 1
+    - _RIBBON_HAIR: 1
+    - _Radial_Smoothness: 0.7
+    - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
+    - _RenderQueueType: 3
+    - _RequireSplitLighting: 0
+    - _Root_Distance: 0.431
+    - _Root_Fade: 0.393
+    - _Root_Smoothness: 0.502
+    - _Root_Smoothness_Distance: 0.5
+    - _Root_Smoothness_Fade: 0.5
+    - _SrcBlend: 1
+    - _StencilRef: 0
+    - _StencilRefDepth: 0
+    - _StencilRefDistortionVec: 4
+    - _StencilRefGBuffer: 2
+    - _StencilRefMV: 32
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 40
+    - _SupportDecals: 1
+    - _SurfaceType: 1
+    - _Tip: 0.073
+    - _Tip_Distance: 0.625
+    - _Tip_Fade: 1
+    - _Tip_Thinning: 0.5
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 1
+    - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 1
+    - _TransparentZWrite: 0
+    - _USE_DITHERING: 1
+    - _UseShadowThreshold: 1
+    - _ZTestDepthEqualForOpaque: 4
+    - _ZTestGBuffer: 3
+    - _ZTestTransparent: 4
+    - _ZWrite: 0
+    - _alpha: 0
+    - _alphaclip: 0
+    - _alphadepthclip: 0
+    - _maxOpacity: 1
+    - _normal_strength: 0
+    m_Colors:
+    - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HairStrandDirection: {r: 0, g: -1, b: 0, a: 0}
+    - _Hair_Strand_Direction: {r: 0, g: -1, b: 0, a: 0}
+    - _Length_Color: {r: 0.09433961, g: 0.07624301, b: 0.07624301, a: 1}
+    - _Root_Color: {r: 0.1137255, g: 0.09411766, b: 0.09019608, a: 1}
+    - _Tiling: {r: 1, g: 10, b: 0, a: 0}
+    - _Tip_Color: {r: 0.20784315, g: 0.08627451, b: 0.07058824, a: 1}
+  m_BuildTextureStacks: []

@@ -122,7 +122,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public DistortionMode m_DistortionMode;
         public bool m_DistortionDepthTest;
         public bool m_AlphaTest;
-        public bool m_AlphaToMask;
         public int m_SortPriority;
         public DoubleSidedMode m_DoubleSidedMode;
         public NormalDropOffSpace m_NormalDropOffSpace;

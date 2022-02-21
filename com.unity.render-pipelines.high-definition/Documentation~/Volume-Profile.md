@@ -6,11 +6,29 @@ A Volume Profile organizes its properties into structures which control differen
 
 ## Creating and customizing a Volume Profile
 
-There are multiple ways to create a Volume Profile. Unity creates, and links, a Volume Profile automatically when you create a **Scene Settings** GameObject (menu: **Rendering > Scene Settings**). You can also create a Volume Profile manually. Navigate to menu: **Assets > Create > Volume Profile**.
+There are multiple ways to create a Volume Profile.
 
-Open the Volume Profile in the Inspector to edit its properties. To do this, you can either:
+Create a Scene Settings GameObject from the **GameObject**  >  **Volume** menu. You can select one of the following:
 
-&#8226; Select the Volume Profile in on the Assets folder.
+&#8226; [**Global Volume**](Volumes.md)
+
+&#8226; [**Sky and Fog Global Volume**](Override-Visual-Environment.md)
+
+&#8226; **Box Volume**
+
+&#8226; **Sphere Volume**
+
+&#8226; **Convex Mesh Volume**
+
+&#8226; [**Custom Pass Volume**](Custom-Pass-Creating.md)
+
+Unity creates and links a Volume Profile automatically when you create one of these volumes.
+
+You can also create a Volume Profile manually. To do this, navigate to **Assets** > **Create** > **Volume Profile**.
+
+Open the Volume Profile in the Inspector to edit its properties.  To do this, you can either:
+
+&#8226; Select the Volume Profile in the Assets folder.
 
 ![](Images/VolumeProfile1.png)
 

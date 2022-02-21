@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class LitDetailGUI
     {
-        public static class Styles
+        internal static class Styles
         {
             public static readonly GUIContent detailInputs = EditorGUIUtility.TrTextContent("Detail Inputs",
                 "These settings define the surface details by tiling and overlaying additional maps on the surface.");

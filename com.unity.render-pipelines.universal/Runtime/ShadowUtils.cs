@@ -22,6 +22,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Various utility functions used for shadows.
+    /// </summary>
     public static class ShadowUtils
     {
         private static readonly bool m_ForceShadowPointSampling;
@@ -32,6 +35,22 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
         }
 
+        /// <summary>
+        /// Extracts the directional light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cascadeIndex"></param>
+        /// <param name="shadowmapWidth"></param>
+        /// <param name="shadowmapHeight"></param>
+        /// <param name="shadowResolution"></param>
+        /// <param name="shadowNearPlane"></param>
+        /// <param name="cascadeSplitDistance"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <returns></returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             bool result = ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowmapWidth, shadowmapHeight, shadowResolution, shadowNearPlane, out cascadeSplitDistance, out shadowSliceData);
@@ -40,6 +59,20 @@ namespace UnityEngine.Rendering.Universal
             return result;
         }
 
+        /// <summary>
+        /// Extracts the directional light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cascadeIndex"></param>
+        /// <param name="shadowmapWidth"></param>
+        /// <param name="shadowmapHeight"></param>
+        /// <param name="shadowResolution"></param>
+        /// <param name="shadowNearPlane"></param>
+        /// <param name="cascadeSplitDistance"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <returns></returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData)
         {
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
@@ -64,6 +97,17 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Extracts the spot light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="shadowMatrix"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <param name="splitData"></param>
+        /// <returns></returns>
         public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
@@ -71,6 +115,19 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Extracts the spot light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cubemapFace"></param>
+        /// <param name="fovBias"></param>
+        /// <param name="shadowMatrix"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <param name="splitData"></param>
+        /// <returns></returns>
         public static bool ExtractPointLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
@@ -95,6 +152,15 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="context"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="settings"></param>
+        /// <param name="proj"></param>
+        /// <param name="view"></param>
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view)
@@ -114,6 +180,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
         }
 
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="context"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="settings"></param>
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
@@ -121,6 +194,13 @@ namespace UnityEngine.Rendering.Universal
                 shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
         }
 
+        /// <summary>
+        /// Calculates the maximum tile resolution in an Atlas.
+        /// </summary>
+        /// <param name="atlasWidth"></param>
+        /// <param name="atlasHeight"></param>
+        /// <param name="tileCount"></param>
+        /// <returns>The maximum tile resolution in an Atlas.</returns>
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
@@ -133,6 +213,12 @@ namespace UnityEngine.Rendering.Universal
             return resolution;
         }
 
+        /// <summary>
+        /// Used for baking bake cascade transforms in each shadow matrix.
+        /// </summary>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="atlasWidth"></param>
+        /// <param name="atlasHeight"></param>
         public static void ApplySliceTransform(ref ShadowSliceData shadowSliceData, int atlasWidth, int atlasHeight)
         {
             Matrix4x4 sliceTransform = Matrix4x4.identity;
@@ -147,6 +233,15 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.shadowTransform = sliceTransform * shadowSliceData.shadowTransform;
         }
 
+        /// <summary>
+        /// Calculates the depth and normal bias from a light.
+        /// </summary>
+        /// <param name="shadowLight"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="lightProjectionMatrix"></param>
+        /// <param name="shadowResolution"></param>
+        /// <returns>The depth and normal bias from a visible light.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
             if (shadowLightIndex < 0 || shadowLightIndex >= shadowData.bias.Count)
@@ -246,6 +341,12 @@ namespace UnityEngine.Rendering.Universal
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
 
+        /// <summary>
+        /// Sets up the shadow bias, light direction and position for rendering.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="shadowLight"></param>
+        /// <param name="shadowBias"></param>
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
