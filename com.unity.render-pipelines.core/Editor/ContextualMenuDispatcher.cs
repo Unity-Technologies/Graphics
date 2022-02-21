@@ -11,12 +11,19 @@ namespace UnityEditor.Rendering
     {
         public static IEnumerable<Component> ComponentDependencies(Component component)
         {
+            if (component == null)
+                yield break;
+
+            var componentType = component.GetType();
             foreach (var c in component.gameObject.GetComponents<Component>())
             {
                 foreach (var rc in c.GetType().GetCustomAttributes(typeof(RequireComponent), true).Cast<RequireComponent>())
                 {
-                    if (rc.m_Type0 == component.GetType() || rc.m_Type1 == component.GetType() || rc.m_Type2 == component.GetType())
+                    if (rc.m_Type0 == componentType || rc.m_Type1 == componentType || rc.m_Type2 == componentType)
+                    {
                         yield return c;
+                        break;
+                    }
                 }
             }
         }
