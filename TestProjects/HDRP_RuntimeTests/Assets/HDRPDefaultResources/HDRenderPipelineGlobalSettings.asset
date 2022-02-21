@@ -66,7 +66,8 @@ MonoBehaviour:
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessBlursCustomPostProcesses: []
-  afterPostProcessCustomPostProcesses: []
+  afterPostProcessCustomPostProcesses:
+  - TvMonochrome, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses: []
   lightLayerName0: 
   lightLayerName1: 
@@ -84,7 +85,6 @@ MonoBehaviour:
   decalLayerName5: 
   decalLayerName6: 
   decalLayerName7: 
-  shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   colorGradingSpace: 1
   diffusionProfileSettingsList:
@@ -123,6 +123,7 @@ MonoBehaviour:
     serializedBakeSettings:
     - sceneGUID: 5028fc98db6fe304c90852113dca5b00
       settings:
+        m_Version: 0
         dilationSettings:
           enableDilation: 1
           dilationDistance: 1
@@ -133,10 +134,16 @@ MonoBehaviour:
           useVirtualOffset: 1
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
+          rayOriginBias: 0
+          maxHitsPerRay: 0
+          collisionMask:
+            serializedVersion: 2
+            m_Bits: 0
     serializedBakingSets:
     - name: Default
       sceneGUIDs: []
       settings:
+        m_Version: 1
         dilationSettings:
           enableDilation: 1
           dilationDistance: 1
@@ -147,11 +154,18 @@ MonoBehaviour:
           useVirtualOffset: 1
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
+          rayOriginBias: -0.001
+          maxHitsPerRay: 10
+          collisionMask:
+            serializedVersion: 2
+            m_Bits: 4294967291
       profile: {fileID: 11400000, guid: c5b7fcbfc6aa87e458cb1c1893973b7c, type: 2}
+      bakingStates: []
     - name: Test
       sceneGUIDs:
       - 5028fc98db6fe304c90852113dca5b00
       settings:
+        m_Version: 1
         dilationSettings:
           enableDilation: 1
           dilationDistance: 1
@@ -162,5 +176,14 @@ MonoBehaviour:
           useVirtualOffset: 1
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
+          rayOriginBias: -0.001
+          maxHitsPerRay: 10
+          collisionMask:
+            serializedVersion: 2
+            m_Bits: 4294967291
       profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+      bakingStates: []
+    m_BakingState: Default
   m_Version: 3
+  m_ShaderVariantLogLevel: 0
+  m_ExportShaderVariants: 1
