@@ -149,9 +149,7 @@ float GetOcclusion(float ratio)
     uvBase.y = uvBase.y;
 #endif
 
-    //float cloudOcclusion = LOAD_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, uint2(uvBase * _ScreenSize.xy), 0).w;
-    float cloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, uvBase, 0).w;
-    //contrib *= 1.0f - saturate(cloudOcclusion);
+    float cloudOcclusion = LOAD_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, uint2(uvBase * _ScreenSize.xy), 0).w;
     contrib *= saturate(cloudOcclusion);
 #endif
 #endif
