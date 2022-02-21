@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, Vector2.one, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
                 cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
@@ -1159,7 +1159,7 @@ namespace UnityEngine.Rendering.Universal
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, Vector2.one, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
                 }
             }

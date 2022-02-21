@@ -1098,8 +1098,8 @@ namespace UnityEngine.Rendering.Universal
             var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
             for (int i = 0; i < mipCount; i++)
             {
-                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipUp[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUp[i].name);
-                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipDown[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipDown[i].name);
+                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipUp[i], Vector2.one, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUp[i].name);
+                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipDown[i], Vector2.one, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipDown[i].name);
                 desc.width = Mathf.Max(1, desc.width >> 1);
                 desc.height = Mathf.Max(1, desc.height >> 1);
             }
