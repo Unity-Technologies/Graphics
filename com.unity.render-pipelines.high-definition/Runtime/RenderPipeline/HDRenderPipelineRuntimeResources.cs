@@ -41,12 +41,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader materialError;
             [Reload("Runtime/Debug/MaterialLoading.shader")]
             public Shader materialLoading;
+            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
+            public ComputeShader clearDebugBufferCS;
+
+            // APV
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
             [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
             public Shader probeVolumeOffsetDebugShader;
-            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
-            public ComputeShader clearDebugBufferCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
+            public ComputeShader probeVolumeBlendStatesCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]

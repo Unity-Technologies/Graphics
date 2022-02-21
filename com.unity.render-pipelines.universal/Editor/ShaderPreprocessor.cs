@@ -50,7 +50,6 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
-        ScreenCoordOverride = (1 << 31),
     }
 
     [Flags]
@@ -128,7 +127,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapACES;
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
-        LocalKeyword m_ScreenCoordOverride;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -202,8 +200,6 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
-
-            m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -506,9 +502,6 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_ScreenCoordOverride, ShaderFeatures.ScreenCoordOverride))
-                return true;
-
             return false;
         }
 
@@ -725,13 +718,9 @@ namespace UnityEditor.Rendering.Universal
                         ++i;
                 }
 
-                if (compilerDataList is List<ShaderCompilerData> inputDataList)
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-                else
-                {
-                    for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
-                        compilerDataList.RemoveAt(i);
-                }
+                if (!compilerDataList.TryRemoveElementsInRange(inputShaderVariantCount, compilerDataList.Count - inputShaderVariantCount, out var error))
+                    Debug.LogException(error);
+
             }
 
             LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count, stripTimeMs);
@@ -931,9 +920,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
-
-            if (pipelineAsset.useScreenCoordOverride)
-                shaderFeatures |= ShaderFeatures.ScreenCoordOverride;
 
             if (pipelineAsset.supportsLightLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;

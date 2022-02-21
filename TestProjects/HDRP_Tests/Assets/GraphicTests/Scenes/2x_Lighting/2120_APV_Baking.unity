@@ -1151,8 +1151,8 @@ MonoBehaviour:
   asset: {fileID: 0}
   cellSharedDataAsset: {fileID: 0}
   cellSupportDataAsset: {fileID: 0}
-  serializedStates:
-  - state: Default
+  serializedScenarios:
+  - scenario: Default
     data:
       sceneHash: -739037272
       cellDataAsset: {fileID: 0}
