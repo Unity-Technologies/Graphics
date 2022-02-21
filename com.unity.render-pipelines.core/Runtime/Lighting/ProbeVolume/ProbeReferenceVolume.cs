@@ -407,6 +407,7 @@ namespace UnityEngine.Rendering
             public NativeArray<byte> validityNeighMaskData { get; internal set; }
             public NativeArray<Vector3> probePositionsOld { get; internal set; }
             public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<float> touchupVolumeInteractionOld { get; internal set; } // Only used by a specific debug view.
             public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view.
             public NativeArray<Vector3> offsetVectorsOld { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
@@ -1504,11 +1505,11 @@ namespace UnityEngine.Rendering
             for (int j = 1; j < count; j++)
             {
                 c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
-                if (c.x >= m_TemporaryDataLocation.width)
+                if (c.x >= m_TemporaryDataLocationOld.width)
                 {
                     c.x = 0;
                     c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.y >= m_TemporaryDataLocation.height)
+                    if (c.y >= m_TemporaryDataLocationOld.height)
                     {
                         c.y = 0;
                         c.z += ProbeBrickPool.kBrickProbeCountPerDim;
@@ -1531,7 +1532,7 @@ namespace UnityEngine.Rendering
             var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
-            int chunkSize = ProbeBrickPool.GetChunkSize();
+            int chunkSize = ProbeBrickPool.GetChunkSizeInBrickCount();
             blendingCell.chunkList.Clear();
 
             // If transition if finished, bypass the blending pool and directly udpate uploaded cells
@@ -1558,37 +1559,37 @@ namespace UnityEngine.Rendering
                     var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
                     var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
 
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
-                        cell.shBands, shL0L1Data, shL2Data, cell.validity,
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld,
+                        cell.shBands, shL0L1Data, shL2Data, cell.validityOld,
                         chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         m_SHBands);
 
                     // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                    m_Pool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.cellInfo.chunkList, chunkIndex, m_SHBands);
+                    m_Pool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.cellInfo.chunkList, chunkIndex, m_SHBands);
                     continue;
                 }
 
                 // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
 
                 // state0
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
-                    cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validity,
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands,
+                    cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validityOld,
                     chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     m_SHBands);
 
                 // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                m_BlendingPool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 0);
+                m_BlendingPool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 0);
 
                 // state1
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
-                    cell.scenario1.shL0L1Data, cell.scenario1.shL2Data, cell.validity,
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands,
+                    cell.scenario1.shL0L1Data, cell.scenario1.shL2Data, cell.validityOld,
                     chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                     m_SHBands);
 
-                m_BlendingPool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 1);
+                m_BlendingPool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 1);
             }
 
             blendingCell.blending = true;
@@ -1622,43 +1623,35 @@ namespace UnityEngine.Rendering
             int chunkIndex = 0;
             while (chunkIndex < cellInfo.chunkList.Count)
             {
-                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, cell.validity, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
-                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
-                var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
-
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
-                    cell.shBands, shL0L1Data, shL2Data, cell.validity,
-                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    m_SHBands);
                 if (probeVolumeDebug.bricksUseGpuMapping)
                 {
                     var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
                     var chunkOffsetInProbes = chunkIndex * chunkSizeInProbes;
                     var shChunkSize = chunkSizeInProbes * 4;
                     var shChunkOffset = chunkIndex * shChunkSize;
-                    m_TemporaryDataLocation.TexL0_L1rx.SetPixelData(cell.shL0L1RxData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    m_TemporaryDataLocation.TexL0_L1rx.Apply(false);
-                    m_TemporaryDataLocation.TexL1_G_ry.SetPixelData(cell.shL1GL1RyData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    m_TemporaryDataLocation.TexL1_G_ry.Apply(false);
-                    m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    m_TemporaryDataLocation.TexL1_B_rz.Apply(false);
+
+                    var currentScenario = useState0 ? cell.scenario0 : cell.scenario1;
+
+                    (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).SetPixelData(currentScenario.shL0L1RxData.GetSubArray(shChunkOffset, shChunkSize), 0);
+                    (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).Apply(false);
+                    (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).SetPixelData(currentScenario.shL1GL1RyData.GetSubArray(shChunkOffset, shChunkSize), 0);
+                    (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).Apply(false);
+                    (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).SetPixelData(currentScenario.shL1BL1RzData.GetSubArray(shChunkOffset, shChunkSize), 0);
+                    (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).Apply(false);
 
                     m_TemporaryDataLocation.TexValidity.SetPixelData(cell.validityNeighMaskData.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes), 0);
                     m_TemporaryDataLocation.TexValidity.Apply(false);
 
                     if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
-                        m_TemporaryDataLocation.TexL2_0.SetPixelData(cell.shL2Data_0.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        m_TemporaryDataLocation.TexL2_0.Apply(false);
-                        m_TemporaryDataLocation.TexL2_1.SetPixelData(cell.shL2Data_1.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        m_TemporaryDataLocation.TexL2_1.Apply(false);
-                        m_TemporaryDataLocation.TexL2_2.SetPixelData(cell.shL2Data_2.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        m_TemporaryDataLocation.TexL2_2.Apply(false);
-                        m_TemporaryDataLocation.TexL2_3.SetPixelData(cell.shL2Data_3.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        m_TemporaryDataLocation.TexL2_3.Apply(false);
+                        (m_TemporaryDataLocation.TexL2_0 as Texture3D).SetPixelData(currentScenario.shL2Data_0.GetSubArray(shChunkOffset, shChunkSize), 0);
+                        (m_TemporaryDataLocation.TexL2_0 as Texture3D).Apply(false);
+                        (m_TemporaryDataLocation.TexL2_1 as Texture3D).SetPixelData(currentScenario.shL2Data_1.GetSubArray(shChunkOffset, shChunkSize), 0);
+                        (m_TemporaryDataLocation.TexL2_1 as Texture3D).Apply(false);
+                        (m_TemporaryDataLocation.TexL2_2 as Texture3D).SetPixelData(currentScenario.shL2Data_2.GetSubArray(shChunkOffset, shChunkSize), 0);
+                        (m_TemporaryDataLocation.TexL2_2 as Texture3D).Apply(false);
+                        (m_TemporaryDataLocation.TexL2_3 as Texture3D).SetPixelData(currentScenario.shL2Data_3.GetSubArray(shChunkOffset, shChunkSize), 0);
+                        (m_TemporaryDataLocation.TexL2_3 as Texture3D).Apply(false);
                     }
 
                     m_TmpSrcChunks.Clear();
@@ -1679,8 +1672,8 @@ namespace UnityEngine.Rendering
                     var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
                     var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
 
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
-                        cell.shBands, shL0L1Data, shL2Data, cell.validity,
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld,
+                        cell.shBands, shL0L1Data, shL2Data, cell.validityOld,
                         chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
                         m_SHBands);

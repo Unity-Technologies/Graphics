@@ -78,10 +78,10 @@ namespace UnityEngine.Rendering
             {
                 var sh = new SphericalHarmonicsL2();
 
-                ReadFromShaderCoeffsL0L1(ref sh, cell.shL0L1RxData, cell.shL1GL1RyData, cell.shL1BL1RzData, probeIdx * 4);
+                ReadFromShaderCoeffsL0L1(ref sh, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, probeIdx * 4);
 
                 if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    ReadFromShaderCoeffsL2(ref sh, cell.shL2Data_0, cell.shL2Data_1, cell.shL2Data_2, cell.shL2Data_3, probeIdx * 4);
+                    ReadFromShaderCoeffsL2(ref sh, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, probeIdx * 4);
 
                 FromSphericalHarmonicsL2(ref sh);
             }
@@ -102,10 +102,10 @@ namespace UnityEngine.Rendering
                 var sh = new SphericalHarmonicsL2();
                 ToSphericalHarmonicsL2(ref sh);
 
-                WriteToShaderCoeffsL0L1(sh, cell.shL0L1RxData, cell.shL1GL1RyData, cell.shL1BL1RzData, probeIdx * 4);
+                WriteToShaderCoeffsL0L1(sh, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, probeIdx * 4);
 
                 if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    WriteToShaderCoeffsL2(sh, cell.shL2Data_0, cell.shL2Data_1, cell.shL2Data_2, cell.shL2Data_3, probeIdx * 4);
+                    WriteToShaderCoeffsL2(sh, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, probeIdx * 4);
             }
         }
 
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering
                 {
                     for (int i = 0; i < probeCount; ++i)
                     {
-                        dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                        dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
                         needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
                             (cell.GetValidityOld(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidityOld(i) > defaultThreshold ? 1 : 0);
                     }
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < probeCount; ++i)
                 {
                     if (oldData)
-                        dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                        dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
                     else
                         dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell, i);
                 }

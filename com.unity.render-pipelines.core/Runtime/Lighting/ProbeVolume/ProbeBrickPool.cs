@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
         internal const int kBrickCellCount = 3;
         internal const int kBrickProbeCountPerDim = kBrickCellCount + 1;
         internal const int kBrickProbeCountTotal = kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim;
-        internal const int kChunkProbeCountPerDim = kProbePoolChunkSize * kBrickProbeCountPerDim;
+        internal const int kChunkProbeCountPerDim = kProbePoolChunkSizeInBrick * kBrickProbeCountPerDim;
 
         internal int estimatedVMemCost { get; private set; }
 
@@ -722,7 +722,7 @@ namespace UnityEngine.Rendering
             => m_State0.GetRemainingChunkCount();
 
         internal bool Allocate(int numberOfBrickChunks, List<ProbeBrickPool.BrickChunkAlloc> outAllocations)
-            => m_State0.Allocate(numberOfBrickChunks, outAllocations);
+            => m_State0.Allocate(numberOfBrickChunks, outAllocations, false);
 
         internal void Deallocate(List<ProbeBrickPool.BrickChunkAlloc> allocations)
         {

@@ -112,22 +112,27 @@ namespace UnityEngine.Rendering
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
-            var touchupInteractionStart = AlignUp16(positionsByteCount);
-            var touchupInteractionByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+
             var positionsOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
             var positionsByteStart = positionsOldByteCount;
             var positionsByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<Vector3>();
-            var validityByteStart = AlignUp16(positionsByteStart + positionsByteCount);
+            var touchupInteractionStart = AlignUp16(positionsByteStart + positionsByteCount);
+            var touchupInteractionByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<float>();
+            var touchupInteractionOldStart = AlignUp16(touchupInteractionStart + touchupInteractionByteCount);
+            var touchupInteractionOldByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var validityByteStart = AlignUp16(touchupInteractionOldStart + touchupInteractionOldByteCount);
             var validityByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<float>();
             var offsetOldByteStart = AlignUp16(validityByteStart + validityByteCount);
             var offsetOldByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
             var offsetByteStart = AlignUp16(offsetOldByteStart + offsetOldByteCount);
             var offsetByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * UnsafeUtility.SizeOf<Vector3>();
+
             if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
                 return false;
-            var touchupInteractionData = hasSupportData ? cellSupportData.GetSubArray(touchupInteractionStart, touchupInteractionByteCount).Reinterpret<float>(1) : default;
             var positionsOldData = hasSupportData ? cellSupportData.GetSubArray(0, positionsOldByteCount).Reinterpret<Vector3>(1) : default;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(positionsByteStart, positionsByteCount).Reinterpret<Vector3>(1) : default;
+            var touchupInteractionData = hasSupportData ? cellSupportData.GetSubArray(touchupInteractionStart, touchupInteractionByteCount).Reinterpret<float>(1) : default;
+            var touchupInteractionOldData = hasSupportData ? cellSupportData.GetSubArray(touchupInteractionOldStart, touchupInteractionOldByteCount).Reinterpret<float>(1) : default;
             var validityData = hasSupportData ? cellSupportData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1) : default;
             var offsetsDataOld = hasSupportData ? cellSupportData.GetSubArray(offsetOldByteStart, offsetOldByteCount).Reinterpret<Vector3>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
@@ -144,11 +149,12 @@ namespace UnityEngine.Rendering
 
                 if (hasSupportData)
                 {
-                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                    cell.probePositionsOld = positionsOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.probePositions = positionsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
-                    cell.offsetVectorsOld = offsetsDataOld.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
+                    cell.probePositionsOld = positionsOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                    cell.touchupVolumeInteractionOld = touchupInteractionOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
+                    cell.offsetVectorsOld = offsetsDataOld.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
                     cell.validity = validityData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                 }
 
@@ -213,20 +219,20 @@ namespace UnityEngine.Rendering
                 var counts = cellCounts[i];
                 var cellState = new ProbeReferenceVolume.Cell.PerScenarioData();
 
-                cell.shL0L1Data = shL0L1DataOld.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+                cellState.shL0L1Data = shL0L1DataOld.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
 
-                cell.shL0L1RxData = shL0L1RxData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
-                cell.shL1GL1RyData = shL1GL1RyData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
-                cell.shL1BL1RzData = shL1BL1RzData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                cellState.shL0L1RxData = shL0L1RxData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                cellState.shL1GL1RyData = shL1GL1RyData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                cellState.shL1BL1RzData = shL1BL1RzData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
 
                 if (hasOptionalData)
                 {
-                    cell.shL2Data = shL2DataOld.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+                    cellState.shL2Data = shL2DataOld.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
 
-                    cell.shL2Data_0 = shL2Data_0.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
-                    cell.shL2Data_1 = shL2Data_1.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
-                    cell.shL2Data_2 = shL2Data_2.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
-                    cell.shL2Data_3 = shL2Data_3.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cellState.shL2Data_0 = shL2Data_0.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cellState.shL2Data_1 = shL2Data_1.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cellState.shL2Data_2 = shL2Data_2.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cellState.shL2Data_3 = shL2Data_3.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
                 }
 
                 if (stateIndex == 0) cells[i].scenario0 = cellState;

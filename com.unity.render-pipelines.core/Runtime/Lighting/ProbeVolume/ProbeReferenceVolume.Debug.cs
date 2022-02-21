@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering
             Vector4[] texels = new Vector4[kProbesPerBatch];
             float[] validity = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
-            float[] touchupUpVolumeAction = cell.touchupVolumeInteraction.Length > 0 ? new float[kProbesPerBatch] : null;
+            float[] touchupUpVolumeAction = cell.touchupVolumeInteractionOld.Length > 0 ? new float[kProbesPerBatch] : null;
             Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
             List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering
 
                 if (touchupUpVolumeAction != null)
                 {
-                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[i];
+                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteractionOld[i];
                 }
 
 
