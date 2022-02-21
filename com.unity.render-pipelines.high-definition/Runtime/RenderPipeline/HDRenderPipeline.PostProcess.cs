@@ -4474,6 +4474,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.uberPostCS.EnableKeyword("AUTOLENSFLARE");
 
+            var spectralLut = m_ChromaticAberration.spectralLut.value;
+
+            // If no spectral lut is set, use a pre-generated one
+            if (spectralLut == null)
+            {
+                if (m_InternalSpectralLut == null)
+                {
+                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+                    {
+                        name = "Chromatic Aberration Spectral LUT",
+                        filterMode = FilterMode.Bilinear,
+                        wrapMode = TextureWrapMode.Clamp,
+                        anisoLevel = 0,
+                        hideFlags = HideFlags.DontSave
+                    };
+
+                    m_InternalSpectralLut.SetPixels(new[]
+                    {
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
+                    });
+
+                    m_InternalSpectralLut.Apply();
+                }
+
+                spectralLut = m_InternalSpectralLut;
+            }
+
+            data.spectralLut = spectralLut;
+
             // float k_Softness = 0.5f;
             // float lthresh = Mathf.GammaToLinearSpace(m_AutoLensFlare.threshold.value);
             // float knee = lthresh * k_Softness + 1e-5f;
