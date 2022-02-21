@@ -124,20 +124,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!115 &33395615
-MonoScript:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 5
-  m_Script: 
-  m_DefaultReferences: {}
-  m_Icon: {fileID: 0}
-  m_ExecutionOrder: 0
-  m_ClassName: VFXRaycastBinder
-  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &35626663
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,20 +722,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!115 &408635438
-MonoScript:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 5
-  m_Script: 
-  m_DefaultReferences: {}
-  m_Icon: {fileID: 0}
-  m_ExecutionOrder: 0
-  m_ClassName: VFXUIDropdownBinder
-  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &415086772
 GameObject:
   m_ObjectHideFlags: 0
@@ -2428,34 +2400,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!115 &1353602250
-MonoScript:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 5
-  m_Script: 
-  m_DefaultReferences: {}
-  m_Icon: {fileID: 0}
-  m_ExecutionOrder: 0
-  m_ClassName: VFXUISliderBinder
-  m_Namespace: UnityEngine.VFX.Utility
---- !u!115 &1411498622
-MonoScript:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 5
-  m_Script: 
-  m_DefaultReferences: {}
-  m_Icon: {fileID: 0}
-  m_ExecutionOrder: 0
-  m_ClassName: VFXAudioSpectrumBinder
-  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &1448428318
 GameObject:
   m_ObjectHideFlags: 0
@@ -2812,7 +2756,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1455842152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1411498622}
+  m_Script: {fileID: 11500000, guid: 5c69177d2544c73419d14a4bf4817f3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_CountProperty:
@@ -2900,7 +2844,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1455842152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 33395615}
+  m_Script: {fileID: 11500000, guid: d51d0c138bfbbe049917ff3ba4ea5221, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_TargetPosition:
@@ -2970,7 +2914,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1455842152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1353602250}
+  m_Script: {fileID: 11500000, guid: 66721aff1a9ef6e498d9665ed3252ae6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Property:
@@ -2985,7 +2929,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1455842152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 408635438}
+  m_Script: {fileID: 11500000, guid: 18b34b863903cd64490bc39f9c047c3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Property:

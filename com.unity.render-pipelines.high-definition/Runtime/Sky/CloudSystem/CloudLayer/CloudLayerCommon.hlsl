@@ -2,6 +2,9 @@
 #define __CLOUDLAYER_COMMON_H__
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
+
 
 TEXTURE2D_ARRAY(_CloudTexture);
 SAMPLER(sampler_CloudTexture);
@@ -13,14 +16,17 @@ TEXTURE2D(_FlowmapB);
 SAMPLER(sampler_FlowmapB);
 
 float4 _FlowmapParam[2];
-float4 _ColorFilter[2];
+float4 _Params1[2];
+float3 _SunDirection;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
 #define _UpperHemisphere    (_FlowmapParam[0].w != 0.0)
 #define _Opacity            _FlowmapParam[1].w
 
-#define _Tint(l)            _ColorFilter[l].xyz
+#define _SunLightColor(l)   _Params1[l].xyz
+#define _Altitude(l)        _Params1[l].w
+
 
 struct CloudLayerData
 {
@@ -31,6 +37,11 @@ struct CloudLayerData
     SAMPLER(flowmapSampler);
 };
 
+float3 GetCloudVolumeIntersection(int index, float3 dir)
+{
+    const float _EarthRadius = 6378100.0f;
+    return dir * -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
+}
 
 float2 SampleCloudMap(float3 dir, int layer)
 {
@@ -79,14 +90,36 @@ CloudLayerData GetCloudLayer(int index)
     return layer;
 }
 
+void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, inout float3 sunColor)
+{
+#ifdef PHYSICALLY_BASED_SUN
+    float3 X = evaluationPointWS;
+    float3 C = _PlanetCenterPosition.xyz;
+
+    float r        = distance(X, C);
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+    float cosTheta = dot(X - C, sunDirection) * rcp(r); // Normalize
+
+    float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+    float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
+    sunColor *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+#endif
+}
+
 float4 GetCloudLayerColor(float3 dir, int index)
 {
-    float2 color;
+    float2 cloud;
+
+    float3 position = GetCloudVolumeIntersection(index, dir);
+    float3 lightColor = _SunLightColor(index);
+    EvaluateSunColorAttenuation(position, _SunDirection, lightColor);
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
     {
-        float2 alpha = frac(_ScrollFactor(index) + float2(0.0, 0.5)) - 0.5;
+        float scrollDist = 2 * _Altitude(index); // max horizontal distance clouds can travel, arbitrary but looks good
+
+        float2 alpha = frac(_ScrollFactor(index) / scrollDist + float2(0.0, 0.5)) - 0.5;
         float3 delta;
 
         if (layer.use_flowmap)
@@ -99,22 +132,17 @@ float4 GetCloudLayerColor(float3 dir, int index)
             delta = flow.x * tangent + flow.y * bitangent;
         }
         else
-        {
-            float3 windDir = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
-            delta = windDir * sin(dir.y*PI*0.5);
-        }
+            delta = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
 
-        // Sample twice
-        float2 color1 = SampleCloudMap(normalize(dir + alpha.x * delta), index);
-        float2 color2 = SampleCloudMap(normalize(dir + alpha.y * delta), index);
-
-        // Blend color samples
-        color = lerp(color1, color2, abs(2.0 * alpha.x));
+        float coverage1 = abs(2.0 * alpha.x), coverage2 = 1 - coverage1;
+        float2 cloud1 = SampleCloudMap(normalize(position + alpha.x * delta * scrollDist), index);
+        float2 cloud2 = SampleCloudMap(normalize(position + alpha.y * delta * scrollDist), index);
+        cloud = lerp(cloud1, cloud2, abs(2.0 * alpha.x));
     }
     else
-        color = SampleCloudMap(dir, index);
+        cloud = SampleCloudMap(dir, index);
 
-    return float4(color.x * color.y * _Tint(index), color.y) * _Opacity;
+    return float4(cloud.x * lightColor, cloud.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir)
@@ -129,13 +157,13 @@ float4 RenderClouds(float3 dir)
 
 #ifdef USE_SECOND_CLOUD_LAYER
         float4 cloudsB = GetCloudLayerColor(dir, 1);
-        // Premultiplied alpha
-        clouds = float4(clouds.rgb + (1 - clouds.a) * cloudsB.rgb, clouds.a + cloudsB.a - clouds.a * cloudsB.a);
+        clouds += cloudsB * (1-clouds.a);
 #endif
     }
     return clouds;
 }
 
+// For shadows
 float4 RenderClouds(float2 positionCS)
 {
     return RenderClouds(-GetSkyViewDirWS(positionCS));

@@ -5,9 +5,28 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing        SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection   SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulate     SSR_ACCUMULATE
+#pragma kernel ScreenSpaceReflectionsTracing                                                SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection                                           SSR_REPROJECT
+
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth                    SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth              SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                     SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly
+
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug               SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug                SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
@@ -29,6 +48,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceReflection.cs.hlsl"
@@ -106,6 +126,11 @@ float GetSSRSampleWeight(float3 V, float3 L, float roughness)
     return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
 }
 
+float Normalize01(float value, float minValue, float maxValue)
+{
+    return (value - minValue) / (maxValue - minValue);
+}
+
 // Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
 bool SampleGGX_VNDF(float roughness_,
                     float3x3 localToWorld,
@@ -145,6 +170,7 @@ float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, fl
     return Smoothstep01(t);
 }
 
+#ifdef SSR_TRACE
 void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerceptualRoughness, out float3 positionWS, out float weight, out float3 N, out float3 L, out float3 V, out float NdotL, out float NdotH, out float VdotH, out float NdotV)
 {
     float2 uv = float2(positionSS) * _RTHandleScale.xy;
@@ -163,7 +189,8 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
-    Xi.x = lerp(Xi.x, 0.0f, srcPerceptualRoughness * 0.7f); // 0.7 is an arbitrary bias to reduce noise for high roughness
+    float coefBias = _SsrPBRBias / roughness;
+    Xi.x = lerp(Xi.x, 0.0f, roughness * coefBias);
 
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -201,6 +228,7 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     weight = 4.0f * NdotL * VdotH * Vg / NdotH;
 #endif
 }
+#endif
 
 float2 GetHitNDC(float2 positionNDC)
 {
@@ -280,7 +308,7 @@ void GetNormalAndPerceptualRoughness(uint2 positionSS, out float3 normalWS, out 
     DecodeFromNormalBuffer(positionSS, normalData);
     normalWS = normalData.normalWS;
     float4 packedCoatMask = _SsrClearCoatMaskTexture[COORD_TEXTURE2D_X(positionSS)];
-    perceptualRoughness = HasClearCoatMask(packedCoatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    perceptualRoughness = HasClearCoatMask(packedCoatMask) ? CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 }
 
 void WriteDebugInfo(uint2 positionSS, float4 value)
@@ -662,8 +690,24 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
 #elif defined(SSR_ACCUMULATE)
 
+//#define __PLAIN_COLOR
+//#define __MULTIPLY_COLOR
+#define __CHROMINANCE
+
+float3 Colorize(float3 current, float3 color)
+{
+#ifdef __PLAIN_COLOR
+    return color;
+#elif defined(__MULTIPLY_COLOR)
+    return color * current;
+#else // __CHROMINANCE
+    float3 tmp = color * current;
+    return tmp / max(tmp.r, max(tmp.g, tmp.b));
+#endif
+}
+
 [numthreads(8, 8, 1)]
-void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThreadID)
+void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
@@ -688,23 +732,101 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float3 hitN = hitNormalData.normalWS;
 
     float2 prevHistoryScale = _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy;
+    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
-    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * prevHistoryScale + 0.5f / prevHistoryScale)];
 
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
-    float speedDst = length(motionVectorNDC);
 
     float2 motionVectorCenterNDC;
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
+
+#ifdef WORLD_SPEED_REJECTION
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+#if USE_SPEED_SURFACE
+    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+#endif
+#if USE_SPEED_TARGET
+    float  deviceDepthDst = LOAD_TEXTURE2D_X(_DepthTexture, hitSS).r;
+#endif
+#else
+#if USE_SPEED_SURFACE
+    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+#endif
+#if USE_SPEED_TARGET
+    float  deviceDepthDst = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitSS).r;
+#endif
+#endif
+
+#if USE_SPEED_SURFACE
+    float4 srcMotion = float4(motionVectorCenterNDC.xy, deviceDepthSrc, 0.0f);
+    float4 worldSrcMotion = mul(UNITY_MATRIX_I_VP, srcMotion);
+    worldSrcMotion /= worldSrcMotion.w;
+#endif
+
+#if USE_SPEED_TARGET
+    float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
+    float4 worldDstMotion = mul(UNITY_MATRIX_I_VP, dstMotion);
+    worldDstMotion /= worldDstMotion.w;
+#endif
+
+#if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
+    float speedDiff = length(worldSrcMotion.xyz);
+#elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
+    float speedDiff = length(worldDstMotion.xyz);
+#elif USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 1
+    float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
+#else
+    #error need at least one source of motion vector
+#endif
+
+    float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
+
+#ifdef SSR_SMOOTH_SPEED_REJECTION
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
+#else
+    float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
+#endif
+#else
+
+#if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
+    float speedUsedLocally = length(motionVectorCenterNDC);
+#elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
+    float speedUsedLocally = length(motionVectorNDC);
+#elif USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 1
     float speedSrc = length(motionVectorCenterNDC);
-    float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
+    float speedDst = length(motionVectorNDC);
+    float speedUsedLocally = speedSrc + speedDst;
+#else
+    #error need at least one source of motion vector
+#endif
+
+    // 128 is an arbitrary value used historical
+    // 0.5f is the default for the parameter 'Speed Rejection': ScreenSpaceReflection.cs 'speedRejectionParam'
+    // 0.2f is the default for the parameter 'Speed Rejection Scaler Factor': ScreenSpaceReflection.cs 'speedRejectionScalerFactor'
+    float speed = saturate(speedUsedLocally * (128.0f / (0.5f * 0.2f)) * _SsrPBRSpeedRejection);
 
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
+#endif
 
     float4 result = lerp(previous, original, coefExpAvg);
+
+#ifdef REJECT_DEBUG_COLOR
+#ifdef WORLD_SPEED_REJECTION
+    #ifdef SSR_SMOOTH_SPEED_REJECTION
+        result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(coefExpAvg))));
+    #else
+        if (usedSpeed >= _SsrPBRSpeedRejection)
+            result.rgb = Colorize(result.rgb, float3(1.0f, 0.0f, 0.0f));
+        else
+            result.rgb = Colorize(result.rgb, float3(0.0f, 1.0f, 0.0f));
+    #endif
+#else
+    result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(coefExpAvg))));
+#endif
+#endif
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;

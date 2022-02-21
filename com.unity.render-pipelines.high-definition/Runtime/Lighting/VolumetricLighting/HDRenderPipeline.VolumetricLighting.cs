@@ -1037,12 +1037,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
             public int sliceCount;
             public bool filterVolume;
+            public bool filteringNeedsExtraBuffer;
             public ShaderVariablesVolumetric volumetricCB;
             public ShaderVariablesLightList lightListCB;
 
             public TextureHandle densityBuffer;
             public TextureHandle depthTexture;
             public TextureHandle lightingBuffer;
+            public TextureHandle filteringOutputBuffer;
             public TextureHandle maxZBuffer;
             public TextureHandle historyBuffer;
             public TextureHandle feedbackBuffer;
@@ -1075,6 +1077,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.volumetricLightingCS = m_VolumetricLightingCS;
                     passData.volumetricLightingFilteringCS = m_VolumetricLightingFilteringCS;
                     passData.volumetricLightingCS.shaderKeywords = null;
+                    passData.volumetricLightingFilteringCS.shaderKeywords = null;
 
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", !passData.tiledLighting);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "ENABLE_REPROJECTION", passData.enableReprojection);
@@ -1092,6 +1095,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewCount = hdCamera.viewCount;
                     passData.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
                     passData.sliceCount = (int)(cvp.z);
+                    passData.filteringNeedsExtraBuffer = !(SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.LoadStore));
 
                     UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, passData.resolution);
                     passData.volumetricCB = m_ShaderVariablesVolumetricCB;
@@ -1104,6 +1108,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
                     passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
                     { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
+
+                    if (passData.filterVolume && passData.filteringNeedsExtraBuffer)
+                    {
+                        passData.filteringOutputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLightingFiltered" }));
+
+                        CoreUtils.SetKeyword(passData.volumetricLightingFilteringCS, "NEED_SEPARATE_OUTPUT", passData.filteringNeedsExtraBuffer);
+                    }
 
                     if (passData.enableReprojection)
                     {
@@ -1146,6 +1158,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 // The shader defines GROUP_SIZE_1D_XY = 8 and GROUP_SIZE_1D_Z = 1
                                 ctx.cmd.SetComputeTextureParam(data.volumetricLightingFilteringCS, data.volumetricFilteringKernel, HDShaderIDs._VBufferLighting, data.lightingBuffer);
+                                if (data.filteringNeedsExtraBuffer)
+                                {
+                                    ctx.cmd.SetComputeTextureParam(data.volumetricLightingFilteringCS, data.volumetricFilteringKernel, HDShaderIDs._VBufferLightingFiltered, data.filteringOutputBuffer);
+                                }
+
                                 ctx.cmd.DispatchCompute(data.volumetricLightingFilteringCS, data.volumetricFilteringKernel, HDUtils.DivRoundUp((int)data.resolution.x, 8),
                                     HDUtils.DivRoundUp((int)data.resolution.y, 8),
                                     data.sliceCount);
@@ -1157,7 +1174,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         hdCamera.volumetricValidFrames++;
 
-                    return passData.lightingBuffer;
+                    if (passData.filterVolume && passData.filteringNeedsExtraBuffer)
+                        return passData.filteringOutputBuffer;
+                    else
+                        return passData.lightingBuffer;
                 }
             }
 

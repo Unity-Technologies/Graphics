@@ -3,9 +3,14 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class SerializedUniversalRenderPipelineGlobalSettings
+    class SerializedUniversalRenderPipelineGlobalSettings : ISerializedRenderPipelineGlobalSettings
     {
-        public SerializedObject serializedObject;
+        #region ISerializedRenderPipelineGlobalSettings
+        public SerializedObject serializedObject { get; }
+        public SerializedProperty shaderVariantLogLevel { get; }
+        public SerializedProperty exportShaderVariants { get; }
+        #endregion
+
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
 
         public SerializedProperty lightLayerName0;
@@ -47,6 +52,8 @@ namespace UnityEditor.Rendering.Universal
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
+            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
+            exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
         }
     }
 }

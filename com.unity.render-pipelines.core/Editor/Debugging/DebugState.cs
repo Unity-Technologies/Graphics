@@ -135,10 +135,48 @@ namespace UnityEditor.Rendering
     public sealed class DebugStateBool : DebugState<bool> { }
 
     /// <summary>
+    /// Enums Debug State.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
+    public sealed class DebugStateEnum : DebugState<int>
+    {
+        DebugUI.EnumField m_EnumField;
+
+        /// <summary>
+        /// Set the value of the Debug Item.
+        /// </summary>
+        /// <param name="value">Input value.</param>
+        /// <param name="field">Debug Item field.</param>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            m_EnumField = field as DebugUI.EnumField;
+            base.SetValue(value, field);
+        }
+
+        /// <summary>
+        /// On Enable method from <see cref="ScriptableObject"/>
+        /// </summary>
+        public override void OnEnable()
+        {
+            if (m_EnumField == null)
+                return;
+
+            m_EnumField.SetValue(value);
+            base.SetValue(value, m_EnumField);
+        }
+    }
+
+    /// <summary>
     /// Integer Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
+    [Serializable, DebugState(typeof(DebugUI.IntField))]
     public sealed class DebugStateInt : DebugState<int> { }
+
+    /// <summary>
+    /// Object Debug State.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
+    public sealed class DebugStateObject : DebugState<UnityEngine.Object> { }
 
     /// <summary>
     /// Flags Debug State.

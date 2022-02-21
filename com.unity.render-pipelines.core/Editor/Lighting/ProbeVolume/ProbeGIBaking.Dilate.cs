@@ -1,14 +1,16 @@
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
+        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
 
         static void InitDilationShaders()
         {
@@ -34,9 +36,8 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3 L2_3;
             public Vector3 L2_4;
 
-            internal SphericalHarmonicsL2 ToSphericalHarmonicsL2()
+            void ToSphericalHarmonicsL2(ref SphericalHarmonicsL2 sh)
             {
-                SphericalHarmonicsL2 sh = new SphericalHarmonicsL2();
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 0, L0);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 1, L1_0);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 2, L1_1);
@@ -46,10 +47,9 @@ namespace UnityEngine.Experimental.Rendering
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 6, L2_2);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 7, L2_3);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 8, L2_4);
-                return sh;
             }
 
-            internal void FromSphericalHarmonicsL2(SphericalHarmonicsL2 sh)
+            void FromSphericalHarmonicsL2(ref SphericalHarmonicsL2 sh)
             {
                 L0 = new Vector3(sh[0, 0], sh[1, 0], sh[2, 0]);
                 L1_0 = new Vector3(sh[0, 1], sh[1, 1], sh[2, 1]);
@@ -61,45 +61,89 @@ namespace UnityEngine.Experimental.Rendering
                 L2_3 = new Vector3(sh[0, 7], sh[1, 7], sh[2, 7]);
                 L2_4 = new Vector3(sh[0, 8], sh[1, 8], sh[2, 8]);
             }
+
+            internal void FromSphericalHarmonicsShaderConstants(ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+            {
+                var sh = new SphericalHarmonicsL2();
+
+                ReadFromShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+
+                if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    ReadFromShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+
+                FromSphericalHarmonicsL2(ref sh);
+            }
+
+            internal void ToSphericalHarmonicsShaderConstants(ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+            {
+                var sh = new SphericalHarmonicsL2();
+                ToSphericalHarmonicsL2(ref sh);
+
+                WriteToShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+
+                if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    WriteToShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+            }
         }
 
         struct DataForDilation
         {
-            public ComputeBuffer validityBuffer;
-            public ComputeBuffer positionBuffer;
-            public ComputeBuffer outputProbes;
+            public ComputeBuffer positionBuffer { get; }
+            public ComputeBuffer outputProbes { get; }
+            public ComputeBuffer needDilatingBuffer { get; }
 
-            public DataForDilation(ProbeReferenceVolume.Cell cell)
+            DilatedProbe[] dilatedProbes;
+
+            ProbeReferenceVolume.Cell cell;
+
+            public DataForDilation(ProbeReferenceVolume.Cell cell, float defaultThreshold)
             {
+                this.cell = cell;
+
                 int probeCount = cell.probePositions.Length;
 
-                validityBuffer = new ComputeBuffer(probeCount, sizeof(float));
                 positionBuffer = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
                 outputProbes = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<DilatedProbe>());
-
+                needDilatingBuffer = new ComputeBuffer(probeCount, sizeof(int));
 
                 // Init with pre-dilated SH so we don't need to re-fill from sampled data from texture (that might be less precise).
-                DilatedProbe[] dilatedProbes = new DilatedProbe[probeCount];
+                dilatedProbes = new DilatedProbe[probeCount];
+                int[] needDilating = new int[probeCount];
+
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].FromSphericalHarmonicsL2(cell.sh[i]);
+                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
+                    needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
+                        (cell.GetValidity(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidity(i) > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);
-                validityBuffer.SetData(cell.validity);
                 positionBuffer.SetData(cell.probePositions);
+                needDilatingBuffer.SetData(needDilating);
+            }
+
+            public void ExtractDilatedProbes()
+            {
+                outputProbes.GetData(dilatedProbes);
+
+                int probeCount = cell.probePositions.Length;
+                for (int i = 0; i < probeCount; ++i)
+                {
+                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
+                }
             }
 
             public void Dispose()
             {
-                validityBuffer.Dispose();
                 positionBuffer.Dispose();
                 outputProbes.Dispose();
+                needDilatingBuffer.Dispose();
             }
         }
 
         static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
+        static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
@@ -116,13 +160,15 @@ namespace UnityEngine.Experimental.Rendering
         static void PerformDilation(ProbeReferenceVolume.Cell cell, ProbeDilationSettings settings)
         {
             InitDilationShaders();
-            DataForDilation data = new DataForDilation(cell);
+
+            DataForDilation data = new DataForDilation(cell, settings.dilationValidityThreshold);
 
             var cmd = CommandBufferPool.Get("Cell Dilation");
 
-            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ValidityBuffer, data.validityBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ProbePositionsBuffer, data.positionBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
+            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _NeedDilating, data.needDilatingBuffer);
+
 
             int probeCount = cell.probePositions.Length;
 
@@ -154,6 +200,11 @@ namespace UnityEngine.Experimental.Rendering
             parameters.viewBias = 0;
             parameters.scaleBiasByMinDistanceBetweenProbes = false;
             parameters.samplingNoise = 0;
+            parameters.weight = 1f;
+            parameters.leakReductionMode = APVLeakReductionMode.None;
+            parameters.occlusionWeightContribution = 0.0f;
+            parameters.minValidNormalWeight = 0.0f;
+            parameters.frameIndexForNoise = 0;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 
@@ -163,14 +214,7 @@ namespace UnityEngine.Experimental.Rendering
             cmd.WaitAllAsyncReadbackRequests();
             Graphics.ExecuteCommandBuffer(cmd);
 
-            DilatedProbe[] dilatedProbes = new DilatedProbe[probeCount];
-            data.outputProbes.GetData(dilatedProbes);
-
-            for (int i = 0; i < probeCount; ++i)
-            {
-                cell.sh[i] = dilatedProbes[i].ToSphericalHarmonicsL2();
-            }
-
+            data.ExtractDilatedProbes();
             data.Dispose();
         }
     }

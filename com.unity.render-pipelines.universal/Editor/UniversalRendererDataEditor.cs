@@ -4,6 +4,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>UniversalRendererData</c> class.
+    /// </summary>
     [CustomEditor(typeof(UniversalRendererData), true)]
     public class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {

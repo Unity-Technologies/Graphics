@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 299.5869, g: 336.6289, b: 536.6738, a: 1}
+  m_IndirectSpecularColor: {r: 299.83792, g: 336.92484, b: 537.1905, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -128,6 +128,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1669185313534232391, guid: 1a42cbeb3ca2a3a4c9cbcd64f25b23c9, type: 3}
@@ -183,12 +184,15 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1a42cbeb3ca2a3a4c9cbcd64f25b23c9, type: 3}
 --- !u!1001 &236911332
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 1652331201}
     m_Modifications:
     - target: {fileID: 3525908778427950668, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
@@ -201,7 +205,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3525908778427950668, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.31
       objectReference: {fileID: 0}
     - target: {fileID: 3525908778427950668, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
       propertyPath: m_LocalPosition.z
@@ -247,8 +251,35 @@ PrefabInstance:
       propertyPath: m_Size.y
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 3525908778427950671, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+      propertyPath: m_Offset.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3525908778427950671, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+      propertyPath: m_ScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3525908778427950671, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+      propertyPath: m_EndAngleFade
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 3525908778427950671, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3525908778427950671, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+      propertyPath: m_StartAngleFade
+      value: 180
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+--- !u!4 &236911333 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3525908778427950668, guid: 6b6ccb46df2af1a4c939d89725517275, type: 3}
+  m_PrefabInstance: {fileID: 236911332}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &286151611
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,7 +329,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 4294967295
+  m_RenderingLayerMask: 4294967039
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: fcb847e576e779e4abf601cf54ee12c7, type: 2}
@@ -351,6 +382,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3542236251404532133, guid: d9e1396e69a15a5469ebb9e5c4ccf373, type: 3}
@@ -402,12 +434,15 @@ PrefabInstance:
       value: Rendering Settings
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d9e1396e69a15a5469ebb9e5c4ccf373, type: 3}
 --- !u!1001 &1284116253
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3137672285531552024, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
@@ -417,6 +452,10 @@ PrefabInstance:
     - target: {fileID: 3137672285531552026, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
       propertyPath: m_Name
       value: DirectionalLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 3137672285531552026, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3137672285531552030, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
       propertyPath: m_RootOrder
@@ -462,15 +501,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -14.375001
       objectReference: {fileID: 0}
+    - target: {fileID: 3137672285531552031, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
+      propertyPath: m_AreaSize.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3137672285531552031, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
+      propertyPath: m_AreaSize.y
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
 --- !u!1001 &1652331200
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 837619491023392607, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 2101728995791149842, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
       propertyPath: m_RootOrder
       value: 5
@@ -540,6 +594,14 @@ PrefabInstance:
       value: Decal
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2101728995791149842, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 236911333}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5573612767648057585, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
 --- !u!4 &1652331201 stripped
 Transform:

@@ -17,11 +17,11 @@ namespace UnityEngine.Rendering
     /// if one curve has a keypoint at a time that is missing in the other curve (which is the most common case),
     /// InterpAnimationCurve calculates a synthetic keypoint at that time based on value and derivative, and interpolates
     /// the resulting keys.
-    ///
     /// Note that this function should only be called by internal rendering code. It creates a small pool of animation
     /// curves and reuses them to avoid creating garbage. The number of curves needed is quite small, since curves only need
     /// to be used when interpolating multiple volumes together with different curve parameters. The underlying interp
     /// function isn't allowed to fail, so in the case where we run out of memory we fall back to returning a single keyframe.
+    /// </summary>
     ///
     /// <example>Example:
     /// <code>
@@ -42,8 +42,6 @@ namespace UnityEngine.Rendering
     /// }
     /// </code>
     /// </example>
-
-    /// </summary>
     public class KeyframeUtility
     {
         /// <summary>
@@ -190,9 +188,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Interpolates two AnimationCurves. Since both curves likely have control points at different places
         /// in the curve, this method will create a new curve from the union of times between both curves. However, to avoid creating
-        /// garbage, this function will always replace the keys of lhsCurve with the final result, and return lhsCurve.
+        /// garbage, this function will always replace the keys of lhsAndResultCurve with the final result, and return lhsAndResultCurve.
         /// </summary>
-        /// <param name="lhsAndRetCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
+        /// <param name="lhsAndResultCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
         /// <param name="rhsCurve">The end value.</param>
         /// <param name="t">The interpolation factor in range [0,1].</param>
         static public void InterpAnimationCurve(ref AnimationCurve lhsAndResultCurve, [DisallowNull] AnimationCurve rhsCurve, float t)

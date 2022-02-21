@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
         {
             // Properties
-            private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
+            private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingModeRequested == RenderingMode.Deferred;
 
             // Private Variables
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
@@ -359,6 +359,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                     PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
 
+                    Vector4 scaleBiasRt = new Vector4(-1, 1.0f, -1.0f, 1.0f);
+                    cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1, ShaderPasses.AO);
 
@@ -376,6 +379,16 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
+                        // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
+                        CameraData cameraData = renderingData.cameraData;
+                        bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
+                        bool yflip = !isCameraColorFinalTarget;
+                        float flipSign = yflip ? -1.0f : 1.0f;
+                        scaleBiasRt = (flipSign < 0.0f)
+                            ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                            : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                        cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+
                         CoreUtils.SetRenderTarget(
                             cmd,
                             m_Renderer.cameraColorTargetHandle,
