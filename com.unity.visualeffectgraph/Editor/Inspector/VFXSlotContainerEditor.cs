@@ -110,6 +110,8 @@ class VFXSlotContainerEditor : Editor
                     prop.Value.intValue = newValue;
                     modifiedSetting = prop.Value;
                 }
+
+                return modifiedSetting;
             }
             else
             {
