@@ -2,10 +2,11 @@
 
 To configure and use the Universal Render Pipeline (URP), you must first:
 
-- Create the Universal Render Pipeline Asset
-- Add the Asset to the Graphics settings for your Project
+- Create the Universal Render Pipeline Asset.
 
-**Note:** If a scriptable render pipeline is assigned in any of the projets quality levels, they will override the Graphics settings. If this is the case, you will not see any changes when updating the pipeline asset in Graphics settings.
+- Add the Asset to the Graphics settings for your Project.
+
+**Note:** A Scriptable Render Pipeline asset specified for any of the project's quality levels (**Project Settings** > **Quality**) has priority over the settings that you specify in the **Graphics** section.
 
 To read more about each step, see below.
 
@@ -32,6 +33,6 @@ To use the Universal Render Pipeline, you have to add the newly created URP Asse
 
 **Note:** When you add the UP Asset, the available settings in URP immediately changes. This is because you've effectively instructed Unity to use the URP specific settings instead of those for the built-in render pipeline.
 
+## Scriptable Render Pipelines and Quality settings
 
-## SRPs and quality settings
-The pipeline asset contains settings that will often need to be configures based on device performance. This is achieved by having unique pipeline assets for each quality level. A Unity project will always look to the quality settings first for a pipeline asset. If no pipeline is assigned to the current quality level, Unity falls back to the pipeline asset assigned in project settings (built-in render pipeline if nothing is assigned).
+A Scriptable Render Pipeline (SRP) asset contains settings that often need to be different for different hardware. To specify different settings, you can configure different SRP assets for different Quality levels (**Project Settings** > **Quality**). Unity searches for an SRP asset in the quality level first, and uses the SRP asset in **Project Settings** > **Graphics** if one if not configured for the quality level. If an SRP asset is not defined neither in a quality level, nor in the Graphics section, Unity falls back to the Built-in Render Pipeline.

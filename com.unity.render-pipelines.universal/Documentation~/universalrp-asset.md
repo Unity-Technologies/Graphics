@@ -1,5 +1,6 @@
 # Universal Render Pipeline Asset
-Any Unity project that uses the Universal Render Pipeline (URP) needs a URP Asset to drive the settings. If the project was created using a URP template these will already be assigned in Project Settings and the assets will live in the **Settings** project folder. If URP is being added to an existing project, you have to [create a URP Asset and assign the asset in the Graphics settings](configuring-universalrp-for-use.md).
+
+Any Unity project that uses the Universal Render Pipeline (URP) must have a URP Asset to configure the settings. When you create a project using the URP template, Unity creates the URP Assets in the **Settings** project folder and assigns them in Project Settings. If you are migrating an existing project to URP, you need to [create a URP Asset and assign the asset in the Graphics settings](configuring-universalrp-for-use.md).
 
 The URP Asset controls several graphical features and quality settings for the Universal Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the URP. You can then adjust the corresponding settings directly in the URP, instead of looking for them elsewhere.
 
