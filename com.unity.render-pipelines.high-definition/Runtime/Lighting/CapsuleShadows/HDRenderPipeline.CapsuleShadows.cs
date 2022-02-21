@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (capsuleShadows.enableIndirectShadows.value && capsuleShadows.indirectRangeFactor.value > 0.0f)
             {
                 // TODO: other fields
-                m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Indirect, 0));
+                m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Indirect, 0, 0.0f, 1.0f));
             }
         }
 
@@ -62,7 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_DirectEnabled)
                 return -1;
 
-            if (!additionalLightData.enableCapsuleShadows || additionalLightData.capsuleShadowRange == 0.0f)
+            float shadowRange = additionalLightData.capsuleShadowRange;
+            if (!additionalLightData.enableCapsuleShadows || shadowRange == 0.0f)
                 return -1;
 
             int casterIndex = m_Casters.Count;
@@ -73,30 +74,46 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case LightType.Directional:
                 {
-                    float theta = Mathf.Max(additionalLightData.angularDiameter, additionalLightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
-                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Directional, m_Casters.Count)
+                    float cosTheta = Mathf.Cos(Mathf.Max(additionalLightData.angularDiameter, additionalLightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f);
+                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Directional, m_Casters.Count, shadowRange, cosTheta)
                     {
-                        shadowRange = additionalLightData.capsuleShadowRange,
-                        tanTheta = Mathf.Tan(theta),
                         directionWS = -light.transform.forward.normalized,
-                        cosTheta = Mathf.Cos(theta),
                     });
                     return casterIndex;
                 }
 
                 case LightType.Point:
-                case LightType.Spot:
                 {
+                    shadowRange = Mathf.Min(light.range, shadowRange);
+                    float maxCosTheta = Mathf.Cos(additionalLightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f);
+
                     Vector3 originWS = Vector3.zero;
                     if (ShaderConfig.s_CameraRelativeRendering != 0)
                         originWS = hdCamera.camera.transform.position;
 
-                    float minTheta = additionalLightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f;
-                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Point, m_Casters.Count)
+                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Point, m_Casters.Count, shadowRange, maxCosTheta)
                     {
                         lightRange = light.range,
-                        shadowRange = Mathf.Min(additionalLightData.capsuleShadowRange, light.range),
-                        cosTheta = Mathf.Cos(minTheta),
+                        positionRWS = light.transform.position - originWS,
+                        radiusWS = additionalLightData.shapeRadius,
+                    });
+                    return casterIndex;
+                }
+
+                case LightType.Spot:
+                {
+                    shadowRange = Mathf.Min(light.range, shadowRange);
+                    float maxCosTheta = Mathf.Cos(additionalLightData.capsuleShadowMinimumAngle * Mathf.Deg2Rad * 0.5f);
+
+                    Vector3 originWS = Vector3.zero;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        originWS = hdCamera.camera.transform.position;
+
+                    m_Casters.Add(new CapsuleShadowCaster(CapsuleShadowCasterType.Spot, m_Casters.Count, shadowRange, maxCosTheta)
+                    {
+                        lightRange = light.range,
+                        directionWS = -light.transform.forward.normalized,
+                        spotCosTheta = Mathf.Cos(light.spotAngle * Mathf.Deg2Rad * 0.5f),
                         positionRWS = light.transform.position - originWS,
                         radiusWS = additionalLightData.shapeRadius,
                     });
@@ -196,7 +213,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         singleCasterDir = m_CapsuleShadowAllocator.m_Casters[i].directionWS;
                         singleCasterRange = m_CapsuleShadowAllocator.m_Casters[i].shadowRange;
-                        singleCasterTanTheta  = m_CapsuleShadowAllocator.m_Casters[i].tanTheta;
+
+                        float cosTheta  = m_CapsuleShadowAllocator.m_Casters[i].maxCosTheta;
+                        float sinTheta = Mathf.Sqrt(Mathf.Max(0.0f, 1.0f - cosTheta*cosTheta));
+                        singleCasterTanTheta = sinTheta/cosTheta;
                     }
                     else
                     {

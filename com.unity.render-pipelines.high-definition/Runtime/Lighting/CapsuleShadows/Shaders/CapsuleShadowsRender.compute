@@ -53,50 +53,94 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
     return float3(posVS_XY * abs(linearDepth), linearDepth);
 }
 
+float CompleteUnitSquare(float sinTheta)
+{
+    return sqrt(max(0.f, 1.f - Sq(sinTheta)));
+}
+
 bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, float tileRadiusWS)
 {
     CapsuleShadowCaster lightData = volume.caster;
     CapsuleOccluderData capsuleData = volume.occluder;
 
     float3 tileToCapsuleVec = capsuleData.centerRWS - tileCenterWS;
-    float tileToCapsuleDistSq = dot(tileToCapsuleVec, tileToCapsuleVec);
+    float3 tileToClosestPointOnCapsuleAxis
+        = tileToCapsuleVec
+        + clamp(RayClosestPoint(tileToCapsuleVec, capsuleData.axisDirWS, 0.f), -capsuleData.offset, capsuleData.offset)*capsuleData.axisDirWS;
+    float capsuleSignedDistanceFromTile = length(tileToClosestPointOnCapsuleAxis) - capsuleData.radius - tileRadiusWS;
 
     uint casterType = GetCapsuleCasterType(lightData);
 
     bool intersectsTile;
-    if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+    if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
     {
-        float tileToCapsuleDotLight = dot(tileToCapsuleVec, lightData.directionWS);
-        float absAxisDotLight = abs(dot(capsuleData.axisDirWS, lightData.directionWS));
-        float absAxisOtherDot = sqrt(max(0.f, 1.f - absAxisDotLight*absAxisDotLight));
-        float lightT = tileToCapsuleDotLight + absAxisDotLight*capsuleData.offset + capsuleData.radius;   // farthest point along light axis
-        float tileRadiusTowardsCapsule = tileRadiusWS + min(lightT, lightData.shadowRange)*lightData.tanTheta;
-        float capsuleRadiusTowardsLightAxis = absAxisOtherDot*capsuleData.offset + capsuleData.radius;
-        float3 checkOffsetWS = tileToCapsuleVec - tileToCapsuleDotLight*lightData.directionWS;
-        bool intersectsPenumbra = (lightT > 0.f) && (dot(checkOffsetWS, checkOffsetWS) < Sq(tileRadiusTowardsCapsule + capsuleRadiusTowardsLightAxis));
-
-        float capsuleRangeWS = capsuleData.offset + capsuleData.radius + lightData.shadowRange;
-        bool intersectsRange = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
-
-        intersectsTile = intersectsPenumbra && intersectsRange;
+        // only check range
+        intersectsTile = (capsuleSignedDistanceFromTile < capsuleData.radius*_CapsuleIndirectRangeFactor);
     }
-    else if (casterType == CAPSULESHADOWCASTERTYPE_POINT)
+    else
     {
-        float3 tileToLightVec = lightData.positionRWS - tileCenterWS;
-        bool lightIntersectsTile = (dot(tileToLightVec, tileToLightVec) < Sq(lightData.lightRange + tileRadiusWS));
+        // check range
+        intersectsTile = (capsuleSignedDistanceFromTile < lightData.shadowRange);
 
-        float3 lightToCapsuleVec = capsuleData.centerRWS - lightData.positionRWS;
-        bool lightIntersectsCapsule = (dot(lightToCapsuleVec, lightToCapsuleVec) < Sq(lightData.lightRange + capsuleData.offset + capsuleData.radius));
+        // get the light cone angle from the tile
+        float3 tileToLightDir;
+        float tileToLightDistance;
+        float lightCosTheta;
+        if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+        {
+            tileToLightDir = lightData.directionWS;
+            tileToLightDistance = FLT_MAX;
+            lightCosTheta = lightData.maxCosTheta;
 
-        float capsuleRangeWS = capsuleData.offset + capsuleData.radius + lightData.shadowRange;
-        bool intersectsRange = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
+            // TODO: are there any areas where we know the directional light has no effect, that we can use to cull?
+        }
+        else
+        {
+            float3 tileToLightVec = lightData.positionRWS - tileCenterWS;
+            tileToLightDistance = length(tileToLightVec);
+            tileToLightDir = tileToLightVec/tileToLightDistance;
 
-        intersectsTile = lightIntersectsTile && lightIntersectsCapsule && intersectsRange;
-    }
-    else // casterType == CAPSULESHADOWCASTERTYPE_INDIRECT
-    {
-        float capsuleRangeWS = capsuleData.offset + capsuleData.radius*(1.f + _CapsuleIndirectRangeFactor);
-        intersectsTile = (tileToCapsuleDistSq < Sq(capsuleRangeWS + tileRadiusWS));
+            float sinTheta = max(0.f, lightData.radiusWS/(tileToLightDistance - tileRadiusWS));
+            lightCosTheta = min(lightData.maxCosTheta, CompleteUnitSquare(sinTheta));
+
+            // check tile vs light influence volume
+            intersectsTile = intersectsTile && (tileToLightDistance < lightData.lightRange);
+            if (casterType == CAPSULESHADOWCASTERTYPE_SPOT)
+            {
+                float tileConeSinTheta = tileRadiusWS/tileToLightDistance;
+                float tileConeCosTheta = CompleteUnitSquare(tileConeSinTheta);
+
+                float spotConeCosTheta = lightData.spotCosTheta;
+                float spotConeSinTheta = CompleteUnitSquare(spotConeCosTheta);
+
+                // cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
+                float combinedCosTheta = spotConeCosTheta*tileConeCosTheta - spotConeSinTheta*tileConeSinTheta;
+
+                // check the tile is within the spot cone
+                float cosAngleBetweenLightDirAndTileCenter = dot(tileToLightDir, lightData.directionWS);
+                intersectsTile = intersectsTile && (cosAngleBetweenLightDirAndTileCenter > combinedCosTheta);
+            }
+        }
+
+        if (lightCosTheta != 0.f)
+        {
+            // check the smallest between the light axis and the capsule, from points in the tile
+            bool intersectsPenumbra = (capsuleSignedDistanceFromTile < 0.f);
+            if (capsuleSignedDistanceFromTile < tileToLightDistance)
+            {
+                float closestT = RayVsRayClosestPoints(tileToCapsuleVec, capsuleData.axisDirWS, 0.f, tileToLightDir).x;
+                float3 tileToCheckPos = tileToCapsuleVec + capsuleData.axisDirWS*clamp(closestT, -capsuleData.offset, capsuleData.offset);
+
+                float distanceAlongAxis = dot(tileToCheckPos, tileToLightDir);
+                float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*tileToLightDir);
+
+                distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
+
+                float cosTheta = distanceAlongAxis/sqrt(Sq(distanceFromAxis) + Sq(distanceAlongAxis));
+                intersectsPenumbra = intersectsPenumbra || (cosTheta > lightCosTheta);
+            }
+            intersectsTile = intersectsTile && intersectsPenumbra;
+        }
     }
     return intersectsTile;
 }
@@ -251,7 +295,7 @@ void CapsuleShadowLoop(
                         GetCapsuleDirectOcclusionFlags(),
                         volume.caster.directionWS,
                         false,
-                        volume.caster.cosTheta,
+                        volume.caster.maxCosTheta,
                         volume.occluder.centerRWS - positionWS,
                         volume.occluder.axisDirWS,
                         volume.occluder.offset,
@@ -263,7 +307,7 @@ void CapsuleShadowLoop(
                 {
                     float3 surfaceToLightVec = volume.caster.positionRWS - positionWS;
                     float sinTheta = volume.caster.radiusWS/length(surfaceToLightVec);
-                    float cosTheta = min(volume.caster.cosTheta, sqrt(max(1.f - sinTheta*sinTheta, 0.f)));
+                    float cosTheta = min(volume.caster.maxCosTheta, CompleteUnitSquare(sinTheta));
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleDirectOcclusionFlags(),
                         surfaceToLightVec,

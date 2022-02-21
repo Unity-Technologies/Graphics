@@ -69,9 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     internal enum CapsuleShadowCasterType
     {
-        None,               // read by all lights in the light loop
         Directional,        // with solid angle
         Point,              // with spherical size
+        Spot,               // with spherical size
         // TODO: spot (use spot cone for culling)
         Indirect,
         // TODO: other indirect types
@@ -81,24 +81,24 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct CapsuleShadowCaster
     {
         public uint header;             // [15:8]=sliceIndex, [7:0]=casterType
-        public float lightRange;        // point/spot light only
         public float shadowRange;
-        public float tanTheta;          // directional light only
+        public float maxCosTheta;
+        public float lightRange;        // point/spot light only
 
         public Vector3 directionWS;     // directional light, or spot axis
-        public float cosTheta;          // directional light, or maxCosTheta for point/spot
+        public float spotCosTheta;      // spot light only
 
         public Vector3 positionRWS;     // point/spot light only
         public float radiusWS;          // point/spot light only
 
-        internal CapsuleShadowCaster(CapsuleShadowCasterType casterType, int sliceIndex)
+        internal CapsuleShadowCaster(CapsuleShadowCasterType casterType, int sliceIndex, float _shadowRange, float _maxCosTheta)
         {
             header = ((uint)sliceIndex << 8) | (uint)casterType;
+            shadowRange = _shadowRange;
+            maxCosTheta = _maxCosTheta;
             lightRange = 0.0f;
-            shadowRange = 0.0f;
-            tanTheta = 1.0f;
             directionWS = Vector3.zero;
-            cosTheta = 1.0f;
+            spotCosTheta = 1.0f;
             positionRWS = Vector3.zero;
             radiusWS = 0.0f;
         }

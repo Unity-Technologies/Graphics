@@ -42,9 +42,9 @@
 //
 // UnityEngine.Rendering.HighDefinition.CapsuleShadowCasterType:  static fields
 //
-#define CAPSULESHADOWCASTERTYPE_NONE (0)
-#define CAPSULESHADOWCASTERTYPE_DIRECTIONAL (1)
-#define CAPSULESHADOWCASTERTYPE_POINT (2)
+#define CAPSULESHADOWCASTERTYPE_DIRECTIONAL (0)
+#define CAPSULESHADOWCASTERTYPE_POINT (1)
+#define CAPSULESHADOWCASTERTYPE_SPOT (2)
 #define CAPSULESHADOWCASTERTYPE_INDIRECT (3)
 
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
@@ -64,11 +64,11 @@ struct CapsuleOccluderData
 struct CapsuleShadowCaster
 {
     uint header;
-    float lightRange;
     float shadowRange;
-    float tanTheta;
+    float maxCosTheta;
+    float lightRange;
     float3 directionWS;
-    float cosTheta;
+    float spotCosTheta;
     float3 positionRWS;
     float radiusWS;
 };
