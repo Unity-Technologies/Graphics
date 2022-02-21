@@ -267,10 +267,13 @@ namespace UnityEngine.Rendering.Universal
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
             {
-                var asset = UniversalRenderPipeline.asset;
                 var postProcessParams = PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
-                postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
+                postProcessParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                var asset = UniversalRenderPipeline.asset;
+                if (asset)
+                    postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
+
                 m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref postProcessParams);
             }
 
