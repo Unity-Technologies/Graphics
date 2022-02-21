@@ -126,6 +126,21 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The default color buffer format in HDR (only).
+    /// Affects camera rendering and postprocessing color buffers.
+    /// </summary>
+    public enum HDRColorBufferPrecision
+    {
+        /// <summary> Typically R11G11B10f for faster rendering. Recommend for mobile.
+        /// R11G11B10f can cause a subtle blue/yellow banding in some rare cases due to lower precision of the blue component.</summary>
+        [Tooltip("Use 32-bits per pixel for HDR rendering.")]
+        _32Bits,
+        /// <summary>Typically R16G16B16A16f for better quality. Can reduce banding at the cost of memory and performance.</summary>
+        [Tooltip("Use 64-bits per pixel for HDR rendering.")]
+        _64Bits,
+    }
+
+    /// <summary>
     /// Options for setting MSAA Quality.
     /// This defines how many samples URP computes per pixel for evaluating the effect.
     /// </summary>
@@ -365,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
+        [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
@@ -890,6 +906,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SupportsHDR; }
             set { m_SupportsHDR = value; }
+        }
+
+        /// <summary>
+        /// Graphics format requested for HDR color buffers.
+        /// </summary>
+        public HDRColorBufferPrecision hdrColorBufferPrecision
+        {
+            get { return m_HDRColorBufferPrecision; }
+            set { m_HDRColorBufferPrecision = value; }
         }
 
         /// <summary>

@@ -243,6 +243,9 @@ EditorBuildSettings:
     path: Assets/Scenes/147_LightCookies_Shaders.unity
     guid: 66d9465bb28c441c7ba39334a5ad8e68
   - enabled: 1
+    path: Assets/Scenes/161_FP16_BackBuffer.unity
+    guid: e4bd4cb963e384819a1d8a13bc5127a8
+  - enabled: 1
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
   - enabled: 1

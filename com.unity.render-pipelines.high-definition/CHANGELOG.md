@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add #pragma editor_sync_compilation directive to MaterialError.shader
 - Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
 - Added an optional CPU simulation for the water system.
+- Added new Unity material ball matching the new Unity logo.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -136,9 +137,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera motion vector pass reading last frame depth texture
 - Fixed issue with shader graph custom velocity and VFX (case 1388149)
 - Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
-- Fixed issue in APV with scenes saved only once when creating them. 
+- Fixed issue in APV with scenes saved only once when creating them.
 - Fixed probe volume baking not generating any probes on mac.
 - Fix a few UX issues in APV.
+- Fixed issue with detail normals when scale is null (case 1399548).
 
 ## [14.0.0] - 2021-11-17
 

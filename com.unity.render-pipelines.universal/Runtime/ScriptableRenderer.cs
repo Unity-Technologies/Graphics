@@ -610,7 +610,9 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveRenderPassQueue.Clear();
 
             if (UniversalRenderPipeline.asset)
+            {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+            }
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
