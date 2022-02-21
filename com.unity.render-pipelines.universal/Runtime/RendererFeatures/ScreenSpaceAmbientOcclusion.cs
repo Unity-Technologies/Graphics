@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                CommandBuffer cmd = CommandBufferPool.Get();
+                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     if (!m_CurrentSettings.AfterOpaque)
@@ -403,9 +403,6 @@ namespace UnityEngine.Rendering.Universal
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)ShaderPasses.AfterOpaque);
                     }
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
             private void Render(CommandBuffer cmd, RTHandle target, ShaderPasses pass)

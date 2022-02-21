@@ -161,6 +161,17 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+    # Temporarily override iPhone tests with SE device with 3GB RAM to avoid OOM issues.
+    agents_project:
+      default:
+        type: Unity::mobile::iPhone
+        model: SE
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.large
 
 jobs:
   - name: PR <PROJECT_NAME>
