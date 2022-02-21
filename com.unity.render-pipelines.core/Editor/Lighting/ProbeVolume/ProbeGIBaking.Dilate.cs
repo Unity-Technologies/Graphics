@@ -141,7 +141,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");

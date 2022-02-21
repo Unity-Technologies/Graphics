@@ -228,6 +228,9 @@ namespace UnityEngine.Rendering
                     hasFoundInvalidSetup = true;
                 }
             }
+
+            if (!hasFoundInvalidSetup)
+                ProbeReferenceVolume.instance.globalBounds = globalBounds;
         }
 
         static void SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
@@ -275,6 +278,15 @@ namespace UnityEngine.Rendering
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
                 }
+            }
+
+            // Make sure there are no remaining per scene data in scenes where probe volume was deleted
+            // iterate in reverse order because destroy will pop element from the array
+            for (int i = ProbeReferenceVolume.instance.perSceneDataList.Count - 1; i >= 0; i--)
+            {
+                var perSceneData = ProbeReferenceVolume.instance.perSceneDataList[i];
+                if (!sceneData.SceneHasProbeVolumes(perSceneData.gameObject.scene))
+                    CoreUtils.Destroy(perSceneData.gameObject);
             }
         }
 
@@ -383,8 +395,6 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in perSceneDataList)
             {
-                if (!ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene)) continue;
-
                 var asset = sceneData.asset;
 
                 if (asset == null) continue; // Can happen if only the active scene is baked and the data for the rest is not available.
@@ -495,9 +505,7 @@ namespace UnityEngine.Rendering
                     foreach (var sceneData in perSceneDataList)
                     {
                         if (sceneData.asset == null) continue; // Can happen if only the active scene is baked and the data for the rest is not available.
-
-                        if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene))
-                            prv.AddPendingAssetRemoval(sceneData.asset);
+                        prv.AddPendingAssetRemoval(sceneData.asset);
                     }
 
                     // Make sure unloading happens.
@@ -527,10 +535,7 @@ namespace UnityEngine.Rendering
                     AssetDatabase.Refresh();
 
                     foreach (var sceneData in perSceneDataList)
-                    {
-                        if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(sceneData.gameObject.scene))
-                            sceneData.QueueAssetLoading();
-                    }
+                        sceneData.QueueAssetLoading();
                 }
 
                 // Need to restore the original sh bands
@@ -557,12 +562,15 @@ namespace UnityEngine.Rendering
             var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
-
-            if (!validBakedProbes)
+            if (numUniqueProbes != 0)
             {
-                Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
-                return;
+                bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+
+                if (!validBakedProbes)
+                {
+                    Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
+                    return;
+                }
             }
 
             m_CellPosToIndex.Clear();
@@ -760,12 +768,11 @@ namespace UnityEngine.Rendering
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
             foreach (var data in fullSceneDataList)
             {
-                if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene))
-                {
-                    data.asset = ProbeVolumeAsset.CreateAsset(data);
-                    data.scenarios.TryAdd(ProbeReferenceVolume.instance.lightingScenario, default);
-                    scene2Data[data.gameObject.scene] = data;
-                }
+                Debug.Assert(ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene));
+
+                data.asset = ProbeVolumeAsset.CreateAsset(data);
+                data.scenarios.TryAdd(ProbeReferenceVolume.instance.lightingScenario, default);
+                scene2Data[data.gameObject.scene] = data;
             }
 
             // Allocate cells to the respective assets
@@ -781,41 +788,32 @@ namespace UnityEngine.Rendering
                             bakingCellsList = data2BakingCells[data] = new();
 
                         bakingCellsList.Add(cell);
-
-                        var asset = data.asset;
-                        var profile = probeRefVolume.sceneData.GetProfileForScene(scene);
-                        asset.StoreProfileData(profile);
-                        asset.minCellPosition = minCellPosition;
-                        asset.maxCellPosition = maxCellPosition;
-                        asset.globalBounds = globalBounds;
-
-                        EditorUtility.SetDirty(asset);
                     }
                 }
             }
 
             // Convert baking cells to runtime cells
-            foreach ((var data, var bakingCellsList) in data2BakingCells)
+            foreach (var data in fullSceneDataList)
             {
                 // NOTE: Right now we always write out both L0L1 and L2 data, regardless of which Probe Volume SH Bands lighting setting
                 //       happens to be active at the time of baking (probeRefVolume.shBands).
                 //
                 // TODO: Explicitly add an option for storing L2 data to bake sets. Freely mixing cells with different bands
                 //       availability is already supported by runtime.
-                //
-                data.asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
+
+                var asset = data.asset;
+                var profile = probeRefVolume.sceneData.GetProfileForScene(data.gameObject.scene);
+                asset.StoreProfileData(profile);
+                asset.minCellPosition = minCellPosition;
+                asset.maxCellPosition = maxCellPosition;
+                asset.globalBounds = globalBounds;
+                asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
+
+                if (!data2BakingCells.TryGetValue(data, out var bakingCellsList))
+                    bakingCellsList = new(); // Can happen if no cell is baked for the scene
+
                 WriteBakingCells(data, bakingCellsList);
                 data.ResolveCells();
-            }
-
-            foreach (var data in fullSceneDataList)
-            {
-                bool hasAsset = ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene);
-                if (hasAsset && Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
-                {
-                    EditorUtility.SetDirty(data);
-                    EditorUtility.SetDirty(data.asset);
-                }
             }
 
             var probeVolumes = GetProbeVolumeList();
@@ -1247,11 +1245,16 @@ namespace UnityEngine.Rendering
         {
             if (!onAdditionalProbesBakeCompletedCalled)
             {
-                // Dequeue the call if something has failed.
-                UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
-                if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
-                    CleanupOccluders();
+                if (m_BakingBatch.uniquePositions.Count == 0)
+                    OnAdditionalProbesBakeCompleted();
+                else
+                {
+                    // Dequeue the call if something has failed.
+                    UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+                    if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
+                        CleanupOccluders();
+                }
             }
         }
 
