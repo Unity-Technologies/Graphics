@@ -118,7 +118,6 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Remove the given component
         /// </summary>
-        /// <param name="type">The type of the component</param>
         /// <param name="component">The component to remove</param>
         /// <param name="dependencies">Dependencies.</param>
         public static bool RemoveComponent([DisallowNull] Component component, IEnumerable<Component> dependencies)
