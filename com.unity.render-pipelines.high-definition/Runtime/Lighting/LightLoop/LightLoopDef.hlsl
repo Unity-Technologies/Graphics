@@ -75,6 +75,20 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     return output;
 }
 
+// Variant environment data that provides a better default behavior for screen space refraction, when no proxy volume is available.
+EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
+{
+    EnvLightData output = InitSkyEnvLightData(envIndex);
+
+    // For screen space refraction, instead of an infinite projection, utilize the renderer's extents.
+    output.proxyExtents = GetRendererExtents();
+
+    // Revert the infinite projection.
+    output.minProjectionDistance = 0;
+
+    return output;
+}
+
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 

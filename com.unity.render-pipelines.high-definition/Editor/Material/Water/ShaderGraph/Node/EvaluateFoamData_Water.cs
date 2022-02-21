@@ -3,7 +3,6 @@ using System;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -11,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateFoamData_Water (Preview)")]
-    class EvaluateFoamData_Water : AbstractMaterialNode, IGeneratesBodyCode
+    class EvaluateFoamData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public EvaluateFoamData_Water()
         {
@@ -30,25 +29,16 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kSimulationFoamInputSlotId = 2;
         const string kSimulationFoamInputSlotName = "SimulationFoam";
 
-        const int kLowFrequencyHeightInputSlotId = 3;
-        const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
-
-        const int kCustomFoamInputSlotId = 4;
+        const int kCustomFoamInputSlotId = 3;
         const string kCustomFoamInputSlotName = "CustomFoam";
 
-        const int kNormalWSInputSlotId = 5;
-        const string kNormalWSInputSlotName = "NormalWS";
-
-        const int kPositionWSInputSlotId = 6;
-        const string kPositionWSInputSlotName = "PositionWS";
-
-        const int kSurfaceGradientOutputSlotId = 7;
+        const int kSurfaceGradientOutputSlotId = 4;
         const string kSurfaceGradientOutputSlotName = "SurfaceGradient";
 
-        const int kFoamOutputSlotId = 8;
+        const int kFoamOutputSlotId = 5;
         const string kFoamOutputSlotName = "Foam";
 
-        const int kSmoothnessOutputSlotId = 9;
+        const int kSmoothnessOutputSlotId = 6;
         const string kSmoothnessOutputSlotName = "Smoothness";
 
         public override bool hasPreview { get { return false; } }
@@ -58,15 +48,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // Input
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientInputSlotId, kSurfaceGradientInputSlotName, kSurfaceGradientInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kLowFrequencySurfaceGradientInputSlotId, kLowFrequencySurfaceGradientInputSlotName, kLowFrequencySurfaceGradientInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector2MaterialSlot(kSimulationFoamInputSlotId, kSimulationFoamInputSlotName, kSimulationFoamInputSlotName, SlotType.Input, Vector2.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(kSimulationFoamInputSlotId, kSimulationFoamInputSlotName, kSimulationFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kCustomFoamInputSlotId, kCustomFoamInputSlotName, kCustomFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector3MaterialSlot(kNormalWSInputSlotId, kNormalWSInputSlotName, kNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
 
             // Output
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector3MaterialSlot(kFoamOutputSlotId, kFoamOutputSlotName, kFoamOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(kFoamOutputSlotId, kFoamOutputSlotName, kFoamOutputSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(kSmoothnessOutputSlotId, kSmoothnessOutputSlotName, kSmoothnessOutputSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
@@ -75,10 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 kSurfaceGradientInputSlotId,
                 kLowFrequencySurfaceGradientInputSlotId,
                 kSimulationFoamInputSlotId,
-                kLowFrequencyHeightInputSlotId,
                 kCustomFoamInputSlotId,
-                kNormalWSInputSlotId,
-                kPositionWSInputSlotId,
 
                 // Output
                 kSurfaceGradientOutputSlotId,
@@ -95,28 +79,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 string lowFrequencySG = GetSlotValue(kLowFrequencySurfaceGradientInputSlotId, generationMode);
                 string simulationFoam = GetSlotValue(kSimulationFoamInputSlotId, generationMode);
                 string customFoam = GetSlotValue(kCustomFoamInputSlotId, generationMode);
-                string lowFrequencyHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
-                string normalWS = GetSlotValue(kNormalWSInputSlotId, generationMode);
-                string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
 
                 sb.AppendLine("FoamData foamData;");
                 sb.AppendLine("ZERO_INITIALIZE(FoamData, foamData);");
 
-                sb.AppendLine("EvaluateFoamData({0}, {1}, {2}, {3}, {4}, {5}, {6}, foamData);",
+                sb.AppendLine("EvaluateFoamData({0}, {1}, {2}, {3}, IN.{4}.xyz, foamData);",
                     surfaceGradient,
                     lowFrequencySG,
                     simulationFoam,
-                    lowFrequencyHeight,
                     customFoam,
-                    normalWS,
-                    positionWS
+                    ShaderGeneratorNames.GetUVName(UVChannel.UV0)
                 );
 
                 sb.AppendLine("$precision {0} = foamData.smoothness;",
                     GetVariableNameForSlot(kSmoothnessOutputSlotId)
                 );
 
-                sb.AppendLine("$precision3 {0} = foamData.foamValue;",
+                sb.AppendLine("$precision {0} = foamData.foamValue;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );
 
@@ -130,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSmoothnessOutputSlotId)
                 );
 
-                sb.AppendLine("$precision3 {0} = 0.0;",
+                sb.AppendLine("$precision {0} = 0.0;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );
 
@@ -138,6 +117,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSurfaceGradientOutputSlotId)
                 );
             }
+        }
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
+        {
+            return channel == UVChannel.UV0;
         }
     }
 }

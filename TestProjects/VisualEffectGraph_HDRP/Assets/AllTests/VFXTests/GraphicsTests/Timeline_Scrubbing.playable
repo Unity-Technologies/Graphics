@@ -1,0 +1,4856 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8263471187630639277
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 1
+    stepCount: 60
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1.8
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-7718882072660259120
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 2
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-7580947116548172446
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (6)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0.25
+    m_ClipIn: 0
+    m_Asset: {fileID: -5838613039878130431}
+    m_Duration: 7.499999999999999
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: -7580947116548172446}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &-5838613039878130431
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents: []
+  singleEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860810
+      - rid: 184462439238860811
+      - rid: 184462439238860812
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860813
+      - rid: 184462439238860814
+      - rid: 184462439238860815
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860816
+      - rid: 184462439238860817
+      - rid: 184462439238860818
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860819
+      - rid: 184462439238860820
+      - rid: 184462439238860821
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860822
+      - rid: 184462439238860823
+      - rid: 184462439238860824
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860825
+      - rid: 184462439238860826
+      - rid: 184462439238860827
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860828
+      - rid: 184462439238860829
+      - rid: 184462439238860830
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860831
+      - rid: 184462439238860832
+      - rid: 184462439238860833
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860834
+      - rid: 184462439238860835
+      - rid: 184462439238860836
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860837
+      - rid: 184462439238860838
+      - rid: 184462439238860839
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860840
+      - rid: 184462439238860841
+      - rid: 184462439238860842
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860843
+      - rid: 184462439238860844
+      - rid: 184462439238860845
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860846
+      - rid: 184462439238860847
+      - rid: 184462439238860848
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860849
+      - rid: 184462439238860850
+      - rid: 184462439238860851
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860852
+      - rid: 184462439238860853
+      - rid: 184462439238860854
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860855
+      - rid: 184462439238860856
+      - rid: 184462439238860857
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860858
+      - rid: 184462439238860859
+      - rid: 184462439238860860
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860861
+      - rid: 184462439238860862
+      - rid: 184462439238860863
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860864
+      - rid: 184462439238860865
+      - rid: 184462439238860866
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860867
+      - rid: 184462439238860868
+      - rid: 184462439238860869
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860870
+      - rid: 184462439238860871
+      - rid: 184462439238860872
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860873
+      - rid: 184462439238860874
+      - rid: 184462439238860875
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860876
+      - rid: 184462439238860877
+      - rid: 184462439238860878
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 2
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860879
+      - rid: 184462439238860880
+      - rid: 184462439238860881
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860882
+      - rid: 184462439238860883
+      - rid: 184462439238860884
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860885
+      - rid: 184462439238860886
+      - rid: 184462439238860887
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860888
+      - rid: 184462439238860889
+      - rid: 184462439238860890
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860891
+      - rid: 184462439238860892
+      - rid: 184462439238860893
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860894
+      - rid: 184462439238860895
+      - rid: 184462439238860896
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860897
+      - rid: 184462439238860898
+      - rid: 184462439238860899
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860900
+      - rid: 184462439238860901
+      - rid: 184462439238860902
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860903
+      - rid: 184462439238860904
+      - rid: 184462439238860905
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860906
+      - rid: 184462439238860907
+      - rid: 184462439238860908
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860909
+      - rid: 184462439238860910
+      - rid: 184462439238860911
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860912
+      - rid: 184462439238860913
+      - rid: 184462439238860914
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 3
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860915
+      - rid: 184462439238860916
+      - rid: 184462439238860917
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860918
+      - rid: 184462439238860919
+      - rid: 184462439238860920
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860921
+      - rid: 184462439238860922
+      - rid: 184462439238860923
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860924
+      - rid: 184462439238860925
+      - rid: 184462439238860926
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860927
+      - rid: 184462439238860928
+      - rid: 184462439238860929
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860930
+      - rid: 184462439238860931
+      - rid: 184462439238860932
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860933
+      - rid: 184462439238860934
+      - rid: 184462439238860935
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860936
+      - rid: 184462439238860937
+      - rid: 184462439238860938
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860939
+      - rid: 184462439238860940
+      - rid: 184462439238860941
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860942
+      - rid: 184462439238860943
+      - rid: 184462439238860944
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860945
+      - rid: 184462439238860946
+      - rid: 184462439238860947
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860948
+      - rid: 184462439238860949
+      - rid: 184462439238860950
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 4
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860951
+      - rid: 184462439238860952
+      - rid: 184462439238860953
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860954
+      - rid: 184462439238860955
+      - rid: 184462439238860956
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860957
+      - rid: 184462439238860958
+      - rid: 184462439238860959
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860960
+      - rid: 184462439238860961
+      - rid: 184462439238860962
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860963
+      - rid: 184462439238860964
+      - rid: 184462439238860965
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860966
+      - rid: 184462439238860967
+      - rid: 184462439238860968
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860969
+      - rid: 184462439238860970
+      - rid: 184462439238860971
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860972
+      - rid: 184462439238860973
+      - rid: 184462439238860974
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860975
+      - rid: 184462439238860976
+      - rid: 184462439238860977
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860978
+      - rid: 184462439238860979
+      - rid: 184462439238860980
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860981
+      - rid: 184462439238860982
+      - rid: 184462439238860983
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860984
+      - rid: 184462439238860985
+      - rid: 184462439238860986
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 5
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462439238860987
+      - rid: 184462439238860988
+      - rid: 184462439238860989
+  references:
+    version: 2
+    RefIds:
+    - rid: 184462439238860810
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0
+    - rid: 184462439238860811
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 1, y: 0, z: 0}
+    - rid: 184462439238860812
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0}
+    - rid: 184462439238860813
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.016666668
+    - rid: 184462439238860814
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9945219, y: 0.10452847, z: 0.004166667}
+    - rid: 184462439238860815
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.10000001, z: 0}
+    - rid: 184462439238860816
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.033333335
+    - rid: 184462439238860817
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9781476, y: 0.20791171, z: 0.008333334}
+    - rid: 184462439238860818
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.20000002, z: 0}
+    - rid: 184462439238860819
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.05
+    - rid: 184462439238860820
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.95105654, y: 0.309017, z: 0.0125}
+    - rid: 184462439238860821
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.3, z: 0}
+    - rid: 184462439238860822
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.06666667
+    - rid: 184462439238860823
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9135454, y: 0.40673667, z: 0.016666668}
+    - rid: 184462439238860824
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.40000004, z: 0}
+    - rid: 184462439238860825
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.083333336
+    - rid: 184462439238860826
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.8660254, y: 0.5, z: 0.020833334}
+    - rid: 184462439238860827
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.5, z: 0}
+    - rid: 184462439238860828
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.1
+    - rid: 184462439238860829
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.809017, y: 0.58778524, z: 0.025}
+    - rid: 184462439238860830
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.6, z: 0}
+    - rid: 184462439238860831
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.11666667
+    - rid: 184462439238860832
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.7431448, y: 0.6691306, z: 0.029166667}
+    - rid: 184462439238860833
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.7, z: 0}
+    - rid: 184462439238860834
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.13333334
+    - rid: 184462439238860835
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.66913056, y: 0.74314487, z: 0.033333335}
+    - rid: 184462439238860836
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.8000001, z: 0}
+    - rid: 184462439238860837
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.15
+    - rid: 184462439238860838
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.5877852, y: 0.80901706, z: 0.0375}
+    - rid: 184462439238860839
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.90000004, z: 0}
+    - rid: 184462439238860840
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.16666667
+    - rid: 184462439238860841
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.49999997, y: 0.86602545, z: 0.041666668}
+    - rid: 184462439238860842
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 1, z: 0}
+    - rid: 184462439238860843
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.18333334
+    - rid: 184462439238860844
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.4067366, y: 0.9135455, z: 0.045833334}
+    - rid: 184462439238860845
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.9, y: 1, z: 0}
+    - rid: 184462439238860846
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.2
+    - rid: 184462439238860847
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.30901697, y: 0.95105654, z: 0.05}
+    - rid: 184462439238860848
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.79999995, y: 1, z: 0}
+    - rid: 184462439238860849
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.21666667
+    - rid: 184462439238860850
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.20791166, y: 0.9781476, z: 0.054166667}
+    - rid: 184462439238860851
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.70000005, y: 1, z: 0}
+    - rid: 184462439238860852
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.23333333
+    - rid: 184462439238860853
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.10452842, y: 0.9945219, z: 0.058333334}
+    - rid: 184462439238860854
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.6, y: 1, z: 0}
+    - rid: 184462439238860855
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.25
+    - rid: 184462439238860856
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.00000004371139, y: 1, z: 0.0625}
+    - rid: 184462439238860857
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5, y: 1, z: 0}
+    - rid: 184462439238860858
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.26666668
+    - rid: 184462439238860859
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.10452863, y: 0.99452186, z: 0.06666667}
+    - rid: 184462439238860860
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.39999986, y: 1, z: 0}
+    - rid: 184462439238860861
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.28333333
+    - rid: 184462439238860862
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.20791174, y: 0.97814757, z: 0.07083333}
+    - rid: 184462439238860863
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.29999995, y: 1, z: 0}
+    - rid: 184462439238860864
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.3
+    - rid: 184462439238860865
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.30901715, y: 0.9510565, z: 0.075}
+    - rid: 184462439238860866
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.19999993, y: 1, z: 0}
+    - rid: 184462439238860867
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.31666666
+    - rid: 184462439238860868
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.4067367, y: 0.9135454, z: 0.079166666}
+    - rid: 184462439238860869
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.100000024, y: 1, z: 0}
+    - rid: 184462439238860870
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.33333334
+    - rid: 184462439238860871
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.50000006, y: 0.8660254, z: 0.083333336}
+    - rid: 184462439238860872
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0}
+    - rid: 184462439238860873
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.35
+    - rid: 184462439238860874
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.5877852, y: 0.809017, z: 0.0875}
+    - rid: 184462439238860875
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.099999905}
+    - rid: 184462439238860876
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.36666667
+    - rid: 184462439238860877
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.6691307, y: 0.7431448, z: 0.09166667}
+    - rid: 184462439238860878
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.20000005}
+    - rid: 184462439238860879
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.38333333
+    - rid: 184462439238860880
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.7431448, y: 0.6691306, z: 0.09583333}
+    - rid: 184462439238860881
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.29999995}
+    - rid: 184462439238860882
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.4
+    - rid: 184462439238860883
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.80901706, y: 0.5877852, z: 0.1}
+    - rid: 184462439238860884
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.4000001}
+    - rid: 184462439238860885
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.41666666
+    - rid: 184462439238860886
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.8660254, y: 0.50000006, z: 0.104166664}
+    - rid: 184462439238860887
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.5}
+    - rid: 184462439238860888
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.43333334
+    - rid: 184462439238860889
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9135455, y: 0.40673658, z: 0.108333334}
+    - rid: 184462439238860890
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.5999999}
+    - rid: 184462439238860891
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.45
+    - rid: 184462439238860892
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9510565, y: 0.30901703, z: 0.1125}
+    - rid: 184462439238860893
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.6999998}
+    - rid: 184462439238860894
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.46666667
+    - rid: 184462439238860895
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9781476, y: 0.20791161, z: 0.11666667}
+    - rid: 184462439238860896
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.79999995}
+    - rid: 184462439238860897
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.48333332
+    - rid: 184462439238860898
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9945219, y: 0.104528494, z: 0.12083333}
+    - rid: 184462439238860899
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.89999986}
+    - rid: 184462439238860900
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.5
+    - rid: 184462439238860901
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -1, y: -0.00000008742278, z: 0.125}
+    - rid: 184462439238860902
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 1}
+    - rid: 184462439238860903
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.51666665
+    - rid: 184462439238860904
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9945219, y: -0.104528435, z: 0.12916666}
+    - rid: 184462439238860905
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.9000001, z: 1}
+    - rid: 184462439238860906
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.53333336
+    - rid: 184462439238860907
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9781475, y: -0.20791201, z: 0.13333334}
+    - rid: 184462439238860908
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.7999997, z: 1}
+    - rid: 184462439238860909
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.55
+    - rid: 184462439238860910
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9510564, y: -0.3090172, z: 0.1375}
+    - rid: 184462439238860911
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.6999998, z: 1}
+    - rid: 184462439238860912
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.56666666
+    - rid: 184462439238860913
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9135454, y: -0.40673673, z: 0.14166667}
+    - rid: 184462439238860914
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.5999999, z: 1}
+    - rid: 184462439238860915
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.5833333
+    - rid: 184462439238860916
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.8660254, y: -0.49999997, z: 0.14583333}
+    - rid: 184462439238860917
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.5, z: 1}
+    - rid: 184462439238860918
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6
+    - rid: 184462439238860919
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.80901676, y: -0.58778554, z: 0.15}
+    - rid: 184462439238860920
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.39999986, z: 1}
+    - rid: 184462439238860921
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6166667
+    - rid: 184462439238860922
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.7431447, y: -0.6691308, z: 0.15416667}
+    - rid: 184462439238860923
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.29999995, z: 1}
+    - rid: 184462439238860924
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6333333
+    - rid: 184462439238860925
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.6691305, y: -0.74314487, z: 0.15833333}
+    - rid: 184462439238860926
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.20000005, z: 1}
+    - rid: 184462439238860927
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.65
+    - rid: 184462439238860928
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.5877854, y: -0.8090168, z: 0.1625}
+    - rid: 184462439238860929
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.10000014, z: 1}
+    - rid: 184462439238860930
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6666667
+    - rid: 184462439238860931
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.4999999, y: -0.86602545, z: 0.16666667}
+    - rid: 184462439238860932
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0, z: 1}
+    - rid: 184462439238860933
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.68333334
+    - rid: 184462439238860934
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.40673664, y: -0.9135454, z: 0.17083333}
+    - rid: 184462439238860935
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.099999905, y: 0, z: 1}
+    - rid: 184462439238860936
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.7
+    - rid: 184462439238860937
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.3090171, y: -0.9510565, z: 0.175}
+    - rid: 184462439238860938
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.19999981, y: 0, z: 1}
+    - rid: 184462439238860939
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.71666664
+    - rid: 184462439238860940
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.20791192, y: -0.97814757, z: 0.17916666}
+    - rid: 184462439238860941
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.2999997, y: 0, z: 1}
+    - rid: 184462439238860942
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.73333335
+    - rid: 184462439238860943
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.10452834, y: -0.9945219, z: 0.18333334}
+    - rid: 184462439238860944
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.4000001, y: 0, z: 1}
+    - rid: 184462439238860945
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.75
+    - rid: 184462439238860946
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.000000011924881, y: -1, z: 0.1875}
+    - rid: 184462439238860947
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5, y: 0, z: 1}
+    - rid: 184462439238860948
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.76666665
+    - rid: 184462439238860949
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.10452836, y: -0.9945219, z: 0.19166666}
+    - rid: 184462439238860950
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5999999, y: 0, z: 1}
+    - rid: 184462439238860951
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.78333336
+    - rid: 184462439238860952
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.20791194, y: -0.97814757, z: 0.19583334}
+    - rid: 184462439238860953
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.7000003, y: 0, z: 1}
+    - rid: 184462439238860954
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8
+    - rid: 184462439238860955
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.30901712, y: -0.9510565, z: 0.2}
+    - rid: 184462439238860956
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.8000002, y: 0, z: 1}
+    - rid: 184462439238860957
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.81666666
+    - rid: 184462439238860958
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.40673667, y: -0.9135454, z: 0.20416667}
+    - rid: 184462439238860959
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.9000001, y: 0, z: 1}
+    - rid: 184462439238860960
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8333333
+    - rid: 184462439238860961
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.4999999, y: -0.86602545, z: 0.20833333}
+    - rid: 184462439238860962
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 1}
+    - rid: 184462439238860963
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.85
+    - rid: 184462439238860964
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.5877855, y: -0.8090168, z: 0.2125}
+    - rid: 184462439238860965
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.8999996}
+    - rid: 184462439238860966
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8666667
+    - rid: 184462439238860967
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.66913074, y: -0.74314475, z: 0.21666667}
+    - rid: 184462439238860968
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.8000002}
+    - rid: 184462439238860969
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8833333
+    - rid: 184462439238860970
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.74314487, y: -0.66913056, z: 0.22083333}
+    - rid: 184462439238860971
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.6999998}
+    - rid: 184462439238860972
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.9
+    - rid: 184462439238860973
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.80901694, y: -0.5877853, z: 0.225}
+    - rid: 184462439238860974
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.6000004}
+    - rid: 184462439238860975
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.9166667
+    - rid: 184462439238860976
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.86602557, y: -0.49999976, z: 0.22916667}
+    - rid: 184462439238860977
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.5}
+    - rid: 184462439238860978
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.93333334
+    - rid: 184462439238860979
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.91354555, y: -0.4067365, z: 0.23333333}
+    - rid: 184462439238860980
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.4000001}
+    - rid: 184462439238860981
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.95
+    - rid: 184462439238860982
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.95105654, y: -0.30901694, z: 0.2375}
+    - rid: 184462439238860983
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.3000002}
+    - rid: 184462439238860984
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.96666664
+    - rid: 184462439238860985
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.97814757, y: -0.20791176, z: 0.24166666}
+    - rid: 184462439238860986
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.20000029}
+    - rid: 184462439238860987
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.98333335
+    - rid: 184462439238860988
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9945219, y: -0.104528174, z: 0.24583334}
+    - rid: 184462439238860989
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.099999905}
+--- !u!114 &-5729331207868312137
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (2)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 1.0166666666666666
+    m_ClipIn: 0
+    m_Asset: {fileID: -8263471187630639277}
+    m_Duration: 5.983333333333333
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: -5729331207868312137}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &-5074462920981617555
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 1
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents:
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1.5
+    timeSpace: 0
+    name:
+      m_Name: fire
+    eventAttributes:
+      content: []
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 0.7
+    timeSpace: 0
+    name:
+      m_Name: fire
+    eventAttributes:
+      content: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-3943669138037476877
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 0
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 1
+      timeSpace: 0
+      name:
+        m_Name: SmokePlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1
+      timeSpace: 1
+      name:
+        m_Name: SmokeStop
+      eventAttributes:
+        content: []
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    enter:
+      time: 2
+      timeSpace: 0
+      name:
+        m_Name: FirePlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1.2
+      timeSpace: 1
+      name:
+        m_Name: FireStop
+      eventAttributes:
+        content: []
+  singleEvents:
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 67
+    timeSpace: 2
+    name:
+      m_Name: Spark
+    eventAttributes:
+      content:
+      - rid: 184462436577312871
+  references:
+    version: 2
+    RefIds:
+    - rid: 184462436577312871
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0}
+--- !u!114 &-3813501596828639531
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)(Clone)(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1.5
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-3530786875051334674
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents:
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 0.3
+    timeSpace: 1
+    name:
+      m_Name: fire
+    eventAttributes:
+      content: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-2753982788492800685
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents: []
+  singleEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 1.0413936861052149
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739584
+      - rid: 184462454524739585
+      - rid: 184462454524739586
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1.0488744061667818
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739587
+      - rid: 184462454524739588
+      - rid: 184462454524739589
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 1.070924019474035
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739590
+      - rid: 184462454524739591
+      - rid: 184462454524739592
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 1.0975216255046063
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739593
+      - rid: 184462454524739594
+      - rid: 184462454524739595
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 1.1571580898748515
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739596
+      - rid: 184462454524739597
+      - rid: 184462454524739598
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 1.2617462222751912
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739599
+      - rid: 184462454524739600
+      - rid: 184462454524739601
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 1.3288758156489933
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739602
+      - rid: 184462454524739603
+      - rid: 184462454524739604
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 1.3400281371269507
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739605
+      - rid: 184462454524739606
+      - rid: 184462454524739607
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 1.3710333650796829
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739608
+      - rid: 184462454524739609
+      - rid: 184462454524739610
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 1.4774629699426995
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739611
+      - rid: 184462454524739612
+      - rid: 184462454524739613
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 1.527472803614788
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739614
+      - rid: 184462454524739615
+      - rid: 184462454524739616
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1.5966446458346417
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739617
+      - rid: 184462454524739618
+      - rid: 184462454524739619
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 1.6274326576979052
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739620
+      - rid: 184462454524739621
+      - rid: 184462454524739622
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 1.6305414329425159
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739623
+      - rid: 184462454524739624
+      - rid: 184462454524739625
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 1.750425298116368
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739626
+      - rid: 184462454524739627
+      - rid: 184462454524739628
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 1.860290414123
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739629
+      - rid: 184462454524739630
+      - rid: 184462454524739631
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 1.943418890677122
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739632
+      - rid: 184462454524739633
+      - rid: 184462454524739634
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 2.182968542530652
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739635
+      - rid: 184462454524739636
+      - rid: 184462454524739637
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 2.336519404005501
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739638
+      - rid: 184462454524739639
+      - rid: 184462454524739640
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 2.375668040186012
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739641
+      - rid: 184462454524739642
+      - rid: 184462454524739643
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 2.4273674979002067
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739644
+      - rid: 184462454524739645
+      - rid: 184462454524739646
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 2.443153497503676
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739647
+      - rid: 184462454524739648
+      - rid: 184462454524739649
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 2.4744784093808745
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739650
+      - rid: 184462454524739651
+      - rid: 184462454524739652
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 2.573888136806846
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739653
+      - rid: 184462454524739654
+      - rid: 184462454524739655
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 2.582542187339879
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739656
+      - rid: 184462454524739657
+      - rid: 184462454524739658
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 2.7767454375404608
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739659
+      - rid: 184462454524739660
+      - rid: 184462454524739661
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 2.796701463776036
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739662
+      - rid: 184462454524739663
+      - rid: 184462454524739664
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 2.8476694570144963
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739665
+      - rid: 184462454524739666
+      - rid: 184462454524739667
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 2.9242064216752564
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739668
+      - rid: 184462454524739669
+      - rid: 184462454524739670
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 2.942019036944033
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739671
+      - rid: 184462454524739672
+      - rid: 184462454524739673
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 3.2028948712176155
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739674
+      - rid: 184462454524739675
+      - rid: 184462454524739676
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 3.2782714321642517
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739677
+      - rid: 184462454524739678
+      - rid: 184462454524739679
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 3.3615706778883796
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739680
+      - rid: 184462454524739681
+      - rid: 184462454524739682
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 3.376440028835293
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739683
+      - rid: 184462454524739684
+      - rid: 184462454524739685
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 3.466657967523978
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739686
+      - rid: 184462454524739687
+      - rid: 184462454524739688
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 3.724905415775676
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739689
+      - rid: 184462454524739690
+      - rid: 184462454524739691
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 3.7473563527443243
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739692
+      - rid: 184462454524739693
+      - rid: 184462454524739694
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 3.7684478008972704
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739695
+      - rid: 184462454524739696
+      - rid: 184462454524739697
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 3.8053790120432986
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739698
+      - rid: 184462454524739699
+      - rid: 184462454524739700
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 3.849967369274221
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739701
+      - rid: 184462454524739702
+      - rid: 184462454524739703
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 3.853114056798217
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739704
+      - rid: 184462454524739705
+      - rid: 184462454524739706
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 3.9014668403665844
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739707
+      - rid: 184462454524739708
+      - rid: 184462454524739709
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 3.9462875495414655
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739710
+      - rid: 184462454524739711
+      - rid: 184462454524739712
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 3.9549510660371516
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739713
+      - rid: 184462454524739714
+      - rid: 184462454524739715
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 3.9739481597086175
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739716
+      - rid: 184462454524739717
+      - rid: 184462454524739718
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 3.9924554522114133
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739719
+      - rid: 184462454524739720
+      - rid: 184462454524739721
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 3.9926134287345287
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739722
+      - rid: 184462454524739723
+      - rid: 184462454524739724
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 4.073376113117382
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739725
+      - rid: 184462454524739726
+      - rid: 184462454524739727
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 4.129179741781755
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739728
+      - rid: 184462454524739729
+      - rid: 184462454524739730
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 4.1708977386219885
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739731
+      - rid: 184462454524739732
+      - rid: 184462454524739733
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    time: 4.211335904529009
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739734
+      - rid: 184462454524739735
+      - rid: 184462454524739736
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 4.254873392756504
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739737
+      - rid: 184462454524739738
+      - rid: 184462454524739739
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 4.2790635858099275
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739740
+      - rid: 184462454524739741
+      - rid: 184462454524739742
+  - editorColor: {r: 0.3529412, g: 0.69803923, b: 0.7372549, a: 1}
+    time: 4.366224862340012
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739743
+      - rid: 184462454524739744
+      - rid: 184462454524739745
+  - editorColor: {r: 0.44705883, g: 0.40784314, b: 0.047058824, a: 1}
+    time: 4.426884144277723
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739746
+      - rid: 184462454524739747
+      - rid: 184462454524739748
+  - editorColor: {r: 0.77254903, g: 0.63529414, b: 0.023529412, a: 1}
+    time: 4.430152479293827
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739749
+      - rid: 184462454524739750
+      - rid: 184462454524739751
+  - editorColor: {r: 0.53333336, g: 0.15686275, b: 0.02745098, a: 1}
+    time: 4.573327669675149
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739752
+      - rid: 184462454524739753
+      - rid: 184462454524739754
+  - editorColor: {r: 0.38039216, g: 0.28627452, b: 0.52156866, a: 1}
+    time: 4.6352963445872515
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739755
+      - rid: 184462454524739756
+      - rid: 184462454524739757
+  - editorColor: {r: 0.47843137, g: 0.48235294, b: 0.11764706, a: 1}
+    time: 4.749922595801728
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739758
+      - rid: 184462454524739759
+      - rid: 184462454524739760
+  - editorColor: {r: 0.3137255, g: 0.627451, b: 0.3647059, a: 1}
+    time: 4.927518680657967
+    timeSpace: 0
+    name:
+      m_Name: splat
+    eventAttributes:
+      content:
+      - rid: 184462454524739761
+      - rid: 184462454524739762
+      - rid: 184462454524739763
+  references:
+    version: 2
+    RefIds:
+    - rid: 184462454524739584
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0
+    - rid: 184462454524739585
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 1, y: 0, z: 0}
+    - rid: 184462454524739586
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0}
+    - rid: 184462454524739587
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.016666668
+    - rid: 184462454524739588
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9945219, y: 0.10452847, z: 0.004166667}
+    - rid: 184462454524739589
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.10000001, z: 0}
+    - rid: 184462454524739590
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.033333335
+    - rid: 184462454524739591
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9781476, y: 0.20791171, z: 0.008333334}
+    - rid: 184462454524739592
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.20000002, z: 0}
+    - rid: 184462454524739593
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.05
+    - rid: 184462454524739594
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.95105654, y: 0.309017, z: 0.0125}
+    - rid: 184462454524739595
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.3, z: 0}
+    - rid: 184462454524739596
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.06666667
+    - rid: 184462454524739597
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9135454, y: 0.40673667, z: 0.016666668}
+    - rid: 184462454524739598
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.40000004, z: 0}
+    - rid: 184462454524739599
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.083333336
+    - rid: 184462454524739600
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.8660254, y: 0.5, z: 0.020833334}
+    - rid: 184462454524739601
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.5, z: 0}
+    - rid: 184462454524739602
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.1
+    - rid: 184462454524739603
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.809017, y: 0.58778524, z: 0.025}
+    - rid: 184462454524739604
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.6, z: 0}
+    - rid: 184462454524739605
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.11666667
+    - rid: 184462454524739606
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.7431448, y: 0.6691306, z: 0.029166667}
+    - rid: 184462454524739607
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.7, z: 0}
+    - rid: 184462454524739608
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.13333334
+    - rid: 184462454524739609
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.66913056, y: 0.74314487, z: 0.033333335}
+    - rid: 184462454524739610
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.8000001, z: 0}
+    - rid: 184462454524739611
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.15
+    - rid: 184462454524739612
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.5877852, y: 0.80901706, z: 0.0375}
+    - rid: 184462454524739613
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0.90000004, z: 0}
+    - rid: 184462454524739614
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.16666667
+    - rid: 184462454524739615
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.49999997, y: 0.86602545, z: 0.041666668}
+    - rid: 184462454524739616
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 1, z: 0}
+    - rid: 184462454524739617
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.18333334
+    - rid: 184462454524739618
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.4067366, y: 0.9135455, z: 0.045833334}
+    - rid: 184462454524739619
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.9, y: 1, z: 0}
+    - rid: 184462454524739620
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.2
+    - rid: 184462454524739621
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.30901697, y: 0.95105654, z: 0.05}
+    - rid: 184462454524739622
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.79999995, y: 1, z: 0}
+    - rid: 184462454524739623
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.21666667
+    - rid: 184462454524739624
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.20791166, y: 0.9781476, z: 0.054166667}
+    - rid: 184462454524739625
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.70000005, y: 1, z: 0}
+    - rid: 184462454524739626
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.23333333
+    - rid: 184462454524739627
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.10452842, y: 0.9945219, z: 0.058333334}
+    - rid: 184462454524739628
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.6, y: 1, z: 0}
+    - rid: 184462454524739629
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.25
+    - rid: 184462454524739630
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.00000004371139, y: 1, z: 0.0625}
+    - rid: 184462454524739631
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5, y: 1, z: 0}
+    - rid: 184462454524739632
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.26666668
+    - rid: 184462454524739633
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.10452863, y: 0.99452186, z: 0.06666667}
+    - rid: 184462454524739634
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.39999986, y: 1, z: 0}
+    - rid: 184462454524739635
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.28333333
+    - rid: 184462454524739636
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.20791174, y: 0.97814757, z: 0.07083333}
+    - rid: 184462454524739637
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.29999995, y: 1, z: 0}
+    - rid: 184462454524739638
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.3
+    - rid: 184462454524739639
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.30901715, y: 0.9510565, z: 0.075}
+    - rid: 184462454524739640
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.19999993, y: 1, z: 0}
+    - rid: 184462454524739641
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.31666666
+    - rid: 184462454524739642
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.4067367, y: 0.9135454, z: 0.079166666}
+    - rid: 184462454524739643
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.100000024, y: 1, z: 0}
+    - rid: 184462454524739644
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.33333334
+    - rid: 184462454524739645
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.50000006, y: 0.8660254, z: 0.083333336}
+    - rid: 184462454524739646
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0}
+    - rid: 184462454524739647
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.35
+    - rid: 184462454524739648
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.5877852, y: 0.809017, z: 0.0875}
+    - rid: 184462454524739649
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.099999905}
+    - rid: 184462454524739650
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.36666667
+    - rid: 184462454524739651
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.6691307, y: 0.7431448, z: 0.09166667}
+    - rid: 184462454524739652
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.20000005}
+    - rid: 184462454524739653
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.38333333
+    - rid: 184462454524739654
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.7431448, y: 0.6691306, z: 0.09583333}
+    - rid: 184462454524739655
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.29999995}
+    - rid: 184462454524739656
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.4
+    - rid: 184462454524739657
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.80901706, y: 0.5877852, z: 0.1}
+    - rid: 184462454524739658
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.4000001}
+    - rid: 184462454524739659
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.41666666
+    - rid: 184462454524739660
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.8660254, y: 0.50000006, z: 0.104166664}
+    - rid: 184462454524739661
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.5}
+    - rid: 184462454524739662
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.43333334
+    - rid: 184462454524739663
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9135455, y: 0.40673658, z: 0.108333334}
+    - rid: 184462454524739664
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.5999999}
+    - rid: 184462454524739665
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.45
+    - rid: 184462454524739666
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9510565, y: 0.30901703, z: 0.1125}
+    - rid: 184462454524739667
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.6999998}
+    - rid: 184462454524739668
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.46666667
+    - rid: 184462454524739669
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9781476, y: 0.20791161, z: 0.11666667}
+    - rid: 184462454524739670
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.79999995}
+    - rid: 184462454524739671
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.48333332
+    - rid: 184462454524739672
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9945219, y: 0.104528494, z: 0.12083333}
+    - rid: 184462454524739673
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 0.89999986}
+    - rid: 184462454524739674
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.5
+    - rid: 184462454524739675
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -1, y: -0.00000008742278, z: 0.125}
+    - rid: 184462454524739676
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 1, z: 1}
+    - rid: 184462454524739677
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.51666665
+    - rid: 184462454524739678
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9945219, y: -0.104528435, z: 0.12916666}
+    - rid: 184462454524739679
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.9000001, z: 1}
+    - rid: 184462454524739680
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.53333336
+    - rid: 184462454524739681
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9781475, y: -0.20791201, z: 0.13333334}
+    - rid: 184462454524739682
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.7999997, z: 1}
+    - rid: 184462454524739683
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.55
+    - rid: 184462454524739684
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9510564, y: -0.3090172, z: 0.1375}
+    - rid: 184462454524739685
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.6999998, z: 1}
+    - rid: 184462454524739686
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.56666666
+    - rid: 184462454524739687
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.9135454, y: -0.40673673, z: 0.14166667}
+    - rid: 184462454524739688
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.5999999, z: 1}
+    - rid: 184462454524739689
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.5833333
+    - rid: 184462454524739690
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.8660254, y: -0.49999997, z: 0.14583333}
+    - rid: 184462454524739691
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.5, z: 1}
+    - rid: 184462454524739692
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6
+    - rid: 184462454524739693
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.80901676, y: -0.58778554, z: 0.15}
+    - rid: 184462454524739694
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.39999986, z: 1}
+    - rid: 184462454524739695
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6166667
+    - rid: 184462454524739696
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.7431447, y: -0.6691308, z: 0.15416667}
+    - rid: 184462454524739697
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.29999995, z: 1}
+    - rid: 184462454524739698
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6333333
+    - rid: 184462454524739699
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.6691305, y: -0.74314487, z: 0.15833333}
+    - rid: 184462454524739700
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.20000005, z: 1}
+    - rid: 184462454524739701
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.65
+    - rid: 184462454524739702
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.5877854, y: -0.8090168, z: 0.1625}
+    - rid: 184462454524739703
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0.10000014, z: 1}
+    - rid: 184462454524739704
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.6666667
+    - rid: 184462454524739705
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.4999999, y: -0.86602545, z: 0.16666667}
+    - rid: 184462454524739706
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0, y: 0, z: 1}
+    - rid: 184462454524739707
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.68333334
+    - rid: 184462454524739708
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.40673664, y: -0.9135454, z: 0.17083333}
+    - rid: 184462454524739709
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.099999905, y: 0, z: 1}
+    - rid: 184462454524739710
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.7
+    - rid: 184462454524739711
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.3090171, y: -0.9510565, z: 0.175}
+    - rid: 184462454524739712
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.19999981, y: 0, z: 1}
+    - rid: 184462454524739713
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.71666664
+    - rid: 184462454524739714
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.20791192, y: -0.97814757, z: 0.17916666}
+    - rid: 184462454524739715
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.2999997, y: 0, z: 1}
+    - rid: 184462454524739716
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.73333335
+    - rid: 184462454524739717
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: -0.10452834, y: -0.9945219, z: 0.18333334}
+    - rid: 184462454524739718
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.4000001, y: 0, z: 1}
+    - rid: 184462454524739719
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.75
+    - rid: 184462454524739720
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.000000011924881, y: -1, z: 0.1875}
+    - rid: 184462454524739721
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5, y: 0, z: 1}
+    - rid: 184462454524739722
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.76666665
+    - rid: 184462454524739723
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.10452836, y: -0.9945219, z: 0.19166666}
+    - rid: 184462454524739724
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.5999999, y: 0, z: 1}
+    - rid: 184462454524739725
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.78333336
+    - rid: 184462454524739726
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.20791194, y: -0.97814757, z: 0.19583334}
+    - rid: 184462454524739727
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.7000003, y: 0, z: 1}
+    - rid: 184462454524739728
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8
+    - rid: 184462454524739729
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.30901712, y: -0.9510565, z: 0.2}
+    - rid: 184462454524739730
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.8000002, y: 0, z: 1}
+    - rid: 184462454524739731
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.81666666
+    - rid: 184462454524739732
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.40673667, y: -0.9135454, z: 0.20416667}
+    - rid: 184462454524739733
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 0.9000001, y: 0, z: 1}
+    - rid: 184462454524739734
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8333333
+    - rid: 184462454524739735
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.4999999, y: -0.86602545, z: 0.20833333}
+    - rid: 184462454524739736
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 1}
+    - rid: 184462454524739737
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.85
+    - rid: 184462454524739738
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.5877855, y: -0.8090168, z: 0.2125}
+    - rid: 184462454524739739
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.8999996}
+    - rid: 184462454524739740
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8666667
+    - rid: 184462454524739741
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.66913074, y: -0.74314475, z: 0.21666667}
+    - rid: 184462454524739742
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.8000002}
+    - rid: 184462454524739743
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.8833333
+    - rid: 184462454524739744
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.74314487, y: -0.66913056, z: 0.22083333}
+    - rid: 184462454524739745
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.6999998}
+    - rid: 184462454524739746
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.9
+    - rid: 184462454524739747
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.80901694, y: -0.5877853, z: 0.225}
+    - rid: 184462454524739748
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.6000004}
+    - rid: 184462454524739749
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.9166667
+    - rid: 184462454524739750
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.86602557, y: -0.49999976, z: 0.22916667}
+    - rid: 184462454524739751
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.5}
+    - rid: 184462454524739752
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.93333334
+    - rid: 184462454524739753
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.91354555, y: -0.4067365, z: 0.23333333}
+    - rid: 184462454524739754
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.4000001}
+    - rid: 184462454524739755
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.95
+    - rid: 184462454524739756
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.95105654, y: -0.30901694, z: 0.2375}
+    - rid: 184462454524739757
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.3000002}
+    - rid: 184462454524739758
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.96666664
+    - rid: 184462454524739759
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.97814757, y: -0.20791176, z: 0.24166666}
+    - rid: 184462454524739760
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.20000029}
+    - rid: 184462454524739761
+      type: {class: EventAttributeFloat, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: rotation
+        value: 0.98333335
+    - rid: 184462454524739762
+      type: {class: EventAttributeVector3, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: position
+        value: {x: 0.9945219, y: -0.104528174, z: 0.24583334}
+    - rid: 184462454524739763
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0.099999905}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
+  m_Name: Timeline_Scrubbing
+  m_EditorClassIdentifier: 
+  m_Version: 0
+  m_Tracks:
+  - {fileID: 1769484580756109860}
+  - {fileID: 6415309811212482371}
+  - {fileID: -5729331207868312137}
+  - {fileID: 4923558279284490917}
+  - {fileID: 8524897507891998805}
+  - {fileID: 7395667227298186021}
+  - {fileID: -7580947116548172446}
+  - {fileID: 8686654460638354767}
+  m_FixedDuration: 0
+  m_EditorSettings:
+    m_Framerate: 60
+    m_ScenePreview: 1
+  m_DurationMode: 0
+  m_MarkerTrack: {fileID: 0}
+--- !u!114 &511971117974718314
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 0
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &1769484580756109860
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 1.0166666666666666
+    m_ClipIn: 0
+    m_Asset: {fileID: -7718882072660259120}
+    m_Duration: 5.983333333333333
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 1769484580756109860}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &4883059422251154390
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 0
+      timeSpace: 0
+      name:
+        m_Name: OnPlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 0
+      timeSpace: 1
+      name:
+        m_Name: OnStop
+      eventAttributes:
+        content: []
+  singleEvents:
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    time: 1.2
+    timeSpace: 0
+    name:
+      m_Name: fire
+    eventAttributes:
+      content: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &4923558279284490917
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (3)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0.5
+    m_ClipIn: 0
+    m_Asset: {fileID: -3530786875051334674}
+    m_Duration: 3.5
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 4923558279284490917}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  - m_Version: 1
+    m_Start: 4
+    m_ClipIn: 0
+    m_Asset: {fileID: -5074462920981617555}
+    m_Duration: 3.5
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 4923558279284490917}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &6415309811212482371
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (1)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0.5
+    m_ClipIn: 0
+    m_Asset: {fileID: 511971117974718314}
+    m_Duration: 1.3999999999999995
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 6415309811212482371}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  - m_Version: 1
+    m_Start: 1.9
+    m_ClipIn: 0
+    m_Asset: {fileID: 4883059422251154390}
+    m_Duration: 1.4666666666666666
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 6415309811212482371}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  - m_Version: 1
+    m_Start: 3.3666666666666663
+    m_ClipIn: 0
+    m_Asset: {fileID: -3813501596828639531}
+    m_Duration: 2.9000000000000004
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 6415309811212482371}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &7395667227298186021
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (5)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 2
+    m_ClipIn: 0
+    m_Asset: {fileID: -3943669138037476877}
+    m_Duration: 5
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 7395667227298186021}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &8524897507891998805
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (4)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 2
+    m_ClipIn: 0
+    m_Asset: {fileID: 8661371845675605990}
+    m_Duration: 5
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 8524897507891998805}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3
+--- !u!114 &8661371845675605990
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlClip
+  m_EditorClassIdentifier: 
+  scrubbing: 1
+  startSeed: 0
+  reinit: 3
+  prewarm:
+    enable: 0
+    stepCount: 20
+    deltaTime: 0.05
+    eventName:
+      m_Name: OnPlay
+  clipEvents:
+  - editorColor: {r: 0.48235294, g: 0.61960787, b: 0.019607844, a: 1}
+    enter:
+      time: 1
+      timeSpace: 0
+      name:
+        m_Name: SmokePlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1
+      timeSpace: 1
+      name:
+        m_Name: SmokeStop
+      eventAttributes:
+        content: []
+  - editorColor: {r: 0.20392157, g: 0.53333336, b: 0.654902, a: 1}
+    enter:
+      time: 2
+      timeSpace: 0
+      name:
+        m_Name: FirePlay
+      eventAttributes:
+        content: []
+    exit:
+      time: 1.2
+      timeSpace: 1
+      name:
+        m_Name: FireStop
+      eventAttributes:
+        content: []
+  singleEvents:
+  - editorColor: {r: 0.8, g: 0.4392157, b: 0, a: 1}
+    time: 67
+    timeSpace: 2
+    name:
+      m_Name: Spark
+    eventAttributes:
+      content:
+      - rid: 184462436577312871
+  references:
+    version: 2
+    RefIds:
+    - rid: 184462436577312871
+      type: {class: EventAttributeColor, ns: UnityEngine.VFX, asm: Unity.VisualEffectGraph.Runtime}
+      data:
+        id:
+          m_Name: color
+        value: {x: 1, y: 0, z: 0}
+--- !u!114 &8686654460638354767
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
+  m_Name: Visual Effect Control Track (7)
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0.25
+    m_ClipIn: 0
+    m_Asset: {fileID: -2753982788492800685}
+    m_Duration: 7.499999999999999
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 8686654460638354767}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: ' '
+  m_Markers:
+    m_Objects: []
+  m_VFXVersion: 1
+  reinit: 3

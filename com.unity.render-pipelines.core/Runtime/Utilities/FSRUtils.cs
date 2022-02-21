@@ -87,24 +87,41 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// The maximum sharpness value in stops before the effect of RCAS is no longer visible.
+        /// This value is used to map between linear and stops.
+        /// </summary>
+        internal const float kMaxSharpnessStops = 2.5f;
+
+        /// <summary>
+        /// AMD's FidelityFX Super Resolution integration guide recommends a value of 0.2 for the RCAS sharpness parameter when specified in stops
+        /// </summary>
+        public const float kDefaultSharpnessStops = 0.2f;
+
+        /// <summary>
+        /// The default RCAS sharpness parameter as a linear value
+        /// </summary>
+        public const float kDefaultSharpnessLinear = (1.0f - (kDefaultSharpnessStops / kMaxSharpnessStops));
+
+        /// <summary>
         /// Sets the constant values required by the FSR RCAS shader on the provided command buffer
         ///
         /// Logic ported from "FsrRcasCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
+        /// For a more user-friendly version of this function, see SetRcasConstantsLinear().
         /// </summary>
         /// <param name="cmd">Command buffer to modify</param>
-        /// <param name="sharpness">The scale is {0.0 := maximum, to N>0, where N is the number of stops(halving) of the reduction of sharpness</param>
-        public static void SetRcasConstants(CommandBuffer cmd, float sharpness = 0.2f)
+        /// <param name="sharpnessStops">The scale is {0.0 := maximum, to N>0, where N is the number of stops(halving) of the reduction of sharpness</param>
+        public static void SetRcasConstants(CommandBuffer cmd, float sharpnessStops = kDefaultSharpnessStops)
         {
             // Transform from stops to linear value.
-            sharpness = Mathf.Pow(2.0f, -sharpness);
+            float sharpnessLinear = Mathf.Pow(2.0f, -sharpnessStops);
 
             Vector4 constants;
 
-            ushort sharpnessAsHalf = Mathf.FloatToHalf(sharpness);
-            uint packedSharpness = (uint)(sharpnessAsHalf | (sharpnessAsHalf << 16));
-            float packedSharpnessAsFloat = BitConverter.ToSingle(BitConverter.GetBytes(packedSharpness));
+            uint sharpnessAsHalf = Mathf.FloatToHalf(sharpnessLinear);
+            int packedSharpness = (int)(sharpnessAsHalf | (sharpnessAsHalf << 16));
+            float packedSharpnessAsFloat = BitConverter.Int32BitsToSingle(packedSharpness);
 
-            constants.x = sharpness;
+            constants.x = sharpnessLinear;
             constants.y = packedSharpnessAsFloat;
 
             // Fill the last constant with zeros to avoid using uninitialized memory
@@ -112,6 +129,24 @@ namespace UnityEngine.Rendering
             constants.w = 0.0f;
 
             cmd.SetGlobalVector(ShaderConstants._FsrRcasConstants, constants);
+        }
+
+        /// <summary>
+        /// Sets the constant values required by the FSR RCAS shader on the provided command buffer
+        ///
+        /// Equivalent to SetRcasConstants(), but handles the sharpness parameter as a linear value instead of one specified in stops.
+        /// This is intended to simplify code that allows users to configure the sharpening behavior from a GUI.
+        /// </summary>
+        /// <param name="cmd">Command buffer to modify</param>
+        /// <param name="sharpnessLinear">The level of intensity of the sharpening filter where 0.0 is the least sharp and 1.0 is the most sharp</param>
+        public static void SetRcasConstantsLinear(CommandBuffer cmd, float sharpnessLinear = kDefaultSharpnessLinear)
+        {
+            // Ensure that the input value is between 0.0 and 1.0 prevent incorrect results
+            Assertions.Assert.IsTrue((sharpnessLinear >= 0.0f) && (sharpnessLinear <= 1.0f));
+
+            float sharpnessStops = (1.0f - sharpnessLinear) * kMaxSharpnessStops;
+
+            SetRcasConstants(cmd, sharpnessStops);
         }
 
         /// <summary>

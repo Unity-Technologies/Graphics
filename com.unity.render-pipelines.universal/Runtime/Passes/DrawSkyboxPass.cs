@@ -7,6 +7,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class DrawSkyboxPass : ScriptableRenderPass
     {
+        /// <summary>
+        /// Creates a new <c>DrawSkyboxPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public DrawSkyboxPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
@@ -44,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
                     camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, cameraData.GetProjectionMatrix(1));
                     camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, cameraData.GetViewMatrix(1));
 
-                    CommandBuffer cmd = CommandBufferPool.Get();
+                    var cmd = renderingData.commandBuffer;
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
                     cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
@@ -59,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
                     // We do not need to submit here due to special handling of stereo matrices in core.
                     // context.Submit();
-                    CommandBufferPool.Release(cmd);
+                    cmd.Clear();
 
                     camera.ResetStereoProjectionMatrices();
                     camera.ResetStereoViewMatrices();

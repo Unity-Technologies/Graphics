@@ -297,7 +297,7 @@ namespace UnityEditor.VFX.UI
             //otherwise the owner is a VFXParameter, and we do not want to reset the bounds in this case
         }
 
-        void UpdateBounds()
+        internal void UpdateBounds()
         {
             if (m_IsRecording && m_Effect)
             {

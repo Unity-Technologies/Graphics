@@ -29,34 +29,24 @@ MonoBehaviour:
   m_Name: Vignette
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
     m_Value: 0
   color:
     m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 0, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   center:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
     m_Value: 0.25
-    min: 0
-    max: 1
   smoothness:
     m_OverrideState: 0
     m_Value: 0.2
-    min: 0.01
-    max: 1
   roundness:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   rounded:
     m_OverrideState: 0
     m_Value: 0
@@ -66,8 +56,6 @@ MonoBehaviour:
   opacity:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
 --- !u!114 &6183063441788107538
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -81,37 +69,27 @@ MonoBehaviour:
   m_Name: Bloom
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 1
   quality:
     m_OverrideState: 0
     m_Value: 1
   threshold:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   intensity:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 1
   scatter:
     m_OverrideState: 0
     m_Value: 0.7
-    min: 0
-    max: 1
   tint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   dirtTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   dirtIntensity:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   anamorphic:
     m_OverrideState: 1
     m_Value: 0
@@ -137,7 +115,6 @@ MonoBehaviour:
   m_Name: DepthOfField
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
     m_Value: 2
@@ -147,49 +124,42 @@ MonoBehaviour:
   focusDistance:
     m_OverrideState: 1
     m_Value: 10
-    min: 0.1
+  focusDistanceMode:
+    m_OverrideState: 0
+    m_Value: 0
   nearFocusStart:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   nearFocusEnd:
     m_OverrideState: 1
     m_Value: 3
-    min: 0
   farFocusStart:
     m_OverrideState: 1
     m_Value: 20
-    min: 0
   farFocusEnd:
     m_OverrideState: 1
     m_Value: 200
-    min: 0
   m_NearSampleCount:
     m_OverrideState: 1
     m_Value: 8
-    min: 3
-    max: 8
   m_NearMaxBlur:
     m_OverrideState: 1
     m_Value: 7
-    min: 0
-    max: 8
   m_FarSampleCount:
     m_OverrideState: 1
     m_Value: 14
-    min: 3
-    max: 16
   m_FarMaxBlur:
     m_OverrideState: 1
     m_Value: 13
-    min: 0
-    max: 16
-  m_HighQualityFiltering:
-    m_OverrideState: 1
-    m_Value: 1
   m_Resolution:
     m_OverrideState: 1
     m_Value: 1
+  m_HighQualityFiltering:
+    m_OverrideState: 1
+    m_Value: 1
   m_PhysicallyBased:
+    m_OverrideState: 1
+    m_Value: 0
+  m_LimitManualRangeNearBlur:
     m_OverrideState: 1
     m_Value: 0

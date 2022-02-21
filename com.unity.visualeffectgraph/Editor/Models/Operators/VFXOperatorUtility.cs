@@ -698,6 +698,26 @@ namespace UnityEditor.VFX
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }
 
+        static public VFXExpression IsTRSMatrixZeroScaled(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            var sqrLengthI = Dot(i, i);
+            var sqrLengthJ = Dot(j, j);
+            var sqrLengthK = Dot(k, k);
+
+            var epsilon = EpsilonSqrExpression[VFXValueType.Float];
+
+            var compareI = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthI, epsilon);
+            var compareJ = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthJ, epsilon);
+            var compareK = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthK, epsilon);
+
+            var condition = new VFXExpressionLogicalOr(compareI, new VFXExpressionLogicalOr(compareJ, compareK));
+            return condition;
+        }
+
         static public VFXExpression Atan2(VFXExpression coord)
         {
             var components = ExtractComponents(coord).ToArray();

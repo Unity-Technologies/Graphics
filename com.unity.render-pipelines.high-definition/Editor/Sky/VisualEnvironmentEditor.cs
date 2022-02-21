@@ -8,7 +8,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(VisualEnvironment))]
+    [CustomEditor(typeof(VisualEnvironment))]
     class VisualEnvironmentEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_SkyType;
@@ -147,6 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_WindOrientation, EditorGUIUtility.TrTextContent("Global Orientation", "Controls the orientation of the wind relative to the X world vector."));
             PropertyField(m_WindSpeed, EditorGUIUtility.TrTextContent("Global Speed", "Controls the global wind speed in kilometers per hour."));
+
+            if (m_WindSpeed.overrideState.boolValue && m_WindSpeed.value.floatValue != 0.0f && SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
+                EditorGUILayout.HelpBox("Wind animations in the scene view are only supported when \"Always Refresh\" is enabled.", MessageType.Info);
+
         }
     }
 

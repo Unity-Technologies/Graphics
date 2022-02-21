@@ -13,6 +13,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
@@ -21,7 +22,7 @@
 
 #define DELTA_PDF 1000000.0
 
-// Supports punctual, spot, rect area and directional lights at the moment
+// Supports punctual, spot, rect area and directional lights, in addition to one sky (aka environment)
 struct LightList
 {
     uint  localCount;
@@ -32,6 +33,9 @@ struct LightList
     uint  distantCount;
     uint  distantIndex[MAX_DISTANT_LIGHT_COUNT];
     float distantWeight;
+
+    uint  skyCount; // 0 or 1
+    float skyWeight;
 
 #ifdef USE_LIGHT_CLUSTER
     uint  cellIndex;
@@ -198,16 +202,21 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
         }
     }
 
-    // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
-    list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
-    list.distantWeight = list.distantCount ? 1.0 - list.localWeight : 0.0;
+    // And finally the sky light
+    list.skyCount = withDistant && IsSkyEnabled() && IsSkySamplingEnabled() ? 1 : 0;
+
+    // Compute the weights, used for the lights PDF (we split 50/50 between local and distant+sky)
+    list.localWeight = list.localCount ? (list.distantCount + list.skyCount ? 0.5 : 1.0) : 0.0;
+    float nonLocalWeight = 1.0 - list.localWeight;
+    list.distantWeight = list.distantCount ? (list.skyCount ? 0.5 * nonLocalWeight : nonLocalWeight) : 0.0;
+    list.skyWeight = nonLocalWeight - list.distantWeight;
 
     return list;
 }
 
 uint GetLightCount(LightList list)
 {
-    return list.localCount + list.distantCount;
+    return list.localCount + list.distantCount + list.skyCount;
 }
 
 LightData GetLocalLightData(LightList list, uint i)
@@ -244,24 +253,35 @@ float GetDistantLightWeight(LightList list)
     return list.distantWeight / list.distantCount;
 }
 
-bool PickLocalLights(LightList list, inout float theSample)
+float GetSkyLightWeight(LightList list)
+{
+    return list.skyWeight;
+}
+
+#define PTLIGHT_LOCAL   0
+#define PTLIGHT_DISTANT 1
+#define PTLIGHT_SKY     2
+
+uint PickLightType(LightList list, inout float theSample)
 {
     if (theSample < list.localWeight)
     {
         // We pick local lighting
         theSample /= list.localWeight;
-        return true;
+        return PTLIGHT_LOCAL;
     }
 
-    // Otherwise, distant lighting
-    theSample = (theSample - list.localWeight) / list.distantWeight;
-    return false;
- }
+    if (theSample < list.localWeight + list.distantWeight)
+    {
+        // We pick distant lighting
+        theSample = (theSample - list.localWeight) / list.distantWeight;
+        return PTLIGHT_DISTANT;
+    }
 
-bool PickDistantLights(LightList list, inout float theSample)
-{
-    return !PickLocalLights(list, theSample);
-}
+    // Otherwise, sky lighting
+    theSample = (theSample - list.distantWeight - list.localWeight) / list.skyWeight;
+    return PTLIGHT_SKY;
+ }
 
 float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
 {
@@ -358,9 +378,11 @@ bool SampleLights(LightList lightList,
         return false;
 
     // Are we lighting a spherical (e.g. volume) or a hemi-spherical distribution (e.g. opaque surface)?
-    bool isSpherical = isVolume || !any(normal);
+    const bool isSpherical = isVolume || !any(normal);
 
-    if (PickLocalLights(lightList, inputSample.z))
+    // Stochastically pick one type of light to sample
+    const uint lightType = PickLightType(lightList, inputSample.z);
+    if (lightType == PTLIGHT_LOCAL)
     {
         // Pick a local light from the list
         LightData lightData = GetLocalLightData(lightList, inputSample.z);
@@ -435,23 +457,46 @@ bool SampleLights(LightList lightList,
         ApplyFogAttenuation(position, outgoingDir, dist, value);
 #endif
     }
-    else // Distant lights
+    else // Distant or Sky light
     {
-        // Pick a distant light from the list
-        DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
+        if (lightType == PTLIGHT_DISTANT)
+        {
+            // Pick a distant light from the list
+            DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
-        if (lightData.angularDiameter > 0.0)
-        {
-            SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
-            value = GetDirectionalEmission(lightData, position) / pdf;
-            pdf = GetDistantLightWeight(lightList) / pdf;
-            outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
+            if (lightData.angularDiameter > 0.0)
+            {
+                SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
+                value = GetDirectionalEmission(lightData, position) / pdf;
+                pdf = GetDistantLightWeight(lightList) / pdf;
+                outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
+            }
+            else
+            {
+                value = GetDirectionalEmission(lightData, position) * DELTA_PDF;
+                pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
+                outgoingDir = -lightData.forward;
+            }
+
+            if (isVolume)
+            {
+                value *= lightData.volumetricLightDimmer;
+                shadowOpacity = lightData.volumetricShadowDimmer;
+            }
+            else
+            {
+                value *= lightData.lightDimmer;
+                shadowOpacity = lightData.shadowDimmer;
+            }
         }
-        else
+        else // lightType == PTLIGHT_SKY
         {
-            value = GetDirectionalEmission(lightData, position) * DELTA_PDF;
-            pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
-            outgoingDir = -lightData.forward;
+            float2 uv = SampleSky(inputSample);
+            outgoingDir = MapUVToSkyDirection(uv);
+            value = GetSkyValue(outgoingDir);
+            pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);
+
+            shadowOpacity = 1.0;
         }
 
         if (!isSpherical && (dot(normal, outgoingDir) < 0.001))
@@ -459,23 +504,12 @@ bool SampleLights(LightList lightList,
 
         dist = FLT_INF;
 
-        if (isVolume)
-        {
-            value *= lightData.volumetricLightDimmer;
-            shadowOpacity = lightData.volumetricShadowDimmer;
-        }
-        else
-        {
-            value *= lightData.lightDimmer;
-            shadowOpacity = lightData.shadowDimmer;
-        }
-
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, value);
 #endif
     }
 
-    return any(value);
+    return any(value) && any(pdf);
 }
 
 void EvaluateLights(LightList lightList,
@@ -547,6 +581,17 @@ void EvaluateLights(LightList lightList,
             }
         }
     }
+
+    // Then sky light
+    if (lightList.skyCount && rayDescriptor.TMax >= FLT_INF)
+    {
+        float3 skyValue = GetSkyValue(rayDescriptor.Direction);
+        pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
+#ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
+        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, skyValue);
+#endif
+        value += skyValue;
+    }
 }
 
 // Functions used by volumetric sampling
@@ -589,12 +634,7 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
 
 void Sort(inout float x, inout float y)
 {
-    if (x > y)
-    {
-        float tmp = x;
-        x = y;
-        y = tmp;
-    }
+    if (x > y) Swap(x, y);
 }
 
 void GetFrontInterval(float oz, float dz, float t1, float t2, inout float tMin, inout float tMax)
@@ -840,7 +880,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
         }
     }
 
-    uint lightCount = localCount + _DirectionalLightCount;
+    uint lightCount = localCount + _DirectionalLightCount + (IsSkyEnabled() && IsSkySamplingEnabled() ? 1 : 0);
 
     return lightCount ? float(localCount) / lightCount : -1.0;
 }

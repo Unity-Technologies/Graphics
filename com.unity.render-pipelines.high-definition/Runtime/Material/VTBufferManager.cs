@@ -130,7 +130,6 @@ namespace  UnityEngine.Rendering.HighDefinition
                             Debug.Assert(data.lowresWidth <= data.resolver.CurrentWidth && data.lowresHeight <= data.resolver.CurrentHeight);
                             Debug.Assert(data.lowresWidth <= lowresBuffer.referenceSize.x && data.lowresHeight <= lowresBuffer.referenceSize.y);
 
-                            string mainFunction = (buffer.isMSAAEnabled) ? "KMainMSAA" : "KMain";
                             int inputID = (buffer.isMSAAEnabled) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
 
                             ctx.cmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, inputID, buffer);

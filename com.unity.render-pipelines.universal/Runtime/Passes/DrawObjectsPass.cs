@@ -23,6 +23,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
+        /// <summary>
+        /// Creates a new <c>DrawObjectsPass</c> instance.
+        /// </summary>
+        /// <param name="profilerTag"></param>
+        /// <param name="shaderTagIds"></param>
+        /// <param name="opaque"></param>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="stencilState"></param>
+        /// <param name="stencilReference"></param>
+        /// <seealso cref="ShaderTagId"/>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="RenderQueueRange"/>
+        /// <seealso cref="LayerMask"/>
+        /// <seealso cref="StencilState"/>
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawObjectsPass));
@@ -44,6 +60,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Creates a new <c>DrawObjectsPass</c> instance.
+        /// </summary>
+        /// <param name="profilerTag"></param>
+        /// <param name="opaque"></param>
+        /// <param name="evt"></param>
+        /// <param name="renderQueueRange"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="stencilState"></param>
+        /// <param name="stencilReference"></param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="RenderQueueRange"/>
+        /// <seealso cref="LayerMask"/>
+        /// <seealso cref="StencilState"/>
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
             : this(profilerTag,
             new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") },
@@ -56,6 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
@@ -73,11 +104,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
@@ -93,9 +124,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
@@ -131,8 +159,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
                 }
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

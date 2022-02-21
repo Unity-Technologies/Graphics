@@ -388,9 +388,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
             }
-            else // If no refraction probe, use sky
+            else // If no refraction probe, use sky with a default proxy extent.
             {
-                envLightData = InitSkyEnvLightData(0);
+                envLightData = InitDefaultRefractionEnvLightData(0);
             }
 
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
@@ -457,7 +457,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             BuiltinData tempBuiltinData;
             ZERO_INITIALIZE(BuiltinData, tempBuiltinData);
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
+#if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(SCREEN_SPACE_INDIRECT_DIFFUSE_DISABLED)
             if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
             {
                 tempBuiltinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();

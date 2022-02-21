@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(FilmGrain))]
+    [CustomEditor(typeof(FilmGrain))]
     sealed class FilmGrainEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Type;

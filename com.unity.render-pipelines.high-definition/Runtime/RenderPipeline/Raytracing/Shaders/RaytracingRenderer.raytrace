@@ -95,8 +95,11 @@ void RayGenRenderer()
 	RayDesc rayDescriptor;
 	rayDescriptor.Origin = originWS;
 	rayDescriptor.Direction = incidentWS;
-	rayDescriptor.TMin = _RaytracingCameraNearPlane;
-	rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+	// For the initial ray, we don't want to have any disparity between the rasterization and ray tracing (which objects are rendered)
+	// thus we need to force the max distance to the far plane.
+	rayDescriptor.TMin = _ProjectionParams.y;
+	rayDescriptor.TMax = _ProjectionParams.z;
 
 	// Adjust world-space position to match the RAS setup with XR single-pass and camera relative
 	ApplyCameraRelativeXR(rayDescriptor.Origin);

@@ -99,6 +99,8 @@ ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+float4 _SelectionID;
 #endif
 
 #pragma fragment frag
@@ -142,6 +144,8 @@ ps_output frag(ps_input i)
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 	o.color = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+	o.color = _SelectionID;
 #else
 	//VFX_PASSDEPTH isn't defined in forward (but we are sharing the same template)
 	o.color.a = saturate(o.color.a);

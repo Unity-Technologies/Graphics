@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ContactShadows))]
+    [CustomEditor(typeof(ContactShadows))]
     class ContactShadowsEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Enable;

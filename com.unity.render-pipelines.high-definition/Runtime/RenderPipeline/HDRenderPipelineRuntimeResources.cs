@@ -39,10 +39,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugViewVirtualTexturingBlit;
             [Reload("Runtime/Debug/MaterialError.Shader")]
             public Shader materialError;
-            [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
-            public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/MaterialLoading.shader")]
+            public Shader materialLoading;
             [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
             public ComputeShader clearDebugBufferCS;
+
+            // APV
+            [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
+            public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
+            public Shader probeVolumeOffsetDebugShader;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
+            public ComputeShader probeVolumeBlendStatesCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -178,6 +186,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader fourierTransformCS;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
             public Shader waterPS;
+            [Reload("Runtime/Water/WaterLighting.compute")]
+            public ComputeShader waterLightingCS;
+            [Reload("Runtime/Water/WaterCaustics.shader")]
+            public Shader waterCausticsPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -359,6 +371,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
             public ComputeShader accumulationCS;
 
+            [Reload("Runtime/RenderPipeline/Accumulation/Shaders/BlitAndExpose.compute")]
+            public ComputeShader blitAndExposeCS;
+
             // Compositor
             [Reload("Runtime/Compositor/Shaders/AlphaInjection.shader")]
             public Shader alphaInjectionPS;
@@ -451,8 +466,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Water textures
             [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
             public Texture2D foamSurface;
-            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamNormals.png")]
-            public Texture2D foamNormals;
 
             // Post-processing
             [Reload(new[]
@@ -503,6 +516,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh sphereMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
             public Mesh probeDebugSphere;
+            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugPyramid.fbx")]
+            public Mesh pyramidMesh;
         }
 
         public ShaderResources shaders;
