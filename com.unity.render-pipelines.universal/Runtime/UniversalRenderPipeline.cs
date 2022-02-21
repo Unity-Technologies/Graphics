@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        internal const string k_ShaderTagName = "UniversalPipeline";
+        public const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
         {
@@ -467,8 +467,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        // Renders a camera stack. This method calls RenderSingleCamera for each valid camera in the stack.
-        // The last camera resolves the final target to screen.
+        /// Renders a camera stack. This method calls RenderSingleCamera for each valid camera in the stack.
+        /// The last camera resolves the final target to screen.
         /// </summary>
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="camera">Camera to render.</param>
@@ -482,9 +482,10 @@ namespace UnityEngine.Rendering.Universal
             if (baseCameraAdditionalData != null && baseCameraAdditionalData.renderType == CameraRenderType.Overlay)
                 return;
 
-            // renderer contains a stack if it has additional data and the renderer supports stacking
+            // Renderer contains a stack if it has additional data and the renderer supports stacking
+            // The renderer is checked if it supports Base camera. Since Base is the only relevant type at this moment.
             var renderer = baseCameraAdditionalData?.scriptableRenderer;
-            bool supportsCameraStacking = renderer != null && renderer.supportedRenderingFeatures.cameraStacking;
+            bool supportsCameraStacking = renderer != null && renderer.SupportsCameraStackingType(CameraRenderType.Base);
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
@@ -513,24 +514,32 @@ namespace UnityEngine.Rendering.Universal
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
+                        // Checking if the base and the overlay camera is of the same renderer type.
+                        var currCameraRendererType = data?.scriptableRenderer.GetType();
+                        if (currCameraRendererType != baseCameraRendererType)
+                        {
+                            Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
+                                             $"The camera: {currCamera.name} are using the renderer {currCameraRendererType.Name}, " +
+                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType.Name}. Will skip rendering");
+                            continue;
+                        }
+
+                        var overlayRenderer = data.scriptableRenderer;
+                        // Checking if they are the same renderer type but just not supporting Overlay
+                        if ((overlayRenderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                        {
+                            Debug.LogWarning($"The camera: {currCamera.name} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.");
+                            continue;
+                        }
+
                         if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
+                            Debug.LogWarning($"Stack can only contain Overlay cameras. The camera: {currCamera.name} " +
+                                             $"has a type {data.renderType} that is not supported. Will skip rendering.");
                             continue;
                         }
 
                         cameraStackRequiresDepthForPostprocessing |= CheckPostProcessForDepth();
-
-                        var currCameraRendererType = data?.scriptableRenderer.GetType();
-                        if (currCameraRendererType != baseCameraRendererType)
-                        {
-                            var renderer2DType = typeof(Renderer2D);
-                            if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
-                            {
-                                Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
-                                continue;
-                            }
-                        }
 
                         anyPostProcessingEnabled |= data.renderPostProcessing;
                         lastActiveOverlayCameraIndex = i;
@@ -817,8 +826,9 @@ namespace UnityEngine.Rendering.Universal
             bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
             float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
 
+            cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
-                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
+                cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>
@@ -1325,8 +1335,10 @@ namespace UnityEngine.Rendering.Universal
                 if (!debugDisplaySettings.IsPostProcessingAllowed)
                     cameraData.postProcessEnabled = false;
 
-                cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, true);
+                cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
+                cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, true);
                 cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
+
             }
         }
 

@@ -6,7 +6,7 @@
   "displayName": "High Definition RP",
   "dependencies": {
     "com.unity.mathematics": "1.2.4",
-    "com.unity.burst": "1.6.0",
+    "com.unity.burst": "1.6.4",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.imageconversion": "1.0.0",

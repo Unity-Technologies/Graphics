@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Header("Wind")]
         public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Controls the global wind speed in kilometers per hour.</summary>
-        public FloatParameter windSpeed = new FloatParameter(100.0f);
+        public FloatParameter windSpeed = new FloatParameter(0.0f);
 
         // Deprecated, kept for migration
         [SerializeField]

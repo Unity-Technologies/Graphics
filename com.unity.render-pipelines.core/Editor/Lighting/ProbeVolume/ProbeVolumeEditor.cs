@@ -4,9 +4,8 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
-using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]

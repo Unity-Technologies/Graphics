@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Flag that allows us to track in which current unwater water volume we are
-        public int m_UnderWaterSurfaceIndex;
+        internal int m_UnderWaterSurfaceIndex;
 
         void EvaluateUnderWaterSurface(HDCamera hdCamera)
         {
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Maximal possible wave height of the current setup
                     float maxWaveHeight;
                     Vector4 waveAmpltiude;
-                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highBandCount, out waveAmpltiude, out maxWaveHeight);
+                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
 
                     // Evaluate the vertical boundaries of the volume
                     float topPlane = currentWater.transform.position.y + k_MaxWaterSurfaceElevation;
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Bind the caustics buffer that may be required
                 bool simulationCaustics = waterSurface.caustics && waterSurface.causticsAlgorithm == WaterSurface.WaterCausticsType.Simulation;
-                passData.causticsData = simulationCaustics ? renderGraph.ImportTexture(waterSurface.simulation.causticsBuffer) : renderGraph.defaultResources.blackTexture;
+                passData.causticsData = simulationCaustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
 
                 // Fill the water rendering CB
                 passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;

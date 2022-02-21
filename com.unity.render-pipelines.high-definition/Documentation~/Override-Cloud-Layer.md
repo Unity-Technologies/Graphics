@@ -60,16 +60,17 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | - **Opacity G**        | The opacity multiplier to apply to the **Cloud Map**'s green channel. |
 | - **Opacity B**        | The opacity multiplier to apply to the **Cloud Map**'s blue channel. |
 | - **Opacity A**        | The opacity multiplier to apply to the **Cloud Map**'s alpha channel. |
+| **Altitude**           | The altitude of the Cloud Layer in meters, used to calculate the sun light attenuation. |
 | **Rotation**           | The angle to rotate the **Cloud Layer** texture by, in degrees. |
 | **Tint**               | The color HDRP uses to tint the clouds.                      |
-| **Exposure**           | The amount of light per unit area that HDRP applies to the cloud layer based on the main directional [Light](Light-Component.md) intensity. |
-| **Distortion Mode**    | Specifies the distortion mode HDRP uses to simulate cloud movement.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
-| - **Orientation**      | The orientation of the distortion relative to the X world vector (in degrees).<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
-| - **Speed**            | The speed at which HDRP scrolls the distortion texture.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
+| **Exposure Compensation** | The exposure compensation of the clouds in EV relative to the main directional [Light](Light-Component.md). |
+| **Wind**               | Specifies the method HDRP uses to simulate wind.<br />&#8226; **None**: No wind.<br />&#8226; **Horizontal**: HDRP distorts the clouds using a uniform horizontal wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
+| - **Orientation**      | The orientation of the wind relative to the X world vector (in degrees).<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
+| - **Speed**            | The wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
 | - **Flowmap**          | The flowmap HDRP uses to distort UVs when rendering the clouds. For more information about the flowmap, see [controlling cloud movement](#controlling-cloud-movement).<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
-| **Lighting**           | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
+| **Raymarching**        | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
-| - **Thickness**        | The thickness of the clouds. The larger the value, the darker the clouds appear. |
+| - **Density**          | The density of the clouds. The larger the value, the darker the clouds will appear. |
 | **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |
 
 | Shadows Property      | Description                                                  |
