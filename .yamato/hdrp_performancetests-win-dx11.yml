@@ -61,7 +61,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_trunk:
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200
     artifacts:
         logs:
             paths:
@@ -157,7 +157,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_CUSTOM-REVISIO
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200
     artifacts:
         logs:
             paths:

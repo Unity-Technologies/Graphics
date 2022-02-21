@@ -50,8 +50,8 @@ test_platforms:
           - [all]: --testfilter=Counters
           - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
           - [all]: --timeout=7200
-          - [Win]: --platform=StandaloneWindows64
-          - [Linux]: --platform=StandaloneLinux64
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+          - [Linux_Vulkan, Linux_OpenGlCore]: --platform=StandaloneLinux64
           - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
