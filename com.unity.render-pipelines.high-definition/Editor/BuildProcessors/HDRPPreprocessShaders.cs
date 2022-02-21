@@ -381,6 +381,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
 
+                    if (removeInput)
+                        inputData[i] = inputData[--inputShaderVariantCount];
+                    else
+                        ++i;
+
                     if (!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
                         Debug.LogException(error);
                 }
