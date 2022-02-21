@@ -1521,6 +1521,63 @@ namespace UnityEngine.Rendering
             return m_TmpSrcChunks;
         }
 
+        void FillDataLocationAndUpdate(Cell cell, List<Chunk> srcChunks, List<Chunk> chunkList, int srcChunkOffset, int srcChunkSize, int chunkStartIndex, Cell.PerScenarioData data, int poolIndex)
+        {
+            ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands,
+                data.shL0L1Data, data.shL2Data, cell.validityOld,
+                srcChunkOffset, srcChunkSize, m_SHBands);
+
+            // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+            if (poolIndex == -1)
+                m_Pool.Update(m_TemporaryDataLocationOld, srcChunks, chunkList, chunkStartIndex, m_SHBands);
+            else
+                m_BlendingPool.Update(m_TemporaryDataLocationOld, srcChunks, chunkList, chunkStartIndex, m_SHBands, poolIndex);
+        }
+
+        void UpdatePool(List<Chunk> chunkList, Cell.PerScenarioData data, NativeArray<byte> validityNeighMaskData, int chunkIndex, int poolIndex)
+        {
+            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
+            var chunkOffsetInProbes = chunkIndex * chunkSizeInProbes;
+            var shChunkSize = chunkSizeInProbes * 4;
+            var shChunkOffset = chunkIndex * shChunkSize;
+
+            (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).SetPixelData(data.shL0L1RxData.GetSubArray(shChunkOffset, shChunkSize), 0);
+            (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).Apply(false);
+            (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).SetPixelData(data.shL1GL1RyData.GetSubArray(shChunkOffset, shChunkSize), 0);
+            (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).Apply(false);
+            (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).SetPixelData(data.shL1BL1RzData.GetSubArray(shChunkOffset, shChunkSize), 0);
+            (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).Apply(false);
+
+            m_TemporaryDataLocation.TexValidity.SetPixelData(validityNeighMaskData.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes), 0);
+            m_TemporaryDataLocation.TexValidity.Apply(false);
+
+            if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                (m_TemporaryDataLocation.TexL2_0 as Texture3D).SetPixelData(data.shL2Data_0.GetSubArray(shChunkOffset, shChunkSize), 0);
+                (m_TemporaryDataLocation.TexL2_0 as Texture3D).Apply(false);
+                (m_TemporaryDataLocation.TexL2_1 as Texture3D).SetPixelData(data.shL2Data_1.GetSubArray(shChunkOffset, shChunkSize), 0);
+                (m_TemporaryDataLocation.TexL2_1 as Texture3D).Apply(false);
+                (m_TemporaryDataLocation.TexL2_2 as Texture3D).SetPixelData(data.shL2Data_2.GetSubArray(shChunkOffset, shChunkSize), 0);
+                (m_TemporaryDataLocation.TexL2_2 as Texture3D).Apply(false);
+                (m_TemporaryDataLocation.TexL2_3 as Texture3D).SetPixelData(data.shL2Data_3.GetSubArray(shChunkOffset, shChunkSize), 0);
+                (m_TemporaryDataLocation.TexL2_3 as Texture3D).Apply(false);
+            }
+
+            // New data format only uploads one chunk at a time (we need predictable chunk size)
+            m_TmpSrcChunks.Clear();
+            Chunk c;
+            c.x = 0;
+            c.y = 0;
+            c.z = 0;
+            m_TmpSrcChunks.Add(c);
+
+            // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+            if (poolIndex == -1)
+                m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, chunkList, chunkIndex, m_SHBands);
+            else
+                m_BlendingPool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, chunkList, chunkIndex, m_SHBands, poolIndex);
+        }
+
         // Runtime API starts here
         bool AddBlendingBricks(BlendingCellInfo blendingCell)
         {
@@ -1543,53 +1600,59 @@ namespace UnityEngine.Rendering
                 return false;
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
-            int chunkCount = bypassBlending ? blendingCell.cellInfo.chunkList.Count : blendingCell.chunkList.Count;
-            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += kTemporaryDataLocChunkCount)
+            var chunkList = bypassBlending ? blendingCell.cellInfo.chunkList : blendingCell.chunkList;
+            int chunkCount = chunkList.Count;
+            int chunkIndex = 0;
+            while (chunkIndex < chunkList.Count)
             {
-                // copy chunks into pool
-                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, chunkCount - chunkIndex);
-                var srcChunks = GetSourceLocations(chunkToProcess, chunkSize);
-
-                if (bypassBlending)
+                if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
-                    // no index or chunk data must change, so only probe values need to be updated
+                    if (bypassBlending)
+                    {
+                        // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                        // no index or chunk data must change, so only probe values need to be updated
+                        bool useState0 = !cell.hasTwoScenarios;
+                        UpdatePool(chunkList, useState0 ? cell.scenario0 : cell.scenario1, cell.validityNeighMaskData, chunkIndex, -1);
+                    }
+                    else
+                    {
+                        // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
+                        // state0
+                        UpdatePool(chunkList, cell.scenario0, cell.validityNeighMaskData, chunkIndex, 0);
 
-                    bool useState0 = !cell.hasTwoScenarios;
-                    var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
-                    var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
-
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld,
-                        cell.shBands, shL0L1Data, shL2Data, cell.validityOld,
-                        chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                        chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                        m_SHBands);
-
-                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                    m_Pool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.cellInfo.chunkList, chunkIndex, m_SHBands);
-                    continue;
+                        // state1
+                        UpdatePool(chunkList, cell.scenario1, cell.validityNeighMaskData, chunkIndex, 1);
+                    }
+                    chunkIndex++;
                 }
+                else
+                {
+                    // copy chunks into pool
+                    int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, chunkCount - chunkIndex);
+                    var srcChunks = GetSourceLocations(chunkToProcess, chunkSize);
 
-                // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
+                    int chunkOffset = chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount();
+                    int size = chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount();
 
-                // state0
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands,
-                    cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validityOld,
-                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    m_SHBands);
+                    if (bypassBlending)
+                    {
+                        // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                        // no index or chunk data must change, so only probe values need to be updated
+                        bool useState0 = !cell.hasTwoScenarios;
+                        FillDataLocationAndUpdate(cell, srcChunks, chunkList, chunkOffset, size, chunkIndex, useState0 ? cell.scenario0 : cell.scenario1, -1);
+                    }
+                    else
+                    {
+                        // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
+                        // state0
+                        FillDataLocationAndUpdate(cell, srcChunks, chunkList, chunkOffset, size, chunkIndex, cell.scenario0, 0);
 
-                // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                m_BlendingPool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 0);
+                        // state1
+                        FillDataLocationAndUpdate(cell, srcChunks, chunkList, chunkOffset, size, chunkIndex, cell.scenario1, 1);
+                    }
 
-                // state1
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands,
-                    cell.scenario1.shL0L1Data, cell.scenario1.shL2Data, cell.validityOld,
-                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                    m_SHBands);
-
-                m_BlendingPool.Update(m_TemporaryDataLocationOld, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 1);
+                    chunkIndex += kTemporaryDataLocChunkCount;
+                }
             }
 
             blendingCell.blending = true;
@@ -1625,64 +1688,17 @@ namespace UnityEngine.Rendering
             {
                 if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
-                    var chunkOffsetInProbes = chunkIndex * chunkSizeInProbes;
-                    var shChunkSize = chunkSizeInProbes * 4;
-                    var shChunkOffset = chunkIndex * shChunkSize;
-
-                    var currentScenario = useState0 ? cell.scenario0 : cell.scenario1;
-
-                    (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).SetPixelData(currentScenario.shL0L1RxData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    (m_TemporaryDataLocation.TexL0_L1rx as Texture3D).Apply(false);
-                    (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).SetPixelData(currentScenario.shL1GL1RyData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    (m_TemporaryDataLocation.TexL1_G_ry as Texture3D).Apply(false);
-                    (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).SetPixelData(currentScenario.shL1BL1RzData.GetSubArray(shChunkOffset, shChunkSize), 0);
-                    (m_TemporaryDataLocation.TexL1_B_rz as Texture3D).Apply(false);
-
-                    m_TemporaryDataLocation.TexValidity.SetPixelData(cell.validityNeighMaskData.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes), 0);
-                    m_TemporaryDataLocation.TexValidity.Apply(false);
-
-                    if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    {
-                        (m_TemporaryDataLocation.TexL2_0 as Texture3D).SetPixelData(currentScenario.shL2Data_0.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        (m_TemporaryDataLocation.TexL2_0 as Texture3D).Apply(false);
-                        (m_TemporaryDataLocation.TexL2_1 as Texture3D).SetPixelData(currentScenario.shL2Data_1.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        (m_TemporaryDataLocation.TexL2_1 as Texture3D).Apply(false);
-                        (m_TemporaryDataLocation.TexL2_2 as Texture3D).SetPixelData(currentScenario.shL2Data_2.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        (m_TemporaryDataLocation.TexL2_2 as Texture3D).Apply(false);
-                        (m_TemporaryDataLocation.TexL2_3 as Texture3D).SetPixelData(currentScenario.shL2Data_3.GetSubArray(shChunkOffset, shChunkSize), 0);
-                        (m_TemporaryDataLocation.TexL2_3 as Texture3D).Apply(false);
-                    }
-
-                    m_TmpSrcChunks.Clear();
-                    Chunk c;
-                    c.x = 0;
-                    c.y = 0;
-                    c.z = 0;
-                    m_TmpSrcChunks.Add(c);
-
-                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                    m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
-
+                    UpdatePool(cellInfo.chunkList, useState0 ? cell.scenario0 : cell.scenario1, cell.validityNeighMaskData, chunkIndex, -1);
                     chunkIndex++;
                 }
                 else
                 {
                     int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                    var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
-                    var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
-
-                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld,
-                        cell.shBands, shL0L1Data, shL2Data, cell.validityOld,
-                        chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                        chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
-                        m_SHBands);
-
-                    // copy chunks into pool
+                    int chunkOffset = chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount();
+                    int size = chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount();
                     var srcChunks = GetSourceLocations(chunkToProcess, chunkSize);
 
-                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                    m_Pool.Update(m_TemporaryDataLocationOld, srcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
+                    FillDataLocationAndUpdate(cell, srcChunks, cellInfo.chunkList, chunkOffset, size, chunkIndex, useState0 ? cell.scenario0 : cell.scenario1, -1);
 
                     chunkIndex += kTemporaryDataLocChunkCount;
                 }
