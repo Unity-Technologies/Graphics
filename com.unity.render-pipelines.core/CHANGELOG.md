@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cubemap array macros for GLCore.
 - Fixed regression on ResourceReloader due to change for supporting built-in resources.
 - Fixed issue with debug markers in Unity Profiler in deep profiler mode
+- Fixed LightAnchor when camera is tilted, work with Local and World Up (case 1403119)
 
 ## [14.0.0] - 2021-11-17
 
