@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.6] - 2022-02-09
+
+### Fixed
+- Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
+- Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
+- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
+- Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
+
 ## [12.1.5] - 2022-01-14
 
 ### Changed
@@ -11,13 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed incorrect blending of ParticleUnlit. [case 1373188](https://issuetracker.unity3d.com/product/unity/issues/guid/1373188/)
-- Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
 - Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 - Fixed single channel compressed (BC4) cookies on main light.
-- Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
 - Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
-- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
-- Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
+- Fixed several Native RenderPass issues regarding input attachments, DepthOnly pass, Decals.
 
 ## [12.1.4] - 2021-12-07
 
@@ -32,7 +37,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233](https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed decal compilation issue on mac.
-- Fixed several Native RenderPass issues regarding input attachments, DepthOnly pass, Decals.
 - Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
 
 ## [12.1.3] - 2021-11-17
