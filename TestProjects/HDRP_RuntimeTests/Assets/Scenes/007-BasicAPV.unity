@@ -2077,7 +2077,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1943135964
 GameObject:
-  m_ObjectHideFlags: 1
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -2094,7 +2094,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &1943135965
 MonoBehaviour:
-  m_ObjectHideFlags: 1
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -2108,8 +2108,8 @@ MonoBehaviour:
   cellSharedDataAsset: {fileID: 4900000, guid: 4262df70f9af54e479b53da2b0b6f384, type: 3}
   cellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
     type: 3}
-  serializedStates:
-  - state: Default
+  serializedScenarios:
+  - scenario: Default
     data:
       sceneHash: 1784705805
       cellDataAsset: {fileID: 4900000, guid: 33ad5211599350941aaefb40a027a52f, type: 3}
@@ -2117,7 +2117,7 @@ MonoBehaviour:
         type: 3}
 --- !u!4 &1943135966
 Transform:
-  m_ObjectHideFlags: 1
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
