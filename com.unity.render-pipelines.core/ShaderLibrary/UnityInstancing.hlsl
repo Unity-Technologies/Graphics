@@ -48,7 +48,7 @@
 #endif
 
 #if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
-#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
+#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater). Make sure to use target 4.5 or greater in all SubShaders that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
 #endif
 
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
