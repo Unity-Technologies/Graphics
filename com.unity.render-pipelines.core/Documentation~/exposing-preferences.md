@@ -1,6 +1,6 @@
-# Exposing preferences on the Core Render Pipeline Settings
+# Adding properties to the Core Render Pipeline settings section
 
-For exposing preferences on **Edit > Preferences > Core Render Pipeline**, you must specify classes that implement the interface `ICoreRenderPipelinePreferencesProvider`. Unity will automatically insert your preferences on the given page.
+To add properties in the **Core Render Pipeline** settings section (**Edit > Preferences > Core Render Pipeline**), create a class that implements the interface `ICoreRenderPipelinePreferencesProvider`.
 
 For example:
 
@@ -9,11 +9,11 @@ For example:
     {
         class Styles
         {
-            public static readonly GUIContent myBoolLabel = EditorGUIUtility.TrTextContent("MyBool", "This bool toggles my feature");
+            public static readonly GUIContent myBoolLabel = EditorGUIUtility.TrTextContent("My check box", "The description of the property.");
         }
 
         public List<string> keywords => new List<string>() {Styles.myBoolLabel.text};
-        public GUIContent header => EditorGUIUtility.TrTextContent("MyPreferenceSection", "Group of my preferences");
+        public GUIContent header => EditorGUIUtility.TrTextContent("My property section", "The description of my property section.");
 
         public static bool s_MyBoolPreference;
         public void PreferenceGUI()
@@ -28,6 +28,6 @@ For example:
     }
 ```
 
-As a result you will be able to manipulate and see your preferences:
+Unity shows the new properties in the **Core Render Pipeline** settings section:
 
 ![](Images/core_render_pipeline_preference_provider.png)
