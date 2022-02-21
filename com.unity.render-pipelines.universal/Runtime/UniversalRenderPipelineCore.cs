@@ -45,14 +45,55 @@ namespace UnityEngine.Rendering.Universal
         FSR
     }
 
+    /// <summary>
+    /// Struct that flattens several rendering settings used to render a camera stack.
+    /// URP builds the <c>RenderingData</c> settings from several places, including the pipeline asset, camera and light settings.
+    /// The settings also might vary on different platforms and depending on if Adaptive Performance is used.
+    /// </summary>
     public struct RenderingData
     {
+        /// <summary>
+        /// Returns culling results that exposes handles to visible objects, lights and probes.
+        /// You can use this to draw objects with <c>ScriptableRenderContext.DrawRenderers</c>
+        /// <see cref="CullingResults"/>
+        /// <seealso cref="ScriptableRenderContext"/>
+        /// </summary>
         public CullingResults cullResults;
+
+        /// <summary>
+        /// Holds several rendering settings related to camera.
+        /// <see cref="CameraData"/>
+        /// </summary>
         public CameraData cameraData;
+
+        /// <summary>
+        /// Holds several rendering settings related to lights.
+        /// <see cref="LightData"/>
+        /// </summary>
         public LightData lightData;
+
+        /// <summary>
+        /// Holds several rendering settings related to shadows.
+        /// <see cref="ShadowData"/>
+        /// </summary>
         public ShadowData shadowData;
+
+        /// <summary>
+        /// Holds several rendering settings and resources related to the integrated post-processing stack.
+        /// <see cref="PostProcessData"/>
+        /// </summary>
         public PostProcessingData postProcessingData;
+
+        /// <summary>
+        /// True if the pipeline supports dynamic batching.
+        /// This settings doesn't apply when drawing shadow casters. Dynamic batching is always disabled when drawing shadow casters.
+        /// </summary>
         public bool supportsDynamicBatching;
+
+        /// <summary>
+        /// Holds per-object data that are requested when drawing
+        /// <see cref="PerObjectData"/>
+        /// </summary>
         public PerObjectData perObjectData;
 
         /// <summary>
@@ -61,14 +102,43 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessingEnabled;
     }
 
+    /// <summary>
+    /// Struct that holds settings related to lights.
+    /// </summary>
     public struct LightData
     {
+        /// <summary>
+        /// Holds the main light index from the <c>VisibleLight</c> list returned by culling. If there's no main light in the scene, <c>mainLightIndex</c> is set to -1.
+        /// The main light is the directional light assigned as Sun source in light settings or the brightest directional light.
+        /// <seealso cref="CullingResults"/>
+        /// </summary>
         public int mainLightIndex;
+
+        /// <summary>
+        /// The number of additional lights visible by the camera.
+        /// </summary>
         public int additionalLightsCount;
+
+        /// <summary>
+        /// Maximum amount of lights that can be shaded per-object. This value only affects forward rendering.
+        /// </summary>
         public int maxPerObjectAdditionalLightsCount;
+
+        /// <summary>
+        /// List of visible lights returned by culling.
+        /// </summary>
         public NativeArray<VisibleLight> visibleLights;
+
         internal NativeArray<int> originalIndices;
+
+        /// <summary>
+        /// True if additional lights should be shaded in vertex shader, otherwise additional lights will be shaded per pixel.
+        /// </summary>
         public bool shadeAdditionalLightsPerVertex;
+
+        /// <summary>
+        /// True if mixed lighting is supported.
+        /// </summary>
         public bool supportsMixedLighting;
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
@@ -80,6 +150,10 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsAdditionalLights;
     }
 
+
+    /// <summary>
+    /// Struct that holds settings related to camera.
+    /// </summary>
     public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
@@ -96,7 +170,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the camera view matrix.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <returns> The camera view matrix. </returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -109,7 +184,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the camera projection matrix.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <returns> The camera projection matrix. </returns>
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -124,6 +200,7 @@ namespace UnityEngine.Rendering.Universal
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
         /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
@@ -131,27 +208,72 @@ namespace UnityEngine.Rendering.Universal
             return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
+        /// <summary>
+        /// The camera component.
+        /// </summary>
         public Camera camera;
+
+        /// <summary>
+        /// The camera render type used for camera stacking.
+        /// <see cref="CameraRenderType"/>
+        /// </summary>
         public CameraRenderType renderType;
+
+        /// <summary>
+        /// Controls the final target texture for a camera. If null camera will resolve rendering to screen.
+        /// </summary>
         public RenderTexture targetTexture;
+
+        /// <summary>
+        /// Render texture settings used to create intermediate camera textures for rendering.
+        /// </summary>
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
-        internal bool useScreenCoordOverride;
-        internal Vector4 screenSizeOverride;
-        internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
         internal int pixelHeight;
         internal float aspectRatio;
+
+        /// <summary>
+        /// Render scale to apply when creating camera textures.
+        /// </summary>
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
+        internal HDRColorBufferPrecision hdrColorBufferPrecision;
+
+
+        /// <summary>
+        /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>
+        /// <seealso cref="CameraRenderType"/>
+        /// </summary>
         public bool clearDepth;
+
+        /// <summary>
+        /// The camera type.
+        /// <seealso cref="UnityEngine.CameraType"/>
+        /// </summary>
         public CameraType cameraType;
+
+        /// <summary>
+        /// True if this camera is drawing to a viewport that maps to the entire screen.
+        /// </summary>
         public bool isDefaultViewport;
+
+        /// <summary>
+        /// True if this camera should render to high dynamic range color targets.
+        /// </summary>
         public bool isHdrEnabled;
+
+        /// <summary>
+        /// True if this camera requires to write _CameraDepthTexture.
+        /// </summary>
         public bool requiresDepthTexture;
+
+        /// <summary>
+        /// True if this camera requires to copy camera color texture to _CameraOpaqueTexture.
+        /// </summary>
         public bool requiresOpaqueTexture;
 
         /// <summary>
@@ -174,12 +296,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// True if the camera rendering is for the scene window in the editor
+        /// True if the camera rendering is for the scene window in the editor.
         /// </summary>
         public bool isSceneViewCamera => cameraType == CameraType.SceneView;
 
         /// <summary>
-        /// True if the camera rendering is for the preview window in the editor
+        /// True if the camera rendering is for the preview window in the editor.
         /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
 
@@ -190,6 +312,7 @@ namespace UnityEngine.Rendering.Universal
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
         /// </summary>
         public bool IsCameraProjectionMatrixFlipped()
         {
@@ -214,22 +337,72 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <summary>
+        /// The sorting criteria used when drawing opaque objects by the internal URP render passes.
+        /// When a GPU supports hidden surface removal, URP will rely on that information to avoid sorting opaque objects front to back and
+        /// benefit for more optimal static batching.
+        /// </summary>
+        /// <seealso cref="SortingCriteria"/>
         public SortingCriteria defaultOpaqueSortFlags;
 
         internal XRPass xr;
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
+        [Obsolete("Please use xr.enabled instead.", true)]
+        public bool isStereoEnabled;
+
+        /// <summary>
+        /// Maximum shadow distance visible to the camera. When set to zero shadows will be disable for that camera.
+        /// </summary>
         public float maxShadowDistance;
+
+        /// <summary>
+        /// True if post-processing is enabled for this camera.
+        /// </summary>
         public bool postProcessEnabled;
 
+        /// <summary>
+        /// Provides set actions to the renderer to be triggered at the end of the render loop for camera capture.
+        /// </summary>
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
 
+        /// <summary>
+        /// The camera volume layer mask.
+        /// </summary>
         public LayerMask volumeLayerMask;
+
+        /// <summary>
+        /// The camera volume trigger.
+        /// </summary>
         public Transform volumeTrigger;
 
+        /// <summary>
+        /// If set to true, the integrated post-processing stack will replace any NaNs generated by render passes prior to post-processing with black/zero.
+        /// Enabling this option will cause a noticeable performance impact. It should be used while in development mode to identify NaN issues.
+        /// </summary>
         public bool isStopNaNEnabled;
+
+        /// <summary>
+        /// If set to true a final post-processing pass will be applied to apply dithering.
+        /// This can be combined with post-processing antialiasing.
+        /// <seealso cref="antialiasing"/>
+        /// </summary>
         public bool isDitheringEnabled;
+
+        /// <summary>
+        /// Controls the anti-alising mode used by the integrated post-processing stack.
+        /// When any other value other than <c>AntialiasingMode.None</c> is chosen, a final post-processing pass will be applied to apply anti-aliasing.
+        /// This pass can be combined with dithering.
+        /// <see cref="AntialiasingMode"/>
+        /// <seealso cref="isDitheringEnabled"/>
+        /// </summary>
         public AntialiasingMode antialiasing;
+
+        /// <summary>
+        /// Controls the anti-alising quality of the anti-aliasing mode.
+        /// <see cref="antialiasingQuality"/>
+        /// <seealso cref="AntialiasingMode"/>
+        /// </summary>
         public AntialiasingQuality antialiasingQuality;
 
         /// <summary>
@@ -346,8 +519,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
-        public static readonly int screenCoordScaleBias = Shader.PropertyToID("_ScreenCoordScaleBias");
-        public static readonly int screenSizeOverride = Shader.PropertyToID("_ScreenSizeOverride");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
@@ -492,8 +663,6 @@ namespace UnityEngine.Rendering.Universal
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
-
-        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -526,6 +695,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Checks if a camera is rendering in stereo mode.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
+        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
+        public static bool IsStereoEnabled(Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+        }
+
+        /// <summary>
         /// Returns the current render pipeline asset for the current quality setting.
         /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
         /// </summary>
@@ -551,11 +734,12 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+        internal static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, bool needsAlpha)
         {
             if (isHdrEnabled)
             {
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
                 if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
@@ -566,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
+            bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
             int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
@@ -578,7 +762,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = scaledWidth;
                 desc.height = scaledHeight;
-                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
+                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
@@ -904,6 +1088,7 @@ namespace UnityEngine.Rendering.Universal
         Bloom,
         LensFlareDataDriven,
         MotionVectors,
+        DrawFullscreen,
 
         FinalBlit
     }

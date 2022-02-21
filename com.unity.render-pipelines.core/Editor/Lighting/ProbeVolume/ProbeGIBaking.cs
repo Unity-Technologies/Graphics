@@ -198,22 +198,6 @@ namespace UnityEngine.Rendering
             var activeScene = SceneManager.GetActiveScene();
             var activeSet = sceneData.GetBakingSetForScene(activeScene);
 
-            // We assume that all the bounds for all the scenes in the set have been set. However we also update the scenes that are currently loaded anyway for security.
-            // and to have a new trigger to update the bounds we have.
-            int openedScenesCount = SceneManager.sceneCount;
-            for (int i = 0; i < openedScenesCount; ++i)
-            {
-                var scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded)
-                    continue;
-                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
-                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
-                {
-                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
-                }
-            }
-
-
             hasFoundBounds = false;
 
             foreach (var sceneGUID in activeSet.sceneGUIDs)
@@ -259,8 +243,6 @@ namespace UnityEngine.Rendering
                 var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
                 Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
 
-                data.SetBakingState(ProbeReferenceVolume.instance.bakingState);
-
                 if (i == 0)
                 {
                     m_BakingProfile = profile;
@@ -274,9 +256,34 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static void EnsurePerSceneDataInOpenScenes()
+        {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
+            var activeScene = SceneManager.GetActiveScene();
+            var activeSet = sceneData.GetBakingSetForScene(activeScene);
+
+            // We assume that all the per scene data for all the scenes in the set have been set with the scene been saved at least once. However we also update the scenes that are currently loaded anyway for security.
+            // and to have a new trigger to update the bounds we have.
+            int openedScenesCount = SceneManager.sceneCount;
+            for (int i = 0; i < openedScenesCount; ++i)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded)
+                    continue;
+                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
+                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
+                {
+                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
+                }
+            }
+        }
+
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
+
+            EnsurePerSceneDataInOpenScenes();
+
             if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
 
             var sceneDataList = GetPerSceneDataList();
@@ -292,6 +299,9 @@ namespace UnityEngine.Rendering
 
             // Get min/max
             CellCountInDirections(out minCellPosition, out maxCellPosition, m_BakingProfile.cellSizeInMeters);
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.Initialize();
 
             RunPlacement();
         }
@@ -347,10 +357,10 @@ namespace UnityEngine.Rendering
                 {
                     if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.bakingScenario.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
 
                         if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(ref blackProbe, cell.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                            WriteToShaderCoeffsL2(ref blackProbe, cell.bakingScenario.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                     }
                 }
             }
@@ -753,7 +763,7 @@ namespace UnityEngine.Rendering
                 if (ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene))
                 {
                     data.asset = ProbeVolumeAsset.CreateAsset(data);
-                    data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
+                    data.scenarios.TryAdd(ProbeReferenceVolume.instance.lightingScenario, default);
                     scene2Data[data.gameObject.scene] = data;
                 }
             }
@@ -830,7 +840,7 @@ namespace UnityEngine.Rendering
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
                 var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
-                window.UpdateBakingStatesStatuses(ProbeReferenceVolume.instance.bakingState);
+                window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
             // We are done with baking so we reset whether we need to bake only the active or not.
@@ -901,7 +911,7 @@ namespace UnityEngine.Rendering
             bc.sh = new SphericalHarmonicsL2[numberOfProbes];
             for (int probe = 0; probe < numberOfProbes; ++probe)
             {
-                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
+                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, probe);
             }
 
             return bc;
@@ -1160,7 +1170,7 @@ namespace UnityEngine.Rendering
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);
 
-            data.states[ProbeReferenceVolume.instance.bakingState] = new ProbeVolumePerSceneData.PerStateData
+            data.scenarios[ProbeReferenceVolume.instance.lightingScenario] = new ProbeVolumePerSceneData.PerScenarioData
             {
                 sceneHash = sceneStateHash,
                 cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename),
@@ -1174,7 +1184,7 @@ namespace UnityEngine.Rendering
         static void WritebackModifiedCellsData(ProbeVolumePerSceneData data)
         {
             var asset = data.asset;
-            var stateData = data.states[ProbeReferenceVolume.instance.bakingState];
+            var stateData = data.scenarios[ProbeReferenceVolume.instance.lightingScenario];
             data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
             unsafe

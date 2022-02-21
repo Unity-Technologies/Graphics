@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
 - Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
 - Added Screen Coordinates Override shader utilities.
+- Added API to blend between baking states for Probe Volumes.
 
 ### Changed
 - Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.

@@ -56,6 +56,27 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This setting controls if the camera editor should display the camera stack category.
+        /// If your renderer is not supporting stacking this one should return 0.
+        /// For the UI to show the Camera Stack widget this must support CameraRenderType.Base.
+        /// <see cref="CameraRenderType"/>
+        /// Returns the bitmask of the supported camera render types in the renderer's current state.
+        /// </summary>
+        public virtual int SupportedCameraStackingTypes()
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns true if the given camera render type is supported in the renderer's current state.
+        /// </summary>
+        /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
+        {
+            return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
+        }
+
+        /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }
@@ -72,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
             /// <see cref="CameraRenderType"/>
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             /// </summary>
+            [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead.", false)]
             public bool cameraStacking { get; set; } = false;
 
             /// <summary>
@@ -224,10 +246,6 @@ namespace UnityEngine.Rendering.Universal
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
-
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
-            cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
-            cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
 
             //Set per camera matrices.
             SetCameraMatrices(cmd, ref cameraData, true);
@@ -592,7 +610,9 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveRenderPassQueue.Clear();
 
             if (UniversalRenderPipeline.asset)
+            {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+            }
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }

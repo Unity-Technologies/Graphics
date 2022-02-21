@@ -440,22 +440,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            if (IsAPVEnabled())
+            bool apvIsEnabled = IsAPVEnabled();
+            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
+                    stateBlendShader = defaultResources.shaders.probeVolumeBlendStatesCS,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
                     supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
+                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -1045,8 +1050,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Raise or remove the depth msaa flag based on the frame setting
                 CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
-
-                CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
             }
         }
 
