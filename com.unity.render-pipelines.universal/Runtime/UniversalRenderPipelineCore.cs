@@ -53,6 +53,13 @@ namespace UnityEngine.Rendering.Universal
     public struct RenderingData
     {
         /// <summary>
+        /// Global CommandBuffer for the pipeline to be used instead of local command buffers inside ScriptableRenderPass.
+        /// This buffer is automatically executed after <c>ScriptableRenderPass.Execute</c>
+        /// </summary>
+        /// <seealso cref="ScriptableRenderPass.Execute(ScriptableRenderContext, ref RenderingData)"/>
+        public CommandBuffer commandBuffer;
+
+        /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
         /// You can use this to draw objects with <c>ScriptableRenderContext.DrawRenderers</c>
         /// <see cref="CullingResults"/>
