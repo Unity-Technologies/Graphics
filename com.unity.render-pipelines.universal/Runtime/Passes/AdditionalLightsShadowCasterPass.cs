@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalShadowParams;
             public static int _AdditionalShadowOffset0;
             public static int _AdditionalShadowOffset1;
-            public static int _AdditionalShadowOffset2;
-            public static int _AdditionalShadowOffset3;
             public static int _AdditionalShadowFadeParams;
             public static int _AdditionalShadowmapSize;
         }
@@ -73,7 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowSliceToAdditionalLightIndex = new List<int>();                // For each shadow slice, store the "additional light indices" of the punctual light that casts it
         List<int> m_GlobalShadowSliceIndexToPerLightShadowSliceIndex = new List<int>(); // For each shadow slice, store its "per-light shadow slice index" in the punctual light that casts it (can be up to 5 for point lights)
 
-        Vector4[] m_AdditionalLightIndexToShadowParams = null;                          // per-additional-light shadow info passed to the lighting shader
+        Vector4[] m_AdditionalLightIndexToShadowParams = null;                          // per-additional-light shadow info passed to the lighting shader (x: shadowStrength, y: softShadows, z: light type, w: perLightFirstShadowSliceIndex)
         Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = null;       // per-shadow-slice info passed to the lighting shader
 
         List<ShadowResolutionRequest> m_ShadowResolutionRequests = new List<ShadowResolutionRequest>();  // intermediate array used to compute the final resolution of each shadow slice rendered in the frame
@@ -115,8 +113,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalShadowsConstantBuffer._AdditionalShadowParams = Shader.PropertyToID("_AdditionalShadowParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
             AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
             m_AdditionalLightsShadowmapID = Shader.PropertyToID("_AdditionalLightsShadowmapTexture");
@@ -707,6 +703,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -736,6 +734,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -984,16 +984,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (softShadows)
             {
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0,
-                        new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,
+                            invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight));
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1,
-                        new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2,
-                        new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3,
-                        new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight,
+                            invHalfShadowAtlasWidth, invHalfShadowAtlasHeight));
 
-                // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
-                // enough so custom shaders might use it.
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
                     shadowData.additionalLightsShadowmapWidth, shadowData.additionalLightsShadowmapHeight));
             }

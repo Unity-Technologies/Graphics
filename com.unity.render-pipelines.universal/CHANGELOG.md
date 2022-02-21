@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
 - Added FP16 camera render target option.
+- Added Soft Shadows filtering quality as per light option. Low, PCF 3x3 pixel area with fixed offsets which is recommended for mobile. Medium, Tent 5x5 pixel area as the default. High, Tent 7x7 pixel area.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added support for FidelityFX Super Resolution 1.0 upscaling filter.
 - Added Downscale and Max Iterations options for Bloom
@@ -23,6 +24,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
 - PostProcessPass to internal visibility since it's in Internal namespace.
+- Removed SHADER_API_MOBILE from shaders in cases where it affected quality.
+- Removed SHADER_HINT_NICE_QUALITY from shaders.
+- Removed low quality light fade for lighting consistency on both desktop and mobile.
+- Removed SHADER_QUALITY_LOW, SHADER_QUALITY_MEDIUM, SHADER_QUALITY_HIGH from shaders. Everything is now "SHADER_QUALITY_HIGH".
 - Particle alpha channel blend mode to match standard shader.
 - Removed skipIterations from Bloom settings. It has now been replaced with maxIterations.
 - Merged MaterialError.shader and FallbackError.shader
