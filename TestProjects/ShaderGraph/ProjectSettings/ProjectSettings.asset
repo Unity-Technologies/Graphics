@@ -278,6 +278,7 @@ PlayerSettings:
     m_StaticBatching: 1
     m_DynamicBatching: 0
   m_BuildTargetGraphicsAPIs: []
+  m_BuildTargetShaderSettings: []
   m_BuildTargetVRSettings:
   - m_BuildTarget: Standalone
     m_Enabled: 0
@@ -285,6 +286,8 @@ PlayerSettings:
     - Oculus
     - OpenVR
   m_BuildTargetEnableVuforiaSettings: []
+  m_DefaultChunkSizeInMB: 1
+  m_DefaultChunkCount: 1
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
