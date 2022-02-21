@@ -1449,9 +1449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if(legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
                 {
-                    // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                    if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                        HDShadowManager.cachedShadowManager.RegisterLight(this);
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
                 }
 
                 m_ShadowUpdateMode = value;
@@ -3054,9 +3052,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
         }
 
@@ -3406,11 +3402,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
+            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
-                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             SetEmissiveMeshRendererEnabled(true);
