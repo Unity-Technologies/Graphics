@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -255,20 +256,32 @@ namespace UnityEditor.VFX
             return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
         }
 
-        static PragmaCollection ApplyPragmaReplacement(PragmaCollection pragmas, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        static PragmaCollection ApplyPragmaModifier(PragmaCollection pragmas, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo, bool addPragmaRequireCubeArray)
         {
-            if (shaderGraphSRPInfo.pragmasReplacement != null)
+            if (shaderGraphSRPInfo.pragmasReplacement != null || addPragmaRequireCubeArray)
             {
                 var overridenPragmas = new PragmaCollection();
                 foreach (var pragma in pragmas)
                 {
                     var currentPragma = pragma;
-                    var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
-                    if (!string.IsNullOrEmpty(replacement.newDesc.value))
-                        currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
 
+                    if (shaderGraphSRPInfo.pragmasReplacement != null)
+                    {
+                        var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
+                        if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                            continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
+
+                        if (!string.IsNullOrEmpty(replacement.newDesc.value))
+                            currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
+                    }
                     overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
                 }
+
+                if (addPragmaRequireCubeArray)
+                {
+                    overridenPragmas.Add(new PragmaDescriptor() { value = "require cubearray" });
+                }
+
                 return overridenPragmas;
             }
             return pragmas;
@@ -319,12 +332,14 @@ namespace UnityEditor.VFX
 
             var passes = filteredPasses.ToArray();
 
+            var addPragmaRequireCubeArray = data.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
+
             PassCollection vfxPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
 
-                passDescriptor.pragmas = ApplyPragmaReplacement(passDescriptor.pragmas, shaderGraphSRPInfo);
+                passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing

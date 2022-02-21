@@ -1,5 +1,7 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+${VFXPragmaRequire}
+
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXPerPassInclude}

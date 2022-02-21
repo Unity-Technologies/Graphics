@@ -22,6 +22,8 @@ The version number for this package has increased due to a version update of a r
 - Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
 - Resize custom operator (multiply, add...) to the minimum size when changing input types
+- Unexpected target incompatible target compilation with new ShaderGraph integration [case 1392834](https://issuetracker.unity3d.com/product/unity/issues/guid/1392834/)
+- Missing compute while compiling in OpenGL [Case 1403988](https://issuetracker.unity3d.com/product/unity/issues/guid/1403988/)
 
 ## [12.1.4] - 2021-12-07
 ### Fixed

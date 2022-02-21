@@ -4,7 +4,7 @@ ${VFXInclude("Shaders/VFXParticleCommon.template")}
 ${VFXOutputRenderState}	
 	
 HLSLINCLUDE
-
+${VFXPragmaRequire}
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
