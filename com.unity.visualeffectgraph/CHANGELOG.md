@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
 - Picking and Selection passes [Case 1382788](https://issuetracker.unity3d.com/product/unity/issues/guid/1382788/), [Case 1402283](https://issuetracker.unity3d.com/product/unity/issues/guid/1402283/)
 - Unexpected target incompatible target compilation with new ShaderGraph integration [case 1392834](https://issuetracker.unity3d.com/product/unity/issues/guid/1392834/)
+- Missing compute while compiling in OpenGL [Case 1403988](https://issuetracker.unity3d.com/product/unity/issues/guid/1403988/)
 
 ## [14.0.0] - 2021-11-17
 
