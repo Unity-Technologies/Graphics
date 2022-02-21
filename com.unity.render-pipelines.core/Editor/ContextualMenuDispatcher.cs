@@ -100,9 +100,8 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Removes the component and it's additional datas
         /// </summary>
-        /// <param name="type">Type to remove</param>
         /// <param name="comp">The component</param>
-        public static void RemoveComponent(Type type, Component comp)
+        static void RemoveComponent(Component comp)
         {
             if (!RemoveAdditionalDataUtils.RemoveComponent(type, comp, RemoveComponentUtils.ComponentDependencies(comp)))
             {
