@@ -185,8 +185,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if SYNC
                                 while (frameData == null)
 #endif
-                                dataLen = SocketServer.Instance.ReceiveWithFrameID(i,
-                                    Datagram.DatagramType.VideoFrame, CurrentFrameID, out datagram);
+                                dataLen = SocketServer.Instance.ReceiveLastOne(i,
+                                    Datagram.DatagramType.VideoFrame, out datagram);
                                 if (datagram == null)
                                     continue;
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
