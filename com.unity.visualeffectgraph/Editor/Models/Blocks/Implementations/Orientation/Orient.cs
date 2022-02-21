@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Block
             {
                 if (mode != Mode.Advanced)
                     yield return "axes";
-                if (mode != Mode.FaceCameraPlane || !((VFXAbstractParticleOutput)m_Parent).isRayTraced)
+                if ((mode != Mode.FaceCameraPlane && mode != Mode.FaceCameraPosition) || !((VFXAbstractParticleOutput)m_Parent).isRayTraced)
                     yield return "faceRay";
             }
         }
@@ -211,7 +211,10 @@ axisZ = cross(axisX, axisY);
 ";
                         }
                         else
-                            return @"
+                        {
+                            if (!faceRay)
+                            {
+                                return @"
 if (IsPerspectiveProjection())
 {
     axisZ = normalize(position - GetViewVFXPosition());
@@ -231,6 +234,20 @@ else // Face plane for ortho
     #endif
 }
 ";
+                            }
+                            else
+                            {
+                                return @"
+float3x3 viewRot = GetVFXToViewRotMatrix();
+#if defined(SHADER_STAGE_RAY_TRACING)
+axisZ = -GetViewOrRayDirection();
+#else
+axisZ = normalize(position - GetViewVFXPosition());
+#endif
+axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+axisY = cross(axisZ,axisX);";
+                            }
+                        }
 
                     case Mode.LookAtPosition:
                         if (canTestStrips && hasStrips)

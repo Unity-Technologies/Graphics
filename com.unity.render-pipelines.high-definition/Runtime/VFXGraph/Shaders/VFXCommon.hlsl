@@ -103,7 +103,16 @@ float4x4 VFXGetObjectToWorldMatrix()
 #ifdef HAVE_VFX_MODIFICATION
     return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
 #else
-    return GetObjectToWorldMatrix();
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        float4x4 objToWorld = float4x4(
+                ObjectToWorld3x4()[0],
+                ObjectToWorld3x4()[1],
+                ObjectToWorld3x4()[2],
+                float4(0,0,0,1));
+        return objToWorld;
+    #else
+        return GetObjectToWorldMatrix();
+    #endif
 #endif
 }
 
@@ -113,7 +122,16 @@ float4x4 VFXGetWorldToObjectMatrix()
 #ifdef HAVE_VFX_MODIFICATION
     return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
 #else
-    return GetWorldToObjectMatrix();
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        float4x4 worldToObj = float4x4(
+            WorldToObject3x4()[0],
+            WorldToObject3x4()[1],
+            WorldToObject3x4()[2],
+            float4(0,0,0,1));
+        return worldToObj;
+    #else
+        return GetWorldToObjectMatrix();
+    #endif
 #endif
 }
 
