@@ -2325,7 +2325,7 @@ namespace UnityEditor.VFX.UI
         internal Vector2 pasteCenter
         {
             get => contentViewContainer.WorldToLocal(m_pastCenter);
-            private set => m_pastCenter = value; // Should be used only for unit testing
+            private set => m_pastCenter = value;
         }
 
         private bool VFXCanPaste(string data)
