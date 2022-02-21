@@ -2,6 +2,8 @@
 #define __PROBEVOLUME_HLSL__
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Unpack variables
 #define _PoolDim _PoolDim_CellInMeters.xyz
@@ -15,7 +17,8 @@
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
 #define _Weight _Weight_MinLoadedCell.x
 #define _MinLoadedCell _Weight_MinLoadedCell.yzw
-#define _MaxLoadedCell _MaxLoadedCell_Padding.xyz
+#define _MaxLoadedCell _MaxLoadedCell_FrameIndex.xyz
+#define _NoiseFrameIndex _MaxLoadedCell_FrameIndex.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -83,6 +86,21 @@ struct APVSample
             status = APV_SAMPLE_STATUS_DECODED;
         }
     }
+
+    void Encode()
+    {
+        if (status == APV_SAMPLE_STATUS_DECODED)
+        {
+            L1_R = EncodeSH(L0.r, L1_R);
+            L1_G = EncodeSH(L0.g, L1_G);
+            L1_B = EncodeSH(L0.b, L1_B);
+#ifdef PROBE_VOLUMES_L2
+            EncodeSH_L2(L0, L2_R, L2_G, L2_B, L2_C);
+#endif
+
+            status = APV_SAMPLE_STATUS_ENCODED;
+        }
+    }
 };
 
 // Resources required for APV
@@ -103,7 +121,16 @@ TEXTURE3D(_APVResValidity);
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
 // -------------------------------------------------------------
-
+float3 AddNoiseToSamplingPosition(float3 posWS, float2 positionSS)
+{
+    float3 outPos = posWS;
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, _NoiseFrameIndex) * 2.0f - 1.0f) * _PVSamplingNoise;
+        outPos += noise1D_0;
+    }
+    return outPos;
+}
 
 uint3 GetSampleOffset(uint i)
 {
@@ -560,11 +587,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
 
@@ -608,11 +631,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -622,11 +641,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))

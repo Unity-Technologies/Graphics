@@ -276,8 +276,8 @@ TextField#user-title-textfield
     margin-left: 11px;
     margin-right:11px;
     margin-top: 1px;
-    margin-bottom:1;
-    border-width: 1;
+    margin-bottom:1px;
+    border-width: 1px;
     border-color: rgba(68,192,255, 0.5);
     background-color:rgba(0,0,0,0);
     min-height: 24px;

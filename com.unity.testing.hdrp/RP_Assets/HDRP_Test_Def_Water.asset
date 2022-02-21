@@ -27,7 +27,8 @@ MonoBehaviour:
     supportVolumetricClouds: 0
     supportLightLayers: 1
     supportWater: 1
-    waterSimulationResolution: 256
+    waterSimulationResolution: 128
+    waterCPUSimulation: 1
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
