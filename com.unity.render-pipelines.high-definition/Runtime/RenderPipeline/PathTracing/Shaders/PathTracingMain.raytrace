@@ -132,6 +132,7 @@ void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ra
     // Initialize the payload for this camera ray
     payload.throughput = 1.0;
     payload.maxRoughness = 0.0;
+    payload.rayDirection = 0.0;
     payload.pixelCoord = tiledPixelCoord;
     payload.segmentID = 0;
 

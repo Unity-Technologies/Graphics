@@ -355,7 +355,8 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     bool sampleLocalLights;
 
     // Skip this code if getting out of a SSS random walk
-    if (payload.segmentID != SEGMENT_ID_RANDOM_WALK)
+    bool isRandomWalk = (payload.segmentID == SEGMENT_ID_RANDOM_WALK);
+    if (!isRandomWalk)
     {
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
         inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 4 * payload.segmentID);
@@ -379,7 +380,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 #endif // HAS_LIGHTLOOP
 
     // Skip this code if getting out of a SSS random walk
-    if (payload.segmentID != SEGMENT_ID_RANDOM_WALK)
+    if (!isRandomWalk)
     {
         // Apply volumetric attenuation (beware of passing the right distance to the shading point)
         ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
