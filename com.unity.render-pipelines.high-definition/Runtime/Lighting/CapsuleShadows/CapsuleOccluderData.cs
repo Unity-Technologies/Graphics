@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Directional,        // with solid angle
         Point,              // with spherical size
         // TODO: spot (use spot cone for culling)
-        AmbientOcclusion,
+        Indirect,
         // TODO: other indirect types
     }
 
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool isDirectional { get { return casterType == (uint)CapsuleShadowCasterType.Directional; } }
 
-        internal bool isIndirect {  get {  return casterType == (uint)CapsuleShadowCasterType.AmbientOcclusion; } }
+        internal bool isIndirect {  get {  return casterType == (uint)CapsuleShadowCasterType.Indirect; } }
     }
 
     internal static class CapsuleOccluderExt

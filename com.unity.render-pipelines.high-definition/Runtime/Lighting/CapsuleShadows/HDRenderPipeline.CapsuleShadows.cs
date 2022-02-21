@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Casters.Add(new CapsuleShadowCaster()
                 {
-                    casterType = (uint)CapsuleShadowCasterType.AmbientOcclusion, // TODO: other indirect types
+                    casterType = (uint)CapsuleShadowCasterType.Indirect, // TODO: other indirect types
                     sliceIndex = 0,
                     // TODO: other fields
                 });
@@ -285,35 +285,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (capsuleShadows.indirectShadowMethod.value == CapsuleIndirectShadowMethod.DirectionAtCapsule)
-                {
-                    int count = indirectOccluders.Count;
-                    var positions = new Vector3[count];
-                    var lighting = new SphericalHarmonicsL2[count];
-
-                    for (int i = 0; i < count; ++i)
-                        positions[i] = indirectOccluders[i].centerRWS + originWS;
-
-                    LightProbes.CalculateInterpolatedLightAndOcclusionProbes(positions, lighting, null);
-
-                    Vector3 luma = new Vector3(0.2126729f, 0.7151522f, 0.0721750f);
-                    const int R = 0, G = 1, B = 2;
-                    const int X = 3, Y = 1, Z = 2;
-                    Vector3 directionBias = capsuleShadows.indirectDirectionBias.value;
-                    for (int i = 0; i < count; ++i)
-                    {
-                        SphericalHarmonicsL2 probe = lighting[i];
-                        Vector3 L1_X = new Vector3(probe[R, X], probe[G, X], probe[B, X]);
-                        Vector3 L1_Y = new Vector3(probe[R, Y], probe[G, Y], probe[B, Y]);
-                        Vector3 L1_Z = new Vector3(probe[R, Z], probe[G, Z], probe[B, Z]);
-                        Vector3 L1_Vec = new Vector3(Vector3.Dot(L1_X, luma), Vector3.Dot(L1_Y, luma), Vector3.Dot(L1_Z, luma));
-
-                        CapsuleOccluderData data = indirectOccluders[i];
-                        data.indirectDirWS = (L1_Vec.normalized + directionBias).normalized;
-                        indirectOccluders[i] = data;
-                    }
-                }
-
                 m_CapsuleOccluders.bounds.AddRange(indirectBounds);
                 m_CapsuleOccluders.occluders.AddRange(indirectOccluders);
             }
@@ -330,6 +301,48 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_CapsuleOccluders.occluders.Count >= k_MaxDirectShadowCapsulesOnScreen)
                     break;
                 m_CapsuleOccluders.occluders.Add(occluder.GetOccluderData(originWS));
+            }
+        }
+
+        void BuildCapsuleIndirectData(HDCamera hdCamera, CapsuleShadowsVolumeComponent capsuleShadows)
+        {
+            if (capsuleShadows.indirectShadowMethod.value != CapsuleIndirectShadowMethod.DirectionAtCapsule)
+            {
+                Vector3 originWS = Vector3.zero;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    originWS = hdCamera.camera.transform.position;
+
+                int beginIndex = m_CapsuleOccluders.directCount; // only non-zero when pipeline is CapsuleShadowPipeline.InLightLoop
+                int endIndex = m_CapsuleOccluders.occluders.Count;
+
+                using (ListPool<Vector3>.Get(out List<Vector3> positions))
+                using (ListPool<SphericalHarmonicsL2>.Get(out List<SphericalHarmonicsL2> probes))
+                {
+                    for (int i = beginIndex; i != endIndex; ++i)
+                    {
+                        positions.Add(m_CapsuleOccluders.occluders[i].centerRWS + originWS);
+                        probes.Add(new SphericalHarmonicsL2());
+                    }
+
+                    LightProbes.CalculateInterpolatedLightAndOcclusionProbes(positions, probes, null);
+
+                    Vector3 luma = new Vector3(0.2126729f, 0.7151522f, 0.0721750f);
+                    const int R = 0, G = 1, B = 2;
+                    const int X = 3, Y = 1, Z = 2;
+                    Vector3 directionBias = capsuleShadows.indirectDirectionBias.value;
+                    for (int i = beginIndex; i != endIndex; ++i)
+                    {
+                        SphericalHarmonicsL2 probe = probes[i - beginIndex];
+                        Vector3 L1_X = new Vector3(probe[R, X], probe[G, X], probe[B, X]);
+                        Vector3 L1_Y = new Vector3(probe[R, Y], probe[G, Y], probe[B, Y]);
+                        Vector3 L1_Z = new Vector3(probe[R, Z], probe[G, Z], probe[B, Z]);
+                        Vector3 L1_Vec = new Vector3(Vector3.Dot(L1_X, luma), Vector3.Dot(L1_Y, luma), Vector3.Dot(L1_Z, luma));
+
+                        CapsuleOccluderData data = m_CapsuleOccluders.occluders[i];
+                        data.indirectDirWS = (L1_Vec.normalized + directionBias).normalized;
+                        m_CapsuleOccluders.occluders[i] = data;
+                    }
+                }
             }
         }
 
@@ -355,7 +368,12 @@ namespace UnityEngine.Rendering.HighDefinition
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
 
             if (capsuleShadows.pipeline.value != CapsuleShadowPipeline.InLightLoop)
+            {
+                // caster list is built as a side-effect calling CapsuleShadowAllocator.AllocateCaster for visible lights
                 BuildCapsuleOccluderListForPrePass(hdCamera);
+            }
+
+            BuildCapsuleIndirectData(hdCamera, capsuleShadows);
 
             m_CapsuleOccluderDataBuffer.SetData(m_CapsuleOccluders.occluders);
             m_CapsuleShadowCastersBuffer.SetData(m_CapsuleShadowAllocator.m_Casters);

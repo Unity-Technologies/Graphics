@@ -214,17 +214,34 @@ void CapsuleShadowLoop(
                     ++processedCapsuleCounter;
 #endif
             }
-            else
+            else // volume.caster.casterType == CAPSULESHADOWCASTERTYPE_INDIRECT
             {
-                uint flags = CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE;
-                occlusion = EvaluateCapsuleAmbientOcclusion(
-                    GetCapsuleAmbientOcclusionFlags(),
-                    volume.occluder.centerRWS - positionWS,
-                    volume.occluder.axisDirWS,
-                    volume.occluder.offset,
-                    volume.occluder.radius,
-                    volume.occluder.radius*_CapsuleIndirectRangeFactor,
-                    normalWS);
+                uint method = _CapsuleIndirectShadowMethod;
+                if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
+                {
+                    occlusion = EvaluateCapsuleAmbientOcclusion(
+                        GetCapsuleAmbientOcclusionFlags(),
+                        volume.occluder.centerRWS - positionWS,
+                        volume.occluder.axisDirWS,
+                        volume.occluder.offset,
+                        volume.occluder.radius,
+                        volume.occluder.radius*_CapsuleIndirectRangeFactor,
+                        normalWS);
+                }
+                else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
+                {
+                    occlusion = EvaluateCapsuleOcclusion(
+                        GetCapsuleIndirectOcclusionFlags(),
+                        volume.occluder.indirectDirWS,
+                        false,
+                        _CapsuleIndirectCosAngle,
+                        volume.occluder.centerRWS - positionWS,
+                        volume.occluder.axisDirWS,
+                        volume.occluder.offset,
+                        volume.occluder.radius,
+                        volume.occluder.radius*_CapsuleIndirectRangeFactor,
+                        normalWS);
+                }
 #ifdef CAPSULE_TILE_DEBUG
                 if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_INDIRECT)
                     ++processedCapsuleCounter;
