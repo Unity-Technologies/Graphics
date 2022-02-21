@@ -1,6 +1,6 @@
 # Autodesk Interactive masked shader
 
-The Autodesk Interactive masked shader replicates the Interactive PBS with the masked preset available in Autodesk® 3DsMax and Autodesk® Maya for the High Definition Render Pipeline (HDRP). It acts like a [cutout shader](https://docs.unity3d.com/Manual/shader-TransparentCutoutFamily.html). When Unity imports an FBX exported from one of these softwares, if the FBX includes materials with Interactive PBS shaders, Unity imports these materials as Autodesk Interactive materials. The material properties and textures inputs are identical between these two materials. The materials themselves also look and respond to light similarly. 
+The Autodesk Interactive masked shader replicates the Interactive PBS with the masked preset available in Autodesk® 3DsMax and Autodesk® Maya for the High Definition Render Pipeline (HDRP). It acts like a [cutout shader](https://docs.unity3d.com/Manual/shader-TransparentCutoutFamily.html). When Unity imports an FBX exported from one of these softwares, if the FBX includes materials with Interactive PBS shaders, Unity imports these materials as Autodesk Interactive materials. The material properties and textures inputs are identical between these two materials. The materials themselves also look and respond to light similarly.
 
 **Note**: There are slight differences between what you see in Autodesk® Maya or Autodesk® 3DsMax and what you see in Unity.
 
