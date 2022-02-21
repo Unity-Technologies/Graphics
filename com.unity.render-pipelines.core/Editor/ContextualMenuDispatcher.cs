@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
         public static bool RemoveComponent(Type type, Component component, IEnumerable<Component> dependencies)
         {
             var additionalDatas = dependencies
-                    .Where(c => c != component && typeof(IAdditionalData).IsAssignableFrom(c.GetType()))
+                    .Where(c => c != component && c is IAdditionalData)
                     .ToList();
 
             if (!RemoveComponentUtils.CanRemoveComponent(component, dependencies.Where(c => !additionalDatas.Contains(c))))
