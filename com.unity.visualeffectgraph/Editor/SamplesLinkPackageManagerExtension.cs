@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
 {
     VisualElement rootVisualElement;
-    const string SAMPLEBUTTON_TEXT = "Download VFX Graph Samples from Github";
+    const string SAMPLEBUTTON_TEXT = "open VFX Graph Samples project on Github";
     const string GITHUB_URL = "https://github.com/Unity-Technologies/VisualEffectGraph-Samples";
     const string VFX_GRAPH_NAME = "com.unity.visualeffectgraph";
 
@@ -21,7 +21,6 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
         samplesButton = new Button();
         samplesButton.text = SAMPLEBUTTON_TEXT;
         samplesButton.clickable.clicked += () => Application.OpenURL(GITHUB_URL);
-
         return samplesButton;
     }
 
