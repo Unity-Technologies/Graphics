@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,15 +10,16 @@ namespace UnityEditor.Rendering
     internal static class RemoveComponentUtils
     {
         public static IEnumerable<Component> ComponentDependencies(Component component)
-           => component.gameObject
-           .GetComponents<Component>()
-           .Where(c => c != component
-               && c.GetType()
-                   .GetCustomAttributes(typeof(RequireComponent), true)
-                   .Count(att => att is RequireComponent rc
-                       && (rc.m_Type0 == component.GetType()
-                           || rc.m_Type1 == component.GetType()
-                           || rc.m_Type2 == component.GetType())) > 0);
+        {
+            foreach (var c in component.gameObject.GetComponents<Component>())
+            {
+                foreach (var rc in c.GetType().GetCustomAttributes(typeof(RequireComponent), true).Cast<RequireComponent>())
+                {
+                    if (rc.m_Type0 == component.GetType() || rc.m_Type1 == component.GetType() || rc.m_Type2 == component.GetType())
+                        yield return c;
+                }
+            }
+        }
 
         public static bool CanRemoveComponent(Component component, IEnumerable<Component> dependencies)
         {
@@ -34,24 +36,14 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Helper methods for overriding contextual menus
     /// </summary>
-    public static class ContextualMenuDispatcher
+    public class ContextualMenuDispatcher
     {
         [MenuItem("CONTEXT/ReflectionProbe/Remove Component")]
-        static void RemoveReflectionProbeComponent(MenuCommand command)
-        {
-            RemoveComponent<ReflectionProbe>(command);
-        }
-
         [MenuItem("CONTEXT/Light/Remove Component")]
-        static void RemoveLightComponent(MenuCommand command)
-        {
-            RemoveComponent<Light>(command);
-        }
-
         [MenuItem("CONTEXT/Camera/Remove Component")]
-        static void RemoveCameraComponent(MenuCommand command)
+        static void RemoveComponentWithAdditionalData(MenuCommand command)
         {
-            RemoveComponent<Camera>(command);
+            RemoveComponent(command.context as Component);
         }
 
         /// <summary>
@@ -62,51 +54,81 @@ namespace UnityEditor.Rendering
         public static void RemoveAdditionalData<T>(MenuCommand command)
             where T : Component, IAdditionalData
         {
-            if (typeof(T).GetCustomAttributes(typeof(RequireComponent), true).FirstOrDefault() is RequireComponent rc)
+            var additionalData = command.context as IAdditionalData;
+            using (ListPool<Type>.Get(out var componentsToRemove))
             {
-                using (ListPool<Type>.Get(out var componentsToRemove))
-                {
-                    componentsToRemove.Add(rc.m_Type0);
-                    if (rc.m_Type1 != null)
-                        componentsToRemove.Add(rc.m_Type1);
-                    if (rc.m_Type2 != null)
-                        componentsToRemove.Add(rc.m_Type2);
+                if (!TryGetComponentsToRemove(command.context as IAdditionalData, componentsToRemove, out var error))
+                    throw error;
 
-                    if (EditorUtility.DisplayDialog(
-                        title: $"Are you sure you want to proceed?",
-                        message: $"This operation will also remove {string.Join($"{Environment.NewLine} - ", componentsToRemove)}.",
-                        ok: $"Remove everything",
-                        cancel: "Cancel"))
-                    {
-                        T additionalData = command.context as T;
-                        foreach (var type in componentsToRemove)
-                        {
-                            RemoveComponent(type, additionalData.GetComponent(type));
-                        }
-                    }
+                if (EditorUtility.DisplayDialog(
+                    title: $"Are you sure you want to proceed?",
+                    message: $"This operation will also remove {string.Join($"{Environment.NewLine} - ", componentsToRemove)}.",
+                    ok: $"Remove everything",
+                    cancel: "Cancel"))
+                {
+                    RemoveAdditionalDataComponent(additionalData, componentsToRemove);
                 }
             }
-            else
-                throw new Exception($"Missing attribute {typeof(RequireComponent).FullName} on type {typeof(T).FullName}");
         }
 
-        static void RemoveComponent<T>(MenuCommand command)
-            where T : Component
+        internal static bool TryGetComponentsToRemove(
+            IAdditionalData additionalData,
+            List<Type> componentsToRemove,
+            [NotNullWhen(false)] out Exception error)
         {
-            RemoveComponent(comp);
+            var type = additionalData.GetType();
+            var requiredComponents = type.GetCustomAttributes(typeof(RequireComponent), true).Cast<RequireComponent>();
+
+            if (!requiredComponents.Any())
+            {
+                error = new Exception($"Missing attribute {typeof(RequireComponent).FullName} on type {type.FullName}");
+                return false;
+            }
+
+            foreach (var rc in requiredComponents)
+            {
+                componentsToRemove.Add(rc.m_Type0);
+                if (rc.m_Type1 != null)
+                    componentsToRemove.Add(rc.m_Type1);
+                if (rc.m_Type2 != null)
+                    componentsToRemove.Add(rc.m_Type2);
+            }
+
+            error = null;
+            return true;
         }
 
         /// <summary>
         /// Removes the component and it's additional datas
         /// </summary>
         /// <param name="comp">The component</param>
-        static void RemoveComponent(Component comp)
+        internal static void RemoveComponent([DisallowNull] Component comp)
         {
-            if (!RemoveAdditionalDataUtils.RemoveComponent(comp, RemoveComponentUtils.ComponentDependencies(comp)))
+            var dependencies = RemoveComponentUtils.ComponentDependencies(comp);
+            if (!RemoveAdditionalDataUtils.RemoveComponent(comp, dependencies))
             {
                 //preserve built-in behavior
-                if (RemoveComponentUtils.CanRemoveComponent(comp, RemoveComponentUtils.ComponentDependencies(comp)))
+                if (RemoveComponentUtils.CanRemoveComponent(comp, dependencies))
                     Undo.DestroyObjectImmediate(comp);
+            }
+        }
+
+        internal static void RemoveAdditionalDataComponent([DisallowNull] IAdditionalData additionalData, List<Type> componentsTypeToRemove)
+        {
+            var additionalDataComponent = additionalData as Component;
+            using (ListPool<Component>.Get(out var components))
+            {
+                // Fetch all components
+                foreach (var type in componentsTypeToRemove)
+                {
+                    components.Add(additionalDataComponent.GetComponent(type));
+                }
+
+                // Remove all of them
+                foreach (var mono in components)
+                {
+                    RemoveComponent(mono);
+                }
             }
         }
     }
