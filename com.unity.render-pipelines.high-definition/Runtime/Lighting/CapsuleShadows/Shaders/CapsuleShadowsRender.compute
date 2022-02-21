@@ -261,11 +261,14 @@ void CapsuleShadowLoop(
                 }
                 else // casterType == CAPSULESHADOWCASTERTYPE_POINT
                 {
+                    float3 surfaceToLightVec = volume.caster.positionRWS - positionWS;
+                    float sinTheta = volume.caster.radiusWS/length(surfaceToLightVec);
+                    float cosTheta = min(volume.caster.cosTheta, sqrt(max(1.f - sinTheta*sinTheta, 0.f)));
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleDirectOcclusionFlags(),
-                        volume.caster.positionRWS - positionWS,
+                        surfaceToLightVec,
                         true,
-                        volume.caster.cosTheta,
+                        cosTheta,
                         volume.occluder.centerRWS - positionWS,
                         volume.occluder.axisDirWS,
                         volume.occluder.offset,
