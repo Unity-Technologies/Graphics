@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering
                 {
                     AssetDatabase.StartAssetEditing();
                 }
-                Undo.SetCurrentGroupName($"Remove {type} and additional data components");
+                Undo.SetCurrentGroupName($"Remove {component.GetType()} and additional data components");
 
                 // The components with RequireComponent(typeof(T)) also contain the AdditionalData attribute, proceed with the remove
                 foreach (var additionalDataComponent in additionalDatas)
