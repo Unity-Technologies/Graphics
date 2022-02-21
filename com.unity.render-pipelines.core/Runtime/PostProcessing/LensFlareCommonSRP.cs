@@ -510,7 +510,21 @@ namespace UnityEngine.Rendering
 
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
                 if (sunOcclusionTexture != null)
-                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
+                {
+                    if (comp.volumetricCloudOcclusion)
+                    {
+                        cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                        cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
+                    }
+                    else
+                    {
+                        cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    }
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                }
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 

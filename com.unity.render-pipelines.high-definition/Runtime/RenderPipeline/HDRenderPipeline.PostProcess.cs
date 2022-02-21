@@ -3144,7 +3144,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
+                    if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
+                        passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
+                    else
+                        passData.sunOcclusion = TextureHandle.nullHandle;
                     passData.taaEnabled = taaEnabled;
 
                     builder.SetRenderFunc(
@@ -3159,7 +3162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.viewProjMatrix,
-                                ctx.cmd, data.sunOcclusion, data.taaEnabled,
+                                ctx.cmd, data.sunOcclusion.IsValid() ? data.sunOcclusion : null, data.taaEnabled,
                                 HDShaderIDs._FlareSunOcclusionTex, HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });

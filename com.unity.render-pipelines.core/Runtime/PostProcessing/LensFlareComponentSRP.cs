@@ -91,6 +91,10 @@ namespace UnityEngine.Rendering
         /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
         /// </summary>
         public bool allowOffScreen = false;
+        /// <summary>
+        /// If volumetricCloudOcclusion is true then use the volumetric cloud (on HDRP only) for the occlusion
+        /// </summary>
+        public bool volumetricCloudOcclusion = false;
 
         /// Our default celestial body will have an angular radius of 3.3 degrees. This is an arbitrary number, but must be kept constant
         /// so the occlusion radius for direct lights is consistent regardless of near / far clip plane configuration.

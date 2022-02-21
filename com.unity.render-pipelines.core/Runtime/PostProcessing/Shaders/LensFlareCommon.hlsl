@@ -38,14 +38,15 @@ struct VaryingsLensFlare
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
-#if defined(HDRP_FLARE) && defined(FLARE_COMPUTE_OCCLUSION)
+#if defined(HDRP_FLARE)
+#if defined(FLARE_OCCLUSION)
+TEXTURE2D_X(_FlareOcclusionTex);
+SAMPLER(sampler_FlareOcclusionTex);
+#endif
+#if defined(FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD)
 TEXTURE2D_X(_FlareSunOcclusionTex);
 SAMPLER(sampler_FlareSunOcclusionTex);
 #endif
-
-#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
-TEXTURE2D_X(_FlareOcclusionTex);
-SAMPLER(sampler_FlareOcclusionTex);
 #endif
 
 float4 _FlareColorValue;
@@ -134,25 +135,20 @@ float GetOcclusion(float ratio)
 #else
             if (depth0 < _ScreenPosZ)
 #endif
+            {
+#if defined(FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD)
+                float cloudOcclusion = LOAD_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, uint2(pos * _ScreenSize.xy), 0).w;
+                contrib += sample_Contrib * saturate(cloudOcclusion);
+#else
                 contrib += sample_Contrib;
+#endif
+            }
         }
         else if (_OcclusionOffscreen > 0.0f)
         {
             contrib += sample_Contrib;
         }
     }
-
-#if 1
-#if defined(HDRP_FLARE) && defined(FLARE_COMPUTE_OCCLUSION) && !defined(FLARE_PREVIEW)
-    float2 uvBase = _ScreenPos.xy * 0.5f + 0.5f;
-#ifdef UNITY_UV_STARTS_AT_TOP
-    uvBase.y = uvBase.y;
-#endif
-
-    float cloudOcclusion = LOAD_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, uint2(uvBase * _ScreenSize.xy), 0).w;
-    contrib *= saturate(cloudOcclusion);
-#endif
-#endif
 
     return contrib;
 }

@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
         SerializedProperty m_AllowOffScreen;
+        SerializedProperty m_VolumetricCloudOcclusion;
 
         void OnEnable()
         {
@@ -42,6 +43,7 @@ namespace UnityEditor.Rendering
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
+            m_VolumetricCloudOcclusion = entryPoint.Find(x => x.volumetricCloudOcclusion);
         }
 
         /// <summary>
@@ -89,6 +91,8 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
+                if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
+                    EditorGUILayout.PropertyField(m_VolumetricCloudOcclusion, Styles.volumetricCloudOcclusion);
                 --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
             }
@@ -119,6 +123,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");
             static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
+            static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Cloud Occlusion", "If VolumetricCloudOcclusion is true then use the volumetric cloud (on HDRP only) for the occlusion.");
         }
     }
 }
