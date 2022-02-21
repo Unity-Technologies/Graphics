@@ -12,7 +12,7 @@ URP does not currently support custom post-processing effects. If your Project u
 
 1. In Unity, open your Project.
 2. In the top navigation bar, select __Window > Package Manager__ to open the __Package Manager__ window.
-3. In the __Packages__ filter dropdown, select **Unity Registry**. This will display the list of available packages for the version of Unity that you are currently running.
+3. In the __Packages__ menu, select **Unity Registry**. This shows the list of available packages for the version of Unity that you are currently running.
 4. Select **Universal RP** from the list of packages.
 5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP directly into your Project.
 
