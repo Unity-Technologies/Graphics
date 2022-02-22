@@ -12,7 +12,7 @@ Shader "Unlit/SimpleSRPUnlit"
 
         Pass
         {
-//        Tags{"LightMode" = "Always"}  
+//        Tags{"LightMode" = "Always"}
         Tags{"LightMode" = "Universal Forward"}
 
 
