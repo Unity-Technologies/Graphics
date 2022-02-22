@@ -501,18 +501,11 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
-        static class RenderGraphRenderPassBlock
+        protected enum RenderGraphRenderPassBlock
         {
-            // Executes render passes that are inputs to the main rendering
-            // but don't depend on camera state.
-            public static readonly int BeforeRendering = 0;
-
-            // Main bulk of render pass execution. They required camera state to be properly set
-            // and when enabled they will render in stereo.
-            public static readonly int MainRendering = 1;
-
-            // Execute after Post-processing.
-            public static readonly int AfterRendering = 2;
+            BeforeRendering,
+            MainRendering,
+            AfterRendering
         }
 
         private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
@@ -743,9 +736,10 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
         /// </summary>
+        /// <param name="renderPassBlock">Specifies the location in the frame where to execute the render graph code.</param>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        protected virtual void RecordRenderGraphBlock(int renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
+        protected virtual void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }
 

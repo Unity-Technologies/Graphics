@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
-    public sealed class UniversalRenderer : ScriptableRenderer
+    public sealed partial class UniversalRenderer : ScriptableRenderer
     {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
