@@ -8,11 +8,11 @@ namespace UnityEditor.ShaderFoundry
     {
         internal static void Declare(ShaderBuilder builder, BlockProperty variable)
         {
-            var propInfo = PropertyInfo.Extract(variable.Type, variable.Name, variable.Attributes);
-            if(propInfo != null && propInfo.MaterialPropertyDeclarations != null)
+            var propInfo = PropertyDeclarations.Extract(variable.Type, variable.Name, variable.Attributes);
+            if (propInfo != null && propInfo.MaterialPropertyDeclarations != null)
             {
-                foreach (var matPropInfo in propInfo.MaterialPropertyDeclarations)
-                    matPropInfo.Declare(builder);
+                foreach (var propDeclaration in propInfo.MaterialPropertyDeclarations)
+                    propDeclaration.Declare(builder);
             }
         }
     }

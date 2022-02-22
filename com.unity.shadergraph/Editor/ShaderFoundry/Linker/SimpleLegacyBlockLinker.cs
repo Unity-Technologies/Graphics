@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Make new block variables for the varyings
             List<BlockVariable> varyingBlockVariables = new List<BlockVariable>();
-            foreach(var varying in customVaryings)
+            foreach (var varying in customVaryings)
             {
                 var builder = new BlockVariable.Builder(Container);
                 builder.Name = varying.Name;
@@ -207,6 +207,7 @@ namespace UnityEditor.ShaderFoundry
                 if (!existingOutputNames.Contains(fieldName))
                     availableOutputs[fieldName] = output;
             }
+
             // Find if any input/output have matching names. If so then create a varying
             foreach (var output in block0.Outputs)
             {
@@ -222,6 +223,7 @@ namespace UnityEditor.ShaderFoundry
                 if (!existingInputNames.Contains(fieldName) && availableOutputs.TryGetValue(fieldName, out var matchingOutput))
                     customInterpolants.Add(new VaryingVariable { Type = input.Type, Name = fieldName });
             }
+
             foreach (var input in block1.Inputs)
             {
                 string fieldName = input.Name;
@@ -247,7 +249,7 @@ namespace UnityEditor.ShaderFoundry
             // Invoke the merger to find connections
             var mergerContext = new BlockMerger.Context
             {
-                BlockLinkInstances = new List<BlockLinkInstance>{ blockLinkInstance },
+                BlockLinkInstances = new List<BlockLinkInstance> { blockLinkInstance },
                 Inputs = buildingContext.Inputs,
                 Outputs = buildingContext.Outputs,
             };
@@ -294,7 +296,7 @@ namespace UnityEditor.ShaderFoundry
             var entryPointFn = BuildEntryPointFunction(buildingContext, inputsInstance, outputsInstance, blockInputInstance, blockOutputInstance);
             //fnBuilder.Build();
             blockBuilder.SetEntryPointFunction(entryPointFn);
-            
+
             return blockBuilder.Build();
         }
 
@@ -345,7 +347,6 @@ namespace UnityEditor.ShaderFoundry
             VariableLinkInstance inputsInstance, VariableLinkInstance outputsInstance,
             VariableLinkInstance blockInputInstance, VariableLinkInstance blockOutputInstance)
         {
-
             var blockInstance = buildingContext.BlockInstance;
             var block = blockInstance.Block;
             var subEntryPointFn = block.EntryPointFunction;
@@ -354,7 +355,7 @@ namespace UnityEditor.ShaderFoundry
             var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputsInstance.Type);
             fnBuilder.AddInput(inputsInstance.Type, inputsInstance.Name);
 
-            
+
             var subBlockInputInstance = new VariableLinkInstance { Container = Container, Name = blockInputInstance.Name };
             fnBuilder.AddVariableDeclarationStatement(blockInputInstance.Type, blockInputInstance.Name);
             // Copy all inputs into the sub-block struct
@@ -406,7 +407,7 @@ namespace UnityEditor.ShaderFoundry
             else
             {
                 bool allHaveDefaults = true;
-                foreach(var subField in variable.Type.StructFields)
+                foreach (var subField in variable.Type.StructFields)
                 {
                     var subFieldVar = variable.CreateSubField(subField.Type, subField.Name, subField.Attributes);
                     allHaveDefaults &= RecursivelyBuildDefaultValues(builder, subFieldVar);

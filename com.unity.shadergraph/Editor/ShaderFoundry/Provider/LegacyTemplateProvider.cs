@@ -62,15 +62,25 @@ namespace UnityEditor.ShaderFoundry
 
         Template BuildTemplate(SubShaderDescriptor subShaderDescriptor, int subShaderIndex)
         {
-            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}");
+            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
+            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
+            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}", legacyLinker);
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
-            var result = builder.Build();
 
-            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
-            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
-            builder.SetLinker(legacyLinker);
+            void AddTemplateTag(string tagName, string tagValue)
+            {
+                // Render Type
+                if (!string.IsNullOrEmpty(tagValue))
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, tagName, tagValue).Build());
+                else
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, $"// {tagName}", "<None>").Build());
+            }
+
+            AddTemplateTag("RenderPipeline", subShaderDescriptor.pipelineTag);
+            AddTemplateTag("RenderType", subShaderDescriptor.renderType);
+            AddTemplateTag("Queue", subShaderDescriptor.renderQueue);
 
             var subPassIndex = 0;
             foreach (var pass in subShaderDescriptor.passes)
@@ -82,7 +92,7 @@ namespace UnityEditor.ShaderFoundry
                 passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
                 ++subPassIndex;
 
-                BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
+                BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
 
                 builder.AddPass(passBuilder.Build());
             }
@@ -137,14 +147,14 @@ namespace UnityEditor.ShaderFoundry
             return BuildCustomizationPoint(fragmentBuilder, fragmentPreBlock, fragmentPostBlock, new List<BlockInstance> { fragmentMainBlockInstance });
         }
 
-        void BuildLegacyTemplateEntryPoints(Template template, PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
+        void BuildLegacyTemplateEntryPoints(PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
         {
             var vertexContext = new PostFieldsContext();
             var fragmentContext = new PostFieldsContext();
             ExtractVertexAndFragmentPostFields(legacyPassDescriptor, vertexContext, fragmentContext);
 
-            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexContext.Fields);
-            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
+            ExtractVertex(passBuilder, vertexCustomizationPoint, vertexContext.Fields);
+            ExtractFragment(passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
         }
 
         // Context object for collecting the "post fields" from a pass.
@@ -350,7 +360,7 @@ namespace UnityEditor.ShaderFoundry
             return mainBlockBuilder.Build();
         }
 
-        void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
+        void ExtractVertex(TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
             var stageType = UnityEditor.Rendering.ShaderType.Vertex;
             var vertexPreBlock = BuildVertexPreBlock();
@@ -361,7 +371,7 @@ namespace UnityEditor.ShaderFoundry
             passBuilder.AppendBlockInstance(BuildSimpleBlockInstance(vertexPostBlock), stageType);
         }
 
-        void ExtractFragment(Template template, TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
+        void ExtractFragment(TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
         {
             var stageType = UnityEditor.Rendering.ShaderType.Fragment;
             var fragmentPreBlock = BuildFragmentPreBlock();
