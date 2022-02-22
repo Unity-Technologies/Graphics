@@ -6,7 +6,7 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    internal class SetGraphTypeValueCommand : UndoableCommand
+    class SetGraphTypeValueCommand : UndoableCommand
     {
         GraphDataNodeModel m_GraphDataNodeModel;
         string m_PortName;
@@ -15,7 +15,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         GraphType.Height m_Height;
         float[] m_Values;
 
-        public SetGraphTypeValueCommand(GraphDataNodeModel graphDataNodeModel, string portName, GraphType.Length length, GraphType.Height height, float[] values)
+        public SetGraphTypeValueCommand(GraphDataNodeModel graphDataNodeModel,
+            string portName,
+            GraphType.Length length,
+            GraphType.Height height,
+            params float[] values)
         {
             m_GraphDataNodeModel = graphDataNodeModel;
             m_PortName = portName;
@@ -51,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Square matrix, fit it inside of a Matrix4x4 since that's what MaterialPropertyBlock wants
 
                 var matrixValue = Matrix4x4.zero;
-                var size = (int)command.m_Length;
+                var size = (int)command.m_Height;
 
                 for (var i = 0; i < size; i++)
                 {

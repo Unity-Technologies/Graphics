@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
@@ -10,24 +11,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// MatrixPart is a node part that displays a static matrix input.
     /// </summary>
-    public class MatrixPart : BaseModelUIPart
+    public class MatrixPart : AbstractStaticPortPart
     {
-        const string k_MatrixPartTemplate = "NodeFieldParts/MatrixPart";
+        const string k_MatrixPartTemplate = "StaticPortParts/MatrixPart";
         const string k_MatrixRowClass = "sg-matrix-row";
         const string k_MatrixElementClass = "sg-matrix-element";
         const string k_MatrixContainerName = "sg-matrix-container";
 
         VisualElement m_Root;
         FloatField[,] m_MatrixElementFields; // row, col
-        string m_PortName;
         int m_Size;
 
         public override VisualElement Root => m_Root;
 
         public MatrixPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName, int size)
-            : base(name, model, ownerElement, parentClassName)
+            : base(name, model, ownerElement, parentClassName, portName)
         {
-            m_PortName = portName;
             m_Size = size;
         }
 
@@ -35,7 +34,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_MatrixElementFields = new FloatField[size, size];
 
-            // TODO: Confirm our indexing, row/column major?
             for (var i = 0; i < size; i++)
             {
                 var rowVisualElement = new VisualElement();
@@ -43,7 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 for (var j = 0; j < size; j++)
                 {
-                    var fieldVisualElement = new FloatField {name = $"sg-matrix-element-{i}-{j}", value = 0};
+                    // UpdatePartFromModel will immediately update field's value.
+                    var fieldVisualElement = new FloatField {name = $"{k_MatrixElementClass}-{i}-{j}", value = 0};
 
                     fieldVisualElement.AddToClassList(k_MatrixElementClass);
                     fieldVisualElement.RegisterValueChangedCallback(OnMatrixElementChanged);
@@ -71,7 +70,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel, m_PortName, (GraphType.Length)m_Size, (GraphType.Height)m_Size, values));
+            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+                m_PortName,
+                (GraphType.Length)m_Size,
+                (GraphType.Height)m_Size,
+                values));
         }
 
         protected override void BuildPartUI(VisualElement parent)
@@ -84,18 +87,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             parent.Add(m_Root);
         }
 
-        protected override void UpdatePartFromModel()
+        protected override void UpdatePartFromPortReader(IPortReader reader)
         {
-            if (m_Model is not GraphDataNodeModel model) return;
-            if (!model.TryGetNodeReader(out var nodeReader)) return;
-            if (!nodeReader.TryGetPort(m_PortName, out var portReader)) return;
-
             for (var i = 0; i < m_Size; i++)
             {
                 for (var j = 0; j < m_Size; j++)
                 {
                     var flatIndex = i * m_Size + j;
-                    if (!portReader.GetField($"c{flatIndex}", out float value)) value = 0;
+                    if (!reader.GetField($"c{flatIndex}", out float value)) value = 0;
                     m_MatrixElementFields[i, j].SetValueWithoutNotify(value);
                 }
             }
