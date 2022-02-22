@@ -501,6 +501,20 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+        static class RenderGraphRenderPassBlock
+        {
+            // Executes render passes that are inputs to the main rendering
+            // but don't depend on camera state.
+            public static readonly int BeforeRendering = 0;
+
+            // Main bulk of render pass execution. They required camera state to be properly set
+            // and when enabled they will render in stereo.
+            public static readonly int MainRendering = 1;
+
+            // Execute after Post-processing.
+            public static readonly int AfterRendering = 2;
+        }
+
         private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
 
@@ -724,6 +738,33 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd"></param>
         public virtual void FinishRendering(CommandBuffer cmd)
         {
+        }
+
+        /// <summary>
+        /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        protected virtual void RecordRenderGraphBlock(int renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            Camera camera = renderingData.cameraData.camera;
+
+            RecordRenderGraphBlock(RenderGraphRenderPassBlock.BeforeRendering, context, ref renderingData);
+
+            context.SetupCameraProperties(camera);
+
+            RecordRenderGraphBlock(RenderGraphRenderPassBlock.MainRendering, context, ref renderingData);
+
+            RecordRenderGraphBlock(RenderGraphRenderPassBlock.AfterRendering, context, ref renderingData);
         }
 
         /// <summary>

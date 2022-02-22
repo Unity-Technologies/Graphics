@@ -4,12 +4,12 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordRenderGraph(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        static void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;
             RenderGraph renderGraph = renderingData.renderGraph;
 
-            //renderer.RecordRenderGraph(m_RenderGraph, context, cmd, ref renderingData);
+            renderer.RecordRenderGraph(context, ref renderingData);
         }
 
         static void RecordAndExecuteRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (renderGraph.RecordAndExecute(rgParams))
             {
-                RecordRenderGraph(context, cmd, ref renderingData);
+                RecordRenderGraph(context, ref renderingData);
             }
         }
     }
