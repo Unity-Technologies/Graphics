@@ -23,15 +23,14 @@ Some attributes are a bit more advanced and will be used by default in most simu
 
 | Name       | Type    | Description                                                  | Default Value                                     |
 | ---------- | ------- | ------------------------------------------------------------ | ---------- |
-| `mass` | float | The mass of a particle in Kg/dm^3 | 1.0 (defaults to 1kg per liter of water) |
-| `angle` | Vector3 | **Variadic:** Euler rotation of a simulated element, expressed as a Vector of Degrees Values. | (0,0,0) |
+| `mass` | float | The mass of a particle | 1.0 (defaults to 1kg per liter of water) |
 | `angularVelocity` | Vector3 | **Variadic:** Euler rotation speed of a simulated element, expressed as a Vector of Degrees per second values. | (0,0,0) |
 | `oldPosition` | Vector3 | **Deprecated:** This attribute is a storage Helper if you want to back-up current position of a simulated element, before integrating its velocity. | (0,0,0) |
-| `targetPosition` | Vector3 | This attribute has various purposes: it can be a storage Helper if you want to store a position to reach, then compute a vector in order to reach this Target Position. In Line Renderers, this attribute can be also used to set the end of each line particle. | (0,0,0) |
+| `targetPosition` | Vector3 | This attribute has various purposes: it can be a storage Helper if you want to store a position to reach, then compute a vector to reach this Target Position. In Line Renderers, this attribute can be also used to set the end of each line particle. | (0,0,0) |
 
 ### Rendering Attributes
 
-Rendering Attributes are not used in simulation but are useful when you want to render a simulated element.
+Rendering Attributes aren't used in simulation but are useful when you want to render a simulated element.
 
 | Name       | Type    | Description                                                  | Default Value                                     |
 | ---------- | ------- | ------------------------------------------------------------ | ---------- |
@@ -40,6 +39,7 @@ Rendering Attributes are not used in simulation but are useful when you want to 
 | `size` | float | The uniform size of a rendered element, in system Units, applied to its **unit representation** | 0.1 |
 | `scale` | Vector3 | The Non-uniform Scale multiplier of a rendered element, applied to its **unit representation** | (1,1,1) |
 | `pivot` | Vector3 | The Origin position of a rendered element, in its **unit representation** | (0,0,0) |
+| `angle` | Vector3 | **Variadic:** Euler rotation of a simulated element in euler angles around each axis in particle space, expressed as a Vector of Degrees Values. | (0,0,0) |
 | `texIndex` | float | The animation frame used for sampling Flipbook UVs for a rendered element. | 0.0 |
 | `axisX` | Vector3 | The computed Right axis of the rendered Element. | (1,0,0) |
 | `axisY` | Vector3 | The computed Up axis of the rendered Element. | (0,1,0) |
@@ -49,13 +49,13 @@ Rendering Attributes are not used in simulation but are useful when you want to 
 
 System Attributes provide information about system values. These attributes are available as **Read Only**, which means you can only read them using the `Get <Attribute>` Operator.
 
-| Name       | Type    | Description                                                  | Default Value                                     |
-| ---------- | ------- | ------------------------------------------------------------ | ---------- |
-| `particleID` | uint | A unique ID that refers to 1 particle | 0 |
-| `seed` | uint | A unique seed used for random number computations. | 0 |
-| `spawnCount` | uint | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that describes how many particles were spawned this frame. | (0,0,0) |
-| `spawnTime` | float | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that contains a Spawn Context internal time (when exported using a **Set Spawn Time** Spawn Block) | 0.0 |
-| `particleIndexInStrip` | uint | The index in the Particle Strip Ring Buffer where is located this element. | 0 |
+| Name       | Type    | Description                                                  |
+| ---------- | ------- | ------------------------------------------------------------ |
+| `particleID` | uint | A unique ID that refers to 1 particle |
+| `seed` | uint | A unique seed used for random number computations. |
+| `spawnCount` | uint | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that describes how many particles were spawned this frame. |
+| `spawnTime` | float | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that contains a Spawn Context internal time (when exported using a **Set Spawn Time** Spawn Block) |
+| `particleIndexInStrip` | uint | The index in the Particle Strip Ring Buffer where this element is located. |
 ## Attribute Usage and Implicit Behavior
 
 Some attributes combinations are used in various implicit cases during simulation and rendering. Here is a list of the usages and an explanation of their relationships.
@@ -79,7 +79,7 @@ Setting a Lifetime attribute to a particle in an Initialize Context, will implic
 
 > Automatic particle reaping can be disabled by selecting the Update Context, then setting the Reap Particles value to **False**.
 
-> **Immortal Particles:** Particles with no lifetime will be considered as immortal. You can still kill them explicitly by setting their `alive` attribute to `false`.
+> **Immortal Particles:** Particles with no lifetime will are considered immortal. You can still cull the particles explicitly by setting their `alive` attribute to `false` but this doesn't kill them.
 
 #### Angle and Angular Velocity : Angular Integration
 
@@ -97,13 +97,13 @@ These three attributes define the **unit representation** 3d coordinate system. 
 
 #### Size, Scale and Pivot
 
-In order to apply scaling and rotation to simulated elements, Visual Effect Graph uses 3 attributes:
+To apply scaling and rotation to simulated elements, Visual Effect Graph uses 3 attributes:
 
 * `size` (float) : uniform size of the particle.
 * `scale`(Vector3) : per-axis size of the particle.
 * `pivot` (Vector3) : pivot position in the unit representation.
 
-The **Pivot** of a particle is computed in an unit box of size 1 : the **unit representation**. By default, it is (0,0,0), the center of the box. You can change its Value to adjust the center of the box. Every face is located at -0.5 or 0.5 in each axis.
+The **Pivot** of a particle is computed in an unit box of size 1 : the **unit representation**. By default, it's (0,0,0), the center of the box. You can change its Value to adjust the center of the box. Every face is located at -0.5 or 0.5 in each axis.
 
 ![Pivot Representation in 2D](Images/Pivot2D.png)
 
