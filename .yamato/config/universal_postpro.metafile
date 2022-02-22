@@ -86,7 +86,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         flavor: b1.xlarge
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.1-971269
       standalone_build:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
