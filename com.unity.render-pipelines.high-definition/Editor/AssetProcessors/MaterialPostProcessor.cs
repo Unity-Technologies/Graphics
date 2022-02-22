@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // should be idempotent.
             // In other words, there shouldn't be anything to checkout for the .shadergraph per se.
             //
+             if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}.meta"))
             {
                 var sgPath = System.IO.Path.ChangeExtension(asset, null);
                 var importer = AssetImporter.GetAtPath(sgPath);
