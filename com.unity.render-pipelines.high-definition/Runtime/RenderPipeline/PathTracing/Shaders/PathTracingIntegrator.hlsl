@@ -90,13 +90,6 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, fragInput);
 
-    // If called from a random walk, just return the normal
-    if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
-    {
-        payload.value = fragInput.tangentToWorld[2];
-        return;
-    }
-
     // Make sure to add the additional travel distance to our cone
     payload.cone.width += payload.rayTHit * abs(payload.cone.spreadAngle);
 
@@ -219,8 +212,8 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 shadowPayload.rayTHit = FLT_INF;
 
                 // Shoot a ray returning nearest tHit, both to shadow direct lighting and optimize the continuation ray in the same direction
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
-                bool hit = (shadowPayload.rayTHit < FLT_INF);
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
+                bool hit = shadowPayload.rayTHit < FLT_INF;
 
                 // Compute material absorption (typically, tinted refraction), and throw in the Russian roulette compensation
                 float3 absorption = rrFactor * GetMaterialAbsorption(mtlData, surfaceData, shadowPayload.rayTHit, isSampleBelow);
@@ -305,8 +298,8 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         ray.TMax = FLT_INF;
 
         // Shoot a ray returning nearest tHit, to decide if we fetch the sky value or fire a continuation ray in the same direction
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
-        bool hit = (shadowPayload.rayTHit < FLT_INF);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
+        bool hit = shadowPayload.rayTHit < FLT_INF;
 
         if (computeDirect)
         {
@@ -340,9 +333,6 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     // Always set the new t value
     payload.rayTHit = RayTCurrent();
 
-    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
-        return;
-
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
     bool sampleVolume = false;
 
@@ -354,17 +344,12 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     float3 lightPosition;
     bool sampleLocalLights;
 
-    // Skip this code if getting out of a SSS random walk
-    bool isRandomWalk = (payload.segmentID == SEGMENT_ID_RANDOM_WALK);
-    if (!isRandomWalk)
-    {
-        // Generate a 4D unit-square sample for this depth, from our QMC sequence
-        inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 4 * payload.segmentID);
+    // Generate a 4D unit-square sample for this depth, from our QMC sequence
+    inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 4 * payload.segmentID);
 
-        // For the time being, we test for volumetric scattering only on camera rays
-        if (!payload.segmentID && computeDirect)
-            sampleVolume = SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
-    }
+    // For the time being, we test for volumetric scattering only on camera rays
+    if (!payload.segmentID && computeDirect)
+        sampleVolume = SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
 
     if (sampleVolume)
         ComputeVolumeScattering(payload, inputSample.xyz, sampleLocalLights, lightPosition);
@@ -379,25 +364,21 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 
 #endif // HAS_LIGHTLOOP
 
-    // Skip this code if getting out of a SSS random walk
-    if (!isRandomWalk)
-    {
-        // Apply volumetric attenuation (beware of passing the right distance to the shading point)
-        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
-                            payload.value, payload.throughput, computeDirect);
+    // Apply volumetric attenuation (beware of passing the right distance to the shading point)
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
+                        payload.value, payload.throughput, computeDirect);
 
-        // Apply the volume/surface PDF
-        payload.value /= volSurfPdf;
-        payload.throughput /= volSurfPdf;
-    }
+    // Apply the volume/surface PDF
+    payload.value /= volSurfPdf;
+    payload.throughput /= volSurfPdf;
 }
 
 [shader("anyhit")]
 void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-#if defined(_ALPHATEST_ON) || defined(_SURFACE_TYPE_TRANSPARENT)
+#ifdef _ALPHATEST_ON
 
-    // The first thing that we should do is grab the intersection vertex
+    // First grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -415,10 +396,6 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
 
-#endif // _ALPHATEST_ON || _SURFACE_TYPE_TRANSPARENT
-
-#ifdef _ALPHATEST_ON
-
     // Check alpha clipping
     if (!isVisible)
     {
@@ -428,10 +405,62 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 
 #endif // _ALPHATEST_ON
 
+    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
+    {
+        payload.rayTHit = min(payload.rayTHit, RayTCurrent());
+        return;
+    }
+
+    if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
+    {
+        if (RayTCurrent() < payload.rayTHit)
+        {
+
+#ifndef _ALPHATEST_ON
+
+            // First grab the intersection vertex
+            IntersectionVertex currentVertex;
+            GetCurrentIntersectionVertex(attributeData, currentVertex);
+
+            // Build the Frag inputs from the intersection vertex
+            FragInputs fragInput;
+            BuildFragInputsFromIntersection(currentVertex, fragInput);
+
+#endif // _ALPHATEST_ON
+
+            payload.value = fragInput.tangentToWorld[2];
+            payload.rayTHit = RayTCurrent();
+        }
+
+        return;
+    }
+
     if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
     {
 
 #ifdef _SURFACE_TYPE_TRANSPARENT
+
+    #ifndef _ALPHATEST_ON
+
+        // First grab the intersection vertex
+        IntersectionVertex currentVertex;
+        GetCurrentIntersectionVertex(attributeData, currentVertex);
+
+        // Build the Frag inputs from the intersection vertex
+        FragInputs fragInput;
+        BuildFragInputsFromIntersection(currentVertex, fragInput);
+
+        PositionInputs posInput;
+        posInput.positionWS = fragInput.positionRWS;
+        posInput.positionSS = payload.pixelCoord;
+
+        // Build the surfacedata and builtindata
+        SurfaceData surfaceData;
+        BuiltinData builtinData;
+        bool isVisible;
+        GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
+
+    #endif // _ALPHATEST_ON
 
     #if HAS_REFRACTION
         payload.value *= surfaceData.transmittanceMask * surfaceData.transmittanceColor;
