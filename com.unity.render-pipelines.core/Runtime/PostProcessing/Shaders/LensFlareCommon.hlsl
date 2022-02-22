@@ -137,7 +137,7 @@ float GetOcclusion(float ratio)
 #endif
             {
 #if defined(FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD)
-                float cloudOcclusion = LOAD_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, uint2(pos * _ScreenSize.xy), 0).w;
+                float cloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
                 contrib += sample_Contrib * saturate(cloudOcclusion);
 #else
                 contrib += sample_Contrib;
