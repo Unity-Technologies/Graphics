@@ -1625,12 +1625,14 @@ namespace UnityEngine.Rendering
             {
                 if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    if (bypassBlending && blendingCell.blendingFactor != scenarioBlendingFactor)
+                    if (bypassBlending)
                     {
-                        // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
-                        // no index or chunk data must change, so only probe values need to be updated
-                        bool useState0 = !cell.hasTwoScenarios;
-                        UpdatePool(chunkList, cell.scenario0, cell.validityNeighMaskData, chunkIndex, -1);
+                        if (blendingCell.blendingFactor != scenarioBlendingFactor)
+                        {
+                            // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                            // no index or chunk data must change, so only probe values need to be updated
+                            UpdatePool(chunkList, cell.scenario0, cell.validityNeighMaskData, chunkIndex, -1);
+                        }
                     }
                     else
                     {
@@ -1655,10 +1657,12 @@ namespace UnityEngine.Rendering
 
                     if (bypassBlending)
                     {
-                        // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
-                        // no index or chunk data must change, so only probe values need to be updated
-                        bool useState0 = !cell.hasTwoScenarios;
-                        FillDataLocationAndUpdate(cell, srcChunks, chunkList, chunkOffset, size, chunkIndex, useState0 ? cell.scenario0 : cell.scenario1, -1);
+                        if (blendingCell.blendingFactor != scenarioBlendingFactor)
+                        {
+                            // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                            // no index or chunk data must change, so only probe values need to be updated
+                            FillDataLocationAndUpdate(cell, srcChunks, chunkList, chunkOffset, size, chunkIndex, cell.scenario0, -1);
+                        }
                     }
                     else
                     {

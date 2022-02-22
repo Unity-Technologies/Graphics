@@ -301,8 +301,8 @@ namespace UnityEngine.Rendering
                     m_DebugActiveScenario = sceneData.lightingScenario;
                     m_DebugScenarioField.enumNames = m_DebugScenarioNames;
                     m_DebugScenarioField.enumValues = m_DebugScenarioValues;
-                    if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)
-                        debugDisplay.otherStateIndex = 0;
+                    if (probeVolumeDebug.otherStateIndex >= m_DebugScenarioNames.Length)
+                        probeVolumeDebug.otherStateIndex = 0;
                 }
 
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
@@ -315,28 +315,28 @@ namespace UnityEngine.Rendering
                     {
                         RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
-                        debugDisplay.otherStateIndex = 0;
+                        probeVolumeDebug.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(sceneData.otherScenario))
                         {
                             for (int i = 1; i < m_DebugScenarioNames.Length; i++)
                             {
                                 if (m_DebugScenarioNames[i].text == sceneData.otherScenario)
                                 {
-                                    debugDisplay.otherStateIndex = i;
+                                    probeVolumeDebug.otherStateIndex = i;
                                     break;
                                 }
                             }
                         }
-                        return debugDisplay.otherStateIndex;
+                        return probeVolumeDebug.otherStateIndex;
                     },
                     setIndex = value =>
                     {
                         string other = value == 0 ? null : m_DebugScenarioNames[value].text;
                         sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
-                        debugDisplay.otherStateIndex = value;
+                        probeVolumeDebug.otherStateIndex = value;
                     },
-                    getter = () => debugDisplay.otherStateIndex,
-                    setter = (value) => debugDisplay.otherStateIndex = value,
+                    getter = () => probeVolumeDebug.otherStateIndex,
+                    setter = (value) => probeVolumeDebug.otherStateIndex = value,
                 };
 
                 blendingContainer.children.Add(m_DebugScenarioField);
