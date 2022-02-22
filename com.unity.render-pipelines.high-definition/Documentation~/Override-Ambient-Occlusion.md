@@ -1,12 +1,12 @@
-# Ambient Occlusion
+# Screen Space Ambient Occlusion
 
-The **Ambient Occlusion** override is a real-time, full-screen lighting effect available in the High Definition Render Pipeline (HDRP). This effect approximates [ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion) in the current field of view. It approximates the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject. To achieve this, it darkens creases, holes, intersections, and surfaces that are close to one another. In real life, these areas tend to block out, or occlude, ambient light, and therefore appear darker.
+The **Screen Space Ambient Occlusion** override is a real-time, full-screen lighting effect available in the High Definition Render Pipeline (HDRP). This effect approximates [ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion) in the current field of view. It approximates the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject. To achieve this, it darkens creases, holes, intersections, and surfaces that are close to one another. In real life, these areas tend to block out, or occlude, ambient light, and therefore appear darker.
 
 For information on how to use a Texture to specify ambient occlusion caused by details present in a GameObject's Material but not on it's surface geometry, see [Ambient Occlusion](Ambient-Occlusion.md).
 
 HDRP implements [ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
 
-## Enabling Ambient Occlusion
+## Enabling Screen Space Ambient Occlusion
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
@@ -14,13 +14,13 @@ For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Screen Space Ambient Occlusion**.
 The property to enable in your Frame Settings is: **Lighting > Screen Space Ambient Occlusion**.
 
-## Using Ambient Occlusion
+## Using Screen Space Ambient Occlusion
 
-**Ambient Occlusion** uses the [Volume](Volumes.md) framework, so to enable and modify **Ambient Occlusion** properties, you must add an **Ambient Occlusion** override to a [Volume](Volumes.md) in your Scene. To add **Ambient Occlusion** to a Volume:
+**Screen Space Ambient Occlusion** uses the [Volume](Volumes.md) framework, so to enable and modify **Screen Space Ambient Occlusion** properties, you must add an **Screen Space Ambient Occlusion** override to a [Volume](Volumes.md) in your Scene. To add **Ambient Occlusion** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Lighting** and click on **Ambient Occlusion**.
-   HDRP now applies **Ambient Occlusion** to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Lighting** and click on **Screen Space Ambient Occlusion**.
+   HDRP now applies **Screen SpaceAmbient Occlusion** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
 
