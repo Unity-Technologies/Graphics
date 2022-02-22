@@ -213,9 +213,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var pixels = m_CustomLutColorArray;
 
-            var densityCurve = clouds.customDensityCurve.value;
-            var erosionCurve = clouds.customErosionCurve.value;
-            var ambientOcclusionCurve = clouds.customAmbientOcclusionCurve.value;
+            var densityCurve = clouds.densityCurve.value;
+            var erosionCurve = clouds.erosionCurve.value;
+            var ambientOcclusionCurve = clouds.ambientOcclusionCurve.value;
             if (densityCurve == null || densityCurve.length == 0)
             {
                 for (int i = 0; i < k_CustomLutMapResolution; i++)
@@ -311,21 +311,21 @@ namespace UnityEngine.Rendering.HighDefinition
             in VolumetricCloudsCameraData cameraData, in CloudModelData cloudModelData, bool shadowPass)
         {
             // Convert to kilometers
-            cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
+            cb._LowestCloudAltitude = settings.bottomAltitude.value;
 
             // When in non local mode, the camera is supposed to be always stricly under the clouds
-            // to avoid artifactss due to precision issues, when in non local, the clouds are always 1 meter above the camera.
+            // to avoid artifacts due to precision issues, when in non local, the clouds are always 1 meter above the camera.
             if (!settings.localClouds.value)
                 cb._LowestCloudAltitude = Mathf.Max(cb._LowestCloudAltitude, 1.0f);
 
-            cb._HighestCloudAltitude = cb._LowestCloudAltitude + settings.cloudThickness.value;
+            cb._HighestCloudAltitude = cb._LowestCloudAltitude + settings.altitudeRange.value;
             cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1000.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
-            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
+            cb._MaxRayMarchingDistance = Mathf.Min(settings.altitudeRange.value / 8.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;

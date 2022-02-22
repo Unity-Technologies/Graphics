@@ -17,9 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudControl;
 
         SerializedDataParameter m_CloudPreset;
-        SerializedDataParameter m_CustomDensityCurve;
-        SerializedDataParameter m_CustomErosionCurve;
-        SerializedDataParameter m_CustomAmbientOcclusionCurve;
+        SerializedDataParameter m_DensityCurve;
+        SerializedDataParameter m_ErosionCurve;
+        SerializedDataParameter m_AmbientOcclusionCurve;
 
         SerializedDataParameter m_CumulusMap;
         SerializedDataParameter m_CumulusMapMultiplier;
@@ -37,8 +37,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudTiling;
         SerializedDataParameter m_CloudOffset;
 
-        SerializedDataParameter m_LowestCloudAltitude;
-        SerializedDataParameter m_CloudThickness;
+        SerializedDataParameter m_BottomAltitude;
+        SerializedDataParameter m_AltitudeRange;
         SerializedDataParameter m_FadeInMode;
         SerializedDataParameter m_FadeInStart;
         SerializedDataParameter m_FadeInDistance;
@@ -95,9 +95,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
 
             m_CloudPreset = Unpack(o.Find(x => x.cloudPreset));
-            m_CustomDensityCurve = Unpack(o.Find(x => x.customDensityCurve));
-            m_CustomErosionCurve = Unpack(o.Find(x => x.customErosionCurve));
-            m_CustomAmbientOcclusionCurve = Unpack(o.Find(x => x.customAmbientOcclusionCurve));
+            m_DensityCurve = Unpack(o.Find(x => x.densityCurve));
+            m_ErosionCurve = Unpack(o.Find(x => x.erosionCurve));
+            m_AmbientOcclusionCurve = Unpack(o.Find(x => x.ambientOcclusionCurve));
 
             m_CumulusMap = Unpack(o.Find(x => x.cumulusMap));
             m_CumulusMapMultiplier = Unpack(o.Find(x => x.cumulusMapMultiplier));
@@ -115,8 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudTiling = Unpack(o.Find(x => x.cloudTiling));
             m_CloudOffset = Unpack(o.Find(x => x.cloudOffset));
 
-            m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
-            m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
+            m_BottomAltitude = Unpack(o.Find(x => x.bottomAltitude));
+            m_AltitudeRange = Unpack(o.Find(x => x.altitudeRange));
 
             m_FadeInMode = Unpack(o.Find(x => x.fadeInMode));
             m_FadeInStart = Unpack(o.Find(x => x.fadeInStart));
@@ -198,8 +198,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_ErosionNoiseType);
 
             // Layer properties
-            PropertyField(m_LowestCloudAltitude);
-            PropertyField(m_CloudThickness);
+            PropertyField(m_BottomAltitude);
+            PropertyField(m_AltitudeRange);
         }
 
         void ManualControlMode()
@@ -219,8 +219,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_ErosionNoiseType);
 
             // Layer properties
-            PropertyField(m_LowestCloudAltitude);
-            PropertyField(m_CloudThickness);
+            PropertyField(m_BottomAltitude);
+            PropertyField(m_AltitudeRange);
         }
 
         void LoadPresetValues(VolumetricClouds.CloudPresets preset)
@@ -236,13 +236,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ErosionScale.value.floatValue = 107.0f;
 
                     // Curves
-                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.75f, 1.0f), new Keyframe(1.0f, 0.0f));
-                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
-                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.5f), new Keyframe(1.0f, 0.0f));
+                    m_DensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.75f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    m_ErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_AmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.5f), new Keyframe(1.0f, 0.0f));
 
                     // Layer properties
-                    m_LowestCloudAltitude.value.floatValue = 3000.0f;
-                    m_CloudThickness.value.floatValue = 1000.0f;
+                    m_BottomAltitude.value.floatValue = 3000.0f;
+                    m_AltitudeRange.value.floatValue = 1000.0f;
                 }
                 break;
                 case VolumetricClouds.CloudPresets.Cloudy:
@@ -254,13 +254,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ErosionScale.value.floatValue = 107.0f;
 
                     // Curves
-                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f));
-                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
-                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f));
+                    m_DensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f));
+                    m_ErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_AmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f));
 
                     // Layer properties
-                    m_LowestCloudAltitude.value.floatValue = 1200.0f;
-                    m_CloudThickness.value.floatValue = 2000.0f;
+                    m_BottomAltitude.value.floatValue = 1200.0f;
+                    m_AltitudeRange.value.floatValue = 2000.0f;
                 }
                 break;
                 case VolumetricClouds.CloudPresets.Overcast:
@@ -272,13 +272,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ErosionScale.value.floatValue = 107.0f;
 
                     // Curves
-                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.9f, 0.0f), new Keyframe(1.0f, 0.0f));
-                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
-                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f));
+                    m_DensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.9f, 0.0f), new Keyframe(1.0f, 0.0f));
+                    m_ErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    m_AmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f));
 
                     // Layer properties
-                    m_LowestCloudAltitude.value.floatValue = 1500.0f;
-                    m_CloudThickness.value.floatValue = 2500.0f;
+                    m_BottomAltitude.value.floatValue = 1500.0f;
+                    m_AltitudeRange.value.floatValue = 2500.0f;
                 }
                 break;
                 case VolumetricClouds.CloudPresets.Stormy:
@@ -290,13 +290,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ErosionScale.value.floatValue = 107.0f;
 
                     // Curves
-                    m_CustomDensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.037f, 1.0f), new Keyframe(0.6f, 1.0f), new Keyframe(1.0f, 0.0f));
-                    m_CustomErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.05f, 0.8f), new Keyframe(0.2438f, 0.9498f), new Keyframe(0.5f, 1.0f), new Keyframe(0.93f, 0.9268f), new Keyframe(1.0f, 1.0f));
-                    m_CustomAmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.1f, 0.4f), new Keyframe(1.0f, 0.0f));
+                    m_DensityCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.037f, 1.0f), new Keyframe(0.6f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    m_ErosionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.05f, 0.8f), new Keyframe(0.2438f, 0.9498f), new Keyframe(0.5f, 1.0f), new Keyframe(0.93f, 0.9268f), new Keyframe(1.0f, 1.0f));
+                    m_AmbientOcclusionCurve.value.animationCurveValue = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.1f, 0.4f), new Keyframe(1.0f, 0.0f));
 
                     // Layer properties
-                    m_LowestCloudAltitude.value.floatValue = 1000.0f;
-                    m_CloudThickness.value.floatValue = 5000.0f;
+                    m_BottomAltitude.value.floatValue = 1000.0f;
+                    m_AltitudeRange.value.floatValue = 5000.0f;
                 }
                 break;
                 default:
@@ -323,20 +323,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            // If we are in simple mode and the preset button is enabled, we need to enable all the
-            // subsidiary properties. This is different from the quality settings, all the properties need to be forced
-            // If a preset is selected and active.
-            m_DensityMultiplier.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_CustomDensityCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_ShapeFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_ShapeScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_ErosionFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_ErosionScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_ErosionNoiseType.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_CustomErosionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_CustomAmbientOcclusionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_LowestCloudAltitude.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
-            m_CloudThickness.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            if (controlPreset != VolumetricClouds.CloudPresets.Custom)
+            {
+                // If we are in simple mode and the preset button is enabled, we need to enable all the
+                // subsidiary properties. This is different from the quality settings, all the properties need to be forced
+                // If a preset is selected and active.
+                m_DensityMultiplier.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_DensityCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ShapeFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ShapeScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ErosionFactor.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ErosionScale.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ErosionNoiseType.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_ErosionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_AmbientOcclusionCurve.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_BottomAltitude.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+                m_AltitudeRange.overrideState.boolValue = m_CloudPreset.overrideState.boolValue;
+            }
 
             // Start checking for changes
             EditorGUI.BeginChangeCheck();
@@ -347,18 +350,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     PropertyField(m_DensityMultiplier);
-                    PropertyField(m_CustomDensityCurve);
+                    PropertyField(m_DensityCurve);
                     PropertyField(m_ShapeFactor);
                     PropertyField(m_ShapeScale);
                     PropertyField(m_ErosionFactor);
                     PropertyField(m_ErosionScale);
                     PropertyField(m_ErosionNoiseType);
-                    PropertyField(m_CustomErosionCurve);
-                    PropertyField(m_CustomAmbientOcclusionCurve);
+                    PropertyField(m_ErosionCurve);
+                    PropertyField(m_AmbientOcclusionCurve);
 
                     // Layer properties
-                    PropertyField(m_LowestCloudAltitude);
-                    PropertyField(m_CloudThickness);
+                    PropertyField(m_BottomAltitude);
+                    PropertyField(m_AltitudeRange);
                 }
             }
 

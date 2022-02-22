@@ -214,13 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the altitude of the bottom of the volumetric clouds volume in meters.
         /// </summary>
         [Tooltip("Controls the altitude of the bottom of the volumetric clouds volume in meters.")]
-        public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(1000.0f, 0.01f);
+        public MinFloatParameter bottomAltitude = new MinFloatParameter(1200.0f, 0.01f);
 
         /// <summary>
-        /// Controls the thickness of the volumetric clouds volume in meters.
+        /// Controls the size of the volumetric clouds volume in meters.
         /// </summary>
-        [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
-        public MinFloatParameter cloudThickness = new MinFloatParameter(8000.0f, 100.0f);
+        [Tooltip("Controls the size of the volumetric clouds volume in meters.")]
+        public MinFloatParameter altitudeRange = new MinFloatParameter(2000.0f, 100.0f);
 
         /// <summary>
         /// Controls the mode in which the clouds fade in when close to the camera's near plane.
@@ -328,19 +328,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.5f, 0.7f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter densityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f)), false);
 
         /// <summary>
         /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0.9f), new Keyframe(0.2f, 1.0f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.9f)), false);
+        public AnimationCurveParameter erosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f)), false);
 
         /// <summary>
         /// Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customAmbientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter ambientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f)), false);
 
         /// <summary>
         /// Specifies the tint of the cloud scattering color.
@@ -366,19 +366,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the global density of the cloud volume.
         /// </summary>
         [Tooltip("Controls the global density of the cloud volume.")]
-        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
+        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.4f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.
         /// </summary>
         [Tooltip("Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.")]
-        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
+        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the size of the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the larger noise passing through the cloud coverage.")]
-        public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
+        public MinFloatParameter shapeScale = new MinFloatParameter(5.0f, 0.1f);
 
         /// <summary>
         /// Controls the world space offset applied when evaluating the larger noise passing through the cloud coverage.
@@ -390,13 +390,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
         /// </summary>
         [Tooltip("Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.")]
-        public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.8f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public MinFloatParameter erosionScale = new MinFloatParameter(50.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(107.0f, 1.0f);
 
         /// <summary>
         /// Controls the type of noise used to generate the smaller noise passing through the cloud coverage.
