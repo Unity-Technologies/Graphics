@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering
             float[] validity = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
             float[] touchupUpVolumeAction = cell.touchupVolumeInteractionOld.Length > 0 ? new float[kProbesPerBatch] : null;
-            Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+            Vector4[] offsets = cell.offsetVectorsOld.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
             List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
             List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering
                 {
                     const float kOffsetThresholdSqr = 1e-6f;
 
-                    var offset = cell.offsetVectors[i];
+                    var offset = cell.offsetVectorsOld[i];
                     offsets[idxInBatch] = offset;
 
                     if (offset.sqrMagnitude < kOffsetThresholdSqr)
