@@ -279,11 +279,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
 
-            // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
-            // To re-enable remove the two following light and re-enable the third one
-            public static readonly GUIContent[] shadowFilteringNames = { new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High") };
-            public static readonly int[] shadowFilteringValue = { 0, 1, 2 };
-
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";
             public const string lotShaderVariantDrawback = "Adds multiple Shader Variants";

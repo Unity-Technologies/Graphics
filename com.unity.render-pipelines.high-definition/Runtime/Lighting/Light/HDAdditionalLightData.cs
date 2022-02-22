@@ -2500,7 +2500,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequest.shadowSoftness = softness;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
-            shadowRequest.minFilterSize = minFilterSize * 0.001f; // This divide by 1000 is here to have a range [0...1] exposed to user
+            shadowRequest.minFilterSize = minFilterSize * 0.01f; // This divide by 1000 is here to have a range [0...1] exposed to user
 
             shadowRequest.kernelSize = (uint)kernelSize;
             shadowRequest.lightAngle = (lightAngle * Mathf.PI / 180.0f);

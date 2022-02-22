@@ -86,80 +86,128 @@ static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
     float2 (0.9205789302157817, 0.3905565685566777)
 };
 
-real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse, const in real sampleCountBias)
+// Samples uniformly spread across the disk kernel
+real2 ComputeFibonacciSpiralDiskSampleUniform(const in int sampleIndex, const in real sampleCountInverse, out real sampleDistNorm)
 {
-    real sampleRadius = diskRadius * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
-    real2 sampleDirection = fibonacciSpiralDirection[sampleIndex];
-    return sampleDirection * sampleRadius;
+    sampleDistNorm = (real)sampleIndex * sampleCountInverse;
+    
+    // sqrt results in uniform distribution
+    sampleDistNorm = sqrt(sampleDistNorm);
+    
+    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
 }
 
-real PenumbraSizePunctual(real Reciever, real Blocker)
+// Samples denser near the center - important for blocker search
+real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real sampleCountInverse, out real sampleDistNorm)
 {
-    return abs((Reciever - Blocker) / Blocker);
+    sampleDistNorm = (real)sampleIndex * sampleCountInverse;
+
+    // Third power chosen arbitrarily - center area is really that much more important
+    // TODO: experiment with other radial functions, still overweighing the center though
+    sampleDistNorm = sampleDistNorm * sampleDistNorm * sampleDistNorm;
+
+    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
 }
 
-real PenumbraSizeDirectional(real Reciever, real Blocker, real rangeScale)
+real PenumbraSizePunctual(real receiver, real blocker)
 {
-    return abs(Reciever - Blocker) * rangeScale;
+    return abs((receiver - blocker) / blocker);
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
+real PenumbraSizeDirectional(real receiver, real blocker, real rangeScale)
+{
+    return abs(receiver - blocker) * rangeScale;
+}
+
+void FilterScaleOffset(real3 coord, real maxSampleZDistance, real shadowmapSamplingScale, out real2 filterScalePos, out real2 filterScaleNeg, out real2 filterOffset)
+{
+    real d = shadowmapSamplingScale * maxSampleZDistance / (1 - coord.z);
+    real2 target = (coord.xy + 0.5) * 0.5;
+
+    filterScalePos = (1 - target) * d;
+    filterScaleNeg = target * d;
+    filterOffset = (target - coord.xy) * d;
+}
+
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 posTCAtlas, real3 posTCShadowmap, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
-    real sampleCountBias = 0.5 * sampleCountInverse;
     real ditherRotation = sampleJitter.x;
+
+    // The z extent of the filter cone shouldn't go beyond the near plane of the shadow. Near plane at 1.
+    maxSampleZDistance = min(1 - posTCShadowmap.z, maxSampleZDistance);
+
+    real2 filterScalePos, filterScaleNeg;
+    real2 filterOffset;
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, lightArea, sampleCountInverse, sampleCountBias);
+        real sampleDistNorm;
+        real2 offset = ComputeFibonacciSpiralDiskSample(i, sampleCountInverse, sampleDistNorm);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, coord.xy + offset, 0.0).x;
+        offset = offset * (offset > 0 ? filterScalePos : filterScaleNeg) + filterOffset * sampleDistNorm;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
+        real blocker = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, posTCAtlas + offset, 0.0).x;
+
+        real zoffset = maxSampleZDistance * sampleDistNorm;
+
+        if (COMPARE_DEVICE_DEPTH_CLOSER(blocker, posTCShadowmap.z + zoffset))
         {
-            blockerSum  += shadowMapDepth;
+            blockerSum  += blocker;
             numBlockers += 1.0;
         }
     }
-    averageBlockerDepth = blockerSum / numBlockers;
+    averageBlockerDepth = numBlockers > 0 ? blockerSum / numBlockers : posTCShadowmap.z;
 
     return numBlockers >= 1;
 }
 
-real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
-    real UMin = offset.x;
-    real UMax = offset.x + scale.x;
+    real UMin = shadowmapInAtlasOffset.x;
+    real UMax = shadowmapInAtlasOffset.x + shadowmapInAtlasScale.x;
 
-    real VMin = offset.y;
-    real VMax = offset.y + scale.y;
+    real VMin = shadowmapInAtlasOffset.y;
+    real VMax = shadowmapInAtlasOffset.y + shadowmapInAtlasScale.y;
 
     real sum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
     real sampleCountBias = 0.5 * sampleCountInverse;
     real ditherRotation = sampleJitter.x;
 
+    real2 filterScalePos, filterScaleNeg;
+    real2 filterOffset;
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
+
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, filterRadius, sampleCountInverse, sampleCountBias);
+        real sampleDistNorm;
+        real2 offset = ComputeFibonacciSpiralDiskSampleUniform(i, sampleCountInverse, sampleDistNorm);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        real U = coord.x + offset.x;
-        real V = coord.y + offset.y;
+        offset = offset * (offset > 0 ? filterScalePos : filterScaleNeg) + filterOffset * sampleDistNorm;
+
+        real U = posTCAtlas.x + offset.x;
+        real V = posTCAtlas.y + offset.y;
+
+        real zoffset = maxSampleZDistance * sampleDistNorm;
 
         //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
-        // coord.xy = clamp(coord.xy, float2(UMin, VMin), float2(UMax, VMax));
+        // coord.xy = clamp(posTCAtlas.xy, float2(UMin, VMin), float2(UMax, VMax));
 
+        // TODO: vectorize into two comparisons?
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z)).r;
+            // TODO: why wasn't it just not sampling here? Investigate before removing
+            sum += 1;//SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(posTCAtlas, posTCShadowmap.z + zoffset)).r;
         else
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z)).r;
+            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, posTCShadowmap.z + zoffset)).r;
     }
 
     return sum / sampleCount;

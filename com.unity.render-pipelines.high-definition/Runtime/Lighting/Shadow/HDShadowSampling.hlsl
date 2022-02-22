@@ -286,56 +286,40 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //                  PCSS sampling
 //
 // Note shadowAtlasInfo contains: x: resolution, y: the inverse of atlas resolution
-float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective, float2 shadowAtlasInfo)
+float SampleShadow_PCSS(float3 posTCAtlas, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective, float2 shadowAtlasInfo)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
-    tcs.z += depthBias;
+    posTCAtlas.z += depthBias;
 #endif
+
+    float maxSampleZDistance = shadowSoftness;
+    
+    // Undo shadowmap-in-atlas scaling of this value, since we don't interpret it here as the size of the sampling kernel, but z distance
+    float shadowmapWidth = scale.x * shadowAtlasInfo.x;
+    // TODO: this constant is here for historical reasons, move it to the c# side/softness fitting
+    maxSampleZDistance *= 4096.0 / shadowmapWidth;
 
     uint taaFrameIndex = _TaaFrameInfo.z;
     float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
     float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
 
-
-    // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
-    // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
-    float atlasResFactor = (4096 * shadowAtlasInfo.y);
-
-    // max softness is empirically set resolution of 512, so needs to be set res independent.
-    float shadowMapRes = scale.x * shadowAtlasInfo.x; // atlas is square
-    float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
+    // TODO: should maybe pass it from an earlier stage instead of calculating it again
+    float3 posTCShadowmap = float3((posTCAtlas.xy - offset) / scale, posTCAtlas.z);
 
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
     float numBlockers         = 0.0;
-    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, sampleJitter, tex, samp, blockerSampleCount);
-
-    // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
-    // Also, we don't bother if the blocker has not been found.
-    if (isPerspective && blockerFound)
-    {
-        float dist = 1.0f / (zParams.z * averageBlockerDepth + zParams.w);
-        dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
-        float dist2 = dist * dist;
-        float dist4 = dist2 * dist2;
-        // Fitted curve to match ray trace reference as good as possible.
-        float distScale = 3.298300241 - 2.001364639  * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
-        shadowSoftness *= distScale;
-
-        // Clamp maximum softness here again and not C# as it could be scaled signifcantly by the distance scale.
-        shadowSoftness = min(shadowSoftness, resIndepenentMaxSoftness);
-    }
+    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, maxSampleZDistance, scale, posTCAtlas.xy, posTCShadowmap, sampleJitter, tex, samp, blockerSampleCount);
 
     //2) Penumbra Estimation
-    float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) :
-                                                         PenumbraSizeDirectional(tcs.z, averageBlockerDepth, zParams.x));
-    filterSize = max(filterSize, minFilterRadius);
-    filterSize *= atlasResFactor;
+    maxSampleZDistance *= isPerspective ? PenumbraSizePunctual(posTCAtlas.z, averageBlockerDepth) : PenumbraSizeDirectional(posTCAtlas.z, averageBlockerDepth, zParams.x);
+    maxSampleZDistance = max(maxSampleZDistance, minFilterRadius);
 
     //3) Filter
     // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
-    return blockerFound ? PCSS(tcs, filterSize, scale, offset, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
+    bool withinShadowmap = all(posTCShadowmap.xy > 0 && posTCShadowmap.xy < 1);
+    return blockerFound && withinShadowmap ? PCSS(posTCAtlas.xy, posTCShadowmap, maxSampleZDistance, scale, offset, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
 }
 
 // Note this is currently not available as an option, but is left here to show what needs including if IMS is to be used.

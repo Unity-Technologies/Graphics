@@ -139,24 +139,31 @@ float3 EvalShadow_NormalBias(float worldTexelSize, float normalBias, float3 norm
     float normalBiasMult = normalBias * worldTexelSize;
     return normalWS * normalBiasMult;
 }
-//
-//  Point shadows
-//
-float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
+
+bool CalculatePosTC(HDShadowData sd, float2 texelSize, float3 positionWS, float3 normalWS, float L_dist, bool perspective, out float3 posTC)
 {
-    float2 texelSize = sd.isInCachedAtlas ? _CachedShadowAtlasSize.zw : _ShadowAtlasSize.zw;
     positionWS = positionWS + sd.cacheTranslationDelta.xyz;
     /* bias the world position */
     float worldTexelSize = EvalShadow_WorldTexelSize(sd.worldTexelSize, L_dist, true);
     float3 normalBias = EvalShadow_NormalBias(worldTexelSize, sd.normalBias, normalWS);
     positionWS += normalBias;
     /* get shadowmap texcoords */
-    float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
+    posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
     /* sample the texture */
     // We need to do the check on min/max coordinates because if the shadow spot angle is smaller than the actual cone, then we could have artifacts due to the clamp sampler.
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
     float2 minCoord = sd.atlasOffset + 0.5f * texelSize;
-    return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);
+    return !any(posTC.xy > maxCoord || posTC.xy < minCoord);
+}
+
+//
+//  Point shadows
+//
+float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
+{
+    float2 texelSize = sd.isInCachedAtlas ? _CachedShadowAtlasSize.zw : _ShadowAtlasSize.zw;
+    float3 posTC;
+    return CalculatePosTC(sd, texelSize, positionWS, normalWS, L_dist, perspective, posTC) ? PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS) : 1.0f;
 }
 
 //
@@ -179,6 +186,17 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
 {
     float2 texelSize = sd.isInCachedAtlas ? _CachedAreaShadowAtlasSize.zw : _AreaShadowAtlasSize.zw;
 
+// TODO: refactor into AREA_FILTER_ALGORITHM
+#ifdef SHADOW_VERY_HIGH // Do PCSS
+
+    float3 posTC;
+    if (CalculatePosTC(sd, texelSize, positionWS, normalWS, L_dist, perspective, posTC))
+        return SampleShadow_PCSS(posTC, positionSS, sd.shadowMapSize.xy * texelSize, sd.atlasOffset, sd.shadowFilterParams0.x, sd.shadowFilterParams0.w, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, s_linear_clamp_compare_sampler, s_point_clamp_sampler, FIXED_UNIFORM_BIAS, sd.zBufferParam, true, (sd.isInCachedAtlas ? _CachedAreaShadowAtlasSize.xz : _AreaShadowAtlasSize.xz));
+    else
+        return 1.0f;
+
+#else // Do EVSM
+
     positionWS = positionWS + sd.cacheTranslationDelta.xyz;
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
 
@@ -187,6 +205,8 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     EvalShadow_Area_GetMinMaxCoords(sd, texelSize, minCoord, maxCoord);
 
     return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : AREA_FILTER_ALGORITHM(sd, positionSS, posTC, tex, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS);
+
+#endif
 }
 
 
