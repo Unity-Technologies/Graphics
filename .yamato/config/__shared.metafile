@@ -668,11 +668,3 @@ non_project_agents:
     type: Unity::VM::osx
     image: package-ci/mac:stable
     flavor: m1.mac
-  sdet_win_large:
-    type: Unity::VM
-    image: sdet/gamecode_win10:latest
-    flavor: b1.large
-  sdet_win_large_gpu:
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:latest
-    flavor: b1.large
