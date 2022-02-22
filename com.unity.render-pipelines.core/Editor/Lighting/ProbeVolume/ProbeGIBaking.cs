@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering
             // Mark old bakes as out of date if needed
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
-                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
+                var window = EditorWindow.GetWindow<ProbeVolumeBakingWindow>(null, false);
                 window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
