@@ -193,10 +193,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 foreach (var word in m_AdditionalShaderKeywords)
                     cmd.DisableShaderKeyword(word);
             }
-
-			// MERGE CONFLICT
-            //context.ExecuteCommandBuffer(cmd);
-            //CommandBufferPool.Release(cmd);
         }
     }
 }
