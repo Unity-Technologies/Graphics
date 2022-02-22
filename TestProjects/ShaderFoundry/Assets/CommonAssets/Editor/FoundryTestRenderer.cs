@@ -12,7 +12,7 @@ public class FoundryTestRenderer
     internal const int defaultResolution = 128;
     internal GraphicsFormat defaultFormat = GraphicsFormat.R8G8B8A8_SRGB;
 
-    internal PreviewSceneResources previewScene = new PreviewSceneResources();
+    static internal PreviewSceneResources previewScene = new PreviewSceneResources();
 
     internal delegate void SetupMaterialDelegate(Material m);
 
@@ -25,6 +25,7 @@ public class FoundryTestRenderer
         mostWrongPixels = 0;
         mostWrongString = string.Empty;
     }
+
     internal void ReportTests()
     {
         if (wrongImageCount > 0)
@@ -37,8 +38,24 @@ public class FoundryTestRenderer
     internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
     internal Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
 
+    internal void CheckForShaderErrors(Shader shader)
+    {
+        if (ShaderUtil.ShaderHasError(shader))
+        {
+            var messages = ShaderUtil.GetShaderMessages(shader);
+            foreach (var message in messages)
+            {
+                // TODO @ SHADERS: We should probably check for warnings at some point
+                if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
+                    throw new Exception(message.message);
+            }
+        }
+    }
+
     internal int TestShaderIsConstantColor(Shader shader, string filePrefix, Color32 expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
     {
+        CheckForShaderErrors(shader);
+
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(defaultResolution, defaultResolution, defaultFormat, depthBufferBits: 32);
         var target = RenderTexture.GetTemporary(descriptor);
 
@@ -186,7 +203,7 @@ public class FoundryTestRenderer
         }
 
         UnityEngine.Object.DestroyImmediate(temp);
-        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / (float) mismatchCount) : 0.0f);
+        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / (float)mismatchCount) : 0.0f);
         return mismatchCount;
     }
 
@@ -234,6 +251,7 @@ public class FoundryTestRenderer
 
         // render with it
         RenderMeshWithMaterial(previewScene.camera, previewScene.quad, quadMatrix, mat, target, useSRP);
+        UnityEngine.Object.DestroyImmediate(mat);
     }
 
     internal static void RenderMeshWithMaterial(Camera cam, Mesh mesh, Matrix4x4 transform, Material mat, RenderTexture target, bool useSRP = true)

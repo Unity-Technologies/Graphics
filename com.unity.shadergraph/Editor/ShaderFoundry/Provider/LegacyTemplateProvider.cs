@@ -68,6 +68,20 @@ namespace UnityEditor.ShaderFoundry
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
+
+            void AddTemplateTag(string tagName, string tagValue)
+            {
+                // Render Type
+                if (!string.IsNullOrEmpty(tagValue))
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, tagName, tagValue).Build());
+                else
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, $"// {tagName}", "<None>").Build());
+            }
+
+            AddTemplateTag("RenderPipeline", subShaderDescriptor.pipelineTag);
+            AddTemplateTag("RenderType", subShaderDescriptor.renderType);
+            AddTemplateTag("Queue", subShaderDescriptor.renderQueue);
+
             var result = builder.Build();
 
             var subPassIndex = 0;
@@ -92,7 +106,7 @@ namespace UnityEditor.ShaderFoundry
         {
             var vertexContext = new PostFieldsContext();
             var fragmentContext = new PostFieldsContext();
-            foreach(var legacyPass in subShaderDescriptor.passes)
+            foreach (var legacyPass in subShaderDescriptor.passes)
                 ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
@@ -141,7 +155,7 @@ namespace UnityEditor.ShaderFoundry
 
             var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPassDescriptor);
             LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-            
+
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validVertexBlocks, vertexContext);
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
@@ -242,9 +256,9 @@ namespace UnityEditor.ShaderFoundry
             foreach (var fieldDescriptor in fieldDescriptors)
                 fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
             var nameMappingsByOutputName = new Dictionary<string, NameOverride>();
-            foreach(var mapping in nameMappings)
+            foreach (var mapping in nameMappings)
                 nameMappingsByOutputName[mapping.Destination] = mapping;
-            
+
             // Build the input/output type from the matching fields
             var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
             var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
@@ -255,7 +269,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in postBlock.Inputs)
             {
                 // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
-                if(nameMappingsByOutputName.TryGetValue(output.Name, out var mapping))
+                if (nameMappingsByOutputName.TryGetValue(output.Name, out var mapping))
                 {
                     BlockOutput inputProp;
                     availableInputs.TryGetValue(mapping.Source, out inputProp);
@@ -263,7 +277,7 @@ namespace UnityEditor.ShaderFoundry
                     {
                         outputBuilder.AddField(output.Type, output.Name);
                         // Add the input if we haven't already declared it
-                        if(!declaredInputs.Contains(inputProp.Name))
+                        if (!declaredInputs.Contains(inputProp.Name))
                         {
                             inputBuilder.AddField(inputProp.Type, inputProp.Name);
                             declaredInputs.Add(inputProp.Name);
@@ -272,7 +286,7 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
                 // Next see if this is a manually set default value
-                else if(defaultVariableValues.TryGetValue(output.Name, out var defaultValue))
+                else if (defaultVariableValues.TryGetValue(output.Name, out var defaultValue))
                 {
                     variableExpressions[output.Name] = defaultValue;
                     outputBuilder.AddField(output.Type, output.Name);
@@ -301,9 +315,9 @@ namespace UnityEditor.ShaderFoundry
             fnBuilder.AddLine($"{outType.Name} output;");
 
             // Declare the expression for every output field
-            foreach(var field in outType.StructFields)
+            foreach (var field in outType.StructFields)
             {
-                if(variableExpressions.TryGetValue(field.Name, out var expression))
+                if (variableExpressions.TryGetValue(field.Name, out var expression))
                     fnBuilder.AddLine($"output.{field.Name} = {expression};");
             }
 
@@ -326,7 +340,7 @@ namespace UnityEditor.ShaderFoundry
             nameMappings.Add(new NameOverride { Source = "ObjectSpaceTangent", Destination = "Tangent" });
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues, vertexFields);
-        
+
             var id0 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexPreBlock), UnityEditor.Rendering.ShaderType.Vertex);
             var id1 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexMainBlock), UnityEditor.Rendering.ShaderType.Vertex);
             var id2 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexPostBlock), UnityEditor.Rendering.ShaderType.Vertex);
@@ -414,7 +428,7 @@ namespace UnityEditor.ShaderFoundry
                 var builder = new ShaderStringBuilder();
                 builder.Append(fieldType.Name);
                 builder.Append("(");
-                for(var i = 0; i < fieldType.VectorDimension; ++i)
+                for (var i = 0; i < fieldType.VectorDimension; ++i)
                 {
                     if (i != 0)
                         builder.Append(", ");

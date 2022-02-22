@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderFoundry
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
             var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
-            
-            foreach(var template in provider.GetTemplates(container))
+
+            foreach (var template in provider.GetTemplates(container))
             {
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
             }
-            
+
             var shaderInst = shaderInstBuilder.Build();
             var generator = new ShaderGenerator();
             generator.Generate(shaderBuilder, container, shaderInst);

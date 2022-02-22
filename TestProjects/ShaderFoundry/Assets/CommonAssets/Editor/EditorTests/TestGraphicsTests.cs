@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public IEnumerator ImageComparisonWorksOnConstantShader()
         {
             string shaderPath = "Assets/TestAssets/TestGraphicsTests/ConstantRGB.shader";
-            var shader = (Shader) AssetDatabase.LoadAssetAtPath(shaderPath, typeof(Shader));
+            var shader = (Shader)AssetDatabase.LoadAssetAtPath(shaderPath, typeof(Shader));
             if (shader == null)
             {
                 Debug.LogError("Cannot load shader " + shaderPath);

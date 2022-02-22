@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderFoundry
             void DeclareMatchAssignment(VariableLinkInstance field)
             {
                 var source = field.Source;
-                if(source != null)
+                if (source != null)
                     fnBuilder.AddLine($"{field.Parent.Name}.{field.Name} = {source.Parent.Name}.{source.Name};");
             }
 
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderFoundry
                 fnBuilder.AddVariableDeclarationStatement(blockBuilder, blockInputInstance.Type, blockInputInstance.Name);
                 foreach (var input in blockInputInstance.Fields)
                 {
-                    if(input.Source != null)
+                    if (input.Source != null)
                         DeclareMatchAssignment(input);
                 }
                 fnBuilder.AddCallStatementWithNewReturn(block.EntryPointFunction, blockOutputInstance.Name, blockInputInstance.Name);
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderFoundry
         ShaderType BuildType(Block.Builder blockBuilder, string name, VariableLinkInstance owner)
         {
             var builder = new ShaderType.StructBuilder(blockBuilder, name);
-            foreach(var field in owner.Fields)
+            foreach (var field in owner.Fields)
             {
                 // Skip unused fields
                 if (!field.IsUsed)
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderFoundry
                 foreach (var attribute in field.Attributes)
                     fieldBuilder.AddAttribute(attribute);
                 // Also append all aliases as new attributes
-                foreach(var alias in field.Aliases)
+                foreach (var alias in field.Aliases)
                 {
                     var attBuilder = new ShaderAttribute.Builder(Container, CommonShaderAttributes.Alias);
                     attBuilder.Param(alias);
@@ -146,4 +146,3 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 }
-
