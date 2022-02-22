@@ -42,12 +42,12 @@ MonoBehaviour:
   cloudOffset:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0}
-  lowestCloudAltitude:
+  bottomAltitude:
     m_OverrideState: 0
-    m_Value: 500
-  cloudThickness:
+    m_Value: 1200
+  altitudeRange:
     m_OverrideState: 0
-    m_Value: 3000
+    m_Value: 2000
   fadeInMode:
     m_OverrideState: 0
     m_Value: 0
@@ -99,7 +99,7 @@ MonoBehaviour:
   cloudMapResolution:
     m_OverrideState: 1
     m_Value: 64
-  customDensityCurve:
+  densityCurve:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
@@ -114,16 +114,7 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.2
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.8
+        time: 0.15
         value: 1
         inSlope: 0
         outSlope: 0
@@ -133,7 +124,7 @@ MonoBehaviour:
         outWeight: 0
       - serializedVersion: 3
         time: 1
-        value: 0
+        value: 0.1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -143,14 +134,14 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  customErosionCurve:
+  erosionCurve:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -1
-        value: 0
+        time: 0
+        value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -158,8 +149,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.1
+        value: 0.9
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -178,13 +169,13 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  customAmbientOcclusionCurve:
+  ambientOcclusionCurve:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -1
+        time: 0
         value: 0
         inSlope: 0
         outSlope: 0
@@ -193,8 +184,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.25
+        value: 0.4
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -203,7 +194,7 @@ MonoBehaviour:
         outWeight: 0
       - serializedVersion: 3
         time: 1
-        value: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -231,12 +222,9 @@ MonoBehaviour:
   shapeScale:
     m_OverrideState: 1
     m_Value: 8.86
-  shapeOffsetX:
+  shapeOffset:
     m_OverrideState: 0
-    m_Value: 0
-  shapeOffsetZ:
-    m_OverrideState: 0
-    m_Value: 0
+    m_Value: {x: 0, y: 0, z: 0}
   erosionFactor:
     m_OverrideState: 1
     m_Value: 0.212
@@ -249,6 +237,9 @@ MonoBehaviour:
   ambientLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0
+  sunLightDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   erosionOcclusion:
     m_OverrideState: 1
     m_Value: 0
@@ -278,9 +269,18 @@ MonoBehaviour:
   erosionSpeedMultiplier:
     m_OverrideState: 0
     m_Value: 0.25
+  verticalShapeWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
+  verticalErosionWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
   temporalAccumulationFactor:
     m_OverrideState: 0
     m_Value: 0.95
+  ghostingReduction:
+    m_OverrideState: 0
+    m_Value: 0
   shadows:
     m_OverrideState: 1
     m_Value: 1
@@ -299,10 +299,19 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 0
     m_Value: 0
-  m_Version: 1
+  m_Version: 2
   m_ObsoleteWindSpeed:
     m_OverrideState: 1
     m_Value: 0
   m_ObsoleteOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetX:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetY:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetZ:
     m_OverrideState: 0
     m_Value: 0
