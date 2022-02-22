@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.7] - 2022-02-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
+- Fixed camera motion vector pass reading last frame depth texture
 
 ## [13.1.6] - 2022-01-14
 
@@ -53,6 +55,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed various issues with render graph viewer when entering playmode.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 - Fixed HDRP camera debug panel rendering foldout.
+- Fixed issue with detail normals when scale is null (case 1399548).
 
 ### Changed
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
