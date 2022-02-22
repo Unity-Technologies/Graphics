@@ -91,6 +91,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 positionRWS;     // point/spot light only
         public float radiusWS;          // point/spot light only
 
+        public const int maxCapsuleShadowCasterCount = 4;
+
         internal CapsuleShadowCaster(CapsuleShadowCasterType casterType, int sliceIndex, float _shadowRange, float _maxCosTheta)
         {
             header = ((uint)sliceIndex << 8) | (uint)casterType;

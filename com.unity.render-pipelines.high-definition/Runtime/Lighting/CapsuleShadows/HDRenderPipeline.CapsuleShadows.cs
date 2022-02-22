@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     internal class CapsuleShadowAllocator
     {
-        internal const int k_MaxCasters = 4;
+        internal const int k_MaxCasters = CapsuleShadowCaster.maxCapsuleShadowCasterCount;
 
         internal List<CapsuleShadowCaster> m_Casters;
         internal bool m_DirectEnabled;
@@ -497,6 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle tileDebugOutput;
 
             public int casterCount;
+            public ComputeBufferHandle casters;
             public ComputeBufferHandle volumes;
             public ComputeBufferHandle counters;
             public Vector2Int upscaledSize;
@@ -532,6 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct CapsuleBuildVolumeOutput
         {
+            public ComputeBufferHandle casters;
             public ComputeBufferHandle volumes;
             public ComputeBufferHandle counters;
         }
@@ -546,6 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 CapsuleBuildVolumeOutput volumeOutput = new CapsuleBuildVolumeOutput()
                 {
+                    casters = renderGraph.ImportComputeBuffer(m_CapsuleShadowCastersBuffer),
                     volumes = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(occluderCount * casterCount, sizePerVolume)),
                     counters = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, 4)),
                 };
@@ -556,7 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.occluderCount = occluderCount;
                 passData.casterCount = casterCount;
                 passData.occluders = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleOccluderDataBuffer));
-                passData.casters = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CapsuleShadowCastersBuffer));
+                passData.casters = builder.ReadComputeBuffer(volumeOutput.casters);
                 passData.volumes = builder.WriteComputeBuffer(volumeOutput.volumes);
                 passData.counters = builder.WriteComputeBuffer(volumeOutput.counters);
 
@@ -616,6 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.casterCount = m_CapsuleShadowAllocator.m_Casters.Count;
+                passData.casters = builder.ReadComputeBuffer(volumeOutput.casters);
                 passData.volumes = builder.ReadComputeBuffer(volumeOutput.volumes);
                 passData.counters = builder.ReadComputeBuffer(volumeOutput.counters);
                 passData.renderSize = parameters.renderSize;
@@ -648,6 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                        ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCasters, data.casters);
                         ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowVolumes, data.volumes);
                         ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowCounters, data.counters);
 

@@ -15,6 +15,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
 #endif
 
+StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer (need array support)
 StructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes; // TODO: could be constant buffer (need to write array from earlier pass)
 StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsRenderOutput);
@@ -34,8 +35,29 @@ groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
 groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
 groupshared uint s_intersectionBits[2];
 
-#define MAX_SLICES_PER_PASS     4
-groupshared uint s_packedVisibility[TILE_SIZE*TILE_SIZE*MAX_SLICES_PER_PASS/2]; // UNORM16 per slice per pixel
+struct CasterRenderData
+{
+    float maxCosTheta;
+    float shadowRange;
+    float3 positionWS;      // direction for directional light
+    float radiusWS;         // point/spot only
+};
+
+struct CasterCullingData
+{
+    float3 tileToLightDir;
+    float tileToLightDistance;
+    float penumbraCosTheta;
+};
+
+#define MAX_SLICE_COUNT                                             MAX_CAPSULE_SHADOW_CASTER_COUNT
+#define CASTER_RENDER_INDEX(CASTER_INDEX, DEPTH_RANGE_INDEX)        (((CASTER_INDEX) << 1) | (DEPTH_RANGE_INDEX))
+groupshared CasterRenderData s_casterRenderData[MAX_SLICE_COUNT];
+groupshared CasterCullingData s_casterCullingData[MAX_SLICE_COUNT*DEPTH_RANGE_COUNT];
+groupshared uint s_casterValidBits;
+
+groupshared uint s_packedVisibility[TILE_SIZE*TILE_SIZE*MAX_SLICE_COUNT/2]; // UNORM16 per slice per pixel
+
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 #define PACK_UNPACK_POSITIVE_DEPTH(D)   (D)
@@ -53,12 +75,92 @@ float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
     return float3(posVS_XY * abs(linearDepth), linearDepth);
 }
 
-float CompleteUnitSquare(float sinTheta)
+float MatchingSinCos(float sinOrCosTheta)
 {
-    return sqrt(max(0.f, 1.f - Sq(sinTheta)));
+    return sqrt(max(0.f, 1.f - Sq(sinOrCosTheta)));
 }
 
-bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, float tileRadiusWS)
+bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
+{
+    uint depthRangeIndex = flatThreadIndex & 1;
+    uint casterIndex = flatThreadIndex >> 1;
+
+    if (casterIndex < _CapsuleCasterCount && (depthRangeIndex == 0 || useSecondDepthRange))
+    {
+        CapsuleShadowCaster caster = _CapsuleShadowCasters[casterIndex];
+        uint casterType = GetCapsuleCasterType(caster);
+        bool isValid;
+        if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
+        {
+            // no light to intersect, always valid
+            isValid = true;
+        }
+        else
+        {
+            // grab tile for this depth range
+            float3 tileCenterWS = s_tileCenter[depthRangeIndex];
+            float tileRadiusWS = asfloat(s_tileRadiusU[depthRangeIndex]);
+
+            // gather data
+            CasterCullingData cullingData;
+            CasterRenderData renderData;
+            renderData.maxCosTheta = caster.maxCosTheta;
+            renderData.shadowRange = caster.shadowRange;
+            if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+            {
+                renderData.positionWS = caster.directionWS;
+                renderData.radiusWS = 0.f;
+
+                cullingData.tileToLightDir = caster.directionWS;
+                cullingData.tileToLightDistance = FLT_MAX;
+                cullingData.penumbraCosTheta = caster.maxCosTheta;
+
+                // TODO: are there any ways to cull the tile outside of the directional light volume?
+                isValid = true;
+            }
+            else // CAPSULESHADOWCASTERTYPE_POINT or CAPSULESHADOWCASTERTYPE_SPOT
+            {
+                renderData.positionWS = caster.positionRWS;
+                renderData.radiusWS = caster.radiusWS;
+
+                float3 tileToLightVec = caster.positionRWS - tileCenterWS;
+                float tileToLightDistance = length(tileToLightVec);;
+                cullingData.tileToLightDir = tileToLightVec/tileToLightDistance;
+                cullingData.tileToLightDistance = tileToLightDistance;
+
+                float sinTheta = max(0.f, caster.radiusWS/(tileToLightDistance - tileRadiusWS));
+                cullingData.penumbraCosTheta = min(caster.maxCosTheta, MatchingSinCos(sinTheta));
+
+                // check the tile is within the volume of the light
+                isValid = (tileToLightDistance < caster.lightRange);
+                if (casterType == CAPSULESHADOWCASTERTYPE_SPOT)
+                {
+                    float tileConeSinTheta = tileRadiusWS/tileToLightDistance;
+                    float tileConeCosTheta = MatchingSinCos(tileConeSinTheta);
+
+                    float spotConeCosTheta = caster.spotCosTheta;
+                    float spotConeSinTheta = MatchingSinCos(spotConeCosTheta);
+
+                    // cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
+                    float combinedCosTheta = spotConeCosTheta*tileConeCosTheta - spotConeSinTheta*tileConeSinTheta;
+
+                    // check the tile is within the spot cone
+                    float cosAngleBetweenLightDirAndTileCenter = dot(cullingData.tileToLightDir, caster.directionWS);
+                    isValid = isValid && (cosAngleBetweenLightDirAndTileCenter > combinedCosTheta);
+                }
+            }
+
+            s_casterRenderData[casterIndex] = renderData;
+            s_casterCullingData[CASTER_RENDER_INDEX(casterIndex, depthRangeIndex)] = cullingData;
+        }
+        if (isValid)
+            InterlockedOr(s_casterValidBits, 1U << casterIndex);
+    }
+    GroupMemoryBarrierWithGroupSync();
+    return s_casterValidBits != 0;
+}
+
+bool CapsuleIntersectsTile(CapsuleShadowVolume volume, uint depthRangeIndex, float3 tileCenterWS, float tileRadiusWS)
 {
     CapsuleShadowCaster lightData = volume.caster;
     CapsuleOccluderData capsuleData = volume.occluder;
@@ -79,67 +181,39 @@ bool CapsuleIntersectsTile(CapsuleShadowVolume volume, float3 tileCenterWS, floa
     }
     else
     {
-        // check range
-        intersectsTile = (capsuleSignedDistanceFromTile < lightData.shadowRange);
-
-        // get the light cone angle from the tile
-        float3 tileToLightDir;
-        float tileToLightDistance;
-        float lightCosTheta;
-        if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+        // grab caster data
+        // TODO: move index to capsule
+        uint casterIndex = GetCapsuleSliceIndex(lightData);
+        intersectsTile = (((s_casterValidBits >> casterIndex) & 1) != 0);
+        if (intersectsTile)
         {
-            tileToLightDir = lightData.directionWS;
-            tileToLightDistance = FLT_MAX;
-            lightCosTheta = lightData.maxCosTheta;
 
-            // TODO: are there any areas where we know the directional light has no effect, that we can use to cull?
-        }
-        else
-        {
-            float3 tileToLightVec = lightData.positionRWS - tileCenterWS;
-            tileToLightDistance = length(tileToLightVec);
-            tileToLightDir = tileToLightVec/tileToLightDistance;
+            CasterCullingData cullingData = s_casterCullingData[casterIndex];
+            CasterRenderData renderData = s_casterRenderData[CASTER_RENDER_INDEX(casterIndex, depthRangeIndex)];
 
-            float sinTheta = max(0.f, lightData.radiusWS/(tileToLightDistance - tileRadiusWS));
-            lightCosTheta = min(lightData.maxCosTheta, CompleteUnitSquare(sinTheta));
+            // check range
+            intersectsTile = (capsuleSignedDistanceFromTile < renderData.shadowRange);
 
-            // check tile vs light influence volume
-            intersectsTile = intersectsTile && (tileToLightDistance < lightData.lightRange);
-            if (casterType == CAPSULESHADOWCASTERTYPE_SPOT)
+            // check penumbra
+            if (cullingData.penumbraCosTheta != 0.f)
             {
-                float tileConeSinTheta = tileRadiusWS/tileToLightDistance;
-                float tileConeCosTheta = CompleteUnitSquare(tileConeSinTheta);
+                // check the smallest between the light axis and the capsule, from points in the tile
+                bool intersectsPenumbra = (capsuleSignedDistanceFromTile < 0.f);
+                if (capsuleSignedDistanceFromTile < cullingData.tileToLightDistance)
+                {
+                    float closestT = RayVsRayClosestPoints(tileToCapsuleVec, capsuleData.axisDirWS, 0.f, cullingData.tileToLightDir).x;
+                    float3 tileToCheckPos = tileToCapsuleVec + capsuleData.axisDirWS*clamp(closestT, -capsuleData.offset, capsuleData.offset);
 
-                float spotConeCosTheta = lightData.spotCosTheta;
-                float spotConeSinTheta = CompleteUnitSquare(spotConeCosTheta);
+                    float distanceAlongAxis = dot(tileToCheckPos, cullingData.tileToLightDir);
+                    float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*cullingData.tileToLightDir);
 
-                // cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
-                float combinedCosTheta = spotConeCosTheta*tileConeCosTheta - spotConeSinTheta*tileConeSinTheta;
+                    distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
 
-                // check the tile is within the spot cone
-                float cosAngleBetweenLightDirAndTileCenter = dot(tileToLightDir, lightData.directionWS);
-                intersectsTile = intersectsTile && (cosAngleBetweenLightDirAndTileCenter > combinedCosTheta);
+                    float cosTheta = distanceAlongAxis/sqrt(Sq(distanceFromAxis) + Sq(distanceAlongAxis));
+                    intersectsPenumbra = intersectsPenumbra || (cosTheta > cullingData.penumbraCosTheta);
+                }
+                intersectsTile = intersectsTile && intersectsPenumbra;
             }
-        }
-
-        if (lightCosTheta != 0.f)
-        {
-            // check the smallest between the light axis and the capsule, from points in the tile
-            bool intersectsPenumbra = (capsuleSignedDistanceFromTile < 0.f);
-            if (capsuleSignedDistanceFromTile < tileToLightDistance)
-            {
-                float closestT = RayVsRayClosestPoints(tileToCapsuleVec, capsuleData.axisDirWS, 0.f, tileToLightDir).x;
-                float3 tileToCheckPos = tileToCapsuleVec + capsuleData.axisDirWS*clamp(closestT, -capsuleData.offset, capsuleData.offset);
-
-                float distanceAlongAxis = dot(tileToCheckPos, tileToLightDir);
-                float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*tileToLightDir);
-
-                distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
-
-                float cosTheta = distanceAlongAxis/sqrt(Sq(distanceFromAxis) + Sq(distanceAlongAxis));
-                intersectsPenumbra = intersectsPenumbra || (cosTheta > lightCosTheta);
-            }
-            intersectsTile = intersectsTile && intersectsPenumbra;
         }
     }
     return intersectsTile;
@@ -213,9 +287,9 @@ void CapsuleShadowLoop(
             {
                 CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
 
-                bool intersectsTile = CapsuleIntersectsTile(volume, tileCenterWS0, tileRadiusWS0);
+                bool intersectsTile = CapsuleIntersectsTile(volume, 0, tileCenterWS0, tileRadiusWS0);
                 if (useSecondDepthRange && !intersectsTile)
-                    intersectsTile = CapsuleIntersectsTile(volume, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
+                    intersectsTile = CapsuleIntersectsTile(volume, 1, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
 
                 if (intersectsTile)
                     InterlockedOr(s_intersectionBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
@@ -307,7 +381,7 @@ void CapsuleShadowLoop(
                 {
                     float3 surfaceToLightVec = volume.caster.positionRWS - positionWS;
                     float sinTheta = volume.caster.radiusWS/length(surfaceToLightVec);
-                    float cosTheta = min(volume.caster.maxCosTheta, CompleteUnitSquare(sinTheta));
+                    float cosTheta = min(volume.caster.maxCosTheta, MatchingSinCos(sinTheta));
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleDirectOcclusionFlags(),
                         surfaceToLightVec,
@@ -378,7 +452,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         s_depthMaxU[flatThreadIndex] = DEPTH_MAX_EMPTY;
         s_tileRadiusU[flatThreadIndex] = 0;
     }
-    for (uint packedIndex = 0; packedIndex < MAX_SLICES_PER_PASS/2; ++packedIndex)
+    for (uint packedIndex = 0; packedIndex < MAX_SLICE_COUNT/2; ++packedIndex)
         s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU; // 1.0
     GroupMemoryBarrierWithGroupSync();
 
@@ -453,12 +527,13 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         float midLinearDepth = 0.5f*(nearLinearDepth + farLinearDepth);
         s_tileCenter[flatThreadIndex] = ViewspaceFromXY(positionVS_XY, midLinearDepth);
     }
+    GroupMemoryBarrierWithGroupSync();
 
     // get bounding sphere radius
     {
         // check one corner on each thread
         uint depthRangeIndex = flatThreadIndex & 1;
-        uint cornerIndex = flatThreadIndex / 2;
+        uint cornerIndex = flatThreadIndex >> 1;
         float cornerLinearDepth0 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMinU[depthRangeIndex]));
         float cornerLinearDepth1 = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMaxU[depthRangeIndex]));
         if (cornerIndex < 8)
@@ -473,16 +548,33 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
             InterlockedMax(s_tileRadiusU[depthRangeIndex], asuint(tileRadiusWS));
         }
     }
-    GroupMemoryBarrierWithGroupSync();
 
     // move the sphere center to world space
     if (flatThreadIndex < 2)
         s_tileCenter[flatThreadIndex] = TransformViewToWorld(s_tileCenter[flatThreadIndex]);
+
+    // zero caster state
+    s_casterValidBits = 0;
+    GroupMemoryBarrierWithGroupSync();
+
+    // check the casters vs the tile as a pre-process
+    bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
+    if (!CastersIntersectTile(flatThreadIndex, useSecondDepthRange))
+    {
+#ifdef CAPSULE_TILE_DEBUG
+        if (flatThreadIndex == 0)
+            _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
+#endif
+        return;
+    }
+
+    // zero working state
+    for (uint packedIndex = 0; packedIndex < MAX_SLICE_COUNT/2; ++packedIndex)
+        s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU; // 1.0
     GroupMemoryBarrierWithGroupSync();
 
     // optimise the loop separately depending on whether we are using one or two depth ranges
     uint processedCapsuleCounter = 0;
-    bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
 #ifdef CAPSULE_TILE_DEBUG
     if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DEPTH_RANGE)
         processedCapsuleCounter = useSecondDepthRange ? 16 : 4;
@@ -494,8 +586,13 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         CapsuleShadowLoop(fullResCoord, positionWS, flatThreadIndex, false, processedCapsuleCounter);
 
     // write results
-    for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
+    uint casterValidBits = s_casterValidBits;
+    while (casterValidBits != 0)
+    {
+        uint casterIndex = firstbitlow(casterValidBits);
+        casterValidBits &= ~(1U << casterIndex);
         _CapsuleShadowsRenderOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(ReadVisibility(flatThreadIndex, casterIndex));
+    }
 #ifdef CAPSULE_TILE_DEBUG
     if (flatThreadIndex == 0)
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = processedCapsuleCounter;

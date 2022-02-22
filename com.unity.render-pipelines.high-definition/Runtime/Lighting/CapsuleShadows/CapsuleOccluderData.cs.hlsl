@@ -47,6 +47,11 @@
 #define CAPSULESHADOWCASTERTYPE_SPOT (2)
 #define CAPSULESHADOWCASTERTYPE_INDIRECT (3)
 
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowCaster:  static fields
+//
+#define MAX_CAPSULE_SHADOW_CASTER_COUNT (4)
+
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData
