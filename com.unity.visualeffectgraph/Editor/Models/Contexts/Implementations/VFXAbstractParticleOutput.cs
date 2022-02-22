@@ -623,6 +623,11 @@ namespace UnityEditor.VFX
 
         public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
+            //TODOPAUL: Quick hack to simplify debug
+
+            vertsCount = 0;
+            return false;
+            /*
             switch (taskType)
             {
                 case VFXTaskType.ParticleQuadOutput:
@@ -646,6 +651,7 @@ namespace UnityEditor.VFX
                 vertsCount /= 2;
             }
             return vertsCount != 0;
+            */
         }
 
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
