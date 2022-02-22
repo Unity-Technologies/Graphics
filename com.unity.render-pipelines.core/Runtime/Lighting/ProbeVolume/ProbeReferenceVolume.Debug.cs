@@ -456,11 +456,16 @@ namespace UnityEngine.Rendering
             List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
             var chunks = cellInfo.chunkList;
 
+            bool oldData = !probeVolumeDebug.bricksUseGpuMapping;
+            var touchupData = oldData ? cell.touchupVolumeInteractionOld : cell.touchupVolumeInteraction;
+            var probePositions = oldData ? cell.probePositionsOld : cell.probePositions;
+            var probeOffsets = oldData ? cell.offsetVectorsOld : cell.offsetVectors;
+
             Vector4[] texels = new Vector4[kProbesPerBatch];
             float[] validity = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
-            float[] touchupUpVolumeAction = cell.touchupVolumeInteractionOld.Length > 0 ? new float[kProbesPerBatch] : null;
-            Vector4[] offsets = cell.offsetVectorsOld.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+            float[] touchupUpVolumeAction = touchupData.Length > 0 ? new float[kProbesPerBatch] : null;
+            Vector4[] offsets = probeOffsets.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
             List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
             List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
@@ -470,14 +475,16 @@ namespace UnityEngine.Rendering
             debugData.offsetBuffers = offsetBuffers;
             debugData.props = props;
 
+            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
+
             int idxInBatch = 0;
-            for (int i = 0; i < cell.probePositionsOld.Length; i++)
+            for (int i = 0; i < cell.probeCount; i++)
             {
                 var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
-                int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
+                int chunkIndex = i / chunkSizeInProbes;
                 var chunk = chunks[chunkIndex];
-                int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
+                int indexInChunk = i % chunkSizeInProbes;
                 int brickIdx = indexInChunk / 64;
                 int indexInBrick = indexInChunk % 64;
 
@@ -485,14 +492,14 @@ namespace UnityEngine.Rendering
                 int indexInSlice = indexInBrick % 16;
                 Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
-                probeBuffer.Add(Matrix4x4.TRS(cell.probePositionsOld[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = cell.GetValidityOld(i);
+                probeBuffer.Add(Matrix4x4.TRS(probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                validity[idxInBatch] = oldData ? cell.GetValidityOld(i) : cell.GetValidity(i);
                 texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                 relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
 
                 if (touchupUpVolumeAction != null)
                 {
-                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteractionOld[i];
+                    touchupUpVolumeAction[idxInBatch] = touchupData[i];
                 }
 
 
@@ -500,7 +507,7 @@ namespace UnityEngine.Rendering
                 {
                     const float kOffsetThresholdSqr = 1e-6f;
 
-                    var offset = cell.offsetVectorsOld[i];
+                    var offset = probeOffsets[i];
                     offsets[idxInBatch] = offset;
 
                     if (offset.sqrMagnitude < kOffsetThresholdSqr)
@@ -509,7 +516,7 @@ namespace UnityEngine.Rendering
                     }
                     else
                     {
-                        var position = cell.probePositionsOld[i] + offset;
+                        var position = probePositions[i] + offset;
                         var orientation = Quaternion.LookRotation(-offset);
                         var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
                         offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
@@ -517,7 +524,7 @@ namespace UnityEngine.Rendering
                 }
                 idxInBatch++;
 
-                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositionsOld.Length - 1)
+                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probeCount - 1)
                 {
                     idxInBatch = 0;
                     MaterialPropertyBlock prop = new MaterialPropertyBlock();

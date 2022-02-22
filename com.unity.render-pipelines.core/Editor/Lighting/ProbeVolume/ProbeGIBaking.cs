@@ -1126,6 +1126,7 @@ namespace UnityEngine.Rendering
                 {
                     position = bakingCell.position,
                     index = bakingCell.index,
+                    probeCount = bakingCell.probePositions.Length,
                     minSubdiv = bakingCell.minSubdiv,
                     indexChunkCount = bakingCell.indexChunkCount,
                     shChunkCount = bakingCell.shChunkCount,
@@ -1227,8 +1228,8 @@ namespace UnityEngine.Rendering
                     var validityNeighboorMaskChunkTarget = validityNeighbourMask.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
                     var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var offsetChunkTarget = offsets.GetSubArray(chunkSizeInProbes, chunkSizeInProbes);
-                    var touchupVolumeInteractionChunkTarget = touchupVolumeInteraction.GetSubArray(chunkSizeInProbes, chunkSizeInProbes);
+                    var offsetChunkTarget = offsets.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var touchupVolumeInteractionChunkTarget = touchupVolumeInteraction.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
 
                     NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
                     NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);

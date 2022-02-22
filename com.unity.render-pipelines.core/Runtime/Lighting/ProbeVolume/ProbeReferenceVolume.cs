@@ -409,6 +409,7 @@ namespace UnityEngine.Rendering
         {
             public Vector3Int position;
             public int index;
+            public int probeCount;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
