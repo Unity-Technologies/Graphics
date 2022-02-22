@@ -183,7 +183,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                     shadowPayload.value = 1.0;
                     ray.TMax -= _RaytracingRayBias;
 
-                    // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
+                    // FIXME: For the time being, there is no front/back face culling for shadows
                     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
@@ -395,6 +395,8 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 [shader("anyhit")]
 void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+#if defined(_ALPHATEST_ON) || defined(_SURFACE_TYPE_TRANSPARENT)
+
     // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
@@ -413,28 +415,38 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
 
+#endif // _ALPHATEST_ON || _SURFACE_TYPE_TRANSPARENT
+
+#ifdef _ALPHATEST_ON
+
     // Check alpha clipping
     if (!isVisible)
     {
         IgnoreHit();
+        return;
     }
-    else if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
+
+#endif // _ALPHATEST_ON
+
+    if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
     {
+
 #ifdef _SURFACE_TYPE_TRANSPARENT
+
     #if HAS_REFRACTION
         payload.value *= surfaceData.transmittanceMask * surfaceData.transmittanceColor;
     #else
         payload.value *= 1.0 - builtinData.opacity;
     #endif
-        if (Luminance(payload.value) < 0.001)
-            AcceptHitAndEndSearch();
-        else
+        if (Luminance(payload.value) > 0.001)
             IgnoreHit();
-#else
-        // Opaque surface
-        payload.value = 0.0;
-        AcceptHitAndEndSearch();
-#endif
+
+#else // _SURFACE_TYPE_TRANSPARENT
+
+        payload.value = 0.0; // Opaque surface
+
+#endif // _SURFACE_TYPE_TRANSPARENT
+
     }
 }
 

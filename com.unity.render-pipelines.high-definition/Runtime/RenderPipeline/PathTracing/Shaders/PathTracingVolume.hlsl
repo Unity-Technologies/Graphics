@@ -120,7 +120,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
                 shadowPayload.value = 1.0;
                 ray.TMax -= _RaytracingRayBias;
 
-                // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
+                // FIXME: For the time being, there is no front/back face culling for shadows
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                          RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
