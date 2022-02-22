@@ -16,7 +16,7 @@ using UnityEditor.XR.Management;
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
-    enum ShaderFeatures
+    enum ShaderFeatures : long
     {
         None = 0,
         MainLight = (1 << 0),
@@ -50,6 +50,10 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
+        DecalLayers = (1 << 31),
+        OpaqueWriteRenderingLayers = (1L << 32),
+        GBufferWriteRenderingLayers = (1L << 33),
+        DepthNormalPassRenderingLayers = (1L << 34),
     }
 
     [Flags]
@@ -70,6 +74,8 @@ namespace UnityEditor.Rendering.Universal
     internal class ShaderPreprocessor : IPreprocessShaders
     {
         public static readonly string kPassNameGBuffer = "GBuffer";
+        public static readonly string kPassNameForwardLit = "ForwardLit";
+        public static readonly string kPassNameDepthNormals = "DepthNormals";
         public static readonly string kTerrainShaderName = "Universal Render Pipeline/Terrain/Lit";
 #if PROFILE_BUILD
         private const string k_ProcessShaderTag = "OnProcessShader";
@@ -102,6 +108,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
+        LocalKeyword m_DecalLayers;
+        LocalKeyword m_WriteRenderingLayers;
         LocalKeyword m_RenderPassEnabled;
         LocalKeyword m_DebugDisplay;
         LocalKeyword m_DBufferMRT1;
@@ -174,6 +182,8 @@ namespace UnityEditor.Rendering.Universal
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
+            m_DecalLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalLayers);
+            m_WriteRenderingLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.WriteRenderingLayers);
             m_RenderPassEnabled = TryGetLocalKeyword(shader, ShaderKeywordStrings.RenderPassEnabled);
             m_DebugDisplay = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEBUG_DISPLAY);
             m_DBufferMRT1 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT1);
@@ -480,6 +490,21 @@ namespace UnityEditor.Rendering.Universal
                 m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
                 return true;
 
+            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20 ||
+                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES3x ||
+                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.OpenGLCore)
+            {
+                // Rendering layers are not supported on gl
+                if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers))
+                    return true;
+            }
+            else
+            {
+                // Decal Layers
+                if (stripTool.StripMultiCompile(m_DecalLayers, ShaderFeatures.DecalLayers))
+                    return true;
+            }
+
             // TODO: Test against lightMode tag instead.
             if (snippetData.passName == kPassNameGBuffer)
             {
@@ -502,6 +527,29 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendMedium, ShaderFeatures.DecalNormalBlendMedium,
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
+
+            string keywordNames = "";
+            foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
+            {
+                keywordNames += " " + keyword.name;
+            }
+
+            // Write Rendering Layers
+            if (snippetData.passName == kPassNameDepthNormals)
+            {
+                if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.DepthNormalPassRenderingLayers))
+                    return true;
+            }
+            if (snippetData.passName == kPassNameForwardLit)
+            {
+                if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.OpaqueWriteRenderingLayers))
+                    return true;
+            }
+            if (snippetData.passName == kPassNameGBuffer)
+            {
+                if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.GBufferWriteRenderingLayers))
+                    return true;
+            }
 
             return false;
         }
@@ -994,6 +1042,8 @@ namespace UnityEditor.Rendering.Universal
                                     shaderFeatures |= ShaderFeatures.DecalGBuffer;
                                     break;
                             }
+                            if (decal.requiresDecalLayers)
+                                shaderFeatures |= ShaderFeatures.DecalLayers;
                         }
                     }
 
@@ -1001,6 +1051,21 @@ namespace UnityEditor.Rendering.Universal
                     {
                         rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
                             universalRendererData.clusteredRendering;
+
+                        switch (RenderingLayerUtils.GetEvent(universalRendererData))
+                        {
+                            case RenderingLayerUtils.Event.DepthNormalPrePass:
+                                shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
+                                break;
+
+                            case RenderingLayerUtils.Event.ForwardOpaque:
+                                shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
+                                break;
+
+                            case RenderingLayerUtils.Event.GBuffer:
+                                shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
+                                break;
+                        }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (universalRendererData.xrSystemData != null)

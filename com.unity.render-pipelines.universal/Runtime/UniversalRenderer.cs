@@ -375,6 +375,11 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
+        bool IsGLDevice()
+        {
+            return IsGLESDevice() || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
+        }
+
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -415,6 +420,11 @@ namespace UnityEngine.Rendering.Universal
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             var renderingLayersEvent = RenderingLayerUtils.GetEvent(this, rendererFeatures);
+
+            // All passes that use write to rendering layers are excluded from gl
+            // So we disable it to avoid setting multiple render targets
+            if (IsGLDevice())
+                renderingLayersEvent = RenderingLayerUtils.Event.None;
 
             bool requiresRenderingLayer = renderingLayersEvent != RenderingLayerUtils.Event.None;
             bool renderingLayerProvidesByDepthNormalPass = renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
@@ -674,8 +684,8 @@ namespace UnityEngine.Rendering.Universal
                 var renderingLayersDescriptor = cameraTargetDescriptor;
                 renderingLayersDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-                if (requiresDepthPrepass)
-                    renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                //if (requiresDepthPrepass)
+                //    renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.

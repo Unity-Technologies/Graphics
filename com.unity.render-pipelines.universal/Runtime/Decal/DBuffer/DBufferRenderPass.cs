@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal
 
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;
-        private int m_DBufferCount;
         private ProfilingSampler m_ProfilingSampler;
 
         private bool m_DecalLayers;
@@ -51,7 +50,6 @@ namespace UnityEngine.Rendering.Universal
 
             int dBufferCount = (int)settings.surfaceData + 1;
             dBufferColorHandles = new RTHandle[dBufferCount];
-            m_DBufferCount = dBufferCount;
         }
 
         public void Dispose()
@@ -187,6 +185,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
         }
     }
 }

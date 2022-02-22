@@ -404,6 +404,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.ForwardEmissiveProjector,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
+                keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
             };
 
