@@ -7,7 +7,7 @@ using System;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Data-Driven Lens Flare can be added on any gameobeject
+    /// Data-Driven Lens Flare can be added on any gameobject
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Lens Flare (SRP)")]
