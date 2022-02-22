@@ -36,7 +36,6 @@ test_platforms:
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [OSX_OpenGLCore, OSX_Metal]: brew install python
-    - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
@@ -63,7 +62,6 @@ test_platforms:
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [OSX_OpenGLCore, OSX_Metal]: brew install python
-    - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
