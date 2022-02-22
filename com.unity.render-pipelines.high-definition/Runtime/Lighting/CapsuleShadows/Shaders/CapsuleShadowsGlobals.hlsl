@@ -59,15 +59,9 @@ uint GetCapsuleIndirectOcclusionFlags()
     return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
 }
 
-uint GetCapsuleCasterType(CapsuleShadowCaster caster)   { return caster.header & 0xffU; }
-uint GetCapsuleSliceIndex(CapsuleShadowCaster caster)   { return (caster.header >> 8) & 0xffU; }
-
-struct CapsuleShadowVolume
-{
-    CapsuleOccluderData occluder;
-    CapsuleShadowCaster caster;
-    // TODO: precompute culling planes
-};
+uint GetCapsuleLayerMask(CapsuleOccluderData capsule)  { return (capsule.packedData >> 16) & 0xffU; }
+uint GetCapsuleCasterType(CapsuleOccluderData capsule)  { return (capsule.packedData >> 8) & 0xffU; }
+uint GetCapsuleCasterIndex(CapsuleOccluderData capsule) { return capsule.packedData & 0xffU; }
 
 // store in gamma 2 to increase precision at the low end
 float PackCapsuleVisibility(float visibility)   { return 1.f - sqrt(max(0.f, visibility)); }

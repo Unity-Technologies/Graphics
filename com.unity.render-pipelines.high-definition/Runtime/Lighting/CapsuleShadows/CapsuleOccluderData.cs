@@ -62,8 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float radius;
         public Vector3 axisDirWS;
         public float offset;
-        public Vector3 indirectDirWS; // for CapsuleIndirectShadowMethod.DirectionAtCapsule
-        public uint layerMask;
+        public Vector3 indirectDirWS;   // for CapsuleIndirectShadowMethod.DirectionAtCapsule
+        public uint packedData;         // [23:16]=layerMask, [15:8]=casterType, [7:0]=casterIndex
     }
 
     [GenerateHLSL]
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleShadowCaster
     {
-        public uint header;             // [15:8]=sliceIndex, [7:0]=casterType
+        public uint casterType;
         public float shadowRange;
         public float maxCosTheta;
         public float lightRange;        // point/spot light only
@@ -93,9 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public const int maxCapsuleShadowCasterCount = 4;
 
-        internal CapsuleShadowCaster(CapsuleShadowCasterType casterType, int sliceIndex, float _shadowRange, float _maxCosTheta)
+        internal CapsuleShadowCaster(CapsuleShadowCasterType _casterType, float _shadowRange, float _maxCosTheta)
         {
-            header = ((uint)sliceIndex << 8) | (uint)casterType;
+            casterType = (uint)_casterType;
             shadowRange = _shadowRange;
             maxCosTheta = _maxCosTheta;
             lightRange = 0.0f;
@@ -105,8 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             radiusWS = 0.0f;
         }
 
-        internal CapsuleShadowCasterType casterType { get { return (CapsuleShadowCasterType)(header & 0xffU); } }
-        internal uint sliceIndex { get { return (header >> 8) & 0xffU; } }
+        internal CapsuleShadowCasterType GetCasterType() { return (CapsuleShadowCasterType)casterType; }
     }
 
     internal static class CapsuleOccluderExt
@@ -126,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 radius = radiusWS,
                 axisDirWS = axisDirWS,
                 offset = offset,
-                layerMask = (uint)occluder.lightLayersMask,
+                packedData = (uint)occluder.lightLayersMask << 16,
             };
         }
     }

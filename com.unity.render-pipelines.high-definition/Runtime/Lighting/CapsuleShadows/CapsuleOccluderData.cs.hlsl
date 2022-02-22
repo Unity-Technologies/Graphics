@@ -61,14 +61,14 @@ struct CapsuleOccluderData
     float3 axisDirWS;
     float offset;
     float3 indirectDirWS;
-    uint layerMask;
+    uint packedData;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleShadowCaster
 // PackingRules = Exact
 struct CapsuleShadowCaster
 {
-    uint header;
+    uint casterType;
     float shadowRange;
     float maxCosTheta;
     float lightRange;

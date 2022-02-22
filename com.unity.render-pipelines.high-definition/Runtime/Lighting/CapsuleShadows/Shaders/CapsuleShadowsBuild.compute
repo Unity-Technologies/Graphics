@@ -9,9 +9,9 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
-StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderData;
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluders;
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
-RWStructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes;
+RWStructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows;
 RWStructuredBuffer<uint> _CapsuleShadowCounters;
 
 uint _CapsuleOccluderCount;
@@ -25,13 +25,19 @@ void Main(uint dispatchThreadId : SV_DispatchThreadID)
 	if (casterIndex > _CapsuleCasterCount)
 		return;
 
-	// TODO: cull against frustum, write out compactly
-	// TODO: precompute some clipping planes for the tiling pass
+	CapsuleOccluderData capsule = _CapsuleOccluders[occluderIndex];
+	CapsuleShadowCaster caster = _CapsuleShadowCasters[casterIndex];
 
-	CapsuleShadowVolume volume;
-	volume.occluder = _CapsuleOccluderData[occluderIndex];
-	volume.caster = _CapsuleShadowCasters[casterIndex];
-	_CapsuleShadowVolumes[dispatchThreadId] = volume;
+	// TODO: check occluder vs frustum
+	// TODO: check occluder vs light range
+	// TODO: only output visible shadows
+
+	capsule.packedData
+		= capsule.packedData
+		| (caster.casterType << 8)
+		| casterIndex
+		;
+	_CapsuleOccluderShadows[dispatchThreadId] = capsule;
 
 	if (dispatchThreadId == 0)
 		_CapsuleShadowCounters[0] = _CapsuleOccluderCount*_CapsuleCasterCount;

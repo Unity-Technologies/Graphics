@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
-StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderData;
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluders;
 TEXTURE2D_ARRAY(_CapsuleShadowsTexture);
 
 float EvaluateCapsuleDirectShadowLightLoop(
@@ -59,7 +59,7 @@ float EvaluateCapsuleDirectShadowLightLoop(
         if (s_capsuleIdx == -1)
             break;
 
-        CapsuleOccluderData s_capsuleData = _CapsuleOccluderData[s_capsuleIdx];
+        CapsuleOccluderData s_capsuleData = _CapsuleOccluders[s_capsuleIdx];
 
         // If current scalar and vector capsule index match, we process the capsule. The v_capsuleListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -68,7 +68,7 @@ float EvaluateCapsuleDirectShadowLightLoop(
         {
             v_capsuleListOffset++;
 
-            if (IsMatchingLightLayer(s_capsuleData.layerMask, renderLayer))
+            if (IsMatchingLightLayer(GetCapsuleLayerMask(s_capsuleData), renderLayer))
             {
                 float occlusion = EvaluateCapsuleOcclusion(
                     flags,
@@ -132,7 +132,7 @@ float EvaluateCapsuleAmbientOcclusionLightLoop(
         if (s_capsuleIdx == -1)
             break;
 
-        CapsuleOccluderData s_capsuleData = _CapsuleOccluderData[_CapsuleDirectShadowCount + s_capsuleIdx];
+        CapsuleOccluderData s_capsuleData = _CapsuleOccluders[_CapsuleDirectShadowCount + s_capsuleIdx];
 
         // If current scalar and vector capsule index match, we process the capsule. The v_capsuleListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -202,7 +202,7 @@ float EvaluateCapsuleIndirectShadowLightLoop(
         if (s_capsuleIdx == -1)
             break;
 
-        CapsuleOccluderData s_capsuleData = _CapsuleOccluderData[_CapsuleDirectShadowCount + s_capsuleIdx];
+        CapsuleOccluderData s_capsuleData = _CapsuleOccluders[_CapsuleDirectShadowCount + s_capsuleIdx];
 
         // If current scalar and vector capsule index match, we process the capsule. The v_capsuleListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could

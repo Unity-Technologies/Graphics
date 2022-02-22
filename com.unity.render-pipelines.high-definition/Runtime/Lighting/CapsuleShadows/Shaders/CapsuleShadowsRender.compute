@@ -16,7 +16,7 @@
 #endif
 
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer (need array support)
-StructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes; // TODO: could be constant buffer (need to write array from earlier pass)
+StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows; // TODO: could be constant buffer (need to write array from earlier pass)
 StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsRenderOutput);
 #ifdef CAPSULE_TILE_DEBUG
@@ -88,9 +88,8 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
     if (casterIndex < _CapsuleCasterCount && (depthRangeIndex == 0 || useSecondDepthRange))
     {
         CapsuleShadowCaster caster = _CapsuleShadowCasters[casterIndex];
-        uint casterType = GetCapsuleCasterType(caster);
         bool isValid;
-        if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
+        if (caster.casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
         {
             // no light to intersect, always valid
             isValid = true;
@@ -106,7 +105,7 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
             CasterRenderData renderData;
             renderData.maxCosTheta = caster.maxCosTheta;
             renderData.shadowRange = caster.shadowRange;
-            if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+            if (caster.casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
             {
                 renderData.positionWS = caster.directionWS;
                 renderData.radiusWS = 0.f;
@@ -133,7 +132,7 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
 
                 // check the tile is within the volume of the light
                 isValid = (tileToLightDistance < caster.lightRange);
-                if (casterType == CAPSULESHADOWCASTERTYPE_SPOT)
+                if (caster.casterType == CAPSULESHADOWCASTERTYPE_SPOT)
                 {
                     float tileConeSinTheta = tileRadiusWS/tileToLightDistance;
                     float tileConeCosTheta = MatchingSinCos(tileConeSinTheta);
@@ -160,18 +159,15 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
     return s_casterValidBits != 0;
 }
 
-bool CapsuleIntersectsTile(CapsuleShadowVolume volume, uint depthRangeIndex, float3 tileCenterWS, float tileRadiusWS)
+bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint depthRangeIndex, float3 tileCenterWS, float tileRadiusWS)
 {
-    CapsuleShadowCaster lightData = volume.caster;
-    CapsuleOccluderData capsuleData = volume.occluder;
-
     float3 tileToCapsuleVec = capsuleData.centerRWS - tileCenterWS;
     float3 tileToClosestPointOnCapsuleAxis
         = tileToCapsuleVec
         + clamp(RayClosestPoint(tileToCapsuleVec, capsuleData.axisDirWS, 0.f), -capsuleData.offset, capsuleData.offset)*capsuleData.axisDirWS;
     float capsuleSignedDistanceFromTile = length(tileToClosestPointOnCapsuleAxis) - capsuleData.radius - tileRadiusWS;
 
-    uint casterType = GetCapsuleCasterType(lightData);
+    uint casterType = GetCapsuleCasterType(capsuleData);
 
     bool intersectsTile;
     if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
@@ -182,8 +178,7 @@ bool CapsuleIntersectsTile(CapsuleShadowVolume volume, uint depthRangeIndex, flo
     else
     {
         // grab caster data
-        // TODO: move index to capsule
-        uint casterIndex = GetCapsuleSliceIndex(lightData);
+        uint casterIndex = GetCapsuleCasterIndex(capsuleData);
         intersectsTile = (((s_casterValidBits >> casterIndex) & 1) != 0);
         if (intersectsTile)
         {
@@ -271,8 +266,8 @@ void CapsuleShadowLoop(
     float3 normalWS = float3(fullResCoord.x, fullResCoord.y, INVALID_NORMAL_TAG);
 
     // loop over capsules in batches
-    uint volumeCount = _CapsuleShadowCounters[0];
-    for (uint volumeBaseIndex = 0; volumeBaseIndex < volumeCount; volumeBaseIndex += 64)
+    uint shadowCount = _CapsuleShadowCounters[0];
+    for (uint shadowBaseIndex = 0; shadowBaseIndex < shadowCount; shadowBaseIndex += 64)
     {
         // clear state
         if (flatThreadIndex < 2)
@@ -282,14 +277,14 @@ void CapsuleShadowLoop(
         // use one thread per capsule to check against tile
         // TODO: check if any pixels still visible?
         {
-            uint volumeIndex = volumeBaseIndex + flatThreadIndex;
-            if (volumeIndex < volumeCount)
+            uint shadowIndex = shadowBaseIndex + flatThreadIndex;
+            if (shadowIndex < shadowCount)
             {
-                CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
+                CapsuleOccluderData capsule = _CapsuleOccluderShadows[shadowIndex];
 
-                bool intersectsTile = CapsuleIntersectsTile(volume, 0, tileCenterWS0, tileRadiusWS0);
+                bool intersectsTile = CapsuleIntersectsTile(capsule, 0, tileCenterWS0, tileRadiusWS0);
                 if (useSecondDepthRange && !intersectsTile)
-                    intersectsTile = CapsuleIntersectsTile(volume, 1, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
+                    intersectsTile = CapsuleIntersectsTile(capsule, 1, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
 
                 if (intersectsTile)
                     InterlockedOr(s_intersectionBits[flatThreadIndex/32], 1U << (flatThreadIndex % 32));
@@ -322,10 +317,11 @@ void CapsuleShadowLoop(
             int bitIndex = firstbitlow(remainingBits);
             remainingBits &= ~(1U << bitIndex);
 
-            uint volumeIndex = volumeBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
+            uint shadowIndex = shadowBaseIndex + (secondPass ? 32 : 0) + (uint)bitIndex;
 
-            CapsuleShadowVolume volume = _CapsuleShadowVolumes[volumeIndex];
-            uint casterType = GetCapsuleCasterType(volume.caster);
+            CapsuleOccluderData capsule = _CapsuleOccluderShadows[shadowIndex];
+            uint casterIndex = GetCapsuleCasterIndex(capsule);
+            uint casterType = GetCapsuleCasterType(capsule);
 
             float occlusion;
             if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
@@ -335,25 +331,25 @@ void CapsuleShadowLoop(
                 {
                     occlusion = EvaluateCapsuleAmbientOcclusion(
                         GetCapsuleAmbientOcclusionFlags(),
-                        volume.occluder.centerRWS - positionWS,
-                        volume.occluder.axisDirWS,
-                        volume.occluder.offset,
-                        volume.occluder.radius,
-                        volume.occluder.radius*_CapsuleIndirectRangeFactor,
+                        capsule.centerRWS - positionWS,
+                        capsule.axisDirWS,
+                        capsule.offset,
+                        capsule.radius,
+                        capsule.radius*_CapsuleIndirectRangeFactor,
                         normalWS);
                 }
                 else // method == CAPSULEINDIRECTSHADOWMETHOD_DIRECTION_AT_CAPSULE
                 {
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleIndirectOcclusionFlags(),
-                        volume.occluder.indirectDirWS,
+                        capsule.indirectDirWS,
                         false,
                         _CapsuleIndirectCosAngle,
-                        volume.occluder.centerRWS - positionWS,
-                        volume.occluder.axisDirWS,
-                        volume.occluder.offset,
-                        volume.occluder.radius,
-                        volume.occluder.radius*_CapsuleIndirectRangeFactor,
+                        capsule.centerRWS - positionWS,
+                        capsule.axisDirWS,
+                        capsule.offset,
+                        capsule.radius,
+                        capsule.radius*_CapsuleIndirectRangeFactor,
                         normalWS);
                 }
 #ifdef CAPSULE_TILE_DEBUG
@@ -363,35 +359,36 @@ void CapsuleShadowLoop(
             }
             else
             {
+                CasterRenderData renderData = s_casterRenderData[casterIndex];
                 if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
                 {
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleDirectOcclusionFlags(),
-                        volume.caster.directionWS,
+                        renderData.positionWS,
                         false,
-                        volume.caster.maxCosTheta,
-                        volume.occluder.centerRWS - positionWS,
-                        volume.occluder.axisDirWS,
-                        volume.occluder.offset,
-                        volume.occluder.radius,
-                        volume.caster.shadowRange,
+                        renderData.maxCosTheta,
+                        capsule.centerRWS - positionWS,
+                        capsule.axisDirWS,
+                        capsule.offset,
+                        capsule.radius,
+                        renderData.shadowRange,
                         normalWS);
                 }
                 else // casterType == CAPSULESHADOWCASTERTYPE_POINT
                 {
-                    float3 surfaceToLightVec = volume.caster.positionRWS - positionWS;
-                    float sinTheta = volume.caster.radiusWS/length(surfaceToLightVec);
-                    float cosTheta = min(volume.caster.maxCosTheta, MatchingSinCos(sinTheta));
+                    float3 surfaceToLightVec = renderData.positionWS - positionWS;
+                    float sinTheta = renderData.radiusWS/length(surfaceToLightVec);
+                    float cosTheta = min(renderData.maxCosTheta, MatchingSinCos(sinTheta));
                     occlusion = EvaluateCapsuleOcclusion(
                         GetCapsuleDirectOcclusionFlags(),
                         surfaceToLightVec,
                         true,
                         cosTheta,
-                        volume.occluder.centerRWS - positionWS,
-                        volume.occluder.axisDirWS,
-                        volume.occluder.offset,
-                        volume.occluder.radius,
-                        volume.caster.shadowRange,
+                        capsule.centerRWS - positionWS,
+                        capsule.axisDirWS,
+                        capsule.offset,
+                        capsule.radius,
+                        renderData.shadowRange,
                         normalWS);
                 }
 #ifdef CAPSULE_TILE_DEBUG
@@ -399,7 +396,7 @@ void CapsuleShadowLoop(
                     ++processedCapsuleCounter;
 #endif
             }
-            UpdateVisibility(flatThreadIndex, GetCapsuleSliceIndex(volume.caster), occlusion);
+            UpdateVisibility(flatThreadIndex, casterIndex, occlusion);
         }
     }
 }
