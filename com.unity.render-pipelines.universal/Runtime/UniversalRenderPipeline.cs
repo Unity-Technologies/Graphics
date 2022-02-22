@@ -657,12 +657,7 @@ namespace UnityEngine.Rendering.Universal
             if (xrActive)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
-                var pass0 = xrLayout.GetActivePasses()[0].Item2;
-                cmd.ConfigureFoveatedRendering(pass0.foveatedRenderingInfo);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, pass0.foveatedRenderingInfo != IntPtr.Zero);
                 XRSystem.RenderMirrorView(cmd, baseCamera);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-                cmd.ConfigureFoveatedRendering(IntPtr.Zero);
                 context.ExecuteCommandBuffer(cmd);
                 context.Submit();
                 CommandBufferPool.Release(cmd);
@@ -697,7 +692,6 @@ namespace UnityEngine.Rendering.Universal
             if (baseCameraData.isHdrEnabled)
             {
                 baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                
             }
             baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
             baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;

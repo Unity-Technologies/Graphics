@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -62,12 +63,18 @@ namespace UnityEngine.Experimental.Rendering
                             s_MirrorViewMaterialProperty.SetVector(k_ScaleBiasRt, scaleBiasRt);
                             s_MirrorViewMaterialProperty.SetFloat(k_SourceTexArraySlice, blitParam.srcTexArraySlice);
 
+                            cmd.ConfigureFoveatedRendering(blitParam.foveatedRenderingInfo);
+                            CoreUtils.SetKeyword(cmd, "_USE_FOVEATED_RENDERING", blitParam.foveatedRenderingInfo != IntPtr.Zero);
+
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mat, shaderPass, MeshTopology.Quads, 4, 1, s_MirrorViewMaterialProperty);
                         }
                     }
                 }
             }
+
+            cmd.ConfigureFoveatedRendering(IntPtr.Zero);
+            cmd.DisableShaderKeyword("_USE_FOVEATED_RENDERING");
         }
 
 #endif
