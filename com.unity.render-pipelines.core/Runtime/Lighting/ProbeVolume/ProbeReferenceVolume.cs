@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The memory budget determining the size of the textures used for blending between scenarios.
         /// </summary>
-        public ProbeVolumeTextureMemoryBudget blendingMemoryBudget;
+        public ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
         /// The debug mesh used to draw probes in the debug view.
         /// </summary>
@@ -294,9 +294,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Shader offsetDebugShader;
         /// <summary>
-        /// The compute shader used to interpolate between two baking states.
+        /// The compute shader used to interpolate between two lighting scenarios.
+        /// Set to null if blending is not supported.
         /// </summary>
-        public ComputeShader stateBlendShader;
+        public ComputeShader scenarioBlendingShader;
         /// <summary>
         /// The <see cref="ProbeVolumeSceneData"/>
         /// </summary>
@@ -367,6 +368,20 @@ namespace UnityEngine.Rendering
         MemoryBudgetMedium = 1024,
         /// <summary>High Budget</summary>
         MemoryBudgetHigh = 2048,
+    }
+
+    /// <summary>
+    /// Possible values for the probe volume scenario blending memory budget (determines the size of the textures used).
+    /// </summary>
+    [Serializable]
+    public enum ProbeVolumeBlendingTextureMemoryBudget
+    {
+        /// <summary>Low Budget</summary>
+        MemoryBudgetLow = 128,
+        /// <summary>Medium Budget</summary>
+        MemoryBudgetMedium = 256,
+        /// <summary>High Budget</summary>
+        MemoryBudgetHigh = 512,
     }
 
     /// <summary>
@@ -517,6 +532,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+        [DebuggerDisplay("Index = {cellInfo.index} Factor = {blendingFactor}")]
         internal class BlendingCellInfo : IComparable<BlendingCellInfo>
         {
             public CellInfo cellInfo;
@@ -754,7 +770,8 @@ namespace UnityEngine.Rendering
         bool m_ProbeReferenceVolumeInit = false;
         bool m_EnabledBySRP = false;
 
-        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        /// <summary>Is Probe Volume initialized.</summary>
+        public bool isInitialized => m_ProbeReferenceVolumeInit;
         internal bool enabledBySRP => m_EnabledBySRP;
 
         internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;
@@ -779,7 +796,10 @@ namespace UnityEngine.Rendering
         private int m_NumberOfCellsLoadedPerFrame = 2;
 #endif
 
-        ProbeVolumeTextureMemoryBudget m_MemoryBudget, m_BlendingMemoryBudget;
+        internal int numberOfCellsLoadedPerFrame => m_NumberOfCellsLoadedPerFrame;
+
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        ProbeVolumeBlendingTextureMemoryBudget m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
         float m_ProbeVolumesWeight;
 
@@ -790,26 +810,25 @@ namespace UnityEngine.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
-        /// <summary>The current lighting scenario.</summary>
+        /// <summary>The active lighting scenario.</summary>
         public string lightingScenario
         {
             get => sceneData.lightingScenario;
-            set => SetLightingScenario(value, 0.0f);
+            set => sceneData.SetActiveScenario(value);
         }
-        /// <summary>The lerp factor when transitioning from between two scenarios. 1 means active scenario is fully active.</summary>
-        public float lightingScenarioLerp => m_ScenarioLerpFactor;
 
-        /// <summary>Set the active lighting scenario.</summary>
-        /// <param name="scenario">The name of the scenario to load.</param>
-        /// <param name="transitionTime">The time in seconds to smoothly transition from the current scenario to the new scenario.</param>
-        public void SetLightingScenario(string scenario, float transitionTime)
+        /// <summary>The blending factor currently used to blend probe data. A value of 0 means blending is not active.</summary>
+        public float scenarioBlendingFactor
         {
-            bool changedState = sceneData.SetLightingScenario(scenario, transitionTime);
-#if UNITY_EDITOR
-            if (changedState)
-                EditorUtility.SetDirty(sceneData.parentAsset);
-#endif
+            get => sceneData.scenarioBlendingFactor;
+            set => sceneData.BlendLightingScenario(sceneData.otherScenario, value);
         }
+
+        /// <summary>Allows smooth transitions between two lighting scenarios. This only affects the runtime data used for lighting.</summary>
+        /// <param name="otherScenario">The name of the scenario to load.</param>
+        /// <param name="blendingFactor">The factor used to interpolate between the active scenario and otherScenario. Accepted values range from 0 to 1 and will progressively blend from the active scenario to otherScenario.</param>
+        public void BlendLightingScenario(string otherScenario, float blendingFactor)
+            => sceneData.BlendLightingScenario(otherScenario, blendingFactor);
 
         internal static string defaultLightingScenario = "Default";
 
@@ -1002,7 +1021,6 @@ namespace UnityEngine.Rendering
                 blendingCell.chunkList.Clear();
                 blendingCell.blending = false;
             }
-            blendingCell.blendingFactor = m_ScenarioLerpFactor;
         }
 
         internal void UnloadAllCells(bool invalidateDebugData = false)
@@ -1385,7 +1403,7 @@ namespace UnityEngine.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="shBands">Probe reference volume SH bands.</param>
-        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
+        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
         {
             var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
             var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
@@ -1592,8 +1610,8 @@ namespace UnityEngine.Rendering
             int chunkSize = ProbeBrickPool.GetChunkSizeInBrickCount();
             blendingCell.chunkList.Clear();
 
-            // If transition if finished, bypass the blending pool and directly udpate uploaded cells
-            bool bypassBlending = (m_ScenarioLerpFactor >= 1.0f) || !cell.hasTwoScenarios;
+            // If no blending is needed, bypass the blending pool and directly udpate uploaded cells
+            bool bypassBlending = sceneData.otherScenario == null || !cell.hasTwoScenarios;
 
             // Try to allocate texture space
             if (!bypassBlending && !m_BlendingPool.Allocate(ProbeBrickPool.GetChunkCount(bricks.Length), blendingCell.chunkList))
@@ -1607,18 +1625,19 @@ namespace UnityEngine.Rendering
             {
                 if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    if (bypassBlending)
+                    if (bypassBlending && blendingCell.blendingFactor != scenarioBlendingFactor)
                     {
                         // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
                         // no index or chunk data must change, so only probe values need to be updated
                         bool useState0 = !cell.hasTwoScenarios;
-                        UpdatePool(chunkList, useState0 ? cell.scenario0 : cell.scenario1, cell.validityNeighMaskData, chunkIndex, -1);
+                        UpdatePool(chunkList, cell.scenario0, cell.validityNeighMaskData, chunkIndex, -1);
                     }
                     else
                     {
                         // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
                         // state0
                         UpdatePool(chunkList, cell.scenario0, cell.validityNeighMaskData, chunkIndex, 0);
+
 
                         // state1
                         UpdatePool(chunkList, cell.scenario1, cell.validityNeighMaskData, chunkIndex, 1);
@@ -1656,7 +1675,7 @@ namespace UnityEngine.Rendering
             }
 
             blendingCell.blending = true;
-            blendingCell.blendingFactor = bypassBlending ? 1.0f : m_ScenarioLerpFactor;
+            blendingCell.blendingFactor = cell.hasTwoScenarios ? scenarioBlendingFactor : 0.0f;
 
             Profiler.EndSample();
 
@@ -1679,8 +1698,10 @@ namespace UnityEngine.Rendering
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList, ignoreErrorLog))
                 return false;
 
-            bool useState0 = m_ScenarioLerpFactor < 0.5f || !cell.hasTwoScenarios;
-            cellInfo.blendingCell.blendingFactor = m_ScenarioLerpFactor < 0.5f ? 0.0f : 1.0f;
+            // Queue this cell for blending
+            bool useState0 = scenarioBlendingFactor < 0.5f || !cell.hasTwoScenarios;
+            cellInfo.blendingCell.blendingFactor = useState0 ? 0.0f : 1.0f;
+            m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
@@ -1705,7 +1726,6 @@ namespace UnityEngine.Rendering
             }
 
             m_BricksLoaded = true;
-            m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
 
             // Build index
             m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSizeInBrickCount(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);

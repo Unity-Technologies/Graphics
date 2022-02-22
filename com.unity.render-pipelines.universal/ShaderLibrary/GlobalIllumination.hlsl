@@ -7,18 +7,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
-// We might do it fully or partially in vertex to save shader ALU
-#if !defined(LIGHTMAP_ON)
-// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
-        // Evaluates SH fully in vertex
-        #define EVALUATE_SH_VERTEX
-    #elif !SHADER_HINT_NICE_QUALITY
-        // Evaluates L2 SH in vertex and L0L1 in pixel
-        #define EVALUATE_SH_MIXED
-    #endif
-        // Otherwise evaluate SH fully per-pixel
-#endif
 
 // Renamed -> LIGHTMAP_SHADOW_MIXING
 #if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
@@ -64,7 +52,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #if defined(EVALUATE_SH_VERTEX)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
-    half3 res = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
+    half3 res = L2Term + SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
 #ifdef UNITY_COLORSPACE_GAMMA
     res = LinearToSRGB(res);
 #endif
