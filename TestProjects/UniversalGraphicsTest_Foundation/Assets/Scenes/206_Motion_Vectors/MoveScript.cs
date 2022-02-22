@@ -7,10 +7,10 @@ public class MoveScript : MonoBehaviour
 
     void Update()
     {
-        transform.position += transform.right * m_Speed;
+        transform.position += transform.right * m_Speed * Time.deltaTime;
         ++m_FrameCounter;
 
-        if (m_FrameCounter > 4)
+        if (m_FrameCounter > 60)
         {
             m_FrameCounter = 0;
             m_Speed *= -1;

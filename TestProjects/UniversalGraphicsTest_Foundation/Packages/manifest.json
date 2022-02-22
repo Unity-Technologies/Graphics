@@ -18,6 +18,7 @@
     "com.unity.testframework.graphics": "7.8.19-exp.2",
     "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
     "com.unity.ugui": "1.0.0",
+    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
