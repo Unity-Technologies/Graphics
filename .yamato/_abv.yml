@@ -35,7 +35,7 @@ all_project_ci_nightly_trunk:
     triggers:
         recurring:
           -  branch: master
-             frequency: 1 * * ?
+             frequency: 23 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
