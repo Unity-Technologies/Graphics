@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
+using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
@@ -57,7 +58,12 @@ Shader ""Hidden/GraphErrorShader2""
 
         private Shader GetShader(AssetImportContext ctx, GraphHandler graph)
         {
-            return ShaderUtil.CreateShaderAsset(ctx, k_ErrorShader, false);
+            var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+            var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var node = graph.GetNodeReader(key.Name);
+
+            var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
+            return ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
         }
 
         public override void OnImportAsset(AssetImportContext ctx)

@@ -129,11 +129,11 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             //length by height
             string lxh = "";
-            if(entry.length > 1 || entry.height > 1)
+            if((int)entry.length > 1 || (int)entry.height > 1)
             {
                 lxh += entry.length;
             }
-            if(entry.height > 1)
+            if((int)entry.height > 1)
             {
                 lxh += "x" + entry.height;
             }

@@ -105,8 +105,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         {
                             fieldName = "Foo",
                             primitive = Registry.Types.GraphType.Primitive.Int,
-                            height = 1,
-                            length = 1,
+                            height = Registry.Types.GraphType.Height.One,
+                            length = Registry.Types.GraphType.Length.One,
                             precision = Registry.Types.GraphType.Precision.Fixed,
                             isFlat = true
                         }

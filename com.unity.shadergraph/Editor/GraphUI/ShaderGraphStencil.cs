@@ -46,26 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (RegistryInstance == null)
             {
-                RegistryInstance = new Registry.Registry();
-                RegistryInstance.Register<Registry.Types.GraphType>();
-                RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
-                //RegistryInstance.Register<Registry.Types.AddNode>();
-
-                // Register nodes from FunctionDescriptors in IStandardNode classes.
-                var interfaceType = typeof(IStandardNode);
-                var types = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(s => s.GetTypes())
-                    .Where(p => interfaceType.IsAssignableFrom(p));
-                string m = "get_FunctionDescriptor";
-                foreach (var t in types)
-                {
-                    var fdMethod = t.GetMethod(m);
-                    if (t != interfaceType && fdMethod != null)
-                    {
-                        var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                        RegistryInstance.Register(fd);
-                    }
-                }
+                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
             }
             return RegistryInstance;
         }

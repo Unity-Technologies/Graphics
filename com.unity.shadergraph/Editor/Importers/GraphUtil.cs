@@ -12,6 +12,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
             GraphHandler output = new GraphHandler();
+            var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+            var contextKey = Registry.Registry.ResolveKey< Registry.Default.DefaultContext>();
+            output.AddContextNode(contextKey, reg);
             helper.GraphDeltaJSON = output.ToSerializedFormat();
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(helper, true), Encoding.UTF8);
             AssetDatabase.ImportAsset(pathName);

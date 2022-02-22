@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        internal class GraphType : Defs.ITypeDefinitionBuilder
+        public class GraphType : Defs.ITypeDefinitionBuilder
         {
             public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
             public RegistryKey GetRegistryKey() => kRegistryKey;

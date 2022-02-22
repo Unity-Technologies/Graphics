@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    public class GraphHandler 
+    public class GraphHandler
     {
         internal GraphDelta graphDelta;
 
@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);
         public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry) => graphDelta.AddNode(key, name, registry);
+        public INodeWriter AddContextNode(RegistryKey key, Registry.Registry registry) => graphDelta.AddContextNode(key, registry);
         public bool ReconcretizeNode(string name, Registry.Registry registry) => graphDelta.ReconcretizeNode(name, registry);
         public INodeReader GetNodeReader(string name) => graphDelta.GetNodeReader(name);
         public INodeWriter GetNodeWriter(string name) => graphDelta.GetNodeWriter(name);

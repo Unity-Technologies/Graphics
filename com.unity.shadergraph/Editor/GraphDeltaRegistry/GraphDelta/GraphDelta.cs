@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Registry.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed class GraphDelta 
+    internal sealed class GraphDelta
     {
         internal readonly GraphStorage m_data;
 

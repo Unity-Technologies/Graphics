@@ -20,11 +20,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 new ()
                 {
                     fieldName = "BaseColor",
-                    primitive = Registry.Types.GraphType.Primitive.Float,
-                    height = 1,
-                    length = 3,
-                    precision = Registry.Types.GraphType.Precision.Fixed,
-                    isFlat = true
+                    primitive = Types.GraphType.Primitive.Float,
+                    precision = Types.GraphType.Precision.Fixed,
+                    height = Types.GraphType.Height.One,
+                    length = Types.GraphType.Length.One,
                 }
             };
         }
