@@ -34,8 +34,7 @@ float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
 
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    outBuffer = (float4)0.0f;
+    outBuffer = float4(velocity.xy, 0, 0);
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -51,6 +50,7 @@ float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 {
+    //TODOPAUL : It isn't the previous clip !
     //TODO : LWRP doesn't support motion vector & TAA yet
     return VFXTransformPositionWorldToClip(posWS);
 }
