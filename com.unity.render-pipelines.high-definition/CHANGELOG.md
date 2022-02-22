@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 - Fixed HDRP camera debug panel rendering foldout.
 - Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
 
 ## [12.1.4] - 2021-12-07
 
