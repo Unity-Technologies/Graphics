@@ -26,6 +26,12 @@ The version number for this package has increased due to a version update of a r
 - Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
 - Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
 - Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
+- Better node position when created by dragging an edge
+- Fixed an exception when setting when changing the space of a shape to world (https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
+- Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
+- In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
+- Fix Motion vectors in XR. [Case 14003636](https://issuetracker.unity3d.com/product/unity/issues/guid/14003636/)
+- HDRP Decals are not in experimental.
 
 ## [13.1.5] - 2021-12-17
 
@@ -42,6 +48,8 @@ The version number for this package has increased due to a version update of a r
 - Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)
 - Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
 - Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
+
+## [13.1.2] - 2021-11-05
 
 ### Fixed
 - Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)
