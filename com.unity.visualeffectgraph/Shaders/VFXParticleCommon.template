@@ -213,6 +213,8 @@ ${VFXBegin:VFXPassDepthCommonFragmentUnlit}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+float4 _SelectionID;
 #endif
 
 #pragma fragment frag
@@ -232,7 +234,7 @@ void frag(ps_input i
     #else
     , out float4 dummy : SV_Target0
     #endif
-#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
     , out float4 outSelection : SV_Target0
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
     , out float4 dummy : SV_Target0
@@ -271,6 +273,8 @@ void frag(ps_input i
 		outMotionVector = encodedMotionVector;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+		outSelection = _SelectionID;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		#ifndef WRITE_MSAA_DEPTH
 		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);

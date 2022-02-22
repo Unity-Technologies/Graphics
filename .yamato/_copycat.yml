@@ -9,7 +9,7 @@ nightly_katana_abv_validate:
   variables:
     MANIFEST: .copycat/graphics.json
     RELEASE_BRANCH: 2022.1/staging
-    SRP_VERSION: "13.1.6"
+    SRP_VERSION: "13.1.7"
   skip_checkout: true
   commands:
     - eval "$COPYCAT_1"
@@ -31,7 +31,7 @@ vendor:
   variables:
     MANIFEST: .copycat/graphics.json
     RELEASE_BRANCH: 2022.1/staging
-    SRP_VERSION: "13.1.6"
+    SRP_VERSION: "13.1.7"
   skip_checkout: true
   commands:
     - eval "$COPYCAT_1"

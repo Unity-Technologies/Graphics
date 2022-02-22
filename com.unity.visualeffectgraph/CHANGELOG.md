@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.7] - 2022-02-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [13.1.6] - 2022-01-14
 
 ### Fixed
@@ -21,6 +26,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Show opened VFX asset in inspector when clicking in a void area and unselect node when VFX graph loose focus
 - Disabled text inputs were unreadable [Case 1387237](https://issuetracker.unity3d.com/product/unity/issues/guid/1387237/)
 - Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
+- Better node position when created by dragging an edge
+- Fixed an exception when setting when changing the space of a shape to world (https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
+- Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
+- In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
+- Fix Motion vectors in XR. [Case 14003636](https://issuetracker.unity3d.com/product/unity/issues/guid/14003636/)
+- HDRP Decals are not in experimental.
+- Fixed an exception when setting when changing the space of a shape to world [Case 1389076](https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
+- Picking and Selection passes [Case 1382788](https://issuetracker.unity3d.com/product/unity/issues/guid/1382788/), [Case 1402283](https://issuetracker.unity3d.com/product/unity/issues/guid/1402283/)
 
 ## [13.1.5] - 2021-12-17
 
@@ -37,6 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)
 - Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
 - Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
+
+## [13.1.2] - 2021-11-05
 
 ### Fixed
 - Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)

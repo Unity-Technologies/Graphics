@@ -490,8 +490,7 @@ namespace UnityEditor.VFX
                     {
                         if (property.property.propertyType == PropertyType.Float)
                         {
-                            var prop = property.property as Vector1ShaderProperty;
-                            if (prop != null)
+                            if (property.property is Vector1ShaderProperty prop)
                             {
                                 if (prop.floatType == FloatType.Slider)
                                     shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName, new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)), GetSGPropertyValue(property.property)));
