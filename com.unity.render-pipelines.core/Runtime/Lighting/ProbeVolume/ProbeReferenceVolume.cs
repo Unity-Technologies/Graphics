@@ -480,7 +480,7 @@ namespace UnityEngine.Rendering
             public int flatIdxInCellIndices = -1;
             public bool loaded = false;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
-            public int sourceAssetInstanceID;
+            public ProbeVolumeAsset sourceAsset;
             public float streamingScore;
             public int referenceCount = 0;
 
@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering
                 flatIdxInCellIndices = -1;
                 loaded = false;
                 updateInfo = default(ProbeBrickIndex.CellIndexUpdateInfo);
-                sourceAssetInstanceID = -1;
+                sourceAsset = null;
                 streamingScore = 0;
                 referenceCount = 0;
                 debugProbes = null;
@@ -1015,7 +1015,7 @@ namespace UnityEngine.Rendering
             m_LoadedBlendingCells.Clear();
         }
 
-        void AddCell(Cell cell, int assetInstanceID)
+        void AddCell(Cell cell, ProbeVolumeAsset asset)
         {
             // The same cell can exist in more than one asset
             // Need to check existence because we don't want to add cells more than once to streaming structures
@@ -1025,7 +1025,7 @@ namespace UnityEngine.Rendering
                 cellInfo = m_CellInfoPool.Get();
                 cellInfo.cell = cell;
                 cellInfo.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
-                cellInfo.sourceAssetInstanceID = assetInstanceID;
+                cellInfo.sourceAsset = asset;
                 cellInfo.referenceCount = 1;
                 cells[cell.index] = cellInfo;
 
@@ -1045,7 +1045,7 @@ namespace UnityEngine.Rendering
         // Calling this from "outside" will not properly update Loaded/ToBeLoadedCells arrays and thus will break the state of streaming.
         internal bool LoadCell(CellInfo cellInfo)
         {
-            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
+            if (GetCellIndexUpdate(cellInfo.cell, cellInfo.sourceAsset, out var cellUpdateInfo)) // Allocate indices
             {
                 minLoadedCellPos = Vector3Int.Min(minLoadedCellPos, cellInfo.cell.position);
                 maxLoadedCellPos = Vector3Int.Max(maxLoadedCellPos, cellInfo.cell.position);
@@ -1205,7 +1205,7 @@ namespace UnityEngine.Rendering
             int assetInstanceID = asset.GetInstanceID();
             for (int i = m_LoadedCells.size - 1; i >= 0; i--)
             {
-                if (m_LoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                if (m_LoadedCells[i].sourceAsset.GetInstanceID() == assetInstanceID)
                 {
                     if (m_LoadedCells[i].blendingCell.blending)
                         m_LoadedBlendingCells.Remove(m_LoadedCells[i].blendingCell);
@@ -1217,7 +1217,7 @@ namespace UnityEngine.Rendering
             }
             for (int i = m_ToBeLoadedCells.size - 1; i >= 0; i--)
             {
-                if (m_ToBeLoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                if (m_ToBeLoadedCells[i].sourceAsset.GetInstanceID() == assetInstanceID)
                 {
                     m_ToBeLoadedCells.RemoveAt(i);
                 }
@@ -1264,9 +1264,7 @@ namespace UnityEngine.Rendering
             // Add all the cells to the system.
             // They'll be streamed in later on.
             for (int i = 0; i < asset.cells.Length; ++i)
-            {
-                AddCell(asset.cells[i], asset.GetInstanceID());
-            }
+                AddCell(asset.cells[i], asset);
         }
 
         void PerformPendingLoading()
@@ -1347,13 +1345,14 @@ namespace UnityEngine.Rendering
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
 
-        bool GetCellIndexUpdate(Cell cell, out ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        bool GetCellIndexUpdate(Cell cell, ProbeVolumeAsset asset, out ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
             cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
             int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out var minValidLocalIdx, out var sizeOfValidIndices);
             cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
             cellUpdateInfo.minSubdivInCell = cell.minSubdiv;
+            cellUpdateInfo.maxSubdivision = asset.maxSubdivision;
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
             cellUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne = sizeOfValidIndices + minValidLocalIdx;
 

@@ -85,10 +85,10 @@ namespace UnityEngine.Rendering
         ObjectPool<List<VoxelMeta>> m_VoxelMetaListPool = new ObjectPool<List<VoxelMeta>>(x => x.Clear(), null, false);
         ObjectPool<VoxelMeta> m_VoxelMetaPool = new ObjectPool<VoxelMeta>(x => x.Clear(), null, false);
 
-        int GetVoxelSubdivLevel()
+        int GetVoxelSubdivLevel(int maxSubdivision)
         {
             int defaultVoxelSubdivLevel = 3;
-            return Mathf.Min(defaultVoxelSubdivLevel, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
+            return Mathf.Min(defaultVoxelSubdivLevel, maxSubdivision - 1);
         }
 
         bool m_NeedUpdateIndexComputeBuffer;
@@ -185,15 +185,15 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels)
+        void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels, int maxSubdivision)
         {
             // create a list of all voxels this brick will touch
             int brick_subdiv = brick.subdivisionLevel;
-            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - GetVoxelSubdivLevel()));
+            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - GetVoxelSubdivLevel(maxSubdivision)));
 
             Vector3Int ipos = brick.position;
             int brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
-            int voxel_size = ProbeReferenceVolume.CellSize(GetVoxelSubdivLevel());
+            int voxel_size = ProbeReferenceVolume.CellSize(GetVoxelSubdivLevel(maxSubdivision));
 
             if (voxels_touched_cnt <= 1)
             {
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering
         void ClearVoxel(Vector3Int pos, CellIndexUpdateInfo cellInfo)
         {
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(pos, GetVoxelSubdivLevel(cellInfo.maxSubdivision), out vx_min, out vx_max, cellInfo);
             UpdatePhysicalIndex(vx_min, vx_max, -1, cellInfo);
         }
 
@@ -238,6 +238,7 @@ namespace UnityEngine.Rendering
             public int firstChunkIndex;
             public int numberOfChunks;
             public int minSubdivInCell;
+            public int maxSubdivision;
             // IMPORTANT, These values should be at max resolution. This means that
             // The map to the lower possible resolution is done after.  However they are still in local space.
             public Vector3Int minValidBrickIndexForCellAtMaxRes;
@@ -328,7 +329,7 @@ namespace UnityEngine.Rendering
                     Debug.Assert(cellSize <= largest_cell, "Cell sizes are not correctly sorted.");
                     largest_cell = Mathf.Min(largest_cell, cellSize);
 
-                    MapBrickToVoxels(brick, bm.voxels);
+                    MapBrickToVoxels(brick, bm.voxels, cellInfo.maxSubdivision);
 
                     ReservedBrick rbrick = new ReservedBrick();
                     rbrick.brick = brick;
@@ -438,7 +439,7 @@ namespace UnityEngine.Rendering
             brickMax /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
 
             // Verify we are actually in local space now.
-            int maxCellSizeInOutputRes = ProbeReferenceVolume.CellSize(ProbeReferenceVolume.instance.GetMaxSubdivision() - 1 - cellInfo.minSubdivInCell);
+            int maxCellSizeInOutputRes = ProbeReferenceVolume.CellSize(cellInfo.maxSubdivision - 1 - cellInfo.minSubdivInCell);
             Debug.Assert(brickMin.x >= 0 && brickMin.y >= 0 && brickMin.z >= 0 && brickMax.x >= 0 && brickMax.y >= 0 && brickMax.z >= 0);
             Debug.Assert(brickMin.x < maxCellSizeInOutputRes && brickMin.y < maxCellSizeInOutputRes && brickMin.z < maxCellSizeInOutputRes && brickMax.x <= maxCellSizeInOutputRes && brickMax.y <= maxCellSizeInOutputRes && brickMax.z <= maxCellSizeInOutputRes);
 
@@ -510,7 +511,7 @@ namespace UnityEngine.Rendering
         {
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(cellInfo.maxSubdivision), out vx_min, out vx_max, cellInfo);
 
             foreach (var rbrick in bricks)
             {

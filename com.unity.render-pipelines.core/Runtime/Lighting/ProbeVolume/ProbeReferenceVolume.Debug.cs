@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering
             if (cellInfo.debugProbes != null)
                 return cellInfo.debugProbes;
 
-            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            int maxSubdiv = cellInfo.updateInfo.maxSubdivision - 1;
 
             var cell = cellInfo.cell;
 
