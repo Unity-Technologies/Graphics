@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle m_ActiveCameraColorAttachment;
         RTHandle m_ColorFrontBuffer;
         internal RTHandle m_ActiveCameraDepthAttachment;
+        internal RTHandle m_CameraColorAttachment;
         internal RTHandle m_CameraDepthAttachment;
         RTHandle m_XRTargetHandleAlias;
         internal RTHandle m_DepthTexture;
@@ -319,6 +320,7 @@ namespace UnityEngine.Rendering.Universal
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
 
+            m_CameraColorAttachment?.Release();
             m_CameraDepthAttachment?.Release();
             m_XRTargetHandleAlias?.Release();
             m_DepthTexture?.Release();
