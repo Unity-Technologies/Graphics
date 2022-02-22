@@ -55,7 +55,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## How path tracing affects Material properties
 
-Path tracing changes how the following Material properties behave in your scene: 
+Path tracing changes how the following Material properties behave in your scene:
 
 - [How transmissive objects absorb light](#surface-types)
 - [How light refracts in transmissive objects](#refraction-models)
@@ -83,17 +83,17 @@ The following images display the same GameObjects with a single-sided Material a
 
 ![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
 
-GameObjects with a single-sided Material and path tracing enabled 
+GameObjects with a single-sided Material and path tracing enabled
 
 ![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
 
-GameObjects with a double-sided Material and path tracing enabled 
+GameObjects with a double-sided Material and path tracing enabled
 
 <a name="refraction-models"></a>
 
 ## How path tracing affects refraction models
 
-Path tracing changes the way refraction models on a Lit Material behave. 
+Path tracing changes the way refraction models on a Lit Material behave.
 
 To change the refraction model a Lit Material uses, in the **Transparency Inputs** section, select a model from the **Refraction model** dropdown, displayed in the following image:
 
@@ -120,7 +120,7 @@ From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode wit
 For [subsurface scattering's](Subsurface-Scattering.md) **Transmission** property (A) to work correctly with path tracing, you need to do the following:
 
 1. Open the **Surface Options** window.
-2. Enable the **Double-Sided** property (B). 
+2. Enable the **Double-Sided** property (B).
 
 ![Surface_Options_B](Images/Surface_Options_B.png)
 
@@ -157,7 +157,7 @@ Currently, you can only use HDR path tracing on platforms that use DX12.
 HDRP path tracing in Unity 2020.2 has the following limitations:
 
 - If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
-- Path tracing in HDRP doesn't support the following:  
+- Path tracing in HDRP doesn't support the following:
   - 3D Text and TextMeshPro.
   - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
@@ -181,4 +181,3 @@ Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shade
 ### Unsupported features of ray tracing
 
 For information about unsupported features of ray tracing in general, see [Ray tracing limitations](Ray-Tracing-Getting-Started.md#limitations).
-
