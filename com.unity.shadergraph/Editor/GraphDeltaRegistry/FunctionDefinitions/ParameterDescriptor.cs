@@ -10,7 +10,6 @@ namespace com.unity.shadergraph.defs
     ///   input (Usage.In) - the function receives this parameter
     ///   output (Usage.Out) - the function assigns this parameter
     ///   static (Usage.Static) - the parameter must be already defined
-    ///
     /// In registration (See: FunctionDescriptorNodeBuilder) ParameterDescriptors
     /// may create port/fields on a node.
     /// </summary>
@@ -25,12 +24,19 @@ namespace com.unity.shadergraph.defs
             string name,
             TypeDescriptor typeDescriptor,
             Usage usage,
-            params float[] defaultValue)
+            float[] defaultValue = null)
         {
             Name = name;
             TypeDescriptor = typeDescriptor;
             Usage = usage;
-            DefaultValue = defaultValue.ToList();
+            if (defaultValue == null)
+            {
+                DefaultValue = new List<float>();
+            }
+            else
+            {
+                DefaultValue = defaultValue.ToList();
+            }
         }
     }
 }
