@@ -171,15 +171,18 @@ namespace UnityEngine.Rendering
             {
                 // Draw the renamable label for the baking set name
                 string key = k_RenameFocusKey + index;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedBakingSet = false;
-                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                if (active)
                 {
-                    if (rect.Contains(Event.current.mousePosition))
-                        m_RenameSelectedBakingSet = true;
+                    if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                        m_RenameSelectedBakingSet = false;
+                    if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                    {
+                        if (rect.Contains(Event.current.mousePosition))
+                            m_RenameSelectedBakingSet = true;
+                    }
+                    if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                        m_RenameSelectedBakingSet = false;
                 }
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedBakingSet = false;
 
                 var set = sceneData.bakingSets[index];
 
@@ -237,6 +240,14 @@ namespace UnityEngine.Rendering
             OnBakingSetSelected(m_BakingSets);
         }
 
+        void SetActiveScenario(string scenario)
+        {
+            if (scenario == ProbeReferenceVolume.instance.lightingScenario)
+                return;
+            ProbeReferenceVolume.instance.lightingScenario = scenario;
+            EditorUtility.SetDirty(sceneData.parentAsset);
+        }
+
         void InitializeScenarioList()
         {
             m_Scenarios = new ReorderableList(GetCurrentBakingSet().lightingScenarios, typeof(string), true, true, true, true);
@@ -270,15 +281,18 @@ namespace UnityEngine.Rendering
 
                 // Event
                 string key = k_RenameFocusKey + index;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedScenario = false;
-                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                if (active)
                 {
-                    if (rect.Contains(Event.current.mousePosition))
-                        m_RenameSelectedScenario = true;
+                    if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                        m_RenameSelectedScenario = false;
+                    if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                    {
+                        if (rect.Contains(Event.current.mousePosition))
+                            m_RenameSelectedScenario = true;
+                    }
+                    if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                        m_RenameSelectedScenario = false;
                 }
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedScenario = false;
 
                 // Name
                 var scenarioName = bakingSet.lightingScenarios[index];
@@ -305,7 +319,7 @@ namespace UnityEngine.Rendering
                                         data.RenameScenario(scenarioName, name);
                                 }
                                 bakingSet.lightingScenarios[index] = name;
-                                ProbeReferenceVolume.instance.lightingScenario = name;
+                                SetActiveScenario(name);
                             }
                             finally
                             {
@@ -320,7 +334,7 @@ namespace UnityEngine.Rendering
 
             m_Scenarios.onSelectCallback = (ReorderableList list) =>
             {
-                ProbeReferenceVolume.instance.lightingScenario = GetCurrentBakingSet().lightingScenarios[list.index];
+                SetActiveScenario(GetCurrentBakingSet().lightingScenarios[list.index]);
                 SceneView.RepaintAll();
                 Repaint();
             };
@@ -361,7 +375,7 @@ namespace UnityEngine.Rendering
                 finally
                 {
                     AssetDatabase.StopAssetEditing();
-                    ProbeReferenceVolume.instance.lightingScenario = set.lightingScenarios[0];
+                    SetActiveScenario(set.lightingScenarios[0]);
                     UpdateScenariosStatuses();
                 }
             };
@@ -378,7 +392,7 @@ namespace UnityEngine.Rendering
                 string sceneGUID = sceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                    ProbeReferenceVolume.instance.lightingScenario = set.lightingScenarios[0];
+                    SetActiveScenario(set.lightingScenarios[0]);
             }
             UpdateScenariosStatuses();
         }
