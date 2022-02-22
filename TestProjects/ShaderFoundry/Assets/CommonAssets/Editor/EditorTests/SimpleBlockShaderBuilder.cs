@@ -51,13 +51,10 @@ namespace UnityEditor.ShaderFoundry
             return blockInstBuilder.Build();
         }
 
-        // TODO @ SHADERS: Cheat and do a hard-coded lookup of the UniversalTarget for testing. This will be improved when we implement a custom target.
+        // This is a custom unlit target for our custom SRP.
         static internal Target GetTarget()
         {
-            var targetType = TypeCache.GetTypesDerivedFrom<Target>().Where((t) => t.Name == "UniversalTarget").ToList()[0];
-            var unlitSubTargetType = TypeCache.GetTypesDerivedFrom<SubTarget>().Where((t) => t.Name == "UniversalUnlitSubTarget").ToList()[0];
-            var target = (Target)Activator.CreateInstance(targetType);
-            targetType.GetMethod("TrySetActiveSubTarget").Invoke(target, new object[] { unlitSubTargetType });
+            var target = new Rendering.Foundry.FoundryTestTarget();
             return target;
         }
     }
