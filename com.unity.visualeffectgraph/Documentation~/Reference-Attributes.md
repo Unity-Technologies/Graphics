@@ -79,7 +79,9 @@ Setting a Lifetime attribute to a particle in an Initialize Context, will implic
 
 > Automatic particle reaping can be disabled by selecting the Update Context, then setting the Reap Particles value to **False**.
 
-> **Immortal Particles:** Particles with no lifetime will are considered immortal. You can still cull the particles explicitly by setting their `alive` attribute to `false` but this doesn't kill them.
+> **Immortal Particles:** Particles with no lifetime are considered immortal. You can still kill them explicitly by setting their `alive` attribute to `false`.
+
+**Note**: If you set the alive attribute to false in an output context, the particle will be culled from rendering but not killed.
 
 #### Angle and Angular Velocity : Angular Integration
 
