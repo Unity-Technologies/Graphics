@@ -26,6 +26,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
 
+        public SerializedProperty enableRenderGraph;
+
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -54,6 +56,8 @@ namespace UnityEditor.Rendering.Universal
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
+
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
         }
     }
 }
