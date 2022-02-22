@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Eye.cs which generates Eye.cs.hlsl
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeCausticLUT.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
@@ -160,6 +161,11 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.roughness = ClampRoughnessForAnalyticalLights(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
 
+    bsdfData.irisHeight = surfaceData.irisHeight;
+    bsdfData.irisRadius = surfaceData.irisRadius;
+    bsdfData.causticIntensity = surfaceData.causticIntensity;
+    bsdfData.causticBlend = surfaceData.causticBlend;
+
     ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
@@ -267,6 +273,9 @@ struct PreLightData
     float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
     float  diffuseFGD;
 
+    //caustic lookup
+    float2 irisPlanePosition; //position on iris plane, ie -1 left/bottom, 1 right/top
+
     // Area lights (17 VGPRs)
     // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
     float3x3 orthoBasisViewDiffuseNormal;
@@ -325,6 +334,18 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, dot(V, bsdfData.diffuseNormalWS));
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
+
+    //for caustic lookup
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
+    {
+        float3 posOS = TransformWorldToObject(posInput.positionWS);
+        float3 refrOS = TransformWorldToObjectDir(refract(-V, N, 1.0 / bsdfData.IOR));
+
+        float t = max(posOS.z - bsdfData.irisHeight, 0.f) / max(-refrOS.z, 1e-5f);
+
+        float3 irisPositionOS = posOS + refrOS * t;
+        preLightData.irisPlanePosition = irisPositionOS.xy / bsdfData.irisRadius;
+    }
 
     return preLightData;
 }
@@ -462,13 +483,15 @@ void LightEyeTransform(PositionInputs posInput, BSDFData bsdfData, inout float3 
     float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1.0 / bsdfData.IOR);
 
     float3 axis = normalize(cross(L, refractL));
-    float angle = lerp(0.0, acos(dot(L, refractL)), bsdfData.mask.x);
+
+    float angle = acos(dot(L, refractL));
 
     positionRWS = Rotate(posInput.positionWS, positionRWS, axis, angle);
     forward = Rotate(float3(0, 0, 0), forward, axis, angle);
     right = Rotate(float3(0, 0, 0), right, axis, angle);
     up = Rotate(float3(0, 0, 0), up, axis, angle);
 }
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
@@ -483,13 +506,22 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CINEMATIC))
     {
+
+        float c = bsdfData.mask.x;
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
+        {
+            float3 lightPosOS = TransformWorldToObjectDir(-lightData.forward) * 1000.f;
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, lightPosOS, bsdfData.causticIntensity);
+        }
+
         // Evaluate a second time the light but for a different position and for diffuse only.
         LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
 
         DirectLighting dlIris = ShadeSurface_Directional(   lightLoopContext, posInput, builtinData,
                                                             preLightData, lightData, bsdfData, V);
 
-        dl.diffuse = lerp(dl.diffuse, dlIris.diffuse, bsdfData.mask.x);
+        float3 caustic = ApplyCausticToDiffuse(dlIris.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
+        dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
     }
     else
     {
@@ -505,7 +537,6 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
-
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData,
@@ -516,13 +547,20 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CINEMATIC))
     {
+        float c = bsdfData.mask.x;
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
+        {
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
+        }
+
         // Evaluate a second time the light but for a different position and for diffuse only.
         LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
 
         DirectLighting dlIris = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
                                                         preLightData, lightData, bsdfData, V);
 
-        dl.diffuse = lerp(dl.diffuse, dlIris.diffuse, bsdfData.mask.x);
+        float3 caustic = ApplyCausticToDiffuse(dlIris.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
+        dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
     }
     else
     {
@@ -557,7 +595,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData,
+                                    BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -590,7 +629,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     range));
 
          // Compute the light attenuation.
-# ifdef ELLIPSOIDAL_ATTENUATION
+#ifdef ELLIPSOIDAL_ATTENUATION
         // The attenuation volume is an axis-aligned ellipsoid s.t.
         // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
         float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
@@ -694,19 +733,43 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CINEMATIC))
-    {
-        LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
-    }
-
+    //specular
+    DirectLighting dl;
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
-        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        dl =  EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
     else
     {
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        dl = EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
+
+    //diffuse with refracted light direction (if cinematic eye)
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CINEMATIC))
+    {
+        float c = bsdfData.mask.x;
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
+        {
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
+        }
+
+        LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
+
+        DirectLighting dl2;
+        if (lightData.lightType == GPULIGHTTYPE_TUBE)
+        {
+            dl2 =  EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        }
+        else
+        {
+            dl2 = EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        }
+
+        float3 caustic = ApplyCausticToDiffuse(dl2.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
+        dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
+    }
+
+    return dl;
 }
 
 //-----------------------------------------------------------------------------

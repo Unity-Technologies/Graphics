@@ -35,6 +35,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.Mask:                       surfaceData.mask =                      surfaceDescription.Mask;
     $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask = surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.IrisHeight:                 surfaceData.irisHeight =                surfaceDescription.IrisHeight;
+    $SurfaceDescription.IrisRadius:                 surfaceData.irisRadius =                surfaceDescription.IrisRadius;
+    $SurfaceDescription.CausticIntensity:           surfaceData.causticIntensity =          surfaceDescription.CausticIntensity;
+    $SurfaceDescription.CausticBlend:               surfaceData.causticBlend =              surfaceDescription.CausticBlend;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
@@ -45,6 +49,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _MATERIAL_FEATURE_EYE_CINEMATIC
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_CINEMATIC;
+    #endif
+
+    #ifdef _MATERIAL_FEATURE_EYE_CAUSTIC_LUT
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT | MATERIALFEATUREFLAGS_EYE_CINEMATIC; //force light refraction with caustic
     #endif
 
     #ifdef _DOUBLESIDED_ON

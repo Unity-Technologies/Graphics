@@ -258,6 +258,7 @@ MonoBehaviour:
     scramblingTile8SPP: {fileID: 2800000, guid: 152f8b933250a7b448fc2d4d301b9944, type: 3}
     rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
     scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32, type: 3}
+    eyeCausticLUT: {fileID: 11700000, guid: d4ec12283a044584794485916f4142a9, type: 3}
     cloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114, type: 3}
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
