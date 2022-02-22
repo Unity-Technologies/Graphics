@@ -166,5 +166,6 @@ MonoBehaviour:
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
       lightingScenarios:
-      - Default
+      - Scenario 1
+      - Scenario 2
   m_Version: 3

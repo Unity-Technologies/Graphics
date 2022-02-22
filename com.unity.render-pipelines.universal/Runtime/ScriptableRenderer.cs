@@ -873,7 +873,7 @@ namespace UnityEngine.Rendering.Universal
                 // Draw Gizmos...
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, renderingData);
                 }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -889,10 +889,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget);
+                InternalFinishRendering(context, cameraData.resolveFinalTarget, renderingData);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1099,7 +1099,7 @@ namespace UnityEngine.Rendering.Universal
 
             ref CameraData cameraData = ref renderingData.cameraData;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
             // Track CPU only as GPU markers for this scope were "too noisy".
             using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
@@ -1107,23 +1107,25 @@ namespace UnityEngine.Rendering.Universal
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
+                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData); // cmdBuffer is executed inside
             else
+            {
                 renderPass.Execute(context, ref renderingData);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
             {
-                cmd = CommandBufferPool.Get();
-
                 XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
 
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
 #endif
         }
@@ -1636,13 +1638,13 @@ namespace UnityEngine.Rendering.Universal
         internal virtual void EnableSwapBufferMSAA(bool enable) { }
 
         [Conditional("UNITY_EDITOR")]
-        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
+        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, RenderingData renderingData)
         {
 #if UNITY_EDITOR
             if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, Profiling.drawGizmos))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -1652,7 +1654,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
 #endif
         }
 
@@ -1664,34 +1666,32 @@ namespace UnityEngine.Rendering.Universal
 
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.internalStartRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
-                    m_ActiveRenderPassQueue[i].OnCameraSetup(cmd, ref renderingData);
+                    m_ActiveRenderPassQueue[i].OnCameraSetup(renderingData.commandBuffer, ref renderingData);
                 }
             }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            context.ExecuteCommandBuffer(renderingData.commandBuffer);
+            renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
+                    m_ActiveRenderPassQueue[i].FrameCleanup(renderingData.commandBuffer);
 
                 // Happens when rendering the last camera in the camera stack.
                 if (resolveFinalTarget)
                 {
                     for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(renderingData.commandBuffer);
 
-                    FinishRendering(cmd);
+                    FinishRendering(renderingData.commandBuffer);
 
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
@@ -1701,8 +1701,8 @@ namespace UnityEngine.Rendering.Universal
 
             ResetNativeRenderPassFrameData();
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            context.ExecuteCommandBuffer(renderingData.commandBuffer);
+            renderingData.commandBuffer.Clear();
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)
