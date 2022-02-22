@@ -7,62 +7,83 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Volume debug settings.
+    /// The volume settings
     /// </summary>
-    public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
+    /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
-
-        protected int m_SelectedCameraIndex = 0;
-
-        /// <summary>Selected camera index.</summary>
-        public int selectedCameraIndex
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return 0;
-#else
-                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return 0;
-#endif
-                return m_SelectedCameraIndex;
-            }
-            set { m_SelectedCameraIndex = value; }
-        }
 
         /// <summary>Current camera to debug.</summary>
         public Camera selectedCamera
         {
             get
             {
-#if UNITY_EDITOR
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
+                var c = cameras.ToList();
+
+                if (c.Count == 0)
                     return null;
-                if (m_SelectedCameraIndex == 1)
-                    return SceneView.lastActiveSceneView.camera;
-                else
-                    return additionalCameraDatas[m_SelectedCameraIndex - 2].GetComponent<Camera>();
-#else
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return null;
-                return additionalCameraDatas[m_SelectedCameraIndex - 1].GetComponent<Camera>();
-#endif
+
+                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex >= m_Cameras.Count)
+                    return c.FirstOrDefault();
+
+                return c[m_SelectedCameraIndex];
             }
         }
+
+        /// <summary>
+        /// The selected camera index, use the property for better handling
+        /// </summary>
+        protected int m_SelectedCameraIndex = -1;
+
+        /// <summary>Selected camera index.</summary>
+        public int selectedCameraIndex
+        {
+            get => m_SelectedCameraIndex;
+            set => m_SelectedCameraIndex = value;
+        }
+
+        private Camera[] m_CamerasArray;
+        private List<Camera> m_Cameras = new List<Camera>();
 
         /// <summary>Returns the collection of registered cameras.</summary>
         public IEnumerable<Camera> cameras
         {
             get
             {
-                foreach (T additionalCameraData in additionalCameraDatas)
+                m_Cameras.Clear();
+
+#if UNITY_EDITOR
+                if (SceneView.lastActiveSceneView != null)
                 {
-                    yield return additionalCameraData.GetComponent<Camera>();
+                    var sceneCamera = SceneView.lastActiveSceneView.camera;
+                    if (sceneCamera != null)
+                        m_Cameras.Add(sceneCamera);
                 }
+#endif
+
+                if (m_CamerasArray == null || m_CamerasArray.Length != Camera.allCamerasCount)
+                {
+                    m_CamerasArray = new Camera[Camera.allCamerasCount];
+                }
+
+                Camera.GetAllCameras(m_CamerasArray);
+
+                foreach (var camera in m_CamerasArray)
+                {
+                    if (camera == null)
+                        continue;
+
+                    if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
+                    {
+                        if (camera.TryGetComponent<T>(out T additionalData))
+                            m_Cameras.Add(camera);
+                    }
+                }
+
+                return m_Cameras;
             }
         }
 
@@ -78,56 +99,24 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get { return componentTypes[selectedComponent - 1].Item2; }
+            get => volumeComponentsPathAndType[selectedComponent - 1].Item2;
             set
             {
-                var index = componentTypes.FindIndex(t => t.Item2 == value);
+                var index = volumeComponentsPathAndType.FindIndex(t => t.Item2 == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
         }
 
-        static List<(string, Type)> s_ComponentTypes;
+        static List<(string, Type)> s_ComponentPathAndType;
 
         /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> componentTypes
-        {
-            get
-            {
-                if (s_ComponentTypes == null)
-                {
-                    s_ComponentTypes = VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
-                }
-                return s_ComponentTypes;
-            }
-        }
-
-        protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
+        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
 
         /// <summary>
         /// Specifies the render pipeline for this volume settings
         /// </summary>
         public abstract Type targetRenderPipeline { get; }
-
-        /// <summary>
-        /// Register the camera for the Volume Debug.
-        /// </summary>
-        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
-        public static void RegisterCamera(T additionalCamera)
-        {
-            if (!additionalCameraDatas.Contains(additionalCamera))
-                additionalCameraDatas.Add(additionalCamera);
-        }
-
-        /// <summary>
-        /// Unregister the camera for the Volume Debug.
-        /// </summary>
-        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
-        public static void UnRegisterCamera(T additionalCamera)
-        {
-            if (additionalCameraDatas.Contains(additionalCamera))
-                additionalCameraDatas.Remove(additionalCamera);
-        }
 
         internal VolumeParameter GetParameter(VolumeComponent component, FieldInfo field)
         {

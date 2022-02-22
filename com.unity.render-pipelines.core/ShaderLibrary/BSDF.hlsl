@@ -85,6 +85,20 @@ real3 F_Transm_Schlick(real3 f0, real u)
     return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad*3
 }
 
+// Compute the cos of critical angle: cos(asin(eta)) == sqrt(1.0 - eta*eta)
+// eta == IORMedium/IORSource
+// If eta >= 1 the it's an AirMedium interation, otherwise it's MediumAir interation
+real CosCriticalAngle(real eta)
+{
+    return sqrt(max(1.0 - Sq(eta), 0.0));
+    // For 1 <= IOR <= 4: Max error: 0.0268594
+    //return eta >= 1.0 ? 0.0 : (((3.0 + eta) * sqrt(max(0.0, 1.0 - eta))) / (2.0 * sqrt(2.0)));
+    // For 1 <= IOR <= 4: Max error: 0.00533065
+    //return eta >= 1.0 ? 0.0 : (-((-23.0 - 10.0 * eta + Sq(eta)) * sqrt(max(0.0, 1.0 - eta))) / (16.0 * sqrt(2.0)));
+    // For 1 <= IOR <= 4: Max error: 0.00129402
+    //return eta >= 1.0 ? 0.0 : (((91.0 + 43.0 * eta - 7.0 * Sq(eta) + pow(eta, 3)) * sqrt(max(0.0, 1.0 - eta))) / (64. * sqrt(2.0)));
+}
+
 // Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 // Fresnel dielectric / dielectric
 real F_FresnelDielectric(real ior, real u)

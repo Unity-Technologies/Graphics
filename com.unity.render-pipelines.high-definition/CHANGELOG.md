@@ -4,13 +4,148 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [14.0.0] - 2021-11-17
+## [14.0.1] - 2021-12-07
+
+### Added
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
+- Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
+- Added importance sampling of the sky in path tracing (aka environment sampling).
+- Added the overlay render queue to custom passes.
+- Added a callback to override the View matrix of Spot Lights.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
+- Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
+- Added Remap alpha channel of baseColorMap for Lit and LayeredLit
+- Added an option for culling objects out of the ray tracing acceleration structure.
+- Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added public API for Diffusion Profile Override volume Component.
+- Added time slicing support for realtime reflection probes.
+- Added denoising for the path tracer.
+- Added an initial version of under water rendering for the water system.
+- Added option to animate APV sample noise to smooth it out when TAA is enabled.
+- Added default DOTS compatible loading shader (MaterialLoading.shader)
+- Add #pragma editor_sync_compilation directive to MaterialError.shader
+- Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
+- Added an optional CPU simulation for the water system.
+- Added new Unity material ball matching the new Unity logo.
 
 ### Changed
-- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
-- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
-- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Render Graph object pools are now cleared with render graph cleanup
+- Updated Physically Based Sky documentation with more warnings about warmup cost.
+- Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
+- Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
+- Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
+- Small improvement changes in the UX for the Unlit Distortion field.
+- Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
+- Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Moved more internals of the sky manager to proper Render Graph passes.
+- Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+- Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
+- Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
+- Disallow "Gradient Diffusion" parameter to be negative for the "Gradient Sky".
+- Disabled volumetric clouds in lens flares sample indoor scene.
+- Make Vertical gate fit the default for physical camera.
+- Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
+- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
+
+### Fixed
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed option to force motion blur off when in XR.
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the water system not working on metal.
+- Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
+- Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
+- Fixing missing doc API for RTAS Debug display.
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+- Fixed misc shader warnings.
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed debug probe visualization affecting screen space effects.
+- Fixed issue of index for APV running out space way before it should.
+- Fixed issue during reloading scenes in a set when one of the scenes has been renamed.
+- Fixed Local Volumetric Fog tooltips.
+- Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
+- Fixed an issue where APV cells were not populated properly when probe volumes have rotations
+- Fixed issue where changes to APV baking set lists were not saved.
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed warning upon deleting APV data assets.
+- Fixed an issue in the instance ID management for tesselation shaders.
+- Fixed warning when an APV baking set is renamed.
+- Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed a null ref exception in Volume Explorer
+- Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
+- Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed sky jittering when TAA is enabled.
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed reflection probe rendering order when visible in multiple cameras.
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed Show/Hide all Additional Properties
+- Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
+- Fixed APV loading data outside of the relevant area containing probes.
+- Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed editor issue with the LiftGammaGain and ShadowsMidtonesHighlights volume components.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed couple bugs in the volumetric clouds shader code.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed HDRP camera debug panel rendering foldout.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed various issues with render graph viewer when entering playmode.
+- Fixed Probe Debug view misbehaving with fog.
+- Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
+- Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
+- Fixed issue in APV with scenes saved only once when creating them.
+- Fixed probe volume baking not generating any probes on mac.
+- Fix a few UX issues in APV.
+- Fixed issue with detail normals when scale is null (case 1399548).
+
+## [14.0.0] - 2021-11-17
+
+### Added
+- Added FSR sharpness override to camera and pipeline asset.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -52,6 +187,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Fixed layer lit shader UI.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
+
+### Changed
+- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
+- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
+- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
+- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 
 ## [13.1.2] - 2021-11-05
 
@@ -73,6 +222,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Optimizations for the physically based depth of field.
+- Volumetric Lighting now uses an ambient probe computed directly on the GPU to avoid latency.
 
 ## [13.1.1] - 2021-10-04
 
@@ -135,6 +285,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
+- Changed default numbder of physically based sky bounce from 8 to 3
+- Shader Variant Log Level moved from Miscellaneous section to Shader Stripping section on the HDRP Global Settings.
 
 ## [13.1.0] - 2021-09-24
 

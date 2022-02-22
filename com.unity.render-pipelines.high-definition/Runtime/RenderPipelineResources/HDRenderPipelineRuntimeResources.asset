@@ -26,9 +26,11 @@ MonoBehaviour:
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e, type: 3}
     materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}
-    probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d,
-      type: 3}
+    materialLoading: {fileID: 4800000, guid: 392325671f122f540be9033ca5ae7a56, type: 3}
     clearDebugBufferCS: {fileID: 7200000, guid: 7fc6041d5cf70004aa33bb1ac64e3c06, type: 3}
+    probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
+    probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381, type: 3}
+    probeVolumeBlendStatesCS: {fileID: 7200000, guid: a3f7b8c99de28a94684cb1daebeccf5d, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
@@ -87,6 +89,9 @@ MonoBehaviour:
     volumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3, type: 3}
     waterSimulationCS: {fileID: 7200000, guid: f4c121c930cdb97459188eeb2166f0ad, type: 3}
     fourierTransformCS: {fileID: 7200000, guid: 006aabe8be599854c9abea76f890d60b, type: 3}
+    waterPS: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c, type: 3}
+    waterLightingCS: {fileID: 7200000, guid: e5b0b4cc9ce1d4b49a0ea48e10b2304c, type: 3}
+    waterCausticsPS: {fileID: 4800000, guid: 286ed840dd86d4d4988916f3df5a1429, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
@@ -166,6 +171,7 @@ MonoBehaviour:
     edgeAdaptiveSpatialUpsamplingCS: {fileID: 7200000, guid: f054fa9fe2c85bb42b9489e2f9ffb643, type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a, type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}
+    blitAndExposeCS: {fileID: 7200000, guid: 4b9a355e064de034dbfafe4583ba766b, type: 3}
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
     chromaKeyingPS: {fileID: 4800000, guid: 49feb6b111e82ec4eb6d3d08e4b6903e, type: 3}
     customClearPS: {fileID: 4800000, guid: 9cef3686fa32c8840947ed99b561195c, type: 3}
@@ -173,8 +179,6 @@ MonoBehaviour:
     temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
     diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}
     furnaceTestCS: {fileID: 7200000, guid: 9c19385e40e70ea41811a942a46b04a3, type: 3}
-  materials:
-    defaultWaterMaterial: {fileID: 2100000, guid: 0e0d39f9d406bcc4a97af8edb345e957, type: 2}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
@@ -258,8 +262,7 @@ MonoBehaviour:
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
-    foamSurface: {fileID: 2800000, guid: b157905335303e74fb9450838e672b83, type: 3}
-    foamNormals: {fileID: 2800000, guid: 43ae873526fe3aa46b809d9fef5a5fce, type: 3}
+    foamSurface: {fileID: 2800000, guid: bebd18275f6180c42a61a4365589d43a, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}
@@ -283,4 +286,5 @@ MonoBehaviour:
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
     sphereMesh: {fileID: 4300000, guid: 9e0af751bc36ea146940ba245193e28c, type: 3}
     probeDebugSphere: {fileID: 532591105809680800, guid: b979359990531a2489ebd7a0ef0f9f01, type: 3}
+    pyramidMesh: {fileID: 10213, guid: 0000000000000000e000000000000000, type: 0}
   m_Version: 4

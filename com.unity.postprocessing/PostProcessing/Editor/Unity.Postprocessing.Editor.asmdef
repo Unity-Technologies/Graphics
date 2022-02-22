@@ -1,9 +1,11 @@
 {
     "name": "Unity.Postprocessing.Editor",
+    "rootNamespace": "",
     "references": [
-        "Unity.Postprocessing.Runtime"
+        "Unity.Postprocessing.Runtime",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -12,5 +14,23 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.management",
+            "expression": "4.0.1",
+            "define": "XR_MANAGEMENT_4_0_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.modules.vr",
+            "expression": "1.0.0",
+            "define": "ENABLE_VR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "ENABLE_XR_MODULE"
+        }
+    ],
+    "noEngineReferences": false
 }

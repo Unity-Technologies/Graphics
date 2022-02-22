@@ -9,7 +9,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public sealed class RenderGraphObjectPool
     {
-        class SharedObjectPool<T> where T : new()
+        abstract class SharedObjectPoolBase
+        {
+            protected static List<SharedObjectPoolBase> s_AllocatedPools = new List<SharedObjectPoolBase>();
+
+            protected abstract void Clear();
+
+            public static void ClearAll()
+            {
+                foreach (var pool in s_AllocatedPools)
+                    pool.Clear();
+            }
+        }
+
+        class SharedObjectPool<T> : SharedObjectPoolBase where T : new()
         {
             Stack<T> m_Pool = new Stack<T>();
 
@@ -24,7 +37,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Pool.Push(value);
             }
 
-            static readonly Lazy<SharedObjectPool<T>> s_Instance = new Lazy<SharedObjectPool<T>>();
+            static SharedObjectPool<T> AllocatePool()
+            {
+                var pool = new SharedObjectPool<T>();
+                s_AllocatedPools.Add(pool);
+                return pool;
+            }
+
+            override protected void Clear()
+            {
+                m_Pool.Clear();
+            }
+
+            static readonly Lazy<SharedObjectPool<T>> s_Instance = new Lazy<SharedObjectPool<T>>(AllocatePool);
             public static SharedObjectPool<T> sharedPool => s_Instance.Value;
         }
 
@@ -96,6 +121,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var pool = SharedObjectPool<T>.sharedPool;
             pool.Release(value);
+        }
+
+        internal void Cleanup()
+        {
+            m_AllocatedArrays.Clear();
+            m_AllocatedMaterialPropertyBlocks.Clear();
+            m_ArrayPool.Clear();
+            SharedObjectPoolBase.ClearAll();
         }
     }
 }

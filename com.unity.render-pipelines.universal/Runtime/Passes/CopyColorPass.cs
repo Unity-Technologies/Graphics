@@ -22,8 +22,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int destinationID { get; set; }
 
         /// <summary>
-        /// Create the CopyColorPass
+        /// Creates a new <c>CopyColorPass</c> instance.
         /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="samplingMaterial">The <c>Material</c> to use for downsampling quarter-resolution image with box filtering.</param>
+        /// <param name="copyColorMaterial">The <c>Material</c> to use for other downsampling options.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="Downsampling"/>
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyColorPass));
@@ -39,6 +44,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Get a descriptor and filter mode for the required texture for this pass
         /// </summary>
+        /// <param name="downsamplingMethod"></param>
+        /// <param name="descriptor"></param>
+        /// <param name="filterMode"></param>
+        /// <seealso cref="Downsampling"/>
+        /// <seealso cref="RenderTextureDescriptor"/>
+        /// <seealso cref="FilterMode"/>
         public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             descriptor.msaaSamples = 1;
@@ -83,6 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (destination.rt == null)
@@ -118,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
             //It is possible that the given color target is now the frontbuffer
             if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
@@ -135,23 +147,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._4xBox:
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                 }
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

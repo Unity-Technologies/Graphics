@@ -1,6 +1,6 @@
 # Tessellation
 
-The **Tessellation** option control how Unity tessellates your Material's surface and smooths geometry.
+The **Tessellation** options control how Unity tessellates your Material's surface and smooths geometry.
 
 If you enable this feature, HDRP exposes the following properties to control how Unity tessellates your Material's surface and smooths geometry:
 

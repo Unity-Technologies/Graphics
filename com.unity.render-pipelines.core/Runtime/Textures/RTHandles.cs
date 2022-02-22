@@ -326,13 +326,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
         /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
-        /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
         /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
         /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>A new RTHandle.</returns>
         public static RTHandle Alloc(

@@ -1,5 +1,11 @@
 # Chromatic Aberration
 
+![Chromatic Aberration Off](Images/post-proc/chromatic-aberration-off.png)
+<br/>_Scene with Chromatic Aberration effect turned off._
+
+![Chromatic Aberration On](Images/post-proc/chromatic-aberration.png)
+<br/>_Scene with Chromatic Aberration effect turned on._
+
 Chromatic Aberration creates fringes of color along boundaries that separate dark and light parts of the image. It mimics the color distortion that a real-world camera produces when its lens fails to join all colors to the same point. See Wikipedia: Chromation aberration.
 
 ## Using Chromatic Aberration

@@ -1046,7 +1046,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssrCS;
             public int tracingKernel;
             public int reprojectionKernel;
-            public int accumulateKernel;
+            public int accumulateNoWorldSpeedRejectionBothKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceKernel;
+            public int accumulateNoWorldSpeedRejectionHitKernel;
+            public int accumulateHardThresholdSpeedRejectionBothKernel;
+            public int accumulateHardThresholdSpeedRejectionSurfaceKernel;
+            public int accumulateHardThresholdSpeedRejectionHitKernel;
+            public int accumulateSmoothSpeedRejectionBothKernel;
+            public int accumulateSmoothSpeedRejectionSurfaceKernel;
+            public int accumulateSmoothSpeedRejectionHitKernel;
+
+            public int accumulateNoWorldSpeedRejectionBothDebugKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+            public int accumulateNoWorldSpeedRejectionHitDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionBothDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+            public int accumulateHardThresholdSpeedRejectionHitDebugKernel;
+            public int accumulateSmoothSpeedRejectionBothDebugKernel;
+            public int accumulateSmoothSpeedRejectionSurfaceDebugKernel;
+            public int accumulateSmoothSpeedRejectionHitDebugKernel;
+
             public bool transparentSSR;
             public bool usePBRAlgo;
             public bool accumNeedClear;
@@ -1073,9 +1092,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+            public float frameIndex;
+            public float roughnessBiasFactor;
+            public float speedRejection;
+            public float speedRejectionFactor;
+            public bool debugDisplaySpeed;
+            public bool enableWorldSmoothRejection;
+            public bool smoothSpeedRejection;
+            public bool motionVectorFromSurface;
+            public bool motionVectorFromHit;
         }
 
-        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
+        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, bool isTransparent, ref ShaderVariablesScreenSpaceReflection cb)
         {
             float n = hdCamera.camera.nearClipPlane;
             float f = hdCamera.camera.farClipPlane;
@@ -1084,7 +1112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrThicknessScale = 1.0f / (1.0f + thickness);
             cb._SsrThicknessBias = -n / (f - n) * (thickness * cb._SsrThicknessScale);
             cb._SsrIterLimit = settings.rayMaxIterations;
-            cb._SsrReflectsSky = settings.reflectSky.value ? 1 : 0;
+            cb._SsrReflectsSky = isTransparent ? 0 : (settings.reflectSky.value ? 1 : 0);
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
             float roughnessFadeStart = 1 - settings.smoothnessFadeStart;
             cb._SsrRoughnessFadeEnd = 1 - settings.minSmoothness;
@@ -1095,10 +1123,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
-            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 3)
+            {
                 cb._SsrAccumulationAmount = 1.0f;
+            }
             else
+            {
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
+            }
+
+            if (settings.enableWorldSpeedRejection.value && !settings.speedSmoothReject.value)
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(1.0f - settings.speedRejectionParam.value);
+            else
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(settings.speedRejectionParam.value);
+            cb._SsrPBRBias = settings.biasFactor.value;
+            cb._SsrPRBSpeedRejectionScalerFactor = Mathf.Pow(settings.speedRejectionScalerFactor.value * 0.1f, 2.0f);
         }
 
         TextureHandle RenderSSR(RenderGraph renderGraph,
@@ -1113,6 +1152,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.defaultResources.blackTextureXR;
 
             TextureHandle result;
+
+            bool debugDisplaySpeed = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection;
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
@@ -1156,14 +1197,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
+                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, transparent, ref passData.cb);
 
                     passData.hdCamera = hdCamera;
                     passData.blueNoise = GetBlueNoiseManager();
                     passData.ssrCS = m_ScreenSpaceReflectionsCS;
                     passData.tracingKernel = m_SsrTracingKernel;
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
-                    passData.accumulateKernel = m_SsrAccumulateKernel;
+                    passData.accumulateNoWorldSpeedRejectionBothKernel = m_SsrAccumulateNoWorldSpeedRejectionBothKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitKernel = m_SsrAccumulateNoWorldSpeedRejectionHitKernel;
+                    passData.accumulateHardThresholdSpeedRejectionBothKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothKernel;
+                    passData.accumulateHardThresholdSpeedRejectionSurfaceKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel;
+                    passData.accumulateHardThresholdSpeedRejectionHitKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitKernel;
+                    passData.accumulateSmoothSpeedRejectionBothKernel = m_SsrAccumulateSmoothSpeedRejectionBothKernel;
+                    passData.accumulateSmoothSpeedRejectionSurfaceKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel;
+                    passData.accumulateSmoothSpeedRejectionHitKernel = m_SsrAccumulateSmoothSpeedRejectionHitKernel;
+
+                    passData.accumulateNoWorldSpeedRejectionBothDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionBothDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateHardThresholdSpeedRejectionHitDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionBothDebugKernel = m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateSmoothSpeedRejectionHitDebugKernel = m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel;
+
                     passData.transparentSSR = transparent;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
@@ -1183,6 +1243,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+                    if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+                    {
+                        passData.frameIndex = 1.0f;
+                    }
+                    else
+                    {
+                        passData.frameIndex = ((float)hdCamera.cameraFrameCount);
+                    }
+                    passData.roughnessBiasFactor = volumeSettings.biasFactor.value;
+                    passData.debugDisplaySpeed = debugDisplaySpeed;
+                    passData.speedRejection = volumeSettings.speedRejectionParam.value;
+                    passData.speedRejectionFactor = volumeSettings.speedRejectionScalerFactor.value;
+                    passData.enableWorldSmoothRejection = volumeSettings.enableWorldSpeedRejection.value;
+                    passData.smoothSpeedRejection = volumeSettings.speedSmoothReject.value;
+                    passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
+                    passData.motionVectorFromHit = volumeSettings.speedTargetOnly.value;
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -1207,15 +1283,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var cs = data.ssrCS;
 
-                            if (data.accumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                            if (data.previousAccumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
-
                             if (!data.usePBRAlgo)
                                 ctx.cmd.EnableShaderKeyword("SSR_APPROX");
                             else
+                            {
+                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
+                            }
 
                             if (data.transparentSSR)
                                 ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
@@ -1240,6 +1318,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeBufferParam(cs, data.tracingKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
                                 ctx.cmd.SetComputeBufferParam(cs, data.tracingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBufferData);
+
+                                ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRBias, data.roughnessBiasFactor);
 
                                 data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
 
@@ -1275,20 +1355,91 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
                                     {
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
-                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                        int pass;
+                                        if (data.debugDisplaySpeed)
+                                        {
+                                            if (!data.enableWorldSmoothRejection)
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothDebugKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitDebugKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+                                            }
+                                            else
+                                            {
+                                                if (data.smoothSpeedRejection)
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionBothDebugKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionHitDebugKernel;
+                                                    else
+                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceDebugKernel;
+                                                }
+                                                else
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionBothDebugKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionHitDebugKernel;
+                                                    else
+                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (!data.enableWorldSmoothRejection)
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceKernel;
+                                            }
+                                            else
+                                            {
+                                                if (data.smoothSpeedRejection)
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionBothKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateSmoothSpeedRejectionHitKernel;
+                                                    else
+                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
+                                                }
+                                                else
+                                                {
+                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
+                                                    else if (data.motionVectorFromHit)
+                                                        pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                                    else
+                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
+                                                }
+                                            }
+                                        }
+
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._DepthTexture, data.depthBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
+                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejection);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPRBSpeedRejectionScalerFactor, data.speedRejectionFactor);
 
                                         ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
-                                        ctx.cmd.DispatchCompute(cs, data.accumulateKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                        ctx.cmd.DispatchCompute(cs, pass, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                     }
                                 }
                             }
@@ -1300,10 +1451,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
                         PushFullScreenDebugTexture(renderGraph, passData.ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
+                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
                     }
                     else
                     {
                         result = passData.lightingTexture;
+                        PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
                     }
                 }
 

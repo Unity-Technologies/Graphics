@@ -2,15 +2,16 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 #if UNITY_EDITOR
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
 #if UNITY_EDITOR
 
@@ -273,6 +274,10 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
         /// <summary>
+        /// The memory budget determining the size of the textures used for blending between scenarios.
+        /// </summary>
+        public ProbeVolumeTextureMemoryBudget blendingMemoryBudget;
+        /// <summary>
         /// The debug mesh used to draw probes in the debug view.
         /// </summary>
         public Mesh probeDebugMesh;
@@ -280,12 +285,35 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
+        /// <summary>
+        /// The debug mesh used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Mesh offsetDebugMesh;
+        /// <summary>
+        /// The shader used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Shader offsetDebugShader;
+        /// <summary>
+        /// The compute shader used to interpolate between two baking states.
+        /// </summary>
+        public ComputeShader stateBlendShader;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSceneData"/>
+        /// </summary>
         public ProbeVolumeSceneData sceneData;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
         public ProbeVolumeSHBands shBands;
+        /// <summary>True if APV is able to show runtime debug information.</summary>
+        public bool supportsRuntimeDebug;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
     }
 
+    /// <summary>
+    /// Struct holiding the <see cref="ProbeVolume"/> shading parameters
+    /// </summary>
     public struct ProbeVolumeShadingParameters
     {
         /// <summary>
@@ -304,6 +332,27 @@ namespace UnityEngine.Experimental.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         public float samplingNoise;
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float weight;
+        /// <summary>
+        /// Method used for leak reduction.
+        /// </summary>
+        public APVLeakReductionMode leakReductionMode;
+        /// <summary>
+        /// Contribution of leak reduction weights.
+        /// </summary>
+        public float occlusionWeightContribution;
+        /// <summary>
+        /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
+        /// </summary>
+        public float minValidNormalWeight;
+        /// <summary>
+        /// The frame index to be used to animate the sampling noise if requested.
+        /// </summary>
+        public int frameIndexForNoise;
+
     }
 
     /// <summary>
@@ -337,26 +386,81 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kTemporaryDataLocChunkCount = 8;
+        internal const int kTemporaryDataLocChunkCount = 8;
 
-        [System.Serializable]
+        [Serializable]
         internal class Cell
         {
-            public int index;
             public Vector3Int position;
-            public List<Brick> bricks;
-            public Vector3[] probePositions;
-            public SphericalHarmonicsL2[] sh;
-            public float[] validity;
+            public int index;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+
+            public bool hasTwoScenarios;
+
+            public ProbeVolumeSHBands shBands;
+
+            public NativeArray<Brick> bricks { get; internal set; }
+            public NativeArray<uint> validity { get; internal set; }
+            public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view.
+            public NativeArray<Vector3> offsetVectors { get; internal set; }
+
+            // Two scenarios for blending. When baking, only scenario0 is used
+            [NonSerialized] public PerScenarioData scenario0;
+            [NonSerialized] public PerScenarioData scenario1;
+
+            public PerScenarioData bakingScenario => scenario0;
+
+            public struct PerScenarioData
+            {
+                public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
+                public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+            }
+
+            static internal uint PackValidityAndMask(float validity, byte mask)
+            {
+                // 24 bits for validity at the top of the uint, 8 bits for the mask at the bottom.
+                uint outValue = 0;
+                outValue = (mask & 255u);
+                uint packableValidity = 0;
+                uint maxInt = (1 << 24) - 1u;
+                packableValidity = (uint)(validity * maxInt + 0.5);
+                outValue |= packableValidity << 8;
+                return outValue;
+            }
+
+            internal float GetValidity(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityFromPacked(validity[probeIdx]);
+            }
+
+            internal static float GetValidityFromPacked(uint packedValidity)
+            {
+                uint extractionMask = (1 << 24) - 1;
+                return ((packedValidity >> 8) & extractionMask) / (float)(extractionMask);
+            }
+
+            internal static byte GetValidityNeighMaskFromPacked(uint packedValidity)
+            {
+                return Convert.ToByte(packedValidity & 255);
+            }
+
+            internal byte GetNeighbourhoodValidityMask(int probeIdx)
+            {
+                Debug.Assert(probeIdx < validity.Length);
+                return GetValidityNeighMaskFromPacked(validity[probeIdx]); // TODO_FCC: TMP.
+            }
+
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
         internal class CellInfo : IComparable<CellInfo>
         {
             public Cell cell;
+            public BlendingCellInfo blendingCell;
             public List<Chunk> chunkList = new List<Chunk>();
             public int flatIdxInCellIndices = -1;
             public bool loaded = false;
@@ -364,6 +468,8 @@ namespace UnityEngine.Experimental.Rendering
             public int sourceAssetInstanceID;
             public float streamingScore;
             public int referenceCount = 0;
+
+            public CellInstancedDebugProbes debugProbes;
 
             public int CompareTo(CellInfo other)
             {
@@ -378,6 +484,7 @@ namespace UnityEngine.Experimental.Rendering
             public void Clear()
             {
                 cell = null;
+                blendingCell = null;
                 chunkList.Clear();
                 flatIdxInCellIndices = -1;
                 loaded = false;
@@ -385,6 +492,35 @@ namespace UnityEngine.Experimental.Rendering
                 sourceAssetInstanceID = -1;
                 streamingScore = 0;
                 referenceCount = 0;
+                debugProbes = null;
+            }
+        }
+
+        internal class BlendingCellInfo : IComparable<BlendingCellInfo>
+        {
+            public CellInfo cellInfo;
+            public List<Chunk> chunkList = new List<Chunk>();
+            public float streamingScore;
+            public float blendingFactor;
+            public bool blending;
+
+            public int CompareTo(BlendingCellInfo other)
+            {
+                if (streamingScore < other.streamingScore)
+                    return -1;
+                else if (streamingScore > other.streamingScore)
+                    return 1;
+                else
+                    return 0;
+            }
+
+            public void Clear()
+            {
+                cellInfo = null;
+                chunkList.Clear();
+                blendingFactor = 0;
+                streamingScore = 0;
+                blending = false;
             }
         }
 
@@ -508,31 +644,38 @@ namespace UnityEngine.Experimental.Rendering
             /// <summary>
             /// Texture containing Spherical Harmonics L0 band data and first coefficient of L1_R.
             /// </summary>
-            public Texture3D L0_L1rx;
+            public RenderTexture L0_L1rx;
             /// <summary>
             /// Texture containing the second channel of Spherical Harmonics L1 band data and second coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_G_ry;
+            public RenderTexture L1_G_ry;
             /// <summary>
             /// Texture containing the second channel of Spherical Harmonics L1 band data and third coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_B_rz;
+            public RenderTexture L1_B_rz;
             /// <summary>
             /// Texture containing the first coefficient of Spherical Harmonics L2 band data and first channel of the fifth.
             /// </summary>
-            public Texture3D L2_0;
+            public RenderTexture L2_0;
             /// <summary>
             /// Texture containing the second coefficient of Spherical Harmonics L2 band data and second channel of the fifth.
             /// </summary>
-            public Texture3D L2_1;
+            public RenderTexture L2_1;
             /// <summary>
             /// Texture containing the third coefficient of Spherical Harmonics L2 band data and third channel of the fifth.
             /// </summary>
-            public Texture3D L2_2;
+            public RenderTexture L2_2;
             /// <summary>
             /// Texture containing the fourth coefficient of Spherical Harmonics L2 band data.
             /// </summary>
-            public Texture3D L2_3;
+            public RenderTexture L2_3;
+
+            /// <summary>
+            /// Texture containing packed validity binary data for the neighbourhood of each probe. Only used when L1. Otherwise this info is stored
+            /// in the alpha channel of L2_3.
+            /// </summary>
+            public Texture3D Validity;
+
         }
 
         bool m_IsInitialized = false;
@@ -542,16 +685,24 @@ namespace UnityEngine.Experimental.Rendering
         ProbeBrickPool m_Pool;
         ProbeBrickIndex m_Index;
         ProbeCellIndices m_CellIndices;
+        ProbeBrickBlendingPool m_BlendingPool;
         List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Bounds m_CurrGlobalBounds = new Bounds();
 
+        internal Bounds globalBounds { get { return m_CurrGlobalBounds; } set { m_CurrGlobalBounds = value; } }
+
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
         ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
+        ObjectPool<BlendingCellInfo> m_BlendingCellInfoPool = new ObjectPool<BlendingCellInfo>(x => x.Clear(), null, false);
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
         int m_TemporaryDataLocationMemCost;
 
         internal ProbeVolumeSceneData sceneData;
+
+        // We need to keep track the area, in cells, that is currently loaded. The index buffer will cover even unloaded areas, but we want to avoid sampling outside those areas.
+        Vector3Int minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        Vector3Int maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
 
         /// <summary>
         ///  The input to the retrieveExtraDataAction action.
@@ -604,19 +755,64 @@ namespace UnityEngine.Experimental.Rendering
         private int m_NumberOfCellsLoadedPerFrame = 2;
 #endif
 
-        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget, m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
+        float m_ProbeVolumesWeight;
 
-        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
+        public ProbeVolumeSHBands shBands => m_SHBands;
 
         internal bool clearAssetsOnVolumeClear = false;
+
+        /// <summary>The current lighting scenario.</summary>
+        public string lightingScenario
+        {
+            get => sceneData.lightingScenario;
+            set => SetLightingScenario(value, 0.0f);
+        }
+        /// <summary>The lerp factor when transitioning from between two scenarios. 1 means active scenario is fully active.</summary>
+        public float lightingScenarioLerp => m_ScenarioLerpFactor;
+
+        /// <summary>Set the active lighting scenario.</summary>
+        /// <param name="scenario">The name of the scenario to load.</param>
+        /// <param name="transitionTime">The time in seconds to smoothly transition from the current scenario to the new scenario.</param>
+        public void SetLightingScenario(string scenario, float transitionTime)
+        {
+            bool changedState = sceneData.SetLightingScenario(scenario, transitionTime);
+#if UNITY_EDITOR
+            if (changedState)
+                EditorUtility.SetDirty(sceneData.parentAsset);
+#endif
+        }
+
+        internal static string defaultLightingScenario = "Default";
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
 
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
+
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
+
+        internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();
+
+        internal void RegisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            if (!perSceneDataList.Contains(data))
+                perSceneDataList.Add(data);
+        }
+
+        internal void UnregisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            perSceneDataList.Remove(data);
+        }
 
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
@@ -642,9 +838,12 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
+            m_BlendingMemoryBudget = parameters.blendingMemoryBudget;
             m_SHBands = parameters.shBands;
-            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
+            m_ProbeVolumesWeight = 1f;
+            InitializeDebug(parameters);
+            ProbeBrickBlendingPool.Initialize(parameters);
+            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
@@ -652,12 +851,14 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
             if (sceneData != null)
-            {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
-            }
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
+
+            if (sceneData != null)
+                foreach (var data in instance.perSceneDataList)
+                    data.Initialize();
         }
 
         /// <summary>
@@ -665,6 +866,7 @@ namespace UnityEngine.Experimental.Rendering
         /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
         /// the SRP is still responsible to disable anything Probe volume related on SRP side.
         /// </summary>
+        /// <param name="srpEnablesPV">The value of the new enabled</param>
         public void SetEnableStateFromSRP(bool srpEnablesPV)
         {
             m_EnabledBySRP = srpEnablesPV;
@@ -677,7 +879,7 @@ namespace UnityEngine.Experimental.Rendering
                 CleanupLoadedData();
             m_SHBands = shBands;
             m_ProbeReferenceVolumeInit = false;
-            InitProbeReferenceVolume(m_MemoryBudget, shBands);
+            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, shBands);
         }
 
         /// <summary>
@@ -705,13 +907,13 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Get approximate video memory impact, in bytes, of the system.
         /// </summary>
-        /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
+        /// <returns>An approximation of the video memory impact, in bytes, of the system</returns>
         public int GetVideoMemoryCost()
         {
             if (!m_ProbeReferenceVolumeInit)
                 return 0;
 
-            return m_Pool.estimatedVMemCost + m_Index.estimatedVMemCost + m_CellIndices.estimatedVMemCost;
+            return m_Pool.estimatedVMemCost + m_Index.estimatedVMemCost + m_CellIndices.estimatedVMemCost + m_BlendingPool.estimatedVMemCost + m_TemporaryDataLocationMemCost;
         }
 
         void RemoveCell(Cell cell)
@@ -721,7 +923,6 @@ namespace UnityEngine.Experimental.Rendering
                 cellInfo.referenceCount--;
                 if (cellInfo.referenceCount <= 0)
                 {
-
                     cells.Remove(cell.index);
 
                     if (cellInfo.loaded)
@@ -734,6 +935,7 @@ namespace UnityEngine.Experimental.Rendering
                         m_ToBeLoadedCells.Remove(cellInfo);
                     }
 
+                    m_BlendingCellInfoPool.Release(cellInfo.blendingCell);
                     m_CellInfoPool.Release(cellInfo);
                 }
             }
@@ -746,6 +948,14 @@ namespace UnityEngine.Experimental.Rendering
             // Streaming might have never loaded the cell in the first place
             if (cellInfo.loaded)
             {
+                if (cellInfo.blendingCell.blending)
+                {
+                    m_LoadedBlendingCells.Remove(cellInfo.blendingCell);
+                    UnloadBlendingCell(cellInfo.blendingCell);
+                }
+                else
+                    m_ToBeLoadedBlendingCells.Remove(cellInfo.blendingCell);
+
                 if (cellInfo.flatIdxInCellIndices >= 0)
                     m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
 
@@ -758,16 +968,33 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void UnloadBlendingCell(BlendingCellInfo blendingCell)
+        {
+            if (blendingCell.blending)
+            {
+                m_BlendingPool.Deallocate(blendingCell.chunkList);
+                blendingCell.chunkList.Clear();
+                blendingCell.blending = false;
+            }
+            blendingCell.blendingFactor = m_ScenarioLerpFactor;
+        }
+
         internal void UnloadAllCells()
         {
             for (int i = 0; i < m_LoadedCells.size; ++i)
-            {
-                CellInfo cellInfo = m_LoadedCells[i];
-                UnloadCell(cellInfo);
-                m_ToBeLoadedCells.Add(cellInfo);
-            }
+                UnloadCell(m_LoadedCells[i]);
 
+            m_ToBeLoadedCells.AddRange(m_LoadedCells);
             m_LoadedCells.Clear();
+        }
+
+        internal void UnloadAllBlendingCells()
+        {
+            for (int i = 0; i < m_LoadedBlendingCells.size; ++i)
+                UnloadBlendingCell(m_LoadedBlendingCells[i]);
+
+            m_ToBeLoadedBlendingCells.AddRange(m_LoadedBlendingCells);
+            m_LoadedBlendingCells.Clear();
         }
 
         void AddCell(Cell cell, int assetInstanceID)
@@ -784,6 +1011,10 @@ namespace UnityEngine.Experimental.Rendering
                 cellInfo.referenceCount = 1;
                 cells[cell.index] = cellInfo;
 
+                var blendingCell = m_BlendingCellInfoPool.Get();
+                blendingCell.cellInfo = cellInfo;
+                cellInfo.blendingCell = blendingCell;
+
                 m_ToBeLoadedCells.Add(cellInfo);
             }
             else
@@ -798,6 +1029,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
             {
+                minLoadedCellPos = Vector3Int.Min(minLoadedCellPos, cellInfo.cell.position);
+                maxLoadedCellPos = Vector3Int.Max(maxLoadedCellPos, cellInfo.cell.position);
+
                 return AddBricks(cellInfo, cellUpdateInfo);
             }
             else
@@ -820,6 +1054,21 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = loadedCellsCount; i < m_LoadedCells.size; ++i)
             {
                 m_ToBeLoadedCells.Remove(m_LoadedCells[i]);
+            }
+        }
+
+        void RecomputeMinMaxLoadedCellPos()
+        {
+            minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+            maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
+            foreach (var cellInfo in cells.Values)
+            {
+                if (cellInfo.loaded)
+                {
+                    minLoadedCellPos = Vector3Int.Min(cellInfo.cell.position, minLoadedCellPos);
+                    maxLoadedCellPos = Vector3Int.Max(cellInfo.cell.position, maxLoadedCellPos);
+                }
             }
         }
 
@@ -869,8 +1118,8 @@ namespace UnityEngine.Experimental.Rendering
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
-            Vector3Int minCellPosition = Vector3Int.zero;
-            Vector3Int maxCellPosition = Vector3Int.zero;
+            Vector3Int minCellPosition = Vector3Int.one * 10000;
+            Vector3Int maxCellPosition = Vector3Int.one * -10000;
 
             bool firstBound = true;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
@@ -939,15 +1188,25 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = m_LoadedCells.size - 1; i >= 0; i--)
             {
                 if (m_LoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                {
+                    if (m_LoadedCells[i].blendingCell.blending)
+                        m_LoadedBlendingCells.Remove(m_LoadedCells[i].blendingCell);
+                    else
+                        m_ToBeLoadedBlendingCells.Remove(m_LoadedCells[i].blendingCell);
+
                     m_LoadedCells.RemoveAt(i);
+                }
             }
             for (int i = m_ToBeLoadedCells.size - 1; i >= 0; i--)
             {
                 if (m_ToBeLoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                {
                     m_ToBeLoadedCells.RemoveAt(i);
+                }
             }
 
             ClearDebugData();
+            RecomputeMinMaxLoadedCellPos();
         }
 
         void PerformPendingIndexChangeAndInit()
@@ -955,7 +1214,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_NeedsIndexRebuild)
             {
                 CleanupLoadedData();
-                InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
+                InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, m_SHBands);
                 m_HasChangedIndex = true;
                 m_NeedsIndexRebuild = false;
             }
@@ -979,8 +1238,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            var path = asset.GetSerializedFullPath();
-
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
@@ -988,7 +1245,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Add all the cells to the system.
             // They'll be streamed in later on.
-            for (int i = 0; i < asset.cells.Count; ++i)
+            for (int i = 0; i < asset.cells.Length; ++i)
             {
                 AddCell(asset.cells[i], asset.GetInstanceID());
             }
@@ -1000,6 +1257,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             m_Pool.EnsureTextureValidity();
+            m_BlendingPool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
             if (m_HasChangedIndex)
@@ -1041,12 +1299,12 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        internal int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
+        internal int GetNumberOfBricksAtSubdiv(Vector3Int position, int minSubdiv, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
         {
             minValidLocalIdxAtMaxRes = Vector3Int.zero;
             sizeOfValidIndicesAtMaxRes = Vector3Int.one;
 
-            var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
+            var posWS = new Vector3(position.x * MaxBrickSize(), position.y * MaxBrickSize(), position.z * MaxBrickSize());
             Bounds cellBounds = new Bounds();
             cellBounds.min = posWS;
             cellBounds.max = posWS + (Vector3.one * MaxBrickSize());
@@ -1054,8 +1312,6 @@ namespace UnityEngine.Experimental.Rendering
             Bounds intersectBound = new Bounds();
             intersectBound.min = Vector3.Max(cellBounds.min, m_CurrGlobalBounds.min);
             intersectBound.max = Vector3.Min(cellBounds.max, m_CurrGlobalBounds.max);
-
-            Vector3 size = intersectBound.max - intersectBound.min;
 
             var toStart = intersectBound.min - cellBounds.min;
             minValidLocalIdxAtMaxRes.x = Mathf.CeilToInt((toStart.x) / MinBrickSize());
@@ -1068,7 +1324,7 @@ namespace UnityEngine.Experimental.Rendering
             sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
-            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(minSubdiv);
 
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
@@ -1077,7 +1333,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
-            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdx, out var sizeOfValidIndices);
+            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out var minValidLocalIdx, out var sizeOfValidIndices);
             cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
             cellUpdateInfo.minSubdivInCell = cell.minSubdiv;
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
@@ -1102,7 +1358,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="shBands">Probe reference volume SH bands.</param>
-        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
         {
             var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
             var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
@@ -1110,11 +1366,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(memoryBudget, shBands);
+                m_BlendingPool = new ProbeBrickBlendingPool(blendingMemoryBudget, shBands);
 
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
 
-                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
+                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate", false, out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1132,11 +1389,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
+#endif
+
         ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
+
+#if UNITY_EDITOR
+            Type lightMappingType = typeof(Lightmapping);
+            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
+            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
+#endif
+
         }
 
         /// <summary>
@@ -1184,7 +1453,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
+                UnloadAllCells();
                 m_Pool.Clear();
+                m_BlendingPool.Clear();
                 m_Index.Clear();
                 cells.Clear();
             }
@@ -1196,7 +1467,111 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        List<Chunk> GetSourceLocations(int count, int chunkSize)
+        {
+            var c = new Chunk();
+            m_TmpSrcChunks.Clear();
+            m_TmpSrcChunks.Add(c);
+
+            // currently this code assumes that the texture width is a multiple of the allocation chunk size
+            for (int j = 1; j < count; j++)
+            {
+                c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
+                if (c.x >= m_TemporaryDataLocation.width)
+                {
+                    c.x = 0;
+                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (c.y >= m_TemporaryDataLocation.height)
+                    {
+                        c.y = 0;
+                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                    }
+                }
+                m_TmpSrcChunks.Add(c);
+            }
+
+            return m_TmpSrcChunks;
+        }
+
         // Runtime API starts here
+        bool AddBlendingBricks(BlendingCellInfo blendingCell)
+        {
+            Debug.Assert(blendingCell.cellInfo.loaded);
+
+            Profiler.BeginSample("AddBlendingBricks");
+
+            var cell = blendingCell.cellInfo.cell;
+            var bricks = cell.bricks;
+
+            // calculate the number of chunks necessary
+            int chunkSize = ProbeBrickPool.GetChunkSize();
+            blendingCell.chunkList.Clear();
+
+            // If transition if finished, bypass the blending pool and directly udpate uploaded cells
+            bool bypassBlending = (m_ScenarioLerpFactor >= 1.0f) || !cell.hasTwoScenarios;
+
+            // Try to allocate texture space
+            if (!bypassBlending && !m_BlendingPool.Allocate(ProbeBrickPool.GetChunkCount(bricks.Length), blendingCell.chunkList))
+                return false;
+
+            // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
+            int chunkCount = bypassBlending ? blendingCell.cellInfo.chunkList.Count : blendingCell.chunkList.Count;
+            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += kTemporaryDataLocChunkCount)
+            {
+                // copy chunks into pool
+                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, chunkCount - chunkIndex);
+                var srcChunks = GetSourceLocations(chunkToProcess, chunkSize);
+
+                if (bypassBlending)
+                {
+                    // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                    // no index or chunk data must change, so only probe values need to be updated
+
+                    bool useState0 = !cell.hasTwoScenarios;
+                    var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
+                    var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
+
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
+                        cell.shBands, shL0L1Data, shL2Data, cell.validity,
+                        chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                        chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                        m_SHBands);
+
+                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+                    m_Pool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.cellInfo.chunkList, chunkIndex, m_SHBands);
+                    continue;
+                }
+
+                // TODO: in both FillDataLocation below, don't load validity (and no need to allocate validity texture in the pool)
+
+                // state0
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
+                    cell.scenario0.shL0L1Data, cell.scenario0.shL2Data, cell.validity,
+                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    m_SHBands);
+
+                // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+                m_BlendingPool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 0);
+
+                // state1
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands,
+                    cell.scenario1.shL0L1Data, cell.scenario1.shL2Data, cell.validity,
+                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    m_SHBands);
+
+                m_BlendingPool.Update(m_TemporaryDataLocation, srcChunks, blendingCell.chunkList, chunkIndex, m_SHBands, 1);
+            }
+
+            blendingCell.blending = true;
+            blendingCell.blendingFactor = bypassBlending ? 1.0f : m_ScenarioLerpFactor;
+
+            Profiler.EndSample();
+
+            return true;
+        }
+
         bool AddBricks(CellInfo cellInfo, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
             Profiler.BeginSample("AddBricks");
@@ -1206,51 +1581,41 @@ namespace UnityEngine.Experimental.Rendering
 
             // calculate the number of chunks necessary
             int chunkSize = ProbeBrickPool.GetChunkSize();
-            int brickChunksCount = (bricks.Count + chunkSize - 1) / chunkSize;
+            int brickChunksCount = (bricks.Length + chunkSize - 1) / chunkSize;
             cellInfo.chunkList.Clear();
 
             // Try to allocate texture space
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
+            bool useState0 = m_ScenarioLerpFactor < 0.5f || !cell.hasTwoScenarios;
+            cellInfo.blendingCell.blendingFactor = m_ScenarioLerpFactor < 0.5f ? 0.0f : 1.0f;
+
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                var shL0L1Data = useState0 ? cell.scenario0.shL0L1Data : cell.scenario1.shL0L1Data;
+                var shL2Data = useState0 ? cell.scenario0.shL2Data : cell.scenario1.shL2Data;
+
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation,
+                    cell.shBands, shL0L1Data, shL2Data, cell.validity,
+                    chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(),
+                    m_SHBands);
 
                 // copy chunks into pool
-                m_TmpSrcChunks.Clear();
-                Chunk c;
-                c.x = 0;
-                c.y = 0;
-                c.z = 0;
-
-                // currently this code assumes that the texture width is a multiple of the allocation chunk size
-                for (int j = 0; j < chunkToProcess; j++)
-                {
-                    m_TmpSrcChunks.Add(c);
-                    c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.x >= m_TemporaryDataLocation.width)
-                    {
-                        c.x = 0;
-                        c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                        if (c.y >= m_TemporaryDataLocation.height)
-                        {
-                            c.y = 0;
-                            c.z += ProbeBrickPool.kBrickProbeCountPerDim;
-                        }
-                    }
-                }
+                var srcChunks = GetSourceLocations(chunkToProcess, chunkSize);
 
                 // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
+                m_Pool.Update(m_TemporaryDataLocation, srcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
 
                 chunkIndex += kTemporaryDataLocChunkCount;
             }
 
             m_BricksLoaded = true;
+            m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
 
             // Build index
             m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
@@ -1302,17 +1667,18 @@ namespace UnityEngine.Experimental.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
+            var minCellPos = m_CellIndices.GetCellMinPosition();
+            var indexDim = m_CellIndices.GetCellIndexDimension();
+            var poolDim = m_Pool.GetPoolDimensions();
+
             ShaderVariablesProbeVolumes shaderVars;
-            shaderVars._NormalBias = normalBias;
-            shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars._ViewBias = viewBias;
-            shaderVars._PVSamplingNoise = parameters.samplingNoise;
-            shaderVars._CellInMinBricks = (int)Mathf.Pow(3, m_MaxSubdivision - 1);
-            shaderVars._CellIndicesDim = m_CellIndices.GetCellIndexDimension();
-            shaderVars._MinCellPosition = m_CellIndices.GetCellMinPosition();
-            shaderVars._MinBrickSize = MinBrickSize();
-            shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
-            shaderVars._CellInMeters = MaxBrickSize();
+            shaderVars._Biases_CellInMinBrick_MinBrickSize = new Vector4(normalBias, viewBias, (int)Mathf.Pow(3, m_MaxSubdivision - 1), MinBrickSize());
+            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
+            shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
+            shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
+            shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
+            shaderVars._MaxLoadedCell_FrameIndex = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, parameters.frameIndexForNoise);
+            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
@@ -1331,6 +1697,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Cleanup();
                 m_CellIndices.Cleanup();
                 m_Pool.Cleanup();
+                m_BlendingPool.Cleanup();
                 m_TemporaryDataLocation.Cleanup();
             }
 

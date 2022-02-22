@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
 #pragma warning restore 618
 
-                Debug.Log("HDRP Internally changed the storage of Cube Cookie to use Octahedral Projection inside the 2D Cookie Atlas. It is recommended that you increase the size of the 2D Cookie Atlas if your cookies no longer fit.");
+                Debug.Log("HDRP Internally changed the storage of Cube Cookie to use Octahedral Projection inside the 2D Cookie Atlas. It is recommended that you increase the size of the 2D Cookie Atlas if your cookies no longer fit. To fix this, select your HDRP Asset and in the Inspector, go to Lighting > Cookies. In the 2D Atlas Size drop-down, select a larger cookie resolution.");
             }),
             MigrationStep.New(Version.RoughDistortion, (HDRenderPipelineAsset data) =>
             {
@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal ShaderVariantLogLevel m_ObsoleteShaderVariantLogLevel;
+        internal int m_ObsoleteShaderVariantLogLevel;
         [SerializeField]
         [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal LensAttenuationMode m_ObsoleteLensAttenuation;

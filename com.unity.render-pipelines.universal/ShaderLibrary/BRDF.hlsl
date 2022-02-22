@@ -28,7 +28,7 @@ struct BRDFData
 half ReflectivitySpecular(half3 specular)
 {
 #if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+    return specular.r; // Red channel - because most metals are either monochrome or with redish/yellowish tint
 #else
     return Max3(specular.r, specular.g, specular.b);
 #endif
@@ -88,7 +88,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
     half oneMinusReflectivity = half(1.0) - reflectivity;
-    half3 brdfDiffuse = albedo * (half3(1.0, 1.0, 1.0) - specular);
+    half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 brdfSpecular = specular;
 #else
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
@@ -107,11 +107,8 @@ inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfD
 
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
-#if defined(SHADER_API_MOBILE)
     return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
-#else
-    return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
-#endif
+    //return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
 }
 
 inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
@@ -131,8 +128,6 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - half(1.0);
     outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
-// Relatively small effect, cut it for lower quality
-#if !defined(SHADER_API_MOBILE)
     // Modify Roughness of base layer using coat IOR
     half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
     half coatRoughnessScale          = Sq(ieta);
@@ -145,7 +140,6 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     baseBRDFData.roughness2         = max(baseBRDFData.roughness * baseBRDFData.roughness, HALF_MIN);
     baseBRDFData.normalizationTerm  = baseBRDFData.roughness * 4.0h + 2.0h;
     baseBRDFData.roughness2MinusOne = baseBRDFData.roughness2 - 1.0h;
-#endif
 
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
     baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
@@ -214,7 +208,7 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     // On platforms where half actually means something, the denominator has a risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
     // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
-#if defined (SHADER_API_MOBILE) || defined (SHADER_API_SWITCH)
+#if REAL_IS_HALF
     specularTerm = specularTerm - HALF_MIN;
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif

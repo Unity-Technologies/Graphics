@@ -25,6 +25,9 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
+float4 _DistortionVectorMap_ST;
+float _AlphaRemapMin;
+float _AlphaRemapMax;
 float _BlendMode;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"

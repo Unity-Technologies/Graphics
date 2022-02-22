@@ -16,8 +16,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
         /// <summary>
-        /// Create the DepthNormalOnlyPass
+        /// Creates a new <c>DepthNormalOnlyPass</c> instance.
         /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="RenderQueueRange"/>
+        /// <seealso cref="LayerMask"/>
         public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
@@ -28,7 +34,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public static GraphicsFormat GetGraphicsFormat()
         {
-
             if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
                 return GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
             else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
@@ -38,8 +43,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Configure the pass
+        /// Configures the pass.
         /// </summary>
+        /// <param name="depthHandle">The <c>RTHandle</c> used to render depth to.</param>
+        /// <param name="normalHandle">The <c>RTHandle</c> used to render normals.</param>
+        /// <seealso cref="RTHandle"/>
         public void Setup(RTHandle depthHandle, RTHandle normalHandle)
         {
             this.depthHandle = depthHandle;
@@ -61,9 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -78,8 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
