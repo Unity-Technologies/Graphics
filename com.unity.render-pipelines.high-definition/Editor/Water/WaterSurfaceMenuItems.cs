@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering
             waterSurface.waterMaxPatchSize = 20.0f;
 
             // The two bands have very little amplitude
-            waterSurface.highBandCount = false;
+            waterSurface.highFrequencyBands = false;
             waterSurface.amplitude.x = 1.0f;
             waterSurface.amplitude.y = 1.0f;
 
