@@ -62,7 +62,9 @@ namespace UnityEditor.ShaderFoundry
 
         Template BuildTemplate(SubShaderDescriptor subShaderDescriptor, int subShaderIndex)
         {
-            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}");
+            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
+            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
+            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}", legacyLinker);
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
@@ -80,12 +82,6 @@ namespace UnityEditor.ShaderFoundry
             AddTemplateTag("RenderType", subShaderDescriptor.renderType);
             AddTemplateTag("Queue", subShaderDescriptor.renderQueue);
 
-            var result = builder.Build();
-
-            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
-            legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
-            builder.SetLinker(legacyLinker);
-
             var subPassIndex = 0;
             foreach (var pass in subShaderDescriptor.passes)
             {
@@ -96,7 +92,7 @@ namespace UnityEditor.ShaderFoundry
                 passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
                 ++subPassIndex;
 
-                BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
+                BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
 
                 builder.AddPass(passBuilder.Build());
             }
@@ -120,14 +116,14 @@ namespace UnityEditor.ShaderFoundry
             builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
-        void BuildLegacyTemplateEntryPoints(Template template, PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
+        void BuildLegacyTemplateEntryPoints(PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
         {
             var vertexContext = new PostFieldsContext();
             var fragmentContext = new PostFieldsContext();
             ExtractVertexAndFragmentPostFields(legacyPassDescriptor, vertexContext, fragmentContext);
 
-            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexContext.Fields);
-            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
+            ExtractVertex(passBuilder, vertexCustomizationPoint, vertexContext.Fields);
+            ExtractFragment(passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
         }
 
         // Context object for collecting the "post fields" from a pass.
@@ -331,7 +327,7 @@ namespace UnityEditor.ShaderFoundry
             return mainBlockBuilder.Build();
         }
 
-        void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
+        void ExtractVertex(TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
@@ -349,7 +345,7 @@ namespace UnityEditor.ShaderFoundry
             passBuilder.SetCustomizationPointBlocks(vertexCustomizationPoint, UnityEditor.Rendering.ShaderType.Vertex, id1, id1);
         }
 
-        void ExtractFragment(Template template, TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
+        void ExtractFragment(TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
         {
             var fragmentPreBlock = BuildFragmentPreBlock();
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
