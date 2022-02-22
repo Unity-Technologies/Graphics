@@ -51,7 +51,7 @@ struct CasterCullingData
 };
 
 #define MAX_SLICE_COUNT                                             MAX_CAPSULE_SHADOW_CASTER_COUNT
-#define CASTER_RENDER_INDEX(CASTER_INDEX, DEPTH_RANGE_INDEX)        (((CASTER_INDEX) << 1) | (DEPTH_RANGE_INDEX))
+#define CASTER_CULLING_INDEX(CASTER_INDEX, DEPTH_RANGE_INDEX)       (((CASTER_INDEX) << 1) | (DEPTH_RANGE_INDEX))
 groupshared CasterRenderData s_casterRenderData[MAX_SLICE_COUNT];
 groupshared CasterCullingData s_casterCullingData[MAX_SLICE_COUNT*DEPTH_RANGE_COUNT];
 groupshared uint s_casterValidBits;
@@ -149,8 +149,9 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
                 }
             }
 
-            s_casterRenderData[casterIndex] = renderData;
-            s_casterCullingData[CASTER_RENDER_INDEX(casterIndex, depthRangeIndex)] = cullingData;
+            s_casterCullingData[CASTER_CULLING_INDEX(casterIndex, depthRangeIndex)] = cullingData;
+            if (depthRangeIndex == 0)
+                s_casterRenderData[casterIndex] = renderData;
         }
         if (isValid)
             InterlockedOr(s_casterValidBits, 1U << casterIndex);
@@ -182,9 +183,8 @@ bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint depthRangeIndex
         intersectsTile = (((s_casterValidBits >> casterIndex) & 1) != 0);
         if (intersectsTile)
         {
-
-            CasterCullingData cullingData = s_casterCullingData[casterIndex];
-            CasterRenderData renderData = s_casterRenderData[CASTER_RENDER_INDEX(casterIndex, depthRangeIndex)];
+            CasterCullingData cullingData = s_casterCullingData[CASTER_CULLING_INDEX(casterIndex, depthRangeIndex)];
+            CasterRenderData renderData = s_casterRenderData[casterIndex];
 
             // check range
             intersectsTile = (capsuleSignedDistanceFromTile < renderData.shadowRange);
