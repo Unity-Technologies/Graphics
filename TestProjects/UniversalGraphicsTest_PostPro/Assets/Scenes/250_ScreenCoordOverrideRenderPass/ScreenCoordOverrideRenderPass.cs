@@ -9,8 +9,13 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
     const string k_CommandBufferName = "Screen Coord Override";
 
     RTHandle m_TempTex;
+    Material m_Material;
 
-    public Material material;
+    public void Setup(RenderPassEvent renderPassEvent, Material material)
+    {
+        this.renderPassEvent = renderPassEvent;
+        m_Material = material;
+    }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
@@ -24,7 +29,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         cmd.SetRenderTarget(m_TempTex);
         cmd.SetGlobalTexture(k_SourceTexProp, target);
         cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
         cmd.Blit(m_TempTex, target);
 
         context.ExecuteCommandBuffer(cmd);

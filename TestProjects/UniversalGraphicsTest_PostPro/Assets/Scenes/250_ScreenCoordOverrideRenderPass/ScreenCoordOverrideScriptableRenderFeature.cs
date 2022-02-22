@@ -14,12 +14,24 @@ public class ScreenCoordOverrideScriptableRenderFeature : ScriptableRendererFeat
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        var camera = renderingData.cameraData.camera;
+        if (camera.cameraType != CameraType.Game)
+        {
+            return;
+        }
+
+        var shader = ScreenCoordOverrideResources.GetInstance().FullScreenShader;
+        if (shader == null)
+        {
+            return;
+        }
+
         if (m_Material == null)
         {
-            m_Material = CoreUtils.CreateEngineMaterial(ScreenCoordOverrideResources.GetInstance().FullScreenShader);
+            m_Material = CoreUtils.CreateEngineMaterial(shader);
         }
-        m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
-        m_ScriptablePass.material = m_Material;
+
+        m_ScriptablePass.Setup(RenderPassEvent.AfterRenderingPostProcessing, m_Material);
         renderer.EnqueuePass(m_ScriptablePass);
     }
 
