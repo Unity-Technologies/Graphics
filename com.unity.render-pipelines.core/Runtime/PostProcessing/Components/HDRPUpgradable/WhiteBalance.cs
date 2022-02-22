@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     /// </summary>
     [Serializable]
     [Obsolete]
-    //[HDRPHelpURLAttribute("Post-Processing-White-Balance")]
+    [RPRedirectHelpURLAttribute("Post-Processing-White-Balance")]
     public sealed class WhiteBalance : UnityEngine.Rendering.WhiteBalance, IDeprecatedVolumeComponent
     {
     }

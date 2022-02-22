@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
     /// A volume component that holds settings for the Film Grain effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
-    //[HDRPHelpURLAttribute("Post-Processing-Film-Grain")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Film-Grain")]
     public class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

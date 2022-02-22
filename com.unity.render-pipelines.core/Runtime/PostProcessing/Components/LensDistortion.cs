@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
-    //[HDRPHelpURLAttribute("Post-Processing-Lens-Distortion")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Lens-Distortion")]
     public class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

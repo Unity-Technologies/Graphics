@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     /// </summary>
     [Serializable]
     [Obsolete]
-    //[HDRPHelpURLAttribute("Post-Processing-Film-Grain")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : UnityEngine.Rendering.FilmGrain, IDeprecatedVolumeComponent
     {
     }

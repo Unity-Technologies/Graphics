@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Color Curves")]
-    //[HDRPHelpURLAttribute("Post-Processing-Color-Curves")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Color-Curves")]
     public class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         // Note: we don't need tooltips as this component uses a custom editor with no use for tooltips

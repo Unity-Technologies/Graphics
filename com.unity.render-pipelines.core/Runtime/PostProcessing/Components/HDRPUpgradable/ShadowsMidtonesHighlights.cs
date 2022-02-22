@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     /// </summary>
     [Serializable]
     [Obsolete]
-    //[HDRPHelpURLAttribute("Post-Processing-Shadows-Midtones-Highlights")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Shadows-Midtones-Highlights")]
     public sealed class ShadowsMidtonesHighlights : UnityEngine.Rendering.ShadowsMidtonesHighlights, IDeprecatedVolumeComponent
     {
     }

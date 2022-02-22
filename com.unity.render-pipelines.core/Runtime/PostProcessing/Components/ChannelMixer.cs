@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// A volume component that holds settings for the Channel Mixer effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Channel Mixer")]
-    //[HDRPHelpURLAttribute("Post-Processing-Channel-Mixer")]
+    [RPRedirectHelpURLAttribute("Post-Processing-Channel-Mixer")]
     public class ChannelMixer : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
