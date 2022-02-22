@@ -522,9 +522,9 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     float3 sigmaS, sigmaT;
     RemapSubSurfaceScatteringParameters(diffuseColor, meanFreePath, sigmaS, sigmaT);
 
-    // Initialize the path payload
-    PathPayload intersection;
-    intersection.segmentID = SEGMENT_ID_RANDOM_WALK;
+    // Initialize the payload
+    PathPayload payload;
+    payload.segmentID = SEGMENT_ID_RANDOM_WALK;
 
     // Initialize the walk parameters
     RayDesc ray;
@@ -559,18 +559,18 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         ray.Direction = walkIdx ?
             SampleSphereUniform(walkSample[0], walkSample[1]) : SampleHemisphereCosine(walkSample[0], walkSample[1], -normal);
 
-        // Initialize the intersection data
-        intersection.rayTHit = FLT_INF;
+        // Initialize the payload data
+        payload.rayTHit = FLT_INF;
 
         // Do the next step
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
-                 RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, intersection);
+                 RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
         // Check if we hit something
-        hit = intersection.rayTHit < FLT_INF;
+        hit = payload.rayTHit < FLT_INF;
 
         // How much did the ray travel?
-        float t = hit ? intersection.rayTHit : ray.TMax;
+        float t = hit ? payload.rayTHit : ray.TMax;
 
         // Evaluate the transmittance for the current segment
         float3 transmittance = exp(-t * sigmaT);
@@ -604,7 +604,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     else
     {
         result.exitPosition = ray.Origin;
-        result.exitNormal = intersection.value;
+        result.exitNormal = payload.value;
     }
 
 #ifdef _DOUBLESIDED_ON

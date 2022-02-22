@@ -407,11 +407,10 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 
     if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
     {
+        // We just need the nearest hit distance here
         payload.rayTHit = min(payload.rayTHit, RayTCurrent());
-        return;
     }
-
-    if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
+    else if (payload.segmentID == SEGMENT_ID_RANDOM_WALK)
     {
         if (RayTCurrent() < payload.rayTHit)
         {
@@ -431,11 +430,8 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
             payload.value = fragInput.tangentToWorld[2];
             payload.rayTHit = RayTCurrent();
         }
-
-        return;
     }
-
-    if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
+    else if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
     {
 
 #ifdef _SURFACE_TYPE_TRANSPARENT
