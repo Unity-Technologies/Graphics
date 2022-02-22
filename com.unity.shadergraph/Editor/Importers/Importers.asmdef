@@ -1,5 +1,5 @@
 {
-    "name": "Importers",
+    "name": "Unity.ShaderGraph.Importers",
     "rootNamespace": "",
     "references": [
         "GUID:f00137e8794763a4fbbd0bcfb9bc600d",

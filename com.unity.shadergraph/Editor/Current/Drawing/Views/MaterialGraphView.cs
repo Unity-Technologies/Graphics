@@ -792,7 +792,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             SubGraphNode subgraphNode = selection.OfType<IShaderNodeView>().First().node as SubGraphNode;
 
             var path = AssetDatabase.GetAssetPath(subgraphNode.asset);
-            ShaderGraphImporterLegacyEditor.ShowGraphEditWindow(path);
+            ShaderGraphImporterEditor.ShowGraphEditWindow(path);
         }
 
         DropdownMenuAction.Status SeeDocumentationStatus(DropdownMenuAction action)

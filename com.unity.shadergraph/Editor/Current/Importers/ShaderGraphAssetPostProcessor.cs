@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var path in paths)
             {
-                if (!path.EndsWith(ShaderGraphImporterLegacy.Extension, StringComparison.InvariantCultureIgnoreCase))
+                if (!path.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 var mainObj = AssetDatabase.LoadMainAssetAtPath(path);
@@ -61,13 +61,13 @@ namespace UnityEditor.ShaderGraph
             RegisterShaders(importedAssets);
 
             // Moved assets
-            bool anyMovedShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporterLegacy.Extension, StringComparison.InvariantCultureIgnoreCase));
+            bool anyMovedShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             anyMovedShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             if (anyMovedShaders)
                 UpdateAfterAssetChange(movedAssets);
 
             // Deleted assets
-            bool anyRemovedShaders = deletedAssets.Any(val => val.EndsWith(ShaderGraphImporterLegacy.Extension, StringComparison.InvariantCultureIgnoreCase));
+            bool anyRemovedShaders = deletedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             anyRemovedShaders |= deletedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             if (anyRemovedShaders)
                 DisplayDeletionDialog(deletedAssets);
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
 
             var changedGraphGuids = importedAssets
-                .Where(x => x.EndsWith(ShaderGraphImporterLegacy.Extension, StringComparison.InvariantCultureIgnoreCase)
+                .Where(x => x.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .ToList();

@@ -14,8 +14,8 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(ShaderGraphImporterLegacy))]
-    class ShaderGraphImporterLegacyEditor : ScriptedImporterEditor
+    [CustomEditor(typeof(ShaderGraphImporter))]
+    class ShaderGraphImporterEditor: ScriptedImporterEditor
     {
         protected override bool needsApplyRevert => false;
         MaterialEditor materialEditor = null;
@@ -31,10 +31,10 @@ namespace UnityEditor.ShaderGraph
                 var extension = Path.GetExtension(importer.assetPath).Replace(".", "");
                 switch (extension)
                 {
-                    case ShaderGraphImporterLegacy.Extension:
+                    case ShaderGraphImporter.Extension:
                         isSubGraph = false;
                         break;
-                    case ShaderGraphImporterLegacy.LegacyExtension:
+                    case ShaderGraphImporter.LegacyExtension:
                         isSubGraph = false;
                         break;
                     case ShaderSubGraphImporter.Extension:
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
             // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
             // the comparison will be case-insensitive.
             extension = extension.Substring(1).ToLowerInvariant();
-            if (extension != ShaderGraphImporterLegacy.Extension && extension != ShaderSubGraphImporter.Extension)
+            if (extension != ShaderGraphImporter.Extension && extension != ShaderSubGraphImporter.Extension)
                 return false;
 
             foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())

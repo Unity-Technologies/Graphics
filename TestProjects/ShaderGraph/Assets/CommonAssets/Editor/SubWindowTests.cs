@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void OpenGraphWindow()
         {
             // Open up the window
-            if (!ShaderGraphImporterLegacyEditor.ShowGraphEditWindow(kGraphName))
+            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName))
             {
                 Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + kGraphName);
             }

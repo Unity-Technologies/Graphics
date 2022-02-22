@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph
                 Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
-                m_Builder.AppendLines(ShaderGraphImporterLegacy.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
                 // Don't continue building the shader, we've already built an error shader.
                 return;
             }

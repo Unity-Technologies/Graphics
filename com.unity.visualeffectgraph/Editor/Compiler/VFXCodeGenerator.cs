@@ -773,7 +773,7 @@ namespace UnityEditor.VFX
                 return null;
 
             // Use ShaderGraph to generate the VFX shader.
-            var text = ShaderGraphImporterLegacy.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
+            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
 
             // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);

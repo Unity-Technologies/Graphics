@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             List<PropertyCollector.TextureInfo> lti;
             var assetCollection = new AssetCollection();
-            ShaderGraphImporterLegacy.GetShaderText(kGraphName, out lti, assetCollection, out m_Graph);
+            ShaderGraphImporter.GetShaderText(kGraphName, out lti, assetCollection, out m_Graph);
             Assert.NotNull(m_Graph, $"Invalid graph data found for {kGraphName}");
 
             m_Graph.ValidateGraph();

@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            var importLog = new ShaderGraphImporterLegacy.AssetImportErrorLog(ctx);
+            var importLog = new ShaderGraphImporter.AssetImportErrorLog(ctx);
 
             var graphAsset = ScriptableObject.CreateInstance<SubGraphAsset>();
             var subGraphPath = ctx.assetPath;
@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporterLegacy.AssetImportErrorLog importLog)
+        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog)
         {
             var graphIncludes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);

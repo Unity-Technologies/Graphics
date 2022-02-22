@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(ShaderGraphImporter))]
-    class ShaderGraphImporterEditor : ScriptedImporterEditor
+    [CustomEditor(typeof(NewShaderGraphImporter))]
+    class NewShaderGraphImporterEditor : ScriptedImporterEditor
     {
         MaterialEditor materialEditor = null;
         public override void OnInspectorGUI()

@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SubGraphNode subgraphNode = node as SubGraphNode;
 
                 var path = AssetDatabase.GUIDToAssetPath(subgraphNode.subGraphGuid);
-                ShaderGraphImporterLegacyEditor.ShowGraphEditWindow(path);
+                ShaderGraphImporterEditor.ShowGraphEditWindow(path);
             }
         }
 

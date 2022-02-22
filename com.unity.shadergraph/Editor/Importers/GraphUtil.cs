@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void CreateGraph()
         {
             var endEdit = ScriptableObject.CreateInstance<NewGraphAction>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, endEdit, $"New Shader Graph.{ShaderGraphImporter.Extension}", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, endEdit, $"New Shader Graph.{NewShaderGraphImporter.Extension}", null, null);
         }
 
         public static GraphHandler OpenGraph(string assetPath)
