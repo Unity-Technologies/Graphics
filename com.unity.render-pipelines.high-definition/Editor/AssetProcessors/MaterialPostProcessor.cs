@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // should be idempotent.
             // In other words, there shouldn't be anything to checkout for the .shadergraph per se.
             //
-            if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporterLegacy.Extension}.meta"))
             {
                 var sgPath = System.IO.Path.ChangeExtension(asset, null);
                 var importer = AssetImporter.GetAtPath(sgPath);
@@ -54,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Like stated above, doesnt happen:
-            if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporterLegacy.Extension}"))
+            if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
             {
                 MaterialPostprocessor.s_CreatedAssets.Add(asset);
                 return;
@@ -334,7 +333,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var asset in importedAssets)
             {
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
-                if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporterLegacy.Extension}"))
+                if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
                 {
                     bool justCreated = s_CreatedAssets.Contains(asset);
 
