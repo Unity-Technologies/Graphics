@@ -27,6 +27,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty distanceFadeEnd;
 
         public SerializedProperty falloffMode;
+        public SerializedProperty maskMode;
+        public SerializedProperty materialMask;
+
+        public bool isMaterialMaskCompatible;
+        public bool isTextureMaskCompatible;
 
         SerializedObject m_SerializedObject;
 
@@ -59,6 +64,27 @@ namespace UnityEditor.Rendering.HighDefinition
             distanceFadeEnd = densityParams.FindPropertyRelative("distanceFadeEnd");
 
             falloffMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.falloffMode));
+            maskMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.maskMode));
+            materialMask = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.materialMask));
+
+            UpdateMaterialMaskCompatibility();
+            UpdateTextureMaskCompatibility();
+        }
+
+        public void UpdateMaterialMaskCompatibility()
+        {
+            if (materialMask.objectReferenceValue is Material mat)
+                isMaterialMaskCompatible = HDShaderUtils.IsFogVolumeShader(mat.shader);
+            else
+                isMaterialMaskCompatible = false;
+        }
+
+        public void UpdateTextureMaskCompatibility()
+        {
+            if (volumeTexture.objectReferenceValue is Texture t)
+                isTextureMaskCompatible = t.dimension == UnityEngine.Rendering.TextureDimension.Tex3D;
+            else
+                isTextureMaskCompatible = false;
         }
 
         public void Apply()

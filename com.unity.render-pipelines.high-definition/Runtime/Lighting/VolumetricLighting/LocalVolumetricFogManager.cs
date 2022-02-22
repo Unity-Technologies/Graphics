@@ -18,6 +18,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        bool IsVolumeMaskTextureValid(LocalVolumetricFog fog)
+        {
+            if (fog.parameters.maskMode != LocalVolumetricFogMaskMode.Texture)
+                return false;
+            
+            if (fog.parameters.volumeMask != null && fog.parameters.volumeMask.dimension == TextureDimension.Tex3D)
+                return true;
+            else
+                return false;
+        }
+
         Texture3DAtlas m_VolumeAtlas = null;
         public Texture3DAtlas volumeAtlas
         {
@@ -43,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // When HDRP is initialized and this atlas created, some Local Volumetric Fog may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
                     {
-                        if (volume.parameters.volumeMask != null)
+                        if (IsVolumeMaskTextureValid(volume))
                             AddTextureIntoAtlas(volume.parameters.volumeMask);
                     }
                 }
@@ -69,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
-            if (volume.parameters.volumeMask != null && volumeAtlas != null)
+            if (IsVolumeMaskTextureValid(volume) && volumeAtlas != null)
             {
                 if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
                 {
@@ -95,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
-            if (volume.parameters.volumeMask != null)
+            if (IsVolumeMaskTextureValid(volume))
             {
                 // Avoid to alloc the atlas to remove a texture if it's not allocated yet.
                 if (m_VolumeAtlas != null)

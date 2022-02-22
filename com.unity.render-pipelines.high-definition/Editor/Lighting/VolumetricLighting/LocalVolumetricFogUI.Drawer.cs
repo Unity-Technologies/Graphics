@@ -13,7 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Expandable
         {
             Volume = 1 << 0,
-            DensityMaskTexture = 1 << 1
+            DensityMaskTexture = 1 << 1,
+            MaskMaterial = 1 << 2,
         }
 
         readonly static ExpandedState<Expandable, LocalVolumetricFog> k_ExpandedState = new ExpandedState<Expandable, LocalVolumetricFog>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
@@ -27,10 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.FoldoutGroup(Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
                 Drawer_VolumeContent
                 ),
-            CED.FoldoutGroup(
+            CED.Conditional((serialized, owner) => (LocalVolumetricFogMaskMode)serialized.maskMode.intValue == LocalVolumetricFogMaskMode.Texture, CED.FoldoutGroup(
                 Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
                 Drawer_DensityMaskTextureContent
-            )
+            )),
+            CED.Conditional((serialized, owner) => (LocalVolumetricFogMaskMode)serialized.maskMode.intValue == LocalVolumetricFogMaskMode.Material, CED.FoldoutGroup(
+                Styles.k_MaskMaterialTextureHeader, Expandable.MaskMaterial, k_ExpandedState,
+                Drawer_MaterialMaskContent
+            ))
         );
 
         static void Drawer_ToolBar(SerializedLocalVolumetricFog serialized, Editor owner)
@@ -55,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
+            EditorGUILayout.PropertyField(serialized.maskMode, Styles.s_MaskMode);
         }
 
         static void Drawer_VolumeContent(SerializedLocalVolumetricFog serialized, Editor owner)
@@ -182,19 +188,23 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
             if (EditorGUI.EndChangeCheck())
-            {
-                var newTexture = serialized.volumeTexture.objectReferenceValue;
-                if (newTexture != null)
-                {
-                    if (!(newTexture is RenderTexture rt && rt.dimension == UnityEngine.Rendering.TextureDimension.Tex3D || newTexture is Texture3D))
-                    {
-                        Debug.LogError($"Can't assign texture '{newTexture}' to the Local Volumetric Fog because the dimension doesn't match the expected Texture3D dimension.");
-                        serialized.volumeTexture.objectReferenceValue = null;
-                    }
-                }
-            }
+                serialized.UpdateTextureMaskCompatibility();
+            if (!serialized.isTextureMaskCompatible && serialized.volumeTexture.objectReferenceValue != null)
+                EditorGUILayout.HelpBox(Styles.s_InvalidTextureMessage, MessageType.Error);
             EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
+        }
+
+        static void Drawer_MaterialMaskContent(SerializedLocalVolumetricFog serialized, Editor owner)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.materialMask, Styles.s_MaterialMask);
+            if (EditorGUI.EndChangeCheck())
+                serialized.UpdateMaterialMaskCompatibility();
+            if (!serialized.isMaterialMaskCompatible)
+            {
+                EditorGUILayout.HelpBox(Styles.s_InvalidMaterialMessage, MessageType.Error);
+            }
         }
     }
 }

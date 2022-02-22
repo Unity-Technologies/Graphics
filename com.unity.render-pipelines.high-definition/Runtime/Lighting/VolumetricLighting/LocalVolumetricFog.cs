@@ -55,6 +55,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
         public LocalVolumetricFogFalloffMode falloffMode;
 
+        /// <summary>The mask mode to use when writing this volume in the volumetric fog.</summary>
+        public LocalVolumetricFogMaskMode maskMode;
+
+        /// <summary>The material used to mask the local volumetric fog when the mask mode is set to Material. The material needs to use the "Fog Volume" material type in Shader Graph.</summary>
+        public Material materialMask;
+
         /// <summary>Minimum fog distance you can set in the meanFreePath parameter</summary>
         internal const float kMinFogDistance = 0.05f;
 
@@ -69,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             anisotropy = _anisotropy;
 
             volumeMask = null;
+            materialMask = null;
             textureScrollingSpeed = Vector3.zero;
             textureTiling = Vector3.one;
             textureOffset = textureScrollingSpeed;
@@ -83,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeEnd = 10000;
 
             falloffMode = LocalVolumetricFogFalloffMode.Linear;
+            maskMode = LocalVolumetricFogMaskMode.Texture;
 
             m_EditorPositiveFade = Vector3.zero;
             m_EditorNegativeFade = Vector3.zero;

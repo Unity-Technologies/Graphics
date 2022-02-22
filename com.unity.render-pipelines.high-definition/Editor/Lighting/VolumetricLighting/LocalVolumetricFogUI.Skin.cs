@@ -7,7 +7,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static class Styles
         {
             public static readonly GUIContent k_VolumeHeader = new GUIContent("Volume");
-            public static readonly GUIContent k_DensityMaskTextureHeader = new GUIContent("Density Mask Texture");
+            public static readonly GUIContent k_DensityMaskTextureHeader = new GUIContent("Mask Texture");
+            public static readonly GUIContent k_MaskMaterialTextureHeader = new GUIContent("Mask Material");
 
             public static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -25,9 +26,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values so 0 becomes the new maximum value and the original maximum value becomes 0.");
             public static readonly GUIContent s_FalloffMode = new GUIContent("Falloff Mode", "When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.");
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separately. This also include fading options.");
+            public static readonly GUIContent s_MaskMode = EditorGUIUtility.TrTextContent("Mask Mode", "Texture mask mode uses a 3D texture as color and density mask. Material mask mode uses a Fog Volume Material to mask color and density.");
+            public static readonly GUIContent s_MaterialMask = EditorGUIUtility.TrTextContent("Material", "The material used to mask the color and density. The Material needs to use a Fog Volume shader graph to be compatible.");
 
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start", "Sets the distance from the Camera where Local Volumetric Fog starts to fade out.");
             public static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End", "Sets the distance from the Camera where Local Volumetric Fog is completely faded out.");
+            public static readonly string s_InvalidMaterialMessage = "Material not compatible. Please use a material with a Fog Volume shader assigned.";
+            public static readonly string s_InvalidTextureMessage = "Texture not compatible. Please use a 3D texture.";
 
             public static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
 
