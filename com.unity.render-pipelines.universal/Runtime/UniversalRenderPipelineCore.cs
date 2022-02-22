@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -107,6 +108,11 @@ namespace UnityEngine.Rendering.Universal
         /// True if post-processing effect is enabled while rendering the camera stack.
         /// </summary>
         public bool postProcessingEnabled;
+
+        /// <summary>
+        /// RenderGraph to be used to record this frame render passes.
+        /// </summary>
+        public RenderGraph renderGraph;
     }
 
     /// <summary>
@@ -249,7 +255,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
         internal HDRColorBufferPrecision hdrColorBufferPrecision;
-
 
         /// <summary>
         /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>

@@ -8,6 +8,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
@@ -155,6 +156,9 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
+        internal static RenderGraph s_RenderGraph;
+        private static bool useRenderGraph;
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -201,6 +205,9 @@ namespace UnityEngine.Rendering.Universal
 
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
+            s_RenderGraph = new RenderGraph("URPRenderGraph");
+            useRenderGraph = false;
+
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
@@ -216,6 +223,9 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
             XRSystem.Dispose();
+
+            s_RenderGraph.Cleanup();
+            s_RenderGraph = null;
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -241,6 +251,8 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
+            useRenderGraph = m_GlobalSettings.enableRenderGraph;
+
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
@@ -430,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, s_RenderGraph, out var renderingData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref renderingData);
@@ -440,11 +452,21 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.AddRenderPasses(ref renderingData);
 
-                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
-                    renderer.Setup(context, ref renderingData);
+                if (useRenderGraph)
+                {
+                    RecordAndExecuteRenderGraph(context, ref renderingData);
 
-                // Timing scope inside
-                renderer.Execute(context, ref renderingData);
+                    s_RenderGraph.EndFrame();
+                }
+                else
+                {
+                    using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
+                        renderer.Setup(context, ref renderingData);
+
+                    // Timing scope inside
+                    renderer.Execute(context, ref renderingData);
+                }
+
                 CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
@@ -1028,7 +1050,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
-            bool anyPostProcessingEnabled, CommandBuffer cmd, out RenderingData renderingData)
+            bool anyPostProcessingEnabled, CommandBuffer cmd, RenderGraph renderGraph, out RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeRenderingData);
 
@@ -1072,6 +1094,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
             renderingData.commandBuffer = cmd;
+            renderingData.renderGraph = renderGraph;
 
             CheckAndApplyDebugSettings(ref renderingData);
         }

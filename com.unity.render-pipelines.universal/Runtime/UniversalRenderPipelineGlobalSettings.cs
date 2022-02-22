@@ -322,6 +322,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] bool m_StripUnusedVariants = true;
 
+        [SerializeField] bool m_EnableRenderGraph = false;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
@@ -343,6 +345,11 @@ namespace UnityEngine.Rendering.Universal
         /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
+
+        /// <summary>
+        /// Controls whether the RenderGraph render path is enabled.
+        /// </summary>
+        public bool enableRenderGraph { get => m_EnableRenderGraph; set { m_EnableRenderGraph = value; } }
 
         #endregion
     }
