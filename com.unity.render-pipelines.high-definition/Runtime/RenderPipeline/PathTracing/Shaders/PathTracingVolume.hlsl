@@ -116,9 +116,9 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
             if (Luminance(value) > 0.001)
             {
                 // Shoot a transmission ray
-                payload.segmentID = SEGMENT_ID_TRANSMISSION;
-                ray.TMax -= _RaytracingRayBias;
+                shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
                 shadowPayload.value = 1.0;
+                ray.TMax -= _RaytracingRayBias;
 
                 // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
