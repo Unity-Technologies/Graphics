@@ -475,22 +475,51 @@ namespace UnityEngine.Rendering
             debugData.offsetBuffers = offsetBuffers;
             debugData.props = props;
 
-            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
+            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
+            var loc = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
 
             int idxInBatch = 0;
             for (int i = 0; i < cell.probeCount; i++)
             {
-                var brickSize = cell.bricks[i / 64].subdivisionLevel;
+                int brickSize;
+                Vector3Int texelLoc;
 
-                int chunkIndex = i / chunkSizeInProbes;
-                var chunk = chunks[chunkIndex];
-                int indexInChunk = i % chunkSizeInProbes;
-                int brickIdx = indexInChunk / 64;
-                int indexInBrick = indexInChunk % 64;
+                if (oldData)
+                {
+                    brickSize = cell.bricks[i / 64].subdivisionLevel;
 
-                Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
-                int indexInSlice = indexInBrick % 16;
-                Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
+                    int chunkIndex = i / chunkSizeInProbes;
+                    var chunk = chunks[chunkIndex];
+                    int indexInChunk = i % chunkSizeInProbes;
+                    int brickIdx = indexInChunk / 64;
+                    int indexInBrick = indexInChunk % 64;
+
+                    Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
+                    int indexInSlice = indexInBrick % 16;
+                    texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
+                }
+                else
+                {
+                    int chunkIndex = i / chunkSizeInProbes;
+                    var chunk = chunks[chunkIndex];
+                    int indexInChunk = i % chunkSizeInProbes;
+                    int z = indexInChunk / (loc.x * loc.y);
+                    int y = (indexInChunk - (loc.x * loc.y) * z) / loc.x;
+                    int x = (indexInChunk - (loc.x * loc.y) * z) - y * loc.x;
+
+                    texelLoc = new Vector3Int(chunk.x + x, chunk.y + y, chunk.z + z);
+
+                    // Brick coord
+                    Vector3Int locInBricks = loc / ProbeBrickPool.kBrickProbeCountPerDim;
+
+                    int bx = x / ProbeBrickPool.kBrickProbeCountPerDim;
+                    int by = y / ProbeBrickPool.kBrickProbeCountPerDim;
+                    int bz = z / ProbeBrickPool.kBrickProbeCountPerDim;
+                    int brickIndex = bz * locInBricks.x * locInBricks.y + by * locInBricks.x + bx;
+
+                    //brickSize = cell.bricks[brickIndex].subdivisionLevel;
+                    brickSize = 1;
+                }
 
                 probeBuffer.Add(Matrix4x4.TRS(probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                 validity[idxInBatch] = oldData ? cell.GetValidityOld(i) : cell.GetValidity(i);
@@ -501,7 +530,6 @@ namespace UnityEngine.Rendering
                 {
                     touchupUpVolumeAction[idxInBatch] = touchupData[i];
                 }
-
 
                 if (offsets != null)
                 {

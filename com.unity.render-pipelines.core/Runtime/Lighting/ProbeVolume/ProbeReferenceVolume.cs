@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering
         ProbeBrickPool.DataLocation m_TemporaryDataLocationOld;
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
         int m_TemporaryDataLocationMemCost;
-        int m_CurrentProbeVolumeChunkSize = 0;
+        int m_CurrentProbeVolumeChunkSizeInBricks = 0;
 
         internal ProbeVolumeSceneData sceneData;
 
@@ -1285,7 +1285,7 @@ namespace UnityEngine.Rendering
 
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
-            m_CurrentProbeVolumeChunkSize = asset.chunkSizeInBricks;
+            m_CurrentProbeVolumeChunkSizeInBricks = asset.chunkSizeInBricks;
 
             ClearDebugData();
 
@@ -1555,7 +1555,7 @@ namespace UnityEngine.Rendering
 
         void UpdatePool(List<Chunk> chunkList, Cell.PerScenarioData data, NativeArray<byte> validityNeighMaskData, int chunkIndex, int poolIndex)
         {
-            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal;
+            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
             var chunkOffsetInProbes = chunkIndex * chunkSizeInProbes;
             var shChunkSize = chunkSizeInProbes * 4;
             var shChunkOffset = chunkIndex * shChunkSize;
