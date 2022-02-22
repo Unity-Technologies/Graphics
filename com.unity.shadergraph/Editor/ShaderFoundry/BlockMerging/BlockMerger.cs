@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry
                 matchingName = variable.Name;
                 return matchingField;
             }
-            
+
             foreach (var aliasName in variable.Aliases)
             {
                 matchingField = scopes.Find(variable.Type, aliasName);
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderFoundry
                 VariableLinkInstance matchingField = null;
 
                 // If this isn't a property, always check for a match from the available outputs
-                if(!isProperty)
+                if (!isProperty)
                     matchingField = FindMatch(scopes, input, ref inputName);
 
                 // If this is a property or we didn't find a matching field, promote this variable to an input
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderFoundry
                         matchingField.AddAlias(inputName);
                 }
 
-                if(matchingField != null)
+                if (matchingField != null)
                 {
                     // Mark both fields as being used and then hook up the source
                     matchingField.IsUsed = true;
@@ -185,4 +185,3 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 }
-
