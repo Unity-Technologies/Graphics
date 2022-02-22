@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // TODO @ SHADERS: Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
-                var customizationPoints = template.CustomizationPoints.ToList();
+                var customizationPoints = template.CustomizationPoints().ToList();
                 var vertexCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.VertexDescriptionCPName));
                 var surfaceCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 

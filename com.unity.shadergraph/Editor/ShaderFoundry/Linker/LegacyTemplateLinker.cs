@@ -605,7 +605,7 @@ namespace UnityEditor.ShaderFoundry
                 // Currently there is no location to insert pass tags. For now, insert all of the pass tags into the "LightMode" splice point.
                 foreach (var tagDescriptor in templatePass.TagDescriptors)
                     tagBuilder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
-                
+
                 spliceCommands.Add("LightMode", tagBuilder.ToString());
             }
 

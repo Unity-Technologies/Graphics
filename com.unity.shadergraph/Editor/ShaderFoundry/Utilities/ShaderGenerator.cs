@@ -22,8 +22,11 @@ namespace UnityEditor.ShaderFoundry
             var propertiesMap = new Dictionary<string, BlockProperty>();
             var propertiesList = new List<BlockProperty>();
 
-            void CollectUniqueProperties(Block block)
+            void CollectUniqueProperties(BlockInstance blockInstance)
             {
+                if (!blockInstance.IsValid)
+                    return;
+                var block = blockInstance.Block;
                 var properties = block.Properties();
                 if (properties != null)
                 {
@@ -42,19 +45,28 @@ namespace UnityEditor.ShaderFoundry
                 }
             }
 
+            void CollectUniqueStageElementProperties(TemplatePassStageElement stageElement)
+            {
+                CollectUniqueProperties(stageElement.BlockInstance);
+                if (!stageElement.CustomizationPoint.IsValid)
+                    return;
+                foreach (var blockInstance in stageElement.CustomizationPoint.DefaultBlockInstances)
+                    CollectUniqueProperties(blockInstance);
+            }
+
             foreach (var templateInst in shaderInst.TemplateInstances)
             {
                 foreach (var pass in templateInst.Template.Passes)
                 {
-                    foreach (var block in pass.VertexBlocks)
-                        CollectUniqueProperties(block.Block);
-                    foreach (var block in pass.FragmentBlocks)
-                        CollectUniqueProperties(block.Block);
+                    foreach (var stageElement in pass.VertexStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
+                    foreach (var stageElement in pass.FragmentStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
                 }
                 foreach (var cpInst in templateInst.CustomizationPointInstances)
                 {
                     foreach (var blockInst in cpInst.BlockInstances)
-                        CollectUniqueProperties(blockInst.Block);
+                        CollectUniqueProperties(blockInst);
                 }
             }
 

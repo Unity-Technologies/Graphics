@@ -36,44 +36,48 @@ namespace UnityEditor.ShaderFoundry
 
         internal LegacyEntryPoints GenerateLegacyEntryPoints(Template template, TemplatePass templatePass, List<CustomizationPointInstance> customizationPointInstances)
         {
-            var vertexGroups = BuildBlockGroups(template, templatePass, templatePass.VertexBlocks, customizationPointInstances);
-            var fragmentGroups = BuildBlockGroups(template, templatePass, templatePass.FragmentBlocks, customizationPointInstances);
+            var vertexGroups = BuildBlockGroups(templatePass.VertexStageElements, customizationPointInstances);
+            var fragmentGroups = BuildBlockGroups(templatePass.FragmentStageElements, customizationPointInstances);
             return GenerateMergerLegacyEntryPoints(template, templatePass, vertexGroups, fragmentGroups);
         }
 
-        List<BlockGroup> BuildBlockGroups(Template template, TemplatePass templatePass, IEnumerable<BlockInstance> passBlocksInstances, IEnumerable<CustomizationPointInstance> customizationPointInstances)
+        List<BlockGroup> BuildBlockGroups(IEnumerable<TemplatePassStageElement> passStageElements, IEnumerable<CustomizationPointInstance> customizationPointInstances)
         {
-            // The blocks for a pass are in two different places: the pass defaults and the
-            // customization point descriptors. For block merging, we'll need to know what blocks to merge together.
-            // To do this, first group neighboring blocks together if they share a customization point.
+            // Build block groups based upon customization points. All neighboring blocks not in a customization point
+            // will be grouped together. Customization points will have their own group.
             var results = new List<BlockGroup>();
             BlockGroup currentGroup = null;
-            foreach (var templateBlockDesc in passBlocksInstances)
+            foreach (var stageElement in passStageElements)
             {
-                var customizationPoint = templatePass.GetCustomizationPointForBlock(templateBlockDesc);
+                var customizationPoint = stageElement.CustomizationPoint;
                 // If the customization point has changed then the group changes (or if we didn't already have a group)
                 if (currentGroup == null || currentGroup.CustomizationPoint != customizationPoint)
                 {
                     currentGroup = new BlockGroup { CustomizationPoint = customizationPoint };
                     results.Add(currentGroup);
                 }
-                currentGroup.BlockInstances.Add(templateBlockDesc);
-            }
 
-            // Once pass blocks are merged, we can append each group with the CustomizationPointInstance's blocks
+                if (stageElement.BlockInstance.IsValid)
+                    currentGroup.BlockInstances.Add(stageElement.BlockInstance);
+            }
+            // Now add fill out each group that has a customization point. To do this, we append the default block instances
+            // of the customization point and all of the block instances in each customization point instance.
             foreach (var group in results)
             {
                 if (group.CustomizationPoint.IsValid == false)
                     continue;
 
-                // Find the CustomizationPointInstance matching the group's CustomizationPoint and append all of it's block descriptors
-                foreach (var cpDesc in customizationPointInstances)
+                foreach (var blockInstance in group.CustomizationPoint.DefaultBlockInstances)
+                    group.BlockInstances.Add(blockInstance);
+
+                // Find the CustomizationPointInstance matching the group's CustomizationPoint and append all of its block instances
+                foreach (var customizationPointInstance in customizationPointInstances)
                 {
-                    if (cpDesc.CustomizationPoint != group.CustomizationPoint)
+                    if (customizationPointInstance.CustomizationPoint != group.CustomizationPoint)
                         continue;
 
-                    foreach (var blockDesc in cpDesc.BlockInstances)
-                        group.BlockInstances.Add(blockDesc);
+                    foreach (var blockInstance in customizationPointInstance.BlockInstances)
+                        group.BlockInstances.Add(blockInstance);
                     // Should this break? Does it make sense for a user to have two CustomizationPointInstances with the same CustomizationPoint?
                     break;
                 }
