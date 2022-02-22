@@ -4,16 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.7] - 2022-02-09
+
+### Fixed
+- Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
+- Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
+- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
+- Fixed ScreenSpaceShadows target which was not bound during draw. [case 1388353](https://issuetracker.unity3d.com/product/unity/issues/guid/1388353/)
+- Fixed an issue where the "Skip Iterations" option on Bloom could cause the effect to not run at all, which would cause flickering due to the Bloom texture being uninitialized. [case 1382991](https://issuetracker.unity3d.com/product/unity/issues/guid/1382991/)
+- Fixed camera sorting layer render target not being allocated in the 2d renderer [case 1389780](https://issuetracker.unity3d.com/issues/urp-2d-renderer-setrendertarget-function-throws-exception-after-upgrading-project-from-2021-dot-1-to-2022-dot-1)
+
 ## [13.1.6] - 2022-01-14
 
 ### Fixed
 - Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
-- Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
 - Fixed some rendering inconsistencies when using Decals.
-- Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
-- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
-- Fixed ScreenSpaceShadows target which was not bound during draw. [case 1388353](https://issuetracker.unity3d.com/product/unity/issues/guid/1388353/)
-- Fixed camera sorting layer render target not being allocated in the 2d renderer [case 1389780](https://issuetracker.unity3d.com/issues/urp-2d-renderer-setrendertarget-function-throws-exception-after-upgrading-project-from-2021-dot-1-to-2022-dot-1)
 
 ## [13.1.5] - 2021-12-17
 
@@ -21,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a depth non-clear in XR due to wrong depth slice being checked.
 - Fixed decal compilation issue on mac.
 - Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
+
+## Fixed
+- Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
 
 ## [13.1.4] - 2021-12-04
 

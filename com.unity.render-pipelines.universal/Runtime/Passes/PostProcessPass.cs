@@ -1100,7 +1100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxSize = Mathf.Max(tw, th);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
             iterations -= m_Bloom.skipIterations.value;
-            int mipCount = Mathf.Clamp(iterations, 1, k_MaxPyramidSize);
+            int mipCount = Mathf.Clamp(iterations, 2, k_MaxPyramidSize);
 
             // Pre-filtering parameters
             float clamp = m_Bloom.clamp.value;

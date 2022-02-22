@@ -1062,6 +1062,8 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
