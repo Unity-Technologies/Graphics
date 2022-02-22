@@ -122,6 +122,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
 
@@ -408,6 +411,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug");
             m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
             m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
+
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);

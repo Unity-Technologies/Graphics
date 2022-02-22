@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader screenSpaceReflectionsCS;
             [Reload("Runtime/RenderPipeline/RenderPass/Distortion/ApplyDistortion.shader")]
             public Shader applyDistortionPS;
+            [Reload("Runtime/Core/CoreResources/ClearBuffer2D.compute")]
+            public ComputeShader clearBuffer2D;
 
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
