@@ -158,6 +158,12 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
     VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
     bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
+
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     // outMotionVec is already initialize at the value of forceNoMotion (see above)
     if (!forceNoMotion)
     {
