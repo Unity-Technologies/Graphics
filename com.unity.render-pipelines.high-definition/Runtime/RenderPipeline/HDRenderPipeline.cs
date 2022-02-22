@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
-                    stateBlendShader = defaultResources.shaders.probeVolumeBlendStatesCS,
+                    scenarioBlendingShader = defaultResources.shaders.probeVolumeBlendStatesCS,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
