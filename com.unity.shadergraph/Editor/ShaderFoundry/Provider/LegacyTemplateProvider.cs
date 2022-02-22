@@ -66,6 +66,20 @@ namespace UnityEditor.ShaderFoundry
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
+
+            void AddTemplateTag(string tagName, string tagValue)
+            {
+                // Render Type
+                if (!string.IsNullOrEmpty(tagValue))
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, tagName, tagValue).Build());
+                else
+                    builder.AddTagDescriptor(new TagDescriptor.Builder(Container, $"// {tagName}", "<None>").Build());
+            }
+
+            AddTemplateTag("RenderPipeline", subShaderDescriptor.pipelineTag);
+            AddTemplateTag("RenderType", subShaderDescriptor.renderType);
+            AddTemplateTag("Queue", subShaderDescriptor.renderQueue);
+
             var result = builder.Build();
 
             var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
