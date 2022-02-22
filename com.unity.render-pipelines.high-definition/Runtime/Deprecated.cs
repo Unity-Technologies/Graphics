@@ -30,6 +30,14 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Volume debug settings.
+    /// </summary>
+    [Obsolete("AmbientOcclusion has been renamed. Use ScreenSpaceAmbientOcclusion instead (UnityUpgradable) -> ScreenSpaceAmbientOcclusion")]
+    public sealed class AmbientOcclusion : ScreenSpaceAmbientOcclusion
+    {
+    }
+
+    /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
     public partial class DebugDisplaySettings
