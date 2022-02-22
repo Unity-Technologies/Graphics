@@ -40,5 +40,33 @@ namespace UnityEngine.Rendering
 
             return component.Name;
         }
+
+        /// <summary>
+        /// The list of the additional camera datas
+        /// </summary>
+        [Obsolete("Cameras are auto registered/unregistered, use property cameras", false)]
+        protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
+
+        /// <summary>
+        /// Register the camera for the Volume Debug.
+        /// </summary>
+        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
+        [Obsolete("Cameras are auto registered/unregistered", false)]
+        public static void RegisterCamera(T additionalCamera)
+        {
+            if (!additionalCameraDatas.Contains(additionalCamera))
+                additionalCameraDatas.Add(additionalCamera);
+        }
+
+        /// <summary>
+        /// Unregister the camera for the Volume Debug.
+        /// </summary>
+        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
+        [Obsolete("Cameras are auto registered/unregistered", false)]
+        public static void UnRegisterCamera(T additionalCamera)
+        {
+            if (additionalCameraDatas.Contains(additionalCamera))
+                additionalCameraDatas.Remove(additionalCamera);
+        }
     }
 }
