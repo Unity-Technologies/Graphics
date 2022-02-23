@@ -192,7 +192,7 @@ namespace com.unity.shadergraph.defs
                 data.TryGetPort(param.Name, out var port);
                 var shaderType = registry.GetShaderType((IFieldReader)port, container);
 
-                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.In)
+                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
