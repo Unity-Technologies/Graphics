@@ -712,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        static public TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera)
+        static public TextureHandle CreateDepthTexture(RenderGraph graph, Camera camera, bool clear)
         {
             bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
 
@@ -722,7 +722,7 @@ namespace UnityEngine.Rendering.Universal
             colorRTDesc.depthBufferBits = DepthBits.Depth24;
             colorRTDesc.msaaSamples = MSAASamples.None;
             colorRTDesc.enableRandomWrite = false;
-            colorRTDesc.clearBuffer = true;
+            colorRTDesc.clearBuffer = clear;
             colorRTDesc.clearColor = Color.black;
             colorRTDesc.name = "Depth";
 
@@ -743,7 +743,7 @@ namespace UnityEngine.Rendering.Universal
 
             // create frame resources
             frameResources.backBuffer = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            frameResources.depth = CreateDepthTexture(renderGraph, camera);
+            frameResources.depth = CreateDepthTexture(renderGraph, camera, renderingData.cameraData.renderType == CameraRenderType.Base);
 
             RecordRenderGraphBlock(RenderPassBlock.BeforeRendering, renderGraph, context, cmd, ref renderingData);
 

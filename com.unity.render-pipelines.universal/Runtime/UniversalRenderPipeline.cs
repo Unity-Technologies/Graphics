@@ -320,6 +320,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+            m_RenderGraph.EndFrame();
+
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
             {
@@ -454,8 +457,6 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(context, cmd, ref renderingData);
-
-                    m_RenderGraph.EndFrame();
                 }
                 else
                 {
