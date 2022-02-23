@@ -94,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             }
                         }
 #else
-                        CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising Plugin package.", MessageType.Info, () =>
+                        CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising package.", MessageType.Info, () =>
                         {
                             PackageManager.Client.Add("com.unity.rendering.denoising");
                         });
