@@ -17,7 +17,7 @@ namespace com.unity.shadergraph.defs
         // Get the CIE xy chromaticity of the reference white point.
         // Note: 0.31271 = x value on the D65 white point
         x = 0.31271 - t1 * (t1 < 0 ? 0.1 : 0.05);
-        y = (2.87 * x - 3 * x * x - 0.27509507) + (Tint * 10 / 6;) * 0.05;
+        y = (2.87 * x - 3 * x * x - 0.27509507) + (Tint * 10 / 6) * 0.05;
 
         // CIExyToLMS
         X = 1 * x / y;
