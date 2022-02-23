@@ -53,7 +53,7 @@ namespace com.unity.shadergraph.defs
             "TestLocalVec4", // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
-            new ParameterDescriptor("Static", TYPE.Vec4, GraphType.Usage.Static),
+            new ParameterDescriptor("Static", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec4, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
