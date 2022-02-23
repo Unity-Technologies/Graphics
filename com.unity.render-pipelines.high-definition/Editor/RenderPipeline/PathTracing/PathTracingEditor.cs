@@ -5,6 +5,10 @@ using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+using UnityEngine.Rendering.Denoising;
+#endif
+
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
