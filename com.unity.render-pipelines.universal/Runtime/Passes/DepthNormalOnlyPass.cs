@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = false;
         }
 
-        internal static GraphicsFormat GetGraphicsFormat()
+        public static GraphicsFormat GetGraphicsFormat()
         {
             if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
                 return GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
@@ -69,9 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -86,8 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

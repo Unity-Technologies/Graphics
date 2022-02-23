@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Modes for Debugging Probes
@@ -30,6 +29,10 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         ValidityOverDilationThreshold,
         /// <summary>
+        /// Show in red probes that have been made invalid by touchup volumes. Important to note that this debug view will only show result for volumes still present in the scene.
+        /// </summary>
+        InvalidatedByTouchupVolumes,
+        /// <summary>
         /// Based on size
         /// </summary>
         Size
@@ -52,6 +55,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
+        public int otherStateIndex = 0;
     }
 
     public partial class ProbeReferenceVolume
@@ -79,6 +83,12 @@ namespace UnityEngine.Experimental.Rendering
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
         Plane[] m_DebugFrustumPlanes = new Plane[6];
+
+        // Scenario blending debug data
+        GUIContent[] m_DebugScenarioNames = new GUIContent[0];
+        int[] m_DebugScenarioValues = new int[0];
+        string m_DebugActiveSceneGUID, m_DebugActiveScenario;
+        DebugUI.EnumField m_DebugScenarioField;
 
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
@@ -230,6 +240,8 @@ namespace UnityEngine.Experimental.Rendering
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
+            streamingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Loaded Per Frame", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 0 });
+
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
@@ -242,6 +254,83 @@ namespace UnityEngine.Experimental.Rendering
             if (parameters.supportStreaming)
             {
                 widgetList.Add(streamingContainer);
+            }
+
+            if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
+            {
+                void RefreshScenarioNames(string guid)
+                {
+                    HashSet<string> allScenarios = new();
+                    foreach (var set in parameters.sceneData.bakingSets)
+                    {
+                        if (!set.sceneGUIDs.Contains(guid))
+                            continue;
+                        foreach (var scenario in set.lightingScenarios)
+                            allScenarios.Add(scenario);
+                    }
+
+                    allScenarios.Remove(sceneData.lightingScenario);
+                    if (m_DebugActiveSceneGUID == guid && allScenarios.Count + 1 == m_DebugScenarioNames.Length && m_DebugActiveScenario == sceneData.lightingScenario)
+                        return;
+
+                    int i = 0;
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioNames, allScenarios.Count + 1);
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioValues, allScenarios.Count + 1);
+                    m_DebugScenarioNames[0] = new GUIContent("None");
+                    m_DebugScenarioValues[0] = 0;
+                    foreach (var scenario in allScenarios)
+                    {
+                        i++;
+                        m_DebugScenarioNames[i] = new GUIContent(scenario);
+                        m_DebugScenarioValues[i] = i;
+                    }
+
+                    m_DebugActiveSceneGUID = guid;
+                    m_DebugActiveScenario = sceneData.lightingScenario;
+                    m_DebugScenarioField.enumNames = m_DebugScenarioNames;
+                    m_DebugScenarioField.enumValues = m_DebugScenarioValues;
+                    if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)
+                        debugDisplay.otherStateIndex = 0;
+                }
+
+                var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
+                m_DebugScenarioField = new DebugUI.EnumField
+                {
+                    displayName = "Scenario To Blend With",
+                    enumNames = m_DebugScenarioNames,
+                    enumValues = m_DebugScenarioValues,
+                    getIndex = () =>
+                    {
+                        RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+
+                        debugDisplay.otherStateIndex = 0;
+                        if (!string.IsNullOrEmpty(sceneData.otherScenario))
+                        {
+                            for (int i = 1; i < m_DebugScenarioNames.Length; i++)
+                            {
+                                if (m_DebugScenarioNames[i].text == sceneData.otherScenario)
+                                {
+                                    debugDisplay.otherStateIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        return debugDisplay.otherStateIndex;
+                    },
+                    setIndex = value =>
+                    {
+                        string other = value == 0 ? null : m_DebugScenarioNames[value].text;
+                        sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
+                        debugDisplay.otherStateIndex = value;
+                    },
+                    getter = () => debugDisplay.otherStateIndex,
+                    setter = (value) => debugDisplay.otherStateIndex = value,
+                };
+
+                blendingContainer.children.Add(m_DebugScenarioField);
+                blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Scenario Blending Factor", getter = () => instance.scenarioBlendingFactor, setter = value => instance.scenarioBlendingFactor = value, min = () => 0.0f, max = () => 1.0f });
+
+                widgetList.Add(blendingContainer);
             }
 
             if (widgetList.Count > 0)
@@ -291,6 +380,11 @@ namespace UnityEngine.Experimental.Rendering
                 m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L1");
             else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
+
+            // This is to force the rendering not to draw to the depth pre pass and still behave.
+            // They are going to be rendered opaque anyhow, just using the transparent render queue to make sure
+            // they properly behave w.r.t fog.
+            m_DebugMaterial.renderQueue = (int)RenderQueue.Transparent;
 
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -342,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var cell = cellInfo.cell;
 
-            if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
+            if (!cell.bricks.IsCreated || cell.bricks.Length == 0 || !cellInfo.loaded)
                 return null;
 
             List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
@@ -353,6 +447,7 @@ namespace UnityEngine.Experimental.Rendering
             Vector4[] texels = new Vector4[kProbesPerBatch];
             float[] validity = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
+            float[] touchupUpVolumeAction = cell.touchupVolumeInteraction.Length > 0 ? new float[kProbesPerBatch] : null;
             Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
             List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
@@ -379,9 +474,16 @@ namespace UnityEngine.Experimental.Rendering
                 Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
                 probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = cell.validity[i];
+                validity[idxInBatch] = cell.GetValidity(i);
                 texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                 relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
+
+                if (touchupUpVolumeAction != null)
+                {
+                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[i];
+                }
+
+
                 if (offsets != null)
                 {
                     const float kOffsetThresholdSqr = 1e-6f;
@@ -409,6 +511,7 @@ namespace UnityEngine.Experimental.Rendering
                     MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
                     prop.SetFloatArray("_Validity", validity);
+                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
                     prop.SetFloatArray("_RelativeSize", relativeSize);
                     prop.SetVectorArray("_IndexInAtlas", texels);
 
