@@ -2,7 +2,7 @@
 
 ![](Images/volumetric-clouds-1.png)
 
-The **Volumetric Clouds** [Volume component override](Volume-Components.md) controls settings relevant to rendering volumetric clouds in the High Definition Render Pipeline (HDRP). Volumetric clouds are intractable clouds that can render shadows, and receive fog and volumetric light.
+The **Volumetric Clouds** [Volume component override](Volume-Components.md) controls settings relevant to rendering volumetric clouds in the High Definition Render Pipeline (HDRP). Volumetric clouds are interactable clouds that can render shadows, and receive fog and volumetric light.
 
 To generate and render volumetric clouds, HDRP uses:
 
@@ -19,9 +19,9 @@ Using these three things, HDRP generates volumetric clouds in a two-step process
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-* In your HDRP Asset go to **Lighting > Volumetric Clouds > Volumetric Clouds**.
+* In your [HDRP Asset](HDRP Asset) go to **Lighting > Volumetrics > Volumetric Clouds**.
 
-* In your Frame Settings go to **Lighting > Volumetric Clouds**.
+* In your [Frame Settings](Frame-Settings.md) go to **Lighting > Volumetric Clouds**.
 
 ## Using Volumetric Clouds
 

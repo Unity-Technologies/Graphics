@@ -135,7 +135,6 @@ void RayGenIntegration()
         // Create and init the RayIntersection structure for this
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.origin = rayDescriptor.Origin;
         rayIntersection.t = -1.0f;
         rayIntersection.remainingDepth = 1;
         rayIntersection.pixelCoord = currentCoord;

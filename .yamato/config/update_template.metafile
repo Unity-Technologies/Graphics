@@ -3,7 +3,7 @@ project:
   folder: URP-Update-Testing/URP-Update-Testing
   variables:
     TEMPLATE_UPDATE_PROJECT_BRANCH: master
-    TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+    TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
 
 reuse_blocks:
   setup_with_utr:
@@ -20,7 +20,6 @@ reuse_blocks:
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.shadergraph" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.shadergraph" /Y
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [all]: <shared.platform.commands.call_utr>

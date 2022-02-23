@@ -6,18 +6,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class WaterData : HDTargetData
     {
-        public enum MaterialType
-        {
-            Water,
-            WaterCinematic
-        }
-
-        [SerializeField]
-        MaterialType m_MaterialType;
-        public MaterialType materialType
-        {
-            get => m_MaterialType;
-            set => m_MaterialType = value;
-        }
     }
 }

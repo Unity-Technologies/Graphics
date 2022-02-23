@@ -219,6 +219,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_RAY_TRACING_ACCELERATION_STRUCTURE)
+                {
+                    return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
                     float2 mv = SampleMotionVectors(input.texcoord);
@@ -261,8 +265,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 #if DONT_USE_NINE_TAP_FILTER
                     mv_arrow = SampleMotionVectors(center * _ScreenSize.zw * _RTHandleScale.xy);
 #else
-                    for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
-                        mv_arrow += SampleMotionVectors((center + float2(i, j)) * _RTHandleScale.xy * _ScreenSize.zw);
+                    UNITY_UNROLL
+                    for (int i = -1; i <= 1; ++i)
+                        UNITY_UNROLL
+                        for (int j = -1; j <= 1; ++j)
+                            mv_arrow += SampleMotionVectors((center + float2(i, j)) * _RTHandleScale.xy * _ScreenSize.zw);
                     mv_arrow /= 9.0f;
 #endif
                     mv_arrow.y *= -1;
@@ -294,7 +301,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_COC)
                 {
-                    float coc = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float coc = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).x;
 
                     float3 color = lerp(float3(1.0, 0.0, 0.0), float3(1.0, 1.0, 1.0), saturate(-coc));
                     color = lerp(color, float3(1.0, 1.0, 1.0), saturate(coc));
@@ -327,7 +334,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS ||
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV ||
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM ||
-                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS)
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTION_SPEED_REJECTION)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord) * GetCurrentExposureMultiplier();
                     return float4(color.rgb, 1.0f);
@@ -371,7 +379,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
-                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
+                    {
+                        color.rgb = GetOverdrawColor(pixelCost, _TransparencyOverdrawMaxPixelCost);
+                    }
+
+                    DrawOverdrawLegend(input.texcoord / _RTHandleScale.xy, _TransparencyOverdrawMaxPixelCost, _ScreenSize, color.rgb);
+
                     return color;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)

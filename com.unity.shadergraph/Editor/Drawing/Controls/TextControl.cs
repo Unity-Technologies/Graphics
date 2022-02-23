@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     evt.StopPropagation();
                 }
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
             {
                 if (m_Node.GetType() == typeof(SwizzleNode))
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_Node.Dirty(ModificationScope.Topological);
                 }
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             container.Add(field);
             Add(container);
         }

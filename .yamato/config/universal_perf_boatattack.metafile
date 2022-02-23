@@ -20,8 +20,8 @@ reuse_blocks:
     - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
     - [iPhone_Metal, OSX_Metal]: brew install unity-config
 
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco install unity-config
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: gsudo choco install unity-config
 
     - [Linux_Vulkan]: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
     - [Linux_Vulkan]: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -35,7 +35,7 @@ reuse_blocks:
     - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
     - [all]: unity-config project add dependency com.unity.addressables@1.16.7
     - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-    - [all]: unity-config project add dependency com.unity.test-framework@1.1.29
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.30
     - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
     - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
     - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -74,7 +74,6 @@ test_platforms:
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
@@ -150,7 +149,6 @@ test_platforms:
       - [iPhone_Metal]:
         - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
           retries: 2
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
@@ -196,7 +194,6 @@ test_platforms:
     commands:
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
@@ -256,7 +253,6 @@ test_platforms:
     commands:
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
@@ -330,16 +326,16 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: Android
     apis:
@@ -360,11 +356,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: XRQuest
     apis:
@@ -385,11 +381,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: iPhone
     apis:
@@ -494,12 +490,12 @@ jobs:
           - performance_playmode_runtime
           - performance_playmode_editor
           - performance_build_editmode
-      - platform: XRQuest
-        api: OpenGLES3
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
+      # - platform: XRQuest
+      #   api: OpenGLES3
+      #   build_config: il2cpp
+      #   color_space: Linear
+      #   test_platforms:
+      #     - performance_playmode_runtime
       #- platform: XRQuest
       #  api: Vulkan
       #  build_config: il2cpp

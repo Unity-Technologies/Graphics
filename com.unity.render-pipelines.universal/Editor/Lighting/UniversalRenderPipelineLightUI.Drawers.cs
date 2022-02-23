@@ -327,6 +327,10 @@ namespace UnityEditor.Rendering.Universal
                         // this min bound should match the calculation in SharedLightData::GetNearPlaneMinBound()
                         float nearPlaneMinBound = Mathf.Min(0.01f * serializedLight.settings.range.floatValue, 0.1f);
                         EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
+
+                        // Soft Shadow Quality
+                        if (serializedLight.settings.light.shadows == LightShadows.Soft)
+                            EditorGUILayout.PropertyField(serializedLight.softShadowQualityProp, Styles.SoftShadowQuality);
                     }
 
                     if (UniversalRenderPipeline.asset.supportsLightLayers)

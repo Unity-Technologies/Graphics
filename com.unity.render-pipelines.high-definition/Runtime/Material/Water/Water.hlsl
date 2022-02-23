@@ -5,10 +5,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterUtilities.hlsl"
-
-// Those define allow to include desired SSS/Transmission functions
-//#define MATERIAL_INCLUDE_SUBSURFACESCATTERING
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
@@ -16,13 +12,17 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+TEXTURE2D_X(_WaterGBufferTexture0);
+TEXTURE2D_X(_WaterGBufferTexture1);
+TEXTURE2D_X(_WaterGBufferTexture2);
+TEXTURE2D_X(_WaterGBufferTexture3);
+StructuredBuffer<WaterSurfaceProfile> _WaterSurfaceProfiles;
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -30,17 +30,6 @@
 #define WATER_FRESNEL_ZERO 0.02037318784 // IorToFresnel0(1.333f)
 #define WATER_TIP_ANISOTROPY 1.0
 #define WATER_BODY_ANISOTROPY 0.5
-
-float GetPhaseTerm(float3 lightDir, float3 V, BSDFData bsdfData)
-{
-    float3 biasedOceanLightDirection = lightDir;
-    biasedOceanLightDirection.y -= ((1.f - WATER_INV_IOR) * 2.f);
-    biasedOceanLightDirection = normalize(biasedOceanLightDirection);
-    float3 singleScatteringRay = refract(-V, bsdfData.lowFrequencyNormalWS, WATER_INV_IOR);
-    float cos0RL = dot(singleScatteringRay, biasedOceanLightDirection);
-    float anisotropy = lerp(WATER_TIP_ANISOTROPY, WATER_BODY_ANISOTROPY, bsdfData.tipThickness);
-    return CornetteShanksPhasePartVarying(anisotropy, cos0RL) * lerp(_TipScatteringWeight, _BodyScatteringWeight, bsdfData.tipThickness);
-}
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
@@ -114,8 +103,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    bsdfData.materialFeatures = surfaceData.materialFeatures;
-
     bsdfData.diffuseColor = surfaceData.baseColor;
     // The fresnel0 is the constant water's fresnel when it is actually water,
     // but we add the foam color to it. It is probably not the best solution, but it works okay.
@@ -127,13 +114,191 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
-    bsdfData.foamColor = surfaceData.foamColor;
-    bsdfData.refractionColor = surfaceData.refractionColor;
+    bsdfData.foam = surfaceData.foam;
+    bsdfData.caustics = surfaceData.caustics;
     bsdfData.tipThickness = surfaceData.tipThickness;
 
-    bsdfData.specularSelfOcclusion = surfaceData.specularSelfOcclusion;
-
     return bsdfData;
+}
+
+//-----------------------------------------------------------------------------
+// conversion function for deferred
+
+// Layout of the water gbuffer
+// GBuffer0 R16G16 (32 bits)
+// - GBuffer0: Bits 31 -> 0: Diffuse color (11 11 10)
+
+// GBuffer1 R8G8B8A8 (32 bits)
+// - GBuffer1: Bits 31 -> 8: Compressed Complete Normal
+// - GBuffer1: Bits 7 -> 0: Discrete Perceptual Roughness (0 -> 255)
+
+// GBuffer2 R8G8B8A8 (32 bits)
+// - GBuffer1: Bits 31 -> 8: Compressed Low Frequency Normal
+// - GBuffer1: Bits 7 -> 0: Discrete Foam Value (0 -> 255)
+
+// GBuffer3 R8G8B8A8
+// - GBuffer2: Bits 31 -> 16: Tip Thickness (Compressed)
+// - GBuffer2: Bits 15 -> 4: Caustics
+// - GBuffer2: Bits 3 -> 0:  Surface Index
+uint2 SplitUInt32ToUInt16(uint input)
+{
+    return uint2(input & 0xFFFF, (input >> 16) & 0xFFFF);
+}
+
+uint MergeUInt16ToUInt32(uint2 input)
+{
+    return (input.x & 0xFFFF) | ((input.y & 0xFFFF) << 16);
+}
+
+float3 CompressNormal(float3 normal)
+{
+    float2 octNormal = PackNormalOctQuadEncode(normal);
+    return PackFloat2To888(saturate(octNormal * 0.5 + 0.5));
+}
+
+float3 DecompressNormal(float3 cmpNormal)
+{
+    float2 octNormal = Unpack888ToFloat2(cmpNormal);
+    return UnpackNormalOctQuadEncode(octNormal * 2.0 - 1.0);
+}
+
+float4 CompressGBuffer0(float3 diffuseColor)
+{
+    return float4(diffuseColor, 0.0);
+}
+
+void DecompressGBuffer0(float4 gbuffer0, inout BSDFData bsdfData)
+{
+    bsdfData.diffuseColor = gbuffer0.xyz;
+}
+
+float4 CompressGBuffer1(float3 normalWS, float roughness)
+{
+    return float4(CompressNormal(normalWS), roughness);
+}
+
+void DecompressGBuffer1(float4 gbuffer1, inout BSDFData bsdfData)
+{
+    // Decompress the normal vector and roughness
+    bsdfData.normalWS = DecompressNormal(gbuffer1.xyz);
+    bsdfData.perceptualRoughness = gbuffer1.w;
+}
+
+float4 CompressGBuffer2(float3 lowFrequencyNormalWS, float foam)
+{
+    return float4(CompressNormal(lowFrequencyNormalWS), saturate(foam * 2.0));
+}
+
+void DecompressGBuffer2(float4 gbuffer2, inout BSDFData bsdfData)
+{
+    // Decompress the low frequency normal vector and the foam
+    bsdfData.lowFrequencyNormalWS = DecompressNormal(gbuffer2.xyz);
+    bsdfData.foam = gbuffer2.w * 0.5;
+}
+
+float4 CompressGBuffer3(float tipThickness, float caustics, uint surfaceIndex)
+{
+    // Compress the caustics to the [0, 1] interval before compression into the gbuffer
+    caustics = caustics / (1.0 + caustics);
+
+    // We compress the caustics and surface index into 16 bits and export those to the z and w channels
+    uint cmpCaustics = (uint)(caustics * 4096.0);
+    uint cmpSurfaceIndex = surfaceIndex & 0xF;
+    uint lower16Bits = ((cmpCaustics & 0xFFF) << 4) | surfaceIndex & 0xF;
+
+    // We compress the tip thickness into the upper 16 bits
+    uint upper16Bits = f32tof16(tipThickness);
+
+    // Export the compressed data
+    return float4((upper16Bits >> 8 & 0xFF) / 255.0f, (upper16Bits & 0xFF) / 255.0f,
+                (lower16Bits >> 8 & 0xFF) / 255.0f, (lower16Bits & 0xFF) / 255.0f);
+}
+
+void DecompressGBuffer3(float4 gbuffer3, inout BSDFData bsdfData)
+{
+    // Repack the 4 values into two uints
+    uint upper16Bits = ((uint)(gbuffer3.x * 255.0f)) << 8 | ((uint)(gbuffer3.y * 255.0f));
+    uint lower16Bits = ((uint)(gbuffer3.z * 255.0f)) << 8 | ((uint)(gbuffer3.w * 255.0f));
+
+    bsdfData.tipThickness = f16tof32(upper16Bits);
+    bsdfData.caustics = ((lower16Bits >> 4) / 4096.0);
+    // Decompress the caustics from the [0, 1] interval after decompression into the gbuffer
+    bsdfData.caustics = bsdfData.caustics / (1.0 - bsdfData.caustics);
+    bsdfData.surfaceIndex = lower16Bits & 0xf;
+}
+
+void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
+                        , uint2 positionSS
+                        , out float4 outGBuffer0
+                        , out float4 outGBuffer1
+                        , out float4 outGBuffer2
+                        , out float4 outGBuffer3)
+{
+    // Output to the Gbuffer0
+    outGBuffer0 = CompressGBuffer0(bsdfData.diffuseColor);
+
+    // Output to the Gbuffer1
+    outGBuffer1 = CompressGBuffer1(bsdfData.normalWS, bsdfData.perceptualRoughness);
+
+    // Output to the Gbuffer2
+    outGBuffer2 = CompressGBuffer2(bsdfData.lowFrequencyNormalWS, bsdfData.foam);
+
+    // Output to the Gbuffer3
+    outGBuffer3 = CompressGBuffer3(bsdfData.tipThickness, bsdfData.caustics, _SurfaceIndex);
+}
+
+void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData builtinData)
+{
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+
+    // Read the gbuffer values
+    float4 inGBuffer0 = LOAD_TEXTURE2D_X(_WaterGBufferTexture0, positionSS);
+    float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
+    float4 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
+    float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
+
+    // Decompress the gbuffer 0
+    DecompressGBuffer0(inGBuffer0, bsdfData);
+
+    // Decompress the gbuffer 1
+    DecompressGBuffer1(inGBuffer1, bsdfData);
+
+    // Decompress the gbuffer 2
+    DecompressGBuffer2(inGBuffer2, bsdfData);
+
+    // Decompress the gbuffer 3
+    DecompressGBuffer3(inGBuffer3, bsdfData);
+
+    // Recompute the water fresnel0
+    bsdfData.fresnel0 = WATER_FRESNEL_ZERO;
+
+    // Decompress the additional data of the gbuffer3
+    bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+
+    // Fill the built in data
+    builtinData.renderingLayers = _EnableLightLayers ? _WaterSurfaceProfiles[bsdfData.surfaceIndex].lightLayers : DEFAULT_LIGHT_LAYERS;
+    builtinData.shadowMask0 = 1.0;
+    builtinData.shadowMask1 = 1.0;
+    builtinData.shadowMask2 = 1.0;
+    builtinData.shadowMask3 = 1.0;
+    builtinData.emissiveColor = _WaterAmbientProbe.xyz;
+}
+
+void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
+{
+    float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
+    // Decompress the normal vector
+    normalData.normalWS = DecompressNormal(inGBuffer1.xyz);
+    // Compress the roughness
+    normalData.perceptualRoughness = inGBuffer1.w;
+}
+
+void DecodeWaterSurfaceIndexFromGBuffer(uint2 positionSS, out uint surfaceIndex)
+{
+    float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
+    uint lower16Bits = ((uint)(inGBuffer3.z * 255.0f)) << 8 | ((uint)(inGBuffer3.w * 255.0f));
+    surfaceIndex = lower16Bits & 0xf;
 }
 
 //-----------------------------------------------------------------------------
@@ -147,6 +312,17 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 // Precomputed lighting data to send to the various lighting functions
 struct PreLightData
 {
+    // Scattering
+    float tipScatteringHeight;
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    float3 scatteringColor;
+    bool aboveWater;
+
+    // Refraction
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
     float partLambdaV;
 
@@ -179,11 +355,27 @@ void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, fl
     bsdfData.roughness = max(minRoughness, bsdfData.roughness);
 }
 
+bool CameraIsAboveWater(uint surfaceIndex)
+{
+    WaterSurfaceProfile profile = _WaterSurfaceProfiles[surfaceIndex];
+    return !profile.cameraUnderWater || _WaterCameraHeightBuffer[0] > 0.0;
+}
+
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
+
+    // Profile data
+    WaterSurfaceProfile profile = _WaterSurfaceProfiles[bsdfData.surfaceIndex];
+    preLightData.tipScatteringHeight = profile.tipScatteringHeight;
+    preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
+    preLightData.maxRefractionDistance = profile.maxRefractionDistance;
+    preLightData.transparencyColor = profile.transparencyColor;
+    preLightData.scatteringColor = profile.scatteringColor * UNDER_WATER_SCATTERING_ATTENUATION;
+    preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
+    preLightData.aboveWater = !profile.cameraUnderWater || _WaterCameraHeightBuffer[0] > 0.0;
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -217,14 +409,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.ltcTransformSpecular._m22 = 1.0;
     preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
 
-    // Construct a right-handed view-dependent orthogonal basis around the normal
-
-    // If we use the cinematic mode we wrap the normal away from the light and this cannot
-    // be precomputed here (it's done directly in EvaluateBSDF_Rect)
-    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_WATER_CINEMATIC))
-    {
-        preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.lowFrequencyNormalWS, NdotVLowFrequency);
-    }
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
     return preLightData;
 }
@@ -232,6 +416,16 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 //-----------------------------------------------------------------------------
 // light transport functions
 //-----------------------------------------------------------------------------
+float GetPhaseTerm(float3 lightDir, float3 V, BSDFData bsdfData, PreLightData preLightData)
+{
+    float3 biasedOceanLightDirection = lightDir;
+    biasedOceanLightDirection.y -= ((1.f - WATER_INV_IOR) * 2.f);
+    biasedOceanLightDirection = normalize(biasedOceanLightDirection);
+    float3 singleScatteringRay = refract(-V, bsdfData.lowFrequencyNormalWS, WATER_INV_IOR);
+    float cos0RL = dot(singleScatteringRay, biasedOceanLightDirection);
+    float anisotropy = lerp(WATER_TIP_ANISOTROPY, WATER_BODY_ANISOTROPY, bsdfData.tipThickness);
+    return CornetteShanksPhasePartVarying(anisotropy, cos0RL) * lerp(preLightData.tipScatteringHeight, preLightData.bodyScatteringHeight, bsdfData.tipThickness);
+}
 
 LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
@@ -283,7 +477,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     // We use abs(NdotL) to handle the none case of double sided
     float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, bsdfData.roughness, preLightData.partLambdaV);
 
-    float specularSelfOcclusion = saturate(clampedNdotL_LF * 5.f + bsdfData.specularSelfOcclusion);
+    float specularSelfOcclusion = saturate(clampedNdotL_LF * 5.f);
     cbsdf.specR = F * DV * clampedNdotL * specularSelfOcclusion;
 
     cbsdf.diffR = lerp(1.f, NdotLWrappedDiffuseLowFrequency, 1.0f) * (1.0 - F);
@@ -316,7 +510,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting directLighting = ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData, bsdfData, V);
 
     // Add the foam and sub-surface scattering terms
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -336,7 +530,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     // Add the foam and sub-surface scattering terms
     float3 L = GetPunctualLightVector(posInput.positionWS, lightData);
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -377,15 +571,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
     float3 unL = lightData.positionRWS - positionWS;
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_WATER_CINEMATIC))
-    {
-        bsdfData.lowFrequencyNormalWS = ComputeWrappedNormal(bsdfData.lowFrequencyNormalWS, normalize(unL), 1.0f);
-        float NdotVLowFrequency = dot(bsdfData.lowFrequencyNormalWS, V);
-        NdotVLowFrequency = ClampNdotV(NdotVLowFrequency);
-        preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.lowFrequencyNormalWS, NdotVLowFrequency);
-    }
-
     if (dot(lightData.forward, unL) < 0.0001)
     {
 
@@ -501,7 +686,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     }
 
     // Add the foam and surface diffuse
-    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foamColor);
+    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foam);
 
      return lighting;
 }
@@ -536,9 +721,29 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
-    // TODO: Support later
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
+
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    InversePreExposeSsrLighting(ssrLighting);
+
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
+    // Set the default weight value
+    reflectionHierarchyWeight = ssrLighting.a;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
+
+    // If we are underwater, we don't want to use the fallback hierarchy
+    if (!preLightData.aboveWater)
+    {
+        float3 fallbackReflectionSignal = (1.0 - ssrLighting.a) * preLightData.scatteringColor * GetInverseCurrentExposureMultiplier();
+        lighting.specularReflected += fallbackReflectionSignal * preLightData.specularFGD;
+        reflectionHierarchyWeight = 1.0f;
+    }
+
+    // Note that we should have an attenuation here from the reflective surface to the intersection point, but for now we don't.
     return lighting;
 }
 
@@ -551,10 +756,27 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    // Combine the refraction color with the fresnel
-    lighting.specularTransmitted = bsdfData.refractionColor * (1.f - preLightData.specularFGD);
+    // Re-evaluate the refraction
+    float3 refractedWaterPosRWS;
+    float2 distortedWaterNDC;
+    float refractedWaterDistance;
+    float3 absorptionTint;
+    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
+        posInput.positionSS * _ScreenSize.zw, V, preLightData.aboveWater,
+        preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+        refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
 
-    // Flag the hierarchy as complete
+    // Read the camera color for the refracted ray
+    float3 cameraColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy);
+    if (preLightData.aboveWater)
+        lighting.specularTransmitted = absorptionTint * cameraColor * absorptionTint * bsdfData.caustics * (1 - saturate(bsdfData.foam));
+    else
+        lighting.specularTransmitted = absorptionTint == 0.0 ? preLightData.scatteringColor * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor;
+
+    // Apply the additional attenuation, the fresnel and the exposure
+    lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();
+
+    // Flag the hierarchy as complete, we should never be reading from the reflection probes or the sky for the refraction
     hierarchyWeight = 0;
 
     // we are done
@@ -594,12 +816,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // This intends to simulate indirect specular "multi bounce"
     // TODO change this when supporting non horizontal water
     float3 attenuation = 1.0f;
-    if (R.y < 0.0)
+    if (preLightData.aboveWater)
     {
-        float weight = saturate(-R.y * 2.0f);
-        attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+        if (R.y < 0.0)
+        {
+            float weight = saturate(-R.y * 2.0f);
+            attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+        }
+        R.y = abs(R.y) + 0.1;
+        R = normalize(R);
     }
-    R.y = abs(R.y);
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
@@ -630,7 +856,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out LightLoopOutput lightLoopOutput)
 {
     // Compute the indirect diffuse term
-    float3 indirectDiffuse = builtinData.bakeDiffuseLighting * (bsdfData.diffuseColor + bsdfData.foamColor);
+    float3 indirectDiffuse = builtinData.bakeDiffuseLighting * (bsdfData.diffuseColor + bsdfData.foam);
 
     // Evaluate the total diffuse and specular terms
     lightLoopOutput.diffuseLighting = lighting.direct.diffuse + indirectDiffuse;

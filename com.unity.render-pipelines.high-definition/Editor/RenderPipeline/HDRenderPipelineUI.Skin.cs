@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent volumetricCloudsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Clouds");
-            public static readonly GUIContent probeVolumeSubTitle = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)");
+            public static readonly GUIContent lightProbeSubTitle = EditorGUIUtility.TrTextContent("Light Probe Lighting");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
+            public static readonly GUIContent limitNearBlur = EditorGUIUtility.TrTextContent("Limit Manual Range Near Blur");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
             // SSAO
@@ -112,8 +113,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Water rendering
             public static readonly GUIContent waterSubTitle = EditorGUIUtility.TrTextContent("Water");
-            public static readonly GUIContent supportWaterContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the water surfaces simulation and rendering. This allows you to use decals in your Unity Project.");
+            public static readonly GUIContent supportWaterContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the water surfaces simulation and rendering. This allows you to use water surfaces in your Unity Project.");
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
+            public static readonly GUIContent cpuSimulationContent = EditorGUIUtility.TrTextContent("CPU Simulation", "When enabled, HDRP allocates memory for the water simulation on the CPU. This allows you to enable CPU simulation on water surfaces to query height information.");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
@@ -159,13 +161,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
-            public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
-            public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
+            public static readonly GUIContent lightProbeSystemContent = EditorGUIUtility.TrTextContent("Light Probe System", "What system to use for Light Probes.");
+            public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also has a fixed depth dimension.");
+            public static readonly GUIContent probeVolumeBlendingMemoryBudget = EditorGUIUtility.TrTextContent("Scenario Blending Memory Budget", "Determines the width and height of the textures used to blend between lighting scenarios. Note that the textures also has a fixed depth dimension.");
             public static readonly GUIContent supportProbeVolumeStreaming = EditorGUIUtility.TrTextContent("Enable Streaming", "Enable cell streaming for probe volume.");
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Choosing L2 will lead to better quality, but also higher memory and runtime cost.");
             public static readonly GUIContent maxLocalVolumetricFogSizeStyle = EditorGUIUtility.TrTextContent("Max Local Fog Size", "Specifies the maximum size for the individual 3D Local Volumetric Fog texture that HDRP uses for Local Volumetric Fog. This settings will affect your memory consumption.");
             public static readonly GUIContent maxLocalVolumetricFogOnScreenStyle = EditorGUIUtility.TrTextContent("Max Local Fog On Screen", "Sets the maximum number of Local Volumetric Fog can handle on screen at once. This settings will affect your memory consumption.");
-            public static readonly GUIContent waterUnsupportedWarning = EditorGUIUtility.TrTextContent("Water surfaces are not supported on metal for now.");
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -245,6 +247,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
             public const string DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
             public const string DLSSSwitchTarget64Button = "Fix";
+
+            public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
+            public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by AMD FidelityFX Super Resolution.");
+
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
@@ -264,6 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent XRSinglePass = EditorGUIUtility.TrTextContent("Single Pass", "When enabled, XR views are rendered simultaneously and the render loop is processed only once. This setting will improve CPU and GPU performance but will use more GPU memory.");
             public static readonly GUIContent XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");
             public static readonly GUIContent XRCameraJitter = EditorGUIUtility.TrTextContent("Camera Jitter", "When enabled, jitter will be added to the camera to provide more samples for temporal effects. This is usually not required in VR due to micro variations from the tracking.");
+            public static readonly GUIContent XRMotionBlur = EditorGUIUtility.TrTextContent("Allow Motion Blur", "When enabled, motion blur can be used in XR. When this option is disabled, regardless of the settings, motion blur will be turned off when in XR.");
 
             public static readonly GUIContent lutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
             public static readonly GUIContent lutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
@@ -305,7 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportTransparentDepthPrepass     , shaderVariantDrawback },
                 { supportTransparentDepthPostpass    , shaderVariantDrawback },
                 { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
-                { supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) }
+                { lightProbeSystemContent            , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) }
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>

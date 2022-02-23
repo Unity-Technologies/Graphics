@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor;
 using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Tests
@@ -42,12 +43,19 @@ namespace UnityEngine.Rendering.Tests
             public FloatParameter parameter4 = new MinFloatParameter(0f, 0f);
         }
 
+        private void CreateEditorAndComponent(Type volumeComponentType, ref VolumeComponent component, ref VolumeComponentEditor editor)
+        {
+            component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
+            editor = (VolumeComponentEditor)Editor.CreateEditor(component);
+            editor.Invoke("Init");
+        }
+
         [Test]
         public void TestOverridesChanges()
         {
-            var component = ScriptableObject.CreateInstance<VolumeComponentMixedAdditionalAttributes>();
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(typeof(VolumeComponentEditor));
-            editor.Invoke("Init", component, null);
+            VolumeComponent component = null;
+            VolumeComponentEditor editor = null;
+            CreateEditorAndComponent(typeof(VolumeComponentMixedAdditionalAttributes), ref component, ref editor);
 
             component.SetAllOverridesTo(false);
             bool allOverridesState = (bool)editor.Invoke("AreAllOverridesTo", false);
@@ -94,9 +102,9 @@ namespace UnityEngine.Rendering.Tests
         [Test, TestCaseSource(nameof(s_AdditionalAttributesTestCaseDatas))]
         public string[] AdditionalProperties(Type volumeComponentType)
         {
-            var component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(typeof(VolumeComponentEditor));
-            editor.Invoke("Init", component, null);
+            VolumeComponent component = null;
+            VolumeComponentEditor editor = null;
+            CreateEditorAndComponent(volumeComponentType, ref component, ref editor);
 
             var fields = component
                 .GetFields()
@@ -137,9 +145,9 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TestHandleParameterDecorators()
         {
-            var component = ScriptableObject.CreateInstance<VolumeComponentDecorators>();
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(typeof(VolumeComponentEditor));
-            editor.Invoke("Init", component, null);
+            VolumeComponent component = null;
+            VolumeComponentEditor editor = null;
+            CreateEditorAndComponent(typeof(VolumeComponentDecorators), ref component, ref editor);
 
             var parameters =
                 editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,

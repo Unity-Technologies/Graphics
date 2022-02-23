@@ -4,6 +4,37 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+
+### Added
+- Linear version of function that sets FSR RCAS shader constants
+- `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
+- Add probe volume influence weight parameter
+- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
+- Added support for multiple Baking States to Prove Volumes.
+- Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
+- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
+- Added Screen Coordinates Override shader utilities.
+- Added API to blend between baking states for Probe Volumes.
+- Aded explicit control over scenario blending factor and a debug mode for visualization.
+
+### Changed
+- Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
+
+### Fixed
+- The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
+- Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+- Fixed `DebugUI.Enum` fields collapsing their parent `DebugUI.Foldout`
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+- Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+- Fixed regression on ResourceReloader due to change for supporting built-in resources.
+- Fixed issue with debug markers in Unity Profiler in deep profiler mode
+
 ## [14.0.0] - 2021-11-17
 
 ### Added
@@ -11,6 +42,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ## [13.1.2] - 2021-11-05
 
@@ -32,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added common support code for FSR.
 - Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
 - Added blending for curves in post processing volumes.
+- New extension for Render Pipeline Global Settings for shader variants settings -> `IShaderVariantsSettings`.
 
 ## [13.1.0] - 2021-09-24
 

@@ -64,7 +64,7 @@ struct Light
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
 
-// Matches Unity Vanila attenuation
+// Matches Unity Vanilla HINT_NICE_QUALITY attenuation
 // Attenuation smoothly decreases to light range.
 float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 {
@@ -73,21 +73,10 @@ float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
     float lightAtten = rcp(distanceSqr);
     float2 distanceAttenuationFloat = float2(distanceAttenuation);
 
-#if SHADER_HINT_NICE_QUALITY
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = half(distanceSqr * distanceAttenuationFloat.x);
     half smoothFactor = saturate(half(1.0) - factor * factor);
     smoothFactor = smoothFactor * smoothFactor;
-#else
-    // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
-    // Therefore:
-    // fadeDistance = (0.8 * 0.8 * lightRangeSq)
-    // smoothFactor = (lightRangeSqr - distanceSqr) / (lightRangeSqr - fadeDistance)
-    // We can rewrite that to fit a MAD by doing
-    // distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
-    // distanceSqr *        distanceAttenuation.y            +             distanceAttenuation.z
-    half smoothFactor = half(saturate(distanceSqr * distanceAttenuationFloat.x + distanceAttenuationFloat.y));
-#endif
 
     return lightAtten * smoothFactor;
 }
@@ -252,7 +241,12 @@ int GetPerObjectLightIndex(uint index)
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
     // This increases both arithmetic and register pressure.
-    return int(unity_LightIndices[index / 4][index % 4]);
+    //
+    // NOTE: min16float4 bug workaround.
+    // Take the "vec4" part into float4 tmp variable in order to force float4 math.
+    // It appears indexing half4 as min16float4 on DX11 can fail. (dp4 {min16f})
+    float4 tmp = unity_LightIndices[index / 4];
+    return int(tmp[index % 4]);
 #else
     // Fallback to GLES2. No bitfield magic here :(.
     // We limit to 4 indices per object and only sample unity_4LightIndices0.

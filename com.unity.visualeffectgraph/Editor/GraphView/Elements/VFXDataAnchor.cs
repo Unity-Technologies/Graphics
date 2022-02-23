@@ -15,6 +15,8 @@ namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
+        readonly Vector2 portPositionOffset = new Vector2(-4, -20);
+
         VFXDataAnchorController m_Controller;
         Controller IControlledElement.controller
         {
@@ -369,8 +371,16 @@ namespace UnityEditor.VFX.UI
                     validTypes = op.validTypes;
             }
 
-            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
-            int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            var getSlots = direction == Direction.Input ? container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
+            var count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            // Template containers are not sync initially to save time during loading
+            // For container with no input or output this can be called everytime, but should also be very fast
+            if (count == 0)
+            {
+                container.ResyncSlots(false);
+                count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            }
+
             for (int i = 0; i < count; ++i)
             {
                 var slot = getSlots(i);
@@ -435,6 +445,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
                     {
+                        AlignNodeToLinkedPort(view, port, newNodeController);
                         break;
                     }
                 }
@@ -449,6 +460,15 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+        }
+
+        void AlignNodeToLinkedPort(VFXView view, VFXDataAnchorController port, VFXNodeController nodeController)
+        {
+            var portNode = view.GetDataAnchorByController(port);
+            var connectorElement = portNode.Q<VisualElement>("connector");
+            var newNode = view.GetNodeByController(nodeController);
+            var offset = newNode.worldBound.position - connectorElement.worldBound.position + portPositionOffset;
+            nodeController.model.position += offset / view.scale;
         }
 
         void CopyValueToParameter(VFXParameter parameter)
