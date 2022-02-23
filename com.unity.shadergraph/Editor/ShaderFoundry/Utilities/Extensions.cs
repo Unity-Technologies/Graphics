@@ -219,6 +219,32 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
+    static class TemplateExtensions
+    {
+        internal static IEnumerable<CustomizationPoint> CustomizationPoints(this Template template)
+        {
+            var customizationPointSet = new HashSet<CustomizationPoint>();
+            var customizationPointList = new List<CustomizationPoint>();
+            void AddCustomizationPoint(CustomizationPoint customizationPoint)
+            {
+                if (customizationPoint.IsValid && !customizationPointSet.Contains(customizationPoint))
+                {
+                    customizationPointSet.Add(customizationPoint);
+                    customizationPointList.Add(customizationPoint);
+                }
+            }
+
+            foreach (var pass in template.Passes)
+            {
+                foreach (var stageElement in pass.VertexStageElements)
+                    AddCustomizationPoint(stageElement.CustomizationPoint);
+                foreach (var stageElement in pass.FragmentStageElements)
+                    AddCustomizationPoint(stageElement.CustomizationPoint);
+            }
+            return customizationPointList;
+        }
+    }
+
     internal static class SwizzleUtils
     {
         // Convert the string to 4 channels per element where each bit corresponds to the element
