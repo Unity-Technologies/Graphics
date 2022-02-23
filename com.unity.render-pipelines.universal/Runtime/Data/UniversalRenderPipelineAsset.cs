@@ -7,6 +7,7 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 
@@ -29,6 +30,25 @@ namespace UnityEngine.Rendering.Universal
         /// Filtering is applied when sampling shadows. Shadows have smooth edges.
         /// </summary>
         SoftShadows,
+    }
+
+    /// <summary>
+    /// Softness quality of soft shadows. Higher means better quality, but lower performance.
+    /// </summary>
+    public enum SoftShadowQuality
+    {
+        /// <summary>
+        /// Low quality soft shadows. Recommended for mobile. 4 PCF sample filtering.
+        /// </summary>
+        Low,
+        /// <summary>
+        /// Medium quality soft shadows. The default. 5x5 tent filtering.
+        /// </summary>
+        Medium,
+        /// <summary>
+        /// High quality soft shadows. Low performance due to high sample count. 7x7 tent filtering.
+        /// </summary>
+        High,
     }
 
     /// <summary>
@@ -123,6 +143,21 @@ namespace UnityEngine.Rendering.Universal
         /// Use this to select High Dynamic Range format.
         /// </summary>
         ColorHDR,
+    }
+
+    /// <summary>
+    /// The default color buffer format in HDR (only).
+    /// Affects camera rendering and postprocessing color buffers.
+    /// </summary>
+    public enum HDRColorBufferPrecision
+    {
+        /// <summary> Typically R11G11B10f for faster rendering. Recommend for mobile.
+        /// R11G11B10f can cause a subtle blue/yellow banding in some rare cases due to lower precision of the blue component.</summary>
+        [Tooltip("Use 32-bits per pixel for HDR rendering.")]
+        _32Bits,
+        /// <summary>Typically R16G16B16A16f for better quality. Can reduce banding at the cost of memory and performance.</summary>
+        [Tooltip("Use 64-bits per pixel for HDR rendering.")]
+        _64Bits,
     }
 
     /// <summary>
@@ -365,12 +400,12 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
+        [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
-        // TODO: Shader Quality Tiers
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -890,6 +925,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SupportsHDR; }
             set { m_SupportsHDR = value; }
+        }
+
+        /// <summary>
+        /// Graphics format requested for HDR color buffers.
+        /// </summary>
+        public HDRColorBufferPrecision hdrColorBufferPrecision
+        {
+            get { return m_HDRColorBufferPrecision; }
+            set { m_HDRColorBufferPrecision = value; }
         }
 
         /// <summary>

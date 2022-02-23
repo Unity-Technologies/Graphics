@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
         protected override void Execute(CustomPassContext ctx)
         {
-            if (fullscreenPassMaterial != null)
+            if (fullscreenPassMaterial != null && fullscreenPassMaterial.passCount > 0)
             {
                 if (fetchColorBuffer)
                 {
@@ -58,8 +58,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetRenderTargetAuto(ctx.cmd);
                 }
 
+                // In case the pass name is not found, we fallback on the first one instead of drawing all of them (default behavior with pass id = -1)
+                int passIndex = fullscreenPassMaterial.FindPass(materialPassName);
+                if (passIndex == -1)
+                    passIndex = 0;
+
                 fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
-                CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
+                CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, shaderPassId: passIndex);
             }
         }
 

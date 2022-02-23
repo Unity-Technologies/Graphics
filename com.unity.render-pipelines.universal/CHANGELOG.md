@@ -9,16 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
+- Added FP16 camera render target option.
+- Added Soft Shadows filtering quality as per light option. Low, PCF 3x3 pixel area with fixed offsets which is recommended for mobile. Medium, Tent 5x5 pixel area as the default. High, Tent 7x7 pixel area.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added support for FidelityFX Super Resolution 1.0 upscaling filter.
 - Added Downscale and Max Iterations options for Bloom
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
+- Added commandBuffer variable to RenderingData struct and switched all of the renderer to use that buffer instead of creating local command buffers.
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
+- PostProcessPass to internal visibility since it's in Internal namespace.
+- Removed SHADER_API_MOBILE from shaders in cases where it affected quality.
+- Removed SHADER_HINT_NICE_QUALITY from shaders.
+- Removed low quality light fade for lighting consistency on both desktop and mobile.
+- Removed SHADER_QUALITY_LOW, SHADER_QUALITY_MEDIUM, SHADER_QUALITY_HIGH from shaders. Everything is now "SHADER_QUALITY_HIGH".
 - Particle alpha channel blend mode to match standard shader.
 - Removed skipIterations from Bloom settings. It has now been replaced with maxIterations.
 - Merged MaterialError.shader and FallbackError.shader
@@ -32,6 +40,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed issue where ShadowCasterGroup2D would throw an exception when there were no shadow casters. [case 1387201](https://issuetracker.unity3d.com/product/unity/issues/guid/1387201/)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
+- Fixed single channel compressed (BC4) cookies on main light.
+- Fixed URP Deferred Fog pass does not work in XR singlepass. [case 1390236](https://issuetracker.unity3d.com/product/unity/issues/guid/1390236/)
+- Fixed an issue where preview cameras were missing the descriptor for creating their RenderTexture [case 1393818](https://issuetracker.unity3d.com/issues/urp-errors-are-spammed-after-entering-play-mode-in-sunflare-scene-and-navigating-the-project-view)
 - Fixed max light count cpu/gpu mismatch on Windows Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 - Fixed missing shader keyword SHADOWS_SHADOWMASK for shader graph using deferred rendering.
 - Fixed double alpha modulate for particle unlit shader.

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
         internal Dictionary<string, PerScenarioData> scenarios = new();
 
         bool assetLoaded = false;
-        string currentScenario = null, transitionScenario = null;
+        string activeScenario = null, otherScenario = null;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -143,22 +143,20 @@ namespace UnityEngine.Rendering
         bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
         bool ResolvePerScenarioCellData()
         {
-            int loadedCount = 0;
-            string state0 = transitionScenario != null ? transitionScenario : currentScenario;
-            string state1 = transitionScenario != null ? currentScenario : null;
-            if (state0 != null && scenarios.TryGetValue(state0, out var data0))
+            int loadedCount = 0, targetLoaded = otherScenario == null ? 1 : 2;
+            if (activeScenario != null && scenarios.TryGetValue(activeScenario, out var data0))
             {
                 if (asset.ResolvePerScenarioCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
                     loadedCount++;
             }
-            if (state1 != null && scenarios.TryGetValue(state1, out var data1))
+            if (otherScenario != null && scenarios.TryGetValue(otherScenario, out var data1))
             {
                 if (asset.ResolvePerScenarioCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
                     loadedCount++;
             }
             for (var i = 0; i < asset.cells.Length; ++i)
                 asset.cells[i].hasTwoScenarios = loadedCount == 2;
-            return loadedCount != 0;
+            return loadedCount == targetLoaded;
         }
 
         internal void QueueAssetLoading()
@@ -194,7 +192,7 @@ namespace UnityEngine.Rendering
         void OnDisable()
         {
             QueueAssetRemoval();
-            currentScenario = transitionScenario = null;
+            activeScenario = otherScenario = null;
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
@@ -203,24 +201,21 @@ namespace UnityEngine.Rendering
             ResolveSharedCellData();
 
             QueueAssetRemoval();
-            currentScenario = ProbeReferenceVolume.instance.sceneData.lightingScenario;
-            transitionScenario = null;
+            activeScenario = ProbeReferenceVolume.instance.sceneData.lightingScenario;
+            otherScenario = null;
             QueueAssetLoading();
         }
 
-        internal void UpdateActiveScenario(string state, string previousState)
+        internal void UpdateActiveScenario(string activeScenario, string otherScenario)
         {
             if (asset == null)
                 return;
 
-            // if we just change state, don't need to queue anything
-            // Just load state cells from disk and wait for blending to stream updates to gpu
-            // When blending factor is < 0.5, streaming will upload cell from transition state
-            // After that, it will always upload cells from current state
-            // So gradually, all loaded cells, will be either blended towards new state, or replaced by streaming
+            // if we just change scenario, don't need to queue anything
+            // Just load cells from disk and wait for blending to stream updates to gpu
 
-            currentScenario = state;
-            transitionScenario = previousState;
+            this.activeScenario = activeScenario;
+            this.otherScenario = otherScenario;
             if (!assetLoaded)
                 QueueAssetLoading();
             else if (!ResolvePerScenarioCellData())

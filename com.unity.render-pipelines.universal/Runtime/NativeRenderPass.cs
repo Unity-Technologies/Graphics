@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
-                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
+                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha));
 
                         var colorHandle = pass.overrideCameraTarget ? pass.colorAttachmentHandles[i] : m_CameraColorTarget.handle;
 
@@ -320,7 +320,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else // In this case we might be rendering the the targetTexture or the Backbuffer, so less information is available
                     {
-                        currentAttachmentDescriptor = new AttachmentDescriptor(GetDefaultGraphicsFormat(cameraData, depthOnly));
+                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha));
+
                         samples = cameraData.cameraTargetDescriptor.msaaSamples;
                         colorAttachmentTarget = usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
                     }
@@ -457,6 +458,10 @@ namespace UnityEngine.Rendering.Universal
                 attachmentIndices.Dispose();
 
                 renderPass.Execute(context, ref renderingData);
+
+                // Need to execute it immediately to avoid sync issues between context and cmd buffer
+                context.ExecuteCommandBuffer(renderingData.commandBuffer);
+                renderingData.commandBuffer.Clear();
 
                 if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentPassIndex) // Check if it's the last pass
                 {
@@ -667,30 +672,6 @@ namespace UnityEngine.Rendering.Universal
             var depthID = (targetRT.graphicsFormat == GraphicsFormat.None && targetRT.depthStencilFormat != GraphicsFormat.None) ? renderPass.colorAttachmentHandle.GetHashCode() : depthTarget.GetHashCode();
 
             return new RenderPassDescriptor(targetRT.width, targetRT.height, targetRT.msaaSamples, depthID);
-        }
-
-        private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData, bool isDepth = false)
-        {
-            if (isDepth)
-                return SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-            if (cameraData.isHdrEnabled)
-            {
-                GraphicsFormat hdrFormat = GraphicsFormat.None;
-
-                if (!Graphics.preserveFramebufferAlpha &&
-                    RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
-                        FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
-                    FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                else
-                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
-
-                return hdrFormat;
-            }
-
-            return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }
