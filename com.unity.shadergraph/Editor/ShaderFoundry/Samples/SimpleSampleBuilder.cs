@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Target = UnityEditor.ShaderGraph.Target;
 
@@ -8,20 +9,51 @@ namespace UnityEditor.ShaderFoundry
     {
         internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
 
-        internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
+        // returns all of the shader IDs produced by the given target
+        internal static IEnumerable<string> AllShaderIDs(Target target, ShaderContainer container = null)
         {
-            var target = GetTarget();
-            Build(container, target, shaderName, buildCallback, shaderBuilder);
-        }
-
-        internal static void Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
-        {
+            // ideally the settings for this provider would be provided through the same interface as workflow settings
+            // but for now it is directly populated by this special constructor
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
+            if (container == null)
+                container = new ShaderContainer();
 
+            var foundShaderIDs = new HashSet<string>();
+
+            var templates = provider.GetTemplates(container);
+
+            // return BlockSurfaceShaderBuilder.AllShaderIDs(templates); // ideally we call this here instead
+            foreach (var template in templates)
+            {
+                if (!foundShaderIDs.Contains(template.AdditionalShaderID))
+                {
+                    yield return template.AdditionalShaderID;
+                    foundShaderIDs.Add(template.AdditionalShaderID);
+                }
+            }
+        }
+
+        // builds a specific shader ID (null builds the primary shader) on the gi
+        internal static GeneratedShader Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, string additionalShaderID = null)
+        {
+            var target = GetTarget();
+            return Build(container, target, shaderName, buildCallback, additionalShaderID);
+        }
+
+        internal static GeneratedShader Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, string additionalShaderID = null)
+        {
+            // ideally the settings for this provider would be provided through the same interface as workflow settings
+            // but for now it is directly populated by this special constructor
+            ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
+
+            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName, additionalShaderID);
+            
             foreach (var template in provider.GetTemplates(container))
             {
+                if (template.AdditionalShaderID != additionalShaderID)
+                    continue;
+
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
@@ -40,8 +72,9 @@ namespace UnityEditor.ShaderFoundry
             }
 
             var shaderInst = shaderInstBuilder.Build();
-            var generator = new ShaderGenerator();
-            generator.Generate(shaderBuilder, container, shaderInst);
+
+            var generatedShader = ShaderGenerator.Generate(container, shaderInst);
+            return generatedShader;
         }
 
         internal class PropertyAttributeData

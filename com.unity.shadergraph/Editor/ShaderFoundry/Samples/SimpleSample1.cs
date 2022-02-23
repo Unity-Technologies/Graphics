@@ -12,13 +12,14 @@ namespace UnityEditor.ShaderFoundry
             // To build a shader, you need to provide a container and a target.
             // The shader code will be in the shader builder passed in.
             var target = SimpleSampleBuilder.GetTarget();
-            var container = new ShaderContainer();
-            var shaderBuilder = new ShaderBuilder();
-            SimpleSampleBuilder.BuildCommonTypes(container);
-            SimpleSampleBuilder.Build(container, target, ShaderName, BuildSample, shaderBuilder);
 
-            var code = shaderBuilder.ToString();
-            DisplayTestResult(ShaderName, code);
+            var container = new ShaderContainer();
+            SimpleSampleBuilder.BuildCommonTypes(container);
+
+            var primaryShaderID = string.Empty;
+            var generatedShader = SimpleSampleBuilder.Build(container, target, ShaderName, BuildSample, primaryShaderID);
+
+            DisplayTestResult(generatedShader.shaderName, generatedShader.codeString);
         }
 
         internal static void BuildSample(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst)
