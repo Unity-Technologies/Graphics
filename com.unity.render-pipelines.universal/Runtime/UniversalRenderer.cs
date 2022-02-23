@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
                 cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaskSize, RenderingLayerUtils.GetBits(renderingLayersSize));
-                if (this.renderingModeActual == RenderingMode.Deferred) // TODO: Clean this up
+                if (this.renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
                     cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering.Universal
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
-                if (this.renderingModeActual == RenderingMode.Deferred) // TODO: Clean this up
+                if (this.renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
                     cmd.SetGlobalTexture("_CameraNormalsTexture", normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
