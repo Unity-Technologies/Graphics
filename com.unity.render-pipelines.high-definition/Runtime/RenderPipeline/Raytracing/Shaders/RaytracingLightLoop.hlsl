@@ -128,6 +128,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+#endif
+
+    // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+    builtinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
