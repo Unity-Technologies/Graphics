@@ -46,49 +46,52 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                // TODO: check if we need intermediate textures
+                // TODO: check if we need intermediate textures.Enable this code when we actually need the logic
 				// bool createColorTexture = false;
 				// createColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
 				// createColorTexture |= renderPassInputs.requiresColorTexture;
+                // bool createDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
 
-                // COLOR
-
-                var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
-                cameraTargetDescriptor.useMipMap = false;
-                cameraTargetDescriptor.autoGenerateMips = false;
-                cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
-
-                frameResources.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, "_CameraTargetAttachment", cameraData.renderType == CameraRenderType.Base);
-
-                // DEPTH
-
-                var depthDescriptor = cameraData.cameraTargetDescriptor;
-                depthDescriptor.useMipMap = false;
-                depthDescriptor.autoGenerateMips = false;
-                depthDescriptor.bindMS = false;
-
-                bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
-
-                // if MSAA is enabled and we are not resolving depth, which we only do if the CopyDepthPass is AfterTransparents,
-                // then we want to bind the multisampled surface.
-                if (hasMSAA)
+                // if (createColorTexture)
                 {
-                    // if depth priming is enabled the copy depth primed pass is meant to do the MSAA resolve, so we want to bind the MS surface
-                    if (IsDepthPrimingEnabled())
-                        depthDescriptor.bindMS = true;
-                    else
-                        depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
+                    var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+                    cameraTargetDescriptor.useMipMap = false;
+                    cameraTargetDescriptor.autoGenerateMips = false;
+                    cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
+
+                    frameResources.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, "_CameraTargetAttachment", cameraData.renderType == CameraRenderType.Base);
                 }
 
-                // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
-                // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
-                if (IsGLESDevice())
+                // if (createDepthTexture)
+                {
+                    var depthDescriptor = cameraData.cameraTargetDescriptor;
+                    depthDescriptor.useMipMap = false;
+                    depthDescriptor.autoGenerateMips = false;
                     depthDescriptor.bindMS = false;
 
-                depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
 
-                frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
+                    // if MSAA is enabled and we are not resolving depth, which we only do if the CopyDepthPass is AfterTransparents,
+                    // then we want to bind the multisampled surface.
+                    if (hasMSAA)
+                    {
+                        // if depth priming is enabled the copy depth primed pass is meant to do the MSAA resolve, so we want to bind the MS surface
+                        if (IsDepthPrimingEnabled())
+                            depthDescriptor.bindMS = true;
+                        else
+                            depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
+                    }
+
+                    // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
+                    // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
+                    if (IsGLESDevice())
+                        depthDescriptor.bindMS = false;
+
+                    depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+
+                    frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
+                }
             }
         }
 
