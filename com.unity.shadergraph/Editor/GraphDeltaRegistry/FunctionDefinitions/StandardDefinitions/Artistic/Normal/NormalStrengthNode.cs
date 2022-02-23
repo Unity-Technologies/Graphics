@@ -17,6 +17,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "DisplayName", "Normal Strength" },
             { "Category", "Artistic, Normal" },
             { "Name.Synonyms", "intensity" },
             { "Tooltip", "changes the intensity of a tangent space normal" },

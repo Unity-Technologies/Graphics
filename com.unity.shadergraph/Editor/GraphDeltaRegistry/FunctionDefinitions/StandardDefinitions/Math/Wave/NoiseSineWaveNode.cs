@@ -11,20 +11,19 @@ namespace com.unity.shadergraph.defs
             "NoiseSineWave", // Name
             @"
 {
-    float sinIn = sin(In);
-    float sinInOffset = sin(In + 1.0);
-    float randomno =  frac(sin((sinIn - sinInOffset) * (12.9898 + 78.233))*43758.5453);
-    float noise = lerp(MinMax.x, MinMax.y, randomno);
-    Out = sinIn + noise;
+    sinIn = sin(In);
+    Out = sinIn + lerp(MinMax.x, MinMax.y, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));
 }
 ",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("MinMax", TYPE.Vec2, Usage.In, new float[] { -0.5f, 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
+            new ParameterDescriptor("sinIn", TYPE.Float, Usage.Local)
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
+            { "DisplayName", "Noise Sine Wave" },
             { "Category", "Math, Wave" },
             { "Name.Synonyms", "wave, noise, sine" },
             { "Tooltip", "creates a sine wave with noise added to the amplitude for randomness" },
