@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
-        float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
+        float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, ScreenSpaceAmbientOcclusion ssoSettings)
         {
             float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
             return Mathf.Lerp(0.0f, 1.0f, 1.0f - remappedRayLength);
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationBuffer,
             TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
-            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
             // Trace the signal
             var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.EnableAsyncCompute(false);
 
-                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+                var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
                 // Camera data
                 passData.actualWidth = hdCamera.actualWidth;
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TraceAmbientOcclusionResult traceAOResult, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
         {
-            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             if (aoSettings.denoise)
             {
                 // Evaluate the history's validity
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+                var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
                 passData.intensity = aoSettings.intensity.value;
                 passData.actualWidth = hdCamera.actualWidth;

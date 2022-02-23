@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// AmbientOcclusion has been renamed. Use ScreenSpaceAmbientOcclusion instead
     /// </summary>
     [Obsolete("AmbientOcclusion has been renamed. Use ScreenSpaceAmbientOcclusion instead (UnityUpgradable) -> ScreenSpaceAmbientOcclusion")]
-    public sealed class AmbientOcclusion : ScreenSpaceAmbientOcclusion
+    public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
     }
 
