@@ -455,8 +455,6 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(context, ref renderingData);
-
-                    s_RenderGraph.EndFrame();
                 }
                 else
                 {
@@ -693,6 +691,7 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
 
+            s_RenderGraph.EndFrame();
             XRSystem.EndLayout();
         }
 
