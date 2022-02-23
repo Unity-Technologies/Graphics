@@ -147,14 +147,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                         Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_CopyColorMaterial, 0);
                         break;
                     case Downsampling._2xBilinear:
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_CopyColorMaterial, 0);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_CopyColorMaterial, 1);
                         break;
                     case Downsampling._4xBox:
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
                         Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_SamplingMaterial, 0);
                         break;
                     case Downsampling._4xBilinear:
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_CopyColorMaterial, 0);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_CopyColorMaterial, 1);
                         break;
                 }
             }
