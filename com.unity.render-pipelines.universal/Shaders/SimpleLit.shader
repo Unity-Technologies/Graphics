@@ -92,6 +92,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
