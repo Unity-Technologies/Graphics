@@ -142,6 +142,12 @@ namespace com.unity.shadergraph.defs
             port.SetField(kHeight, resolvedType.Height);
             port.SetField(kPrecision, resolvedType.Precision);
             port.SetField(kPrimitive, resolvedType.Primitive);
+
+            int i = 0;
+            foreach(var val in param.DefaultValue)
+            {
+                port.SetField($"c{i++}", val);
+            }
             return port;
         }
 
