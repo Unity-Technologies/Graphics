@@ -203,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
             RTHandle destination,
             RenderBufferLoadAction loadAction,
             RenderBufferStoreAction storeAction,
-            Material material, int passIndex = 0)
+            Material material, int passIndex)
         {
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera; //&& !cameraData.isDefaultViewport;
 #if ENABLE_VR && ENABLE_XR_MODULE
