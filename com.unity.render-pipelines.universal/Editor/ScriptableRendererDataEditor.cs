@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
             CoreEditorDrawer<TDataEditor>.AdditionalPropertiesFoldoutGroup(new GUIContent($"{cachedData.index.intValue} - {cachedData.name.stringValue}"),
                 1 << cachedData.index.intValue, rendererState,
                 1 << cachedData.index.intValue, rendererAdditionalShowState,
-                DrawRenderer, DrawRendererAdditional, (GenericMenu menu) => AddOptionsMenu(menu, cachedData.serializedProperty), FoldoutOption.Boxed | FoldoutOption.Indent).Draw(cachedData, null);
+                DrawRenderer, DrawRendererAdditional, AddOptionsMenu, FoldoutOption.Boxed | FoldoutOption.Indent).Draw(cachedData, null);
         }
 
         public virtual void DrawHeader<TDataEditor>(
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
             ExpandedStateList<ScriptableRendererData> rendererState = RenderersFoldoutStates.GetRenderersShowState();
             CoreEditorDrawer<TDataEditor>.FoldoutGroup(new GUIContent($"{cachedData.index.intValue} - {cachedData.name.stringValue}"),
                 1 << cachedData.index.intValue, rendererState,
-                FoldoutOption.Boxed | FoldoutOption.Indent, (_) => OptionsMenu(cachedData.serializedProperty), DrawRenderer).Draw(cachedData, null);
+                FoldoutOption.Boxed | FoldoutOption.Indent, (_, cacheData) => OptionsMenu(cacheData), DrawRenderer).Draw(cachedData, null);
         }
 
         protected abstract CachedScriptableRendererDataEditor Init(SerializedProperty property);
@@ -92,14 +92,18 @@ namespace UnityEditor.Rendering.Universal
             return -4f;
         }
 
-        static void OptionsMenu(SerializedProperty property)
+        static void OptionsMenu<TDataEditor>(TDataEditor cacheData)
+        where TDataEditor : CachedScriptableRendererDataEditor
         {
             var menu = new GenericMenu();
-            AddOptionsMenu(menu, property);
+            AddOptionsMenu(menu, cacheData);
             menu.ShowAsContext();
         }
-        static void AddOptionsMenu(GenericMenu menu, SerializedProperty property)
+
+        static void AddOptionsMenu<TDataEditor>(GenericMenu menu, TDataEditor cacheData)
+        where TDataEditor : CachedScriptableRendererDataEditor
         {
+            var property = cacheData.serializedProperty;
             int index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             SerializedProperty rendererList = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
             var isTop = index == 0;

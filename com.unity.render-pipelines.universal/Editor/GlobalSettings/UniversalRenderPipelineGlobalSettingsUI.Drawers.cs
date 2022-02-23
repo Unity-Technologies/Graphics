@@ -7,15 +7,23 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineGlobalSettingsUI
     {
-        public class DocumentationUrls
+        class DocumentationUrls
         {
             public static readonly string k_LightLayers = "Light-Layers";
         }
 
+        enum Expandable
+        {
+            PostProcessing = 1 << 0,
+            LightLayers = 1 << 1,
+            Rendering = 1 << 2,
+            Terrain = 1 << 3,
+            Sprite = 1 << 4,
+        }
+        static readonly ExpandedState<Expandable, UniversalRenderPipelineGlobalSettings> k_ExpandedState = new(0, "URP");
+
         #region 2D/Sprite Settings
-        static readonly CED.IDrawer SpriteSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.spriteSettingsLabel)),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        static readonly CED.IDrawer SpriteSection =
             CED.Group((serialized, owner) =>
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -37,86 +45,14 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
-            }),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
-
-        #endregion
-
-        #region Terrain Settings
-        static readonly CED.IDrawer TerrainSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.terrainSettingsLabel)),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group((serialized, owner) =>
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    using (var changed = new EditorGUI.ChangeCheckScope())
-                    {
-                        EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-                        if (changed.changed)
-                        {
-                            serialized.serializedObject?.ApplyModifiedProperties();
-                            (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
-                        }
-                    }
-                }
-            }),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
-        #endregion
-
-        #region Rendering Layer Names
-
-        static readonly CED.IDrawer LightLayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.lightLayersLabel, contextAction: pos => OnContextClickLightLayerNames(pos, serialized))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawLightLayerNames),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
-
-        static void DrawLightLayerNames(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                using (var changed = new EditorGUI.ChangeCheckScope())
-                {
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
-                    if (changed.changed)
-                    {
-                        serialized.serializedObject?.ApplyModifiedProperties();
-                        if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings urpGlobalSettings)
-                            urpGlobalSettings.UpdateRenderingLayerNames();
-                    }
-                }
             }
-        }
-
-        static void OnContextClickLightLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
-        {
-            var menu = new GenericMenu();
-            menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
-            {
-                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
-                globalSettings.ResetRenderingLayerNames();
-            });
-            menu.DropDown(new Rect(position, Vector2.zero));
-        }
+        );
 
         #endregion
 
         #region PostProcessing Settings
 
-        static readonly CED.IDrawer PostProcessingSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.PostProcessingSettingsLabel)),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        static readonly CED.IDrawer PostProcessingSection =
             CED.Group((serialized, owner) =>
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -147,17 +83,55 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
-            }),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
+            }
         );
 
         #endregion
 
-        #region Misc Settings
+        #region Rendering Layers
 
-        static readonly CED.IDrawer MiscSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.miscSettingsLabel)),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        static readonly CED.IDrawer LightLayersSection =
+            CED.Group((serialized, owner) =>
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    using (var changed = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
+                        if (changed.changed)
+                        {
+                            serialized.serializedObject?.ApplyModifiedProperties();
+                            if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings urpGlobalSettings)
+                                urpGlobalSettings.UpdateRenderingLayerNames();
+                        }
+                    }
+                }
+            }
+        );
+
+        static void OnContextClickLightLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames();
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        #endregion
+
+        #region Rendering Settings
+
+        static readonly CED.IDrawer RenderingSection =
             CED.Group((serialized, owner) =>
             {
                 using (var changed = new EditorGUI.ChangeCheckScope())
@@ -165,33 +139,48 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(serialized.useNativeRenderPass, Styles.RenderPassLabel);
                     EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
                     EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, RenderPipelineGlobalSettingsUI.Styles.shaderVariantLogLevelLabel);
+                    EditorGUILayout.PropertyField(serialized.exportShaderVariants, RenderPipelineGlobalSettingsUI.Styles.exportShaderVariantsLabel);
+                    EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
+                    EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
+                    EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
                     if (changed.changed)
                     {
                         serialized.serializedObject?.ApplyModifiedProperties();
                         (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
                     }
                 }
-            }),
-            CED.Group((serialized, owner) => RenderPipelineGlobalSettingsUI.DrawShaderStrippingSettings(serialized, owner, CoreEditorDrawer<ISerializedRenderPipelineGlobalSettings>.Group((s, e) =>
-            {
-                if (s is SerializedUniversalRenderPipelineGlobalSettings universalRenderPipelineGlobalSettings)
-                {
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripDebugVariants, Styles.stripDebugVariantsLabel);
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
-                }
-            }))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
+            }
         );
 
         #endregion
 
+        #region Terrain Settings
+        static readonly CED.IDrawer TerrainSection =
+            CED.Group((serialized, owner) =>
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    using (var changed = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+                        if (changed.changed)
+                        {
+                            serialized.serializedObject?.ApplyModifiedProperties();
+                            (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                        }
+                    }
+                }
+            }
+        );
+        #endregion
+
         public static readonly CED.IDrawer Inspector = CED.Group(
-                SpriteSection,
-                TerrainSection,
-                LightLayerNamesSection,
-                PostProcessingSection,
-                MiscSection
+                CED.FoldoutGroup(Styles.PostProcessingSettingsLabel, Expandable.PostProcessing, k_ExpandedState, FoldoutOption.None, PostProcessingSection),
+                CED.FoldoutGroup(Styles.lightLayersLabel, Expandable.LightLayers, k_ExpandedState, FoldoutOption.None, OnContextClickLightLayerNames, LightLayersSection),
+                CED.FoldoutGroup(Styles.renderingSettingsLabel, Expandable.Rendering, k_ExpandedState, FoldoutOption.None, RenderingSection),
+                CED.FoldoutGroup(Styles.terrainSettingsLabel, Expandable.Terrain, k_ExpandedState, FoldoutOption.None, TerrainSection),
+                CED.FoldoutGroup(Styles.spriteSettingsLabel, Expandable.Sprite, k_ExpandedState, FoldoutOption.None, SpriteSection)
             );
     }
 }
