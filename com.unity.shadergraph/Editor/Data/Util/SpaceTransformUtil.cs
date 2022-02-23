@@ -332,13 +332,18 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void ObjectToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        public static void ObjectToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
                     sb.AddLine("$precision4 ", outputVariable, "_value = TransformObjectToHClip(", inputValue, ");");
-                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+                    sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+                    sb.AddLine("#endif");
+                    sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
@@ -347,13 +352,18 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void ViewToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        public static void ViewToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
                     sb.AddLine("$precision4 ", outputVariable, "_value = TransformWViewToHClip(", inputValue, ");");
-                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+                    sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+                    sb.AddLine("#endif");
+                    sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
@@ -362,25 +372,28 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void WorldToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        public static void WorldToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
                     sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClip(", inputValue, ");");
-                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = true;
-                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ");");
-                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ");");
-                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
             }
+            sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+            sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+            sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+            sb.AddLine("#endif");
+            sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+            sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
         }
 
         static readonly TransformFunction[,] k_TransformFunctions = new TransformFunction[6, 6]   // [from, to]
@@ -391,7 +404,7 @@ namespace UnityEditor.ShaderGraph
                 ObjectToWorld,          // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ObjectToAbsoluteWorld,  // to CoordinateSpace.AbsoluteWorld
-                ObjectToHClip,          // to CoordinateSpace.Clip
+                ObjectToHScreen,        // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.View
                 ViaWorld,               // to CoordinateSpace.Object
@@ -399,7 +412,7 @@ namespace UnityEditor.ShaderGraph
                 ViewToWorld,            // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
-                ViewToHClip,            // to CoordinateSpace.Clip
+                ViewToHScreen,            // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.World
                 WorldToObject,          // to CoordinateSpace.Object
@@ -407,7 +420,7 @@ namespace UnityEditor.ShaderGraph
                 Identity,               // to CoordinateSpace.World
                 WorldToTangent,         // to CoordinateSpace.Tangent
                 WorldToAbsoluteWorld,   // to CoordinateSpace.AbsoluteWorld
-                WorldToHClip,           // to CoordinateSpace.Clip
+                WorldToHScreen,         // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.Object
@@ -415,7 +428,7 @@ namespace UnityEditor.ShaderGraph
                 TangentToWorld,         // to CoordinateSpace.World
                 Identity,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
-                ViaWorld,               // to CoordinateSpace.Clip
+                ViaWorld,               // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.AbsoluteWorld
                 ViaWorld,               // to CoordinateSpace.Object
@@ -423,15 +436,15 @@ namespace UnityEditor.ShaderGraph
                 AbsoluteWorldToWorld,   // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 Identity,               // to CoordinateSpace.AbsoluteWorld
-                ViaWorld,               // to CoordinateSpace.Clip
+                ViaWorld,               // to CoordinateSpace.Screen
             },
-            {   // from CoordinateSpace.Clip
+            {   // from CoordinateSpace.Screen
                 ViaWorld,               // to CoordinateSpace.Object
                 ViaWorld,               // to CoordinateSpace.View
                 ViaWorld,               // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
-                Identity,               // to CoordinateSpace.Clip
+                Identity,               // to CoordinateSpace.Screen
             }
         };
 
