@@ -40,14 +40,14 @@ namespace UnityEngine.Rendering
 
     class ProbeVolumeDebug
     {
-        public bool drawProbes = true;
+        public bool drawProbes;
         public bool drawBricks;
         public bool drawCells;
         public bool realtimeSubdivision;
         public int subdivisionCellUpdatePerFrame = 4;
         public float subdivisionDelayInSeconds = 1;
         public DebugProbeShadingMode probeShading;
-        public float probeSize = 0.4f;
+        public float probeSize = 1.0f;
         public float subdivisionViewCullingDistance = 5000.0f;
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
