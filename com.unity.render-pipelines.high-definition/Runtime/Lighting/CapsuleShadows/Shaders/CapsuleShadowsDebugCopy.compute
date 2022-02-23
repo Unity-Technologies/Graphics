@@ -20,7 +20,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 inputCoord = pixelCoord;
-    if (_CapsuleResultIsUpscaled == 0)
+    if (_CapsuleDebugIsHalfResolution != 0)
         inputCoord = inputCoord/2;
 
     _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = _CapsuleShadowsTexture[uint3(inputCoord, _CapsuleDebugCasterIndex)];

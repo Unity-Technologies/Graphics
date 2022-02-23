@@ -17,22 +17,29 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float2 positionSS = float2(pixelCoord) + .5f;
     float targetLinearDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x, _ZBufferParams);
 
-    float4 weights = GetCapsuleShadowsUpscaleWeights(
-        positionSS,
+    float2 halfResPositionSS = .5f*(float2(pixelCoord) + .5f);
+    float4 gw0, gw1, gw2, gw3;
+    float norm;
+    GetCapsuleShadowsUpscaleWeights(
+        halfResPositionSS,
         targetLinearDepth,
-        float2(_FirstDepthMipOffset),
+        _FirstDepthMipOffset,
         _DepthPyramidTextureSize.zw,
-        _CapsuleUpscaledSize.zw);
-
-    float2 renderUV = positionSS*0.5f*_CapsuleRenderTextureSize.zw;
+        _CapsuleUpscaledSize.zw,
+        gw0, gw1, gw2, gw3, norm);
+    
     for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
     {
-        float4 gatherR = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex);
-        float upscaledR = dot(weights, gatherR);
-        //float upscaledR = SAMPLE_TEXTURE2D_ARRAY_LOD(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex, 0.f);
-        _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaledR;
+        float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, (halfResPositionSS + float2(-1.f, -1.f))*_CapsuleRenderTextureSize.zw, casterIndex);
+        float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, (halfResPositionSS + float2( 1.f, -1.f))*_CapsuleRenderTextureSize.zw, casterIndex);
+        float4 gather2 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, (halfResPositionSS + float2(-1.f,  1.f))*_CapsuleRenderTextureSize.zw, casterIndex);
+        float4 gather3 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, (halfResPositionSS + float2( 1.f,  1.f))*_CapsuleRenderTextureSize.zw, casterIndex);
+
+        float upscaled = (dot(gather0, gw0) + dot(gather1, gw1) + dot(gather2, gw2) + dot(gather3, gw3)) * norm;
+
+        //float upscaled = SAMPLE_TEXTURE2D_ARRAY_LOD(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex, 0.f);
+        _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaled;
     }
 }

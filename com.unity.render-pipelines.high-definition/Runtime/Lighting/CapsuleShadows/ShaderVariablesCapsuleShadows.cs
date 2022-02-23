@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint _CapsuleTileDebugMode;
         public uint _CapsuleDebugCasterIndex;
-        public uint _CapsuleResultIsUpscaled;
+        public uint _CapsuleDebugIsHalfResolution;
         public uint _CapsulePad2;
     }
 }

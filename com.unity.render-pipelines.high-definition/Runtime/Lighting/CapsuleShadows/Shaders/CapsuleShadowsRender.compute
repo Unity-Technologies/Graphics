@@ -451,8 +451,6 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         s_depthMaxU[flatThreadIndex] = DEPTH_MAX_EMPTY;
         s_tileRadiusU[flatThreadIndex] = 0;
     }
-    for (uint packedIndex = 0; packedIndex < MAX_SLICE_COUNT/2; ++packedIndex)
-        s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU;
     GroupMemoryBarrierWithGroupSync();
 
     // TODO: ignore depths beyond the max possible capsule shadow extent from camera

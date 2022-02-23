@@ -265,17 +265,23 @@ float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
     float packedVisibility;
     if (_CapsuleNeedsUpscale)
     {
-        float2 positionSS = float2(posInput.positionSS) + .5f;
-        float4 weights = GetCapsuleShadowsUpscaleWeights(
-            positionSS,
-            abs(posInput.linearDepth),
+        float2 halfResPositionSS = .5f*(float2(posInput.positionSS) + .5f);
+
+        float4 gw0, gw1, gw2, gw3;
+        float norm;
+        GetCapsuleShadowsUpscaleWeights(
+            halfResPositionSS,
+            max(abs(posInput.linearDepth), 0.01f),
             _CapsuleShadowsDepthGatherParams.xy,
             _CapsuleShadowsDepthGatherParams.zw,
-            _ScreenSize.zw);
+            _ScreenSize.zw,
+            gw0, gw1, gw2, gw3, norm);
 
-        float2 renderUV = positionSS*0.5f*_CapsuleShadowsRenderOutputSize.zw;
-        float4 gatherR = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, renderUV, casterIndex);
-        packedVisibility = dot(weights, gatherR);
+        float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, (halfResPositionSS + float2(-1.f, -1.f))*_CapsuleShadowsRenderOutputSize.zw, casterIndex);
+        float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, (halfResPositionSS + float2( 1.f, -1.f))*_CapsuleShadowsRenderOutputSize.zw, casterIndex);
+        float4 gather2 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, (halfResPositionSS + float2(-1.f,  1.f))*_CapsuleShadowsRenderOutputSize.zw, casterIndex);
+        float4 gather3 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, (halfResPositionSS + float2( 1.f,  1.f))*_CapsuleShadowsRenderOutputSize.zw, casterIndex);
+        packedVisibility = (dot(gather0, gw0) + dot(gather1, gw1) + dot(gather2, gw2) + dot(gather3, gw3)) * norm;
     }
     else
     {
