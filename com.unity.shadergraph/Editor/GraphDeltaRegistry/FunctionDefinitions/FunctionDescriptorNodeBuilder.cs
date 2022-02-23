@@ -124,7 +124,7 @@ namespace com.unity.shadergraph.defs
             IPortWriter port = nodeWriter.AddPort<GraphType>(
                 nodeReader,
                 param.Name,
-                param.Usage is Usage.In or Usage.Static,
+                param.Usage is Usage.In or Usage.Static or Usage.Local,
                 registry
             );
             TypeDescriptor paramType = param.TypeDescriptor;
@@ -144,13 +144,14 @@ namespace com.unity.shadergraph.defs
             port.SetField(kPrimitive, resolvedType.Primitive);
 
             if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
+            if (param.Usage is Usage.Local) port.SetField("IsLocal", true);
 
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
                 port.SetField($"c{i++}", val);
             }
-            
+
             return port;
         }
 
@@ -191,7 +192,7 @@ namespace com.unity.shadergraph.defs
                 data.TryGetPort(param.Name, out var port);
                 var shaderType = registry.GetShaderType((IFieldReader)port, container);
 
-                if (param.Usage == Usage.In || param.Usage == Usage.Static)
+                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.In)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
