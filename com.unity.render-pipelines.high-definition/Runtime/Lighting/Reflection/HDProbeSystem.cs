@@ -102,8 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ProbeSettings.ProbeType.ReflectionProbe:
                             target = HDRenderUtilities.CreateReflectionProbeRenderTarget(
-                                (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize,
-                                format
+                                (int)probe.cubeResolution, format
                             );
                             break;
                     }
@@ -124,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ProbeSettings.ProbeType.ReflectionProbe:
                             target = HDRenderUtilities.CreateReflectionProbeRenderTarget(
-                                (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize, format
+                                (int)probe.cubeResolution, format
                             );
                             break;
                     }

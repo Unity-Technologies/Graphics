@@ -565,6 +565,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public CubeReflectionResolution cubeResolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                return hdrp != null ? m_ProbeSettings.cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution) : ProbeSettings.k_DefaultCubeResolution;
+            }
+        }
+
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
         public LightLayerEnum lightLayers

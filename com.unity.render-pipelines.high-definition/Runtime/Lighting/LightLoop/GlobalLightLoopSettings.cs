@@ -28,6 +28,21 @@ namespace UnityEngine.Rendering.HighDefinition
         CubeReflectionResolution4096 = 4096
     }
 
+    [Serializable]
+    public enum ReflectionAtlasSize
+    {
+        /// <summary>Size 512</summary>
+        ReflectionAtlasSize512 = 512,
+        /// <summary>Size 1024</summary>
+        ReflectionAtlasSize1024 = 1024,
+        /// <summary>Size 2048</summary>
+        ReflectionAtlasSize2048 = 2048,
+        /// <summary>Size 4096</summary>
+        ReflectionAtlasSize4096 = 4096,
+        /// <summary>Size 4096</summary>
+        ReflectionAtlasSize8192 = 8192
+    }
+
     /// <summary>
     /// Available graphic formats for the cube and planar reflection probes.
     /// </summary>
@@ -158,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
             reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
+            reflectionProbeAtlasSize = ReflectionAtlasSize.ReflectionAtlasSize2048,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -200,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool reflectionCacheCompressed;
         /// <summary>Reflection probes resolution.</summary>
         public ReflectionAndPlanarProbeFormat reflectionProbeFormat;
+        public ReflectionAtlasSize reflectionProbeAtlasSize;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;

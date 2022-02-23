@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty proxyMirrorPositionProxySpace;
         internal SerializedProperty proxyMirrorRotationProxySpace;
         internal SerializedScalableSettingValue resolutionScalable;
+        internal SerializedScalableSettingValue cubeResolution;
         internal SerializedProperty roughReflections;
         internal SerializedProperty distanceBasedRoughness;
         internal SerializedProperty frustumFieldOfViewMode;
@@ -66,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             proxyMirrorPositionProxySpace = root.FindPropertyRelative("proxySettings.mirrorPositionProxySpace");
             proxyMirrorRotationProxySpace = root.FindPropertyRelative("proxySettings.mirrorRotationProxySpace");
             resolutionScalable = new SerializedScalableSettingValue(root.Find((ProbeSettings p) => p.resolutionScalable));
+            cubeResolution = new SerializedScalableSettingValue(root.Find((ProbeSettings p) => p.cubeResolution));
             roughReflections = root.FindPropertyRelative("roughReflections");
             distanceBasedRoughness = root.FindPropertyRelative("distanceBasedRoughness");
             frustumFieldOfViewMode = root.FindPropertyRelative("frustum.fieldOfViewMode");

@@ -363,7 +363,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution, iBLFilterBSDFArray.Length);
                 reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
 
-                reflectionProbeCache2D = new ReflectionProbeCache2D(defaultResources, iBLFilterBSDFArray, 2048, probeCacheFormat);
+                //@ Validate that it fits. See above.
+                int reflectionAtlasSize = (int)lightLoopSettings.reflectionProbeAtlasSize;
+                reflectionProbeCache2D = new ReflectionProbeCache2D(defaultResources, iBLFilterBSDFArray, reflectionAtlasSize, probeCacheFormat);
 
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
                 GraphicsFormat planarProbeCacheFormat = (GraphicsFormat)hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;

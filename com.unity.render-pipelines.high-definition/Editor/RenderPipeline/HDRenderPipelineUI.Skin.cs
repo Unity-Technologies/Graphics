@@ -188,6 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent cubemapSizeContent = EditorGUIUtility.TrTextContent("Reflection Cubemap Size", "Specifies the maximum resolution of the individual Reflection Probe cube maps.");
             public static readonly GUIContent probeCacheSizeContent = EditorGUIUtility.TrTextContent("Probe Cache Size", "Sets the maximum size of the Probe Cache.");
             public static readonly GUIContent reflectionProbeFormatContent = EditorGUIUtility.TrTextContent("Reflection and Planar Probes Format", "Color format used for reflection and planar probes. Keep in mind that probes are not pre-exposed when selecting the format.");
+            public static readonly GUIContent reflectionProbeAtlasSizeContent = EditorGUIUtility.TrTextContent("Reflection Probe Atlas Size", "Specifies the resolution of Reflection Probes Atlas.");
 
             public static readonly GUIContent compressPlanarProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Planar Reflection Probe Cache", "When enabled, HDRP compresses the Planar Reflection Probe cache to save disk space.");
             public static readonly GUIContent planarTextureSizeContent = EditorGUIUtility.TrTextContent("Planar Reflection Texture Size", "Specifies the maximum resolution of Planar Reflection Textures.");

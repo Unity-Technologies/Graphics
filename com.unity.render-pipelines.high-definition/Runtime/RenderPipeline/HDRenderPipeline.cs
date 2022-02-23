@@ -1639,7 +1639,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (visibleProbe.type)
                     {
                         case ProbeSettings.ProbeType.ReflectionProbe:
-                            int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+                            int desiredProbeSize = (int)visibleProbe.cubeResolution;
                             var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
                             if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||

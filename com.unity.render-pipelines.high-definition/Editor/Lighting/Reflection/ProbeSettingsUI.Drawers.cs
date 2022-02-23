@@ -92,6 +92,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 );
             }
 
+            if (((int)ProbeSettingsFields.cubeResolution & (int)displayedFields.probe) != 0)
+            {
+                var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.cubeReflectionResolution;
+                serialized.cubeResolution.LevelAndEnumGUILayout<CubeReflectionResolution>(
+                    EditorGUIUtility.TrTextContent("Cube Resolution", "Sets the resolution for the reflection probe camera."), scalableSetting, null
+                );
+            }
+
             PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
 
             if ((displayedFields.probe & proxy) != 0)
