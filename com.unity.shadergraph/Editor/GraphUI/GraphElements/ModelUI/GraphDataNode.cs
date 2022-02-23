@@ -61,16 +61,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
             }
-
-            // GraphType:
-            // PartList.InsertPartBefore("node-preview", new MatrixPart("temp-matrix", Model, this, ussClassName));
-            // PartList.InsertPartBefore("node-preview", new IntPart("temp-int", Model, this, ussClassName));
-            // PartList.InsertPartBefore("node-preview", new FloatPart("temp-float", Model, this, ussClassName));
-
-            // Others:
-            // PartList.InsertPartBefore("node-preview", new ColorPart("temp-color", Model, this, ussClassName));
-            // PartList.InsertPartBefore("node-preview", new GradientPart("temp-gradient", Model, this, ussClassName));
-            // PartList.InsertPartBefore("node-preview", new ObjectPart("temp-object", Model, this, ussClassName));
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
