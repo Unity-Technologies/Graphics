@@ -10,9 +10,9 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Posterize", // Name
             "Out = floor(In / (1 / Steps)) * (1 / Steps);",
-            new ParameterDescriptor("In", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Steps", TYPE.Any, Usage.In), //defaults to 4
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Steps", TYPE.Vector, Usage.In), //defaults to 4
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

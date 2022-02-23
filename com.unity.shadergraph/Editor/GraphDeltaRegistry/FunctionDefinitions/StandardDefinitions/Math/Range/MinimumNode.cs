@@ -10,9 +10,9 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Minimum", // Name
             "Out = min(A, B);",
-            new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In), //defaults to 1
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In), //defaults to 1
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

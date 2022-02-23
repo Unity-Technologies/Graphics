@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "DotProduct", // Name
             "Out = dot(A, B);",
-            new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
+            new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );
 
