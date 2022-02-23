@@ -12,6 +12,12 @@ namespace com.unity.shadergraph.defs
     ///   static (Usage.Static) - the parameter must be already defined
     /// In registration (See: FunctionDescriptorNodeBuilder) ParameterDescriptors
     /// may create port/fields on a node.
+    ///
+    /// Basic Example
+    /// new ParameterDescriptor("A", TYPE.Any, Usage.In)
+    ///
+    /// Example with Default Value
+    /// new ParameterDescriptor("A", TYPE.Any, Usage.In, new float[] {1f, 0f, 0f, 0f})
     /// </summary>
     internal readonly struct ParameterDescriptor
     {
