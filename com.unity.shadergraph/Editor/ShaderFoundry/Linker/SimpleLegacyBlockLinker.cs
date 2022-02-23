@@ -41,13 +41,13 @@ namespace UnityEditor.ShaderFoundry
             return GenerateMergerLegacyEntryPoints(template, templatePass, vertexGroups, fragmentGroups);
         }
 
-        List<BlockGroup> BuildBlockGroups(IEnumerable<TemplatePassStageElement> passStageElements, IEnumerable<CustomizationPointInstance> customizationPointInstances)
+        List<BlockGroup> BuildBlockGroups(IEnumerable<TemplatePassStageElement> templatePassStageElements, IEnumerable<CustomizationPointInstance> customizationPointInstances)
         {
             // Build block groups based upon customization points. All neighboring blocks not in a customization point
             // will be grouped together. Customization points will have their own group.
             var results = new List<BlockGroup>();
             BlockGroup currentGroup = null;
-            foreach (var stageElement in passStageElements)
+            foreach (var stageElement in templatePassStageElements)
             {
                 var customizationPoint = stageElement.CustomizationPoint;
                 // If the customization point has changed then the group changes (or if we didn't already have a group)
