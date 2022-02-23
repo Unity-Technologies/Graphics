@@ -28,26 +28,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.colorFormat = desc.graphicsFormat;
             rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
             rgDesc.slices = desc.volumeDepth;
-
-            switch (desc.msaaSamples)
-            {
-                case 1:
-                    rgDesc.msaaSamples = MSAASamples.None;
-                    break;
-                case 2:
-                    rgDesc.msaaSamples = MSAASamples.MSAA2x;
-                    break;
-                case 4:
-                    rgDesc.msaaSamples = MSAASamples.MSAA4x;
-                    break;
-                case 8:
-                    rgDesc.msaaSamples = MSAASamples.MSAA8x;
-                    break;
-                default:
-                    rgDesc.msaaSamples = MSAASamples.None;
-                    Debug.LogWarning("Unsopported MSAA samples count");
-                    break;
-            }
+            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
 
             return renderGraph.CreateTexture(rgDesc);
         }
@@ -60,12 +41,15 @@ namespace UnityEngine.Rendering.Universal
             frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
             frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
 
-            //frameResources.cameraColor = renderGraph.ImportTexture();
-            //frameResources.cameraDepth = renderGraph.ImportTexture();
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
-            //if (cameraData.renderType == CameraRenderType.Base)
+
+            if (cameraData.renderType == CameraRenderType.Base)
             {
                 // TODO: check if we need intermediate textures
+				// bool createColorTexture = false;
+				// createColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
+				// createColorTexture |= renderPassInputs.requiresColorTexture;
 
                 // COLOR
 
@@ -74,7 +58,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.autoGenerateMips = false;
                 cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                //RenderingUtils.ReAllocateIfNeeded(ref m_CameraColorAttachment, cameraTargetDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
                 frameResources.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, "_CameraTargetAttachment", cameraData.renderType == CameraRenderType.Base);
 
                 // DEPTH
@@ -104,14 +87,9 @@ namespace UnityEngine.Rendering.Universal
 
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                //RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                //cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
 
                 frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
             }
-
-            //frameResources.cameraColor = renderGraph.ImportTexture(m_CameraColorAttachment);
-            //frameResources.cameraDepth = renderGraph.ImportTexture(m_CameraDepthAttachment);
         }
 
         protected override void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
