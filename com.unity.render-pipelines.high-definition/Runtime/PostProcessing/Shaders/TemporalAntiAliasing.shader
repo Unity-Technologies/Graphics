@@ -243,7 +243,9 @@ Shader "Hidden/HDRP/TemporalAA"
 
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize, _RTHandleScaleForTAAHistory);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
+#if ANTI_RINGING
             history.xyz *= PerceptualWeight(history);
+#endif
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
@@ -305,7 +307,9 @@ Shader "Hidden/HDRP/TemporalAA"
                 // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
                 CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
                 unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
-                unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
+#if ANTI_RINGING
+              unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
+#endif
                 filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
                 blendFactor = color.w > 0 ? blendFactor : 1;
 #endif
@@ -319,18 +323,34 @@ Shader "Hidden/HDRP/TemporalAA"
                 blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
+
+
+
 #ifdef TAA_UPSCALE
                 blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
                 blendFactor = max(blendFactor, 0.03);
 
                 CTYPE finalColor;
+//
+//#if ANTI_RINGING
+//                float3 temporalWeight = saturate(abs(samples.maxNeighbour - samples.minNeighbour) / filteredColor);
+//
+//                float distToClamp = min(abs(GetLuma(samples.minNeighbour) - historyLuma), abs(GetLuma(samples.maxNeighbour) - historyLuma));
+//                float alpha = saturate((distToClamp) / (distToClamp + GetLuma(samples.maxNeighbour) - GetLuma(samples.minNeighbour)));
+//
+//                blendFactor = lerp(0.1f, 1-_BaseBlendFactor, alpha*alpha);
+//#endif
+
 #if PERCEPTUAL_SPACE_ONLY_END
                 finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
                 finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
                 finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
-                finalColor.xyz *= PerceptualInvWeight(finalColor);
+#if ANTI_RINGING
+             finalColor.xyz *= PerceptualInvWeight(finalColor);
+#endif
+
 #endif
 
                 color.xyz = ConvertToOutputSpace(finalColor.xyz);
@@ -339,6 +359,12 @@ Shader "Hidden/HDRP/TemporalAA"
                 // Set output alpha to the antialiased alpha.
                 color.w = filteredColor.w;
 #endif
+
+#if ANTI_RINGING
+          //      color = alpha * alpha;
+#endif
+
+
             }
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;

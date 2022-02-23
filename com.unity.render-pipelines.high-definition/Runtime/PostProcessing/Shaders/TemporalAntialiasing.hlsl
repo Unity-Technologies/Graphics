@@ -209,6 +209,10 @@ CTYPE QuadReadColorAcrossDiagonal(CTYPE c, int2 positionSS)
 
 float GetLuma(CTYPE color)
 {
+#if ANTI_RINGING
+    return Luminance(color.xyz);
+#endif
+
 #if YCOCG
     // We work in YCoCg hence the luminance is in the first channel.
     return color.x;
@@ -248,7 +252,15 @@ float PerceptualInvWeight(CTYPE c)
 CTYPE ConvertToWorkingSpace(CTYPE rgb)
 {
 #if YCOCG
+
+#if ANTI_RINGING
+    float max_comp = Max3(rgb.r, rgb.g, rgb.b);
+
+    float3 perceptualRGB = rgb.rgb * sqrt(max(max_comp, 0)) / max(max_comp, 1e-20f);
+    float3 ycocg = RGBToYCoCg(perceptualRGB);
+#else
     float3 ycocg = RGBToYCoCg(rgb.xyz);
+#endif
 
     #if ENABLE_ALPHA
         return float4(ycocg, rgb.a);
@@ -264,11 +276,74 @@ CTYPE ConvertToWorkingSpace(CTYPE rgb)
 float3 ConvertToOutputSpace(float3 color)
 {
 #if YCOCG
+#if ANTI_RINGING
+    float3 perceptualRGB = YCoCgToRGB(color);
+    float max_comp = Max3(perceptualRGB.r, perceptualRGB.g, perceptualRGB.b);
+    float3 linearRGB = perceptualRGB * (max_comp*max_comp) / max(max_comp, 1e-20f);
+
+    return linearRGB;
+#else
     return YCoCgToRGB(color);
+#endif
 #else
     return color;
 #endif
 }
+
+// ---------------------------------------------------
+// DEBUG REMOVE ME.
+// ---------------------------------------------------
+float3 GetUnjitterImage(TEXTURE2D_X(InputTexture), float2 output_px, float2 output_tex_size, float2 sample_offset_pixels, float input_resolution_scale, int width)
+{
+    const int2 base_src_px = int2((output_px + 0.5) * input_resolution_scale);
+    const float2 dst_sample_loc = output_px + 0.5;
+    const float2 base_src_sample_loc =
+        (base_src_px + 0.5 + sample_offset_pixels * float2(1, -1)) / input_resolution_scale;
+
+    float4 res = 0.0;
+    float3 ex = 0.0;
+    float3 ex2 = 0.0;
+    float dev_wt_sum = 0.0;
+    float wt_sum = 0.0;
+
+    int k = width;
+    for (int y = -k; y <= k; ++y) {
+        for (int x = -k; x <= k; ++x) {
+            int2 src_px = base_src_px + int2(x, y);
+            float2 src_sample_loc = base_src_sample_loc + float2(x, y) / input_resolution_scale;
+
+            //float4 col = InputTexture[]; // TODO_FCC: CHANGE.
+            float4 col = 1;
+            float2 sample_center_offset = (src_sample_loc - dst_sample_loc);
+
+            float dist2 = dot(sample_center_offset, sample_center_offset);
+            float dist = sqrt(dist2);
+
+            //float wt = all(abs(sample_center_offset) < 0.83);//dist < 0.33;
+            float dev_wt = exp2(-dist2 * input_resolution_scale.x);
+            //float wt = mitchell_netravali(2.5 * dist * input_resolution_scale.x);
+            float wt = exp2(-10 * dist2 * input_resolution_scale.x);
+            //float wt = sinc(1 * dist * input_resolution_scale.x) * smoothstep(3, 0, dist * input_resolution_scale.x);
+            //float wt = lanczos(2.2 * dist * input_resolution_scale.x, 3);
+            //wt = max(wt, 0.0);
+
+            res += col * wt;
+            wt_sum += wt;
+
+            ex += col.xyz * dev_wt;
+            ex2 += col.xyz * col.xyz * dev_wt;
+            dev_wt_sum += dev_wt;
+        }
+
+  //      float2 sample_center_offset = -sample_offset_pixels / input_resolution_scale * float2(1, -1) - (base_src_sample_loc - dst_sample_loc);
+
+    }
+    return res;
+
+
+    return 0.0f;
+}
+
 
 // ---------------------------------------------------
 // Velocity related functions.
@@ -289,7 +364,7 @@ float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
     float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset3, 0).r;
     float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset2, 0).r;
     float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset1, 0).r;
-    float s0 = QuadReadAcrossDiagonal(center, positionSS);
+    float s0 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + fastOffset, 0).r;
 
     float3 closest = float3(0.0, 0.0, center);
     closest = COMPARE_DEPTH(s0, closest.z) ? float3(fastOffset, s0) : closest;
@@ -531,7 +606,7 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
 
 #endif // !WIDE_NEIGHBOURHOOD
 
-#if PERCEPTUAL_SPACE
+#if PERCEPTUAL_SPACE && ANTI_RINGING
     ConvertNeighboursToPerceptualSpace(samples);
 #endif
 }
@@ -698,6 +773,10 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, 
 
 float HistoryContrast(float historyLuma, float minNeighbourLuma, float maxNeighbourLuma, float baseBlendFactor)
 {
+
+    //float distToClamp = min(abs(minNeighbourLuma - historyLuma), abs(maxNeighbourLuma - historyLuma));
+    //return clamp((baseBlendFactor * distToClamp) / (distToClamp + maxNeighbourLuma - minNeighbourLuma), 0.f, 1.f);
+
     float lumaContrast = max(maxNeighbourLuma - minNeighbourLuma, 0) / historyLuma;
     float blendFactor = baseBlendFactor;
     return saturate(blendFactor * rcp(1.0 + lumaContrast));
@@ -711,9 +790,7 @@ float DistanceToClamp(float historyLuma, float minNeighbourLuma, float maxNeighb
 
 float GetBlendFactor(float colorLuma, float historyLuma, float minNeighbourLuma, float maxNeighbourLuma, float baseBlendFactor)
 {
-    // TODO: Investigate factoring in the speed in this computation.
-
-    return HistoryContrast(historyLuma, minNeighbourLuma, maxNeighbourLuma, baseBlendFactor);
+    return  HistoryContrast(historyLuma, minNeighbourLuma, maxNeighbourLuma, baseBlendFactor);
 }
 
 // ---------------------------------------------------
@@ -775,14 +852,20 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 // TODO: This is not great and sub optimal since it really needs to be in linear and the data is already in perceptive space
 CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStrength)
 {
+#if ANTI_RINGING
+    CTYPE linearC = ConvertToOutputSpace(color);
+    CTYPE linearAvg = ConvertToOutputSpace(samples.avgNeighbour);
+#else
     CTYPE linearC = color * PerceptualInvWeight(color);
     CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
+#endif
 
 #if YCOCG
     // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.
-
+#ifndef ANTI_RINGING
     linearC.xyz = ConvertToOutputSpace(linearC.xyz);
     linearAvg.xyz = ConvertToOutputSpace(linearAvg.xyz);
+#endif
     linearC.xyz = linearC.xyz + max(0, (linearC.xyz - linearAvg.xyz)) * sharpenStrength * 3;
     linearC.xyz = clamp(linearC.xyz, 0, CLAMP_MAX);
 
@@ -791,7 +874,10 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
     linearC = linearC + max(0,(linearC - linearAvg)) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
-    CTYPE outputSharpened = linearC * PerceptualWeight(linearC);
+    CTYPE outputSharpened = linearC;
+#ifndef ANTI_RINGING
+    outputSharpened *= PerceptualWeight(linearC);
+#endif
 
 #if (SHARPEN_ALPHA == 0 && defined(ENABLE_ALPHA))
     outputSharpened.a = color.a;
