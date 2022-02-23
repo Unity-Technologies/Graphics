@@ -45,4 +45,26 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
     }
+
+    internal class TestUIColorRGBNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIColorRGB", // Name
+            "Out = float4(In.r, In.g, In.b, 1.0);",
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUIColorRGBANode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIColorRGBA", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
 }

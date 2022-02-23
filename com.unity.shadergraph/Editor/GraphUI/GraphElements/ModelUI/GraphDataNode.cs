@@ -60,6 +60,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             break;
                     }
                 }
+
+                if (length >= GraphType.Length.Three)  // TODO: ... && port wants to be displayed as a color
+                {
+                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive) ||
+                        primitive != GraphType.Primitive.Float) continue;
+
+                    PartList.InsertPartAfter(portContainerPartName,
+                        new ColorPart("sg-color",
+                            Model,
+                            this,
+                            ussClassName,
+                            portReader.GetName(),
+                            length is GraphType.Length.Four));
+                }
             }
         }
 
