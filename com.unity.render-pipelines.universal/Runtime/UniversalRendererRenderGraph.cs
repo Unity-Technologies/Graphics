@@ -5,12 +5,65 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
-        protected override void CreateRenderGraphCameraRenderTargets(ScriptableRenderContext context, ref RenderingData renderingData)
+        internal class RenderGraphFrameResources
+        {
+            // backbuffer
+            public TextureHandle backBufferColor;
+            public TextureHandle backBufferDepth;
+
+            // intermediate camera targets
+            public TextureHandle cameraColor;
+            public TextureHandle cameraDepth;
+        };
+        internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
+
+        TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
+        {
+            TextureDesc rgDesc = new TextureDesc();
+            rgDesc.dimension = desc.dimension;
+            rgDesc.width = desc.width;
+            rgDesc.height = desc.height;
+            rgDesc.clearBuffer = clear;
+            rgDesc.bindTextureMS = desc.bindMS;
+            rgDesc.colorFormat = desc.graphicsFormat;
+            rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
+            rgDesc.slices = desc.volumeDepth;
+
+            switch (desc.msaaSamples)
+            {
+                case 1:
+                    rgDesc.msaaSamples = MSAASamples.None;
+                    break;
+                case 2:
+                    rgDesc.msaaSamples = MSAASamples.MSAA2x;
+                    break;
+                case 4:
+                    rgDesc.msaaSamples = MSAASamples.MSAA4x;
+                    break;
+                case 8:
+                    rgDesc.msaaSamples = MSAASamples.MSAA8x;
+                    break;
+                default:
+                    rgDesc.msaaSamples = MSAASamples.None;
+                    Debug.LogWarning("Unsopported MSAA samples count");
+                    break;
+            }
+
+            return renderGraph.CreateTexture(rgDesc);
+        }
+
+        void CreateRenderGraphCameraRenderTargets(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CameraData cameraData = renderingData.cameraData;
             RenderGraph renderGraph = renderingData.renderGraph;
 
-            if (cameraData.renderType == CameraRenderType.Base)
+            frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+            frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
+
+            //frameResources.cameraColor = renderGraph.ImportTexture();
+            //frameResources.cameraDepth = renderGraph.ImportTexture();
+
+            //if (cameraData.renderType == CameraRenderType.Base)
             {
                 // TODO: check if we need intermediate textures
 
@@ -21,7 +74,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.autoGenerateMips = false;
                 cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_CameraColorAttachment, cameraTargetDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
+                //RenderingUtils.ReAllocateIfNeeded(ref m_CameraColorAttachment, cameraTargetDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
+                frameResources.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, "_CameraTargetAttachment", cameraData.renderType == CameraRenderType.Base);
 
                 // DEPTH
 
@@ -50,14 +104,14 @@ namespace UnityEngine.Rendering.Universal
 
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                //RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                 //cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
 
-
+                frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
             }
 
-            frameResources.cameraColor = renderGraph.ImportTexture(m_CameraColorAttachment);
-            frameResources.cameraDepth = renderGraph.ImportTexture(m_CameraDepthAttachment);
+            //frameResources.cameraColor = renderGraph.ImportTexture(m_CameraColorAttachment);
+            //frameResources.cameraDepth = renderGraph.ImportTexture(m_CameraDepthAttachment);
         }
 
         protected override void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -83,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnBeforeRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-
+            CreateRenderGraphCameraRenderTargets(context, ref renderingData);
         }
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -110,10 +164,10 @@ namespace UnityEngine.Rendering.Universal
         public class PassData
         {
             public TextureHandle m_Albedo;
-            //public TextureHandle m_Depth;
+            public TextureHandle m_Depth;
         }
 
-        static public PassData Render(RenderGraph graph, ScriptableRenderer renderer)
+        static public PassData Render(RenderGraph graph, UniversalRenderer renderer)
         {
             using (var builder = graph.AddRenderPass<PassData>("Test Pass", out var passData, new ProfilingSampler("Test Pass Profiler")))
             {

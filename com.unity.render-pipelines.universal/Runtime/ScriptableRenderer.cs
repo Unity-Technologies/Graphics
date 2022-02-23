@@ -744,29 +744,7 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="renderingData"></param>
-        protected virtual void CreateRenderGraphCameraRenderTargets(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
 
-        }
-
-        //TODO: these should be URP specific?
-        internal class RenderGraphFrameResources
-        {
-            // backbuffer
-            public TextureHandle backBufferColor;
-            public TextureHandle backBufferDepth;
-
-            // intermediate camera targets
-            public TextureHandle cameraColor;
-            public TextureHandle cameraDepth;
-        };
-
-        internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
         /// <summary>
         /// TODO
@@ -776,15 +754,6 @@ namespace UnityEngine.Rendering.Universal
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
-            RenderGraph renderGraph = renderingData.renderGraph;
-
-            frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
-
-            CreateRenderGraphCameraRenderTargets(context, ref renderingData);
-
-            //frameResources.cameraColor = renderGraph.ImportTexture();
-            //frameResources.cameraDepth = renderGraph.ImportTexture();
 
             RecordRenderGraphBlock(RenderGraphRenderPassBlock.BeforeRendering, context, ref renderingData);
 

@@ -322,6 +322,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+            s_RenderGraph.EndFrame();
+
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
             {
@@ -691,7 +694,6 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
 
-            s_RenderGraph.EndFrame();
             XRSystem.EndLayout();
         }
 
