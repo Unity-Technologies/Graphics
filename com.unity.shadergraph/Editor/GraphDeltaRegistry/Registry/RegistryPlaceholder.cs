@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph.Registry
             public enum Primitive { Bool, Int, Float, Any }
             public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
             public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
-            public enum Usage { In, Out, Static, }
+            public enum Usage { In, Out, Static, Local }
 
             // Values here represent a resolving priority.
             // The highest numeric value has the highest priority.
