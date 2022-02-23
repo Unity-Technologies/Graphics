@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     loadAction = RenderBufferLoadAction.Load;
 #endif
 
-                RenderingUtils.FinalBlit(cmd, cameraData, m_Source, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, 0);
+                RenderingUtils.FinalBlit(cmd, cameraData, m_Source, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, m_Source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
 
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
