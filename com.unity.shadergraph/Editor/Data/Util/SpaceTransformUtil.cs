@@ -337,7 +337,8 @@ namespace UnityEditor.ShaderGraph
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(outputVariable, " = TransformObjectToHClip(", inputValue, ");");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformObjectToHClip(", inputValue, ");");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
@@ -351,7 +352,8 @@ namespace UnityEditor.ShaderGraph
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(outputVariable, " = TransformWViewToHClip(", inputValue, ");");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWViewToHClip(", inputValue, ");");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
@@ -365,15 +367,18 @@ namespace UnityEditor.ShaderGraph
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(outputVariable, " = TransformWorldToHClip(", inputValue, ");");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClip(", inputValue, ");");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = true;
-                    sb.AddLine(outputVariable, " = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ");");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(outputVariable, " = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClipDir(", inputValue, ");");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
                     break;
             }
         }
@@ -423,9 +428,9 @@ namespace UnityEditor.ShaderGraph
             {   // from CoordinateSpace.Clip
                 ViaWorld,               // to CoordinateSpace.Object
                 ViaWorld,               // to CoordinateSpace.View
-                AbsoluteWorldToWorld,   // to CoordinateSpace.World
+                ViaWorld,               // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
-                Identity,               // to CoordinateSpace.AbsoluteWorld
+                ViaWorld,               // to CoordinateSpace.AbsoluteWorld
                 Identity,               // to CoordinateSpace.Clip
             }
         };
