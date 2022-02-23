@@ -1119,6 +1119,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         /// <summary>Blend Mode.</summary>
         public const string kBlendMode = "_BlendMode";
+        /// <summary>Obsolete.</summary>
+        public const string kAlphaToMask = "_AlphaToMask";
         /// <summary>Enable Fog on Transparent Materials.</summary>
         public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         /// <summary>Enable Depth Test for distortion.</summary>

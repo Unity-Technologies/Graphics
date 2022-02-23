@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 lightProbeSystem = LightProbeSystem.LegacyLightProbes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
-                probeVolumeBlendingMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetLow,
+                probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
         /// <summary>Probe Volume Memory Budget for scenario blending.</summary>
-        public ProbeVolumeTextureMemoryBudget probeVolumeBlendingMemoryBudget;
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
