@@ -40,14 +40,14 @@ namespace UnityEngine.Rendering
 
     class ProbeVolumeDebug
     {
-        public bool drawProbes;
+        public bool drawProbes = true;
         public bool drawBricks;
         public bool drawCells;
         public bool realtimeSubdivision;
         public int subdivisionCellUpdatePerFrame = 4;
         public float subdivisionDelayInSeconds = 1;
         public DebugProbeShadingMode probeShading;
-        public float probeSize = 1.0f;
+        public float probeSize = 0.4f;
         public float subdivisionViewCullingDistance = 5000.0f;
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
@@ -476,103 +476,182 @@ namespace UnityEngine.Rendering
             debugData.props = props;
 
             var chunkSizeInProbes = m_CurrentProbeVolumeChunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
-            var loc = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
 
-            int idxInBatch = 0;
-            for (int i = 0; i < cell.probeCount; i++)
+            if (oldData)
             {
-                int brickSize;
-                Vector3Int texelLoc;
-
-                if (oldData)
+                int idxInBatch = 0;
+                for (int i = 0; i < cell.probeCount; i++)
                 {
-                    brickSize = cell.bricks[i / 64].subdivisionLevel;
-
+                    int brickIndex = i / 64;
+                    int brickSize = cell.bricks[brickIndex].subdivisionLevel;
                     int chunkIndex = i / chunkSizeInProbes;
                     var chunk = chunks[chunkIndex];
-                    int indexInChunk = i % chunkSizeInProbes;
-                    int brickIdx = indexInChunk / 64;
-                    int indexInBrick = indexInChunk % 64;
+                    int probeIndexInChunk = i % chunkSizeInProbes;
+                    int brickIdxInChunk = probeIndexInChunk / 64;
+                    int probeIndexInBrick = probeIndexInChunk % 64;
 
-                    Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
-                    int indexInSlice = indexInBrick % 16;
-                    texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
-                }
-                else
-                {
-                    int chunkIndex = i / chunkSizeInProbes;
-                    var chunk = chunks[chunkIndex];
-                    int indexInChunk = i % chunkSizeInProbes;
-                    int z = indexInChunk / (loc.x * loc.y);
-                    int y = (indexInChunk - (loc.x * loc.y) * z) / loc.x;
-                    int x = (indexInChunk - (loc.x * loc.y) * z) - y * loc.x;
+                    Vector2Int brickStart = new Vector2Int(chunk.x + brickIdxInChunk * 4, chunk.y);
+                    int indexInSlice = probeIndexInBrick % 16;
+                    Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), probeIndexInBrick / 16);
 
-                    texelLoc = new Vector3Int(chunk.x + x, chunk.y + y, chunk.z + z);
+                    probeBuffer.Add(Matrix4x4.TRS(probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                    validity[idxInBatch] = oldData ? cell.GetValidityOld(i) : cell.GetValidity(i);
+                    texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                    relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
 
-                    // Brick coord
-                    Vector3Int locInBricks = loc / ProbeBrickPool.kBrickProbeCountPerDim;
-
-                    int bx = x / ProbeBrickPool.kBrickProbeCountPerDim;
-                    int by = y / ProbeBrickPool.kBrickProbeCountPerDim;
-                    int bz = z / ProbeBrickPool.kBrickProbeCountPerDim;
-                    int brickIndex = bz * locInBricks.x * locInBricks.y + by * locInBricks.x + bx;
-
-                    //brickSize = cell.bricks[brickIndex].subdivisionLevel;
-                    brickSize = 1;
-                }
-
-                probeBuffer.Add(Matrix4x4.TRS(probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = oldData ? cell.GetValidityOld(i) : cell.GetValidity(i);
-                texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
-                relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
-
-                if (touchupUpVolumeAction != null)
-                {
-                    touchupUpVolumeAction[idxInBatch] = touchupData[i];
-                }
-
-                if (offsets != null)
-                {
-                    const float kOffsetThresholdSqr = 1e-6f;
-
-                    var offset = probeOffsets[i];
-                    offsets[idxInBatch] = offset;
-
-                    if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                    if (touchupUpVolumeAction != null)
                     {
-                        offsetBuffer.Add(Matrix4x4.identity);
+                        touchupUpVolumeAction[idxInBatch] = touchupData[i];
                     }
-                    else
-                    {
-                        var position = probePositions[i] + offset;
-                        var orientation = Quaternion.LookRotation(-offset);
-                        var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
-                        offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
-                    }
-                }
-                idxInBatch++;
-
-                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probeCount - 1)
-                {
-                    idxInBatch = 0;
-                    MaterialPropertyBlock prop = new MaterialPropertyBlock();
-
-                    prop.SetFloatArray("_Validity", validity);
-                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
-                    prop.SetFloatArray("_RelativeSize", relativeSize);
-                    prop.SetVectorArray("_IndexInAtlas", texels);
 
                     if (offsets != null)
-                        prop.SetVectorArray("_Offset", offsets);
+                    {
+                        const float kOffsetThresholdSqr = 1e-6f;
 
-                    props.Add(prop);
+                        var offset = probeOffsets[i];
+                        offsets[idxInBatch] = offset;
 
-                    probeBuffers.Add(probeBuffer.ToArray());
-                    probeBuffer = new List<Matrix4x4>();
-                    probeBuffer.Clear();
+                        if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                        {
+                            offsetBuffer.Add(Matrix4x4.identity);
+                        }
+                        else
+                        {
+                            var position = probePositions[i] + offset;
+                            var orientation = Quaternion.LookRotation(-offset);
+                            var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
+                            offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
+                        }
+                    }
+                    idxInBatch++;
 
-                    offsetBuffers.Add(offsetBuffer.ToArray());
-                    offsetBuffer.Clear();
+                    if (probeBuffer.Count >= kProbesPerBatch || i == cell.probeCount - 1)
+                    {
+                        idxInBatch = 0;
+                        MaterialPropertyBlock prop = new MaterialPropertyBlock();
+
+                        prop.SetFloatArray("_Validity", validity);
+                        prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
+                        prop.SetFloatArray("_RelativeSize", relativeSize);
+                        prop.SetVectorArray("_IndexInAtlas", texels);
+
+                        if (offsets != null)
+                            prop.SetVectorArray("_Offset", offsets);
+
+                        props.Add(prop);
+
+                        probeBuffers.Add(probeBuffer.ToArray());
+                        probeBuffer = new List<Matrix4x4>();
+                        probeBuffer.Clear();
+
+                        offsetBuffers.Add(offsetBuffer.ToArray());
+                        offsetBuffer.Clear();
+                    }
+                }
+            }
+            else
+            {
+                var loc = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
+
+                int idxInBatch = 0;
+                int globalIndex = 0;
+                int brickCount = cell.probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+                int bx = 0, by = 0, bz = 0;
+                for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
+                {
+                    Debug.Assert(bz < loc.z);
+
+                    int brickSize = cell.bricks[brickIndex].subdivisionLevel;
+                    int chunkIndex = brickIndex / m_CurrentProbeVolumeChunkSizeInBricks;
+                    var chunk = chunks[chunkIndex];
+                    Vector3Int brickStart = new Vector3Int(chunk.x + bx, chunk.y + by, chunk.z + bz);
+
+                    for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; ++z)
+                    {
+                        for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; ++y)
+                        {
+                            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; ++x)
+                            {
+                                Vector3Int texelLoc = new Vector3Int(brickStart.x + x, brickStart.y + y, brickStart.z + z);
+
+                                int probeFlatIndex = chunkIndex * chunkSizeInProbes + (bx + x) + loc.x * ((by + y) + loc.y * (bz + z));
+
+                                probeBuffer.Add(Matrix4x4.TRS(probePositions[probeFlatIndex], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                                validity[idxInBatch] = cell.GetValidity(probeFlatIndex);
+                                texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                                relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
+
+                                if (touchupUpVolumeAction != null)
+                                {
+                                    touchupUpVolumeAction[idxInBatch] = touchupData[probeFlatIndex];
+                                }
+
+                                if (offsets != null)
+                                {
+                                    const float kOffsetThresholdSqr = 1e-6f;
+
+                                    var offset = probeOffsets[probeFlatIndex];
+                                    offsets[idxInBatch] = offset;
+
+                                    if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                                    {
+                                        offsetBuffer.Add(Matrix4x4.identity);
+                                    }
+                                    else
+                                    {
+                                        var position = probePositions[probeFlatIndex] + offset;
+                                        var orientation = Quaternion.LookRotation(-offset);
+                                        var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
+                                        offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
+                                    }
+                                }
+                                idxInBatch++;
+
+                                if (probeBuffer.Count >= kProbesPerBatch || globalIndex == cell.probeCount - 1)
+                                {
+                                    idxInBatch = 0;
+                                    MaterialPropertyBlock prop = new MaterialPropertyBlock();
+
+                                    prop.SetFloatArray("_Validity", validity);
+                                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
+                                    prop.SetFloatArray("_RelativeSize", relativeSize);
+                                    prop.SetVectorArray("_IndexInAtlas", texels);
+
+                                    if (offsets != null)
+                                        prop.SetVectorArray("_Offset", offsets);
+
+                                    props.Add(prop);
+
+                                    probeBuffers.Add(probeBuffer.ToArray());
+                                    probeBuffer = new List<Matrix4x4>();
+                                    probeBuffer.Clear();
+
+                                    offsetBuffers.Add(offsetBuffer.ToArray());
+                                    offsetBuffer.Clear();
+                                }
+
+                                globalIndex++;
+                            }
+                        }
+                    }
+
+                    bx += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (bx >= loc.x)
+                    {
+                        bx = 0;
+                        by += ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (by >= loc.y)
+                        {
+                            by = 0;
+                            bz += ProbeBrickPool.kBrickProbeCountPerDim;
+                            if (bz >= loc.z)
+                            {
+                                bx = 0;
+                                by = 0;
+                                bz = 0;
+                            }
+                        }
+                    }
                 }
             }
 

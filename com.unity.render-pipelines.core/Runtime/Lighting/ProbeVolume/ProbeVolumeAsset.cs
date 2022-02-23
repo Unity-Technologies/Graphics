@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering
                 {
                     cell.probePositions = positionsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                     cell.probePositionsOld = positionsOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.probesCount, counts.probesCount);
+                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                     cell.touchupVolumeInteractionOld = touchupInteractionOldData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount, counts.chunksCount * chunkSizeInProbeCount);
                     cell.offsetVectorsOld = offsetsDataOld.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
