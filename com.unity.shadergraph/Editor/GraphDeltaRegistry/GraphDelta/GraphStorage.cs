@@ -20,8 +20,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public ElementID output;
         public GraphStorage owner;
 
-        public PortHandler InputPort => owner.GetHandler(input);
-        public PortHandler OuptutPort => owner.GetHandler(output);
+        public PortHandler InputPort => owner.GetHandler(input) as PortHandler;
+        public PortHandler OuptutPort => owner.GetHandler(output) as PortHandler;
     }
 
     internal sealed partial class GraphStorage : CLDS
@@ -53,9 +53,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        internal GraphDataHandler AddNodeHandler(string layer, ElementID elementId)
+        internal NodeHandler AddNodeHandler(string layer, ElementID elementId)
         {
-            return AddHandler(layer, elementId, new NodeHeader());
+            return AddHandler(layer, elementId, new NodeHeader()) as NodeHandler;
+        }
+
+        new internal Element GetLayerRoot(string layer)
+        {
+            return base.GetLayerRoot(layer);
+        }
+
+        new internal Element SearchRelative(Element element, ElementID elementID)
+        {
+            return base.SearchRelative(element, elementID);
+        }
+
+        new internal Element AddElementToLayer(string layer, ElementID elementID)
+        {
+            return base.AddElementToLayer(layer, elementID);
+        }
+
+        new internal void SetHeader(Element element, DataHeader header)
+        {
+            base.SetHeader(element, header);
+        }
+
+        new internal void RemoveDataBranch(Element element)
+        {
+            base.RemoveDataBranch(element);
         }
     }
 }

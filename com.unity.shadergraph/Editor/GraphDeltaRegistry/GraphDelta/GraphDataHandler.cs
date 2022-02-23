@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal DataWriter GetWriter(string layerName)
         {
-            var elem = m_owner.SearchRelative(m_owner.GetLayerRoot(layerName), ID);
+            var elem = Owner.SearchRelative(Owner.GetLayerRoot(layerName), ID);
             DataWriter val;
             if (elem != null)
             {
@@ -19,14 +19,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                elem = m_owner.AddElementToLayer(layerName, ID);
-                m_owner.SetHeader(elem, Reader.Element.Header); //Should we default set the header to what our reader is?
+                elem = Owner.AddElementToLayer(layerName, ID);
+                Owner.SetHeader(elem, Reader.Element.Header); //Should we default set the header to what our reader is?
                 val = elem.GetWriter();
             }
             return val;
         }
 
-        internal DataWriter Writer => GetWriter(k_user);
+        internal DataWriter Writer => GetWriter(GraphDelta.k_user);
 
         internal GraphDataHandler(ElementID elementID, GraphStorage owner)
         {
@@ -49,12 +49,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return Reader.Element.Header.HasMetadata(lookup);
         }
 
-        protected void ClearLayerData(string layer)
+        internal void ClearLayerData(string layer)
         {
-            var elem = m_owner.SearchRelative(m_owner.GetLayerRoot(layer), ID);
+            var elem = Owner.SearchRelative(Owner.GetLayerRoot(layer), ID);
             if (elem != null)
             {
-                m_owner.RemoveDataBranch(elem);
+                Owner.RemoveDataBranch(elem);
             }
         }
 
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                return new GraphDataHandler(childReader.Element.ID, m_owner);
+                return new GraphDataHandler(childReader.Element.ID, Owner);
             }
         }
 
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void SetData<T>(T data)
         {
-            SetData(k_user, data);
+            SetData(GraphDelta.k_user, data);
         }
 
         internal void SetData<T>(string layer, T data)

@@ -88,9 +88,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
             {
-                var port = node.AddPort(k_user, entry.fieldName, true, false);
+                var port = node.AddPort(entry.fieldName, true, false);
                 port.SetMetadata("_RegistryKey", Registry.ResolveKey<Types.GraphType>());
-                var pw = port.GetWriter(k_concrete);
+                var pw = port.GetWriter("Concrete");
                 pw.AddChild(Types.GraphType.kHeight, entry.height).SetHeader(new FieldHeader());
                 pw.AddChild(Types.GraphType.kLength, entry.length).SetHeader(new FieldHeader());
                 pw.AddChild(Types.GraphType.kPrecision, entry.precision).SetHeader(new FieldHeader());

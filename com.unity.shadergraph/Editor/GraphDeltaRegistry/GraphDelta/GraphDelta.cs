@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 foreach(var id in contextNodes)
                 {
-                    yield return m_data.GetHandler(id);
+                    yield return m_data.GetHandler(id) as NodeHandler;
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else
             {
                 var last = contextNodes[contextNodes.Count - 1];
-                var tailHandler = m_data.GetHandler(last);
+                var tailHandler = m_data.GetHandler(last) as NodeHandler;
                 tailHandler.AddPort("Out", false, false);
                 newContextNode.AddPort("In", true, false);
                 
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool ReconcretizeNode(ElementID id, Registry.Registry registry)
         {
-            var nodeHandler = m_data.GetHandler(id);
+            var nodeHandler = m_data.GetHandler(id) as NodeHandler;
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
             nodeHandler.ClearLayerData(k_concrete);
@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public NodeHandler GetNode(ElementID id)
         {
-            return m_data.GetHandler(id);
+            return m_data.GetHandler(id) as NodeHandler;
         }
 
         public void RemoveNode(ElementID id)
