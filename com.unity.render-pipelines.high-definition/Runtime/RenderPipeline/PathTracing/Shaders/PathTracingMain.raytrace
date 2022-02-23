@@ -221,8 +221,9 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
-            // Add the segment contribution to our overall radiance value
-            value += throughput * ClampValue(payload.value);
+            // Add the (clamped according to max roughness) segment contribution to our overall radiance value
+            float maxValue = lerp(0.1 * _RaytracingIntensityClamp, _RaytracingIntensityClamp, 1.0 - payload.maxRoughness);
+            value += ClampValue(throughput * payload.value, maxValue);
         }
     }
     else
