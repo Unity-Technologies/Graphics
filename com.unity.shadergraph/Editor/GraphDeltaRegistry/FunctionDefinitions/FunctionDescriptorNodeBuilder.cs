@@ -145,6 +145,12 @@ namespace com.unity.shadergraph.defs
 
             if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
 
+            int i = 0;
+            foreach(var val in param.DefaultValue)
+            {
+                port.SetField($"c{i++}", val);
+            }
+            
             return port;
         }
 
