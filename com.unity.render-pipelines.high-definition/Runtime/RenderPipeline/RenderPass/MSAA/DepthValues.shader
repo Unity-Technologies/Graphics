@@ -84,9 +84,9 @@ Shader "Hidden/HDRP/DepthValues"
             }
             fragO.depthValues.z *= 0.5;
             fragO.actualDepth = fragO.depthValues.x;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            // We pick the closest sample to camera, so that attibutes match for code that uses closest depth.
+            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, closestSample);
             #ifdef _HAS_MOTION_VECTORS
-            // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
             #endif
             return fragO;
@@ -112,9 +112,9 @@ Shader "Hidden/HDRP/DepthValues"
             }
             fragO.depthValues.z *= 0.25;
             fragO.actualDepth = fragO.depthValues.x;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            // We pick the closest sample to camera, so that attibutes match for code that uses closest depth.
+            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, closestSample);
             #ifdef _HAS_MOTION_VECTORS
-            // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
             #endif
             return fragO;
@@ -140,9 +140,9 @@ Shader "Hidden/HDRP/DepthValues"
             }
             fragO.depthValues.z *= 0.125;
             fragO.actualDepth = fragO.depthValues.x;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            // We pick the closest sample to camera, so that attibutes match for code that uses closest depth.
+            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, closestSample);
             #ifdef _HAS_MOTION_VECTORS
-            // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
             #endif
             return fragO;
