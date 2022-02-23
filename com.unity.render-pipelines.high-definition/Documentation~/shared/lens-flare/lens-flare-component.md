@@ -43,5 +43,6 @@ To create a lens flare in a scene:
 | Occlusion Radius | Defines how far from the light source Unity occludes the lens flare. This value is in world space. |
 | Sample Count | The number of random samples the CPU uses to generate the **Occlusion Radius.** |
 | Occlusion Offset | Offsets the plane that the occlusion operates on. A higher value moves this plane closer to Camera. This value is in world space. <br/>For example, if a lens flare is inside the light bulb, you can use this to sample occlusion outside the light bulb. |
-| Volumetric Cloud Occlusion | When enabled, HDRP uses the volumetric cloud texture (in screen space) for the occlusion. <br/>The option is only visible if Volumetric Could is available on the HDRP Asset.<br/>The occlusion is in screen space which mean that do not consider the distance to the camera. |
+| Volumetric Cloud Occlusion | When enabled, HDRP uses the volumetric cloud texture for the occlusion. Because the occlusion is computed in screen space, the lens flare is always considered behind the volumetric clouds.<br/>This option is only visible if Volumetric Could is enabled on the HDRP Asset. |
 | Allow Off Screen | Enable this property to allow lens flares outside the Camera's view to affect the current field of view. |
+
