@@ -17,6 +17,12 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
+    public sealed class CapsuleShadowUpscaleMethodParameter : VolumeParameter<CapsuleShadowUpscaleMethod>
+    {
+        public CapsuleShadowUpscaleMethodParameter(CapsuleShadowUpscaleMethod value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
     public sealed class CapsuleShadowTextureFormatParameter : VolumeParameter<CapsuleShadowTextureFormat>
     {
         public CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat value, bool overrideState = false) : base(value, overrideState) { }
@@ -52,6 +58,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Choose what resolution to use when rendering capsules shadows after the depth pre-pass.
         /// </summary>
         public CapsuleShadowResolutionParameter resolution = new CapsuleShadowResolutionParameter(CapsuleShadowResolution.Half);
+
+        /// <summary>
+        /// The method to use for upscaling half resolution shadows to full resolution.
+        /// </summary>
+        public CapsuleShadowUpscaleMethodParameter upscaleMethod = new CapsuleShadowUpscaleMethodParameter(CapsuleShadowUpscaleMethod.SingleGather4);
 
         /// <summary>
         /// Upscale half resolution capsule shadows before shading.

@@ -14,10 +14,11 @@
 #define _CapsuleDirectShadowsEnabled        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_DIRECT_ENABLED_BIT) != 0)
 #define _CapsuleIndirectShadowsEnabled      ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_INDIRECT_ENABLED_BIT) != 0)
 #define _CapsuleNeedsUpscale                ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_NEEDS_UPSCALE_BIT) != 0)
+#define _CapsuleShadowsUpscaleMethod        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_UPSCALE_MASK) >> CAPSULESHADOWFLAGS_UPSCALE_SHIFT)
 
-#define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
-#define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)
-#define _CapsuleIndirectShadowExtra         ((_CapsuleIndirectShadowCountAndFlags & CAPSULESHADOWFLAGS_EXTRA_MASK) >> CAPSULESHADOWFLAGS_EXTRA_SHIFT)
+#define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_COUNT_MASK)
+#define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)
+#define _CapsuleIndirectShadowExtra         ((_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_EXTRA_MASK) >> CAPSULESHADOWFLAGS_EXTRA_SHIFT)
 
 #define _FirstDepthMipOffset                uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
 

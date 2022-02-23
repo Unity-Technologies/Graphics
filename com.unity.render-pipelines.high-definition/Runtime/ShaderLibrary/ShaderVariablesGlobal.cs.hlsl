@@ -137,7 +137,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableDecals;
     uint _DecalCount;
     uint _CapsuleDirectShadowCountAndFlags;
-    uint _CapsuleIndirectShadowCountAndFlags;
+    uint _CapsuleIndirectShadowCountAndExtra;
     float _CapsuleIndirectRangeFactor;
     float _CapsuleIndirectMinimumVisibility;
     float3 _CapsuleIndirectDirectionBias;

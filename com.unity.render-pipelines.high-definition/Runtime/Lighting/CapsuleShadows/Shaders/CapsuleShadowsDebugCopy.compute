@@ -23,5 +23,5 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (_CapsuleDebugIsHalfResolution != 0)
         inputCoord = inputCoord/2;
 
-    _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = _CapsuleShadowsTexture[uint3(inputCoord, _CapsuleDebugCasterIndex)];
+    _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = _CapsuleShadowsTexture[uint3(inputCoord, _CapsuleDebugCasterIndex)].x;
 }

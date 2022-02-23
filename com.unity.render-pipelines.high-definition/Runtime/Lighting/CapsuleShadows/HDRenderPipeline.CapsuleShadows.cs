@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 | ((uint)capsuleShadows.directShadowMethod.value << (int)CapsuleShadowFlags.MethodShift)
                 | (capsuleShadows.fadeDirectSelfShadow.value ? (uint)CapsuleShadowFlags.FadeSelfShadowBit : 0);
 
-            uint indirectCountAndFlags
+            uint indirectCountAndExtra
                 = (uint)m_CapsuleOccluders.indirectCount
                 | ((uint)capsuleShadows.indirectShadowMethod.value << (int)CapsuleShadowFlags.MethodShift);
 
@@ -426,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (capsuleShadows.resolution.value == CapsuleShadowResolution.Half)
                 { 
                     directCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
+                    directCountAndFlags |= ((uint)capsuleShadows.upscaleMethod.value << (int)CapsuleShadowFlags.UpscaleShift);
                     if (!capsuleShadows.upscaleBeforeShading.value)
                         directCountAndFlags |= (uint)CapsuleShadowFlags.NeedsUpscaleBit;
                 }
@@ -438,7 +439,6 @@ namespace UnityEngine.Rendering.HighDefinition
                              : (uint)CapsuleShadowFlags.DirectEnabledBit;
                     }
                 }
-
                 if (capsuleShadows.useSplitDepthRange.value)
                     directCountAndFlags |= (uint)CapsuleShadowFlags.SplitDepthRangeBit;
             }
@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (capsuleShadows.indirectShadowMethod.value)
             {
                 case CapsuleIndirectShadowMethod.AmbientOcclusion:
-                    indirectCountAndFlags |= ((uint)capsuleShadows.ambientOcclusionMethod.value << (int)CapsuleShadowFlags.ExtraShift);
+                    indirectCountAndExtra |= ((uint)capsuleShadows.ambientOcclusionMethod.value << (int)CapsuleShadowFlags.ExtraShift);
                     break;
                 case CapsuleIndirectShadowMethod.DirectionAtSurface:
                 case CapsuleIndirectShadowMethod.DirectionAtCapsule:
@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._CapsuleDirectShadowCountAndFlags = directCountAndFlags;
-            cb._CapsuleIndirectShadowCountAndFlags = indirectCountAndFlags;
+            cb._CapsuleIndirectShadowCountAndExtra = indirectCountAndExtra;
             cb._CapsuleIndirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
             cb._CapsuleIndirectMinimumVisibility = capsuleShadows.indirectMinVisibility.value;
             cb._CapsuleIndirectDirectionBias = capsuleShadows.indirectDirectionBias.value;

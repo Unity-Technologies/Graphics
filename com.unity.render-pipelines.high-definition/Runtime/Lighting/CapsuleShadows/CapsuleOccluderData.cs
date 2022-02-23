@@ -45,20 +45,32 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    public enum CapsuleShadowUpscaleMethod
+    {
+        SingleGather4,
+        DoubleGather4,
+        QuadGather4,
+    }
+
+    [GenerateHLSL]
     public enum CapsuleShadowFlags
     {
-        CountMask = 0x0000ffff,
-        MethodShift = 16,
-        MethodMask = 0x000f0000,
-        ExtraShift = 20,
-        ExtraMask = 0x00f00000,
-        LightLoopBit = 0x01000000,
-        HalfResBit = 0x02000000,
-        FadeSelfShadowBit = 0x04000000,
-        SplitDepthRangeBit = 0x08000000,
-        DirectEnabledBit = 0x10000000,
-        IndirectEnabledBit = 0x20000000,
-        NeedsUpscaleBit = 0x40000000,
+        CountMask = 0x00000fff,
+        MethodShift = 12,
+        MethodMask = 0x0000f000,
+
+        ExtraShift = 16,
+        ExtraMask = 0x000f0000,
+
+        DirectEnabledBit = 0x00010000,
+        IndirectEnabledBit = 0x00020000,
+        FadeSelfShadowBit = 0x00040000,
+        LightLoopBit = 0x00080000,
+        SplitDepthRangeBit = 0x00100000,
+        HalfResBit = 0x00200000,
+        NeedsUpscaleBit = 0x00400000,
+        UpscaleShift = 24,
+        UpscaleMask = 0x03000000,
     }
 
     [GenerateHLSL(needAccessors = false)]
