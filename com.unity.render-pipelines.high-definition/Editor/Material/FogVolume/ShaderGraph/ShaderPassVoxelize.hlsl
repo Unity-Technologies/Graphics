@@ -12,23 +12,22 @@
 RW_TEXTURE3D(float4, _VBufferDensity) : register(u1); // RGB = sqrt(scattering), A = sqrt(extinction)
 RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 
-struct GeometryToFragment
+struct VertexToFragment
 {
-    float4 vertex : SV_POSITION;
-    // float3 positionSS : SV_POSITION
+    PackedVaryingsType packedVaryings;
     uint depthSlice : SV_RenderTargetArrayIndex;
-    // UNITY_VERTEX_OUTPUT_STEREO // TODO: VR Support
-};
+}
 
-PackedVaryingsType Vert(AttributesMesh inputMesh)
+VertexToFragment Vert(AttributesMesh inputMesh, uint instanceId : SV_INSTANCEID)
 {
+    VertexToFragment v2f;
+    
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
+    v2f.packedVaryings = PackVaryingsType(varyingsType);
+    v2f.depthSlice = instanceId;
 
-    // UNITY_SETUP_INSTANCE_ID(input);
-    // UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-    return PackVaryingsType(varyingsType);
+    return v2f;
 }
 
 uint DepthToSlice(float depth)
@@ -55,50 +54,11 @@ float SliceToDepth(uint slice)
     return t0 + 0.5 * dt;
 }
 
-[maxvertexcount(50)]
-void Geom(triangle PackedVaryingsType packedInputs[3], inout TriangleStream<GeometryToFragment> triStream)
+void Frag(VertexToFragment packed, out float4 outColor : SV_Target0)
 {
-    // UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInputs[0]);
-    FragInputs input0 = UnpackVaryingsToFragInputs(packedInputs[0]);
-    FragInputs input1 = UnpackVaryingsToFragInputs(packedInputs[1]);
-    FragInputs input2 = UnpackVaryingsToFragInputs(packedInputs[2]);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(g2f.packed);
 
-    // Calculate the number of slices need to be generated from SS bounds
-    float3 minBounds, maxBounds;
-    GetRendererBounds(minBounds, maxBounds);
-    float3 minSS = TransformWorldToView(minBounds);
-    float3 maxSS = TransformWorldToView(maxBounds);
-
-    int startVoxelIndex = DepthToSlice(minSS.z);
-    int stopVoxelIndex = DepthToSlice(maxSS.z);
-
-    for (int i = startVoxelIndex; i < stopVoxelIndex; i++)
-    {
-        GeometryToFragment o0, o1, o2;
-        // Generate triangle
-        float sliceDepth = SliceToDepth(i);
-        
-        o0.vertex = float4(minSS.x, minSS.y, sliceDepth, 1);
-        o0.depthSlice = i;
-
-        o1.vertex = float4(maxSS.x, maxSS.y, sliceDepth, 1);
-        o1.depthSlice = i;
-
-        o2.vertex = float4(maxSS.x, minSS.y, sliceDepth, 1);
-        o2.depthSlice = i;
-
-        triStream.Append(o0);
-        triStream.Append(o1);
-        triStream.Append(o2);
-        triStream.RestartStrip();
-    }
-}
-
-void Frag(GeometryToFragment g2f, out float4 outColor : SV_Target0)
-{
-    // UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(g2f.pixelInterpolators);
-
-    // FragInputs input = UnpackVaryingsToFragInputs(g2f.pixelInterpolators);
+    FragInputs input = UnpackVaryingsToFragInputs(packed);
     // GetVolumeData(input, V, scatteringColor, density);
     outColor = float4(1, 0, 0, 1);
 

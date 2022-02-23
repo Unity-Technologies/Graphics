@@ -185,18 +185,26 @@ namespace UnityEngine.Rendering.HighDefinition
             return depthDecodingParams.x * Mathf.Exp(ln2 * d * depthDecodingParams.y) + depthDecodingParams.z;
         }
 
-        // Inverse of ComputeLastSliceDistance
-        internal int ComputeSliceIndexFromDistance(float distance)
+        float EncodeLogarithmicDepthGeneralized(float z, Vector4 encodingParams)
         {
-            float ln2 = 0.69314718f;
+            // Use max() to avoid NaNs.
+            return encodingParams.x + encodingParams.y * Mathf.Log(Mathf.Max(0, z - encodingParams.z), 2);
+        }
 
-            distance -= depthDecodingParams.z;
-            distance /= depthDecodingParams.x;
-            distance = Mathf.Log(distance);
-            distance /= ln2 * depthDecodingParams.y;
-            int sliceIndex = (int)(0.5f / (-distance + 1));
 
-            return sliceIndex;
+        // Inverse of ComputeLastSliceDistance
+        internal int ComputeSliceIndexFromDistance(float distance, int sliceCount)
+        {
+            float vBufferNearPlane = 0;//DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+
+            float t = distance;
+            float dt = t - vBufferNearPlane;
+            float e1 = EncodeLogarithmicDepthGeneralized(dt, depthEncodingParams);
+            float rpcSliceCount = 1.0f / (float)sliceCount;
+
+            float slice = (e1 - rpcSliceCount) / rpcSliceCount;
+
+            return (int)slice;
         }
 
         // See EncodeLogarithmicDepthGeneralized().
@@ -240,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox> m_VisibleVolumeBounds = null;
         List<LocalVolumetricFogEngineData> m_VisibleVolumeData = null;
-        List<LocalVolumetricFog> m_VisibleLocalVolumetricFogs = null;
+        List<LocalVolumetricFog> m_VisibleLocalVolumetricMaterialFogVolumes = null;
         internal const int k_MaxVisibleLocalVolumetricFogCount = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
@@ -653,7 +661,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeBounds = new List<OrientedBBox>();
             m_VisibleVolumeData = new List<LocalVolumetricFogEngineData>();
-            m_VisibleLocalVolumetricFogs = new List<LocalVolumetricFog>();
+            m_VisibleLocalVolumetricMaterialFogVolumes = new List<LocalVolumetricFog>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
         }
@@ -665,7 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeData = null; // free()
             m_VisibleVolumeBounds = null; // free()
-            m_VisibleLocalVolumetricFogs = null;
+            m_VisibleLocalVolumetricMaterialFogVolumes = null;
         }
 
         void InitializeVolumetricLighting()
@@ -759,7 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_VisibleVolumeBounds.Clear();
                 m_VisibleVolumeData.Clear();
-                m_VisibleLocalVolumetricFogs.Clear();
+                m_VisibleLocalVolumetricMaterialFogVolumes.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = LocalVolumetricFogManager.manager.PrepareLocalVolumetricFogData(cmd, hdCamera);
@@ -782,9 +790,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         // TODO: cache these?
                         var data = volume.parameters.ConvertToEngineData();
 
-                        m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeData.Add(data);
-                        m_VisibleLocalVolumetricFogs.Add(volume);
+                        if (volume.parameters.maskMode == LocalVolumetricFogMaskMode.Texture)
+                        {
+                            m_VisibleVolumeBounds.Add(obb);
+                            m_VisibleVolumeData.Add(data);
+                        }
+                        else
+                            m_VisibleLocalVolumetricMaterialFogVolumes.Add(volume);
                     }
                 }
 
@@ -964,75 +976,149 @@ namespace UnityEngine.Rendering.HighDefinition
                     densityBuffer = passData.densityBuffer;
                 }
 
+                if (!SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
+                {
+                    Debug.LogError("Hardware not supported for Volumetric Materials");
+                    return densityBuffer;
+                }
+
+                if (m_VisibleLocalVolumetricMaterialFogVolumes.Count == 0)
+                    return densityBuffer;
+
                 // Voxelize fog volume meshes
                 using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
                 {
+                    var fog = hdCamera.volumeStack.GetComponent<Fog>();
                     if (hdCamera.camera.cameraType == CameraType.Game)
                     {
-                        var cameraPosition = hdCamera.camera.transform.position;
-                        Debug.Log(cameraPosition);
+                        builder.SetRenderFunc(
+                            (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                            {
+                                var cameraPosition = hdCamera.camera.transform.position;
 
-                        foreach (var volume in m_VisibleLocalVolumetricFogs)
-                        {
-                            // Calculate how much volumetric fog slices are touched by the volume:
-                            // TODO: matrix calculation are horribly slow
-                            var aabb = new Bounds(volume.transform.position, volume.parameters.size);
+                                foreach (var volume in m_VisibleLocalVolumetricMaterialFogVolumes)
+                                {
+                                    if (volume.parameters.maskMode != LocalVolumetricFogMaskMode.Material)
+                                        continue;
 
-                            // Apply camera relative rendering
-                            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                                aabb.center -= cameraPosition;
+                                    var volumePos = volume.transform.position;
+                                    // Calculate how much volumetric fog slices are touched by the volume:
+                                    // TODO: matrix calculation are horribly slow
+                                    var aabb = new Bounds(volume.transform.position, volume.parameters.size);
+                                    Vector3 halfSize = volume.parameters.size / 2.0f;
 
-                            Debug.Log(aabb.min);
-                            Vector4 m1 = new Vector4(aabb.min.x, aabb.min.y, aabb.min.z, 0);
-                            Vector4 m2 = new Vector4(aabb.max.x, aabb.max.y, aabb.max.z, 0);
-                            var minViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m1;
-                            var maxViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m2;
-                            Debug.DrawLine(minViewSpaceBounds, maxViewSpaceBounds, Color.red, 0.1f);
-                            // float d = hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane;
-                            float startDepth = minViewSpaceBounds.z / minViewSpaceBounds.w;// * d + hdCamera.camera.nearClipPlane;
-                            float stopDepth = maxViewSpaceBounds.z / maxViewSpaceBounds.w;// * d + hdCamera.camera.nearClipPlane;
+                                    // Apply camera relative rendering
+                                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                        volumePos -= cameraPosition;
 
-                            int startSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, startDepth));
-                            int stopSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, stopDepth));
-                            
-                            Debug.Log("Min: " + startDepth + ", " + startSlice + " | Max: " + stopDepth + ", " + stopSlice);
-                        };
+                                    // TODO: move this to a compute buffer and output to an indirect argument buffer
+                                    Vector4 p0 = volumePos + new Vector3(-halfSize.x, halfSize.y, halfSize.z);
+                                    Vector4 p1 = volumePos + new Vector3(halfSize.x, halfSize.y, halfSize.z);
+                                    Vector4 p2 = volumePos + new Vector3(-halfSize.x, -halfSize.y, halfSize.z);
+                                    Vector4 p3 = volumePos + new Vector3(halfSize.x, -halfSize.y, halfSize.z);
+
+                                    Vector4 p4 = volumePos + new Vector3(-halfSize.x, halfSize.y, -halfSize.z);
+                                    Vector4 p5 = volumePos + new Vector3(halfSize.x, halfSize.y, -halfSize.z);
+                                    Vector4 p6 = volumePos + new Vector3(-halfSize.x, -halfSize.y, -halfSize.z);
+                                    Vector4 p7 = volumePos + new Vector3(halfSize.x, -halfSize.y, -halfSize.z);
+
+                                    p0 = hdCamera.mainViewConstants.viewMatrix * p0;
+                                    p1 = hdCamera.mainViewConstants.viewMatrix * p1;
+                                    p2 = hdCamera.mainViewConstants.viewMatrix * p2;
+                                    p3 = hdCamera.mainViewConstants.viewMatrix * p3;
+
+                                    p4 = hdCamera.mainViewConstants.viewMatrix * p4;
+                                    p5 = hdCamera.mainViewConstants.viewMatrix * p5;
+                                    p6 = hdCamera.mainViewConstants.viewMatrix * p6;
+                                    p7 = hdCamera.mainViewConstants.viewMatrix * p7;
+
+                                    float minViewSpaceDepth = Mathf.Abs(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+                                    float maxViewSpaceDepth = Mathf.Abs(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+
+                                    // Debug.Log(minViewSpaceDepth);
+                                    // Debug.Log(maxViewSpaceDepth);
+                                    var camDir = (volume.transform.position - cameraPosition).normalized;
+                                    Debug.DrawRay(cameraPosition + camDir * minViewSpaceDepth, camDir * (maxViewSpaceDepth - minViewSpaceDepth), Color.red, 0.1f);
+
+                                    // Apply camera relative rendering
+                                    // if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                    //     aabb.center -= cameraPosition;
+
+                                    // Debug.DrawLine(aabb.min, aabb.max, Color.blue, 0.1f);
+
+                                    // Debug.Log(aabb.min);
+                                    // Debug.Log(aabb.max);
+                                    // Vector4 m1 = new Vector4(aabb.min.x, aabb.min.y, aabb.min.z, 1);
+                                    // Vector4 m2 = new Vector4(aabb.max.x, aabb.max.y, aabb.max.z, 1);
+                                    // // var minViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m1;
+                                    // // var maxViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m2;
+                                    // var minPositionCS = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(aabb.min);
+                                    // var maxPositionCS = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(aabb.max);
+
+                                    // // minViewSpaceBounds = new Vector3(minViewSpaceBounds.x, minViewSpaceBounds.y, minViewSpaceBounds.z) / minViewSpaceBounds.w;
+                                    // // maxViewSpaceBounds = new Vector3(maxViewSpaceBounds.x, maxViewSpaceBounds.y, maxViewSpaceBounds.z) / maxViewSpaceBounds.w;
+                                    // // Debug.DrawLine(minViewSpaceBounds, maxViewSpaceBounds, Color.red, 0.1f);
+
+                                    // float minViewSpaceZ = MathF.Abs(hdCamera.mainViewConstants.viewMatrix.MultiplyPoint(aabb.min).z);
+                                    // float maxViewSpaceZ = MathF.Abs(hdCamera.mainViewConstants.viewMatrix.MultiplyPoint(aabb.max).z);
+                                    // minPositionCS.z = minViewSpaceZ;
+                                    // maxPositionCS.z = maxViewSpaceZ;
+                                    // Debug.DrawLine(minPositionCS, maxPositionCS, Color.green, 0.1f);
+
+
+                                    // // Debug.Log(minViewSpaceBounds + " | " + maxViewSpaceBounds);
+                                    // // float d = hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane;
+
+                                    int startSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, minViewSpaceDepth), fog.volumeSliceCount.value);
+                                    int stopSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, maxViewSpaceDepth), fog.volumeSliceCount.value);
+                                    Debug.Log("Min: " + minViewSpaceDepth + ", " + startSlice + " | Max: " + maxViewSpaceDepth + ", " + stopSlice);
+
+                                    ctx.cmd.DrawProcedural(Matrix4x4.identity, volume.parameters.materialMask, 0, MeshTopology.Triangles, 4, Mathf.Abs(stopSlice - startSlice));
+                                }
+                            });
+                    }
+                    else
+                    {
+                        builder.SetRenderFunc(
+                            (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                            {
+                            });
                     }
 
-                    var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
-                    {
-                        rendererConfiguration = PerObjectData.None,
-                        renderQueueRange = HDRenderQueue.k_RenderQueue_All,
-                        sortingCriteria = SortingCriteria.CommonTransparent,
-                        excludeObjectMotionVectors = false
-                    };
+                    // var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
+                    // {
+                    //     rendererConfiguration = PerObjectData.None,
+                    //     renderQueueRange = HDRenderQueue.k_RenderQueue_All,
+                    //     sortingCriteria = SortingCriteria.CommonTransparent,
+                    //     excludeObjectMotionVectors = false
+                    // };
 
-                    passData.fogVolumeRenderList = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
+                    // passData.fogVolumeRenderList = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
 
-                    // Tell that this pass requires that at least one object in the scene is compatible with the fog volume mesh shader, otherwise the pass is culled.
-                    builder.DependsOn(passData.fogVolumeRenderList);
+                    // // Tell that this pass requires that at least one object in the scene is compatible with the fog volume mesh shader, otherwise the pass is culled.
+                    // builder.DependsOn(passData.fogVolumeRenderList);
 
-                    passData.fogVolumeDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    {
-                        colorFormat = GraphicsFormat.R16_SFloat,
-                        dimension = TextureXR.dimension,
-                        enableRandomWrite = true,
-                        name = "Fog Volume Depth" 
-                    }));
-                    passData.densityBuffer = builder.WriteTexture(densityBuffer);
-                    passData.hdCamera = hdCamera;
+                    // passData.fogVolumeDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                    // {
+                    //     colorFormat = GraphicsFormat.R16_SFloat,
+                    //     dimension = TextureXR.dimension,
+                    //     enableRandomWrite = true,
+                    //     name = "Fog Volume Depth" 
+                    // }));
+                    // passData.densityBuffer = builder.WriteTexture(densityBuffer);
+                    // passData.hdCamera = hdCamera;
 
-                    builder.SetRenderFunc(
-                    (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
-                    {
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._FogVolumeDepth, data.fogVolumeDepth);
-                        ctx.cmd.SetRandomWriteTarget(1, data.densityBuffer);
-                        ctx.cmd.SetRandomWriteTarget(2, data.fogVolumeDepth);
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth, ClearFlag.Color, Color.clear);
-                        ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
-                        CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogVolumeRenderList);
-                        ctx.cmd.ClearRandomWriteTargets();
-                    });
+                    // builder.SetRenderFunc(
+                    // (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                    // {
+                    //     ctx.cmd.SetGlobalTexture(HDShaderIDs._FogVolumeDepth, data.fogVolumeDepth);
+                    //     ctx.cmd.SetRandomWriteTarget(1, data.densityBuffer);
+                    //     ctx.cmd.SetRandomWriteTarget(2, data.fogVolumeDepth);
+                    //     CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth, ClearFlag.Color, Color.clear);
+                    //     ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
+                    //     CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogVolumeRenderList);
+                    //     ctx.cmd.ClearRandomWriteTargets();
+                    // });
 
                 }
 
