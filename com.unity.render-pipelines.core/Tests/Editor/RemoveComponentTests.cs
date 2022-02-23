@@ -35,11 +35,14 @@ namespace UnityEngine.Rendering.Tests
                 foreach (var type in componentsToAdd)
                     gameObject.AddComponent(type);
 
+                // Perform removal
                 removeMethod(gameObject.GetComponent(componentToRemove));
 
+                // The ones that must be removed, are still there?
                 if (!componentsToAdd.Except(expectedComponents).All(type => gameObject.GetComponent(type) == null))
                     return false;
 
+                // Check expected are there
                 if (!expectedComponents.All(type => gameObject.GetComponent(type) != null))
                     return false;
 
