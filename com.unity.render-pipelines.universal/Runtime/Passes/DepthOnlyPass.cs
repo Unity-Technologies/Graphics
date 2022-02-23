@@ -20,8 +20,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
-        /// Create the DepthOnlyPass
+        /// Creates a new <c>DepthOnlyPass</c> instance.
         /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="RenderQueueRange"/>
+        /// <seealso cref="LayerMask"/>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
@@ -31,8 +37,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Configure the pass
+        /// Configures the pass.
         /// </summary>
+        /// <param name="baseDescriptor">The <c>RenderTextureDescriptor</c> used for the depthStencilFormat.</param>
+        /// <param name="depthAttachmentHandle">The <c>RTHandle</c> used to render to.</param>
+        /// <seealso cref="RenderTextureDescriptor"/>
+        /// <seealso cref="RTHandle"/>
+        /// <seealso cref="GraphicsFormat"/>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RTHandle depthAttachmentHandle)
@@ -42,6 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.shaderTagId = k_ShaderTagId;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
@@ -49,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
-                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTargetHandle, depthStencilFormat, desc.width, desc.height, 1, true);
+                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTargetHandle);
                 // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
                 ConfigureClear(ClearFlag.Depth, Color.black);
             }
@@ -57,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
             {
                 useNativeRenderPass = true;
-                ConfigureTarget(destination, GraphicsFormat.R32_SFloat, desc.width, desc.height, 1);
+                ConfigureTarget(destination);
                 ConfigureClear(ClearFlag.All, Color.black);
             }
         }
@@ -65,9 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -79,8 +89,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

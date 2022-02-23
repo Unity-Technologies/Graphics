@@ -106,6 +106,7 @@
   * [Blit in XR](renderer-features/how-to-fullscreen-blit-in-xr-spi.md)
   * [Use Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 * [Customizing URP](customizing-urp.md)
+  * [Blit best practices](customize/blit-best-practices.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 * [Optimization](urp-optimization.md)
   * [Rendering Debugger](features/rendering-debugger.md)

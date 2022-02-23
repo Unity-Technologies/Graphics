@@ -58,8 +58,7 @@ This means that, if screen space refraction does not return information for a pi
 
 The first tier of the refraction hierarchy is a screen space solution. To calculate screen space refraction, the algorithm traces a ray starting from the refractive object. It then refracts the ray according to the properties of the material. To compute the refracted ray, the algorithm assumes that the refractive object can be approximated as a simple shape ([Refraction Model](#RefractionModel)) .
 
-The refracted ray will be then intersected against the closest probe proxy volume to find the pixel in screen space that best approximates the result of the refracted ray. If there is no reflection probe proxy available, HDRP will fallback to a projection at infinite.
-
+The refracted ray intersects against the closest probe proxy volume to find the pixel in screen space that best approximates the result of the refracted ray. If there is no reflection probe proxy available, HDRP uses the renderer's bounding box to determine the proxy extents.
 <a name="ReflectionProbes"></a>
 
 ### Reflection Probes

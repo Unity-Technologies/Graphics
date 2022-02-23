@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateDepthBuffer;
             public TextureHandle output;
             public TextureHandle maxZMask;
+            public ComputeBufferHandle ambientProbeBuffer;
         }
 
         void PrepareVolumetricCloudsSkyLowPassData(RenderGraph renderGraph, RenderGraphBuilder builder, HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace, VolumetricClouds settings, VolumetricCloudsSkyLowPassData data)
@@ -108,6 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.intermediateDepthBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateDepthBufferDesc());
             data.output = builder.WriteTexture(renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc()));
             data.maxZMask = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+            data.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsProbeBuffer));
         }
 
         static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, VolumetricCloudsSkyLowPassData passData, MaterialPropertyBlock mpb)
@@ -131,8 +133,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
+            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
+
+            // Output buffers
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
+
             cmd.DispatchCompute(passData.commonData.volumetricCloudsCS, passData.renderKernel, traceTX, traceTY, 1);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
 
@@ -166,6 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateDepthBuffer;
             public TextureHandle output;
             public TextureHandle maxZMask;
+            public ComputeBufferHandle ambientProbeBuffer;
         }
 
         void PrepareVolumetricCloudsSkyHighPassData(RenderGraph renderGraph, RenderGraphBuilder builder, HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace, VolumetricClouds settings, TextureHandle output, VolumetricCloudsSkyHighPassData data)
@@ -218,6 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.output = builder.WriteTexture(output);
             }
             data.maxZMask = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+            data.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsProbeBuffer));
         }
 
         static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, VolumetricCloudsSkyHighPassData passData, MaterialPropertyBlock mpb)
@@ -242,9 +250,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
+            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
+
+            // Output buffers
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer0);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
+
+            // Trace the clouds
             cmd.DispatchCompute(passData.commonData.volumetricCloudsCS, passData.renderKernel, finalTX, finalTY, 1);
+
+            // Reset the multi compile
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)

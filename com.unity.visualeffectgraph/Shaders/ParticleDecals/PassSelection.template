@@ -10,3 +10,15 @@ Pass
 	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
 	ENDHLSL
 }
+
+Pass
+{		
+	Tags { "LightMode"="Picking" }
+	
+	ZWrite Off
+	
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_PICKING
+	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
+	ENDHLSL
+}

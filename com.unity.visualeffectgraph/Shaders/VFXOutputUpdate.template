@@ -219,6 +219,7 @@ ${VFXFeedSortingKeys}
                     for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS; ++itIndexVert)
                     {
                         float4 vertPosWorld = float4(TransformPositionVFXToWorld(verts[itIndexVert]), 1.0f);
+                        vertPosWorld.xyz = VFXTransformPositionWorldToCameraRelative(vertPosWorld.xyz);
                         float4 vertPosA = mul(_XRNonJitteredViewProjMatrix[0], vertPosWorld);
                         float4 vertPosB = mul(_XRNonJitteredViewProjMatrix[1], vertPosWorld + stereoOffset);
                         elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
