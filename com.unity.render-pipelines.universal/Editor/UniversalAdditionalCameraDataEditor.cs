@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("CONTEXT/UniversalAdditionalCameraData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            ContextualMenuDispatcher.RemoveAdditionalData<UniversalAdditionalCameraData>(command);
+            RemoveAdditionalDataUtils.RemoveAdditionalData<UniversalAdditionalCameraData>(command);
         }
     }
 }

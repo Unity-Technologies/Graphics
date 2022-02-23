@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("CONTEXT/HDAdditionalCameraData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            ContextualMenuDispatcher.RemoveAdditionalData<HDAdditionalCameraData>(command);
+            RemoveAdditionalDataUtils.RemoveAdditionalData<HDAdditionalCameraData>(command);
         }
     }
 }

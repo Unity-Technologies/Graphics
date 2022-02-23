@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("CONTEXT/UniversalAdditionalLightData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            ContextualMenuDispatcher.RemoveAdditionalData<UniversalAdditionalLightData>(command);
+            RemoveAdditionalDataUtils.RemoveAdditionalData<UniversalAdditionalLightData>(command);
         }
     }
 }

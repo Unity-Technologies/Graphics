@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("CONTEXT/HDAdditionalReflectionData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            ContextualMenuDispatcher.RemoveAdditionalData<HDAdditionalReflectionData>(command);
+            RemoveAdditionalDataUtils.RemoveAdditionalData<HDAdditionalReflectionData>(command);
         }
     }
 }
