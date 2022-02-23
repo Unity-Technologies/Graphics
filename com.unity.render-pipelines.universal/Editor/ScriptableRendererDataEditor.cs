@@ -133,10 +133,13 @@ namespace UnityEditor.Rendering.Universal
 
         static void RemoveRenderer(SerializedProperty property)
         {
-            var index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             var serializedObject = property.serializedObject;
             serializedObject.Update();
+            var index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
+            var defaultIndex = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex));
             var rendererList = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
+
+            if (index < defaultIndex.intValue) defaultIndex.intValue -= 1;
 
             for (int i = index; i < rendererList.arraySize - 1; i++)
             {

@@ -106,7 +106,10 @@ namespace UnityEditor.Rendering.Universal
         {
             int index = serialized.rendererDataProp.arraySize;
             serialized.rendererDataProp.arraySize++;
-            serialized.rendererDataProp.GetArrayElementAtIndex(index).managedReferenceValue = (ScriptableRendererData)Activator.CreateInstance(rendererType);
+            ScriptableRendererData instance = (ScriptableRendererData)Activator.CreateInstance(rendererType);
+            instance.Awake();
+            instance.OnEnable();
+            serialized.rendererDataProp.GetArrayElementAtIndex(index).managedReferenceValue = instance;
             serialized.serializedObject.ApplyModifiedProperties();
         }
 
