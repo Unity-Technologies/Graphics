@@ -16,7 +16,7 @@ namespace com.unity.shadergraph.defs
 }
 ",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Saturation", TYPE.Float, Usage.In),
+            new ParameterDescriptor("Saturation", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
         );
 

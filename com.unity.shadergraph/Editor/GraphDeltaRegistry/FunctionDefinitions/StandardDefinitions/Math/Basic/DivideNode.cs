@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Divide", // Name
             "Out = A / B;",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("B", TYPE.Vector, Usage.In), //defaults to 2
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 

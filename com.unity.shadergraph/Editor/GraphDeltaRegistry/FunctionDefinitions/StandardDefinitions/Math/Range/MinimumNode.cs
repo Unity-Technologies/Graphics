@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Minimum", // Name
             "Out = min(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("B", TYPE.Vector, Usage.In), //defaults to 1
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 

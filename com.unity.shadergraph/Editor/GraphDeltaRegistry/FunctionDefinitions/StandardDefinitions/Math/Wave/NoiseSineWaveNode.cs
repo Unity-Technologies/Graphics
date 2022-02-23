@@ -19,7 +19,7 @@ namespace com.unity.shadergraph.defs
 }
 ",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("MinMax", TYPE.Vec2, Usage.In),
+            new ParameterDescriptor("MinMax", TYPE.Vec2, Usage.In, new float[] { -0.5f, 0.5f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 

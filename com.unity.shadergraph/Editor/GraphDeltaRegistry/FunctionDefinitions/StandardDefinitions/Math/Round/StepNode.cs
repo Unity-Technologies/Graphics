@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Step", // Name
             "Out = step(Edge, In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Edge", TYPE.Vector, Usage.In), //defaults to 1
+            new ParameterDescriptor("Edge", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
