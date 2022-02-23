@@ -90,6 +90,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewManager,
                 shaderGraphModel
             );
+
+            // Node UI commands
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, SetGraphTypeValueCommand>(
+                SetGraphTypeValueCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphViewState,
+                previewManager
+            );
         }
     }
 }
