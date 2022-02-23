@@ -13,6 +13,7 @@ Shader "Hidden/Universal Render Pipeline/DBufferClear"
             Cull Off
 
             HLSLPROGRAM
+            #pragma editor_sync_compilation
             #pragma vertex FullscreenVert
             #pragma fragment Fragment
             #pragma multi_compile_fragment _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
