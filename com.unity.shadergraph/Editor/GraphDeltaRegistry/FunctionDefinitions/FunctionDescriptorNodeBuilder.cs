@@ -143,7 +143,7 @@ namespace com.unity.shadergraph.defs
             port.SetField(kPrecision, resolvedType.Precision);
             port.SetField(kPrimitive, resolvedType.Primitive);
 
-            if (param.Usage == Usage.Static) port.SetField("IsStatic", true);
+            if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
 
             return port;
         }
