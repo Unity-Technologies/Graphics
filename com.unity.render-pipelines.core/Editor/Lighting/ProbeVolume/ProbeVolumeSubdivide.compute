@@ -241,9 +241,10 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     float4 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel));
 
     // Discard bricks that are below the max subdiv level of the probe volume
+    int minControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.x;
     int maxControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.y;
     int maxSubdivLevelInsideVolume = subdivisionLevelData.w;
-    if (_SubdivisionLevel < maxControllerSubdivLevel || _SubdivisionLevel > maxSubdivLevelInsideVolume)
+    if (minControllerSubdivLevel < _SubdivisionLevel || _SubdivisionLevel < maxControllerSubdivLevel || _SubdivisionLevel > maxSubdivLevelInsideVolume)
         return;
 
     uint3 sdfId = floor(position01 * _SDFSize.xyz);
@@ -254,9 +255,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance *= voxelDetectionDistance;
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
-    int minControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.x - 1;
-
-    if (dist <= voxelDetectionDistance || _SubdivisionLevel > minControllerSubdivLevel)
+    if (dist <= voxelDetectionDistance)
     {
         // transform id to world position
         float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickSize.xyz) * _VolumeSizeInBricks.xyz;
