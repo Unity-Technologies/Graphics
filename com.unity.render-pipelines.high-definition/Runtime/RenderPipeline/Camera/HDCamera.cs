@@ -729,10 +729,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
         }
 
-        internal bool UpsampleHappensBeforePost()
+        internal DynamicResolutionHandler.UpsamplerScheduleType UpsampleSyncPoint()
         {
-            //return IsDLSSEnabled() || IsTAAUEnabled();
-            return IsTAAUEnabled();
+            if (IsDLSSEnabled()) return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint;
+            return IsTAAUEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
         }
 
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAntialiasing();
 
             // ORDER is important: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
-            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleHappensBeforePost() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleSyncPoint();
 
             // Handle memory allocation.
             if (allocateHistoryBuffers)
@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleHappensBeforePost());
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
             }
 
