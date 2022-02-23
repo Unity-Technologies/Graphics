@@ -223,6 +223,11 @@ namespace UnityEngine.Rendering.Universal
                 return isDeferred ? RenderingLayerUtils.Event.GBuffer : RenderingLayerUtils.Event.ForwardOpaque;
         }
 
+        internal override RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
+        {
+            return RenderingLayerUtils.MaskSize.Bits16;
+        }
+
         internal DBufferSettings GetDBufferSettings()
         {
             if (m_Settings.technique == DecalTechniqueOption.Automatic)

@@ -424,14 +424,12 @@ uint GetMeshRenderingLayer()
 
 float EncodeMeshRenderingLayer(uint renderingLayer)
 {
-    // TODO: Expose as property for the size
-    return PackInt(renderingLayer, 16);
+    return PackInt(renderingLayer, _RenderingLayerMaskSize);
 }
 
 uint DecodeMeshRenderingLayer(float renderingLayer)
 {
-    // TODO: Expose as property for the size
-    return UnpackInt(renderingLayer, 16);
+    return UnpackInt(renderingLayer, _RenderingLayerMaskSize);
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

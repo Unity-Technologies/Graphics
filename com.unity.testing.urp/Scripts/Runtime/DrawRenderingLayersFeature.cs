@@ -115,6 +115,9 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
     [SerializeField]
     private RenderPassEvent m_Event = RenderPassEvent.AfterRenderingPrePasses;
 
+    [SerializeField]
+    internal RenderingLayerUtils.MaskSize m_MaskSize = RenderingLayerUtils.MaskSize.Bits8;
+
     private Material m_Material;
     private DrawRenderingLayersPrePass m_DrawRenderingLayerPass;
     private DrawRenderingLayersPass m_RequestRenderingLayerPass;
@@ -129,6 +132,11 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             return RenderingLayerUtils.Event.GBuffer;
         else
             return RenderingLayerUtils.Event.ForwardOpaque;
+    }
+
+    internal override RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
+    {
+        return m_MaskSize;
     }
 
     /// <inheritdoc/>

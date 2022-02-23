@@ -93,6 +93,8 @@ half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
+uint _RenderingLayerMaskSize;
+
 #if USE_CLUSTERED_LIGHTING
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.

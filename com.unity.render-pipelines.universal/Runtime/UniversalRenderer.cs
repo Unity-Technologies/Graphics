@@ -420,6 +420,7 @@ namespace UnityEngine.Rendering.Universal
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             var renderingLayersEvent = RenderingLayerUtils.GetEvent(this, rendererFeatures);
+            var renderingLayersSize = RenderingLayerUtils.GetMaskSize(this, rendererFeatures);
 
             // All passes that use write to rendering layers are excluded from gl
             // So we disable it to avoid setting multiple render targets
@@ -437,6 +438,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
             {
+                m_DeferredLights.RenderingLayersFormat = RenderingLayerUtils.GetFormat(renderingLayersSize);
                 m_DeferredLights.UseDecalLayers = requiresRenderingLayer;
 
                 // TODO: This needs to be setup early, otherwise gbuffer attachments will be allocated with wrong size
@@ -684,20 +686,21 @@ namespace UnityEngine.Rendering.Universal
                 var renderingLayersDescriptor = cameraTargetDescriptor;
                 renderingLayersDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-                //if (requiresDepthPrepass)
-                //    renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                if (!renderingLayerProvidesRenderObjectPass)
+                    renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
                 if (this.renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                     renderingLayersDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayers); // the one used by the gbuffer.
                 else
-                    renderingLayersDescriptor.graphicsFormat = GraphicsFormat.R16_UNorm;
+                    renderingLayersDescriptor.graphicsFormat = RenderingLayerUtils.GetFormat(renderingLayersSize);
 
                 RenderingUtils.ReAllocateIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
+                cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaskSize, RenderingLayerUtils.GetBits(renderingLayersSize));
                 if (this.renderingModeActual == RenderingMode.Deferred) // TODO: Clean this up
                     cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);

@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputed when light layers are enabled (subset of rendering layers)
-                return GraphicsFormat.R16_UNorm;
+                return RenderingLayersFormat;
             else
                 return GraphicsFormat.None;
         }
@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
         //
         internal bool UseRenderingLayers { get { return UseLightLayers || UseDecalLayers; } }
+        //
+        internal GraphicsFormat RenderingLayersFormat { get; set; }
         //
         internal bool UseDecalLayers { get; set; }
         //
@@ -308,6 +310,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseLightLayers);
+
+                    cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaskSize, RenderingLayerUtils.GetBits(RenderingLayersFormat));
                 }
 
                 context.ExecuteCommandBuffer(cmd);

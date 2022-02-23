@@ -369,6 +369,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
+
+        public static readonly int renderingLayerMaskSize = Shader.PropertyToID("_RenderingLayerMaskSize");
     }
 
     /// <summary>

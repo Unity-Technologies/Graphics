@@ -71,6 +71,11 @@ namespace UnityEngine.Rendering.Universal
             return RenderingLayerUtils.Event.None;
         }
 
+        internal virtual RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
+        {
+            return RenderingLayerUtils.MaskSize.Bits8;
+        }
+
         /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
         /// If the feature is active, it is added to the renderer it is attached to, otherwise the feature is skipped while rendering.
