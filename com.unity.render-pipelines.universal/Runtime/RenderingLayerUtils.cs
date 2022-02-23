@@ -12,51 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public enum Event
         {
             DepthNormalPrePass,
-            ForwardOpaque,
-            GBuffer,
-            None,
-        }
-
-        public static Event GetEvent(UniversalRendererData universalRendererData)
-        {
-            var e = Event.None;
-            bool isDeferred = universalRendererData.renderingMode == RenderingMode.Deferred;
-
-            foreach (var rendererFeature in universalRendererData.rendererFeatures)
-            {
-                if (rendererFeature.isActive)
-                    e = Combine(e, rendererFeature.RequireRenderingLayers(isDeferred));
-            }
-
-            return e;
-        }
-
-        public static Event GetEvent(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures)
-        {
-            var e = Event.None;
-            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
-
-            foreach (var rendererFeature in rendererFeatures)
-            {
-                if (rendererFeature.isActive)
-                    e = Combine(e, rendererFeature.RequireRenderingLayers(isDeferred));
-            }
-
-            return e;
-        }
-
-        public static MaskSize GetMaskSize(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures)
-        {
-            var e = MaskSize.Bits8;
-            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
-
-            foreach (var rendererFeature in rendererFeatures)
-            {
-                if (rendererFeature.isActive)
-                    e = Combine(e, rendererFeature.RequireRenderingLayerMaskSize(isDeferred));
-            }
-
-            return e;
+            Opaque,
         }
 
         public enum MaskSize
@@ -65,6 +21,48 @@ namespace UnityEngine.Rendering.Universal
             Bits16,
             Bits24,
             Bits32,
+        }
+
+        public static bool RequireRenderingLayers(UniversalRendererData universalRendererData,
+            out Event combinedEvent, out MaskSize combinedMaskSize)
+        {
+            combinedEvent = Event.DepthNormalPrePass;
+            combinedMaskSize = MaskSize.Bits8;
+
+            bool isDeferred = universalRendererData.renderingMode == RenderingMode.Deferred;
+            bool result = false;
+            foreach (var rendererFeature in universalRendererData.rendererFeatures)
+            {
+                if (rendererFeature.isActive)
+                {
+                    result |= rendererFeature.RequireRenderingLayers(isDeferred, out Event rendererEvent, out MaskSize rendererMaskSize);
+                    combinedEvent = Combine(combinedEvent, rendererEvent);
+                    combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
+                }
+            }
+
+            return result;
+        }
+
+        public static bool RequireRenderingLayers(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures,
+            out Event combinedEvent, out MaskSize combinedMaskSize)
+        {
+            combinedEvent = Event.Opaque;
+            combinedMaskSize = MaskSize.Bits8;
+
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
+            bool result = false;
+            foreach (var rendererFeature in rendererFeatures)
+            {
+                if (rendererFeature.isActive)
+                {
+                    result |= rendererFeature.RequireRenderingLayers(isDeferred, out Event rendererEvent, out MaskSize rendererMaskSize);
+                    combinedEvent = Combine(combinedEvent, rendererEvent);
+                    combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
+                }
+            }
+
+            return result;
         }
 
         public static int GetBits(GraphicsFormat format)

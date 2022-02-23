@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
-        DrawObjectsAndRenderingLayersPass m_RenderOpaqueForwardAndRenderingLayersPass;
+        DrawObjectsWithRenderingLayersPass m_RenderOpaqueForwardWithRenderingLayersPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_RenderOpaqueForwardAndRenderingLayersPass = new DrawObjectsAndRenderingLayersPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderOpaqueForwardWithRenderingLayersPass = new DrawObjectsWithRenderingLayersPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             bool copyDepthAfterTransparents = m_CopyDepthMode == CopyDepthMode.AfterTransparents;
 
@@ -419,19 +419,21 @@ namespace UnityEngine.Rendering.Universal
             // Gather render passe input requirements
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
-            var renderingLayersEvent = RenderingLayerUtils.GetEvent(this, rendererFeatures);
-            var renderingLayersSize = RenderingLayerUtils.GetMaskSize(this, rendererFeatures);
+            // Gather render pass require rendering layers event and mask size
+            bool requiresRenderingLayer = RenderingLayerUtils.RequireRenderingLayers(this, rendererFeatures,
+                out var renderingLayersEvent, out var renderingLayersSize);
+            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
+            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer &&
+                this.renderingModeActual == RenderingMode.Forward && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+            bool renderingLayerProvidesGBufferPass = requiresRenderingLayer &&
+                this.renderingModeActual == RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
 
             // All passes that use write to rendering layers are excluded from gl
             // So we disable it to avoid setting multiple render targets
             if (IsGLDevice())
-                renderingLayersEvent = RenderingLayerUtils.Event.None;
+                requiresRenderingLayer = false;
 
-            bool requiresRenderingLayer = renderingLayersEvent != RenderingLayerUtils.Event.None;
-            bool renderingLayerProvidesByDepthNormalPass = renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
-            bool renderingLayerProvidesRenderObjectPass = renderingLayersEvent == RenderingLayerUtils.Event.ForwardOpaque;
-            bool renderingLayerProvidesGBufferPass = renderingLayersEvent == RenderingLayerUtils.Event.GBuffer;
-
+            // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
 
@@ -849,8 +851,8 @@ namespace UnityEngine.Rendering.Universal
                 DrawObjectsPass renderOpaqueForwardPass = null;
                 if (renderingLayerProvidesRenderObjectPass)
                 {
-                    renderOpaqueForwardPass = m_RenderOpaqueForwardAndRenderingLayersPass;
-                    m_RenderOpaqueForwardAndRenderingLayersPass.Setup(m_ActiveCameraColorAttachment, m_DecalLayersTexture, m_ActiveCameraDepthAttachment);
+                    renderOpaqueForwardPass = m_RenderOpaqueForwardWithRenderingLayersPass;
+                    m_RenderOpaqueForwardWithRenderingLayersPass.Setup(m_ActiveCameraColorAttachment, m_DecalLayersTexture, m_ActiveCameraDepthAttachment);
                 }
                 else
                     renderOpaqueForwardPass = m_RenderOpaqueForwardPass;

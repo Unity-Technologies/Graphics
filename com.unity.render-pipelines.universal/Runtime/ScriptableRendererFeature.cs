@@ -62,18 +62,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Override this method and return event in order URP to produce rendering layers texture at specified event.
+        /// Override this method and return true that renderer would produce rendering layers texture.
         /// </summary>
-        /// <param name="isDeferred">The true value if Renderer is using deffered rendering path.</param>
+        /// <param name="isDeferred">True if renderer is using deferred rendering mode</param>
+        /// <param name="atEvent">Requeted event at which rendering layers texture will be produced</param>
+        /// <param name="maskSize">Requested bit size of rendering layers texture</param>
         /// <returns></returns>
-        internal virtual RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+        internal virtual bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
         {
-            return RenderingLayerUtils.Event.None;
-        }
-
-        internal virtual RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
-        {
-            return RenderingLayerUtils.MaskSize.Bits8;
+            atEvent = RenderingLayerUtils.Event.DepthNormalPrePass;
+            maskSize = RenderingLayerUtils.MaskSize.Bits8;
+            return false;
         }
 
         /// <summary>

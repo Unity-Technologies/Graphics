@@ -7,12 +7,12 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// <summary>
     /// Extension of DrawObjectPass that also output Rendering Layers Texture as second render target.
     /// </summary>
-    internal class DrawObjectsAndRenderingLayersPass : DrawObjectsPass
+    internal class DrawObjectsWithRenderingLayersPass : DrawObjectsPass
     {
         RTHandle[] m_ColorTargetIndentifiers;
         RTHandle m_DepthTargetIndentifiers;
 
-        public DrawObjectsAndRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
+        public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
             base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
             m_ColorTargetIndentifiers = new RTHandle[2];
@@ -20,6 +20,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
         {
+            if (colorAttachment == null)
+                throw new ArgumentException("Color attachment can not be null", "colorAttachment");
+            if (renderingLayersTexture == null)
+                throw new ArgumentException("Rendering layers attachment can not be null", "renderingLayersTexture");
+            if (depthAttachment == null)
+                throw new ArgumentException("Depth attachment can not be null", "depthAttachment");
+
             m_ColorTargetIndentifiers[0] = colorAttachment;
             m_ColorTargetIndentifiers[1] = renderingLayersTexture;
             m_DepthTargetIndentifiers = depthAttachment;

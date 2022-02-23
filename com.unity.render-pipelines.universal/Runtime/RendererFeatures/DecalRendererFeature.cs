@@ -214,18 +214,12 @@ namespace UnityEngine.Rendering.Universal
             m_RecreateSystems = true;
         }
 
-        internal override RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+        internal override bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
         {
             var technique = GetTechnique(isDeferred);
-            if (technique == DecalTechnique.DBuffer)
-                return RenderingLayerUtils.Event.DepthNormalPrePass;
-            else
-                return isDeferred ? RenderingLayerUtils.Event.GBuffer : RenderingLayerUtils.Event.ForwardOpaque;
-        }
-
-        internal override RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
-        {
-            return RenderingLayerUtils.MaskSize.Bits16;
+            atEvent = technique == DecalTechnique.DBuffer ? RenderingLayerUtils.Event.DepthNormalPrePass : RenderingLayerUtils.Event.Opaque;
+            maskSize = RenderingLayerUtils.MaskSize.Bits16;
+            return requiresDecalLayers;
         }
 
         internal DBufferSettings GetDBufferSettings()

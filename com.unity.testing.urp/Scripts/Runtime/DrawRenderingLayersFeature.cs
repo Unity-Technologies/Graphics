@@ -124,19 +124,14 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
     private RTHandle m_ColoredRenderingLayersTextureHandle;
 
-    internal override RenderingLayerUtils.Event RequireRenderingLayers(bool isDeferred)
+    internal override bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
     {
         if (m_Event < RenderPassEvent.AfterRenderingGbuffer)
-            return RenderingLayerUtils.Event.DepthNormalPrePass;
-        else if (m_Event < RenderPassEvent.AfterRenderingOpaques)
-            return RenderingLayerUtils.Event.GBuffer;
+            atEvent = RenderingLayerUtils.Event.DepthNormalPrePass;
         else
-            return RenderingLayerUtils.Event.ForwardOpaque;
-    }
-
-    internal override RenderingLayerUtils.MaskSize RequireRenderingLayerMaskSize(bool isDeferred)
-    {
-        return m_MaskSize;
+            atEvent = RenderingLayerUtils.Event.Opaque;
+        maskSize = m_MaskSize;
+        return true;
     }
 
     /// <inheritdoc/>

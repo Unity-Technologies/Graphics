@@ -1052,19 +1052,24 @@ namespace UnityEditor.Rendering.Universal
                         rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
                             universalRendererData.clusteredRendering;
 
-                        switch (RenderingLayerUtils.GetEvent(universalRendererData))
+                        if (RenderingLayerUtils.RequireRenderingLayers(universalRendererData,
+                            out var renderingLayersEvent, out var renderingLayerMaskSize))
                         {
-                            case RenderingLayerUtils.Event.DepthNormalPrePass:
-                                shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
-                                break;
+                            switch (renderingLayersEvent)
+                            {
+                                case RenderingLayerUtils.Event.DepthNormalPrePass:
+                                    shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
+                                    break;
 
-                            case RenderingLayerUtils.Event.ForwardOpaque:
-                                shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
-                                break;
+                                case RenderingLayerUtils.Event.Opaque:
+                                    shaderFeatures |= universalRendererData.renderingMode == RenderingMode.Forward ?
+                                        ShaderFeatures.OpaqueWriteRenderingLayers :
+                                        ShaderFeatures.GBufferWriteRenderingLayers;
+                                    break;
 
-                            case RenderingLayerUtils.Event.GBuffer:
-                                shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
-                                break;
+                                default:
+                                    throw new NotImplementedException();
+                            }
                         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
