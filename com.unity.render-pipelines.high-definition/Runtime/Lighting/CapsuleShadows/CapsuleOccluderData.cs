@@ -6,8 +6,13 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum CapsuleShadowPipeline
     {
         InLightLoop,
-        PrePassFullResolution,
-        PrePassHalfResolution,
+        AfterDepthPrePass,
+    }
+
+    public enum CapsuleShadowResolution
+    {
+        Full,
+        Half,
     }
 
     public enum CapsuleShadowTextureFormat
@@ -53,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SplitDepthRangeBit = 0x08000000,
         DirectEnabledBit = 0x10000000,
         IndirectEnabledBit = 0x20000000,
+        NeedsUpscaleBit = 0x40000000,
     }
 
     [GenerateHLSL(needAccessors = false)]

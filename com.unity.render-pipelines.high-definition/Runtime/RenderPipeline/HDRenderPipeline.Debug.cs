@@ -845,7 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<CapsuleTilesOverlayPassData>("CapsuleTilesOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugCapsuleTiles)))
             {
                 Vector2 renderSize = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight);
-                if (capsuleShadows.pipeline == CapsuleShadowPipeline.PrePassHalfResolution)
+                if (capsuleShadows.resolution.value == CapsuleShadowResolution.Half)
                     renderSize = 0.5f * renderSize;
                 renderSize = (1.0f/8.0f) * renderSize;
 

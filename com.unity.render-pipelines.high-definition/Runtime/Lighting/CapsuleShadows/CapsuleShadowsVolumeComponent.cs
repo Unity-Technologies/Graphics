@@ -11,6 +11,12 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
+    public sealed class CapsuleShadowResolutionParameter : VolumeParameter<CapsuleShadowResolution>
+    {
+        public CapsuleShadowResolutionParameter(CapsuleShadowResolution value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
     public sealed class CapsuleShadowTextureFormatParameter : VolumeParameter<CapsuleShadowTextureFormat>
     {
         public CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat value, bool overrideState = false) : base(value, overrideState) { }
@@ -40,7 +46,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Choose a pipeline for how capsule shadowing interacts with HDRP.
         /// </summary>
-        public CapsuleShadowPipelineParameter pipeline = new CapsuleShadowPipelineParameter(CapsuleShadowPipeline.InLightLoop);
+        public CapsuleShadowPipelineParameter pipeline = new CapsuleShadowPipelineParameter(CapsuleShadowPipeline.AfterDepthPrePass);
+
+        /// <summary>
+        /// Choose what resolution to use when rendering capsules shadows after the depth pre-pass.
+        /// </summary>
+        public CapsuleShadowResolutionParameter resolution = new CapsuleShadowResolutionParameter(CapsuleShadowResolution.Half);
+
+        /// <summary>
+        /// Upscale half resolution capsule shadows before shading.
+        /// </summary>
+        public BoolParameter upscaleBeforeShading = new BoolParameter(false);
 
         /// <summary>
         /// Choose a texture format for capsule shadows to be resolved to.

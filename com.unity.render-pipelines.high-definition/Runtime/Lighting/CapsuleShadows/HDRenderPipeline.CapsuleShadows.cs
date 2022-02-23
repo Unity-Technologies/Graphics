@@ -423,16 +423,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassHalfResolution)
+                if (capsuleShadows.resolution.value == CapsuleShadowResolution.Half)
+                { 
                     directCountAndFlags |= (uint)CapsuleShadowFlags.HalfResBit;
+                    if (!capsuleShadows.upscaleBeforeShading.value)
+                        directCountAndFlags |= (uint)CapsuleShadowFlags.NeedsUpscaleBit;
+                }
                 if (m_CapsuleOccluders.occluders.Count > 0)
                 {
                     for (int i = 0; i < m_CapsuleShadowAllocator.m_Casters.Count; ++i)
                     {
-                        if (m_CapsuleShadowAllocator.m_Casters[i].GetCasterType() == CapsuleShadowCasterType.Indirect)
-                            directCountAndFlags |= (uint)CapsuleShadowFlags.IndirectEnabledBit;
-                        else 
-                            directCountAndFlags |= (uint)CapsuleShadowFlags.DirectEnabledBit;
+                        directCountAndFlags |= (m_CapsuleShadowAllocator.m_Casters[i].GetCasterType() == CapsuleShadowCasterType.Indirect)
+                             ? (uint)CapsuleShadowFlags.IndirectEnabledBit
+                             : (uint)CapsuleShadowFlags.DirectEnabledBit;
                     }
                 }
 
@@ -461,12 +464,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
         {
+            // only needed for CapsuleShadowPipeline.InLightLoop
             cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluders, m_CapsuleOccluderDataBuffer);
         }
 
         struct CapsuleShadowParameters
         {
-            public bool isFullResolution;
+            public bool isHalfResolution;
+            public bool isUpscaled;
             public GraphicsFormat textureFormat;
             public int sliceCount;
             public Vector2Int upscaledSize;
@@ -493,6 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int kernel;
 
             public uint debugCasterIndex;
+            public bool isUpscaled;
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
@@ -591,7 +597,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<CapsuleShadowsRenderPassData>("Capsule Shadows Render", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsRender)))
             {
                 var renderOutput = renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f), dynamicResolution: true)
+                    new TextureDesc(Vector2.one * (parameters.isHalfResolution ? 0.5f : 1.0f), dynamicResolution: true)
                     {
                         dimension = TextureDimension.Tex2DArray,
                         colorFormat = parameters.textureFormat,
@@ -604,11 +610,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.kernel = passData.cs.FindKernel("Main");
 
                 passData.debugCasterIndex = m_CurrentDebugDisplaySettings.data.capsuleShadowIndex;
+                passData.isUpscaled = parameters.isUpscaled;
                 passData.tileDebugMode = parameters.tileDebugMode;
                 if (parameters.tileDebugMode != CapsuleTileDebugMode.None)
                 {
                     passData.tileDebugOutput = builder.WriteTexture(renderGraph.CreateTexture(
-                        new TextureDesc(Vector2.one * (parameters.isFullResolution ? 1.0f : 0.5f)/8.0f, dynamicResolution: true, xrReady: true)
+                        new TextureDesc(Vector2.one * (parameters.isHalfResolution ? 0.5f : 1.0f)/8.0f, dynamicResolution: true, xrReady: true)
                         {
                             colorFormat = GraphicsFormat.R16_UInt,
                             enableRandomWrite = true,
@@ -644,9 +651,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._FirstDepthMipOffsetX = (uint)data.firstDepthMipOffset.x;
                         cb._FirstDepthMipOffsetY = (uint)data.firstDepthMipOffset.y;
                         cb._CapsuleCasterCount = (uint)data.shadowCasterCount;
-                        cb._CapsuleDebugCasterIndex = data.debugCasterIndex;
                         cb._CapsuleTileDebugMode = (uint)data.tileDebugMode;
+                        cb._CapsuleDebugCasterIndex = data.debugCasterIndex;
+                        cb._CapsuleResultIsUpscaled = data.isUpscaled ? 1U : 0;
                         ConstantBuffer.Push(ctx.cmd, cb, data.cs, HDShaderIDs.ShaderVariablesCapsuleShadows);
+
+                        // HACK: set for lightloop to use later
+                        ctx.cmd.SetGlobalVector(HDShaderIDs._CapsuleShadowsRenderOutputSize, sizeAndRcp(renderTextureSize));
+                        ctx.cmd.SetGlobalVector(HDShaderIDs._CapsuleShadowsDepthGatherParams, new Vector4(
+                            data.firstDepthMipOffset.x, data.firstDepthMipOffset.y,
+                            1.0f/data.depthPyramidTextureSize.x, 1.0f/data.depthPyramidTextureSize.y));
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsRenderOutput, data.renderOutput);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
@@ -765,17 +779,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                bool isFullResolution = (capsuleShadows.pipeline.value == CapsuleShadowPipeline.PrePassFullResolution);
+                bool isHalfResolution = (capsuleShadows.resolution.value == CapsuleShadowResolution.Half);
+                bool isUpscaled = isHalfResolution && capsuleShadows.upscaleBeforeShading.value;
                 Vector2Int upscaledSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
                 Vector2Int renderSize;
-                if (isFullResolution)
-                    renderSize = upscaledSize;
-                else
+                if (isHalfResolution)
                     renderSize = new Vector2Int(Mathf.RoundToInt(0.5f*upscaledSize.x), Mathf.RoundToInt(0.5f*upscaledSize.y));
+                else
+                    renderSize = upscaledSize;
 
                 CapsuleShadowParameters parameters = new CapsuleShadowParameters()
                 {
-                    isFullResolution = isFullResolution,
+                    isHalfResolution = isHalfResolution,
+                    isUpscaled = isUpscaled,
                     textureFormat = (capsuleShadows.textureFormat == CapsuleShadowTextureFormat.U16) ? GraphicsFormat.R16_UNorm : GraphicsFormat.R8_UNorm,
                     sliceCount = m_CapsuleShadowAllocator.m_Casters.Count, // TODO: XR
                     upscaledSize = upscaledSize,
@@ -794,7 +810,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref capsuleTileDebugTexture,
                     in parameters);
 
-                if (!isFullResolution)
+                if (isUpscaled)
                 {
                     result = UpscaleCapsuleShadows(
                         renderGraph,

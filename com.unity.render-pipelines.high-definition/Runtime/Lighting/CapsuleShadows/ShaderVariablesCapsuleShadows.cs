@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _CapsuleCasterCount;
         public uint _CapsulePad0;
 
-        public uint _CapsuleDebugCasterIndex;
         public uint _CapsuleTileDebugMode;
-        public uint _CapsulePad1;
+        public uint _CapsuleDebugCasterIndex;
+        public uint _CapsuleResultIsUpscaled;
         public uint _CapsulePad2;
     }
 }

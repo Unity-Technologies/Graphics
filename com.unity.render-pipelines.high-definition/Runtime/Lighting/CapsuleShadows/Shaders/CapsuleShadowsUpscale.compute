@@ -5,18 +5,11 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsUpscale.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
 TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput);
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsTexture);
-
-float SumElements(float4 v)
-{
-    return v.x + v.y + v.z + v.w;
-}
 
 [numthreads(8,8,1)]
 void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -24,33 +17,22 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float2 halfResPositionSS = .5f*(float2(pixelCoord) + .5f);
-    float2 t = frac(halfResPositionSS + .5f);
-    float2 s = 1.f - t;
-    float4 bilinearWeight = float4(s.x, t.x, t.x, s.x)*float4(t.y, t.y, s.y, s.y);
+    float2 positionSS = float2(pixelCoord) + .5f;
+    float targetLinearDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x, _ZBufferParams);
 
-    float2 depthUV = (float2(_FirstDepthMipOffset) + halfResPositionSS)*_DepthPyramidTextureSize.zw;
-    float4 gatherDeviceDepth = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, depthUV);
+    float4 weights = GetCapsuleShadowsUpscaleWeights(
+        positionSS,
+        targetLinearDepth,
+        float2(_FirstDepthMipOffset),
+        _DepthPyramidTextureSize.zw,
+        _CapsuleUpscaledSize.zw);
 
-    float targetDeviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x;
-
-    // TODO: handle orthographic/oblique
-    float4x4 invProj = UNITY_MATRIX_I_P;
-    float4 gatherLinearDepth = invProj._m23/(invProj._m32 * gatherDeviceDepth + invProj._m33);
-    float targetLinearDepth = invProj._m23/(invProj._m32 * targetDeviceDepth + invProj._m33);
-    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
-    float2 pixelHalfExtentXY = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
-    float pixelSizeAtTarget = max(pixelHalfExtentXY.x, pixelHalfExtentXY.y)*2.f*targetLinearDepth;
-    float4 depthWeight = 1.f/max(abs(gatherLinearDepth - targetLinearDepth) - 8.f*pixelSizeAtTarget, + .01f);
-
-    float4 combinedWeight = bilinearWeight*depthWeight;
-    combinedWeight /= SumElements(combinedWeight);
-
-    float2 renderUV = halfResPositionSS*_CapsuleRenderTextureSize.zw;
+    float2 renderUV = positionSS*0.5f*_CapsuleRenderTextureSize.zw;
     for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
     {
         float4 gatherR = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex);
-        float upscaledR = dot(combinedWeight, gatherR);
+        float upscaledR = dot(weights, gatherR);
+        //float upscaledR = SAMPLE_TEXTURE2D_ARRAY_LOD(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex, 0.f);
         _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaledR;
     }
 }

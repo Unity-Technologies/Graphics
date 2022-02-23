@@ -35,6 +35,7 @@ groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
 groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
 groupshared uint s_intersectionBits[2];
 
+// cached per caster, used for shadowing pixels with capsules that pass culling
 struct CasterRenderData
 {
     float maxCosTheta;
@@ -43,6 +44,7 @@ struct CasterRenderData
     float radiusWS;         // point/spot only
 };
 
+// cached per depth range per caster, used to cull capsules that would not affect the tile
 struct CasterCullingData
 {
     float3 tileToLightDir;
@@ -450,7 +452,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         s_tileRadiusU[flatThreadIndex] = 0;
     }
     for (uint packedIndex = 0; packedIndex < MAX_SLICE_COUNT/2; ++packedIndex)
-        s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU; // 1.0
+        s_packedVisibility[packedIndex*TILE_SIZE*TILE_SIZE + flatThreadIndex] = 0xffffffffU;
     GroupMemoryBarrierWithGroupSync();
 
     // TODO: ignore depths beyond the max possible capsule shadow extent from camera
@@ -514,9 +516,8 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     }
     GroupMemoryBarrierWithGroupSync();
 
-    // TODO: splitting planes for froxel
+    // TODO: splitting planes?
     // TODO: move work to setup pass to run as one tile per thread
-    // TODO: save/restore to LDS each pass to free up registers
     if (flatThreadIndex < 2)
     {
         float nearLinearDepth = PACK_UNPACK_POSITIVE_DEPTH(asfloat(s_depthMinU[flatThreadIndex]));
@@ -554,7 +555,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     s_casterValidBits = 0;
     GroupMemoryBarrierWithGroupSync();
 
-    // check the casters vs the tile as a pre-process
+    // check the casters vs each depth range as a pre-process
     bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
     if (!CastersIntersectTile(flatThreadIndex, useSecondDepthRange))
     {

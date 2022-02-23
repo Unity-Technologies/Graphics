@@ -4,6 +4,7 @@
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsLightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsUpscale.hlsl"
 #endif
 #endif
 
@@ -256,6 +257,34 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
+float4 _CapsuleShadowsDepthGatherParams;
+float4 _CapsuleShadowsRenderOutputSize;
+float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
+{
+    float packedVisibility;
+    if (_CapsuleNeedsUpscale)
+    {
+        float2 positionSS = float2(posInput.positionSS) + .5f;
+        float4 weights = GetCapsuleShadowsUpscaleWeights(
+            positionSS,
+            abs(posInput.linearDepth),
+            _CapsuleShadowsDepthGatherParams.xy,
+            _CapsuleShadowsDepthGatherParams.zw,
+            _ScreenSize.zw);
+
+        float2 renderUV = positionSS*0.5f*_CapsuleShadowsRenderOutputSize.zw;
+        float4 gatherR = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, s_linear_clamp_sampler, renderUV, casterIndex);
+        packedVisibility = dot(weights, gatherR);
+    }
+    else
+    {
+        packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, casterIndex).x;
+    }
+    return UnpackCapsuleVisibility(packedVisibility);
+}
+#endif
+
 SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, PositionInputs posInput,
                                         DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
@@ -314,7 +343,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
     }
     if (_CapsuleDirectShadowsEnabled && !_CapsuleShadowInLightLoop && light.capsuleCasterIndex != -1)
     {
-        shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, light.capsuleCasterIndex).x);
+        shadow *= ReadPrePassCapsuleShadow(posInput, light.capsuleCasterIndex);
     }
 #endif
 
@@ -512,7 +541,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     }
     if (_CapsuleDirectShadowsEnabled && !_CapsuleShadowInLightLoop && light.capsuleCasterIndex != -1)
     {
-        shadow *= UnpackCapsuleVisibility(LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsTexture, posInput.positionSS, light.capsuleCasterIndex).x);
+        shadow *= ReadPrePassCapsuleShadow(posInput, light.capsuleCasterIndex);
     }
 #endif
 
