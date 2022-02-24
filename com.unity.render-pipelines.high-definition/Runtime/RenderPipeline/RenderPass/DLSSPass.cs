@@ -697,8 +697,11 @@ namespace UnityEngine.Rendering.HighDefinition
             dlssViewData.inputRes  = new Resolution() { width = (uint)parameters.hdCamera.actualWidth, height = (uint)parameters.hdCamera.actualHeight };
             dlssViewData.outputRes = new Resolution() { width = (uint)DynamicResolutionHandler.instance.finalViewport.x, height = (uint)DynamicResolutionHandler.instance.finalViewport.y };
 
-            dlssViewData.jitterX = -parameters.hdCamera.taaJitter.x;
-            dlssViewData.jitterY = -parameters.hdCamera.taaJitter.y;
+            if (parameters.drsSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+            {
+                dlssViewData.jitterX = -parameters.hdCamera.taaJitter.x;
+                dlssViewData.jitterY = -parameters.hdCamera.taaJitter.y;
+            }
             dlssViewData.reset = parameters.hdCamera.isFirstFrame;
             cameraState.SubmitCommands(parameters.hdCamera, dlssViewData, resources, cmdBuffer);
         }
