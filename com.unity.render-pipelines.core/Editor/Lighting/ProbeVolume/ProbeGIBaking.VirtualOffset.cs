@@ -132,10 +132,14 @@ namespace UnityEngine.Rendering
             {
                 // We need to set a known per-ray maxHits up-front since raycast command schedule reads this at schedule time. This is a bit annoying but it's a
                 // price we'll have to pay right now to be able to create commands from a job.
+#if UNITY_2022_2_OR_NEWER
                 QueryParameters queryParams = new QueryParameters();
                 queryParams.hitBackfaces = true;
                 queryParams.layerMask = 0;
                 var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, queryParams, 0f);
+#else
+                var defaultRaycastCommand = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+#endif
                 for (var i = 0; i < maxPositionsPerBatch * kRayDirectionsPerPosition; ++i)
                     raycastCommands[0][i] = raycastCommands[1][i] = defaultRaycastCommand;
             }
@@ -213,13 +217,21 @@ namespace UnityEngine.Rendering
 #if USE_JOBS
                     // Kick off jobs immediately
                     var createRayCastCommandsJobHandle = createRayCastCommandsJob.Schedule();
+#if UNITY_2022_2_OR_NEWER
                     var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, voSettings.maxHitsPerRay, createRayCastCommandsJobHandle);
+#else
+                    var raycastCommandsJobHandle = RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob, createRayCastCommandsJobHandle);
+#endif
                     jobHandles[nextBatchIdx] = pushOutGeometryJob.Schedule(raycastCommandsJobHandle);
                     JobHandle.ScheduleBatchedJobs();
 #else
                     // Run jobs in-place for easier debugging
                     createRayCastCommandsJob.Run();
+#if UNITY_2022_2_OR_NEWER
                     RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], voSettings.maxHitsPerRay, kMinCommandsPerJob).Complete();
+#else
+                    RaycastCommand.ScheduleBatch(raycastCommands[nextBatchIdx], raycastHits[nextBatchIdx], kMinCommandsPerJob).Complete();
+#endif
                     pushOutGeometryJob.Run();
 #endif
                 }
@@ -282,7 +294,9 @@ namespace UnityEngine.Rendering
 
             public void Execute()
             {
+#if UNITY_2022_2_OR_NEWER
                 var queryParams = new QueryParameters(voSettings.collisionMask, true, QueryTriggerInteraction.UseGlobal, true);
+#endif
 
                 var cmdIdx = 0;
                 for (var i = startIdx; i < endIdx; ++i)
@@ -296,20 +310,32 @@ namespace UnityEngine.Rendering
                         {
                             var direction = kRayDirections[j];
                             var origin = position + direction * voSettings.rayOriginBias;
+#if UNITY_2022_2_OR_NEWER
                             raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, queryParams, searchDistance);
+#else
+                            raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, searchDistance, voSettings.collisionMask, voSettings.maxHitsPerRay);
+#endif
                         }
                     }
                     else
                     {
                         // Since there's no option to dispatch commands with a subset of an array, we fill up the commands buffer with no-op raycasts.
                         for (var j = 0; j < kRayDirectionsPerPosition; ++j)
+#if UNITY_2022_2_OR_NEWER
                             raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
+#else
+                            raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+#endif
                     }
                 }
 
                 // Zero out any remainder of the raycast array
                 for (; cmdIdx < raycastCommands.Length;)
+#if UNITY_2022_2_OR_NEWER
                     raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, new QueryParameters(), 0f);
+#else
+                    raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
+#endif
             }
 
             // Typed out in a way Burst understands.

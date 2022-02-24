@@ -38,6 +38,10 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 // 2. User can overwrite these value in the surface shader / shader graph
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    #include "Assets/Code/OverrideBakedLightingTransform/Shaders/LitOverrideBakedLightingCode2.hlsl"
+#endif
+
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
 void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
@@ -60,6 +64,10 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
         1;
 #else
         0;
+#endif
+
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    GetOverrideObjectID(builtinData.objectID);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK

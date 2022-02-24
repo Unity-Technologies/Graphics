@@ -93,7 +93,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef ENABLE_MAX_BLENDING
     if (coc0 * cocHis < 0.0f)
     {
-        outputCoC = MaxOp(cocHis, coc0);
+        outputCoC = lerp(coc0, MaxOp(cocHis, coc0), MotionBlending);
     }
 #endif
 

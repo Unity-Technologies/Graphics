@@ -61,6 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Is Lightmap")]
             public uint isLightmap; // Currently only use with APV
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+            [SurfaceDataAttributes("Object ID")]
+            public uint objectID; // Currently only use with APV
+#endif
+
             [SurfaceDataAttributes("Rendering Layers")]
             public uint renderingLayers;
 

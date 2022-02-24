@@ -193,6 +193,11 @@ RW_TEXTURE2D_X(float3, _IndirectDiffuseTextureRW);
 // The maximal difference in depth that is considered acceptable to read from the color pyramid
 #define DEPTH_DIFFERENCE_THRESHOLD 0.1
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    #include "Assets/Code/OverrideBakedLightingTransform/Shaders/LitOverrideBakedLightingCode2.hlsl"
+    #include "Assets/Code/OverrideBakedLightingTransform/Shaders/LitOverrideBakedLightingCode3.hlsl"
+#endif
+
 [numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -273,7 +278,11 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
         BuiltinData apvBuiltinData;
         ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+        OverrideEvaluateAdaptiveProbeVolume(LoadObjectID(posInput.positionSS), posInput.positionWS,
+#else
         EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+#endif
                                     normalData.normalWS,
                                     -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),

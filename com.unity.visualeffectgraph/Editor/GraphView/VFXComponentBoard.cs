@@ -616,7 +616,7 @@ namespace UnityEditor.VFX.UI
                 current = current.parent;
             }
 
-            if (UnityEngine.SceneManagement.SceneManager.loadedSceneCount > 1)
+            if (EditorSceneManager.loadedSceneCount > 1)
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }

@@ -59,7 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
                 InvertOrthographic(ref deviceProjectionYFlip, ref view, out invViewProjection);
                 splitData.cullingMatrix = projection * view;
+#if UNITY_2022_2_OR_NEWER
                 splitData.cullingNearPlane = nearPlane;
+#endif
             }
         }
 
@@ -272,7 +274,9 @@ namespace UnityEngine.Rendering.HighDefinition
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
             Matrix4x4 matrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
             splitData.cullingMatrix = matrix;
+#if UNITY_2022_2_OR_NEWER
             splitData.cullingNearPlane = nearPlane;
+#endif
             return matrix;
         }
 
@@ -313,7 +317,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
             splitData.cullingMatrix = devProjView;
+#if UNITY_2022_2_OR_NEWER
             splitData.cullingNearPlane = nearZ;
+#endif
             return devProjView;
         }
 

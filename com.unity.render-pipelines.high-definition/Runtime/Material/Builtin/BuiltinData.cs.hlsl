@@ -20,9 +20,10 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (110)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (111)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_IS_LIGHTMAP (112)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (113)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (114)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK (115)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_OBJECT_ID (113)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (114)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (115)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK (116)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+BuiltinData
 // PackingRules = Exact
@@ -41,6 +42,7 @@ struct BuiltinData
     real2 distortion;
     real distortionBlur;
     uint isLightmap;
+    uint objectID;
     uint renderingLayers;
     float depthOffset;
     #if defined(UNITY_VIRTUAL_TEXTURING)
@@ -103,6 +105,9 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_IS_LIGHTMAP:
             result = GetIndexColor(builtindata.isLightmap);
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_OBJECT_ID:
+            result = GetIndexColor(builtindata.objectID);
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
             result = GetIndexColor(builtindata.renderingLayers);
