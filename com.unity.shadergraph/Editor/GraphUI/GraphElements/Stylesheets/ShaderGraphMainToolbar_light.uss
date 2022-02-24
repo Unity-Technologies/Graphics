@@ -1,0 +1,15 @@
+.ge-main-toolbar #optionsButton .icon {
+    background-image: url("Icons/Options_lightFix.png");
+}
+
+.ge-sg-toolbar #toggleBlackboardButton .icon {
+    background-image: url("Icons/Blackboard_lightFix.png");
+}
+
+.ge-sg-toolbar #toggleMainPreviewButton .icon {
+    background-image: url("Icons/Blackboard_lightFix.png");
+}
+
+.ge-sg-toolbar #toggleGraphInspectorButton .icon {
+    background-image: url("Icons/Blackboard_lightFix.png");
+}

@@ -65,7 +65,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrecision = readPrecision;
                     }
-                }    
+                }
                 if (field.TryGetSubField(kPrimitive, out fieldReader))
                 {
                     fieldReader.TryGetValue(out Primitive readPrimitive);
@@ -73,7 +73,7 @@ namespace com.unity.shadergraph.defs
                     {
                         resolvedPrimitive = readPrimitive;
                     }
-                }                    
+                }
             }
 
             // If we didn't find a value for a type parameter in user data,
@@ -124,7 +124,7 @@ namespace com.unity.shadergraph.defs
             IPortWriter port = nodeWriter.AddPort<GraphType>(
                 nodeReader,
                 param.Name,
-                param.Usage == Usage.In,
+                param.Usage is Usage.In or Usage.Static or Usage.Local,
                 registry
             );
             TypeDescriptor paramType = param.TypeDescriptor;
@@ -142,6 +142,16 @@ namespace com.unity.shadergraph.defs
             port.SetField(kHeight, resolvedType.Height);
             port.SetField(kPrecision, resolvedType.Precision);
             port.SetField(kPrimitive, resolvedType.Primitive);
+
+            if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
+            if (param.Usage is Usage.Local) port.SetField("IsLocal", true);
+
+            int i = 0;
+            foreach(var val in param.DefaultValue)
+            {
+                port.SetField($"c{i++}", val);
+            }
+
             return port;
         }
 
@@ -173,32 +183,16 @@ namespace com.unity.shadergraph.defs
             ShaderContainer container,
             Registry registry)
         {
-            // Get the ShaderType for the first output port we find.
-            string outPortName = null;
-            foreach (var param in m_functionDescriptor.Parameters)
-            {
-                if (param.Usage == Usage.Out)
-                {
-                    outPortName = param.Name;
-                    break;
-                }
-            }
-            if (outPortName == null)
-            {
-                // No out port was found.
-                throw new Exception("No output port found for ");
-            }
-
-            data.TryGetPort(outPortName, out var port);
-            var shaderType = registry.GetShaderType((IFieldReader)port, container);
-
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                if (param.Usage == Usage.In || param.Usage == Usage.Static)
+                data.TryGetPort(param.Name, out var port);
+                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
+                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
