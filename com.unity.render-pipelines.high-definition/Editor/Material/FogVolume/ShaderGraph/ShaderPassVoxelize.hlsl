@@ -12,22 +12,38 @@
 RW_TEXTURE3D(float4, _VBufferDensity) : register(u1); // RGB = sqrt(scattering), A = sqrt(extinction)
 RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 
+float4 _ViewSpaceBounds;
+uint _SliceOffset;
+
 struct VertexToFragment
 {
-    PackedVaryingsType packedVaryings;
+    PackedVaryings packedVaryings;
+    UNITY_VERTEX_OUTPUT_STEREO
     uint depthSlice : SV_RenderTargetArrayIndex;
-}
+};
 
-VertexToFragment Vert(AttributesMesh inputMesh, uint instanceId : SV_INSTANCEID)
+// TODO: instance id and vertex id in Attributes
+VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint vertexId : SV_VERTEXID)
 {
-    VertexToFragment v2f;
-    
-    VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
-    v2f.packedVaryings = PackVaryingsType(varyingsType);
-    v2f.depthSlice = instanceId;
+    VertexToFragment output;
 
-    return v2f;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    Varyings varyings;
+    varyings.positionCS = GetQuadVertexPosition(vertexId);
+    // varyings.positionCS.xy = varyings.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    varyings.positionCS.xy *= _ViewSpaceBounds.zw;
+    varyings.positionCS.xy += _ViewSpaceBounds.xy;
+
+
+    output.packedVaryings = PackVaryings(varyings);
+    output.depthSlice = _SliceOffset + instanceId;
+
+    // Apply view space bounding box to the fullscreen vertex pos:
+
+    return output;
 }
 
 uint DepthToSlice(float depth)
@@ -54,11 +70,12 @@ float SliceToDepth(uint slice)
     return t0 + 0.5 * dt;
 }
 
-void Frag(VertexToFragment packed, out float4 outColor : SV_Target0)
+void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 {
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(g2f.packed);
+    Varyings unpacked = UnpackVaryings(v2f.packedVaryings);
+    UNITY_SETUP_INSTANCE_ID(unpacked);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
-    FragInputs input = UnpackVaryingsToFragInputs(packed);
     // GetVolumeData(input, V, scatteringColor, density);
     outColor = float4(1, 0, 0, 1);
 

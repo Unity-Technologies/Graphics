@@ -989,7 +989,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
                 {
                     var fog = hdCamera.volumeStack.GetComponent<Fog>();
-                    if (hdCamera.camera.cameraType == CameraType.Game)
+                    // if (hdCamera.camera.cameraType == CameraType.Game)
                     {
                         builder.SetRenderFunc(
                             (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
@@ -1004,6 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     var volumePos = volume.transform.position;
                                     // Calculate how much volumetric fog slices are touched by the volume:
                                     // TODO: matrix calculation are horribly slow
+                                    // TODO: take in account the rotation of the volume
                                     var aabb = new Bounds(volume.transform.position, volume.parameters.size);
                                     Vector3 halfSize = volume.parameters.size / 2.0f;
 
@@ -1022,6 +1023,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector4 p6 = volumePos + new Vector3(-halfSize.x, -halfSize.y, -halfSize.z);
                                     Vector4 p7 = volumePos + new Vector3(halfSize.x, -halfSize.y, -halfSize.z);
 
+                                    var j0 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p0);
+                                    var j1 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p1);
+                                    var j2 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p2);
+                                    var j3 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p3);
+
+                                    var j4 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p4);
+                                    var j5 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p5);
+                                    var j6 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p6);
+                                    var j7 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p7);
+
                                     p0 = hdCamera.mainViewConstants.viewMatrix * p0;
                                     p1 = hdCamera.mainViewConstants.viewMatrix * p1;
                                     p2 = hdCamera.mainViewConstants.viewMatrix * p2;
@@ -1034,6 +1045,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                     float minViewSpaceDepth = Mathf.Abs(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
                                     float maxViewSpaceDepth = Mathf.Abs(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+
+                                    float minViewSpaceX = (Mathf.Min(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
+                                    float maxViewSpaceX = (Mathf.Max(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
+
+                                    float minViewSpaceY = (Mathf.Min(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
+                                    float maxViewSpaceY = (Mathf.Max(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
 
                                     // Debug.Log(minViewSpaceDepth);
                                     // Debug.Log(maxViewSpaceDepth);
@@ -1073,17 +1090,24 @@ namespace UnityEngine.Rendering.HighDefinition
                                     int stopSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, maxViewSpaceDepth), fog.volumeSliceCount.value);
                                     Debug.Log("Min: " + minViewSpaceDepth + ", " + startSlice + " | Max: " + maxViewSpaceDepth + ", " + stopSlice);
 
-                                    ctx.cmd.DrawProcedural(Matrix4x4.identity, volume.parameters.materialMask, 0, MeshTopology.Triangles, 4, Mathf.Abs(stopSlice - startSlice));
+                                    var props = new MaterialPropertyBlock();
+                                    props.SetVector("_ViewSpaceBounds", new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY));
+                                    props.SetInteger("_SliceOffset", startSlice);
+                                    Debug.Log(maxViewSpaceX - minViewSpaceX);
+                                    Debug.Log(maxViewSpaceY - minViewSpaceY);
+
+                                    CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
+                                    ctx.cmd.DrawProcedural(Matrix4x4.identity, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
                                 }
                             });
                     }
-                    else
-                    {
-                        builder.SetRenderFunc(
-                            (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
-                            {
-                            });
-                    }
+                    // else
+                    // {
+                    //     builder.SetRenderFunc(
+                    //         (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                    //         {
+                    //         });
+                    // }
 
                     // var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
                     // {
