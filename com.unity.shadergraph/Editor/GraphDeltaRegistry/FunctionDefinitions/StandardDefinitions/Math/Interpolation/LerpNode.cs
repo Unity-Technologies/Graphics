@@ -10,10 +10,10 @@ namespace com.unity.shadergraph.defs
             1,      // Version
             "Lerp", // Name
             "Out = lerp(A, B, T);",
-            new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
-            new ParameterDescriptor("T", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+            new ParameterDescriptor("T", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

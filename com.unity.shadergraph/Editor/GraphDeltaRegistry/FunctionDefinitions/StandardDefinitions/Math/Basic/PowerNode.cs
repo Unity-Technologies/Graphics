@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Power",    // Name
             "Out = pow(Base, Exp);",
             new ParameterDescriptor("Base", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Exp", TYPE.Any, Usage.In),
+            new ParameterDescriptor("Exp", TYPE.Any, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
