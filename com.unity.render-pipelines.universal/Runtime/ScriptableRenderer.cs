@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="time">Time.</param>
         /// <param name="deltaTime">Delta time.</param>
         /// <param name="smoothDeltaTime">Smooth delta time.</param>
-        void SetShaderTimeValues(CommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)
+        static void SetShaderTimeValues(CommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)
         {
             float timeEights = time / 8f;
             float timeFourth = time / 4f;
@@ -744,6 +744,97 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        private void InitRenderGraphFrame(ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<PassData>("InitFrame", out var passData,
+                new ProfilingSampler("InitFrame Profiler")))
+            {
+                passData.renderingData = renderingData;
+                passData.renderer = this;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    CommandBuffer cmd = rgContext.cmd;
+#if UNITY_EDITOR
+                    float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+#else
+                    float time = Time.time;
+#endif
+                    float deltaTime = Time.deltaTime;
+                    float smoothDeltaTime = Time.smoothDeltaTime;
+
+                    ClearRenderingState(cmd);
+                    SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+
+                    data.renderer.SetupLights(rgContext.renderContext, ref data.renderingData);
+                });
+            }
+        }
+
+        private void SetupRenderGraphCameraProperties(ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<PassData>("SetupCameraProperties", out var passData,
+                new ProfilingSampler("SetupCameraProperties Profiler")))
+            {
+                passData.renderingData = renderingData;
+                passData.cameraData = renderingData.cameraData;
+
+                builder.AllowPassCulling(false);
+
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    // TODO: implement both branches
+
+                    // This is still required because of the following reasons:
+                    // - Camera billboard properties.
+                    // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+                    // - _ProjectionParams.x logic is deep inside GfxDevice
+                    // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
+                    // is because this need to be called for each eye in multi pass VR.
+                    // The side effect is that this will override some shader properties we already setup and we will have to
+                    // reset them.
+                    if (data.cameraData.renderType == CameraRenderType.Base)
+                    {
+                        context.renderContext.SetupCameraProperties(data.cameraData.camera);
+                        //SetPerCameraShaderVariables(cmd, ref cameraData);
+                    }
+                    else
+                    {
+                        // Set new properties
+                        //SetPerCameraShaderVariables(cmd, ref cameraData);
+                        //SetPerCameraClippingPlaneProperties(cmd, in cameraData);
+                        //SetPerCameraBillboardProperties(cmd, ref cameraData);
+                    }
+
+#if UNITY_EDITOR
+                    float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+#else
+                    float time = Time.time;
+#endif
+                    float deltaTime = Time.deltaTime;
+                    float smoothDeltaTime = Time.smoothDeltaTime;
+
+                    // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
+                    SetShaderTimeValues(context.cmd, time, deltaTime, smoothDeltaTime);
+
+                });
+            }
+
+        }
+
+        class PassData
+        {
+            public RenderingData renderingData;
+            public ScriptableRenderer renderer;
+            public CameraData cameraData;
+        };
 
 
         /// <summary>
@@ -753,11 +844,11 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Camera camera = renderingData.cameraData.camera;
+            InitRenderGraphFrame(ref renderingData);
 
             RecordRenderGraphBlock(RenderGraphRenderPassBlock.BeforeRendering, context, ref renderingData);
 
-            context.SetupCameraProperties(camera);
+            SetupRenderGraphCameraProperties(ref renderingData);
 
             RecordRenderGraphBlock(RenderGraphRenderPassBlock.MainRendering, context, ref renderingData);
 
@@ -1074,7 +1165,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void ClearRenderingState(CommandBuffer cmd)
+        static void ClearRenderingState(CommandBuffer cmd)
         {
             using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
 

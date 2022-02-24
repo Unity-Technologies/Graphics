@@ -1020,7 +1020,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool emptyShadowmap;
         }
 
-        public PassData Render(RenderGraph graph, ref RenderingData renderingData)
+        public TextureHandle Render(RenderGraph graph, ref RenderingData renderingData)
         {
             using (var builder = graph.AddRenderPass<PassData>("Additional Lights Shadowmap", out var passData, new ProfilingSampler("Additional Lights Shadowmap")))
             {
@@ -1051,7 +1051,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     data.renderingData.commandBuffer.SetGlobalTexture(passData.shadowmapID, passData.shadowmapTexture);
                 });
 
-                return passData;
+                return passData.shadowmapTexture;
             }
         }
     }

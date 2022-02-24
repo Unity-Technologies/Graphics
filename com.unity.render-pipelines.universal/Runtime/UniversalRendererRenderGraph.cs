@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.Universal
             // intermediate camera targets
             public TextureHandle cameraColor;
             public TextureHandle cameraDepth;
+
+            public TextureHandle mainShadowsTexture;
+            public TextureHandle additionalShadowsTexture;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -119,10 +122,10 @@ namespace UnityEngine.Rendering.Universal
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
 
             if (m_MainLightShadowCasterPass.Setup(ref renderingData))
-                m_MainLightShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+                frameResources.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
 
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
-                m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+                frameResources.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
 
         }
 
@@ -130,13 +133,13 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderGraphTestPass.Render(renderingData.renderGraph, this);
 
-            m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, ref renderingData);
+            m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
             // TODO: Skybox
 
-            m_RenderTransparentForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, ref renderingData);
+            m_RenderTransparentForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
         }
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)

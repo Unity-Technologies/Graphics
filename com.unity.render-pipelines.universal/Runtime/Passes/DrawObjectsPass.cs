@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public ProfilingSampler m_ProfilingSampler;
         }
 
-        public void Render(TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        public void Render(TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
             Camera camera = renderingData.cameraData.camera;
@@ -214,6 +214,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 passData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
                 passData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
+
+                builder.ReadTexture(mainShadowsTexture);
+                builder.ReadTexture(additionalShadowsTexture);
 
                 passData.m_RenderingData = renderingData;
 
