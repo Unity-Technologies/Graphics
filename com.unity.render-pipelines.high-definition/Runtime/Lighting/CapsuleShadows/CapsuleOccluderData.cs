@@ -112,9 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public const int maxCapsuleShadowCasterCount = 8;
 
-        public const int counterSlotUpscaleIndirectArgs = 0;
-        public const int counterSlotCapsuleShadowCount = 3;
-        public const int numCapsuleShadowCounters = 4;
+        public const int capsuleShadowIndirectIndexTileCount = 0;
+        public const int capsuleShadowIndirectIndexShadowCount = 3;
+        public const int capsuleShadowIndirectUintCount = 4;
 
         internal CapsuleShadowCaster(CapsuleShadowCasterType _casterType, float _shadowRange, float _maxCosTheta)
         {

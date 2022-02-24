@@ -9,13 +9,26 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
 
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibilityOutput);
+
+TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
+StructuredBuffer<CapsuleShadowsUpscaleTile> _CapsuleShadowsTileList;
+
 TEXTURE2D_ARRAY(_CapsuleShadowsVisibility);
 
 [numthreads(8,8,1)]
-void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
+void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    uint2 pixelCoord = dispatchThreadId.xy;
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint entryIndex = groupID.x;
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupID.y);
+
+    CapsuleShadowsUpscaleTile tile = _CapsuleShadowsTileList[entryIndex];
+    uint2 tileCoord = GetUpscaleTileCoord(tile);
+    uint tileBits = GetUpscaleTileBits(tile);
+
+    // HACK
+    tileCoord = 2*tileCoord + uint2(groupID.z & 1, groupID.z >> 1);
+
+    uint2 pixelCoord = (tileCoord << 3) | pixelCoordInTile;
 
     float targetLinearDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x, _ZBufferParams);
     CapsuleShadowDepthWeightParams params = GetCapsuleShadowsDepthWeightParams(targetLinearDepth, _CapsuleUpscaledSize.zw);

@@ -62,9 +62,9 @@
 // UnityEngine.Rendering.HighDefinition.CapsuleShadowCaster:  static fields
 //
 #define MAX_CAPSULE_SHADOW_CASTER_COUNT (8)
-#define COUNTER_SLOT_UPSCALE_INDIRECT_ARGS (0)
-#define COUNTER_SLOT_CAPSULE_SHADOW_COUNT (3)
-#define NUM_CAPSULE_SHADOW_COUNTERS (4)
+#define CAPSULE_SHADOW_INDIRECT_INDEX_TILE_COUNT (0)
+#define CAPSULE_SHADOW_INDIRECT_INDEX_SHADOW_COUNT (3)
+#define CAPSULE_SHADOW_INDIRECT_UINT_COUNT (4)
 
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact

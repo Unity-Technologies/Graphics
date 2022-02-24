@@ -62,7 +62,23 @@ uint GetCapsuleIndirectOcclusionFlags()
     return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
 }
 
-uint GetCapsuleLayerMask(CapsuleOccluderData capsule)  { return (capsule.packedData >> 16) & 0xffU; }
+struct CapsuleShadowsUpscaleTile
+{
+    uint coord; // half resolution tile coordinate [31:16]=y, [15:0]=x
+    uint bits;  // one bit per caster
+};
+
+CapsuleShadowsUpscaleTile makeCapsuleShadowsUpscaleTile(uint2 coord, uint bits)
+{
+    CapsuleShadowsUpscaleTile tile;
+    tile.bits = bits;
+    tile.coord = (coord.y << 16) | coord.x;
+    return tile;
+}
+uint2 GetUpscaleTileCoord(CapsuleShadowsUpscaleTile tile)   { return uint2(tile.coord & 0xffffU, tile.coord >> 16); }
+uint GetUpscaleTileBits(CapsuleShadowsUpscaleTile tile)     { return tile.bits; }
+
+uint GetCapsuleLayerMask(CapsuleOccluderData capsule)   { return (capsule.packedData >> 16) & 0xffU; }
 uint GetCapsuleCasterType(CapsuleOccluderData capsule)  { return (capsule.packedData >> 8) & 0xffU; }
 uint GetCapsuleCasterIndex(CapsuleOccluderData capsule) { return capsule.packedData & 0xffU; }
 

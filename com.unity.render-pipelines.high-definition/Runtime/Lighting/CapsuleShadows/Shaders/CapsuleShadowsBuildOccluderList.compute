@@ -12,7 +12,7 @@
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluders;
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
 RWStructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows;
-RWStructuredBuffer<uint> _CapsuleShadowCounters;
+RWStructuredBuffer<uint> _CapsuleShadowsIndirectArgs;
 
 uint _CapsuleOccluderCount;
 uint _CapsuleCasterCount;
@@ -39,6 +39,6 @@ void Main(uint dispatchThreadId : SV_DispatchThreadID)
 		;
 
 	uint writeIndex;
-	InterlockedAdd(_CapsuleShadowCounters[COUNTER_SLOT_CAPSULE_SHADOW_COUNT], 1, writeIndex);
+	InterlockedAdd(_CapsuleShadowsIndirectArgs[CAPSULE_SHADOW_INDIRECT_INDEX_SHADOW_COUNT], 1, writeIndex);
 	_CapsuleOccluderShadows[writeIndex] = capsule;
 }

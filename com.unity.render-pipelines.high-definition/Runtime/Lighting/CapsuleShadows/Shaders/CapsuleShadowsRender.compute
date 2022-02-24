@@ -17,7 +17,7 @@
 
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer (need array support)
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows; // TODO: could be constant buffer (need to write array from earlier pass)
-StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
+StructuredBuffer<uint> _CapsuleShadowsIndirectArgs; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibilityOutput);
 RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
 #ifdef CAPSULE_TILE_DEBUG
@@ -269,7 +269,7 @@ void CapsuleShadowLoop(
     float3 normalWS = float3(fullResCoord.x, fullResCoord.y, INVALID_NORMAL_TAG);
 
     // loop over capsules in batches
-    uint shadowCount = _CapsuleShadowCounters[COUNTER_SLOT_CAPSULE_SHADOW_COUNT];
+    uint shadowCount = _CapsuleShadowsIndirectArgs[CAPSULE_SHADOW_INDIRECT_INDEX_SHADOW_COUNT];
     for (uint shadowBaseIndex = 0; shadowBaseIndex < shadowCount; shadowBaseIndex += 64)
     {
         // clear state

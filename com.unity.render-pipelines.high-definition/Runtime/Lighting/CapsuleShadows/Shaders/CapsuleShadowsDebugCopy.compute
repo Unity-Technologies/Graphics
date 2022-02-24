@@ -20,14 +20,12 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 tileCoord = pixelCoord/8;
-    if (_CapsuleShadowIsHalfRes)
-        tileCoord /= 2;
-    uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
-
     uint2 inputCoord = pixelCoord;
     if (_CapsuleDebugIsHalfResolution != 0)
         inputCoord /= 2;
+
+    uint2 tileCoord = inputCoord/8;
+    uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
 
     float packedVisibility = 0.f;
     if ((tileBits & (1U << _CapsuleDebugCasterIndex)) != 0)

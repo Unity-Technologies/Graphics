@@ -10,6 +10,8 @@
 
 RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
 TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
+RWStructuredBuffer<uint> _CapsuleShadowsIndirectArgs;
+RWStructuredBuffer<CapsuleShadowsUpscaleTile> _CapsuleShadowsTileList;
 
 #define _CapsuleRenderSizeInTiles uint2(_CapsuleRenderSizeInTilesX, _CapsuleRenderSizeInTilesY)
 
@@ -19,12 +21,32 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 tileCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    if (any(tileCoord >= _CapsuleRenderSizeInTiles))
+    // intentionally includes extra index equal to the render size
+    if (any(tileCoord > _CapsuleRenderSizeInTiles))
         return;
 
-    uint tileBits = _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(tileCoord)];
-    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(0,0))] = tileBits;
-    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(1,0))] = tileBits;
-    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(0,1))] = tileBits;
-    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(1,1))] = tileBits;
+    // TODO: use gather (can do gather on UINT portably?)
+    uint tileBits = 0;
+    for (uint i = 0; i < 4; ++i)
+    {
+        uint2 loadCoord = tileCoord - uint2(i & 1, i >> 1);
+        if (all(loadCoord < _CapsuleRenderSizeInTiles))
+            tileBits |= _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(loadCoord)];
+    }
+
+    // add an list entry if we need to upscale this tile
+    if (tileBits != 0)
+    {
+        uint writeIndex;
+        InterlockedAdd(_CapsuleShadowsIndirectArgs[CAPSULE_SHADOW_INDIRECT_INDEX_TILE_COUNT], 1, writeIndex);
+        _CapsuleShadowsTileList[writeIndex] = makeCapsuleShadowsUpscaleTile(tileCoord, tileBits);
+    }
+
+    // write tile bits for the output
+    for (uint i = 0; i < 4; ++i)
+    {
+        uint2 storeCoord = 2*tileCoord + uint2(i & 1, i >> 1) - 1;
+        if (all(storeCoord < 2*_CapsuleRenderSizeInTiles))
+            _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(storeCoord)] = tileBits;
+    }
 }
