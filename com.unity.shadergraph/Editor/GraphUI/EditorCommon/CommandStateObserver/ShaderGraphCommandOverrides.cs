@@ -258,13 +258,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
                 if (nodeWriter != null)
                 {
-                    var vec4Value = updatePortConstantCommand.NewValue is Vector4 value ? value : default;
-                    nodeWriter.SetPortField(portModel.UniqueName, "c0", vec4Value.x);
-                    nodeWriter.SetPortField(portModel.UniqueName, "c1", vec4Value.y);
-                    nodeWriter.SetPortField(portModel.UniqueName, "c2", vec4Value.z);
-                    nodeWriter.SetPortField(portModel.UniqueName, "c3", vec4Value.w);
-
-                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, portModel.UniqueName, vec4Value);
+                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, portModel.UniqueName, updatePortConstantCommand.NewValue);
 
                     using (var graphUpdater = graphViewState.UpdateScope)
                     {

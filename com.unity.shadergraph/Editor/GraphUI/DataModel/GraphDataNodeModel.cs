@@ -170,6 +170,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (portReader.GetField("IsStatic", out bool isStatic) && isStatic) continue;
+                if (portReader.GetField("IsLocal", out bool isLocal) && isLocal) continue;
+
                 var isInput = portReader.IsInput();
                 var orientation = portReader.IsHorizontal() ? PortOrientation.Horizontal : PortOrientation.Vertical;
 

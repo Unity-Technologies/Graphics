@@ -2,7 +2,9 @@ using NUnit.Framework;
 using com.unity.shadergraph.defs;
 using System.Collections.Generic;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEngine.TestTools.Utils;
 using UnityEditor.ShaderGraph.GraphDelta;
+
 
 namespace UnityEditor.ShaderGraph.Registry.UnitTests
 {
@@ -84,9 +86,9 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // add a single node to the graph
             string nodeName = $"{fd.Name}-01";
-            GraphDelta.INodeWriter nodeWriter = graph.AddNode(registryKey, nodeName, registry);
+            graph.AddNode(registryKey, nodeName, registry);
 
-            // check that the the node was added
+            // check that the node was added
             var nodeReader = graph.GetNodeReader(nodeName);
             bool didRead = nodeReader.GetField("In.Length", out Length len);
             Assert.IsTrue(didRead);
@@ -96,6 +98,52 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             didRead = nodeReader.GetField("Out.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Four, len);
+        }
+
+        [Test]
+        public void CanDefineNodeWithDefaultParameters()
+        {
+            // create registry
+            var registry = new Registry();
+            // register the GraphType (other types are based on it)
+            registry.Register<Types.GraphType>();
+            // create a graph
+            var graph = new GraphHandler();
+
+            // define a function with an in field that has defaults
+            FunctionDescriptor fd = new(
+                1,
+                "Test",
+                "Out = In;",
+                new ParameterDescriptor(
+                    "In",
+                    TYPE.Vector,
+                    Usage.In,
+                    new float[] { 1F, 1F, 3F, 1F }
+                ),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            );
+            RegistryKey registryKey = registry.Register(fd);
+
+            // add an instance of the node to the graph
+            string nodeName = "{fd.Name}-test-1";
+            graph.AddNode(registryKey, nodeName, registry);
+
+            // check that the node was added
+            var nodeReader = graph.GetNodeReader(nodeName);
+            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            Assert.IsTrue(didRead);
+
+            // check that the value for the port made from the in param is correct
+            var comparer = new FloatEqualityComparer(10e-6f);
+            nodeReader.GetField("In.c0", out float v);
+            Assert.That(v, Is.EqualTo(1F).Using(comparer));
+            nodeReader.GetField("In.c1", out v);
+            Assert.That(v, Is.EqualTo(1F).Using(comparer));
+            nodeReader.GetField("In.c2", out v);
+            Assert.That(v, Is.EqualTo(3F).Using(comparer));
+            nodeReader.GetField("In.c3", out v);
+            Assert.That(v, Is.EqualTo(1F).Using(comparer));
         }
     }
 }

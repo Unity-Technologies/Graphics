@@ -34,6 +34,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>True if the ports can be connected, false otherwise.</returns>
         bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
         {
+            // temporarily disable connections to ports of different types.
+            if (src.PortDataType != dst.PortDataType)
+                return false;
+
             return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
                 dst.graphDataName, src.graphDataNodeModel.graphDataName,
                 src.graphDataName, RegistryInstance);

@@ -1,5 +1,7 @@
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -13,11 +15,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartList();
 
+            var shouldShowPreview = m_GraphDataNodeModel.existsInGraphData;
+
             // TODO (Brett) This should only happen if m_GraphDataNodeMode.HasPreview
-            m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
+            if(shouldShowPreview)
+                m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
             PartList.AppendPart(m_NodePreviewPart);
 
             // TODO: Build out fields from node definition
+            if (Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
+
+            foreach (var portReader in nodeReader.GetPorts())
+            {
+                // Only add new node parts for static ports.
+                if (!portReader.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
+                if (portReader.GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+
+                // Figure out the correct part to display based on the port's fields.
+                if (!portReader.GetField(GraphType.kHeight, out GraphType.Height height)) continue;
+                if (!portReader.GetField(GraphType.kLength, out GraphType.Length length)) continue;
+
+                if (height > GraphType.Height.One)
+                {
+                    PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
+                }
+
+                if (length == GraphType.Length.One)
+                {
+                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
+                    switch (primitive)
+                    {
+                        case GraphType.Primitive.Bool:
+                            // TODO: Checkbox
+                            break;
+                        case GraphType.Primitive.Int:
+                            PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
+                            break;
+                        case GraphType.Primitive.Float:
+                            PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                            break;
+                        case GraphType.Primitive.Any:
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;

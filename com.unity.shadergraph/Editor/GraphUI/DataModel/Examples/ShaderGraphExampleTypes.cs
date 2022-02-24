@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
-            reader.GetField(Registry.Types.GraphType.kLength, out int len);
-            switch (len)
+            reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
+            switch ((int)len)
             {
                 case 1: return TypeHandle.Float;
                 case 2: return TypeHandle.Vector2;
@@ -140,7 +140,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphTypeConstant : IConstant
     {
         public GraphDelta.GraphHandler graphHandler;
-        public FieldConstant<int> lengthConstant;
         public string nodeName, portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
@@ -175,8 +174,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandler = handler;
             this.nodeName = nodeName;
             this.portName = portName;
-            lengthConstant = new();
-            lengthConstant.Initialize(handler, nodeName, portName, Registry.Types.GraphType.kLength);
         }
 
         public object ObjectValue
@@ -196,11 +193,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (GetLength())
                 {
-                    case 1: sc(0, (float)value); return;
                     case 2: var v2 = (Vector2)value; sc(0, v2.x); sc(1, v2.y); return;
-                    case 3: var v3 = (Vector3)value; sc(0, v3.x); sc(1, v3.y); sc(1, v3.z); return;
-                    case 4: var v4 = (Vector4)value; sc(0, v4.x); sc(1, v4.y); sc(1, v4.z); sc(1, v4.w); return;
-                    default: sc(0, 0); return;
+                    case 3: var v3 = (Vector3)value; sc(0, v3.x); sc(1, v3.y); sc(2, v3.z); return;
+                    case 4: var v4 = (Vector4)value; sc(0, v4.x); sc(1, v4.y); sc(2, v4.z); sc(3, v4.w); return;
+                    default: sc(0, (float)value); return;
                 }
             }
         }
