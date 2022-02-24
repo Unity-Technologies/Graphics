@@ -225,7 +225,8 @@ Shader "Hidden/HDRP/TemporalAA"
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
+            float closestDepth = 0;
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, closestDepth);
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
@@ -284,11 +285,23 @@ Shader "Hidden/HDRP/TemporalAA"
                 float motionVectorLenInPixels = 0.0f;
 
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
-                motionVectorLength = length(motionVector);
+                motionVectorLength = length(motionVector
+#if 1
+                    - GetCameraMV(uv, closestDepth)
+#endif
+                );
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
+                float mvLenForCorners = motionVectorLenInPixels;
+#if VELOCITY_REJECTION
 
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+
+                float4 prevMVLen4 = Gather(_InputVelocityMagnitudeHistory, prevUV, 0, _RTHandleScaleForTAAHistory);
+                float prevMVLen = Max3(prevMVLen4.x, prevMVLen4.y, max(prevMVLen4.z, prevMVLen4.w));
+
+                mvLenForCorners = motionVectorLenInPixels * 10 + prevMVLen;
+#endif
+                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), mvLenForCorners, _TAAURenderScale);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);

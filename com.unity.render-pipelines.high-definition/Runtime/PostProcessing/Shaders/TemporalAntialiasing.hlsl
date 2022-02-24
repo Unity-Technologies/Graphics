@@ -30,6 +30,13 @@ float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
+float4 Gather(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
+{
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
+    return GATHER_TEXTURE2D_X(tex, s_linear_clamp_sampler, uv);
+}
+
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw);
@@ -327,12 +334,60 @@ float3 ConvertToOutputSpace(float3 color)
     return ToLinear(rgb);
 }
 
+
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+
+
+
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+// ---------------------------------------------------
+
+
 // ---------------------------------------------------
 // Velocity related functions.
 // ---------------------------------------------------
 
+// Compute Camera MV only
+float2 GetCameraMV(float2 ndc, float depth)
+{
+    float3 posWS = ComputeWorldSpacePosition(ndc, depth, UNITY_MATRIX_I_VP);
+
+    float4 worldPos = float4(posWS, 1.0);
+    float4 prevPos = worldPos;
+
+    float4x4 prevVP = UNITY_MATRIX_PREV_VP;
+    float4x4 currVP = UNITY_MATRIX_VP;
+
+
+    float4 clipWP = mul(currVP, posWS);
+    float4 clipPrevWP = mul(prevVP, prevPos);
+
+    clipWP.xy /= clipWP.w;
+    clipPrevWP.xy /= clipPrevWP.w;
+
+    float2 outDeltaVec = (clipWP.xy - clipPrevWP.xy);
+    outDeltaVec *= 0.5f;
+
+#if UNITY_UV_STARTS_AT_TOP
+    outDeltaVec.y = -outDeltaVec.y;
+#endif
+
+    return outDeltaVec;
+
+}
+
+
 // Front most neighbourhood velocity ([Karis 2014])
-float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
+float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, out float closestDepth)
 {
     float center = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
 
@@ -347,6 +402,7 @@ float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
     closest = COMPARE_DEPTH(s1, closest.z) ? float3(int2(1, -1), s1) : closest;
     closest = COMPARE_DEPTH(s0, closest.z) ? float3(int2(1, 1), s0) : closest;
 
+    closestDepth = closest.z;
     return closest.xy;
 }
 
@@ -623,7 +679,11 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     stDevMultiplier = 1.5;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
 #if ANTI_FLICKER_MV_DEPENDENT
-    const float maxFactorScale = 2.25f; // when stationary
+    const float maxFactorScale = 2.25f
+#if VELOCITY_REJECTION
+        * 4 // We can be much more aggressive. 
+#endif
+        ; // when stationary
     const float minFactorScale = 0.8f; // when moving more than slightly
     float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVecLenInPixels)));
 #else
