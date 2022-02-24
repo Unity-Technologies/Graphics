@@ -243,7 +243,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize, _RTHandleScaleForTAAHistory);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
-            history.xyz *= PerceptualWeight(history);
+
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
@@ -305,7 +305,6 @@ Shader "Hidden/HDRP/TemporalAA"
                 // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
                 CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
                 unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
-                unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
                 filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
                 blendFactor = color.w > 0 ? blendFactor : 1;
 #endif
@@ -326,11 +325,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
                 CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
-                finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
-                finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
+                finalColor.xyz = lerp(ToPerceptual(history).xyz, ToPerceptual(filteredColor).xyz, blendFactor);
+                finalColor.xyz = ToLinear(finalColor).xyz;
 #else
                 finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
-                finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 
                 color.xyz = ConvertToOutputSpace(finalColor.xyz);

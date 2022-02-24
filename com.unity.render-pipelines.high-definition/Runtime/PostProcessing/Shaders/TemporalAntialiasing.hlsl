@@ -217,36 +217,25 @@ float GetLuma(CTYPE color)
 #endif
 }
 
-CTYPE ReinhardToneMap(CTYPE c)
+float3 ToPerceptual(CTYPE c)
 {
-    return c * rcp(GetLuma(c) + 1.0);
+    float maxFactor = max(Max3(c.r, c.g, c.b), 1e-7f);
+    return c.rgb * sqrt(maxFactor) / maxFactor;
 }
 
-float PerceptualWeight(CTYPE c)
+float3 ToLinear(float3 perceptualRGB)
 {
-#if PERCEPTUAL_SPACE
-    return rcp(GetLuma(c) + 1.0);
-#else
-    return 1;
-#endif
+    float maxFactor = max(Max3(perceptualRGB.r, perceptualRGB.g, perceptualRGB.b), 1e-7f);
+    return perceptualRGB * maxFactor;
 }
 
-CTYPE InverseReinhardToneMap(CTYPE c)
-{
-    return c * rcp(1.0 - GetLuma(c));
-}
-
-float PerceptualInvWeight(CTYPE c)
-{
-#if PERCEPTUAL_SPACE
-    return rcp(1.0 - GetLuma(c));
-#else
-    return 1;
-#endif
-}
 
 CTYPE ConvertToWorkingSpace(CTYPE rgb)
 {
+#if PERCEPTUAL_SPACE
+    rgb = ToPerceptual(rgb);
+#endif
+
 #if YCOCG
     float3 ycocg = RGBToYCoCg(rgb.xyz);
 
@@ -264,9 +253,15 @@ CTYPE ConvertToWorkingSpace(CTYPE rgb)
 float3 ConvertToOutputSpace(float3 color)
 {
 #if YCOCG
-    return YCoCgToRGB(color);
+    float3 rgb = YCoCgToRGB(color);
 #else
-    return color;
+    float3 rgb = color;
+#endif
+
+#if PERCEPTUAL_SPACE
+    return ToLinear(rgb);
+#else
+    return rgb;
 #endif
 }
 
@@ -446,21 +441,6 @@ struct NeighbourhoodSamples
 };
 
 
-void ConvertNeighboursToPerceptualSpace(inout NeighbourhoodSamples samples)
-{
-    samples.neighbours[0].xyz *= PerceptualWeight(samples.neighbours[0]);
-    samples.neighbours[1].xyz *= PerceptualWeight(samples.neighbours[1]);
-    samples.neighbours[2].xyz *= PerceptualWeight(samples.neighbours[2]);
-    samples.neighbours[3].xyz *= PerceptualWeight(samples.neighbours[3]);
-#if WIDE_NEIGHBOURHOOD
-    samples.neighbours[4].xyz *= PerceptualWeight(samples.neighbours[4]);
-    samples.neighbours[5].xyz *= PerceptualWeight(samples.neighbours[5]);
-    samples.neighbours[6].xyz *= PerceptualWeight(samples.neighbours[6]);
-    samples.neighbours[7].xyz *= PerceptualWeight(samples.neighbours[7]);
-#endif
-    samples.central.xyz       *= PerceptualWeight(samples.central);
-}
-
 void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS, CTYPE centralColor, float2 rtHandleScale, out NeighbourhoodSamples samples)
 {
     samples = (NeighbourhoodSamples)0;
@@ -523,10 +503,6 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
 #endif // SMALL_NEIGHBOURHOOD_SHAPE == 4
 
 #endif // !WIDE_NEIGHBOURHOOD
-
-#if PERCEPTUAL_SPACE
-    ConvertNeighboursToPerceptualSpace(samples);
-#endif
 }
 
 
@@ -768,23 +744,19 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 // TODO: This is not great and sub optimal since it really needs to be in linear and the data is already in perceptive space
 CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStrength)
 {
-    CTYPE linearC = color * PerceptualInvWeight(color);
-    CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
+    CTYPE linearC = ConvertToOutputSpace(color);
+    CTYPE linearAvg = ConvertToOutputSpace(samples.avgNeighbour);
 
 #if YCOCG
     // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.
-
-    linearC.xyz = ConvertToOutputSpace(linearC.xyz);
-    linearAvg.xyz = ConvertToOutputSpace(linearAvg.xyz);
     linearC.xyz = linearC.xyz + max(0, (linearC.xyz - linearAvg.xyz)) * sharpenStrength * 3;
     linearC.xyz = clamp(linearC.xyz, 0, CLAMP_MAX);
-
-    linearC = ConvertToWorkingSpace(linearC);
 #else
     linearC = linearC + max(0,(linearC - linearAvg)) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
-    CTYPE outputSharpened = linearC * PerceptualWeight(linearC);
+
+    CTYPE outputSharpened = ConvertToWorkingSpace(linearC);
 
 #if (SHARPEN_ALPHA == 0 && defined(ENABLE_ALPHA))
     outputSharpened.a = color.a;
