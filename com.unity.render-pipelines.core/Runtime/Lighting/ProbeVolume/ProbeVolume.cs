@@ -64,6 +64,11 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
+        /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
+        [HideInInspector]
+        [Tooltip("Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.")]
+        public bool fillEmptySpaces = false;
+
 #if UNITY_EDITOR
         /// <summary>
         /// Returns the extents of the volume.

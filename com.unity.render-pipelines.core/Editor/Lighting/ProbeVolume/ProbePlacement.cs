@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering
 
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
+            public int fillEmptySpaces;
             public int maxSubdivLevelInsideVolume;
         }
 
@@ -616,6 +617,7 @@ namespace UnityEngine.Rendering
                         Z = kp.volume.Z,
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
+                        fillEmptySpaces = kp.component.fillEmptySpaces ? 1 : 0,
                         maxSubdivLevelInsideVolume = subdivLevel,
                     });
                 }

@@ -200,6 +200,7 @@ bool PointInsideOBB(GPUProbeVolumeOBB obbA, GPUProbeVolumeOBB obbB)
 void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 {
     float2 subdivisionLimits = float2(0, 0);
+    float fillEmptySpaces = 0;
     float maxSubdivLevelInsideVolume = 0;
 
     if (any(id >= uint3(_MaxBrickSize.xyz)))
@@ -218,14 +219,14 @@ void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 
         if (PointInsideOBB(obb, brickOBB))
         {
-
             subdivisionLimits.x = max(subdivisionLimits.x, obb.minControllerSubdivLevel);
             subdivisionLimits.y = max(subdivisionLimits.y, obb.maxControllerSubdivLevel);
+            fillEmptySpaces = max(fillEmptySpaces, obb.fillEmptySpaces);
             maxSubdivLevelInsideVolume = max(maxSubdivLevelInsideVolume, obb.maxSubdivLevelInsideVolume);
         }
     }
 
-    _Output[id] = float4(subdivisionLimits, 0, maxSubdivLevelInsideVolume);
+    _Output[id] = float4(subdivisionLimits, fillEmptySpaces, maxSubdivLevelInsideVolume);
 }
 
 [numthreads(8, 8, 1)]
@@ -255,7 +256,8 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance *= voxelDetectionDistance;
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
-    if (dist <= voxelDetectionDistance)
+    bool fillEmptySpaces = subdivisionLevelData.z;
+    if (dist <= voxelDetectionDistance || (fillEmptySpaces && _SubdivisionLevel == minControllerSubdivLevel))
     {
         // transform id to world position
         float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickSize.xyz) * _VolumeSizeInBricks.xyz;

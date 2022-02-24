@@ -116,10 +116,6 @@ namespace UnityEditor.Rendering
             }
         }
 
-        static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
-        {
-        }
-
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
@@ -166,6 +162,7 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.LabelField("Subdivision Overrides", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
             EditorGUILayout.PropertyField(serialized.overridesSubdivision, Styles.s_OverridesSubdivision);
             EditorGUI.BeginDisabledGroup(!serialized.overridesSubdivision.boolValue);
 
