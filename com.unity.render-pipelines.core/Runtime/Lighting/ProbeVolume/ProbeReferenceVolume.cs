@@ -81,18 +81,18 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Enqueue a request for probe rendering at the specified location.
+        /// Dequeue a request for probe rendering.
         /// </summary>
-        /// <param name ="requestID"> An ID that can be used to retrieve the data once it has been computed</param>
-        /// <returns>An ID that can be used to retrieve the data once it has been computed</returns>
+        /// <param name ="requestID">The ID associated with the capture position</param>
         public void DequeueRequest(int requestID)
         {
-            Debug.Assert(requestID >= 0 && requestID < m_RequestPositions.Count);
-
-            m_RequestPositions[requestID] = new Vector3(s_FreelistSentinel.x, s_FreelistSentinel.y, m_FreelistHead);
-            m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
-            m_SHValidity[requestID] = kInvalidSH;
-            m_FreelistHead = requestID;
+            if (requestID >= 0 && requestID < m_RequestPositions.Count)
+            {
+                m_RequestPositions[requestID] = new Vector3(s_FreelistSentinel.x, s_FreelistSentinel.y, m_FreelistHead);
+                m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+                m_SHValidity[requestID] = kInvalidSH;
+                m_FreelistHead = requestID;
+            }
         }
 
         private bool ComputeCapturePositionIsValid(Vector3 capturePosition)
