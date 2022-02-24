@@ -797,6 +797,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
+    #ifdef _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
+    float overrideF0 = bsdfData.fresnel0;
+    #endif
+
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
@@ -808,6 +812,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         // Assign profile id and overwrite fresnel0
         FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
     }
+
+    #ifdef _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
+    bsdfData.fresnel0 = overrideF0;
+    #endif
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
     {

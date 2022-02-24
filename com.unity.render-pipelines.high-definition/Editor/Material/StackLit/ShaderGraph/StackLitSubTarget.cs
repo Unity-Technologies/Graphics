@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor StackLitDebug = new FieldDescriptor(string.Empty, "StackLitDebug", "_STACKLIT_DEBUG");
         public static FieldDescriptor CapHazinessIfNotMetallic = new FieldDescriptor(string.Empty, "CapHazinessIfNotMetallic", "");
         public static FieldDescriptor GeometricSpecularAA = new FieldDescriptor(kSpecular, "GeometricAA", "_ENABLE_GEOMETRIC_SPECULAR_AA 1");
+        public static FieldDescriptor AllowiffusionProfileReflectanceOverride = new FieldDescriptor(kSpecular, "AllowDiffusionProfileReflectanceOverride", "_OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE");
 
         // Screen Space Specular Occlusion Base Mode
         public static FieldDescriptor SSSpecularOcclusionBaseModeOff = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "Off", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED");
@@ -202,6 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HonorPerLightMinRoughness, stackLitData.honorPerLightMinRoughness);
             context.AddField(ShadeBaseUsingRefractedAngles, stackLitData.shadeBaseUsingRefractedAngles);
             context.AddField(StackLitDebug, stackLitData.debug);
+            context.AddField(AllowiffusionProfileReflectanceOverride, stackLitData.allowDiffusionProfileReflectanceOverride);
 
             // Screen Space Specular Occlusion Base Mode
             context.AddField(SSSpecularOcclusionBaseModeOff, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Off);
