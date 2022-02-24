@@ -221,6 +221,8 @@ class VisualEffectAssetEditor : Editor
 
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
+            m_VisualEffect.pause = s_AnimatePreviewState == 0;
+            m_NeedsRender = true;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
             m_VisualEffectGO.transform.localPosition = Vector3.zero;
@@ -231,8 +233,8 @@ class VisualEffectAssetEditor : Editor
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
             m_FrameCount = 0;
-            m_Distance = 10;
-            m_Angles = Vector3.forward;
+            m_Distance = 0;
+            m_Angles = Vector2.zero;
 
             if (s_CubeWireFrame == null)
             {
@@ -293,8 +295,9 @@ class VisualEffectAssetEditor : Editor
 
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
-    Vector3 m_Angles;
+    Vector2 m_Angles;
     float m_Distance;
+    bool m_NeedsRender;
     Bounds m_CurrentBounds;
 
     int m_FrameCount = 0;
@@ -324,7 +327,6 @@ class VisualEffectAssetEditor : Editor
         if (EditorGUI.EndChangeCheck())
         {
             m_VisualEffect.pause = s_AnimatePreviewState == 0;
-            m_FrameCount = 0;
         }
 
         GUI.enabled = IsAnimated;
@@ -348,69 +350,71 @@ class VisualEffectAssetEditor : Editor
 
         bool isRepaint = (Event.current.type == EventType.Repaint);
 
-        if (m_PreviewTexture == null || IsAnimated)
+        Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
+        if (renderer == null)
+            return;
+
+        m_NeedsRender |= VFXPreviewGUI.TryDrag2D(ref m_Angles, r);
+
+        if (renderer.bounds.size != Vector3.zero)
         {
-            m_Angles = VFXPreviewGUI.Drag2D(m_Angles, r);
-            Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
-            if (renderer == null)
-                return;
+            m_CurrentBounds = renderer.bounds;
 
-            if (renderer.bounds.size != Vector3.zero)
+            //make sure that none of the bounds values are 0
+            if (m_CurrentBounds.size.x == 0)
             {
-                m_CurrentBounds = renderer.bounds;
-
-                //make sure that none of the bounds values are 0
-                if (m_CurrentBounds.size.x == 0)
-                {
-                    Vector3 size = m_CurrentBounds.size;
-                    size.x = (m_CurrentBounds.size.y + m_CurrentBounds.size.z) * 0.1f;
-                    m_CurrentBounds.size = size;
-                }
-
-                if (m_CurrentBounds.size.y == 0)
-                {
-                    Vector3 size = m_CurrentBounds.size;
-                    size.y = (m_CurrentBounds.size.x + m_CurrentBounds.size.z) * 0.1f;
-                    m_CurrentBounds.size = size;
-                }
-
-                if (m_CurrentBounds.size.z == 0)
-                {
-                    Vector3 size = m_CurrentBounds.size;
-                    size.z = (m_CurrentBounds.size.x + m_CurrentBounds.size.y) * 0.1f;
-                    m_CurrentBounds.size = size;
-                }
+                Vector3 size = m_CurrentBounds.size;
+                size.x = (m_CurrentBounds.size.y + m_CurrentBounds.size.z) * 0.1f;
+                m_CurrentBounds.size = size;
             }
 
-            if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
+            if (m_CurrentBounds.size.y == 0)
             {
-                float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x +
-                                             m_CurrentBounds.size.y * m_CurrentBounds.size.y +
-                                             m_CurrentBounds.size.z * m_CurrentBounds.size.z);
-                m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
-                ComputeFarNear();
-            }
-            else
-            {
-                ComputeFarNear();
+                Vector3 size = m_CurrentBounds.size;
+                size.y = (m_CurrentBounds.size.x + m_CurrentBounds.size.z) * 0.1f;
+                m_CurrentBounds.size = size;
             }
 
-            if (Event.current.isScrollWheel)
+            if (m_CurrentBounds.size.z == 0)
             {
-                m_Distance *= 1 + (Event.current.delta.y * .015f);
+                Vector3 size = m_CurrentBounds.size;
+                size.z = (m_CurrentBounds.size.x + m_CurrentBounds.size.y) * 0.1f;
+                m_CurrentBounds.size = size;
             }
-
-            if (m_Mat == null)
-                m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
         }
 
-        m_FrameCount++;
+        if (m_FrameCount <= kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
+        {
+            float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x +
+                                         m_CurrentBounds.size.y * m_CurrentBounds.size.y +
+                                         m_CurrentBounds.size.z * m_CurrentBounds.size.z);
+            m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
+            m_NeedsRender = true;
+            ComputeFarNear();
+        }
+        else
+        {
+            ComputeFarNear();
+        }
+
+        if (Event.current.isScrollWheel)
+        {
+            m_Distance *= 1 + Event.current.delta.y * .015f;
+            m_NeedsRender = true;
+        }
+
+        if (m_Mat == null)
+            m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
         if (!isRepaint)
             return;
 
-        if (m_PreviewTexture == null || IsAnimated)
+        m_FrameCount++;
+        bool needsRender = IsAnimated || m_NeedsRender;
+
+        if (m_PreviewTexture == null || needsRender)
         {
+            m_NeedsRender = false;
             m_PreviewUtility.BeginPreview(r, background);
 
             Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
@@ -419,7 +423,7 @@ class VisualEffectAssetEditor : Editor
             m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
             m_PreviewUtility.Render(true);
             var tmpPreview = m_PreviewUtility.EndPreview();
-            if (IsAnimated)
+            if (needsRender)
             {
                 m_PreviewTexture = tmpPreview;
             }
@@ -432,7 +436,7 @@ class VisualEffectAssetEditor : Editor
             }
         }
 
-        if (IsAnimated)
+        if (needsRender)
         {
             PreviewRenderUtility.DrawPreview(r, m_PreviewTexture);
             Repaint();
@@ -831,7 +835,7 @@ class VisualEffectAssetEditor : Editor
 static class VFXPreviewGUI
 {
     static int sliderHash = "Slider".GetHashCode();
-    public static Vector2 Drag2D(Vector2 scrollPosition, Rect position)
+    public static bool TryDrag2D(ref Vector2 scrollPosition, Rect position)
     {
         int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
         Event evt = Event.current;
@@ -844,7 +848,7 @@ static class VFXPreviewGUI
                     evt.Use();
                     EditorGUIUtility.SetWantsMouseJumping(1);
                 }
-                break;
+                return false;
             case EventType.MouseDrag:
                 if (GUIUtility.hotControl == id)
                 {
@@ -853,13 +857,14 @@ static class VFXPreviewGUI
                     evt.Use();
                     GUI.changed = true;
                 }
-                break;
+                return true;
             case EventType.MouseUp:
                 if (GUIUtility.hotControl == id)
                     GUIUtility.hotControl = 0;
                 EditorGUIUtility.SetWantsMouseJumping(0);
-                break;
+                return false;
         }
-        return scrollPosition;
+
+        return false;
     }
 }
