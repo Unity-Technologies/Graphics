@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_Denoise, Styles.denoise);
                         using (new IndentLevelScope())
                         {
-                                PropertyField(m_DenoiserRadius, Styles.denoiseRadius);
+                            PropertyField(m_DenoiserRadius, Styles.denoiseRadius);
                         }
                     }
                 }
