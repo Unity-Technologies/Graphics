@@ -427,17 +427,19 @@ float2 GetClosestFragmentCompute(float2 positionSS)
 }
 
 
-float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale)
+float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale, float currDepth)
 {
     // TODO: This needs some refinement, it can lead to some annoying flickering coming back on strong camera movement.
 #if VELOCITY_REJECTION
 
-    float prevMVLen = Fetch(VelocityMagnitudeTexture, prevUV, 0, rtHandleScale).x;
+    float2 prevMVAndDepth = Fetch(VelocityMagnitudeTexture, prevUV, 0, rtHandleScale).xy;
+    float prevMVLen = prevMVAndDepth.x;
+    float prevDepth = prevMVAndDepth.y;
     float diff = abs(mvLen - prevMVLen);
 
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
     diff -= 0.015935382;
-    float val = saturate(diff * speedRejectionFactor);
+    float val = saturate(diff * speedRejectionFactor) /** (1-saturate(abs((currDepth - prevDepth))))**/;
     return lerp(blendFactor, 0.97f, val*val);
 
 #else

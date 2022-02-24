@@ -152,9 +152,9 @@ Shader "Hidden/HDRP/TemporalAA"
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
         #ifdef SHADER_API_PSSL
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
+        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u1);
         #else
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
+        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u2);
         #endif
 #endif
 
@@ -286,22 +286,14 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
                 motionVectorLength = length(motionVector
-#if 1
+#if 0
                     - GetCameraMV(uv, closestDepth)
 #endif
                 );
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
-                float mvLenForCorners = motionVectorLenInPixels;
-#if VELOCITY_REJECTION
 
-
-                float4 prevMVLen4 = Gather(_InputVelocityMagnitudeHistory, prevUV, 0, _RTHandleScaleForTAAHistory);
-                float prevMVLen = Max3(prevMVLen4.x, prevMVLen4.y, max(prevMVLen4.z, prevMVLen4.w));
-
-                mvLenForCorners = motionVectorLenInPixels * 10 + prevMVLen;
-#endif
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), mvLenForCorners, _TAAURenderScale);
+                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
@@ -328,7 +320,7 @@ Shader "Hidden/HDRP/TemporalAA"
 #if VELOCITY_REJECTION
                 // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
                 lengthMV = motionVectorLength * 10;
-                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
+                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory, closestDepth);
 #endif
 
 #ifdef TAA_UPSCALE
@@ -355,7 +347,7 @@ Shader "Hidden/HDRP/TemporalAA"
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
 #if VELOCITY_REJECTION && !defined(POST_DOF)
-            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
+            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = float2(lengthMV, closestDepth);
 #endif
             // -------------------------------------------------------------
         }
