@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -88,6 +89,51 @@ namespace UnityEngine.Rendering.Universal.Internal
                 drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+            }
+        }
+
+        public class PassData
+        {
+            public TextureHandle cameraDepthTexture;
+            public RenderingData renderingData;
+        }
+
+        public TextureHandle Render(out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+            const int k_DepthBufferBits = 32;
+
+            using (var builder = graph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, new ProfilingSampler("DepthOnly Prepass")))
+            {
+                passData.renderingData = renderingData;
+                var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
+
+                passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+
+                // TODO: culling?
+                // builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    var renderingData = data.renderingData;
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
+                    {
+                        var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                        var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+                        drawSettings.perObjectData = PerObjectData.None;
+
+                        context.renderContext.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                    }
+                });
+
+                return passData.cameraDepthTexture;
             }
         }
     }

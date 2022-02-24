@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -95,6 +96,67 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             normalHandle = null;
             depthHandle = null;
+        }
+
+        public class PassData
+        {
+            public TextureHandle cameraDepthTexture;
+            public TextureHandle cameraNormalsTexture;
+            public RenderingData renderingData;
+        }
+
+        public TextureHandle Render(out TextureHandle cameraNormalsTexture, out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+            const int k_DepthBufferBits = 32;
+
+            using (var builder = graph.AddRenderPass<PassData>("DepthNormals Prepass", out var passData, new ProfilingSampler("DepthNormals Prepass")))
+            {
+                passData.renderingData = renderingData;
+
+                var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
+
+                //TODO: Handle Deferred case, see _CameraNormalsTexture logic in UniversalRenderer.cs 
+                var normalDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+                normalDescriptor.depthBufferBits = 0;
+                // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
+                normalDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                                                    // Find compatible render-target format for storing normals.
+                                                    // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
+                                                    // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
+                                                    // TODO: deferred
+     
+                normalDescriptor.graphicsFormat = GetGraphicsFormat();
+                cameraNormalsTexture = UniversalRenderer.CreateRenderGraphTexture(graph, normalDescriptor, "_CameraNormalsTexture", true);
+
+                passData.cameraNormalsTexture = builder.UseColorBuffer(cameraNormalsTexture, 0);
+                passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+
+                // TODO: culling?
+                // builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    var renderingData = data.renderingData;
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
+                    {
+                        var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                        var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
+                        drawSettings.perObjectData = PerObjectData.None;
+
+                        context.renderContext.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                    }
+                });
+
+                return passData.cameraDepthTexture;
+            }
         }
     }
 }

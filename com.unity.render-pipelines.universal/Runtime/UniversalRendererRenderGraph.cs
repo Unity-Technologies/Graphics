@@ -17,6 +17,11 @@ namespace UnityEngine.Rendering.Universal
 
             public TextureHandle mainShadowsTexture;
             public TextureHandle additionalShadowsTexture;
+
+            // camear opauqe/depth/normal
+            public TextureHandle cameraOpaqueTexture;
+            public TextureHandle cameraDepthTexture;
+            public TextureHandle cameraNormalsTexture;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -46,8 +51,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
-
-
+            #region Intermediate Camera Target
             // TODO: check if we need intermediate textures.Enable this code when we actually need the logic. Or can we always create them and RG will allocate only if needed?
             // bool createColorTexture = false;
             // createColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
@@ -94,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
 
                 frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
             }
+            #endregion
         }
 
         protected override void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -127,6 +132,19 @@ namespace UnityEngine.Rendering.Universal
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
                 frameResources.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
 
+            // TODO: check require DepthPrepass
+            //if (requiresDepthPrepass)
+            {
+                // TODO: check requires normal
+                //if (renderPassInputs.requiresNormalsTexture))
+                {
+                    m_DepthNormalPrepass.Render(out frameResources.cameraDepthTexture, out frameResources.cameraNormalsTexture, ref renderingData);
+                }
+                //else
+                {
+                    m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
+                }
+            }
         }
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -139,6 +157,11 @@ namespace UnityEngine.Rendering.Universal
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
             // TODO: Skybox
+
+            //if (requiresDepthCopyPass)
+            {
+                m_CopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
+            }
 
             m_RenderTransparentForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
         }
