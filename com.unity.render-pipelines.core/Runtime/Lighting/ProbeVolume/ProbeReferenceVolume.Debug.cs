@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
         public float subdivisionDelayInSeconds = 1;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
-        public float subdivisionViewCullingDistance = 5000.0f;
+        public float subdivisionViewCullingDistance = 500.0f;
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
