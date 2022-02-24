@@ -13,7 +13,7 @@ CBUFFER_START(ShaderVariablesCapsuleShadows)
     uint _FirstDepthMipOffsetX;
     uint _FirstDepthMipOffsetY;
     uint _CapsuleCasterCount;
-    uint _CapsulePad0;
+    uint _CapsuleShadowsSkipEmptyTiles;
     uint _CapsuleTileDebugMode;
     uint _CapsuleDebugCasterIndex;
     uint _CapsuleDebugIsHalfResolution;

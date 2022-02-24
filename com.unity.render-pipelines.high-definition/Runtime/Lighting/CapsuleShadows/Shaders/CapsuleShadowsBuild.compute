@@ -37,8 +37,8 @@ void Main(uint dispatchThreadId : SV_DispatchThreadID)
 		| (caster.casterType << 8)
 		| casterIndex
 		;
-	_CapsuleOccluderShadows[dispatchThreadId] = capsule;
 
-	if (dispatchThreadId == 0)
-		_CapsuleShadowCounters[0] = _CapsuleOccluderCount*_CapsuleCasterCount;
+	uint writeIndex;
+	InterlockedAdd(_CapsuleShadowCounters[COUNTER_SLOT_CAPSULE_SHADOW_COUNT], 1, writeIndex);
+	_CapsuleOccluderShadows[writeIndex] = capsule;
 }

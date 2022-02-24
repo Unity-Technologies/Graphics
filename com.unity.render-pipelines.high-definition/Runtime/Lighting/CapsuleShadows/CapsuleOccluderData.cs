@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SplitDepthRangeBit = 0x00100000,
         HalfResBit = 0x00200000,
         NeedsUpscaleBit = 0x00400000,
+        NeedsTileCheckBit = 0x00800000,
         UpscaleShift = 24,
         UpscaleMask = 0x03000000,
     }
@@ -109,7 +110,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 positionRWS;     // point/spot light only
         public float radiusWS;          // point/spot light only
 
-        public const int maxCapsuleShadowCasterCount = 4;
+        public const int maxCapsuleShadowCasterCount = 8;
+
+        public const int counterSlotUpscaleIndirectArgs = 0;
+        public const int counterSlotCapsuleShadowCount = 3;
+        public const int numCapsuleShadowCounters = 4;
 
         internal CapsuleShadowCaster(CapsuleShadowCasterType _casterType, float _shadowRange, float _maxCosTheta)
         {

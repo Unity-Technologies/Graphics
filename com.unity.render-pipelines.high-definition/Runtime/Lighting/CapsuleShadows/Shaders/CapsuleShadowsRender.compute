@@ -19,6 +19,7 @@ StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be c
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows; // TODO: could be constant buffer (need to write array from earlier pass)
 StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsRenderOutput);
+RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBits);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
 #endif
@@ -57,6 +58,7 @@ struct CasterCullingData
 groupshared CasterRenderData s_casterRenderData[MAX_SLICE_COUNT];
 groupshared CasterCullingData s_casterCullingData[MAX_SLICE_COUNT*DEPTH_RANGE_COUNT];
 groupshared uint s_casterValidBits;
+groupshared uint s_casterNonZeroBits;
 
 groupshared uint s_packedVisibility[TILE_SIZE*TILE_SIZE*MAX_SLICE_COUNT/2]; // UNORM16 per slice per pixel
 
@@ -242,18 +244,17 @@ void UpdateVisibility(uint flatThreadIndex, uint casterIndex, float occlusion)
     s_packedVisibility[entryIndex] = packedValue;
 }
 
-float ReadVisibility(uint flatThreadIndex, uint casterIndex)
+uint ReadVisibilityU(uint flatThreadIndex, uint casterIndex)
 {
     uint entryIndex = (casterIndex/2)*TILE_SIZE*TILE_SIZE + flatThreadIndex;
     uint packedValue = s_packedVisibility[entryIndex];
 
-    uint visibilityUnorm;
+    uint visibilityU;
     if ((casterIndex & 1) == 0)
-        visibilityUnorm = packedValue & 0xffffU;
+        visibilityU = packedValue & 0xffffU;
     else
-        visibilityUnorm = packedValue >> 16;
-
-    return (float)visibilityUnorm*(1.f/65535.f);
+        visibilityU = packedValue >> 16;
+    return visibilityU;
 }
 
 void CapsuleShadowLoop(
@@ -268,7 +269,7 @@ void CapsuleShadowLoop(
     float3 normalWS = float3(fullResCoord.x, fullResCoord.y, INVALID_NORMAL_TAG);
 
     // loop over capsules in batches
-    uint shadowCount = _CapsuleShadowCounters[0];
+    uint shadowCount = _CapsuleShadowCounters[COUNTER_SLOT_CAPSULE_SHADOW_COUNT];
     for (uint shadowBaseIndex = 0; shadowBaseIndex < shadowCount; shadowBaseIndex += 64)
     {
         // clear state
@@ -355,7 +356,7 @@ void CapsuleShadowLoop(
                         normalWS);
                 }
 #ifdef CAPSULE_TILE_DEBUG
-                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_INDIRECT)
+                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_INDIRECT_CAPSULES)
                     ++processedCapsuleCounter;
 #endif
             }
@@ -394,7 +395,7 @@ void CapsuleShadowLoop(
                         normalWS);
                 }
 #ifdef CAPSULE_TILE_DEBUG
-                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT)
+                if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DIRECT_CAPSULES)
                     ++processedCapsuleCounter;
 #endif
             }
@@ -465,10 +466,13 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     // early out if tile is all far clip
     if (s_depthMinU[0] == DEPTH_MIN_EMPTY)
     {
-#ifdef CAPSULE_TILE_DEBUG
         if (flatThreadIndex == 0)
+        {
+            _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
+#ifdef CAPSULE_TILE_DEBUG
             _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #endif
+        }
         return;
     }
 
@@ -551,16 +555,20 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 
     // zero caster state
     s_casterValidBits = 0;
+    s_casterNonZeroBits = 0;
     GroupMemoryBarrierWithGroupSync();
 
     // check the casters vs each depth range as a pre-process
     bool useSecondDepthRange = (s_depthMinU[0] != s_depthMinU[1] || s_depthMaxU[0] != s_depthMaxU[1]);
     if (!CastersIntersectTile(flatThreadIndex, useSecondDepthRange))
     {
-#ifdef CAPSULE_TILE_DEBUG
         if (flatThreadIndex == 0)
+        {
+            _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
+#ifdef CAPSULE_TILE_DEBUG
             _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #endif
+        }
         return;
     }
 
@@ -574,6 +582,8 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 #ifdef CAPSULE_TILE_DEBUG
     if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DEPTH_RANGE)
         processedCapsuleCounter = useSecondDepthRange ? 16 : 4;
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_LIGHTS_ACTIVE)
+        processedCapsuleCounter = countbits(s_casterValidBits);
 #endif
     [branch]
     if (useSecondDepthRange)
@@ -586,11 +596,28 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     while (casterValidBits != 0)
     {
         uint casterIndex = firstbitlow(casterValidBits);
-        casterValidBits &= ~(1U << casterIndex);
-        _CapsuleShadowsRenderOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(ReadVisibility(flatThreadIndex, casterIndex));
+        uint casterBit = 1U << casterIndex;
+        casterValidBits &= ~casterBit;
+
+        uint visibilityU = ReadVisibilityU(flatThreadIndex, casterIndex);
+        bool processTile = (_CapsuleShadowsSkipEmptyTiles != 0) ? (visibilityU != 0xffffU) : (flatThreadIndex == 0);
+        if (processTile)
+            InterlockedOr(s_casterNonZeroBits, casterBit);
+        GroupMemoryBarrierWithGroupSync();
+
+        if ((s_casterNonZeroBits & casterBit) != 0)
+            _CapsuleShadowsRenderOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
     }
+    uint tileBits = s_casterNonZeroBits;
 #ifdef CAPSULE_TILE_DEBUG
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_LIGHTS_OUTPUT)
+        processedCapsuleCounter = countbits(tileBits);  
+#endif
     if (flatThreadIndex == 0)
+    {
+        _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = tileBits;
+#ifdef CAPSULE_TILE_DEBUG
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = processedCapsuleCounter;
 #endif
+    }
 }

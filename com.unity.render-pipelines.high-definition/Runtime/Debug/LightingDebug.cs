@@ -182,12 +182,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No capsule tile debug.</summary>
         None,
-        /// <summary>Show the number of depth ranges per tile.</summary>
+        /// <summary>Show the number of capsules used for direct shadows (counting all lights).</summary>
+        DirectCapsules,
+        /// <summary>Show the number of capsules used for indirect shadows.</summary>
+        IndirectCapsules,
+        /// <summary>Show the number of lights tested for capsule shadows.</summary>
+        LightsActive,
+        /// <summary>Show the number of lights with non-zero shadowing.</summary>
+        LightsOutput,
+        /// <summary>Show the number of depth ranges.</summary>
         DepthRange,
-        /// <summary>Show capsules used for indirect shadows.</summary>
-        Indirect,
-        /// <summary>Show capsules used for direct shadows.</summary>
-        Direct,
     }
 
     /// <summary>

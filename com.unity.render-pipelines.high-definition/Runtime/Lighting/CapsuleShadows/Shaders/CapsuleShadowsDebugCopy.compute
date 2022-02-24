@@ -10,7 +10,8 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
 
-TEXTURE2D_ARRAY(_CapsuleShadowsTexture);
+TEXTURE2D_ARRAY(_CapsuleShadowsVisibility);
+TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
 RW_TEXTURE2D_X(float, _CapsuleShadowsDebugOutput);
 
 [numthreads(8,8,1)]
@@ -19,9 +20,18 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 pixelCoord = dispatchThreadId.xy;
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
+    uint2 tileCoord = pixelCoord/8;
+    if (_CapsuleShadowIsHalfRes)
+        tileCoord /= 2;
+    uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
+
     uint2 inputCoord = pixelCoord;
     if (_CapsuleDebugIsHalfResolution != 0)
-        inputCoord = inputCoord/2;
+        inputCoord /= 2;
 
-    _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = _CapsuleShadowsTexture[uint3(inputCoord, _CapsuleDebugCasterIndex)].x;
+    float packedVisibility = 0.f;
+    if ((tileBits & (1U << _CapsuleDebugCasterIndex)) != 0)
+        packedVisibility = _CapsuleShadowsVisibility[uint3(inputCoord, _CapsuleDebugCasterIndex)].x;
+
+    _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = packedVisibility;
 }

@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle sssBuffer;
             public TextureHandle diffuseLightingBuffer;
 
-            public TextureHandle capsuleShadowsBuffer;
+            public CapsuleShadowsRenderOutput capsuleShadows;
             public TextureHandle ambientOcclusionBuffer;
             public TextureHandle ssrLightingBuffer;
             public TextureHandle ssgiLightingBuffer;
@@ -23,7 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var result = new LightingBuffers();
             // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
-            result.capsuleShadowsBuffer = builder.ReadTexture(buffers.capsuleShadowsBuffer);
+            result.capsuleShadows.visibility = builder.ReadTexture(buffers.capsuleShadows.visibility);
+            result.capsuleShadows.tileBits = builder.ReadTexture(buffers.capsuleShadows.tileBits);
             result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
             result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
             result.ssgiLightingBuffer = builder.ReadTexture(buffers.ssgiLightingBuffer);
@@ -35,7 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void BindGlobalLightingBuffers(in LightingBuffers buffers, CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTexture, buffers.capsuleShadowsBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsVisibility, buffers.capsuleShadows.visibility);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTileBits, buffers.capsuleShadows.tileBits);
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, buffers.ssgiLightingBuffer);
@@ -45,7 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsVisibility, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTileBits, defaultResources.blackTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, defaultResources.blackTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, defaultResources.blackTextureXR);

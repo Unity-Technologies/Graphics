@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
 
 TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput);
-RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsTexture);
+RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibility);
 
 [numthreads(8,8,1)]
 void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -34,7 +34,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
             {
                 float4 gather = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, gatherUV, casterIndex);
                 float upscaled = dot(gather, weights) * norm;
-                _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaled;
+                _CapsuleShadowsVisibility[uint3(pixelCoord, casterIndex)] = upscaled;
             }
         } break;
 
@@ -56,7 +56,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
                 float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, gatherUV1, casterIndex);
 
                 float upscaled = (dot(gather0, weights0) + dot(gather1, weights1)) * norm;
-                _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaled;
+                _CapsuleShadowsVisibility[uint3(pixelCoord, casterIndex)] = upscaled;
             }
         } break;
 
@@ -80,7 +80,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
                 float upscaled = (dot(gather0, gw0) + dot(gather1, gw1) + dot(gather2, gw2) + dot(gather3, gw3)) * norm;
 
                 //float upscaled = SAMPLE_TEXTURE2D_ARRAY_LOD(_CapsuleShadowsRenderOutput, s_linear_clamp_sampler, renderUV, casterIndex, 0.f);
-                _CapsuleShadowsTexture[uint3(pixelCoord, casterIndex)] = upscaled;
+                _CapsuleShadowsVisibility[uint3(pixelCoord, casterIndex)] = upscaled;
             }
         } break;
     }

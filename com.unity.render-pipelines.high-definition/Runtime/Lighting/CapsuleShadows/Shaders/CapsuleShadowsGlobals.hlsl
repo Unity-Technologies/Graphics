@@ -15,6 +15,7 @@
 #define _CapsuleIndirectShadowsEnabled      ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_INDIRECT_ENABLED_BIT) != 0)
 #define _CapsuleNeedsUpscale                ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_NEEDS_UPSCALE_BIT) != 0)
 #define _CapsuleShadowsUpscaleMethod        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_UPSCALE_MASK) >> CAPSULESHADOWFLAGS_UPSCALE_SHIFT)
+#define _CapsuleShadowsNeedsTileCheck       ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_NEEDS_TILE_CHECK_BIT) != 0)
 
 #define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_COUNT_MASK)
 #define _CapsuleIndirectShadowMethod        ((_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_METHOD_MASK) >> CAPSULESHADOWFLAGS_METHOD_SHIFT)

@@ -60,6 +60,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public CapsuleShadowResolutionParameter resolution = new CapsuleShadowResolutionParameter(CapsuleShadowResolution.Half);
 
         /// <summary>
+        /// Skip storing and upscaling results in tiles with no shadowing.
+        /// </summary>
+        public BoolParameter skipEmptyTiles = new BoolParameter(true);
+
+        /// <summary>
         /// The method to use for upscaling half resolution shadows to full resolution.
         /// </summary>
         public CapsuleShadowUpscaleMethodParameter upscaleMethod = new CapsuleShadowUpscaleMethodParameter(CapsuleShadowUpscaleMethod.SingleGather4);

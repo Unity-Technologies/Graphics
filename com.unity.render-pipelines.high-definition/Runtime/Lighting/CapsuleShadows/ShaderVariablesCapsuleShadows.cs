@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _FirstDepthMipOffsetX;
         public uint _FirstDepthMipOffsetY;
         public uint _CapsuleCasterCount;
-        public uint _CapsulePad0;
+        public uint _CapsuleShadowsSkipEmptyTiles;
 
         public uint _CapsuleTileDebugMode;
         public uint _CapsuleDebugCasterIndex;
