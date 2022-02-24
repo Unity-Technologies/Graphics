@@ -118,7 +118,7 @@ Pass
     #define VFX_SRP_SURFACE_INPUTS SurfaceDescriptionInputs
     #endif
     $features.graphVFX: $include("VFXConfig.template.hlsl")
-    $features.graphVertex: $include("BuildVertexDescriptionInputs.template.hlsl")
+    $features.graphVertex: $include("BuildTerrainVertexDescriptionInputs.template.hlsl")
     $features.graphPixel: $include("BuildTerrainSurfaceDescriptionInputs.template.hlsl")
 
     // --------------------------------------------------

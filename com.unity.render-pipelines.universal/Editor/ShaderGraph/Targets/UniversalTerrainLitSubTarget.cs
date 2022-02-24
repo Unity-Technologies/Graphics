@@ -124,6 +124,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(StructFields.SurfaceDescriptionInputs.uv1);
             context.AddField(StructFields.SurfaceDescriptionInputs.uv2);
 
+            context.AddField(TerrainStructFields.SurfaceDescriptionInputs.uvSplat01);
+            context.AddField(TerrainStructFields.SurfaceDescriptionInputs.uvSplat23);
+
             // TerrainLit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -398,8 +401,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.texCoord3,
                     StructFields.Varyings.color,
                     StructFields.Varyings.screenPosition,
-                    UniversalStructFields.Varyings.uvSplat01,
-                    UniversalStructFields.Varyings.uvSplat23,
+                    TerrainStructFields.Varyings.uvSplat01,
+                    TerrainStructFields.Varyings.uvSplat23,
                     UniversalStructFields.Varyings.staticLightmapUV,
                     UniversalStructFields.Varyings.dynamicLightmapUV,
                     UniversalStructFields.Varyings.sh,
@@ -454,22 +457,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     shaderDependencies = new List<ShaderDependency>(),
                 };
 
-                result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular, CorePragmas.DOTSForward));
+                result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular, TerrainCorePragmas.DOTSForward));
                 result.passes.Add(TerrainLitPasses.GBuffer(target, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), TerrainCorePragmas.DOTSInstanced));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), TerrainCorePragmas.DOTSInstanced));
 
-                result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(TerrainLitPasses.Meta(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), TerrainCorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(TerrainLitPasses.Meta(target), TerrainCorePragmas.DOTSInstanced));
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(TerrainLitPasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(TerrainLitPasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(TerrainLitPasses.SceneSelection(target), TerrainCorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(TerrainLitPasses.ScenePicking(target), TerrainCorePragmas.DOTSDefault));
 
                 result.shaderDependencies.Add(TerrainDependencies.AddPassShader());
                 result.shaderDependencies.Add(TerrainDependencies.BaseMapShader());
@@ -520,6 +523,96 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
         #endregion
 
+        #region Pragmas
+        static class TerrainCorePragmas
+        {
+            private static InstancingOptions[] InstancingOptionList()
+            {
+                return new []
+                {
+                    InstancingOptions.AssumeUniformScaling,
+                    InstancingOptions.NoMatrices,
+                    InstancingOptions.NoLightProbe,
+                    InstancingOptions.NoLightmap,
+                };
+            }
+
+            public static readonly PragmaCollection Default = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target20) },
+                { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection Instanced = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target30) },
+                { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection Forward = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target30) },
+                { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection DOTSDefault = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target45) },
+                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target45) },
+                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.DOTSInstancing },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection DOTSForward = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target45) },
+                { Pragma.ExcludeRenderers(new[] {Platform.GLES, Platform.GLES3, Platform.GLCore}) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.DOTSInstancing },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+
+            public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target45) },
+                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
+                { Pragma.InstancingOptions(InstancingOptionList()) },
+                { Pragma.DOTSInstancing },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
+            };
+        }
+        #endregion
+
         #region Passes
         static class TerrainLitPasses
         {
@@ -556,7 +649,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                    pragmas = pragmas ?? TerrainCorePragmas.Forward,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
                     keywords = new KeywordCollection() { LitKeywords.Forward },
                     includes = TerrainCoreIncludes.Forward,
@@ -606,7 +699,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.DepthNormalsOnly,
@@ -652,7 +745,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = CorePragmas.DOTSGBuffer,
+                    pragmas = TerrainCorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
                     includes = TerrainCoreIncludes.GBuffer,
@@ -701,7 +794,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.ShadowCaster(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
                     includes = TerrainCoreIncludes.ShadowCaster,
@@ -741,7 +834,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthOnly(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.DepthOnly,
@@ -781,7 +874,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.Meta,
-                    pragmas = CorePragmas.Default,
+                    pragmas = TerrainCorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                     includes = TerrainCoreIncludes.Meta,
@@ -825,7 +918,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.SceneSelection(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.SceneSelection,
@@ -865,7 +958,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.ScenePicking(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.ScenePicking,
@@ -879,6 +972,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
+            }
+        }
+        #endregion
+
+        #region TerrainStructFields
+        static class TerrainStructFields
+        {
+            public struct Varyings
+            {
+                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
+                    UniversalStructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD0", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
+                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
+                    UniversalStructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
+            }
+
+            public static class SurfaceDescriptionInputs
+            {
+                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
+                    StructFields.SurfaceDescriptionInputs.name, "uvSplat01", "UNIVERSAL_TERRAIN_SPLAT01", ShaderValueType.Float4);
+                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
+                    StructFields.SurfaceDescriptionInputs.name, "uvSplat23", "UNIVERSAL_TERRAIN_SPLAT23", ShaderValueType.Float4);
             }
         }
         #endregion
@@ -952,13 +1066,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static readonly FieldCollection Forward = new FieldCollection()
             {
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
+                StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                UniversalStructFields.Varyings.uvSplat01,
-                UniversalStructFields.Varyings.uvSplat23,
+                StructFields.Varyings.instanceID,
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -968,13 +1082,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
             {
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
+                StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                UniversalStructFields.Varyings.uvSplat01,
-                UniversalStructFields.Varyings.uvSplat23,
+                StructFields.Varyings.instanceID,
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -986,8 +1100,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.positionOS,
                 StructFields.Attributes.normalOS,
-                UniversalStructFields.Varyings.uvSplat01,
-                UniversalStructFields.Varyings.uvSplat23,
                 StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            // needed for meta UVs
@@ -996,6 +1108,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord0,                        // needed for meta UVs
                 StructFields.Varyings.texCoord1,                        // VizUV
                 StructFields.Varyings.texCoord2,                        // LightCoord
+                StructFields.Varyings.instanceID,
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
             };
         }
         #endregion

@@ -90,5 +90,10 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.FaceSign:                                 BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 #undef BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 
+#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+#elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+#else
+#endif
+
     return output;
 }
