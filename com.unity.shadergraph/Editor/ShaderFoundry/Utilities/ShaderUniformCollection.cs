@@ -10,15 +10,13 @@ namespace UnityEditor.ShaderFoundry
         List<UniformDeclarationData> shaderUniforms = new List<UniformDeclarationData>();
 
         public bool ReadOnly { get; private set; }
+        public bool HasDotsProperties { get; private set; }
         public IEnumerable<UniformDeclarationData> Uniforms => shaderUniforms;
 
         public void Add(UniformDeclarationData uniform)
         {
-            if (ReadOnly)
-            {
-                Debug.LogError("ERROR: attempting to add uniform to readonly collection");
+            if (ReportErrorIfReadOnly())
                 return;
-            }
 
             if (visitedUniforms.TryGetValue(uniform.Name, out var existingUniform))
             {
@@ -27,16 +25,25 @@ namespace UnityEditor.ShaderFoundry
             }
             visitedUniforms.Add(uniform.Name, uniform);
             shaderUniforms.Add(uniform);
+
+            if (uniform.DataSource == UniformDataSource.PerInstance)
+                HasDotsProperties = true;
         }
 
         public void AddRange(IEnumerable<UniformDeclarationData> uniforms)
         {
+            if (ReportErrorIfReadOnly())
+                return;
+
             foreach (var uniform in uniforms)
                 Add(uniform);
         }
 
         public void Add(ShaderPropertyCollection shaderProperties)
         {
+            if (ReportErrorIfReadOnly())
+                return;
+
             foreach (var property in shaderProperties.Properties)
             {
                 var propertyData = PropertyDeclarations.Extract(property.Type, property.Name, property.Attributes);
@@ -50,12 +57,12 @@ namespace UnityEditor.ShaderFoundry
             ReadOnly = true;
         }
 
-        public bool HasDotsProperties()
+        bool ReportErrorIfReadOnly()
         {
-            foreach (var uniformDeclaration in Uniforms)
+            if (ReadOnly)
             {
-                if (uniformDeclaration.DataSource == UniformDataSource.PerInstance)
-                    return true;
+                Debug.LogError("ERROR: attempting to add uniform to readonly collection");
+                return true;
             }
             return false;
         }

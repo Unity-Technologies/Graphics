@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderFoundry
 
             public ShaderBuilder Builder = new ShaderBuilder();
 
-            public UniformBufferObject(UniformDataSource dataSource, string bufferName)
+            internal UniformBufferObject(UniformDataSource dataSource, string bufferName)
             {
                 DataSource = dataSource;
                 BufferName = bufferName;
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderFoundry
 
         public UniformBufferObject FindOrCreateBuffer(UniformDataSource dataSource, string customBufferName)
         {
-            string bufferName = GetBufferName(dataSource, customBufferName);
+            string bufferName = GetBufferName(ref dataSource, customBufferName);
 
             // If the buffer doesn't exist, create it
             if (!namedBufferMap.TryGetValue(bufferName, out var buffer))
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderFoundry
             return buffer;
         }
 
-        string GetBufferName(UniformDataSource dataSource, string customBufferName)
+        string GetBufferName(ref UniformDataSource dataSource, string customBufferName)
         {
             switch (dataSource)
             {
@@ -71,6 +71,7 @@ namespace UnityEditor.ShaderFoundry
                     if (string.IsNullOrEmpty(customBufferName))
                     {
                         Debug.LogError($"Data source {UniformDataSource.Custom} cannot have an empty buffer name.");
+                        dataSource = UniformDataSource.Global;
                         return string.Empty;
                     }
                     return customBufferName;

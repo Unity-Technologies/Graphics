@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderFoundry
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
             if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
-                throw new Exception("Shouldn't happen");
+                throw new Exception($"Unable to find legacy pass with reference name '{pass.ReferenceName}'");
 
             ActiveFields targetActiveFields, shaderGraphActiveFields;
             var customInterpolatorFields = new List<FieldDescriptor>();
@@ -867,7 +867,7 @@ namespace UnityEditor.ShaderFoundry
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsProperties = shaderUniforms.HasDotsProperties();
+            bool hasDotsProperties = shaderUniforms.HasDotsProperties;
 
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
