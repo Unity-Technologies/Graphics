@@ -298,16 +298,13 @@ namespace UnityEngine.Rendering.Universal
             m_UseDrawProcedural = renderingData.cameraData.xr.enabled;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
+            var cmd = renderingData.commandBuffer;
             if (m_IsFinalPass)
             {
-                var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingRenderFinalPostProcessing))
                 {
                     RenderFinalPass(cmd, ref renderingData);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
             else if (CanRunOnTile())
             {
@@ -318,14 +315,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Regular render path (not on-tile) - we do everything in a single command buffer as it
                 // makes it easier to manage temporary targets' lifetime
-                var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingRenderPostProcessing))
                 {
                     Render(cmd, ref renderingData);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
             m_ResetHistory = false;

@@ -818,7 +818,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var asset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings == null || !asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (globalSettings == null || asset == null || !asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
                 return;
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();

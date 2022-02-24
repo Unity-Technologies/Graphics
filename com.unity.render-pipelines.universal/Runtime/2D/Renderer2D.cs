@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
-                DebugHandler.Setup(context, ref cameraData);
+                DebugHandler.Setup(context, ref renderingData);
             }
 
 #if UNITY_EDITOR
@@ -206,14 +206,14 @@ namespace UnityEngine.Rendering.Universal
             RTHandle colorTargetHandle;
             RTHandle depthTargetHandle;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd,
                     out colorTargetHandle, out depthTargetHandle);
             }
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
 
             ConfigureCameraTarget(colorTargetHandle, depthTargetHandle);
 
