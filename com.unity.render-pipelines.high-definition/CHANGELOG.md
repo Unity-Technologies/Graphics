@@ -141,6 +141,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed probe volume baking not generating any probes on mac.
 - Fix a few UX issues in APV.
 - Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed the water rendering not working in wired mode.
 
 ## [14.0.0] - 2021-11-17
 

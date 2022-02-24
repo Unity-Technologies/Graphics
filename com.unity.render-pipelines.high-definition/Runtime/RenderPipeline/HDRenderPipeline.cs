@@ -2668,6 +2668,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var rendererListTransparent = renderContext.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
 
+                // Pass that renders the water surfaces as a wireframe (if water is enabled)
+                RenderWaterAsWireFrame(cmd, hdCamera);
+
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
