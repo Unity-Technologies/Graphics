@@ -541,6 +541,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { Pragma.Target(ShaderModel.Target20) },
                 { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+                { Pragma.MultiCompileInstancing },
                 { Pragma.InstancingOptions(InstancingOptionList()) },
                 { Pragma.Vertex("vert") },
                 { Pragma.Fragment("frag") },
@@ -548,7 +549,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly PragmaCollection Instanced = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target30) },
+                { Pragma.Target(ShaderModel.Target20) },
                 { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.InstancingOptions(InstancingOptionList()) },
@@ -558,7 +559,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly PragmaCollection Forward = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target30) },
+                { Pragma.Target(ShaderModel.Target20) },
                 { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
@@ -571,6 +572,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { Pragma.Target(ShaderModel.Target45) },
                 { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.MultiCompileInstancing },
                 { Pragma.InstancingOptions(InstancingOptionList()) },
                 { Pragma.Vertex("vert") },
                 { Pragma.Fragment("frag") },
@@ -780,8 +782,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     lightMode = "ShadowCaster",
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
                     validVertexBlocks = LitBlockMasks.Vertex,
@@ -821,8 +823,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = true,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
                     validVertexBlocks = LitBlockMasks.Vertex,
@@ -830,6 +832,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Fields
                     structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Forward,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -905,8 +908,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = false,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
                     validVertexBlocks = LitBlockMasks.Vertex,
@@ -945,8 +948,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = false,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kUberTemplatePath,
-                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
                     validVertexBlocks = LitBlockMasks.Vertex,
@@ -1269,10 +1272,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
+            const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
+            const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
+            const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
             const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
             const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
+            const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
+
             const string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
@@ -1289,11 +1297,41 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kForwardPass, IncludeLocation.Postgraph },
             };
 
-            public static readonly IncludeCollection DepthOnly = CoreIncludes.DepthOnly;
+            public static readonly IncludeCollection DepthOnly = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
 
-            public static readonly IncludeCollection DepthNormalsOnly = CoreIncludes.DepthNormalsOnly;
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kDepthOnlyPass, IncludeLocation.Postgraph },
+            };
 
-            public static readonly IncludeCollection ShadowCaster = CoreIncludes.ShadowCaster;
+            public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection ShadowCaster = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kShadowCasterPass, IncludeLocation.Postgraph },
+            };
 
             public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
@@ -1323,9 +1361,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kLightingMetaPass, IncludeLocation.Postgraph },
             };
 
-            public static readonly IncludeCollection SceneSelection = CoreIncludes.SceneSelection;
+            public static readonly IncludeCollection SceneSelection = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
 
-            public static readonly IncludeCollection ScenePicking = CoreIncludes.ScenePicking;
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSelectionPickingPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection ScenePicking = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kTerrainLitInput, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSelectionPickingPass, IncludeLocation.Postgraph },
+            };
         }
         #endregion
     }
