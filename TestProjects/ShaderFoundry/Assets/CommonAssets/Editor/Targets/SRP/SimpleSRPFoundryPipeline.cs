@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.Foundry
                 // per-camera built-in shader variables).
                 context.SetupCameraProperties(camera);
 
-                // render opaque objects using Deferred pass
+                // render opaque objects using Forward pass
                 var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
                 var drawingSettings = new DrawingSettings(new ShaderTagId("Foundry Unlit Forward"), sortingSettings);
                 var filterSettings = new FilteringSettings(RenderQueueRange.opaque);
