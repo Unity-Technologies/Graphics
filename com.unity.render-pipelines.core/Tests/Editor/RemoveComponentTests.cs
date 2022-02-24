@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Tests
                 [DisallowNull] Type componentToRemove,
                 [DisallowNull] Type[] componentsToAdd,
                 [DisallowNull] Type[] expectedComponents)
-                => GenericRemoveComponent(gameObject, componentToRemove, componentsToAdd, expectedComponents, RemoveComponent);
+                => GenericRemoveComponent(gameObject, componentToRemove, componentsToAdd, expectedComponents, RemoveComponentUtils.RemoveComponent);
 
             static void RemoveAdditionalComponent([DisallowNull] Component component)
             {
