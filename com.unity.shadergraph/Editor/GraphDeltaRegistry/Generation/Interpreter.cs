@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetBlockCode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry.Registry registry)
         {
             var builder = new ShaderBuilder();
             var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
