@@ -16,7 +16,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "Matrix Transpose" },
+            { "Name.Synonyms", "Transpose" },
             { "Tooltip", "returns the transposed value of the input matrix" },
             { "Parameters.In.Tooltip", "input matrix" },
             { "Parameters.Out.Tooltip", "the transposed value of the input matrix" },

@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "Any",
             "Out = any(In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Bool, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

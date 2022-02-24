@@ -8,7 +8,7 @@ namespace com.unity.shadergraph.defs
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
-            "Floors",
+            "Floor",
             "Out = floor(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -17,11 +17,10 @@ namespace com.unity.shadergraph.defs
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "down" },
-            { "Tooltip", "subtracts the input from one" },
+            { "Tooltip", "rounds the input down to the nearest whole number" },
             { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input subtracted from one" },
-            { "Category", "Math, Range" },
-            { "DisplayName", "One Minus" }
+            { "Parameters.Out.Tooltip", "the input rounded down to the nearest whole number" },
+            { "Category", "Math, Round" }
         };
     }
 }

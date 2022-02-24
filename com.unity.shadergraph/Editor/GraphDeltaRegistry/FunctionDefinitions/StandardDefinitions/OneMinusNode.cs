@@ -10,7 +10,7 @@ namespace com.unity.shadergraph.defs
             1,
             "OneMinus",
             "Out = 1 - In;",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] {1f, 0f, 0f, 0f}),
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] {1f, 1f, 1f, 1f}),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 

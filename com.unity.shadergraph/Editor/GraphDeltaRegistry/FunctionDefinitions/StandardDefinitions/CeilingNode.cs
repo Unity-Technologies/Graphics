@@ -16,11 +16,11 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "clamp" },
-            { "Tooltip", "Clamps the input between 0 and 1" },
+            { "Name.Synonyms", "up" },
+            { "Tooltip", "rounds the input up to the nearest whole number" },
             { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input clamped between 0 and 1" },
-            { "Category", "Math, Range" }
+            { "Parameters.Out.Tooltip", "the input rounded up to the nearest whole number" },
+            { "Category", "Math, Round" }
         };
     }
 }

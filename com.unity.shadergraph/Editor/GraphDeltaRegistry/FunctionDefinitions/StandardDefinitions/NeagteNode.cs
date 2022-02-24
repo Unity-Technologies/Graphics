@@ -4,7 +4,7 @@ using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 namespace com.unity.shadergraph.defs
 {
 
-    internal class NegatehNode : IStandardNode
+    internal class NegateNode : IStandardNode
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,

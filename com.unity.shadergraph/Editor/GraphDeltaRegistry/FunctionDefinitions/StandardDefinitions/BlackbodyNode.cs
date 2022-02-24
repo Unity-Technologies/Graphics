@@ -12,7 +12,6 @@ namespace com.unity.shadergraph.defs
             @"
 {
     //based on data by Mitchell Charity http://www.vendian.org/mncharity/dir3/blackbody/
-    color = float3(255.0, 255.0, 255.0);
     color.x = 56100000. * pow(Temperature,(-3.0 / 2.0)) + 148.0;
     color.y = 100.04 * log(Temperature) - 623.6;
     if (Temperature > 6500.0) color.y = 35200000.0 * pow(Temperature,(-3.0 / 2.0)) + 184.0;
@@ -21,18 +20,16 @@ namespace com.unity.shadergraph.defs
     if (Temperature < 1000.0) color *= Temperature/1000.0;
     Out = color;
 }",
-            new ParameterDescriptor("Temperature", TYPE.Any, Usage.In, new float[] {512f, 0f, 0f, 0f}),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out),
-            new ParameterDescriptor("color", TYPE.Vec3, Usage.Local)
+            new ParameterDescriptor("Temperature", TYPE.Any, Usage.In, new float[] {512f}),
+            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+            new ParameterDescriptor("color", TYPE.Vec3, Usage.Local,new float[] { 255.0f, 255.0f, 255.0f})
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "!" },
-            { "Tooltip", "returns the opposite of the input " },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the opposite of the input " },
-            { "Category", "Utility, Logic" }
+            { "Tooltip", "samples a Gradient that simulates the effect of black body radiation" },
+            { "Parameters.Out.Tooltip", "a blackbody color value determined by the input temperature" },
+            { "Category", "Input, Gradient" }
         };
     }
 }

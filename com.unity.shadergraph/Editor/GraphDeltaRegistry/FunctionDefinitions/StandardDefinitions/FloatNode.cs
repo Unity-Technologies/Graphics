@@ -10,15 +10,15 @@ namespace com.unity.shadergraph.defs
             1,
             "Float",
             "Out = In;",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Float, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Tooltip", "a single channel value with a decimal" },
             { "Name.Synonyms", "Vector 1, 1, v1, vec1, scalar" },
-            { "Category", "Math, Round" }
+            { "Category", "Input, Basic" }
         };
     }
 }

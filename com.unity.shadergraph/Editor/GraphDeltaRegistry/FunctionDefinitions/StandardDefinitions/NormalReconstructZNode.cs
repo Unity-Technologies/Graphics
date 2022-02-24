@@ -11,23 +11,23 @@ namespace com.unity.shadergraph.defs
             "NormalReconstructZ",
             @"
 {
-    reconstructZ = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
-    normalVector = float3(In.x, In.y, reconstructZ);
+    normalVector.x = In.x;
+    normalVector.y = In.y;
+    normalVector.z = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
     Out = normalize(normalVector);
 }",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
-            new ParameterDescriptor("reconstructZ", TYPE.Float, Usage.Local),
+            new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
             new ParameterDescriptor("normalVector", TYPE.Vec3, Usage.Local)
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "sawtooth wave" },
+            { "Name.Synonyms", "derive z" },
             { "Tooltip", "creates a normal from just the X and Y components" },
             { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "returma normal from just the X and Y components" },
-            { "Category", "Math, Wave" },
+            { "Parameters.Out.Tooltip", "return normal from just the X and Y components" },
+            { "Category", "Artistic, Normal" },
             { "DisplayName", "Normal Reconstruct Z" }
         };
     }
