@@ -16,6 +16,9 @@
 
 #pragma only_renderers d3d11 ps5
 
+// Needed for the ray miss and the last bounce indirect diffuse lighting
+#pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -29,6 +32,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
@@ -76,19 +81,44 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Fetch the direction of the ray
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
 
-    float3 finalColor = 0.0f;
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
+    float3 finalColor = 0.0f;
     if (RayTracingGBufferIsSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
 
-        if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy)
-            finalColor = RayTraceReflectionProbes(sourcePosInput.positionWS, rayDirection, weight);
-
-        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight == 0.0f)
+        #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+        // Try the APV if enabled
+        if(_EnableProbeVolumes && _RayTracingAPVRayMiss)
         {
-            finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz;
+            // Read the pixel normal
+            NormalData normalData;
+            DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+            BuiltinData apvBuiltinData;
+            ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
+
+            // Read from the APV
+            EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(sourcePosInput.positionWS),
+                normalData.normalWS, -normalData.normalWS, 
+                GetWorldSpaceNormalizeViewDir(sourcePosInput.positionWS), 
+                sourcePosInput.positionSS, 
+                apvBuiltinData.bakeDiffuseLighting,
+                apvBuiltinData.backBakeDiffuseLighting); // Not used
+
+            // Propagate the value to the final color and set the weight to 1.0
+            finalColor = apvBuiltinData.bakeDiffuseLighting;
+            weight = 1.0;
+        }
+        #endif
+
+        if ((RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy) && weight < 1.0f)
+            finalColor += RayTraceReflectionProbes(sourcePosInput.positionWS, rayDirection, weight);
+
+        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight < 1.0f)
+        {
+            finalColor += SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz * (1.0 - weight);
             weight = 1.0;
         }
 
@@ -158,8 +188,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
     float3 specularLighting = lightLoopOutput.specularLighting;
-
     finalColor = (diffuseLighting + specularLighting);
+
     // Apply fog attenuation
     ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, rayDistance, finalColor, true);
 
