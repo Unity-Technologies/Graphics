@@ -243,6 +243,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        bool m_AllowiffusionProfileReflectanceOverride;
+        public bool allowDiffusionProfileReflectanceOverride
+        {
+            get => m_AllowiffusionProfileReflectanceOverride;
+            set => m_AllowiffusionProfileReflectanceOverride = value;
+        }
+
+        [SerializeField]
         bool m_Debug;
         public bool debug
         {

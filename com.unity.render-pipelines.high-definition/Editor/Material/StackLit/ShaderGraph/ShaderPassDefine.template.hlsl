@@ -54,6 +54,7 @@ $SpecularOcclusionConeFixupMethod.BoostBSDFRoughness:               #define _BEN
 $SpecularOcclusionConeFixupMethod.TiltDirectionToGeomNormal:        #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM
 $SpecularOcclusionConeFixupMethod.BoostAndTilt:                     #define _BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)
 
+$Specular.AllowDiffusionProfileReflectanceOverride:   #define _OVERRIDE_DIFFUSION_PROFILE_REFLECTANCE
 // If we use subsurface scattering, enable output split lighting
 #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
 #define OUTPUT_SPLIT_LIGHTING

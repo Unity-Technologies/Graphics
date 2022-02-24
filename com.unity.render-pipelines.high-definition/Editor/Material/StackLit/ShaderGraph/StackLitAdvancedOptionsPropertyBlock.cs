@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit specific advanced properties GUI
             //context.AddLabel("Advanced Options", 0);
             AddProperty("Anisotropy For Area Lights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 0);
-
+            AddProperty("Allow overriding Reflectance From Diffusion Profile", () => stackLitData.allowDiffusionProfileReflectanceOverride, (newValue) => stackLitData.allowDiffusionProfileReflectanceOverride = newValue, 1);
             // Per Punctual/Directional Lights
             context.AddLabel("Per Punctual/Directional Lights:", 0);
             if (stackLitData.coat)
