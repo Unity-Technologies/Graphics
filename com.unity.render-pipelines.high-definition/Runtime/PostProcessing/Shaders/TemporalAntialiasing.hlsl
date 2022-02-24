@@ -207,6 +207,53 @@ CTYPE QuadReadColorAcrossDiagonal(CTYPE c, int2 positionSS)
 // ---------------------------------------------------
 
 
+// ---------------------
+#define TAA_NONLINEARITY_TYPE 1
+
+float linear_to_perceptual(float a) {
+#if 0 == TAA_NONLINEARITY_TYPE
+    return a;
+#elif 1 == TAA_NONLINEARITY_TYPE
+    return sqrt(max(0.0, a));
+#elif 2 == TAA_NONLINEARITY_TYPE
+    return max(0.0, log(1.0 + sqrt(max(0.0, a))));
+#elif 3 == TAA_NONLINEARITY_TYPE
+    return max(0.0, 1.0 - exp(-max(0.0, a)));
+#elif 4 == TAA_NONLINEARITY_TYPE
+    const float k = 0.25;   // Linear part end
+
+    return a < k
+        ? max(0.0, a)
+        : k - 0.5 + sqrt(a - k + 0.25);
+#else
+    return 0;
+#endif
+}
+
+float perceptual_to_linear(float a) {
+#if 0 == TAA_NONLINEARITY_TYPE
+    return a;
+#elif 1 == TAA_NONLINEARITY_TYPE
+    return a * a;
+#elif 2 == TAA_NONLINEARITY_TYPE
+    a = exp(a) - 1.0;
+    return a * a;
+#elif 3 == TAA_NONLINEARITY_TYPE
+    return max(0.0, -log(1.0 - a));
+#elif 4 == TAA_NONLINEARITY_TYPE
+    const float k = 0.25;   // Linear part end
+
+    return a < k
+        ? max(0.0, a)
+        : pow(a - k + 0.5, 2) + k - 0.25;
+#else
+    return 0;
+#endif
+}
+
+
+//------------------------
+
 float GetLuma(CTYPE color)
 {
 #if YCOCG
@@ -217,24 +264,43 @@ float GetLuma(CTYPE color)
 #endif
 }
 
-float3 ToPerceptual(CTYPE c)
+float3 ToPerceptual(CTYPE v)
 {
-    float maxFactor = max(Max3(c.r, c.g, c.b), 1e-7f);
-    return c.rgb * sqrt(maxFactor) / maxFactor;
+#if PERCEPTUAL_SPACE
+
+    float max_comp = Max3(v.r, v.g, v.b);
+    return v * linear_to_perceptual(max_comp) / max(1e-20, max_comp);
+
+#else
+    return v;
+#endif
+    //float maxFactor = max(Max3(c.r, c.g, c.b), 1e-7f);
+
+    //return c.rgb * max(0.0, log(1.0 + sqrt(max(0.0, maxFactor)))) / maxFactor;
+    //return c.rgb * sqrt(maxFactor) / maxFactor;
 }
 
-float3 ToLinear(float3 perceptualRGB)
+float3 ToLinear(float3 v)
 {
-    float maxFactor = max(Max3(perceptualRGB.r, perceptualRGB.g, perceptualRGB.b), 1e-7f);
-    return perceptualRGB * maxFactor;
+#if PERCEPTUAL_SPACE
+
+    float max_comp = Max3(v.r, v.g, v.b);
+    return v * perceptual_to_linear(max_comp) / max(1e-20, max_comp);
+#else
+    return v;
+#endif
+
+    //float maxFactor = max(Max3(perceptualRGB.r, perceptualRGB.g, perceptualRGB.b), 1e-7f);
+    //maxFactor = exp(maxFactor) - 1.0;
+    //return perceptualRGB * maxFactor * maxFactor / maxFactor;
+
+    //return perceptualRGB * maxFactor;
 }
 
 
 CTYPE ConvertToWorkingSpace(CTYPE rgb)
 {
-#if PERCEPTUAL_SPACE
     rgb = ToPerceptual(rgb);
-#endif
 
 #if YCOCG
     float3 ycocg = RGBToYCoCg(rgb.xyz);
@@ -258,11 +324,7 @@ float3 ConvertToOutputSpace(float3 color)
     float3 rgb = color;
 #endif
 
-#if PERCEPTUAL_SPACE
     return ToLinear(rgb);
-#else
-    return rgb;
-#endif
 }
 
 // ---------------------------------------------------
@@ -359,11 +421,11 @@ CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
     float2 tc3 = historyBufferInfo.zw   * (tc1 + 2.0);
     float2 tc12 = historyBufferInfo.zw  * (tc1 + w2 / w12);
 
-    CTYPE s0 = Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
-    CTYPE s1 = Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
-    CTYPE s2 = Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
-    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
-    CTYPE s4 = Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
+    CTYPE s0 = ToPerceptual(Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE);
+    CTYPE s1 = ToPerceptual(Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE);
+    CTYPE s2 = ToPerceptual(Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE);
+    CTYPE s3 = ToPerceptual(Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE);
+    CTYPE s4 = ToPerceptual(Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, rtHandleScale).CTYPE_SWIZZLE);
 
     float cw0 = (w12.x * w0.y);
     float cw1 = (w0.x * w12.y);
@@ -412,7 +474,7 @@ CTYPE GetFilteredHistory(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
 
     history = clamp(history, 0, CLAMP_MAX);
 
-    return ConvertToWorkingSpace(history);
+    return RGBToYCoCg(history);
 }
 
 // ---------------------------------------------------
