@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -1008,6 +1009,44 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Light light = shadowLight.light;
             return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+        }
+
+        public class PassData
+        {
+            public TextureHandle shadowmapTexture;
+            public RenderingData renderingData;
+
+            public bool emptyShadowmap;
+        }
+
+        public void Render(RenderGraph graph, ref RenderingData renderingData)
+        {
+            using (var builder = graph.AddRenderPass<PassData>("Additional Lights Shadowmap", out var passData, new ProfilingSampler("Additional Lights Shadowmap")))
+            {
+
+                passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_AdditionalLightsShadowmapHandle.rt.descriptor, "Additional Shadowmap", true);
+                passData.renderingData = renderingData;
+                passData.emptyShadowmap = m_CreateEmptyShadowmap;
+
+                if (!m_CreateEmptyShadowmap)
+                {
+                    builder.UseDepthBuffer(passData.shadowmapTexture, DepthAccess.Write);
+                    builder.WriteTexture(passData.shadowmapTexture);
+                }
+
+                // Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    if (data.emptyShadowmap)
+                    {
+                        SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                        return;
+                    }
+                    RenderAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                });
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
-        TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
         {
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
             rgDesc.dimension = desc.dimension;
@@ -117,6 +117,13 @@ namespace UnityEngine.Rendering.Universal
         private void OnBeforeRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
+
+            if (m_MainLightShadowCasterPass.Setup(ref renderingData))
+                m_MainLightShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+
+            if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
+                m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+
         }
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
