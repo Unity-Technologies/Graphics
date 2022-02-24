@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderDeferredLightingSinglePassMRT,
 
         // Capsule shadows
-        CapsuleShadowsBuild,
+        CapsuleShadowsBuildOccluderList,
         CapsuleShadowsRender,
         CapsuleShadowsUpscale,
         CapsuleShadowsDebugCopy,

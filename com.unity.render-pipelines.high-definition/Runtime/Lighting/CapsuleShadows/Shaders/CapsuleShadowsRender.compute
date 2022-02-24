@@ -18,8 +18,8 @@
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer (need array support)
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows; // TODO: could be constant buffer (need to write array from earlier pass)
 StructuredBuffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer? need to write from earlier pass
-RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsRenderOutput);
-RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBits);
+RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibilityOutput);
+RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
 #ifdef CAPSULE_TILE_DEBUG
 RW_TEXTURE2D_X(uint, _CapsuleTileDebug);
 #endif
@@ -468,7 +468,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     {
         if (flatThreadIndex == 0)
         {
-            _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
+            _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #ifdef CAPSULE_TILE_DEBUG
             _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #endif
@@ -564,7 +564,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
     {
         if (flatThreadIndex == 0)
         {
-            _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
+            _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #ifdef CAPSULE_TILE_DEBUG
             _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = 0;
 #endif
@@ -606,7 +606,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         GroupMemoryBarrierWithGroupSync();
 
         if ((s_casterNonZeroBits & casterBit) != 0)
-            _CapsuleShadowsRenderOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
+            _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
     }
     uint tileBits = s_casterNonZeroBits;
 #ifdef CAPSULE_TILE_DEBUG
@@ -615,7 +615,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
 #endif
     if (flatThreadIndex == 0)
     {
-        _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(pixelCoord/8)] = tileBits;
+        _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(pixelCoord/8)] = tileBits;
 #ifdef CAPSULE_TILE_DEBUG
         _CapsuleTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = processedCapsuleCounter;
 #endif

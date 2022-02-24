@@ -200,11 +200,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CapsuleOccluderCount = Shader.PropertyToID("_CapsuleOccluderCount");
         public static readonly int _CapsuleCasterCount = Shader.PropertyToID("_CapsuleCasterCount");
         public static readonly int _CapsuleShadowCounters = Shader.PropertyToID("_CapsuleShadowCounters");
-        public static readonly int _CapsuleShadowsRenderOutput = Shader.PropertyToID("_CapsuleShadowsRenderOutput");
         public static readonly int _CapsuleShadowsRenderOutputSize = Shader.PropertyToID("_CapsuleShadowsRenderOutputSize");
         public static readonly int _CapsuleShadowsDepthGatherParams = Shader.PropertyToID("_CapsuleShadowsDepthGatherParams");
         public static readonly int _CapsuleShadowsVisibility = Shader.PropertyToID("_CapsuleShadowsVisibility");
-        public static readonly int _CapsuleShadowsTileBits = Shader.PropertyToID("_CapsuleShadowsTileBits");        
+        public static readonly int _CapsuleShadowsVisibilityOutput = Shader.PropertyToID("_CapsuleShadowsVisibilityOutput");
+        public static readonly int _CapsuleShadowsTileBits = Shader.PropertyToID("_CapsuleShadowsTileBits");
+        public static readonly int _CapsuleShadowsTileBitsOutput = Shader.PropertyToID("_CapsuleShadowsTileBitsOutput");
         public static readonly int _CapsuleShadowsDebugOutput = Shader.PropertyToID("_CapsuleShadowsDebugOutput");
         public static readonly int _CapsuleTileDebug = Shader.PropertyToID("_CapsuleTileDebug");
         public static readonly int _CapsuleTileDebugSize = Shader.PropertyToID("_CapsuleTileDebugSize");
