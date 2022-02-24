@@ -800,12 +800,12 @@ namespace UnityEngine.Rendering.Universal
                     // is because this need to be called for each eye in multi pass VR.
                     // The side effect is that this will override some shader properties we already setup and we will have to
                     // reset them.
-                    if (data.cameraData.renderType == CameraRenderType.Base)
+                    //if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.renderContext.SetupCameraProperties(data.cameraData.camera);
                         //SetPerCameraShaderVariables(cmd, ref cameraData);
                     }
-                    else
+                    //else
                     {
                         // Set new properties
                         //SetPerCameraShaderVariables(cmd, ref cameraData);

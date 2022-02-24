@@ -131,7 +131,8 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RenderGraphTestPass.Render(renderingData.renderGraph, this);
+            if (renderingData.cameraData.renderType == CameraRenderType.Base)
+                RenderGraphTestPass.Render(renderingData.renderGraph, this);
 
             m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
