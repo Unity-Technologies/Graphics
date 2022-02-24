@@ -237,6 +237,19 @@ namespace UnityEditor.VFX
             base.Sanitize(version);
         }
 
+        public Material FindMaterial()
+        {
+            var graph = GetGraph();
+            if (graph)
+            {
+                var resource = graph.GetResource();
+                if (resource)
+                    return resource.FindMaterial(this);
+            }
+
+            return null;
+        }
+
         [SerializeField]
         private List<VFXSRPSubOutput> m_SubOutputs;
 
