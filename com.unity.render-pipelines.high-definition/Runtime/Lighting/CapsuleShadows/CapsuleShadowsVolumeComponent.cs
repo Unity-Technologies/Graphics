@@ -17,12 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public sealed class CapsuleShadowUpscaleMethodParameter : VolumeParameter<CapsuleShadowUpscaleMethod>
-    {
-        public CapsuleShadowUpscaleMethodParameter(CapsuleShadowUpscaleMethod value, bool overrideState = false) : base(value, overrideState) { }
-    }
-
-    [Serializable]
     public sealed class CapsuleShadowTextureFormatParameter : VolumeParameter<CapsuleShadowTextureFormat>
     {
         public CapsuleShadowTextureFormatParameter(CapsuleShadowTextureFormat value, bool overrideState = false) : base(value, overrideState) { }
@@ -63,16 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Skip storing and upscaling results in tiles with no shadowing.
         /// </summary>
         public BoolParameter skipEmptyTiles = new BoolParameter(true);
-
-        /// <summary>
-        /// The method to use for upscaling half resolution shadows to full resolution.
-        /// </summary>
-        public CapsuleShadowUpscaleMethodParameter upscaleMethod = new CapsuleShadowUpscaleMethodParameter(CapsuleShadowUpscaleMethod.SingleGather4);
-
-        /// <summary>
-        /// Upscale half resolution capsule shadows before shading.
-        /// </summary>
-        public BoolParameter upscaleBeforeShading = new BoolParameter(false);
 
         /// <summary>
         /// Choose a texture format for capsule shadows to be resolved to.

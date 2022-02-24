@@ -16,12 +16,12 @@ CBUFFER_START(ShaderVariablesCapsuleShadows)
     uint _CapsuleShadowsSkipEmptyTiles;
     uint _CapsuleRenderSizeInTilesX;
     uint _CapsuleRenderSizeInTilesY;
-    uint _CapsulePad0;
-    uint _CapsulePad1;
+    uint _CapsuleUpscaledSizeInTilesX;
+    uint _CapsuleUpscaledSizeInTilesY;
     uint _CapsuleTileDebugMode;
     uint _CapsuleDebugCasterIndex;
-    uint _CapsuleDebugIsHalfResolution;
-    uint _CapsulePad2;
+    uint _CapsulePad0;
+    uint _CapsulePad1;
 CBUFFER_END
 
 

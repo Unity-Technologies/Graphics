@@ -12,7 +12,7 @@
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluders;
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters;
 RWStructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows;
-RWStructuredBuffer<uint> _CapsuleShadowsIndirectArgs;
+RWBuffer<uint> _CapsuleShadowsIndirectArgs;
 
 uint _CapsuleOccluderCount;
 uint _CapsuleCasterCount;

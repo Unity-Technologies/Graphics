@@ -10,10 +10,8 @@
 
 RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
 TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
-RWStructuredBuffer<uint> _CapsuleShadowsIndirectArgs;
+RWBuffer<uint> _CapsuleShadowsIndirectArgs;
 RWStructuredBuffer<CapsuleShadowsUpscaleTile> _CapsuleShadowsTileList;
-
-#define _CapsuleRenderSizeInTiles uint2(_CapsuleRenderSizeInTilesX, _CapsuleRenderSizeInTilesY)
 
 [numthreads(8,8,1)]
 void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -27,7 +25,8 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // TODO: use gather (can do gather on UINT portably?)
     uint tileBits = 0;
-    for (uint i = 0; i < 4; ++i)
+    uint i;
+    for (i = 0; i < 4; ++i)
     {
         uint2 loadCoord = tileCoord - uint2(i & 1, i >> 1);
         if (all(loadCoord < _CapsuleRenderSizeInTiles))
@@ -37,16 +36,16 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // add an list entry if we need to upscale this tile
     if (tileBits != 0)
     {
-        uint writeIndex;
-        InterlockedAdd(_CapsuleShadowsIndirectArgs[CAPSULE_SHADOW_INDIRECT_INDEX_TILE_COUNT], 1, writeIndex);
-        _CapsuleShadowsTileList[writeIndex] = makeCapsuleShadowsUpscaleTile(tileCoord, tileBits);
+        uint tileIndex;
+        InterlockedAdd(_CapsuleShadowsIndirectArgs[CAPSULE_SHADOW_INDIRECT_INDEX_TILE_COUNT], 4, tileIndex);
+        _CapsuleShadowsTileList[tileIndex/4] = makeCapsuleShadowsUpscaleTile(tileCoord, tileBits);
     }
 
     // write tile bits for the output
-    for (uint i = 0; i < 4; ++i)
+    for (i = 0; i < 4; ++i)
     {
         uint2 storeCoord = 2*tileCoord + uint2(i & 1, i >> 1) - 1;
-        if (all(storeCoord < 2*_CapsuleRenderSizeInTiles))
+        if (all(storeCoord < _CapsuleUpscaledSizeInTiles))
             _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(storeCoord)] = tileBits;
     }
 }

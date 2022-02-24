@@ -17,7 +17,7 @@
 
 StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer (need array support)
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderShadows; // TODO: could be constant buffer (need to write array from earlier pass)
-StructuredBuffer<uint> _CapsuleShadowsIndirectArgs; // TODO: could be constant buffer? need to write from earlier pass
+Buffer<uint> _CapsuleShadowsIndirectArgs; // TODO: could be constant buffer? need to write from earlier pass
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibilityOutput);
 RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
 #ifdef CAPSULE_TILE_DEBUG

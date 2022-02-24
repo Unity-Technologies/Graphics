@@ -259,84 +259,22 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
 TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
-float4 _CapsuleShadowsDepthGatherParams;
-float4 _CapsuleShadowsRenderOutputSize;
 float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
 {
+    // TODO: small cross-pattern gather to handle MSAA edges
+
+    bool isValid = true;
+    if (_CapsuleShadowsNeedsTileCheck)
+    {
+        // check tile bits to avoid reading outside of written tiles
+        uint2 tileCoord = posInput.positionSS/8;
+        uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
+        isValid = ((tileBits & (1U << casterIndex)) != 0);
+    }
+
     float packedVisibility = 0.f;
-    if (_CapsuleNeedsUpscale)
-    {
-        float targetLinearDepth = max(abs(posInput.linearDepth), 0.01f);
-        CapsuleShadowDepthWeightParams params = GetCapsuleShadowsDepthWeightParams(targetLinearDepth, _ScreenSize.zw);
-
-        float2 halfResPositionSS = .5f*(float2(posInput.positionSS) + .5f);
-        switch (_CapsuleShadowsUpscaleMethod)
-        {
-            case CAPSULESHADOWUPSCALEMETHOD_SINGLE_GATHER4: {
-                float2 depthUV = (halfResPositionSS + _CapsuleShadowsDepthGatherParams.xy)*_CapsuleShadowsDepthGatherParams.zw;
-
-                float4 weights = GetCapsuleShadowsDepthWeights(depthUV, params) * GetCapsuleBilinearWeights(halfResPositionSS);
-                float norm = 1.f/SumElements(weights);
-
-                float2 gatherUV = halfResPositionSS*_CapsuleShadowsRenderOutputSize.zw;
-
-                float4 gather = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV, casterIndex);
-
-                packedVisibility = dot(gather, weights) * norm;
-            } break;
-
-            case CAPSULESHADOWUPSCALEMETHOD_DOUBLE_GATHER4: {
-                float2 halfResExtraSS = halfResPositionSS + ((frac(halfResPositionSS) < .5f) ? .5f : -.5f);
-
-                float2 depthUV0 = (halfResPositionSS + _CapsuleShadowsDepthGatherParams.xy)*_CapsuleShadowsDepthGatherParams.zw;
-                float2 depthUV1 = (halfResExtraSS + _CapsuleShadowsDepthGatherParams.xy)*_CapsuleShadowsDepthGatherParams.zw;
-
-                float4 weights0 = GetCapsuleShadowsDepthWeights(depthUV0, params) * GetCapsuleBilinearWeights(halfResPositionSS);
-                float4 weights1 = GetCapsuleShadowsDepthWeights(depthUV1, params) * CAPSULE_UPSCALE_SECOND_GATHER_WEIGHT;
-                float norm = 1.f/(SumElements(weights0) + SumElements(weights1));
-
-                float2 gatherUV0 = halfResPositionSS*_CapsuleShadowsRenderOutputSize.zw;
-                float2 gatherUV1 = halfResExtraSS*_CapsuleShadowsRenderOutputSize.zw;
-
-                float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV0, casterIndex);
-                float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV1, casterIndex);
-
-                packedVisibility = (dot(gather0, weights0) + dot(gather1, weights1)) * norm;
-            } break;
-
-            case CAPSULESHADOWUPSCALEMETHOD_QUAD_GATHER4: {
-                float2 depthUVBase = (halfResPositionSS + _CapsuleShadowsDepthGatherParams.xy - 1.f)*_CapsuleShadowsDepthGatherParams.zw;
-                float2 depthUVOffset = 2.f*_CapsuleShadowsDepthGatherParams.zw;
-
-                float4 gw0, gw1, gw2, gw3;
-                float norm;
-                GetCapsuleShadowsUpscaleWeights(halfResPositionSS, depthUVBase, depthUVOffset, params, gw0, gw1, gw2, gw3, norm);
-    
-                float2 gatherUVBase = (halfResPositionSS - 1.f)*_CapsuleShadowsRenderOutputSize.zw;
-                float3 gatherUVOffset = float3(2.f*_CapsuleShadowsRenderOutputSize.zw, 0.f);
-
-                float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.zz, casterIndex);
-                float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.xz, casterIndex);
-                float4 gather2 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.zy, casterIndex);
-                float4 gather3 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.xy, casterIndex);
-
-                packedVisibility = (dot(gather0, gw0) + dot(gather1, gw1) + dot(gather2, gw2) + dot(gather3, gw3)) * norm;
-            } break;
-        }
-    }
-    else
-    {
-        bool isValid = true;
-        if (_CapsuleShadowsNeedsTileCheck)
-        {
-            // check tile bits to avoid reading outside of written tiles
-            uint2 tileCoord = posInput.positionSS/8;
-            uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
-            isValid = ((tileBits & (1U << casterIndex)) != 0);
-        }
-        if (isValid)
-            packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, posInput.positionSS, casterIndex).x;
-    }
+    if (isValid)
+        packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, posInput.positionSS, casterIndex).x;
     return UnpackCapsuleVisibility(packedVisibility);
 }
 #endif

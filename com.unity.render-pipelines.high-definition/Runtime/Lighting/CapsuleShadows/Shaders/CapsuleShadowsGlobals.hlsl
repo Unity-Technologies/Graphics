@@ -13,8 +13,6 @@
 #define _CapsuleSplitDepthRange             ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_SPLIT_DEPTH_RANGE_BIT) != 0)
 #define _CapsuleDirectShadowsEnabled        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_DIRECT_ENABLED_BIT) != 0)
 #define _CapsuleIndirectShadowsEnabled      ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_INDIRECT_ENABLED_BIT) != 0)
-#define _CapsuleNeedsUpscale                ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_NEEDS_UPSCALE_BIT) != 0)
-#define _CapsuleShadowsUpscaleMethod        ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_UPSCALE_MASK) >> CAPSULESHADOWFLAGS_UPSCALE_SHIFT)
 #define _CapsuleShadowsNeedsTileCheck       ((_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_NEEDS_TILE_CHECK_BIT) != 0)
 
 #define _CapsuleIndirectShadowCount         (_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_COUNT_MASK)
@@ -22,6 +20,8 @@
 #define _CapsuleIndirectShadowExtra         ((_CapsuleIndirectShadowCountAndExtra & CAPSULESHADOWFLAGS_EXTRA_MASK) >> CAPSULESHADOWFLAGS_EXTRA_SHIFT)
 
 #define _FirstDepthMipOffset                uint2(_FirstDepthMipOffsetX, _FirstDepthMipOffsetY)
+#define _CapsuleRenderSizeInTiles           uint2(_CapsuleRenderSizeInTilesX, _CapsuleRenderSizeInTilesY)
+#define _CapsuleUpscaledSizeInTiles         uint2(_CapsuleUpscaledSizeInTilesX, _CapsuleUpscaledSizeInTilesY)
 
 uint GetCapsuleDirectOcclusionFlags()
 {

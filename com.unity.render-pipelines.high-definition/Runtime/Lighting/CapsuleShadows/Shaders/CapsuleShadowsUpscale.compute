@@ -9,92 +9,88 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
 
 RW_TEXTURE2D_ARRAY(float, _CapsuleShadowsVisibilityOutput);
-
+TEXTURE2D_ARRAY(_CapsuleShadowsVisibility);
 TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
 StructuredBuffer<CapsuleShadowsUpscaleTile> _CapsuleShadowsTileList;
 
-TEXTURE2D_ARRAY(_CapsuleShadowsVisibility);
+// 4x4 half res pixels with a border of 2, stored with row stride of 9 to avoid bank conflicts
+#define TEMP_ROW_STRIDE 9
+groupshared float s_tileTemp[TEMP_ROW_STRIDE*8];
+uint TempIndex(uint2 coordInTile)   { return coordInTile.y*TEMP_ROW_STRIDE + coordInTile.x; }
+
+float4 LoadTempRow(uint baseIndex)  { return float4(s_tileTemp[baseIndex], s_tileTemp[baseIndex + 1], s_tileTemp[baseIndex + 2], s_tileTemp[baseIndex + 3]); }
 
 [numthreads(8,8,1)]
-void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint2 groupID : SV_GroupID)
 {
-    uint entryIndex = groupID.x;
+    uint2 subTileCoord = uint2(groupID.x, groupID.x >> 1) & 1;
+    uint entryIndex = groupID.x/4;
     UNITY_XR_ASSIGN_VIEW_INDEX(groupID.y);
 
     CapsuleShadowsUpscaleTile tile = _CapsuleShadowsTileList[entryIndex];
-    uint2 tileCoord = GetUpscaleTileCoord(tile);
-    uint tileBits = GetUpscaleTileBits(tile);
+    uint2 outputTileCoord = GetUpscaleTileCoord(tile);
+    uint outputTileBits = GetUpscaleTileBits(tile);
 
-    // HACK
-    tileCoord = 2*tileCoord + uint2(groupID.z & 1, groupID.z >> 1);
+    uint writeTempIndex = TempIndex(pixelCoordInTile);
+    uint readTempIndexBase = TempIndex((pixelCoordInTile + 1)/2);
 
-    uint2 pixelCoord = (tileCoord << 3) | pixelCoordInTile;
+    // each list entry is for a 2x2 region of the output, so offset to the subregion for this threadgroup
+    outputTileCoord = 2*outputTileCoord + subTileCoord - 1;
+    if (any(outputTileCoord >= _CapsuleUpscaledSizeInTiles))
+        return;
 
-    float targetLinearDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x, _ZBufferParams);
-    CapsuleShadowDepthWeightParams params = GetCapsuleShadowsDepthWeightParams(targetLinearDepth, _CapsuleUpscaledSize.zw);
+    uint2 outputPixelCoord = outputTileCoord * 8 + pixelCoordInTile;
+    int2 inputLoadBase = int2(outputTileCoord * 4) - 2;
 
-    float2 halfResPositionSS = .5f*(float2(pixelCoord) + .5f);
-    switch (_CapsuleShadowsUpscaleMethod)
+    // cache half resolution depth in LDS
     {
-        case CAPSULESHADOWUPSCALEMETHOD_SINGLE_GATHER4: {
-            float2 depthUV = (halfResPositionSS + float2(_FirstDepthMipOffset))*_DepthPyramidTextureSize.zw;
+        uint2 loadCoord = uint2(max(inputLoadBase + int2(pixelCoordInTile), int2(0, 0)));
+        float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + loadCoord).x;
+        s_tileTemp[writeTempIndex] = LinearEyeDepth(deviceDepth, _ZBufferParams);
+    }
+    GroupMemoryBarrierWithGroupSync();
 
-            float4 weights = GetCapsuleShadowsDepthWeights(depthUV, params) * GetCapsuleBilinearWeights(halfResPositionSS);
-            float norm = 1.f/SumElements(weights);
+    // initialize spatial filter weights (1-2-1 filter interpolated)
+    float2 halfResPositionSS = .5f*(float2(outputPixelCoord) + .5f);
+    float2 t = frac(halfResPositionSS + .5f);
+    float4 wx = lerp(float4(1.f, 2.f, 1.f, 0.f), float4(0.f, 1.f, 2.f, 1.f), t.x);
+    float4 wy = lerp(float4(1.f, 2.f, 1.f, 0.f), float4(0.f, 1.f, 2.f, 1.f), t.y);
 
-            float2 gatherUV = halfResPositionSS*_CapsuleRenderTextureSize.zw;
-            for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
-            {
-                float4 gather = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV, casterIndex);
-                float upscaled = dot(gather, weights) * norm;
-                _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, casterIndex)] = upscaled;
-            }
-        } break;
+    // multiply in depth weights
+    float targetLinearDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, outputPixelCoord).x, _ZBufferParams);
+    CapsuleShadowDepthWeightParams params = GetCapsuleShadowsDepthWeightParams(targetLinearDepth, _CapsuleUpscaledSize.zw);
+    float4 w0 = wx * wy.x * GetCapsuleShadowsDepthWeight(LoadTempRow(readTempIndexBase + 0*TEMP_ROW_STRIDE), params);
+    float4 w1 = wx * wy.y * GetCapsuleShadowsDepthWeight(LoadTempRow(readTempIndexBase + 1*TEMP_ROW_STRIDE), params);
+    float4 w2 = wx * wy.z * GetCapsuleShadowsDepthWeight(LoadTempRow(readTempIndexBase + 2*TEMP_ROW_STRIDE), params);
+    float4 w3 = wx * wy.w * GetCapsuleShadowsDepthWeight(LoadTempRow(readTempIndexBase + 3*TEMP_ROW_STRIDE), params);
+    float norm = 1.f/SumElements(float4(SumElements(w0), SumElements(w1), SumElements(w2), SumElements(w3)));
+    GroupMemoryBarrierWithGroupSync();
 
-        case CAPSULESHADOWUPSCALEMETHOD_DOUBLE_GATHER4: {
-            float2 halfResExtraSS = halfResPositionSS + ((frac(halfResPositionSS) < .5f) ? .5f : -.5f);
+    // upscale only the casters we need for this tile
+    while (outputTileBits != 0)
+    {
+        uint casterIndex = firstbitlow(outputTileBits);
+        uint casterBit = 1U << casterIndex;
+        outputTileBits &= ~casterBit;
 
-            float2 depthUV0 = (halfResPositionSS + float2(_FirstDepthMipOffset))*_DepthPyramidTextureSize.zw;
-            float2 depthUV1 = (halfResExtraSS + float2(_FirstDepthMipOffset))*_DepthPyramidTextureSize.zw;
+        // cache to LDS
+        {
+            uint2 loadCoord = uint2(max(inputLoadBase + int2(pixelCoordInTile), int2(0, 0)));
+            uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, loadCoord/8);
+            float packedVisibility = 0.f;
+            if ((tileBits & casterBit) != 0)
+                packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, loadCoord, casterIndex).x;
+            s_tileTemp[writeTempIndex] = packedVisibility;
+        }
+        GroupMemoryBarrierWithGroupSync();
 
-            float4 weights0 = GetCapsuleShadowsDepthWeights(depthUV0, params) * GetCapsuleBilinearWeights(halfResPositionSS);
-            float4 weights1 = GetCapsuleShadowsDepthWeights(depthUV1, params) * CAPSULE_UPSCALE_SECOND_GATHER_WEIGHT; 
-            float norm = 1.f/(SumElements(weights0) + SumElements(weights1));
-
-            float2 gatherUV0 = halfResPositionSS*_CapsuleRenderTextureSize.zw;
-            float2 gatherUV1 = halfResExtraSS*_CapsuleRenderTextureSize.zw;
-            for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
-            {
-                float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV0, casterIndex);
-                float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUV1, casterIndex);
-
-                float upscaled = (dot(gather0, weights0) + dot(gather1, weights1)) * norm;
-                _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, casterIndex)] = upscaled;
-            }
-        } break;
-
-        case CAPSULESHADOWUPSCALEMETHOD_QUAD_GATHER4: {
-            float2 depthUVBase = (halfResPositionSS + float2(_FirstDepthMipOffset) - 1.f)*_DepthPyramidTextureSize.zw;
-            float2 depthUVOffset = 2.f*_DepthPyramidTextureSize.zw;
-
-            float4 gw0, gw1, gw2, gw3;
-            float norm;
-            GetCapsuleShadowsUpscaleWeights(halfResPositionSS, depthUVBase, depthUVOffset, params, gw0, gw1, gw2, gw3, norm);
-    
-            float2 gatherUVBase = (halfResPositionSS - 1.f)*_CapsuleRenderTextureSize.zw;
-            float3 gatherUVOffset = float3(2.f*_CapsuleRenderTextureSize.zw, 0.f);
-            for (uint casterIndex = 0; casterIndex < _CapsuleCasterCount; ++casterIndex)
-            {
-                float4 gather0 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.zz, casterIndex);
-                float4 gather1 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.xz, casterIndex);
-                float4 gather2 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.zy, casterIndex);
-                float4 gather3 = GATHER_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, s_linear_clamp_sampler, gatherUVBase + gatherUVOffset.xy, casterIndex);
-
-                float upscaled = (dot(gather0, gw0) + dot(gather1, gw1) + dot(gather2, gw2) + dot(gather3, gw3)) * norm;
-
-                //float upscaled = SAMPLE_TEXTURE2D_ARRAY_LOD(_CapsuleShadowsVisibility, s_linear_clamp_sampler, renderUV, casterIndex, 0.f);
-                _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, casterIndex)] = upscaled;
-            }
-        } break;
+        // apply the filter
+        float4 v0 = LoadTempRow(readTempIndexBase + 0*TEMP_ROW_STRIDE);
+        float4 v1 = LoadTempRow(readTempIndexBase + 1*TEMP_ROW_STRIDE);
+        float4 v2 = LoadTempRow(readTempIndexBase + 2*TEMP_ROW_STRIDE);
+        float4 v3 = LoadTempRow(readTempIndexBase + 3*TEMP_ROW_STRIDE);
+        float result = (dot(v0, w0) + dot(v1, w1) + dot(v2, w2) + dot(v3, w3))*norm;
+        _CapsuleShadowsVisibilityOutput[uint3(outputPixelCoord, casterIndex)] = result;
+        GroupMemoryBarrierWithGroupSync();
     }
 }

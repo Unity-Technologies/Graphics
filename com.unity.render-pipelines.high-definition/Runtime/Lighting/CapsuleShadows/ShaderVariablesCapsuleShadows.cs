@@ -14,12 +14,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint _CapsuleRenderSizeInTilesX;
         public uint _CapsuleRenderSizeInTilesY;
-        public uint _CapsulePad0;
-        public uint _CapsulePad1;
+        public uint _CapsuleUpscaledSizeInTilesX;
+        public uint _CapsuleUpscaledSizeInTilesY;
 
         public uint _CapsuleTileDebugMode;
         public uint _CapsuleDebugCasterIndex;
-        public uint _CapsuleDebugIsHalfResolution;
-        public uint _CapsulePad2;
+        public uint _CapsulePad0;
+        public uint _CapsulePad1;
     }
 }
