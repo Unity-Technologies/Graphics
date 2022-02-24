@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     normalDescriptor.graphicsFormat = DepthNormalOnlyPass.GetGraphicsFormat();
 
-                RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
+                RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, Vector2.one, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
 
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.Universal
                 var descriptor = cameraTargetDescriptor;
                 CopyColorPass.ConfigureDescriptor(downsamplingMethod, ref descriptor, out var filterMode);
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_OpaqueColor, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_OpaqueColor, Vector2.one, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
@@ -849,11 +849,11 @@ namespace UnityEngine.Rendering.Universal
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, Vector2.one, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, Vector2.one, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
 
                 var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera, cameraData);
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth, data);
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.Universal
             if (applyPostProcessing)
             {
                 var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
-                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, Vector2.one, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
 
             if (lastCameraInTheStack)

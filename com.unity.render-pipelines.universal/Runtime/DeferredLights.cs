@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
+            public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
 
             public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
@@ -502,6 +503,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerClearStencilPartialPass))
             {
+                Vector2 viewportScale = GbufferAttachments[0].useScaling ? new Vector2(GbufferAttachments[0].rtHandleProperties.rtHandleScale.x, GbufferAttachments[0].rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                cmd.SetGlobalVector(ShaderConstants._BlitScaleBias, viewportScale);
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.ClearStencilPartial]);
             }
         }
@@ -757,6 +760,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Lighting pass.
+                Vector2 viewportScale = GbufferAttachments[0].useScaling ? new Vector2(GbufferAttachments[0].rtHandleProperties.rtHandleScale.x, GbufferAttachments[0].rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                cmd.SetGlobalVector(ShaderConstants._BlitScaleBias, viewportScale);
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalSimpleLit]);
 
@@ -901,6 +906,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
+            Vector2 viewportScale = GbufferAttachments[0].useScaling ? new Vector2(GbufferAttachments[0].rtHandleProperties.rtHandleScale.x, GbufferAttachments[0].rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            cmd.SetGlobalVector(ShaderConstants._BlitScaleBias, viewportScale);
             cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
         }
 
@@ -916,6 +923,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredFogPass))
             {
                 // Fog parameters and shader variant keywords are already set externally.
+                Vector2 viewportScale = GbufferAttachments[0].useScaling ? new Vector2(GbufferAttachments[0].rtHandleProperties.rtHandleScale.x, GbufferAttachments[0].rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                cmd.SetGlobalVector(ShaderConstants._BlitScaleBias, viewportScale);
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.Fog]);
             }
         }

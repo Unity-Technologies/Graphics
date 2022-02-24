@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                     gbufferSlice.stencilFormat = GraphicsFormat.None;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_DeferredLights.GbufferAttachments[i], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: DeferredLights.k_GBufferNames[i]);
+                    RenderingUtils.ReAllocateIfNeeded(ref m_DeferredLights.GbufferAttachments[i], Vector2.one, gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: DeferredLights.k_GBufferNames[i]);
                     cmd.SetGlobalTexture(m_DeferredLights.GbufferAttachments[i].name, m_DeferredLights.GbufferAttachments[i].nameID);
                 }
             }

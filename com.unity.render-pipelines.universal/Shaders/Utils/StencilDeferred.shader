@@ -32,6 +32,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+    uniform float4 _BlitScaleBias;
+
     struct Attributes
     {
         float4 positionOS : POSITION;
@@ -98,6 +100,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #else
         output.screenUV.xy = output.screenUV.xy * 0.5 + 0.5 * output.screenUV.z;
         #endif
+
+        output.screenUV.xy = output.screenUV.xy * _BlitScaleBias.xy + _BlitScaleBias.zw;
 
         return output;
     }
