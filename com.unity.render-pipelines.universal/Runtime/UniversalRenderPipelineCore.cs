@@ -330,12 +330,12 @@ namespace UnityEngine.Rendering.Universal
             if (renderer != null)
             {
 #pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraColorTarget;
 #pragma warning restore 0618
                 bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
+                    renderingToBackBufferTarget |= targetId == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;

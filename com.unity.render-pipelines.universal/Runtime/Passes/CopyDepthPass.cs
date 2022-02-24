@@ -141,9 +141,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
                 //bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID;
-                bool yflip = !cameraData.IsCameraProjectionMatrixFlipped() && !isGameViewFinalTarget && SystemInfo.graphicsUVStartsAtTop;
+                bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    isGameViewFinalTarget |= destination.nameID == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
+#endif
+                bool yflip = (CopyToDepth || !cameraData.IsCameraProjectionMatrixFlipped() && !isGameViewFinalTarget) && SystemInfo.graphicsUVStartsAtTop;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, 1) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                cmd.SetViewport(cameraData.pixelRect);
                 Blitter.BlitTexture(cmd, source, scaleBias, m_CopyDepthMaterial, 0);
             }
         }
