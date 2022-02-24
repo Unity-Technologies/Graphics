@@ -22,15 +22,22 @@ void Main(uint dispatchThreadId : SV_DispatchThreadID)
 {
 	uint casterIndex = dispatchThreadId/_CapsuleOccluderCount;
 	uint occluderIndex = dispatchThreadId - casterIndex*_CapsuleOccluderCount;
-	if (casterIndex > _CapsuleCasterCount)
+	if (casterIndex >= _CapsuleCasterCount)
 		return;
 
 	CapsuleOccluderData capsule = _CapsuleOccluders[occluderIndex];
 	CapsuleShadowCaster caster = _CapsuleShadowCasters[casterIndex];
 
+	// check occluder intersects the light
+	if (caster.casterType == CAPSULESHADOWCASTERTYPE_POINT || caster.casterType == CAPSULESHADOWCASTERTYPE_SPOT)
+	{
+		float capsuleSignedDistance = CapsuleSignedDistance(caster.positionRWS - capsule.centerRWS, capsule.offset, capsule.axisDirWS, capsule.radius);
+		if (caster.lightRange < capsuleSignedDistance)
+			return;
+
+		// TODO: spot cone
+	}
 	// TODO: check occluder vs frustum
-	// TODO: check occluder vs light range
-	// TODO: only output visible shadows
 
 	capsule.packedData
 		= capsule.packedData

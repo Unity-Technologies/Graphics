@@ -167,13 +167,9 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
 bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint depthRangeIndex, float3 tileCenterWS, float tileRadiusWS)
 {
     float3 tileToCapsuleVec = capsuleData.centerRWS - tileCenterWS;
-    float3 tileToClosestPointOnCapsuleAxis
-        = tileToCapsuleVec
-        + clamp(RayClosestPoint(tileToCapsuleVec, capsuleData.axisDirWS, 0.f), -capsuleData.offset, capsuleData.offset)*capsuleData.axisDirWS;
-    float capsuleSignedDistanceFromTile = length(tileToClosestPointOnCapsuleAxis) - capsuleData.radius - tileRadiusWS;
+    float capsuleSignedDistanceFromTile = CapsuleSignedDistance(tileToCapsuleVec, capsuleData.offset, capsuleData.axisDirWS, capsuleData.radius) - tileRadiusWS;
 
     uint casterType = GetCapsuleCasterType(capsuleData);
-
     bool intersectsTile;
     if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
     {

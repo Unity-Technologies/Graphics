@@ -34,6 +34,17 @@ float RayClosestPoint(float3 ro, float3 rd, float3 p)
     return dot(rd, p - ro)/dot(rd, rd);
 }
 
+float CapsuleSignedDistance(
+    float3 capsuleCenter,
+    float capsuleOffset,
+    float3 capsuleAxisDir,
+    float capsuleRadius)
+{
+    float closestAxisT = RayClosestPoint(capsuleCenter, capsuleAxisDir, 0.f);
+    float3 closestPointOnAxis = capsuleCenter + clamp(closestAxisT, -capsuleOffset, capsuleOffset)*capsuleAxisDir;
+    return length(closestPointOnAxis) - capsuleRadius;
+}
+
 float ApproximateSphereOcclusion(
     float3 coneAxis,
     float coneCosTheta,
