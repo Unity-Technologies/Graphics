@@ -256,10 +256,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
             public ComputeShader screenSpaceGlobalIlluminationCS;
 
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsBuild.compute")]
-            public ComputeShader capsuleShadowsBuildCS;
+            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsBuildOccluderList.compute")]
+            public ComputeShader capsuleShadowsBuildOccluderListCS;
             [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsRender.compute")]
             public ComputeShader capsuleShadowsRenderCS;
+            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsBuildTileList.compute")]
+            public ComputeShader capsuleShadowsBuildTileListCS;
             [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsUpscale.compute")]
             public ComputeShader capsuleShadowsUpscaleCS;
             [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsDebugCopy.compute")]

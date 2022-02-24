@@ -1,0 +1,30 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsUpscale.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadows.cs.hlsl"
+
+RW_TEXTURE2D_X(uint, _CapsuleShadowsTileBitsOutput);
+TEXTURE2D_X_UINT(_CapsuleShadowsTileBits);
+
+#define _CapsuleRenderSizeInTiles uint2(_CapsuleRenderSizeInTilesX, _CapsuleRenderSizeInTilesY)
+
+[numthreads(8,8,1)]
+void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 tileCoord = dispatchThreadId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (any(tileCoord >= _CapsuleRenderSizeInTiles))
+        return;
+
+    uint tileBits = _CapsuleShadowsTileBits[COORD_TEXTURE2D_X(tileCoord)];
+    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(0,0))] = tileBits;
+    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(1,0))] = tileBits;
+    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(0,1))] = tileBits;
+    _CapsuleShadowsTileBitsOutput[COORD_TEXTURE2D_X(2*tileCoord + uint2(1,1))] = tileBits;
+}

@@ -12,6 +12,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _CapsuleCasterCount;
         public uint _CapsuleShadowsSkipEmptyTiles;
 
+        public uint _CapsuleRenderSizeInTilesX;
+        public uint _CapsuleRenderSizeInTilesY;
+        public uint _CapsulePad0;
+        public uint _CapsulePad1;
+
         public uint _CapsuleTileDebugMode;
         public uint _CapsuleDebugCasterIndex;
         public uint _CapsuleDebugIsHalfResolution;

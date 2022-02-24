@@ -331,8 +331,6 @@ float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
         {
             // check tile bits to avoid reading outside of written tiles
             uint2 tileCoord = posInput.positionSS/8;
-            if (_CapsuleShadowIsHalfRes)
-                tileCoord /= 2;
             uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
             isValid = ((tileBits & (1U << casterIndex)) != 0);
         }

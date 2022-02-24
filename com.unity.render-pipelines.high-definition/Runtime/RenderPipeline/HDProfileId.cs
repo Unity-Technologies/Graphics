@@ -190,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Capsule shadows
         CapsuleShadowsBuildOccluderList,
         CapsuleShadowsRender,
+        CapsuleShadowsBuildTileList,
         CapsuleShadowsUpscale,
         CapsuleShadowsDebugCopy,
 
