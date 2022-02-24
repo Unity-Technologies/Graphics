@@ -867,8 +867,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CapsuleShadowsRenderOutput renderOutput;
             if (capsuleShadows.pipeline.value == CapsuleShadowPipeline.InLightLoop || m_CapsuleOccluders.occluders.Count == 0 || m_CapsuleShadowAllocator.m_Casters.Count == 0)
             {
-                renderOutput.visibility = renderGraph.defaultResources.blackTexture;
-                renderOutput.tileBits = renderGraph.defaultResources.blackTextureXR;
+                renderOutput.visibility = renderGraph.defaultResources.blackTextureArray;
+                renderOutput.tileBits = renderGraph.defaultResources.blackUIntTextureXR;
             }
             else
             {

@@ -47,8 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsVisibility, defaultResources.blackTextureXR);
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTileBits, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsVisibility, defaultResources.blackTextureArray);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleShadowsTileBits, defaultResources.blackUIntTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, defaultResources.blackTextureXR);
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, defaultResources.blackTextureXR);
