@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering
         public SphericalHarmonicsL2[] sh;
         public byte[] validityNeighbourMask;
         public float[] validity;
-        public uint[] validityOld;
         public Vector3[] offsetVectors;
         public float[] touchupVolumeInteraction;
 
@@ -598,7 +597,6 @@ namespace UnityEngine.Rendering
             if (!m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
                 AddOccluders();
 
-
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -615,7 +613,6 @@ namespace UnityEngine.Rendering
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
                 cell.validityNeighbourMask = new byte[numProbes];
-                cell.validityOld = new uint[numProbes];
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.touchupVolumeInteraction = new float[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
@@ -736,11 +733,10 @@ namespace UnityEngine.Rendering
                     byte currValidityNeighbourMask = 255;
                     cell.validity[i] = currValidity;
                     cell.validityNeighbourMask[i] = currValidityNeighbourMask;
-                    cell.validityOld[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(currValidity, currValidityNeighbourMask);
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
+                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
 
                 ComputeValidityMasks(cell);
 
@@ -876,26 +872,11 @@ namespace UnityEngine.Rendering
             return value / 255.0f;
         }
 
-        static void WriteToShaderCoeffsL0L1(in SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
-        {
-            shaderCoeffsL0L1[offset + 0] = sh[0, 0]; shaderCoeffsL0L1[offset + 1] = sh[1, 0]; shaderCoeffsL0L1[offset + 2] = sh[2, 0]; shaderCoeffsL0L1[offset + 3] = sh[0, 1];
-            shaderCoeffsL0L1[offset + 4] = sh[1, 1]; shaderCoeffsL0L1[offset + 5] = sh[1, 2]; shaderCoeffsL0L1[offset + 6] = sh[1, 3]; shaderCoeffsL0L1[offset + 7] = sh[0, 2];
-            shaderCoeffsL0L1[offset + 8] = sh[2, 1]; shaderCoeffsL0L1[offset + 9] = sh[2, 2]; shaderCoeffsL0L1[offset + 10] = sh[2, 3]; shaderCoeffsL0L1[offset + 11] = sh[0, 3];
-        }
-
         static void WriteToShaderCoeffsL0L1(in SphericalHarmonicsL2 sh, NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz, int offset)
         {
             shaderCoeffsL0L1Rx[offset + 0] = SHFloatToHalf(sh[0, 0]); shaderCoeffsL0L1Rx[offset + 1] = SHFloatToHalf(sh[1, 0]); shaderCoeffsL0L1Rx[offset + 2] = SHFloatToHalf(sh[2, 0]); shaderCoeffsL0L1Rx[offset + 3] = SHFloatToHalf(sh[0, 1]);
             shaderCoeffsL1GL1Ry[offset + 0] = SHFloatToByte(sh[1, 1]); shaderCoeffsL1GL1Ry[offset + 1] = SHFloatToByte(sh[1, 2]); shaderCoeffsL1GL1Ry[offset + 2] = SHFloatToByte(sh[1, 3]); shaderCoeffsL1GL1Ry[offset + 3] = SHFloatToByte(sh[0, 2]);
             shaderCoeffsL1BL1Rz[offset + 0] = SHFloatToByte(sh[2, 1]); shaderCoeffsL1BL1Rz[offset + 1] = SHFloatToByte(sh[2, 2]); shaderCoeffsL1BL1Rz[offset + 2] = SHFloatToByte(sh[2, 3]); shaderCoeffsL1BL1Rz[offset + 3] = SHFloatToByte(sh[0, 3]);
-        }
-
-        static void WriteToShaderCoeffsL2(in SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
-        {
-            shaderCoeffsL2[offset + 0] = sh[0, 4]; shaderCoeffsL2[offset + 1] = sh[0, 5]; shaderCoeffsL2[offset + 2] = sh[0, 6]; shaderCoeffsL2[offset + 3] = sh[0, 7];
-            shaderCoeffsL2[offset + 4] = sh[1, 4]; shaderCoeffsL2[offset + 5] = sh[1, 5]; shaderCoeffsL2[offset + 6] = sh[1, 6]; shaderCoeffsL2[offset + 7] = sh[1, 7];
-            shaderCoeffsL2[offset + 8] = sh[2, 4]; shaderCoeffsL2[offset + 9] = sh[2, 5]; shaderCoeffsL2[offset + 10] = sh[2, 6]; shaderCoeffsL2[offset + 11] = sh[2, 7];
-            shaderCoeffsL2[offset + 12] = sh[0, 8]; shaderCoeffsL2[offset + 13] = sh[1, 8]; shaderCoeffsL2[offset + 14] = sh[2, 8];
         }
 
         static void WriteToShaderCoeffsL2(in SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3, int offset)
@@ -904,21 +885,6 @@ namespace UnityEngine.Rendering
             shaderCoeffsL2_1[offset + 0] = SHFloatToByte(sh[1, 4]); shaderCoeffsL2_1[offset + 1] = SHFloatToByte(sh[1, 5]); shaderCoeffsL2_1[offset + 2] = SHFloatToByte(sh[1, 6]); shaderCoeffsL2_1[offset + 3] = SHFloatToByte(sh[1, 7]);
             shaderCoeffsL2_2[offset + 0] = SHFloatToByte(sh[2, 4]); shaderCoeffsL2_2[offset + 1] = SHFloatToByte(sh[2, 5]); shaderCoeffsL2_2[offset + 2] = SHFloatToByte(sh[2, 6]); shaderCoeffsL2_2[offset + 3] = SHFloatToByte(sh[2, 7]);
             shaderCoeffsL2_3[offset + 0] = SHFloatToByte(sh[0, 8]); shaderCoeffsL2_3[offset + 1] = SHFloatToByte(sh[1, 8]); shaderCoeffsL2_3[offset + 2] = SHFloatToByte(sh[2, 8]);
-        }
-
-        static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
-        {
-            sh[0, 0] = shaderCoeffsL0L1[offset + 0]; sh[1, 0] = shaderCoeffsL0L1[offset + 1]; sh[2, 0] = shaderCoeffsL0L1[offset + 2]; sh[0, 1] = shaderCoeffsL0L1[offset + 3];
-            sh[1, 1] = shaderCoeffsL0L1[offset + 4]; sh[1, 2] = shaderCoeffsL0L1[offset + 5]; sh[1, 3] = shaderCoeffsL0L1[offset + 6]; sh[0, 2] = shaderCoeffsL0L1[offset + 7];
-            sh[2, 1] = shaderCoeffsL0L1[offset + 8]; sh[2, 2] = shaderCoeffsL0L1[offset + 9]; sh[2, 3] = shaderCoeffsL0L1[offset + 10]; sh[0, 3] = shaderCoeffsL0L1[offset + 11];
-        }
-
-        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
-        {
-            sh[0, 4] = shaderCoeffsL2[offset + 0]; sh[0, 5] = shaderCoeffsL2[offset + 1]; sh[0, 6] = shaderCoeffsL2[offset + 2]; sh[0, 7] = shaderCoeffsL2[offset + 3];
-            sh[1, 4] = shaderCoeffsL2[offset + 4]; sh[1, 5] = shaderCoeffsL2[offset + 5]; sh[1, 6] = shaderCoeffsL2[offset + 6]; sh[1, 7] = shaderCoeffsL2[offset + 7];
-            sh[2, 4] = shaderCoeffsL2[offset + 8]; sh[2, 5] = shaderCoeffsL2[offset + 9]; sh[2, 6] = shaderCoeffsL2[offset + 10]; sh[2, 7] = shaderCoeffsL2[offset + 11];
-            sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
         }
 
         static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz, int offset)
@@ -946,13 +912,6 @@ namespace UnityEngine.Rendering
 
         }
 
-        static void ReadFullFromShaderCoeffsL0L1L2(ref SphericalHarmonicsL2 sh, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
-        {
-            ReadFromShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
-            ReadFromShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
-
-        }
-
         static BakingCell ConvertCellToBakingCell(ProbeReferenceVolume.Cell cell)
         {
             BakingCell bc = new BakingCell
@@ -960,12 +919,11 @@ namespace UnityEngine.Rendering
                 position = cell.position,
                 index = cell.index,
                 bricks = cell.bricks.ToArray(),
-                probePositions = cell.probePositionsOld.ToArray(),
-                validityOld = cell.validityOld.ToArray(),
+                probePositions = cell.probePositions.ToArray(),
                 validity = cell.validity.ToArray(),
                 touchupVolumeInteraction = cell.touchupVolumeInteraction.ToArray(),
                 validityNeighbourMask = cell.validityNeighMaskData.ToArray(),
-                offsetVectors = cell.offsetVectorsOld.ToArray(),
+                offsetVectors = cell.offsetVectors.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
@@ -1038,7 +996,7 @@ namespace UnityEngine.Rendering
             outCell.validity = new float[numberOfProbes];
             outCell.validityNeighbourMask = new byte[numberOfProbes];
             outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
+            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
 
             BakingCell[] consideredCells = { dst, srcCell };
 
@@ -1159,24 +1117,14 @@ namespace UnityEngine.Rendering
             using var probesL2_2 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var probesL2_3 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            // OLD DATA
-            using var probesL0L1 = new NativeArray<float>(asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var probesL2ScalarPaddedCount = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount + 3 : 0;
-            using var probesL2 = new NativeArray<float>(probesL2ScalarPaddedCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            // OLD DATA
-
             // CellSharedData
             using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validityOld = new NativeArray<uint>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validityNeighbourMask = new NativeArray<byte>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData
-            using var positionsOld = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var touchupVolumeInteractionOld = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var touchupVolumeInteraction = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var offsetsOld = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
@@ -1210,13 +1158,6 @@ namespace UnityEngine.Rendering
                 Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
 
                 int shidx = 0;
-
-                var probesTargetL0L1 = probesL0L1.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
-                int oldDataOffsetL0L1 = 0;
-                NativeArray<float> probesTargetL2 = default(NativeArray<float>);
-                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    probesTargetL2 = probesL2.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
-                int oldDataOffsetL2 = 0;
 
                 // Here we directly map each chunk to the layout of the 3D textures in order to be able to copy the data directly to the GPU.
                 // The granularity at runtime is one chunk at a time currently so the temporary data loc used is sized accordingly.
@@ -1281,7 +1222,6 @@ namespace UnityEngine.Rendering
                                         ref var sh = ref bakingCell.sh[shidx];
 
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
-                                        WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
 
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
@@ -1292,12 +1232,9 @@ namespace UnityEngine.Rendering
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                         {
                                             WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
-                                            WriteToShaderCoeffsL2(sh, probesTargetL2, oldDataOffsetL2);
                                         }
                                     }
                                     shidx++;
-                                    oldDataOffsetL0L1 += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
-                                    oldDataOffsetL2 += ProbeVolumeAsset.kL2ScalarCoefficientsCount;
                                 }
                             }
                         }
@@ -1321,10 +1258,6 @@ namespace UnityEngine.Rendering
                 }
 
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
-                validityOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validityOld);
-                positionsOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
-                offsetsOld.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
-                touchupVolumeInteractionOld.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.touchupVolumeInteraction);
 
                 startCounts.Add(cellCounts);
             }
@@ -1343,52 +1276,41 @@ namespace UnityEngine.Rendering
             {
                 static long AlignRemainder16(long count) => count % 16L;
 
+                void WriteNativeArray<T>(System.IO.FileStream fs, NativeArray<T> array) where T : struct
+                {
+                    fs.Write(new ReadOnlySpan<byte>(array.GetUnsafeReadOnlyPtr(), array.Length * UnsafeUtility.SizeOf<T>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                }
+
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
-
-                    fs.Write(new ReadOnlySpan<byte>(probesL0L1Rx.GetUnsafeReadOnlyPtr(), probesL0L1Rx.Length * UnsafeUtility.SizeOf<ushort>()));
-                    fs.Write(new ReadOnlySpan<byte>(probesL1GL1Ry.GetUnsafeReadOnlyPtr(), probesL1GL1Ry.Length * UnsafeUtility.SizeOf<byte>()));
-                    fs.Write(new ReadOnlySpan<byte>(probesL1BL1Rz.GetUnsafeReadOnlyPtr(), probesL1BL1Rz.Length * UnsafeUtility.SizeOf<byte>()));
+                    WriteNativeArray(fs, probesL0L1Rx);
+                    WriteNativeArray(fs, probesL1GL1Ry);
+                    WriteNativeArray(fs, probesL1BL1Rz);
                 }
 
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
                     using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                     {
-                        fs.Write(new ReadOnlySpan<byte>(probesL2.GetUnsafeReadOnlyPtr(), probesL2.Length * UnsafeUtility.SizeOf<float>()));
-
-                        fs.Write(new ReadOnlySpan<byte>(probesL2_0.GetUnsafeReadOnlyPtr(), probesL2_0.Length * UnsafeUtility.SizeOf<byte>()));
-                        fs.Write(new ReadOnlySpan<byte>(probesL2_1.GetUnsafeReadOnlyPtr(), probesL2_1.Length * UnsafeUtility.SizeOf<byte>()));
-                        fs.Write(new ReadOnlySpan<byte>(probesL2_2.GetUnsafeReadOnlyPtr(), probesL2_2.Length * UnsafeUtility.SizeOf<byte>()));
-                        fs.Write(new ReadOnlySpan<byte>(probesL2_3.GetUnsafeReadOnlyPtr(), probesL2_3.Length * UnsafeUtility.SizeOf<byte>()));
+                        WriteNativeArray(fs, probesL2_0);
+                        WriteNativeArray(fs, probesL2_1);
+                        WriteNativeArray(fs, probesL2_2);
+                        WriteNativeArray(fs, probesL2_3);
                     }
                 }
 
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
-
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validityOld.GetUnsafeReadOnlyPtr(), validityOld.Length * UnsafeUtility.SizeOf<uint>()));
-
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validityNeighbourMask.GetUnsafeReadOnlyPtr(), validityNeighbourMask.Length * UnsafeUtility.SizeOf<byte>()));
+                    WriteNativeArray(fs, bricks);
+                    WriteNativeArray(fs, validityNeighbourMask);
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    fs.Write(new ReadOnlySpan<byte>(positionsOld.GetUnsafeReadOnlyPtr(), positionsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteraction.GetUnsafeReadOnlyPtr(), touchupVolumeInteraction.Length * UnsafeUtility.SizeOf<float>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteractionOld.GetUnsafeReadOnlyPtr(), touchupVolumeInteractionOld.Length * UnsafeUtility.SizeOf<float>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(offsetsOld.GetUnsafeReadOnlyPtr(), offsetsOld.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    WriteNativeArray(fs, positions);
+                    WriteNativeArray(fs, touchupVolumeInteraction);
+                    WriteNativeArray(fs, validity);
+                    WriteNativeArray(fs, offsets);
                 }
             }
 

@@ -86,16 +86,12 @@ namespace UnityEngine.Rendering
 
             var probeHasEmptySpaceInGrid = new NativeArray<bool>(bakingCell.probePositions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-
-            int chunkIndex = 0;
-            while (chunkIndex < brickChunksCount)
+            int shidx = 0;
+            for (int chunkIndex = 0; chunkIndex < brickChunksCount; ++chunkIndex)
             {
-                int chunkToProcess = Math.Min(ProbeReferenceVolume.kTemporaryDataLocChunkCount, brickChunksCount - chunkIndex);
-                Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeReferenceVolume.kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount());
+                Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
                 int size = locSize.x * locSize.y * locSize.z;
-                int startIndex = chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount();
-                int count = chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount();
-                int shidx = startIndex;
+                int count = ProbeBrickPool.GetChunkSizeInProbeCount();
                 int bx = 0, by = 0, bz = 0;
 
                 s_Validity_locData.Resize(size);
@@ -104,7 +100,7 @@ namespace UnityEngine.Rendering
                 Dictionary<Vector3Int, (float, Vector3, Bounds)> probesToRestoreInfo = new Dictionary<Vector3Int, (float, Vector3, Bounds)>();
                 HashSet<Vector3Int> probesToRestore = new HashSet<Vector3Int>();
 
-                for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += ProbeBrickPool.kBrickProbeCountTotal)
+                for (int brickIdx = 0; brickIdx < count; brickIdx += ProbeBrickPool.kBrickProbeCountTotal)
                 {
                     for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
                     {
@@ -122,7 +118,7 @@ namespace UnityEngine.Rendering
                                 }
                                 else
                                 {
-                                    StoreScratchData(ix, iy, iz, locSize.x, locSize.y, ProbeReferenceVolume.Cell.GetValidityFromPacked(cell.validityOld[shidx]), shidx);
+                                    StoreScratchData(ix, iy, iz, locSize.x, locSize.y, cell.validity[shidx], shidx);
 
                                     // Check if we need to do some extra check on this probe.
                                     bool hasFreeNeighbourhood = false;
@@ -193,13 +189,10 @@ namespace UnityEngine.Rendering
 
                                 cell.validity[outIdx] = validity;
                                 cell.validityNeighbourMask[outIdx] = mask;
-                                cell.validityOld[outIdx] = ProbeReferenceVolume.Cell.PackValidityAndMask(validity, mask);
                             }
                         }
                     }
                 }
-
-                chunkIndex += ProbeReferenceVolume.kTemporaryDataLocChunkCount;
             }
 
             probeHasEmptySpaceInGrid.Dispose();
