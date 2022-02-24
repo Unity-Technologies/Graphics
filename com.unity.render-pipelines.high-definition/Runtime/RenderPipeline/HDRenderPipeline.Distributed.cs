@@ -185,12 +185,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #if SYNC
                                 while (frameData == null)
 #endif
-                                dataLen = SocketServer.Instance.ReceiveLastOne(i,
-                                    Datagram.DatagramType.VideoFrame, out datagram);
+                                // dataLen = SocketServer.Instance.ReceiveLastOne(i,
+                                //     Datagram.DatagramType.VideoFrame, out datagram);
+                                datagram = SocketServer.Instance.ReceiveReadyFrame(i);
                                 if (datagram == null)
                                     continue;
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
-                                    0, 0, dataLen);
+                                    0, 0, datagram.length);
                                 SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
                                     in datagram);
                             }
