@@ -658,6 +658,12 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
     uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
 
+    uint kWaveSize = 32;
+    uint kNumWaves = 256 / kWaveSize;
+    uint waveIndex = threadIndex / kWaveSize;
+
+    uint numBins = 16;
+
     uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
 
     // Flip the key so the depth is in the LSBs since we only sort the bottom 16-bits
@@ -665,49 +671,76 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
 
     // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
-    for (uint radixPassIndex = 0; radixPassIndex < 2; ++radixPassIndex)
+    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
     {
         // Initialize the sum bins to 0
         sRadixScratch[threadIndex] = 0;
 
-        uint binIndex = ((sortKey >> (radixPassIndex * 8)) & 0xFF);
+        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
 
         GroupMemoryBarrierWithGroupSync();
 
         // Increment the bin associated with the current value to sort
-        InterlockedAdd(sRadixScratch[binIndex], 1);
+        uint localOffset;
+        InterlockedAdd(sRadixScratch[binIndex * kNumWaves + waveIndex], 1, localOffset);
 
         GroupMemoryBarrierWithGroupSync();
 
+        bool isPrefixSumThread = (threadIndex < 128);
+
         // Compute an inclusive prefix sum on the sum buckets
-        for (uint offset = 1; offset < 256; offset <<= 1)
+        for (uint offset = 1; offset < 8; offset <<= 1)
+        {
+            uint localThreadIndex = threadIndex % 8;
+            uint binOffset = (threadIndex / 8) * 8;
+
+            uint sum = 0;
+            if (isPrefixSumThread && (localThreadIndex >= offset))
+            {
+                sum = sRadixScratch[binOffset + localThreadIndex - offset];
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+
+            if (isPrefixSumThread)
+            {
+                sRadixScratch[binOffset + localThreadIndex] += sum;
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+        }
+
+        localOffset = (waveIndex > 0) ? sRadixScratch[binIndex * kNumWaves + waveIndex - 1] + localOffset : localOffset;
+
+        GroupMemoryBarrierWithGroupSync();
+
+        if (threadIndex < 16)
+        {
+            sRadixScratch[128 + threadIndex] = sRadixScratch[threadIndex * kNumWaves + 7];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        for (uint offset = 1; offset < 16; offset <<= 1)
         {
             uint sum = 0;
             if (threadIndex >= offset)
             {
-                sum = sRadixScratch[threadIndex - offset];
+                sum = sRadixScratch[128 + threadIndex - offset];
             }
 
             GroupMemoryBarrierWithGroupSync();
 
-            sRadixScratch[threadIndex] += sum;
+            sRadixScratch[128 + threadIndex] += sum;
 
             GroupMemoryBarrierWithGroupSync();
         }
 
-        // Perform awful serial reorder step
-        // TODO: Replace this with a parallel version
-        uint outputIndex = 0;
-        for (uint i = 0; i < 256; ++i)
-        {
-            if (threadIndex == (255 - i))
-            {
-                outputIndex = sRadixScratch[binIndex] - 1;
-                sRadixScratch[binIndex] -= 1;
-            }
+        uint globalOffset = sRadixScratch[128 + binIndex];
 
-            GroupMemoryBarrierWithGroupSync();
-        }
+        GroupMemoryBarrierWithGroupSync();
+
+        uint outputIndex = globalOffset + localOffset;
 
         sRadixScratch[outputIndex] = sortKey;
 
