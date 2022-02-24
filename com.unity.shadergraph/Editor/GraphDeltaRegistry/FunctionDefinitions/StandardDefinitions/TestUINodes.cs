@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace com.unity.shadergraph.defs
@@ -55,6 +56,11 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
+
+        public static Dictionary<string, float> UIParameters => new()
+        {
+            {"In.UseColor", 0}
+        };
     }
 
     internal class TestUIColorRGBANode : IStandardNode
@@ -66,5 +72,10 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
+
+        public static Dictionary<string, float> UIParameters => new()
+        {
+            {"In.UseColor", 0}
+        };
     }
 }

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using com.unity.shadergraph.defs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -13,6 +15,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string Name = "ShaderGraph";
 
         public string ToolName => Name;
+
+        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIParams;
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
@@ -56,18 +60,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var types = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(s => s.GetTypes())
                     .Where(p => interfaceType.IsAssignableFrom(p));
-                string m = "get_FunctionDescriptor";
+
+                var getFunctionDescriptor = $"get_{nameof(IStandardNode.FunctionDescriptor)}";
+                var getUIParameters = $"get_{nameof(IStandardNode.UIParameters)}";
+                m_NodeUIParams = new Dictionary<RegistryKey, Dictionary<string, float>>();
+
                 foreach (var t in types)
                 {
-                    var fdMethod = t.GetMethod(m);
+                    var fdMethod = t.GetMethod(getFunctionDescriptor);
                     if (t != interfaceType && fdMethod != null)
                     {
                         var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                        RegistryInstance.Register(fd);
+                        var key = RegistryInstance.Register(fd);
+
+                        var uiParamsMethod = t.GetMethod(getUIParameters);
+                        if (uiParamsMethod != null)
+                        {
+                            m_NodeUIParams[key] = (Dictionary<string, float>)uiParamsMethod.Invoke(null, null);
+                        }
                     }
                 }
             }
             return RegistryInstance;
+        }
+
+        public bool TryGetUIParameters(RegistryKey nodeKey, out IReadOnlyDictionary<string, float> outUiParams)
+        {
+            var hasParams = m_NodeUIParams.TryGetValue(nodeKey, out var uiParams);
+            outUiParams = uiParams;
+            return hasParams;
         }
 
         public override IGraphProcessor CreateGraphProcessor()
