@@ -25,7 +25,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float packedVisibility = 0.f;
     if ((tileBits & (1U << _CapsuleDebugCasterIndex)) != 0)
-        packedVisibility = _CapsuleShadowsVisibility[uint3(pixelCoord, _CapsuleDebugCasterIndex)].x;
+        packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, pixelCoord, INDEX_TEXTURE2D_ARRAY_X(_CapsuleDebugCasterIndex)).x;
 
     _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = packedVisibility;
 }

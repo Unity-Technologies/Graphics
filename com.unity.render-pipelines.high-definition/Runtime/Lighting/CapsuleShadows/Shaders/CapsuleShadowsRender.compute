@@ -602,7 +602,7 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID, uint flatThreadIndex : S
         GroupMemoryBarrierWithGroupSync();
 
         if ((s_casterNonZeroBits & casterBit) != 0)
-            _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, casterIndex)] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
+            _CapsuleShadowsVisibilityOutput[uint3(pixelCoord, INDEX_TEXTURE2D_ARRAY_X(casterIndex))] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
     }
     uint tileBits = s_casterNonZeroBits;
 #ifdef CAPSULE_TILE_DEBUG

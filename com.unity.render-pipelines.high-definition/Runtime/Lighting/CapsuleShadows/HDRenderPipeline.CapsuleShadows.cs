@@ -485,12 +485,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle indirectArgs;
         }
 
-        CapsuleShadowsBuildOutput CapsuleShadowsBuildOccluderList(RenderGraph renderGraph)
+        CapsuleShadowsBuildOutput CapsuleShadowsBuildOccluderList(RenderGraph renderGraph, in CapsuleShadowParameters parameters)
         {
             using (var builder = renderGraph.AddRenderPass<CapsuleShadowsBuildOccluderListPassData>("Capsule Shadows Build Occluder List", out var passData, ProfilingSampler.Get(HDProfileId.CapsuleShadowsBuildOccluderList)))
             {
                 int occluderCount = m_CapsuleOccluders.occluders.Count;
-                int casterCount = m_CapsuleShadowAllocator.m_Casters.Count;
+                int casterCount = parameters.casterCount;
 
                 CapsuleShadowsBuildOutput buildOutput = new CapsuleShadowsBuildOutput()
                 {
@@ -558,6 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int upscaledSize;
             public Vector2Int renderSizeInTiles;
             public Vector2Int upscaledSizeInTiles;
+            public int viewCount;
             public TextureHandle visibility;
             public TextureHandle tileBits;
             public TextureHandle depthPyramid;
@@ -592,7 +593,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         new TextureDesc(Vector2.one * (parameters.isHalfResolution ? 0.5f : 1.0f)/8.0f, dynamicResolution: true, xrReady: true)
                         {
                             colorFormat = GraphicsFormat.R8_UInt,
-                            slices = parameters.sliceCount,
                             enableRandomWrite = true,
                             name = "Capsule Shadows Tile Bits"
                         }),
@@ -623,6 +623,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.upscaledSize = parameters.upscaledSize;
                 passData.renderSizeInTiles = parameters.renderSizeInTiles;
                 passData.upscaledSizeInTiles = parameters.upscaledSizeInTiles;
+                passData.viewCount = parameters.viewCount;
                 passData.visibility = builder.WriteTexture(renderOutput.visibility);
                 passData.tileBits = builder.WriteTexture(renderOutput.tileBits);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
@@ -670,7 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
                         CoreUtils.SetKeyword(data.cs, "CAPSULE_TILE_DEBUG", useTileDebug);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernel, data.renderSizeInTiles.x, data.renderSizeInTiles.y, 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, data.renderSizeInTiles.x, data.renderSizeInTiles.y, data.viewCount);
                     });
 
                 return renderOutput;
@@ -683,6 +684,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int kernel;
 
             public Vector2Int renderSizeInTiles;
+            public int viewCount;
             public TextureHandle upscaleTileBits;
             public TextureHandle renderTileBits;
             public ComputeBufferHandle indirectArgs;
@@ -725,14 +727,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     new TextureDesc(Vector2.one/8.0f, dynamicResolution: true, xrReady: true)
                     {
                         colorFormat = GraphicsFormat.R8_UInt,
-                        slices = parameters.sliceCount,
                         enableRandomWrite = true,
                         name = "Capsule Shadows Tile Bits Upscale"
                     }),
             };
 
-            int casterCount = m_CapsuleShadowAllocator.m_Casters.Count;
-            int maxTileCount = (parameters.renderSizeInTiles.x + 1)*(parameters.renderSizeInTiles.y + 1)*casterCount; // TODO: XR
+            int maxTileCount = (parameters.renderSizeInTiles.x + 1)*(parameters.renderSizeInTiles.y + 1)*parameters.viewCount;
             int tileListEntrySizeInBytes = 2*sizeof(uint);
             ComputeBufferHandle tileList = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(maxTileCount, tileListEntrySizeInBytes));
 
@@ -742,6 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.kernel = passData.cs.FindKernel("Main");
 
                 passData.renderSizeInTiles = parameters.renderSizeInTiles;
+                passData.viewCount = parameters.viewCount;
                 passData.upscaleTileBits = builder.WriteTexture(upscaleOutput.tileBits);
                 passData.renderTileBits = builder.ReadTexture(renderOutput.tileBits);
                 passData.indirectArgs = builder.WriteComputeBuffer(buildOutput.indirectArgs);
@@ -758,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeBufferParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsTileList, data.tileList);
 
                         Vector2Int sizeInGroups = HDUtils.DivRoundUp(data.renderSizeInTiles, 8);
-                        ctx.cmd.DispatchCompute(data.cs, data.kernel, sizeInGroups.x, sizeInGroups.y, 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, sizeInGroups.x, sizeInGroups.y, data.viewCount);
                     });
              }
 
@@ -798,6 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int kernel;
 
             public Vector2Int upscaledSizeInTiles;
+            public int viewCount;
             public TextureHandle visibility;
             public TextureHandle tileBits;
             public TextureHandle debugOutput;
@@ -822,6 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.kernel = passData.cs.FindKernel("Main");
 
                 passData.upscaledSizeInTiles = parameters.upscaledSizeInTiles;
+                passData.viewCount = parameters.viewCount;
                 passData.visibility = builder.ReadTexture(renderOutput.visibility);
                 passData.tileBits = builder.ReadTexture(renderOutput.tileBits);
                 passData.debugOutput = builder.WriteTexture(debugOutput);
@@ -835,7 +838,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsTileBits, data.tileBits);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleShadowsDebugOutput, data.debugOutput);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernel, data.upscaledSizeInTiles.x, data.upscaledSizeInTiles.y, 1);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernel, data.upscaledSizeInTiles.x, data.upscaledSizeInTiles.y, data.viewCount);
                     });
 
                 return debugOutput;
@@ -847,6 +850,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isHalfResolution;
             public bool skipEmptyTiles;
             public GraphicsFormat textureFormat;
+            public int casterCount;
+            public int viewCount;
             public int sliceCount;
             public Vector2Int upscaledSize;
             public Vector2Int upscaledSizeInTiles;
@@ -881,12 +886,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     renderSize = upscaledSize;
 
+                int casterCount = m_CapsuleShadowAllocator.m_Casters.Count;
+                int viewCount = hdCamera.viewCount;
                 CapsuleShadowParameters parameters = new CapsuleShadowParameters()
                 {
                     isHalfResolution = isHalfResolution,
                     skipEmptyTiles = skipEmptyTiles,
                     textureFormat = (capsuleShadows.textureFormat == CapsuleShadowTextureFormat.U16) ? GraphicsFormat.R16_UNorm : GraphicsFormat.R8_UNorm,
-                    sliceCount = m_CapsuleShadowAllocator.m_Casters.Count, // TODO: XR
+                    casterCount = casterCount,
+                    viewCount = viewCount,
+                    sliceCount = casterCount * viewCount,
                     upscaledSize = upscaledSize,
                     upscaledSizeInTiles = HDUtils.DivRoundUp(upscaledSize, 8),
                     renderSize = renderSize,
@@ -894,7 +903,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode,
                 };
 
-                var buildOutput = CapsuleShadowsBuildOccluderList(renderGraph);
+                var buildOutput = CapsuleShadowsBuildOccluderList(renderGraph, in parameters);
 
                 renderOutput = CapsuleShadowsRender(
                     renderGraph,

@@ -274,7 +274,7 @@ float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
 
     float packedVisibility = 0.f;
     if (isValid)
-        packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, posInput.positionSS, casterIndex).x;
+        packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(casterIndex)).x;
     return UnpackCapsuleVisibility(packedVisibility);
 }
 #endif

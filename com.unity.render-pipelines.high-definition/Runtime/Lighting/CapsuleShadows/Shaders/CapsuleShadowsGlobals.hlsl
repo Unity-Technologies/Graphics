@@ -64,18 +64,21 @@ uint GetCapsuleIndirectOcclusionFlags()
 
 struct CapsuleShadowsUpscaleTile
 {
-    uint coord; // half resolution tile coordinate [31:16]=y, [15:0]=x
+    uint coord; // half resolution tile coordinate [31:30]=viewIndex, [29:15]=y, [14:0]=x
     uint bits;  // one bit per caster
 };
 
 CapsuleShadowsUpscaleTile makeCapsuleShadowsUpscaleTile(uint2 coord, uint bits)
 {
+    uint viewIndex = unity_StereoEyeIndex;
+
     CapsuleShadowsUpscaleTile tile;
     tile.bits = bits;
-    tile.coord = (coord.y << 16) | coord.x;
+    tile.coord = (viewIndex << 30) | (coord.y << 15) | coord.x;
     return tile;
 }
-uint2 GetUpscaleTileCoord(CapsuleShadowsUpscaleTile tile)   { return uint2(tile.coord & 0xffffU, tile.coord >> 16); }
+uint GetUpscaleViewIndex(CapsuleShadowsUpscaleTile tile)    { return tile.coord >> 30; }
+uint2 GetUpscaleTileCoord(CapsuleShadowsUpscaleTile tile)   { return uint2(tile.coord & 0x7fffU, (tile.coord >> 15) & 0x7fffU); }
 uint GetUpscaleTileBits(CapsuleShadowsUpscaleTile tile)     { return tile.bits; }
 
 uint GetCapsuleLayerMask(CapsuleOccluderData capsule)   { return (capsule.packedData >> 16) & 0xffU; }

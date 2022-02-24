@@ -21,18 +21,15 @@ uint TempIndex(uint2 coordInTile)   { return coordInTile.y*TEMP_ROW_STRIDE + coo
 float4 LoadTempRow(uint baseIndex)  { return float4(s_tileTemp[baseIndex], s_tileTemp[baseIndex + 1], s_tileTemp[baseIndex + 2], s_tileTemp[baseIndex + 3]); }
 
 [numthreads(8,8,1)]
-void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint2 groupID : SV_GroupID)
+void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint groupID : SV_GroupID)
 {
     uint2 subTileCoord = uint2(groupID.x, groupID.x >> 1) & 1;
     uint entryIndex = groupID.x/4;
-    UNITY_XR_ASSIGN_VIEW_INDEX(groupID.y);
 
     CapsuleShadowsUpscaleTile tile = _CapsuleShadowsTileList[entryIndex];
+    UNITY_XR_ASSIGN_VIEW_INDEX(GetUpscaleViewIndex(tile));
     uint2 outputTileCoord = GetUpscaleTileCoord(tile);
     uint outputTileBits = GetUpscaleTileBits(tile);
-
-    uint writeTempIndex = TempIndex(pixelCoordInTile);
-    uint readTempIndexBase = TempIndex((pixelCoordInTile + 1)/2);
 
     // each list entry is for a 2x2 region of the output, so offset to the subregion for this threadgroup
     outputTileCoord = 2*outputTileCoord + subTileCoord - 1;
@@ -41,6 +38,9 @@ void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint2 groupID : SV_GroupID)
 
     uint2 outputPixelCoord = outputTileCoord * 8 + pixelCoordInTile;
     int2 inputLoadBase = int2(outputTileCoord * 4) - 2;
+
+    uint writeTempIndex = TempIndex(pixelCoordInTile);
+    uint readTempIndexBase = TempIndex((pixelCoordInTile + 1)/2);
 
     // cache half resolution depth in LDS
     {
@@ -79,7 +79,7 @@ void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint2 groupID : SV_GroupID)
             uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, loadCoord/8);
             float packedVisibility = 0.f;
             if ((tileBits & casterBit) != 0)
-                packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, loadCoord, casterIndex).x;
+                packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, loadCoord, INDEX_TEXTURE2D_ARRAY_X(casterIndex)).x;
             s_tileTemp[writeTempIndex] = packedVisibility;
         }
         GroupMemoryBarrierWithGroupSync();
@@ -90,7 +90,7 @@ void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint2 groupID : SV_GroupID)
         float4 v2 = LoadTempRow(readTempIndexBase + 2*TEMP_ROW_STRIDE);
         float4 v3 = LoadTempRow(readTempIndexBase + 3*TEMP_ROW_STRIDE);
         float result = (dot(v0, w0) + dot(v1, w1) + dot(v2, w2) + dot(v3, w3))*norm;
-        _CapsuleShadowsVisibilityOutput[uint3(outputPixelCoord, casterIndex)] = result;
+        _CapsuleShadowsVisibilityOutput[uint3(outputPixelCoord, INDEX_TEXTURE2D_ARRAY_X(casterIndex))] = result;
         GroupMemoryBarrierWithGroupSync();
     }
 }
