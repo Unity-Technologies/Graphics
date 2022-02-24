@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -89,48 +91,75 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-            {
-                m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
-                m_RenderStateBlock.mask |= RenderStateMask.Depth;
-            }
-            else if (m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
-            {
-                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
-                m_RenderStateBlock.mask |= RenderStateMask.Depth;
-            }
+            PassData passData = new PassData();
+            passData.m_RenderingData = renderingData;
+            passData.m_IsOpaque = m_IsOpaque;
+            passData.m_RenderStateBlock = m_RenderStateBlock;
+            passData.m_FilteringSettings = m_FilteringSettings;
+            passData.m_ShaderTagIdList = m_ShaderTagIdList;
+            passData.m_ProfilingSampler = m_ProfilingSampler;
+
+            CameraSetup(cmd, passData);
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            PassData passData = new PassData();
+            passData.m_RenderingData = renderingData;
+            passData.m_IsOpaque = m_IsOpaque;
+            passData.m_RenderStateBlock = m_RenderStateBlock;
+            passData.m_FilteringSettings = m_FilteringSettings;
+            passData.m_ShaderTagIdList = m_ShaderTagIdList;
+            passData.m_ProfilingSampler = m_ProfilingSampler;
+
+            ExecutePass(context, passData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+        }
+
+        private static void CameraSetup(CommandBuffer cmd, PassData data)
+        {
+            if (data.m_RenderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (data.m_RenderingData.cameraData.renderType == CameraRenderType.Base || data.m_RenderingData.cameraData.clearDepth))
+            {
+                data.m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
+                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+            else if (data.m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            {
+                data.m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
+                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+        }
+
+        private static void ExecutePass(ScriptableRenderContext context, PassData data, bool yFlip)
+        {
+            var renderingData = data.m_RenderingData;
             var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, data.m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
-                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
+                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
 
                 // scaleBias.x = flipSign
                 // scaleBias.y = scale
                 // scaleBias.z = bias
                 // scaleBias.w = unused
-                float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                float flipSign = yFlip ? -1.0f : 1.0f; ; //(renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                 Vector4 scaleBias = (flipSign < 0.0f)
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
                 Camera camera = renderingData.cameraData.camera;
-                var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
-                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                var sortFlags = (data.m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                     sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
 
-                var filterSettings = m_FilteringSettings;
+                var filterSettings = data.m_FilteringSettings;
 
 #if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
@@ -140,12 +169,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 #endif
 
-                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+                DrawingSettings drawSettings = CreateDrawingSettings(data.m_ShaderTagIdList, ref renderingData, sortFlags);
 
                 var activeDebugHandler = GetActiveDebugHandler(renderingData);
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock,
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
                         (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
                             ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
@@ -153,12 +182,59 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock);
 
                     // Render objects that did not match any shader pass with error shader
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
                 }
             }
         }
+
+        private class PassData
+        {
+            public TextureHandle m_Albedo;
+            public TextureHandle m_Depth;
+
+            public RenderingData m_RenderingData;
+
+            public bool m_IsOpaque;
+            public RenderStateBlock m_RenderStateBlock;
+            public FilteringSettings m_FilteringSettings;
+            public List<ShaderTagId> m_ShaderTagIdList;
+            public ProfilingSampler m_ProfilingSampler;
+        }
+
+        public void Render(TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+            Camera camera = renderingData.cameraData.camera;
+
+            using (var builder = graph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
+                new ProfilingSampler("Draw Objects Pass Profiler")))
+            {
+                passData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
+                passData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
+
+                passData.m_RenderingData = renderingData;
+
+                builder.AllowPassCulling(false);
+
+                passData.m_IsOpaque = m_IsOpaque;
+                passData.m_RenderStateBlock = m_RenderStateBlock;
+                passData.m_FilteringSettings = m_FilteringSettings;
+                passData.m_ShaderTagIdList = m_ShaderTagIdList;
+                passData.m_ProfilingSampler = m_ProfilingSampler;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    bool renderToBackbuffer = true;
+
+                    CameraSetup(context.cmd, data);
+                    ExecutePass(context.renderContext, data, !renderToBackbuffer);
+                });
+
+            }
+        }
+
     }
 }

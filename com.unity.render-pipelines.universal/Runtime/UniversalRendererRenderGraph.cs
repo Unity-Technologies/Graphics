@@ -19,16 +19,16 @@ namespace UnityEngine.Rendering.Universal
 
         TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
         {
-            TextureDesc rgDesc = new TextureDesc();
+            TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
             rgDesc.dimension = desc.dimension;
-            rgDesc.width = desc.width;
-            rgDesc.height = desc.height;
             rgDesc.clearBuffer = clear;
             rgDesc.bindTextureMS = desc.bindMS;
             rgDesc.colorFormat = desc.graphicsFormat;
             rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
             rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
+            rgDesc.name = name;
+            rgDesc.enableRandomWrite = false;
 
             return renderGraph.CreateTexture(rgDesc);
         }
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph renderGraph = renderingData.renderGraph;
 
             frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
+            //frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
@@ -123,11 +123,13 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderGraphTestPass.Render(renderingData.renderGraph, this);
 
-            // Draw Opaque
+            m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, ref renderingData);
 
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
-            // Draw Transparent
+            // TODO: Skybox
+
+            m_RenderTransparentForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, ref renderingData);
         }
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -152,13 +154,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle backbuffer = renderer.frameResources.backBufferColor; //renderer.frameResources.cameraColor;
                 passData.m_Albedo = builder.UseColorBuffer(backbuffer, 0);
-                //passData.m_Depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
+                passData.m_Depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 0, 0);
+                    context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 1, 0);
                 });
 
                 return passData;

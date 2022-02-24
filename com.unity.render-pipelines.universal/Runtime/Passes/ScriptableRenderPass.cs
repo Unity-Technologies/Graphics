@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
         {
             var debugHandler = renderingData.cameraData.renderer.DebugHandler;
             if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
@@ -677,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -701,7 +701,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+        static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)
