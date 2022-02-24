@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "TriangleWave",
             "Out = 2.0 * abs( 2 * (In - floor(0.5 + In)) ) - 1.0;",
-            new ParameterDescriptor("In", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

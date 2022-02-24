@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "SawtoothWave",
             "Out = 2 * (In - floor(0.5 + In));",
-            new ParameterDescriptor("In", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

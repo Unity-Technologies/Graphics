@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "Tangent",
             "Out = tan(In);",
-            new ParameterDescriptor("In", TYPE.Matrix, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()
