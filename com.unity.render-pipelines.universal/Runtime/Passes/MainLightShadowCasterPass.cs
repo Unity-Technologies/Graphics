@@ -310,23 +310,24 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public TextureHandle shadowmapTexture;
             public RenderingData renderingData;
+            public int shadowmapID;
 
             public bool emptyShadowmap;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData)
+        public PassData Render(RenderGraph graph, ref RenderingData renderingData)
         {
             using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, new ProfilingSampler("Main Light Shadowmap")))
             {
 
-                passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true);
-                passData.renderingData = renderingData;
                 passData.emptyShadowmap = m_CreateEmptyShadowmap;
+                passData.shadowmapID = m_MainLightShadowmapID;
+                passData.renderingData = renderingData;
 
                 if (!m_CreateEmptyShadowmap)
                 {
+                    passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true);
                     builder.UseDepthBuffer(passData.shadowmapTexture, DepthAccess.Write);
-                    builder.WriteTexture(passData.shadowmapTexture);
                 }
 
                 // Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
@@ -337,10 +338,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (data.emptyShadowmap)
                     {
                         SetEmptyMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
-                        return;
+                        data.shadowmapTexture = graph.defaultResources.blackTexture;
                     }
-                    RenderMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                    else
+                    {
+                        RenderMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                    }
+                    data.renderingData.commandBuffer.SetGlobalTexture(passData.shadowmapID, passData.shadowmapTexture);
                 });
+
+                return passData;
             }
         }
     };
