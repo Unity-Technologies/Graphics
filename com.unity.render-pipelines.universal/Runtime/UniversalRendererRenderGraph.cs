@@ -131,6 +131,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
                 frameResources.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+        }
+
+        private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (renderingData.cameraData.renderType == CameraRenderType.Base)
+                RenderGraphTestPass.Render(renderingData.renderGraph, this);
 
             // TODO: check require DepthPrepass
             //if (requiresDepthPrepass)
@@ -145,12 +151,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
                 }
             }
-        }
-
-        private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            if (renderingData.cameraData.renderType == CameraRenderType.Base)
-                RenderGraphTestPass.Render(renderingData.renderGraph, this);
 
             m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 

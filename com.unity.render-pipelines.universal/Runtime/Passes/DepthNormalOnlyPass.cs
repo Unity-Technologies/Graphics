@@ -138,8 +138,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cameraNormalsTexture = builder.UseColorBuffer(cameraNormalsTexture, 0);
                 passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
 
-                // TODO: culling?
-                // builder.AllowPassCulling(false);
+                // TODO: culling? force culluing off for testing
+                builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
                     {
                         var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                        var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
+                        var drawSettings = CreateDrawingSettings(k_DepthNormals, ref renderingData, sortFlags);
                         drawSettings.perObjectData = PerObjectData.None;
 
                         context.renderContext.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);

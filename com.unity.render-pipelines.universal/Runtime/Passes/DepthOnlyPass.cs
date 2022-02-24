@@ -116,8 +116,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
 
-                // TODO: culling?
-                // builder.AllowPassCulling(false);
+                // TODO: culling? force culluing off for testing
+                builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
