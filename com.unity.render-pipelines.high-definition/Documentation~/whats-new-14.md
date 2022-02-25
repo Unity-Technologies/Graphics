@@ -41,4 +41,4 @@ In the UI, **thickness** and **distortion** fields have been renamed to **densit
 
 ### Renderer bounds access in ShaderGraph
 
-The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these abounds are available in world space.
+The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these bounds are available in world space.
