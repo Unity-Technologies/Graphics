@@ -22,9 +22,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
             reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
+            reader.GetField(Registry.Types.GraphType.kHeight, out Registry.Types.GraphType.Height hgt);
+            if (hgt != Registry.Types.GraphType.Height.One)
+            {
+                // matrix
+                return TypeHandle.Unknown;
+            }
+
             switch ((int)len)
             {
-                case 1: return TypeHandle.Float;
+                case 1:
+                    reader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
+                    switch(prim)
+                    {
+                        case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                        case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                        default: return TypeHandle.Float;
+                    }
                 case 2: return TypeHandle.Vector2;
                 case 3: return TypeHandle.Vector3;
                 default: return TypeHandle.Vector4;
