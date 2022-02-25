@@ -912,32 +912,75 @@ namespace UnityEngine.Rendering
 
         }
 
-        static BakingCell ConvertCellToBakingCell(ProbeReferenceVolume.Cell cell)
+        // Returns index in the GPU layout of probe of coordinate (x, y, z) in the brick at brickIndex for a DataLocation of size locSize
+        static int GetProbeGPUIndex(int brickIndex, int x, int y, int z, Vector3Int locSize)
+        {
+            Vector3Int locSizeInBrick = locSize / ProbeBrickPool.kBrickProbeCountPerDim;
+
+            int bx = brickIndex % locSizeInBrick.x;
+            int by = (brickIndex / locSizeInBrick.x) % locSizeInBrick.y;
+            int bz = ((brickIndex / locSizeInBrick.x) / locSizeInBrick.y) % locSizeInBrick.z;
+
+            // In probes
+            int ix = bx * ProbeBrickPool.kBrickProbeCountPerDim + x;
+            int iy = by * ProbeBrickPool.kBrickProbeCountPerDim + y;
+            int iz = bz * ProbeBrickPool.kBrickProbeCountPerDim + z;
+
+            return ix + locSize.x * (iy + locSize.y * iz);
+        }
+
+        static BakingCell ConvertCellToBakingCell(Cell cell)
         {
             BakingCell bc = new BakingCell
             {
                 position = cell.position,
                 index = cell.index,
                 bricks = cell.bricks.ToArray(),
-                probePositions = cell.probePositions.ToArray(),
-                validity = cell.validity.ToArray(),
-                touchupVolumeInteraction = cell.touchupVolumeInteraction.ToArray(),
-                validityNeighbourMask = cell.validityNeighMaskData.ToArray(),
-                offsetVectors = cell.offsetVectors.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
                 probeIndices = null, // Not needed for this conversion.
             };
 
-            // Need to unpack the sh
-            int numberOfProbes = bc.probePositions.Length;
-            bc.sh = new SphericalHarmonicsL2[numberOfProbes];
-            for (int probe = 0; probe < numberOfProbes; ++probe)
+            // Runtime Cell arrays may contain padding to match chunk size
+            // so we use the actual probe count for these arrays.
+            int probeCount = cell.probeCount;
+            bc.probePositions = new Vector3[probeCount];
+            bc.validity = new float[probeCount];
+            bc.touchupVolumeInteraction = new float[probeCount];
+            bc.validityNeighbourMask = new byte[probeCount];
+            bc.offsetVectors = new Vector3[probeCount];
+            bc.sh = new SphericalHarmonicsL2[probeCount];
+
+            // Runtime data layout is for GPU consumption.
+            // We need to convert it back to a linear layout for the baking cell.
+            int brickCount = probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+            int probeIndex = 0;
+            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
+
+            for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
             {
-                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe],
-                    cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData,
-                    cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, probe);
+                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                {
+                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                    {
+                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                        {
+                            int remappedIndex = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
+                            ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probeIndex],
+                                cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData,
+                                cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, remappedIndex);
+
+                            bc.probePositions[probeIndex] = cell.probePositions[remappedIndex];
+                            bc.validity[probeIndex] = cell.validity[remappedIndex];
+                            bc.validityNeighbourMask[probeIndex] = cell.validityNeighMaskData[remappedIndex];
+                            bc.touchupVolumeInteraction[probeIndex] = cell.touchupVolumeInteraction[remappedIndex];
+                            bc.offsetVectors[probeIndex] = cell.offsetVectors[remappedIndex];
+
+                            probeIndex++;
+                        }
+                    }
+                }
             }
 
             return bc;
@@ -995,6 +1038,8 @@ namespace UnityEngine.Rendering
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
             outCell.validity = new float[numberOfProbes];
             outCell.validityNeighbourMask = new byte[numberOfProbes];
+            outCell.offsetVectors = new Vector3[numberOfProbes];
+            outCell.touchupVolumeInteraction = new float[numberOfProbes];
             outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
             outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
 
@@ -1013,10 +1058,10 @@ namespace UnityEngine.Rendering
                     outCell.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validityNeighbourMask[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validityNeighbourMask[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.offsetVectors[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].offsetVectors[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.touchupVolumeInteraction[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].touchupVolumeInteraction[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                 }
             }
-
-            outCell.offsetVectors = new Vector3[0]; // kill debug view (TODO: fix)
             return outCell;
         }
 
