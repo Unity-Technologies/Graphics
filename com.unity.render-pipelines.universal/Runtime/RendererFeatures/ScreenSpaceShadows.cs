@@ -108,6 +108,15 @@ namespace UnityEngine.Rendering.Universal
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
+                m_RenderTarget = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm,
+                        FormatUsage.Linear | FormatUsage.Render)
+                        ? GraphicsFormat.R8_UNorm
+                        : GraphicsFormat.B8G8R8A8_UNorm,
+                    wrapMode: TextureWrapMode.Clamp,
+                    name: "_ScreenSpaceShadowmapTexture"
+                );
             }
 
             public void Dispose()
@@ -127,16 +136,7 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
-                var desc = renderingData.cameraData.cameraTargetDescriptor;
-                desc.depthBufferBits = 0;
-                desc.msaaSamples = 1;
-                desc.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
-                    ? GraphicsFormat.R8_UNorm
-                    : GraphicsFormat.B8G8R8A8_UNorm;
-
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
                 cmd.SetGlobalTexture(m_RenderTarget.name, m_RenderTarget.nameID);
-
                 ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
