@@ -335,8 +335,6 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         vignetteRound = lerp(1,vignetteRound,LensFlarePostProcessVignetteIntensity);
 
-        
-		
 		float3 classic1 = GetFlareTexture(uv, 1.0f,LensFlarePostProcessSecondaryIntensity, false, false);
 		float3 classic2 = GetFlareTexture(uv, 2.0f,LensFlarePostProcessSecondaryIntensity, false, false);
         float3 classic4 = GetFlareTexture(uv, 4.0f,LensFlarePostProcessSecondaryIntensity, false, false);
@@ -348,7 +346,6 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 		float3 polar = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, false, true);
         float3 polarInv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, true, true);
         
-
         float3 final = (
                             (classic4Inv + classic4) * vignetteRound +
                             (classic2Inv + classic2) * vignetteRound +
@@ -356,8 +353,12 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
                             (polarInv + polar) * vignetteX*(vignetteX + vignetteY)
                         ) * LensFlarePostProcessAmount;
 
-        color += final.xyz;
-
+        color.xyz += final;
+		
+#ifdef ENABLE_ALPHA
+        // Lens Flare Post Process should also spread in areas with zero alpha, so we add the image here to do the mixing at the end of the shader
+        inputColor.xyz += color.xyz;
+#endif
 
     }
 #endif
