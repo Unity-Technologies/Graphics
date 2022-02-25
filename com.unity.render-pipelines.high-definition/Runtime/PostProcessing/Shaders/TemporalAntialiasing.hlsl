@@ -274,6 +274,32 @@ float3 ConvertToOutputSpace(float3 color)
 // Velocity related functions.
 // ---------------------------------------------------
 
+float2 GrabCameraMotionVec(float2 NDC, float centralDepth)
+{
+    float3 posWS = ComputeWorldSpacePosition(NDC, centralDepth, UNITY_MATRIX_I_VP);
+    float4 worldPos = float4(posWS, 1.0);
+    float4 prevPos = worldPos;
+
+    float4x4 prevVP = UNITY_MATRIX_PREV_VP;
+    float4x4 currVP = UNITY_MATRIX_VP;
+
+
+    float4 clipWP = mul(currVP, posWS);
+    float4 clipPrevWP = mul(prevVP, prevPos);
+
+    clipWP.xy /= clipWP.w;
+    clipPrevWP.xy /= clipPrevWP.w;
+
+    float2 outDeltaVec = (clipWP.xy - clipPrevWP.xy);
+    outDeltaVec *= 0.5f;
+
+#if UNITY_UV_STARTS_AT_TOP
+    outDeltaVec.y = -outDeltaVec.y;
+#endif
+
+    return outDeltaVec;
+}
+
 // Front most neighbourhood velocity ([Karis 2014])
 float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, out float closestDepth, out float centralDepth)
 {
@@ -556,7 +582,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+float VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor, float speedRejectionFactor)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -586,7 +612,12 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     stDevMultiplier = 1.5;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
 #if ANTI_FLICKER_MV_DEPENDENT
-    const float maxFactorScale = 2.25f; // when stationary
+    // when stationary
+    const float maxFactorScale = 2.25f
+#if VELOCITY_REJECTION
+        * lerp(1, 10, speedRejectionFactor)  // TODO: Do we instead want a fixed value?
+#endif
+        ;
     const float minFactorScale = 0.8f; // when moving more than slightly
     float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVecLenInPixels)));
 #else
@@ -604,15 +635,18 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
 
     samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
     samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
+
+    return stdDev;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+float GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor, float speedRejectionFactor)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor, speedRejectionFactor);
 #endif
+    return 0;
 }
 
 // ---------------------------------------------------

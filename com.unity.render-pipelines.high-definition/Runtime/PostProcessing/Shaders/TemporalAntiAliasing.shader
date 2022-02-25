@@ -130,6 +130,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _BaseBlendFactor _TaaPostParameters1.x
         #define _CentralWeight _TaaPostParameters1.y
         #define _ExcludeTAABit (uint)_TaaPostParameters1.z
+        #define _NormalizedSpeedRejectionFactor _TaaPostParameters1.w
 
         // TAAU specific
         float4 _TaauParameters;
@@ -215,7 +216,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
-
+            float blendFactor = 0;
             int2 samplePos = input.positionCS.xy;
 
 #if ORTHOGRAPHIC
@@ -226,7 +227,8 @@ Shader "Hidden/HDRP/TemporalAA"
             samplePos = outputPixInInput;
 #endif
             float closestDepth, centralDepth;
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, closestDepth, centralDepth);
+            // TODO_FCC: !!!!! IMPORTANT !!!! This doesn't work great with the speed rejection, why?
+            float2 closestOffset =  GetClosestFragmentOffset(_DepthTexture, samplePos, closestDepth, centralDepth);
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
@@ -287,16 +289,18 @@ Shader "Hidden/HDRP/TemporalAA"
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
                 motionVectorLength = length(motionVector);
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
+
+                float objOnlyMVLen = length(motionVector - GrabCameraMotionVec(uv + closestOffset * _InputSize.zw, closestDepth));
 #endif
 
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+                float stdDev = GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale, _NormalizedSpeedRejectionFactor);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
                 // ------------------------------------------------------------------------------
 
                 // --------------- Compute blend factor for history ---------------
-                float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
+                blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
                 // --------------------------------------------------------
 
                 // ------------------- Alpha handling ---------------------------
@@ -316,7 +320,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
                 // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
-                lengthMV = motionVectorLength * 10;
+                lengthMV = objOnlyMVLen * 10;
                 blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
