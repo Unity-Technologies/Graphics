@@ -111,4 +111,17 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
     }
+
+    internal class TestLocalVec4Node : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestLocalVec4", // Name
+            "Local = In + Static; Out = Local;",
+            new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+            new ParameterDescriptor("Static", TYPE.Float, GraphType.Usage.Static),
+            new ParameterDescriptor("Local", TYPE.Vec4, GraphType.Usage.Local),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
 }
