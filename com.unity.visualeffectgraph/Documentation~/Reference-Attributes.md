@@ -26,7 +26,7 @@ Some attributes are a bit more advanced and will be used by default in most simu
 | `mass` | float | The mass of a particle | 1.0|
 | `angularVelocity` | Vector3 | **Variadic:** Euler rotation speed of a simulated element, expressed as a Vector of Degrees per second values. | (0,0,0) |
 | `oldPosition` | Vector3 | **Deprecated:** This attribute is a storage Helper if you want to back-up current position of a simulated element, before integrating its velocity. | (0,0,0) |
-| `targetPosition` | Vector3 | This attribute has various purposes: it can be a storage Helper if you want to store a position to reach, then compute a vector to reach this Target Position. In Line Renderers, this attribute can be also used to set the end of each line particle. | (0,0,0) |
+| `targetPosition` | Vector3 | Use this attribute as a Helper to store a Target Position. You can also use it in Line Renderers to set the end of each line particle. | (0,0,0) |
 
 ### Rendering Attributes
 
