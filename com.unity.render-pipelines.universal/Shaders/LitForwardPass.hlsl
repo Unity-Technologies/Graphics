@@ -198,6 +198,14 @@ half4 LitPassFragment(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if 0
+#ifdef DOTS_INSTANCING_ON
+    return half4(0, unity_DOTSVisibleInstances[0].VisibleData.x, 1, 1);
+#else
+    return half4(1, 0, 0, 1);
+#endif
+#endif
+
 #if defined(_PARALLAXMAP)
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;

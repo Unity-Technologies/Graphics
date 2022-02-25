@@ -60,6 +60,8 @@ struct Light
     #define LIGHT_LOOP_END }
 #endif
 
+#define DISABLE_ADDITIONAL_LIGHTS
+
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
@@ -274,6 +276,9 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
+#ifdef DISABLE_ADDITIONAL_LIGHTS
+    return (Light)0;
+#endif
 #if USE_CLUSTERED_LIGHTING
     int lightIndex = i;
 #else
@@ -284,6 +289,9 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
+#ifdef DISABLE_ADDITIONAL_LIGHTS
+    return (Light)0;
+#endif
 #if USE_CLUSTERED_LIGHTING
     int lightIndex = i;
 #else
@@ -307,6 +315,10 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 
 Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor)
 {
+#ifdef DISABLE_ADDITIONAL_LIGHTS
+    return (Light)0;
+#endif
+
     Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -321,6 +333,9 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
+#ifdef DISABLE_ADDITIONAL_LIGHTS
+    return 0;
+#endif
 #if USE_CLUSTERED_LIGHTING
     // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
     return 0;

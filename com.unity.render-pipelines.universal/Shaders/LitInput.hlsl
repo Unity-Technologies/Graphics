@@ -36,8 +36,8 @@ CBUFFER_END
 // NOTE: Dots instancing is orthogonal to the constant buffer above.
 #if 1 && defined(UNITY_DOTS_INSTANCING_ENABLED)
 
-#define DEBUG_H4 half4
-#define DEBUG_H  half
+#define DEBUG_H4 float4
+#define DEBUG_H  float
 
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(DEBUG_H4, _BaseColor)

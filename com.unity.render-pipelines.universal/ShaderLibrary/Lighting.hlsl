@@ -18,6 +18,11 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
 
+#if defined(DISABLE_ADDITIONAL_LIGHTS)
+#undef _ADDITIONAL_LIGHTS
+#undef _ADDITIONAL_LIGHTS_VERTEX
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                      Lighting Functions                                   //
 ///////////////////////////////////////////////////////////////////////////////

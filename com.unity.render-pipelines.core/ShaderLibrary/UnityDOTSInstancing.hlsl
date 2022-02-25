@@ -132,6 +132,8 @@ for t, c, sz in (
 #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_SECONDARY_DEFAULT(type, var, secondary_offset) LoadDOTSInstancedData_Secondary_##type(secondary_offset, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
@@ -143,6 +145,26 @@ CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
 #endif
+
+static const uint unity_DOTS_ZeroMatrix_Offset      = 0;
+static const uint unity_DOTS_ProbesOcclusion_Offset = 64;
+static const uint unity_DOTS_SpecCube0_HDR_Offset   = 80;
+static const uint unity_DOTS_SpecCube1_HDR_Offset   = 96;
+static const uint unity_DOTS_SHAr_Offset            = 112;
+static const uint unity_DOTS_SHAg_Offset            = 128;
+static const uint unity_DOTS_SHAb_Offset            = 144;
+static const uint unity_DOTS_SHBr_Offset            = 160;
+static const uint unity_DOTS_SHBg_Offset            = 176;
+static const uint unity_DOTS_SHBb_Offset            = 192;
+static const uint unity_DOTS_SHC_Offset             = 208;
+
+static real4 unity_DOTS_SHAr;
+static real4 unity_DOTS_SHAg;
+static real4 unity_DOTS_SHAb;
+static real4 unity_DOTS_SHBr;
+static real4 unity_DOTS_SHBg;
+static real4 unity_DOTS_SHBb;
+static real4 unity_DOTS_SHC;
 
 // The data has to be wrapped inside a struct, otherwise the instancing code path
 // on some platforms does not trigger.
@@ -223,17 +245,6 @@ void SetupDOTSInstanceSelectMasks() {}
 
 #endif
 
-void SetDOTSVisibleData(DOTSVisibleData visibleData)
-{
-    unity_SampledDOTSVisibleData = visibleData;
-    SetupDOTSInstanceSelectMasks();
-}
-
-void SetupDOTSVisibleInstancingData()
-{
-    SetDOTSVisibleData(unity_DOTSVisibleInstances[unity_InstanceID]);
-}
-
 int GetDOTSInstanceCrossfadeSnorm8()
 {
     return unity_SampledDOTSVisibleData.VisibleData.y;
@@ -244,16 +255,6 @@ bool IsDOTSInstancedProperty(uint metadata)
     return (metadata & kPerInstanceDataBit) != 0;
 }
 
-bool IsDOTSSecondaryUBO(uint metadata)
-{
-#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
-    return (metadata & kSecondaryUBOBit) != 0;
-#else
-    // There is no secondary UBO on SSBO code paths.
-    return false;
-#endif
-}
-
 // Stride is typically expected to be a compile-time literal here, so this should
 // be optimized into shifts and other cheap ALU ops by the compiler.
 uint ComputeDOTSInstanceOffset(uint instanceIndex, uint stride)
@@ -261,10 +262,9 @@ uint ComputeDOTSInstanceOffset(uint instanceIndex, uint stride)
     return instanceIndex * stride;
 }
 
-uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride, out bool secondary)
+uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
 {
     uint isOverridden = metadata & kPerInstanceDataBit;
-    secondary = IsDOTSSecondaryUBO(metadata);
     // Sign extend per-instance data bit so it can just be ANDed with the offset
     uint offsetMask  = (uint)((int)isOverridden >> 31);
     uint baseAddress = metadata & kAddressMask;
@@ -275,9 +275,8 @@ uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride, out bool seconda
 
 // This version assumes that the high bit of the metadata is set (= per instance data).
 // Useful if the call site has already branched over this.
-uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride, out bool secondary)
+uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
 {
-    secondary = IsDOTSSecondaryUBO(metadata);
     uint baseAddress = metadata & kAddressMask;
     uint offset      = ComputeDOTSInstanceOffset(GetDOTSInstanceIndex(), stride);
     return baseAddress + offset;
@@ -399,37 +398,44 @@ uint4 DOTSInstanceData_Load4(bool secondary_unused, uint address)
 #define DEFINE_DOTS_LOAD_INSTANCE_SCALAR(type, conv, sizeof_type) \
 type LoadDOTSInstancedData_##type(uint metadata) \
 { \
-    bool secondary; \
-    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type, secondary); \
-    return conv(DOTSInstanceData_Load(secondary, address)); \
+    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type); \
+    return conv(DOTSInstanceData_Load(false, address)); \
 } \
 type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 { \
-    bool secondary; \
-    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type, secondary); \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(DOTSInstanceData_Load(secondary, address)) : default_value; \
+        conv(DOTSInstanceData_Load(false, address)) : default_value; \
+} \
+type LoadDOTSInstancedData_Secondary_##type(uint secondary_address, uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
+    return IsDOTSInstancedProperty(metadata) ? \
+        conv(DOTSInstanceData_Load(false, address)) : conv(DOTSInstanceData_Load(true, secondary_address)); \
 }
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv, sizeof_type) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
-    bool secondary; \
-    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width, secondary); \
-    return conv(DOTSInstanceData_Load##width(secondary, address)); \
+    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width); \
+    return conv(DOTSInstanceData_Load##width(false, address)); \
 } \
 type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
 { \
-    bool secondary; \
-    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width, secondary); \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width); \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(DOTSInstanceData_Load##width(secondary, address)) : default_value; \
+        conv(DOTSInstanceData_Load##width(false, address)) : default_value; \
+} \
+type##width LoadDOTSInstancedData_Secondary_##type##width(uint secondary_address, uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width); \
+    return IsDOTSInstancedProperty(metadata) ? \
+        conv(DOTSInstanceData_Load##width(false, address)) : conv(DOTSInstanceData_Load##width(true, secondary_address)); \
 }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(int,   int,     4)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(uint,  uint,    4)
-//DEFINE_DOTS_LOAD_INSTANCE_SCALAR(half,  half,    2)
 
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(float, 2, asfloat, 4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(float, 3, asfloat, 4)
@@ -440,30 +446,29 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(int,   4, int4,    4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  2, uint2,   4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  3, uint3,   4)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  4, uint4,   4)
-//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  2, half2,   2)
-//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  3, half3,   2)
-//DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  4, half4,   2)
 
-half LoadDOTSInstancedData_half(uint metadata)
+half LoadDOTSInstancedData_half(bool secondary, uint metadata)
 {
-    float f = LoadDOTSInstancedData_float(metadata);
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 4);
+    float f = DOTSInstanceData_Load(secondary, address);
     min16float f16 = min16float(f);
     return f16;
 }
-half4 LoadDOTSInstancedData_half4(uint metadata)
+half4 LoadDOTSInstancedData_half4(bool secondary, uint metadata)
 {
-    float4 f = LoadDOTSInstancedData_float4(metadata);
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 4);
+    float4 f = DOTSInstanceData_Load4(secondary, address);
     min16float4 f16x4 = min16float4(f.x, f.y, f.z, f.w);
     return f16x4;
 }
 
 min16float LoadDOTSInstancedData_min16float(uint metadata)
 {
-    return LoadDOTSInstancedData_half(metadata);
+    return LoadDOTSInstancedData_half(false, metadata);
 }
 min16float4 LoadDOTSInstancedData_min16float4(uint metadata)
 {
-    return LoadDOTSInstancedData_half4(metadata);
+    return LoadDOTSInstancedData_half4(false, metadata);
 }
 min16float LoadDOTSInstancedData_min16float(min16float default_value, uint metadata)
 {
@@ -475,16 +480,41 @@ min16float4 LoadDOTSInstancedData_min16float4(min16float4 default_value, uint me
     return IsDOTSInstancedProperty(metadata) ?
         LoadDOTSInstancedData_min16float4(metadata) : default_value;
 }
+min16float LoadDOTSInstancedData_Secondary_min16float(uint secondary_address, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata)
+        ? LoadDOTSInstancedData_half(false, metadata)
+        : LoadDOTSInstancedData_half(true, secondary_address);
+}
+min16float4 LoadDOTSInstancedData_Secondary_min16float4(uint secondary_address, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata)
+        ? LoadDOTSInstancedData_half(false, metadata)
+        : LoadDOTSInstancedData_half(true, secondary_address);
+}
 
 // TODO: Other matrix sizes
 float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 {
-    bool secondary;
-    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16, secondary);
-    float4 p1 = asfloat(DOTSInstanceData_Load4(secondary, address + 0 * 16));
-    float4 p2 = asfloat(DOTSInstanceData_Load4(secondary, address + 1 * 16));
-    float4 p3 = asfloat(DOTSInstanceData_Load4(secondary, address + 2 * 16));
-    float4 p4 = asfloat(DOTSInstanceData_Load4(secondary, address + 3 * 16));
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(false, address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(false, address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(false, address + 2 * 16));
+    float4 p4 = asfloat(DOTSInstanceData_Load4(false, address + 3 * 16));
+    return float4x4(
+        p1.x, p2.x, p3.x, p4.x,
+        p1.y, p2.y, p3.y, p4.y,
+        p1.z, p2.z, p3.z, p4.z,
+        p1.w, p2.w, p3.w, p4.w);
+}
+
+float4x4 LoadDOTSInstancedData_float4x4_overridden(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 4 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(false, address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(false, address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(false, address + 2 * 16));
+    float4 p4 = asfloat(DOTSInstanceData_Load4(false, address + 3 * 16));
     return float4x4(
         p1.x, p2.x, p3.x, p4.x,
         p1.y, p2.y, p3.y, p4.y,
@@ -494,11 +524,10 @@ float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
 {
-    bool secondary;
-    uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16, secondary);
-    float4 p1 = asfloat(DOTSInstanceData_Load4(secondary, address + 0 * 16));
-    float4 p2 = asfloat(DOTSInstanceData_Load4(secondary, address + 1 * 16));
-    float4 p3 = asfloat(DOTSInstanceData_Load4(secondary, address + 2 * 16));
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(false, address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(false, address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(false, address + 2 * 16));
 
     return float4x4(
         p1.x, p1.w, p2.z, p3.y,
@@ -510,11 +539,10 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
 
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_overridden(uint metadata)
 {
-    bool secondary;
-    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 3 * 16, secondary);
-    float4 p1 = asfloat(DOTSInstanceData_Load4(secondary, address + 0 * 16));
-    float4 p2 = asfloat(DOTSInstanceData_Load4(secondary, address + 1 * 16));
-    float4 p3 = asfloat(DOTSInstanceData_Load4(secondary, address + 2 * 16));
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 3 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(false, address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(false, address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(false, address + 2 * 16));
 
     return float4x4(
         p1.x, p1.w, p2.z, p3.y,
@@ -524,24 +552,30 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_overridden(uint metadata)
     );
 }
 
+static float4x4 dots_o2w;
+static float4x4 dots_w2o;
+
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_o2w(uint metadata)
 {
     // uint metadata = kPerInstanceDataBit | 0;
     return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
+    //return LoadDOTSInstancedData_float4x4_overridden(metadata);
+    // return dots_o2w;
 }
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_w2o(uint metadata)
 {
     // uint metadata = kPerInstanceDataBit | 48;
     return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
+    //return LoadDOTSInstancedData_float4x4_overridden(metadata);
+    // return dots_w2o;
 }
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
 {
-    bool secondary;
-    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8, secondary);
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8);
     return float2x4(
-        asfloat(DOTSInstanceData_Load4(secondary, address + 0 * 8)),
-        asfloat(DOTSInstanceData_Load4(secondary, address + 1 * 8)));
+        asfloat(DOTSInstanceData_Load4(false, address + 0 * 8)),
+        asfloat(DOTSInstanceData_Load4(false, address + 1 * 8)));
 }
 
 float4x4 LoadDOTSInstancedData_float4x4(float4x4 default_value, uint metadata)
@@ -601,6 +635,78 @@ float4 LoadDOTSInstancedData_LODFade()
     crossfade *= 1.0 / 127;
     return crossfade;
 }
+
+half2 UnpackHalf2FromUint(uint packedHalf2)
+{
+    // Is there any more efficient way of doing this for GLES?
+    return half2(
+        f16tof32(packedHalf2),
+        f16tof32(packedHalf2 >> 16));
+}
+
+half4 UnpackHalf4FromUint2(uint2 packedHalf4)
+{
+    half2 xy = UnpackHalf2FromUint(packedHalf4.x);
+    half2 zw = UnpackHalf2FromUint(packedHalf4.y);
+    return half4(xy.x, xy.y, zw.x, zw.y);
+}
+
+half4 LoadDOTSInstancedData_DebugSH()
+{
+    uint2 u2 = DOTSInstanceData_Load2(true, 0);
+    return UnpackHalf4FromUint2(u2);
+}
+
+void SetupDOTSMatrices(uint metadata_o2w, uint metadata_w2o)
+{
+    metadata_o2w = 0x80000000;
+    metadata_w2o = 0x80000040;
+    // dots_o2w = LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata_o2w);
+    // dots_w2o = LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata_w2o);
+    dots_o2w = LoadDOTSInstancedData_float4x4_overridden(metadata_o2w);
+    dots_w2o = LoadDOTSInstancedData_float4x4_overridden(metadata_w2o);
+}
+
+void SetupDOTSGlobalBuiltins(uint metadata_shar)
+{
+    if (false && IsDOTSInstancedProperty(metadata_shar))
+    {
+        // TODO: this is bogus
+        unity_DOTS_SHAr            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHAr_Offset));
+        unity_DOTS_SHAg            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHAg_Offset));
+        unity_DOTS_SHAb            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHAb_Offset));
+        unity_DOTS_SHBr            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHBr_Offset));
+        unity_DOTS_SHBg            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHBg_Offset));
+        unity_DOTS_SHBb            = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHBb_Offset));
+        unity_DOTS_SHC             = asfloat(DOTSInstanceData_Load4(false, metadata_shar + unity_DOTS_SHC_Offset));
+    }
+    else
+    {
+        unity_DOTS_SHAr            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHAr_Offset));
+        unity_DOTS_SHAg            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHAg_Offset));
+        unity_DOTS_SHAb            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHAb_Offset));
+        unity_DOTS_SHBr            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHBr_Offset));
+        unity_DOTS_SHBg            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHBg_Offset));
+        unity_DOTS_SHBb            = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHBb_Offset));
+        unity_DOTS_SHC             = asfloat(DOTSInstanceData_Load4(true, unity_DOTS_SHC_Offset));
+    }
+}
+
+void SetDOTSVisibleData(DOTSVisibleData visibleData)
+{
+    unity_SampledDOTSVisibleData = visibleData;
+    SetupDOTSInstanceSelectMasks();
+}
+
+void SetupDOTSVisibleInstancingData()
+{
+#if 0
+    SetDOTSVisibleData(unity_DOTSVisibleInstances[0]);
+#else
+    SetDOTSVisibleData(unity_DOTSVisibleInstances[unity_InstanceID]);
+#endif
+}
+
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR

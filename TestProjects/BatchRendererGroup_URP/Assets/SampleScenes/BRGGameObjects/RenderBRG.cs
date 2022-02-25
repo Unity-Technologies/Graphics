@@ -1,3 +1,5 @@
+#define DISABLE_PICKING
+
 using System;
 using System.Collections.Generic;
 using Unity.Burst;
@@ -33,7 +35,11 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
+#if DISABLE_PICKING
+    public int pickableObjectInstanceID => 0;
+#else
     public int pickableObjectInstanceID;
+#endif
 
     public bool Equals(DrawKey other)
     {
@@ -104,6 +110,7 @@ struct SHProperties
 
 public unsafe class RenderBRG : MonoBehaviour
 {
+    public bool BRGEnabled = true;
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
 
@@ -318,6 +325,7 @@ public unsafe class RenderBRG : MonoBehaviour
             }
 
             draws.drawCommandCount = outBatch;
+            Debug.Log($"Draw command count: {outBatch}");
             draws.visibleInstanceCount = outIndex;
             draws.drawRangeCount = outRange;
             drawCommands[0] = draws;
@@ -409,6 +417,17 @@ public unsafe class RenderBRG : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (BRGEnabled)
+        {
+            Debug.Log($"RenderBRG enabled");
+        }
+        else
+        {
+            Debug.Log($"RenderBRG DISABLED");
+            return;
+        }
+
+
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
 #if UNITY_EDITOR
@@ -511,7 +530,11 @@ public unsafe class RenderBRG : MonoBehaviour
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows,
+#if !DISABLE_PICKING
+                pickableObjectInstanceID = instanceID
+#endif
+                };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
