@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering
                 widgetList.Add(streamingContainer);
             }
 
-            if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
+            if (parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0)
             {
                 void RefreshScenarioNames(string guid)
                 {

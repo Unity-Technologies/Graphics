@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
             {
                 UnloadAllBlendingCells();
                 for (int i = 0; i < m_ToBeLoadedBlendingCells.size; ++i)
-                    m_ToBeLoadedBlendingCells[i].blendingFactor = -1.0f;
+                    m_ToBeLoadedBlendingCells[i].ForceReupload();
             }
         }
 
@@ -45,23 +45,22 @@ namespace UnityEngine.Rendering
             }
         }
 
-        void ComputeStreamingScoreForBlending(DynamicArray<BlendingCellInfo> cells, bool areUploaded)
+        void ComputeStreamingScoreForBlending(DynamicArray<BlendingCellInfo> cells, bool areUploaded, float worstScore)
         {
             float factor = scenarioBlendingFactor;
             for (int i = 0; i < cells.size; ++i)
             {
-                if (factor == cells[i].blendingFactor)
-                {
-                    // This cell is up to date - mark it as replaceable by any cell
-                    cells[i].streamingScore = float.MaxValue;
-                }
+                var blendingCell = cells[i];
+                if (factor == blendingCell.blendingFactor)
+                    blendingCell.MarkUpToDate();
                 else
                 {
-                    // TODO: consider lowering the priority for cells that stay in the buffer for a long time
-                    // to leave room for other cells (only useful for very slow transitions)
-                    cells[i].streamingScore = cells[i].cellInfo.streamingScore;
+                    blendingCell.streamingScore = blendingCell.cellInfo.streamingScore;
+                    if (blendingCell.ShouldPrioritize())
+                        blendingCell.streamingScore -= worstScore;
+
                     if (areUploaded)
-                        cells[i].blendingFactor = factor;
+                        blendingCell.blendingFactor = factor;
                 }
             }
         }
@@ -85,25 +84,19 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        void UnloadBlendingCell(BlendingCellInfo blendingCell, ref int budget, DynamicArray<BlendingCellInfo> unloadedCells)
+        void UnloadBlendingCell(BlendingCellInfo blendingCell, DynamicArray<BlendingCellInfo> unloadedCells)
         {
             UnloadBlendingCell(blendingCell);
 
             unloadedCells.Add(blendingCell);
-            budget += blendingCell.cellInfo.cell.shChunkCount;
         }
 
-        bool TryLoadBlendingCell(BlendingCellInfo blendingCell, ref int budget, DynamicArray<BlendingCellInfo> loadedCells)
+        bool TryLoadBlendingCell(BlendingCellInfo blendingCell, DynamicArray<BlendingCellInfo> loadedCells)
         {
-            // Are we within budget?
-            if (blendingCell.cellInfo.cell.shChunkCount > budget)
-                return false;
-
             if (!AddBlendingBricks(blendingCell))
                 return false;
 
             loadedCells.Add(blendingCell);
-            budget -= blendingCell.chunkList.Count;
 
             return true;
         }
@@ -135,20 +128,20 @@ namespace UnityEngine.Rendering
             // It doesn't account for fragmentation.
             int indexChunkBudget = m_Index.GetRemainingChunkCount();
             int shChunkBudget = m_Pool.GetRemainingChunkCount();
+            int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_ToBeLoadedCells.size);
 
             if (m_SupportStreaming)
             {
-                bool budgetReached = false;
-
-                while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size && !budgetReached)
+                while (m_TempCellToLoadList.size < cellCountToLoad)
                 {
                     // Enough memory, we can safely load the cell.
                     var cellInfo = m_ToBeLoadedCells[m_TempCellToLoadList.size];
-                    budgetReached = !TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
+                    if (!TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList))
+                        break;
                 }
 
                 // Budget reached. We need to figure out if we can safely unload other cells to make room.
-                if (budgetReached)
+                if (m_TempCellToLoadList.size != cellCountToLoad)
                 {
                     int pendingUnloadCount = 0;
                     while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
@@ -159,12 +152,8 @@ namespace UnityEngine.Rendering
                         var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
                         var closestUnloadedCell = m_ToBeLoadedCells[m_TempCellToLoadList.size];
 
-                        // Redundant work. Maybe store during first sort pass?
-                        float furthestLoadedCellDistance = Vector3.Distance(furthestLoadedCell.cell.position, cameraPositionCellSpace);
-                        float closestUnloadedCellDistance = Vector3.Distance(closestUnloadedCell.cell.position, cameraPositionCellSpace);
-
                         // The most distant loaded cell is further than the closest unloaded cell, we can unload it.
-                        if (furthestLoadedCellDistance > closestUnloadedCellDistance)
+                        if (furthestLoadedCell.streamingScore > closestUnloadedCell.streamingScore)
                         {
                             pendingUnloadCount++;
                             UnloadCell(furthestLoadedCell);
@@ -188,7 +177,6 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_ToBeLoadedCells.size);
                 for (int i = 0; i < cellCountToLoad; ++i)
                 {
                     var cellInfo = m_ToBeLoadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
@@ -204,18 +192,18 @@ namespace UnityEngine.Rendering
             m_TempCellToUnloadList.Clear();
 
             // Handle cell streaming for blending
-            if (ProbeBrickBlendingPool.isInitialized && UpdateBlendingCellStreaming())
+            if (enableScenarioBlending && UpdateBlendingCellStreaming())
                 m_BlendingPool.PerformBlending(scenarioBlendingFactor, m_Pool);
         }
 
         bool UpdateBlendingCellStreaming()
         {
+            if (!m_HasRemainingCellsToBlend)
+                return false;
+
             // If all cells fit into blending pool
             if (m_ToBeLoadedBlendingCells.size == 0)
             {
-                if (!m_HasRemainingCellsToBlend)
-                    return false;
-
                 // Trigger one last dispatch to make all cells up to date with blending factor
                 // If blending factor changes later on, m_HasRemainingCellsToBlend will be
                 // forced to true to resume process.
@@ -225,25 +213,33 @@ namespace UnityEngine.Rendering
                 return true;
             }
 
-            ComputeStreamingScoreForBlending(m_ToBeLoadedBlendingCells, false);
-            ComputeStreamingScoreForBlending(m_LoadedBlendingCells, true);
+            // Compute the worst score to offset score of cells to prioritize
+            float worstLoaded = m_LoadedCells.size != 0 ? m_LoadedCells[m_LoadedCells.size - 1].streamingScore : 0.0f;
+            float worstToBeLoaded = m_ToBeLoadedCells.size != 0 ? m_ToBeLoadedCells[m_ToBeLoadedCells.size - 1].streamingScore : 0.0f;
+            float worstScore = Mathf.Max(worstLoaded, worstToBeLoaded);
+
+            ComputeStreamingScoreForBlending(m_ToBeLoadedBlendingCells, false, worstScore);
+            ComputeStreamingScoreForBlending(m_LoadedBlendingCells, true, worstScore);
 
             m_ToBeLoadedBlendingCells.QuickSort();
             m_LoadedBlendingCells.QuickSort();
 
-            int budget = m_BlendingPool.GetRemainingChunkCount();
-            int numberOfCellsToLoad = Mathf.Min(m_ToBeLoadedBlendingCells.size, m_NumberOfCellsLoadedPerFrame);
-            while (m_TempBlendingCellToLoadList.size < numberOfCellsToLoad)
+            int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_ToBeLoadedBlendingCells.size);
+            while (m_TempBlendingCellToLoadList.size < cellCountToLoad)
             {
                 var blendingCell = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size];
-                if (!TryLoadBlendingCell(blendingCell, ref budget, m_TempBlendingCellToLoadList))
+                if (!TryLoadBlendingCell(blendingCell, m_TempBlendingCellToLoadList))
                     break;
             }
 
             // Budget reached
-            if (m_TempBlendingCellToLoadList.size != numberOfCellsToLoad)
+            if (m_TempBlendingCellToLoadList.size != cellCountToLoad)
             {
-                while (m_TempBlendingCellToLoadList.size < numberOfCellsToLoad)
+                // Turnover allows a percentage of the pool to be replaced by cells with a lower streaming score
+                // once the system is in a stable state. This ensures all cells get updated regularly.
+                int idx = (int)(m_LoadedBlendingCells.size * (1.0f - turnoverRate));
+                var worstNoTurnover = idx < m_LoadedBlendingCells.size ? m_LoadedBlendingCells[idx] : null;
+                while (m_TempBlendingCellToLoadList.size < cellCountToLoad)
                 {
                     if (m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size == 0) // We unloaded everything
                         break;
@@ -251,11 +247,22 @@ namespace UnityEngine.Rendering
                     var worstCellLoaded = m_LoadedBlendingCells[m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size - 1];
                     var bestCellToBeLoaded = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size];
 
-                    if (bestCellToBeLoaded.streamingScore >= worstCellLoaded.streamingScore) // We are in a "stable" state
-                        break;
+                    if (bestCellToBeLoaded.streamingScore >= (worstNoTurnover ?? worstCellLoaded).streamingScore) // We are in a "stable" state
+                    {
+                        if (worstNoTurnover == null) // Disable turnover
+                            break;
 
-                    UnloadBlendingCell(worstCellLoaded, ref budget, m_TempBlendingCellToUnloadList);
-                    TryLoadBlendingCell(bestCellToBeLoaded, ref budget, m_TempBlendingCellToLoadList);
+                        int turnoverOffset = Random.Range(m_TempBlendingCellToLoadList.size, m_ToBeLoadedBlendingCells.size);
+                        bestCellToBeLoaded = m_ToBeLoadedBlendingCells[turnoverOffset];
+                        if (bestCellToBeLoaded.IsUpToDate()) // We really are in a "stable" state
+                            break;
+                        // swap to ensure loaded cells are at the start of m_ToBeLoadedBlendingCells
+                        m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size];
+                        m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size] = bestCellToBeLoaded;
+                    }
+
+                    UnloadBlendingCell(worstCellLoaded, m_TempBlendingCellToUnloadList);
+                    TryLoadBlendingCell(bestCellToBeLoaded, m_TempBlendingCellToLoadList);
                 }
 
                 m_LoadedBlendingCells.RemoveRange(m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size, m_TempBlendingCellToUnloadList.size);
@@ -283,7 +290,7 @@ namespace UnityEngine.Rendering
             m_TempBlendingCellToUnloadList.Clear();
 
             m_HasRemainingCellsToBlend = true;
-            return true;
+            return m_BlendingPool.isAllocated;
         }
     }
 }

@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering
 
             QueueAssetRemoval();
             activeScenario = ProbeReferenceVolume.instance.sceneData.lightingScenario;
-            otherScenario = null;
+            otherScenario = ProbeReferenceVolume.instance.sceneData.otherScenario;
             QueueAssetLoading();
         }
 
