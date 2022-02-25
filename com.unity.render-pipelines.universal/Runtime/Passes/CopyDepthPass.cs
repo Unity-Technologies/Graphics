@@ -202,6 +202,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Render(out TextureHandle depthTo, in TextureHandle depthFrom, ref RenderingData renderingData)
         {
+            //TODO: should call the equivalent of Setup() to initialise everything correctly
+            MssaSamples = -1;
+
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("Copy Depth", out var passData, new ProfilingSampler("Copy Depth Pass")))
@@ -283,7 +286,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalTexture("_CameraDepthAttachment", data.depthFrom);
 
 
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                         // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
                         if (renderingData.cameraData.xr.enabled)
                         {
@@ -304,7 +307,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
                         }
                         else
-        #endif
+#endif
                         {
                             // TODO: Ideally, render graph could help handle the yflip issue
                             //// Blit has logic to flip projection matrix when rendering to render texture.
