@@ -81,7 +81,7 @@ Setting a Lifetime attribute to a particle in an Initialize Context, will implic
 
 > **Immortal Particles:** Particles with no lifetime are considered immortal. You can still kill them explicitly by setting their `alive` attribute to `false`.
 
-**Note**: If you set the alive attribute to false in an output context, the particle will be culled from rendering but not killed.
+**Note**: If you set the `alive` attribute to false in an output context, the particle will be culled from rendering but not killed.
 
 #### Angle and Angular Velocity : Angular Integration
 
