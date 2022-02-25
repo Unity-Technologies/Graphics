@@ -10,7 +10,7 @@ namespace com.unity.shadergraph.defs
             1,
             "MatrixDeterminant",
             "Out = determinant(In);",
-            new ParameterDescriptor("In", TYPE.Matrix, Usage.In),
+            new ParameterDescriptor("In", TYPE.Matrix, Usage.In, new float[] { 1f, 0f, 0f, 1f}),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );
 
