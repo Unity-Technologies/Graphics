@@ -301,9 +301,6 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 
-    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0).CTYPE_SWIZZLE;
-    inputColor = color;
-
     // Bloom
     UNITY_BRANCH
     if (BloomEnabled)
@@ -354,6 +351,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
 #endif
+
 
 #ifdef AUTOLENSFLARE
 
