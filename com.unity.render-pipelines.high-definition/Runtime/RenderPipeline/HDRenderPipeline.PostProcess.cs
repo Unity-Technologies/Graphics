@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2D m_InternalSpectralLut;
 		
 		//Post Process Lens Flare
-        Texture2D m_AutoLensFlareSpectralLut;
+        Texture2D m_LensFlarePostProcessSpectralLut;
 
         // Color grading data
         int m_LutSize;
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
-        AutoLensFlare m_AutoLensFlare;
+        LensFlare m_LensFlarePostProcess;
         ChromaticAberration m_ChromaticAberration;
         LensDistortion m_LensDistortion;
         Vignette m_Vignette;
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
         bool m_LensFlareDataDataDrivenFS;
-        bool m_AutoLensFlareFS;
+        bool m_LensFlarePostProcessFS;
         bool m_ChromaticAberrationFS;
         bool m_LensDistortionFS;
         bool m_VignetteFS;
@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.Destroy(m_InternalSpectralLut);
-            CoreUtils.Destroy(m_AutoLensFlareSpectralLut);
+            CoreUtils.Destroy(m_LensFlarePostProcessSpectralLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ExposureCurveTexture = null;
             m_InternalSpectralLut = null;
-            m_AutoLensFlareSpectralLut = null;
+            m_LensFlarePostProcessSpectralLut = null;
             m_FinalPassMaterial = null;
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_AutoLensFlare = stack.GetComponent<AutoLensFlare>();
+            m_LensFlarePostProcess = stack.GetComponent<LensFlare>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_Vignette = stack.GetComponent<Vignette>();
             m_Tonemapping = stack.GetComponent<Tonemapping>();
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection) && m_PostProcessEnabled;
             m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom) && m_PostProcessEnabled;
             m_LensFlareDataDataDrivenFS = frameSettings.IsEnabled(FrameSettingsField.LensFlareDataDriven) && m_PostProcessEnabled;
-            m_AutoLensFlareFS = frameSettings.IsEnabled(FrameSettingsField.AutoLensFlare) && m_PostProcessEnabled;
+            m_LensFlarePostProcessFS = frameSettings.IsEnabled(FrameSettingsField.LensFlarePostProcess) && m_PostProcessEnabled;
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration) && m_PostProcessEnabled;
             m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion) && m_PostProcessEnabled;
             m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette) && m_PostProcessEnabled;
@@ -3939,7 +3939,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
 			// We need to still do the bloom pass if lens flare post process is active because it uses _BloomTexture. 
-			bool lensFlarePostProcess = m_AutoLensFlare.IsActive();
+			bool lensFlarePostProcess = m_LensFlarePostProcess.IsActive();
 			
             TextureHandle bloomTexture = renderGraph.defaultResources.blackTextureXR;
             if (bloomActive || lensFlarePostProcess)
@@ -4430,8 +4430,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var flags = UberPostFeatureFlags.None;
 
-            if (m_AutoLensFlare.IsActive() && m_AutoLensFlareFS)
-                flags |= UberPostFeatureFlags.AutoLensFlare;
+            if (m_LensFlarePostProcess.IsActive() && m_LensFlarePostProcessFS)
+                flags |= UberPostFeatureFlags.LensFlarePostProcess;
 
             if (m_ChromaticAberration.IsActive() && m_ChromaticAberrationFS)
                 flags |= UberPostFeatureFlags.ChromaticAberration;
@@ -4475,21 +4475,21 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
-        void PrepareAutoLensFlareParameters(UberPostPassData data, UberPostFeatureFlags flags)
+        void PrepareLensFlarePostProcessParameters(UberPostPassData data, UberPostFeatureFlags flags)
         {
-            if ((flags & UberPostFeatureFlags.AutoLensFlare) != UberPostFeatureFlags.AutoLensFlare)
+            if ((flags & UberPostFeatureFlags.LensFlarePostProcess) != UberPostFeatureFlags.LensFlarePostProcess)
                 return;
 
-            data.uberPostCS.EnableKeyword("AUTOLENSFLARE");
+            data.uberPostCS.EnableKeyword("LENSFLAREPOSTPROCESS");
 
-            var spectralLut = m_AutoLensFlare.spectralLut.value;
+            var spectralLut = m_LensFlarePostProcess.spectralLut.value;
 
             // If no spectral lut is set, use a pre-generated one
             if (spectralLut == null)
             {
-                if (m_AutoLensFlareSpectralLut == null)
+                if (m_LensFlarePostProcessSpectralLut == null)
                 {
-                    m_AutoLensFlareSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+                    m_LensFlarePostProcessSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                     {
                         name = "Chromatic Aberration Spectral LUT",
                         filterMode = FilterMode.Bilinear,
@@ -4498,22 +4498,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         hideFlags = HideFlags.DontSave
                     };
 
-                    m_AutoLensFlareSpectralLut.SetPixels(new[]
+                    m_LensFlarePostProcessSpectralLut.SetPixels(new[]
                     {
                         new Color(1f, 0f, 0f, 1f),
                         new Color(0f, 1f, 0f, 1f),
                         new Color(0f, 0f, 1f, 1f)
                     });
 
-                    m_AutoLensFlareSpectralLut.Apply();
+                    m_LensFlarePostProcessSpectralLut.Apply();
                 }
 
-                spectralLut = m_AutoLensFlareSpectralLut;
+                spectralLut = m_LensFlarePostProcessSpectralLut;
             }
 
-            data.autoLensFlareSpectralLut = spectralLut;
-            data.autoLensFlareParameters1 = new Vector4(m_AutoLensFlare.intensityMultiplier.value, m_AutoLensFlare.firstFlareIntensity.value, m_AutoLensFlare.secondaryFlareIntensity.value, m_AutoLensFlare.warpedFlareIntensity.value);
-            data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.vignetteIntensity.value, m_AutoLensFlare.chromaticAbberationIntensity.value / 20f, m_AutoLensFlare.chromaticAbberationSampleCount.value, 1.0f);
+            data.lensFlarePostProcessSpectralLut = spectralLut;
+            data.lensFlarePostProcessParameters1 = new Vector4(m_LensFlarePostProcess.intensityMultiplier.value, m_LensFlarePostProcess.firstFlareIntensity.value, m_LensFlarePostProcess.secondaryFlareIntensity.value, m_LensFlarePostProcess.warpedFlareIntensity.value);
+            data.lensFlarePostProcessParameters2 = new Vector4(m_LensFlarePostProcess.vignetteIntensity.value, m_LensFlarePostProcess.chromaticAbberationIntensity.value / 20f, m_LensFlarePostProcess.chromaticAbberationSampleCount.value, 0.0f);
 
         }
 
@@ -4649,9 +4649,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture spectralLut;
             public Vector4 chromaticAberrationParameters;
 
-            public Texture autoLensFlareSpectralLut;
-            public Vector4 autoLensFlareParameters1;
-            public Vector4 autoLensFlareParameters2;
+            public Texture lensFlarePostProcessSpectralLut;
+            public Vector4 lensFlarePostProcessParameters1;
+            public Vector4 lensFlarePostProcessParameters2;
 
             public Vector4 vignetteParams1;
             public Vector4 vignetteParams2;
@@ -4735,7 +4735,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Setup the rest of the effects
                 PrepareLensDistortionParameters(passData, featureFlags);
-                PrepareAutoLensFlareParameters(passData, featureFlags);
+                PrepareLensFlarePostProcessParameters(passData, featureFlags);
                 PrepareChromaticAberrationParameters(passData, featureFlags);
                 PrepareVignetteParameters(passData, featureFlags);
                 PrepareUberBloomParameters(passData, hdCamera);
@@ -4749,10 +4749,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
-                        // AutoLensFlare
-                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._AutoLensFlareSpectralLut, data.autoLensFlareSpectralLut);
-                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams1, data.autoLensFlareParameters1);
-                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams2, data.autoLensFlareParameters2);
+                        // Lens Flare Post Process
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._LensFlarePostProcessSpectralLut, data.lensFlarePostProcessSpectralLut);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LensFlarePostProcessParams1, data.lensFlarePostProcessParameters1);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LensFlarePostProcessParams2, data.lensFlarePostProcessParameters2);
 
                         // Color grading
                         ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._LogLut3D, data.logLut);

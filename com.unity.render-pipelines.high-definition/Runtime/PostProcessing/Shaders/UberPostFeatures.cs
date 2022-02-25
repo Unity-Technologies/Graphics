@@ -10,6 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Vignette = 1 << 1,
         LensDistortion = 1 << 2,
         EnableAlpha = 1 << 3,
-        AutoLensFlare = 1 << 4
+        LensFlarePostProcess = 1 << 4
     }
 }

@@ -214,8 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens flare to Cameras affected by a Volume containing the lens flare override.")]
         LensFlareDataDriven = 97,
 		/// <summary>When enabled, HDRP adds chromatic aberration to Cameras affected by a Volume containing the Chromatic Aberration override.</summary>
-        [FrameSettingsField(0, autoName: AutoLensFlare, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds auto lens flare to Cameras affected by a Volume containing the Auto Lens Flare override.")]
-        AutoLensFlare = 100,
+        [FrameSettingsField(0, autoName: LensFlarePostProcess, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds auto lens flare to Cameras affected by a Volume containing the Auto Lens Flare override.")]
+        LensFlarePostProcess = 100,
         /// <summary>When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.</summary>
         [FrameSettingsField(0, autoName: LensDistortion, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.")]
         LensDistortion = 85,
@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.Bloom,
                 (uint)FrameSettingsField.LensFlareDataDriven,
                 (uint)FrameSettingsField.LensDistortion,
-                (uint)FrameSettingsField.AutoLensFlare,
+                (uint)FrameSettingsField.LensFlarePostProcess,
                 (uint)FrameSettingsField.ChromaticAberration,
                 (uint)FrameSettingsField.Vignette,
                 (uint)FrameSettingsField.ColorGrading,

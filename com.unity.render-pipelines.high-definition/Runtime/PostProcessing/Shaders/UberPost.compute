@@ -9,7 +9,7 @@
 
 #pragma kernel Uber
 
-#pragma multi_compile _ AUTOLENSFLARE
+#pragma multi_compile _ LENSFLAREPOSTPROCESS
 #pragma multi_compile _ CHROMATIC_ABERRATION
 #pragma multi_compile _ VIGNETTE
 #pragma multi_compile _ LENS_DISTORTION
@@ -26,7 +26,7 @@ TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);
 TEXTURE2D(_BloomDirtTexture);
 TEXTURE2D(_ChromaSpectralLut);
-TEXTURE2D(_AutoLensFlareSpectralLut);
+TEXTURE2D(_LensFlarePostProcessSpectralLut);
 TEXTURE3D(_LogLut3D);
 TEXTURE2D(_VignetteMask);
 
@@ -34,13 +34,13 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_ChromaSpectralLut);
-SAMPLER(sampler_AutoLensFlareSpectralLut);
+SAMPLER(sampler_LensFlarePostProcessSpectralLut);
 SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_VignetteMask);
 
 CBUFFER_START(cb0)
-    float4 _AutoLensFlareParams1;
-    float4 _AutoLensFlareParams2;
+    float4 _LensFlarePostProcessParams1;
+    float4 _LensFlarePostProcessParams2;
     float4 _ChromaParams;
     float4 _VignetteParams1;
     float4 _VignetteParams2;
@@ -64,14 +64,14 @@ CBUFFER_END
 #define DistScale               _DistortionParams2.z
 #define DistIntensity           _DistortionParams2.w
 
-#define AutoLensFlareAmount                 _AutoLensFlareParams1.x
-#define AutoLensFlareFirstIntensity         _AutoLensFlareParams1.y
-#define AutoLensFlareSecondaryIntensity     _AutoLensFlareParams1.z
-#define AutoLensFlarePolarIntensity         _AutoLensFlareParams1.w
+#define LensFlarePostProcessAmount                 _LensFlarePostProcessParams1.x
+#define LensFlarePostProcessFirstIntensity         _LensFlarePostProcessParams1.y
+#define LensFlarePostProcessSecondaryIntensity     _LensFlarePostProcessParams1.z
+#define LensFlarePostProcessPolarIntensity         _LensFlarePostProcessParams1.w
 
-#define AutoLensFlareVignetteIntensity      _AutoLensFlareParams2.x
-#define ChromaticAbberationIntensity        _AutoLensFlareParams2.y
-#define ChromaticAbberationSample           _AutoLensFlareParams2.z
+#define LensFlarePostProcessVignetteIntensity      _LensFlarePostProcessParams2.x
+#define LensFlarePostProcessChromaIntensity        _LensFlarePostProcessParams2.y
+#define LensFlarePostProcessChromaSample           _LensFlarePostProcessParams2.z
 
 #define ChromaAmount            _ChromaParams.x
 #define ChromaMaxSamples        int(_ChromaParams.y)
@@ -187,9 +187,9 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
 
     //Chromatic
     float2 coords = 2.0 * uv - 1.0;
-    float2 end = uv - coords * dot(coords, coords) * ChromaticAbberationIntensity;  //Amount
+    float2 end = uv - coords * dot(coords, coords) * LensFlarePostProcessChromaIntensity;  //Amount
     float2 diff = end - uv;
-    int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, ChromaticAbberationSample); //max sample
+    int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, LensFlarePostProcessChromaSample); //max sample
     float2 delta = diff / samples;
     float2 pos = uv;
 
@@ -202,7 +202,7 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
         float sign = invert ? -1 : 1;
         float t = (i + 0.5) / samples;
         float3 s = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(DistortUV(pos)), 0.0).xyz;
-        float3 filter = SAMPLE_TEXTURE2D_LOD(_AutoLensFlareSpectralLut, sampler_AutoLensFlareSpectralLut, float2(t, 0.0), 0).xyz;
+        float3 filter = SAMPLE_TEXTURE2D_LOD(_LensFlarePostProcessSpectralLut, sampler_LensFlarePostProcessSpectralLut, float2(t, 0.0), 0).xyz;
 
         sum += (s * filter) * ((samples-(i+0.5))/samples);
         filterSum += filter;
@@ -316,10 +316,10 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 
-#ifdef AUTOLENSFLARE
+#ifdef LENSFLAREPOSTPROCESS
 
     UNITY_BRANCH
-    if(AutoLensFlareAmount > 0)
+    if(LensFlarePostProcessAmount > 0)
     {
         //Parameters
         float vignettePow = 2.0;
@@ -332,19 +332,19 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         float vignetteY = pow(abs(2 * uvVignette.y - 1) , (vignetteSquaredness));
         float vignetteRound = pow((vignetteX + vignetteY),(vignettePow));
 
-        vignetteRound = lerp(1,vignetteRound,pow(abs(AutoLensFlareVignetteIntensity),0.25f));
+        vignetteRound = lerp(1,vignetteRound,pow(abs(LensFlarePostProcessVignetteIntensity),0.25f));
 
-        float3 classicInv = GetFlareTexture(uv, 4.0f,AutoLensFlareFirstIntensity, true, false);
-        float3 classic = GetFlareTexture(uv, 4.0f,AutoLensFlareSecondaryIntensity, false, false);
+        float3 classicInv = GetFlareTexture(uv, 4.0f,LensFlarePostProcessFirstIntensity, true, false);
+        float3 classic = GetFlareTexture(uv, 4.0f,LensFlarePostProcessSecondaryIntensity, false, false);
 
-        float3 polar = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, false, true);
-        float3 polarInv = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, true, true);
+        float3 polar = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, false, true);
+        float3 polarInv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, true, true);
 
-        float3 classic2Inv = GetFlareTexture(uv, 2.0f,AutoLensFlareFirstIntensity, true, false);
-        float3 classic2 = GetFlareTexture(uv, 2.0f,AutoLensFlareSecondaryIntensity, false, false);
+        float3 classic2Inv = GetFlareTexture(uv, 2.0f,LensFlarePostProcessFirstIntensity, true, false);
+        float3 classic2 = GetFlareTexture(uv, 2.0f,LensFlarePostProcessSecondaryIntensity, false, false);
 
-        float3 classic1Inv = GetFlareTexture(uv, 1.0f,AutoLensFlareFirstIntensity, true, false);
-        float3 classic1 = GetFlareTexture(uv, 1.0f,AutoLensFlareSecondaryIntensity, false, false);
+        float3 classic1Inv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessFirstIntensity, true, false);
+        float3 classic1 = GetFlareTexture(uv, 1.0f,LensFlarePostProcessSecondaryIntensity, false, false);
 
         float3 final = (
                             (classicInv + classic) * vignetteRound +
@@ -352,14 +352,10 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
                             (classic1Inv + classic1) * vignetteRound +
                             (polarInv + polar) * vignetteX*(vignetteX + vignetteY)
 
-                            ) * AutoLensFlareAmount;
+                            ) * LensFlarePostProcessAmount;
 
         color += final.xyz;
 
-#ifdef ENABLE_ALPHA
-		inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0);
-		color.w = inputColor.w;
-#endif
 
     }
 #endif

@@ -2,8 +2,8 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Post-processing/AutoLensFlare")]
-    public sealed class AutoLensFlare : VolumeComponent, IPostProcessComponent
+    [VolumeComponentMenu("Post-processing/LensFlare")]
+    public sealed class LensFlare : VolumeComponent, IPostProcessComponent
     {
         [Header("General")]
         /// <summary>
