@@ -1230,8 +1230,6 @@ namespace UnityEngine.Rendering
                         probesTargetL2_3 = probesL2_3.GetSubArray(shChunkOffset, shChunkSize);
                     }
 
-                    int bx = 0, by = 0, bz = 0;
-
                     for (int brickIndex = 0; brickIndex < asset.chunkSizeInBricks; brickIndex++)
                     {
                         for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
@@ -1240,11 +1238,7 @@ namespace UnityEngine.Rendering
                             {
                                 for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                                 {
-                                    int ix = bx + x;
-                                    int iy = by + y;
-                                    int iz = bz + z;
-
-                                    int index = ix + locSize.x * (iy + locSize.y * iz);
+                                    int index = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
 
                                     // We are processing chunks at a time.
                                     // So in practice we can go over the number of SH we have in the input list.
@@ -1281,19 +1275,6 @@ namespace UnityEngine.Rendering
                                     }
                                     shidx++;
                                 }
-                            }
-                        }
-
-                        // update the pool index
-                        bx += ProbeBrickPool.kBrickProbeCountPerDim;
-                        if (bx >= locSize.x)
-                        {
-                            bx = 0;
-                            by += ProbeBrickPool.kBrickProbeCountPerDim;
-                            if (by >= locSize.y)
-                            {
-                                by = 0;
-                                bz += ProbeBrickPool.kBrickProbeCountPerDim;
                             }
                         }
                     }
