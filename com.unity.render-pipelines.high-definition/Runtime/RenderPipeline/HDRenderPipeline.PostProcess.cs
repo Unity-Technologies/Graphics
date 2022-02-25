@@ -3938,8 +3938,11 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle BloomPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
+			// We need to still do the bloom pass if lens flare post process is active because it uses _BloomTexture. 
+			bool lensFlarePostProcess = m_AutoLensFlare.IsActive();
+			
             TextureHandle bloomTexture = renderGraph.defaultResources.blackTextureXR;
-            if (bloomActive)
+            if (bloomActive || lensFlarePostProcess)
             {
                 using (var builder = renderGraph.AddRenderPass<BloomData>("Bloom", out var passData, ProfilingSampler.Get(HDProfileId.Bloom)))
                 {
