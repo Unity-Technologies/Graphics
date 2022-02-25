@@ -1038,11 +1038,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 60
-  waitFrames: 120
+  waitFrames: 110
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 0
-  renderPipelineAsset: {fileID: 11400000, guid: a2b3940bdd38ca54880a3ae1fe6be80f,
+  renderPipelineAsset: {fileID: 11400000, guid: 5034674625970b6498967c85065a3cc6,
     type: 2}
   forceCameraRenderDuringSetup: 0
 --- !u!114 &808474215
@@ -2354,7 +2354,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   localSpace: 0
   vector: {x: 0, y: 0.3, z: 0}
-  frequency: 10
+  frequency: 20
   fps: 60
 --- !u!1 &1742162469
 GameObject:
