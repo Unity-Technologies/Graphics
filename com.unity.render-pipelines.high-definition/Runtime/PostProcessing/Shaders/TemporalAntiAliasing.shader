@@ -225,7 +225,8 @@ Shader "Hidden/HDRP/TemporalAA"
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
+            float closestDepth, centralDepth;
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, closestDepth, centralDepth);
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
