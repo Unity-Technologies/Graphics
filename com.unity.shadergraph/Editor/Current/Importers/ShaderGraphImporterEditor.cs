@@ -15,7 +15,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [CustomEditor(typeof(ShaderGraphImporter))]
-    class ShaderGraphImporterEditor : ScriptedImporterEditor
+    class ShaderGraphImporterEditor: ScriptedImporterEditor
     {
         protected override bool needsApplyRevert => false;
         MaterialEditor materialEditor = null;

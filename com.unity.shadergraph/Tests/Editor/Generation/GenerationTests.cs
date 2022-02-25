@@ -13,13 +13,13 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
     class GraphGenerationFixture
     {
 
-        private static IGraphHandler graph;
+        private static GraphHandler graph;
         private static Registry.Registry registry;
 
         [SetUp]
         public static void Setup()
         {
-            graph = GraphDelta.GraphUtil.CreateGraph();
+            graph = new GraphHandler();
             registry = new Registry.Registry();
 
             registry.Register<Types.GraphType>();

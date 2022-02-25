@@ -22,13 +22,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
             reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
-            reader.GetField(Registry.Types.GraphType.kHeight, out Registry.Types.GraphType.Height hgt);
-            if (hgt != Registry.Types.GraphType.Height.One)
-            {
-                // matrix
-                return TypeHandle.Unknown;
-            }
-
             switch ((int)len)
             {
                 case 1:
@@ -95,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class FieldConstant<T> : IConstant
     {
-        public GraphDelta.IGraphHandler graphHandler;
+        public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName, fieldPath;
 
         private GraphDelta.IFieldReader ResolveReader()
@@ -115,7 +108,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool IsInitialized => graphHandler != null;
 
-        public void Initialize(GraphDelta.IGraphHandler handler, string nodeName, string portName, string fieldPath)
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName, string fieldPath)
         {
             graphHandler = handler;
             this.nodeName = nodeName;
@@ -153,7 +146,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class GraphTypeConstant : IConstant
     {
-        public GraphDelta.IGraphHandler graphHandler;
+        public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
@@ -165,6 +158,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeReader.TryGetPort(portName, out var portReader);
             portReader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length length);
             return (int)length;
+        }
+
+        private Registry.Types.GraphType.Primitive GetPrimitive()
+        {
+            if (!IsInitialized) return Registry.Types.GraphType.Primitive.Float;
+            var nodeReader = graphHandler.GetNodeReader(nodeName);
+            nodeReader.TryGetPort(portName, out var portReader);
+            portReader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
+            return prim;
         }
 
         private float gc(int i)
@@ -183,7 +185,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeReader.SetPortField(portName, $"c{i}", v);
         }
 
-        public void Initialize(GraphDelta.IGraphHandler handler, string nodeName, string portName)
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
         {
             graphHandler = handler;
             this.nodeName = nodeName;
@@ -196,7 +198,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (GetLength())
                 {
-                    case 1: return gc(0);
+                    case 1:
+                        switch(GetPrimitive())
+                        {
+                            case Registry.Types.GraphType.Primitive.Int: return (int)gc(0);
+                            case Registry.Types.GraphType.Primitive.Bool: return gc(0) != 0;
+                            default: return gc(0);
+                        }
                     case 2: return new Vector2(gc(0), gc(1));
                     case 3: return new Vector3(gc(0), gc(1), gc(2));
                     case 4: return new Vector4(gc(0), gc(1), gc(2), gc(3));
@@ -207,10 +215,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (GetLength())
                 {
+                    default:
+                        switch (GetPrimitive())
+                        {
+                            case Registry.Types.GraphType.Primitive.Int: sc(0, (float)value); return;
+                            case Registry.Types.GraphType.Primitive.Bool: sc(0, (bool)value ? 1 : 0); return;
+                            default: sc(0, (float)value); return;
+                        }
                     case 2: var v2 = (Vector2)value; sc(0, v2.x); sc(1, v2.y); return;
                     case 3: var v3 = (Vector3)value; sc(0, v3.x); sc(1, v3.y); sc(2, v3.z); return;
                     case 4: var v4 = (Vector4)value; sc(0, v4.x); sc(1, v4.y); sc(2, v4.z); sc(3, v4.w); return;
-                    default: sc(0, (float)value); return;
                 }
             }
         }
@@ -223,7 +237,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     case 2: return typeof(Vector2);
                     case 3: return typeof(Vector3);
                     case 4: return typeof(Vector4);
-                    default: return typeof(float);
+                    default:
+                        switch (GetPrimitive())
+                        {
+                            case Registry.Types.GraphType.Primitive.Int: return typeof(int);
+                            case Registry.Types.GraphType.Primitive.Bool: return typeof(bool);
+                            default: return typeof(float);
+                        }
                 }
             }
         }
