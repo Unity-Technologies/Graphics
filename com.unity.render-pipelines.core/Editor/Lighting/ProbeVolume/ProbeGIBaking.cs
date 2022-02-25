@@ -353,14 +353,14 @@ namespace UnityEngine.Rendering
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
                 var cell = cellInfo.cell;
-                for (int i = 0; i < cell.validityOld.Length; ++i)
+                for (int i = 0; i < cell.validity.Length; ++i)
                 {
-                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validityOld[i] > dilationSettings.dilationValidityThreshold)
+                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(blackProbe, cell.bakingScenario.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                        WriteToShaderCoeffsL0L1(blackProbe, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, i * 4);
 
                         if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(blackProbe, cell.bakingScenario.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                            WriteToShaderCoeffsL2(blackProbe, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, i * 4);
                     }
                 }
             }

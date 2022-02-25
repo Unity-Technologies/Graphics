@@ -62,9 +62,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal const int kL0L1ScalarCoefficientsCount = 12;
-        internal const int kL2ScalarCoefficientsCount = 15;
-
         internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
