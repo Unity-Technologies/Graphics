@@ -1164,7 +1164,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<GenerateDepthPyramidPassData>("Generate Depth Buffer MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.DepthPyramid)))
             {
-                passData.depthTexture = builder.WriteTexture(output.depthPyramidTexture);
+                passData.depthTexture = builder.ReadWriteTexture(output.depthPyramidTexture);
                 passData.mipInfo = hdCamera.depthBufferMipChainInfo;
                 passData.mipGenerator = m_MipGenerator;
                 passData.mip0AlreadyComputed = mip0AlreadyComputed;

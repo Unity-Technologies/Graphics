@@ -29,6 +29,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public bool allowRendererListCulling { get; protected set; }
 
+        public string file { get; set; }
+        public int line { get; set; }
+
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
@@ -76,6 +79,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        // Checks if the resource is involved in this pass
+        public bool IsTransient(in ResourceHandle res)
+        {
+            return transientResourceList[res.iType].Contains(res);
+        }
+
+        public bool IsWriten(in ResourceHandle res)
+        {
+            // You can only ever write to the latest version so we ignore it when looking in the list
+            for (int i = 0; i < resourceWriteLists[res.iType].Count; i++)
+            {
+                if (resourceWriteLists[res.iType][i].index == res.index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsRead(in ResourceHandle res)
+        {
+            return resourceReadLists[res.iType].Contains(res);
+        }
+
         public void AddResourceWrite(in ResourceHandle res)
         {
             resourceWriteLists[res.iType].Add(res);
@@ -121,17 +148,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             generateDebugData = value;
         }
 
-        public void SetColorBuffer(TextureHandle resource, int index, DepthAccess flags = DepthAccess.Write)
+        public void SetColorBuffer(RenderGraphResourceRegistry reg, TextureHandle resource, int index, ColorAccess flags = ColorAccess.ReadWrite)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             if (colorBuffers[index].handle == resource.handle || colorBuffers[index].handle == TextureHandle.nullHandle.handle)
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
                 colorBuffers[index] = resource;
-                if ((flags & DepthAccess.Read) != 0)
+                /*if ((flags & ColorAccess.Read) != 0)
                     AddResourceRead(resource.handle);
-                if ((flags & DepthAccess.Write) != 0)
-                    AddResourceWrite(resource.handle);
+                if ((flags & ColorAccess.PartialWrite) != 0)
+                    AddResourceWrite(resource.handle);*/
+                if ((flags & ColorAccess.DiscardContents) == 0)
+                {
+                    AddResourceRead(reg.GetLatestVersionHandle(resource.handle));
+                }
+                if ((flags & ColorAccess.PartialWrite) != 0)
+                {
+                    reg.NewVersion(resource.handle);
+                    AddResourceWrite(reg.GetLatestVersionHandle(resource.handle));
+                }
             }
             else
             {
@@ -139,16 +175,48 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
+        // Sets up the color buffer for this pass but not any resource Read/Writes for it
+        public void SetColorBufferRaw(TextureHandle resource, int index)
+        {
+            Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
+            if (colorBuffers[index].handle == resource.handle || colorBuffers[index].handle == TextureHandle.nullHandle.handle)
+            {
+                colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
+                colorBuffers[index] = resource;
+            }
+            else
+            {
+                throw new Exception("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+            }
+        }
+
+        public void SetDepthBuffer(RenderGraphResourceRegistry reg, TextureHandle resource, DepthAccess flags)
         {
             // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
             if (depthBuffer.handle == resource.handle || depthBuffer.handle == TextureHandle.nullHandle.handle)
             {
                 depthBuffer = resource;
                 if ((flags & DepthAccess.Read) != 0)
-                    AddResourceRead(resource.handle);
+                    AddResourceRead(reg.GetLatestVersionHandle(resource.handle));
                 if ((flags & DepthAccess.Write) != 0)
-                    AddResourceWrite(resource.handle);
+                {
+                    reg.NewVersion(resource.handle);
+                    AddResourceWrite(reg.GetLatestVersionHandle(resource.handle));
+                }
+            }
+            else
+            {
+                throw new Exception("You can only set a single depth texture per pass.");
+            }
+        }
+
+        // Sets up the depth buffer for this pass but not any resource Read/Writes for it
+        public void SetDepthBufferRaw(TextureHandle resource)
+        {
+            // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
+            if (depthBuffer.handle == resource.handle || depthBuffer.handle == TextureHandle.nullHandle.handle)
+            {
+                depthBuffer = resource;
             }
             else
             {

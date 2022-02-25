@@ -881,7 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Forward Error", out var passData, ProfilingSampler.Get(HDProfileId.RenderForwardError)))
             {
-                builder.UseColorBuffer(colorBuffer, 0);
+                builder.UseColorBuffer(colorBuffer, 0, ColorAccess.ReadWrite);
                 builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.ReadWrite);
 
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
@@ -1049,9 +1049,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramidTexture = builder.ReadTexture(prepassOutput.depthPyramidTexture); // We need to bind this for transparent materials doing stuff like soft particles etc.
 
                 int index = 0;
-                builder.UseColorBuffer(colorBuffer, index++);
+                builder.UseColorBuffer(colorBuffer, index++, ColorAccess.ReadWrite);
 #if ENABLE_VIRTUALTEXTURES
-                builder.UseColorBuffer(vtFeedbackBuffer, index++);
+                builder.UseColorBuffer(vtFeedbackBuffer, index++, ColorAccess.ReadWrite);
 #endif
 
                 if (passData.renderMotionVecForTransparent)
@@ -1214,7 +1214,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.upsampleMaterial = m_UpsampleTransparency;
                 passData.lowResTransparentBuffer = builder.ReadTexture(lowResTransparentBuffer);
                 passData.downsampledDepthBuffer = builder.ReadTexture(downsampledDepthBuffer);
-                builder.UseColorBuffer(colorBuffer, 0);
+                builder.UseColorBuffer(colorBuffer, 0, ColorAccess.ReadWrite);
 
                 builder.SetRenderFunc(
                     (UpsampleTransparentPassData data, RenderGraphContext context) =>
@@ -1561,7 +1561,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.clearStencilMaterial = m_ClearStencilBufferMaterial;
                 //passData.colorBuffer = builder.ReadTexture(colorBuffer);
-                passData.depthBuffer = builder.WriteTexture(depthBuffer);
+                // This doesn't only Write it keeps the depth so it's technically a read/modify/write
+                // This should ideally go through a UseDepthBuffer
+                passData.depthBuffer = builder.ReadWriteTexture(depthBuffer);
 
                 builder.SetRenderFunc(
                     (ClearStencilPassData data, RenderGraphContext ctx) =>
@@ -1700,7 +1702,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.roughDistortion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
                 passData.sourceColorBuffer = passData.roughDistortion ? builder.ReadTexture(colorPyramidBuffer) : builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" });
                 passData.distortionBuffer = builder.ReadTexture(distortionBuffer);
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0, passData.roughDistortion ? ColorAccess.FullWrite : ColorAccess.ReadWrite);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
 

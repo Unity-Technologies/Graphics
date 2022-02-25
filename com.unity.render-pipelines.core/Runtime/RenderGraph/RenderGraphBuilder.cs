@@ -22,11 +22,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="input">The Texture resource to use as a color render target.</param>
         /// <param name="index">Index for multiple render target usage.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public TextureHandle UseColorBuffer(in TextureHandle input, int index)
+        public TextureHandle UseColorBuffer(in TextureHandle input, int index, ColorAccess accessFlags = ColorAccess.ReadWrite)
         {
             CheckResource(input.handle, true);
             m_Resources.IncrementWriteCount(input.handle);
-            m_RenderPass.SetColorBuffer(input, index);
+            m_RenderPass.SetColorBuffer(m_Resources, input, index, accessFlags);
             return input;
         }
 
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle, true);
             m_Resources.IncrementWriteCount(input.handle);
-            m_RenderPass.SetDepthBuffer(input, flags);
+            m_RenderPass.SetDepthBuffer(m_Resources, input, flags);
             return input;
         }
 
@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 WriteTexture(input);
             }
 
-            m_RenderPass.AddResourceRead(input.handle);
+            m_RenderPass.AddResourceRead(m_Resources.GetLatestVersionHandle(input.handle));
             return input;
         }
 
@@ -86,7 +86,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_Resources.IncrementWriteCount(input.handle);
-            m_RenderPass.AddResourceWrite(input.handle);
+            m_Resources.NewVersion(input.handle);
+            m_RenderPass.AddResourceWrite(m_Resources.GetLatestVersionHandle(input.handle));
             return input;
         }
 
@@ -98,9 +99,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadWriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+            m_RenderPass.AddResourceRead(m_Resources.GetLatestVersionHandle(input.handle));
             m_Resources.IncrementWriteCount(input.handle);
-            m_RenderPass.AddResourceWrite(input.handle);
-            m_RenderPass.AddResourceRead(input.handle);
+            m_Resources.NewVersion(input.handle);
+            m_RenderPass.AddResourceWrite(m_Resources.GetLatestVersionHandle(input.handle));
             return input;
         }
 

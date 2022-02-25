@@ -25,7 +25,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void DrawRenderer(Renderer renderer, Material material, int submeshIndex) => m_wrapped.DrawRenderer(renderer, material, submeshIndex);
         [ExcludeFromDocs]
         public void DrawRenderer(Renderer renderer, Material material) => m_wrapped.DrawRenderer(renderer, material);
-        public void DrawRendererList(UnityEngine.Rendering.RendererUtils.RendererList rendererList) => m_wrapped.DrawRendererList(rendererList);
+
+        public void DrawRendererList(UnityEngine.Rendering.RendererUtils.RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+            m_wrapped.DrawRendererList(rendererList);
+        }
+
         public void DrawProcedural(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int vertexCount, [DefaultValue("1")] int instanceCount, [DefaultValue("null")] MaterialPropertyBlock properties) => m_wrapped.DrawProcedural(matrix, material, shaderPass, topology, vertexCount, instanceCount, properties);
         [ExcludeFromDocs]
         public void DrawProcedural(Matrix4x4 matrix, Material material, int shaderPass, MeshTopology topology, int vertexCount, int instanceCount) => m_wrapped.DrawProcedural(matrix, material, shaderPass, topology, vertexCount, instanceCount);

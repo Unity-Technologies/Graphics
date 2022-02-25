@@ -200,10 +200,37 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
         }
 
+        internal void NewVersion(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
+        }
+
         internal void IncrementWriteCount(in ResourceHandle res)
         {
             CheckHandleValidity(res);
             m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementWriteCount();
+        }
+
+        internal ResourceHandle GetLatestVersionHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
+            return new ResourceHandle(res, ver);
+        }
+
+        internal ResourceHandle GetZeroVersionedHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return new ResourceHandle(res, 0);
+        }
+
+
+        internal ResourceHandle GetNewVersionedHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
+            return new ResourceHandle(res, ver);
         }
 
         internal string GetRenderGraphResourceName(in ResourceHandle res)
@@ -350,6 +377,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.transientPassIndex = transientPassIndex;
             texResource.requestFallBack = desc.fallBackToBlackTexture;
             return new TextureHandle(newHandle);
+        }
+
+        internal int GetResourceCount(RenderGraphResourceType t)
+        {
+            return m_RenderGraphResources[(int)t].resourceArray.size;
         }
 
         internal int GetTextureResourceCount()

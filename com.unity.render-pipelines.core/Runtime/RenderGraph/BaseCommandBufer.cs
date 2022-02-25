@@ -15,8 +15,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public BaseCommandBuffer(CommandBuffer wrapped)
         {
-            m_wrapped.Clear();
             m_wrapped = wrapped;
+            m_wrapped.Clear();
         }
 
         public string name => m_wrapped.name;

@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_General/base.unity
+    guid: 0ecead7b61af2064699269195b8b6543
+  - enabled: 1
+    path: Assets/SRP0101_Basic/SRP0101_Basic.unity
+    guid: 3f6fcec12118e754a8666ad7e9cdec6b
+  - enabled: 1
+    path: Assets/SRP0101_Fog/SRP0101_Fog.unity
+    guid: a7e9c17090e265a4282b1c32b23a6ba1
+  - enabled: 1
+    path: Assets/SRP0102_AssetSettings/SRP0102_AssetSettings.unity
+    guid: cff4b5ee70753144c9f3007a12cbf59e
+  - enabled: 1
+    path: Assets/SRP0103_CustomGUI/SRP0103_CustomGUI.unity
+    guid: 6fb9b2adfa3f05c4e90b73faec914dee
+  - enabled: 1
+    path: Assets/SRP0201_FrustumCulling/SRP0201_FrustumCulling.unity
+    guid: e854aa057d113fe49969cde13649ba73
+  - enabled: 1
+    path: Assets/SRP0202_OcclusionCulling/SRP0202_OcclusionCulling.unity
+    guid: 4001e0b6193b7454aac24b32dc4bd874
+  - enabled: 1
+    path: Assets/SRP0301_Batching/SRP0301_Batching.unity
+    guid: fb75decb166a6b24ebba64fb6187eb31
+  - enabled: 1
+    path: Assets/SRP0302_BatchRendererGroup/SRP0302_BatchRendererGroup.unity
+    guid: 0bb81a1ae463d3744b87f6502d48927f
+  - enabled: 1
+    path: Assets/SRP0401_NoSpecificPass/SRP0401_NoSpecificPass.unity
+    guid: 966491527f2baa447a0544f89eb37a48
+  - enabled: 1
+    path: Assets/SRP0402_Multipass/SRP0402_Multipass.unity
+    guid: 87bca61ef9e9a2042b70bbe9d94bb894
+  - enabled: 1
+    path: Assets/SRP0403_Compute/SRP0403_Compute.unity
+    guid: e91727a3acdbe77468db740ab3f20ae1
+  - enabled: 1
+    path: Assets/SRP0404_DrawCommands/SRP0404_DrawCommands.unity
+    guid: f7d5c67b0975212419d984c8ac5d424d
+  - enabled: 1
+    path: Assets/SRP0405_Callback/SRP0405_Callback.unity
+    guid: dcd89a0cc0d004a0a942031bd2caccde
+  - enabled: 1
+    path: Assets/SRP0501_SoftParticle/SRP0501_SoftParticle.unity
+    guid: 7d62423e1259f5c489f0d45b0a483f25
+  - enabled: 1
+    path: Assets/SRP0502_Distortion/SRP0502_Distortion.unity
+    guid: 1815eabba3eaa6b49bae06a2520b2b63
+  - enabled: 1
+    path: Assets/SRP0601_RealtimeLights/SRP0601_RealtimeLights.unity
+    guid: f282cc42fb1c7194d872833eabcf55c6
+  - enabled: 1
+    path: Assets/SRP0602_BakedLights/SRP0602_BakedLights.unity
+    guid: f74ece76f2fa10b4eb275c6355476c34
+  - enabled: 1
+    path: Assets/SRP0603_RealtimeShadowDirectional/SRP0603_RealtimeShadowDirectional.unity
+    guid: 3d6a8fa59d86a4d42bb3b8d6e191dc65
+  - enabled: 1
+    path: Assets/SRP0701_HDR_MSAA/SRP0701_HDR_MSAA.unity
+    guid: f45d7d050c77835498ef30aa0fcbfb0c
+  - enabled: 1
+    path: Assets/SRP0701_Stencil/SRP0701_Stencil.unity
+    guid: 2881bd96da9fa4b80a6ab897ede66d7c
+  - enabled: 1
+    path: Assets/SRP0702_Postprocessing/SRP0702_Postprocessing.unity
+    guid: 8afbb6c78bcd6d14ea291d502bfa098f
+  - enabled: 1
+    path: Assets/SRP0703_MotionVector/SRP0703_MotionVector.unity
+    guid: 9149683ace496934c82cee79a7f32705
+  - enabled: 1
+    path: Assets/SRP0801_UGUI/SRP0801_UGUI.unity
+    guid: a7aa9f666a05202489b88edbcdf1b6f4
+  - enabled: 1
+    path: Assets/SRP0802_RenderPass/SRP0802_RenderPass.unity
+    guid: 28533f5153ff5344396a8cc5901bcd14
+  - enabled: 1
+    path: Assets/SRP0802_RenderGraph/SRP0802_RenderGraph.unity
+    guid: 5b74aeb55b3928f4eaf3802b4ba0685c
+  - enabled: 1
+    path: Assets/SRP0803_MultiRenderTarget/SRP0803_MultiRenderTarget.unity
+    guid: 5a5bfa29f5ab44c4b9fb7243db2bfe22
+  - enabled: 1
+    path: Assets/SRP0901_SceneViewFix/SRP0901_SceneViewFix.unity
+    guid: 54a6cb2e9384a304fa790d093205f5e3
+  - enabled: 1
+    path: Assets/SRP0902_SceneViewDrawMode/SRP0902_SceneViewDrawMode.unity
+    guid: c25d8e7710704994e99cd9ba9399e08b
+  - enabled: 1
+    path: Assets/SRP1001_Error/SRP1001_Error.unity
+    guid: 1032ee5d05f3d7949890a056eecac378
+  - enabled: 1
+    path: Assets/SRP1002_Debug/SRP1002_Debug.unity
+    guid: f0306b4c8e88f1141a1958430f6945d0
+  - enabled: 1
+    path: Assets/SRP1003_DefaultShaders/SRP1003_DefaultShaders.unity
+    guid: a528bfc08fcb70b49bf234680e6636f2
+  m_configObjects: {}

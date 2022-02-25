@@ -6,9 +6,32 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     public interface IBaseRenderGraphBuilder : IDisposable
     {
-        // Converts the handle from implicit latest to a concrete version.
-        // This is only needed if you want to refer to a certain version at a later
-        // point in time after additional latest version commands have been recorded.
+        [Flags]
+        enum AccessFlags
+        {
+            None = 0, ///<summary>The pass does not access the resource at all. Calling Use* functions with none has no effect.</summary>
+            Read = 1 << 0, ///<summary>This pass will read data the resource. Data in the resource should never be written unless one of the write flags is also present. Writing to a read-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
+            Write = 1 << 1, ///<summary>This pass will at least write some data to the resource. Data in the resource should never be read unless one of the read flags is also present. Reading from a write-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
+            Discard = 1 << 2, ///<summary>Previous data in the resource is not preserved. The resource will contain undefined data at the beginning of the pass.</summary>
+            WriteAll = Write | Discard, ///<summary>All data in the resource will be written by this pass. Data in the resource should never be read.</summary>
+            AllowGrab = 1 << 3, ///<summary>Allow auto "Grabbing" a framebuffer to a texture at the beginning of the pass. Normally UseTexture(Read) in combination with UseFrameBuffer(x) is not allowed as the texture reads would not nececarily show
+                               /// modifications to the frame buffer. By passing this flag you indicate to the Graph it's ok to grab the frame buffer once at the beginning of the
+                               /// pass and then use that as the  input texture. Depending on usage flags this may cause a new temporary buffer+buffer copy to be generated. This is mainly
+                               /// useful in complex cases were you are unsure the handles are coming from and they may sometimes refer to the same resource. Say you want to do
+                               /// distortion on the frame buffer but then also blend the distortion results over it. UseTexture(myBuff, Read  | Grab) USeFrameBuffer(myBuff, ReadWrite) to achieve this
+                               /// if you have similar code  UseTexture(myBuff1, Read  | Grab) USeFrameBuffer(myBuff2, ReadWrite) where depending on the active passes myBuff1 may be different from myBuff@
+                               /// the graph will always take the optimal path, not copying to a temp copy if they are in fact different, and auto-allocating a temp copy if they are.</summary>
+            GrabRead = Read | AllowGrab,
+            ReadWrite = Read | Write
+        }
+
+        /// <summary>
+        /// Resource handles are generally implicitly versioned. This means the system will automatically take the last version in the graph up to the recorded point.
+        /// Sometimes it's useful to explicitly refer to an older version of the resource. To get such an explicit versioned version of the handle you can use this function.
+        /// It will return a fixed version version of the handle that can later be used to refer to this version.
+        /// </summary>
+        /// <param name="input">Resource to get a versioned handle for.</param>
+        /// <returns>A versioned handle.</returns>
         public TextureHandle VersionedHandle(in TextureHandle input);
         public ComputeBufferHandle VersionedHandle(in ComputeBufferHandle input);
 
@@ -16,47 +39,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// This pass will read the input texture. This registers a dependency that all previous writes to the texture have to be complete before this pass can run.
         /// </summary>
         /// <param name="input">The Texture resource to read from during the pass.</param>
-        public void ReadTexture(in TextureHandle input);
-
-        /// <summary>
-        /// This pass will write the input texture. This registers a dependency that this pass will run before any subsequent reads from this texture.
-        /// This bumps the handle version. To get an explicit versioned handle please use "VersionedHandle" before/after the call to writetexture.
-        /// </summary>
-        /// <param name="input">The Texture resource to read from during the pass.</param>
-        public void WriteTexture(in TextureHandle input);
-
-        /// <summary>
-        /// A shorthand of ReadTexture(handle); WriteTexture(handle); in that exact order. See documentation of ReadTexture/WriteTexture for more details.
-        /// </summary>
-        /// <param name="input">The Texture resource to act on.</param>
-        public void ReadWriteTexture(in TextureHandle input)
-        {
-            ReadTexture(input);
-            WriteTexture(input);
-        }
+        public void UseTexture(in TextureHandle input, AccessFlags flags);
 
         /// <summary>
         /// This pass will read the input buffer. This registers a dependency that all previous writes to the buffer have to be complete before this pass can run.
         /// </summary>
         /// <param name="input">The Compute Buffer resource to read from during the pass.</param>
-        public ComputeBufferHandle ReadComputeBuffer(in ComputeBufferHandle input);
-
-        /// <summary>
-        /// This pass will write the input buffer. This registers a dependency that this pass will run before any subsequent reads from this buffer.
-        /// This bumps the handle version. To get an explicit versioned handle please use "VersionedHandle" before/after the call to WriteComputeBuffer.
-        /// </summary>
-        /// <param name="input">The Compute Buffer resource to write to during the pass.</param>
-        public ComputeBufferHandle WriteComputeBuffer(in ComputeBufferHandle input);
-
-        /// <summary>
-        /// A shorthand of ReadComputeBuffer(handle); WriteComputeBuffer(handle); in that exact order. See documentation of ReadComputeBuffer/WriteComputeBuffer for more details.
-        /// </summary>
-        /// <param name="input">The Texture resource to act on.</param>
-        public void ReadWriteComputeBuffer(in ComputeBufferHandle input)
-        {
-            ReadComputeBuffer(input);
-            WriteComputeBuffer(input);
-        }
+        public void UseComputeBuffer(in ComputeBufferHandle input, AccessFlags flags);
 
         /// <summary>
         /// Create a new Render Graph Texture resource.
@@ -91,10 +80,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ComputeBufferHandle CreateTransientComputeBuffer(in ComputeBufferHandle computebuffer);
 
         /// <summary>
-        /// Specify a Renderer List resource to use during the pass.
+        /// This pass will read from this renderer list. RendererLists are always read-only in the graph so have no access flags.
         /// </summary>
         /// <param name="input">The Renderer List resource to use during the pass.</param>
         public void UseRendererList(in RendererListHandle input);
+
+        /// <summary>
+        /// Enable asynchronous compute for this pass.
+        /// </summary>
+        /// <param name="value">Set to true to enable asynchronous compute.</param>
+        public void EnableAsyncCompute(bool value);
+
+        /// <summary>
+        /// Allow or not pass culling
+        /// By default all passes can be culled out if the render graph detects it's not actually used.
+        /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
+        /// This function can be used to tell the system that it should not cull this pass.
+        /// </summary>
+        /// <param name="value">True to allow pass culling.</param>
+        public void AllowPassCulling(bool value);
     }
 
     public interface IComputeRenderGraphBuilder : IBaseRenderGraphBuilder
@@ -113,15 +117,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public interface IRasterRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>
+        /// Use the texture as an rendertarget/renderpass attachment.
+        /// Writing:
         /// Indicate this pass will write a texture on the current fragment position and sample index through MRT writes.
         /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
         /// Write in shader as  float4 out : SV_Target{index} = value; This texture always needs to be written as an
         /// render target (SV_Targetx) writing using other methods (like `operator[] =` ) may not work even if
         /// using the current fragment+sampleIdx pos. When using operator[] please use the WriteTexture function instead.
-        /// </summary>
-        void WriteTextureFragment(TextureHandle tex, int index);
-
-        /// <summary>
+        /// Reading:
         /// Indicates this pass will read a texture on the current fragment position. If the texture is msaa then the sample index to read
         /// may be chosen by the shader. This informs the graph that any shaders in pass will only read from this
         /// texture at the current fragment position using the LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros.
@@ -129,45 +132,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///  as a fall back).
         /// The index passed to LOAD_FRAMEBUFFER_INPUT needs to match the index passed to ReadTextureFragment for this texture.
         /// </summary>
-        void ReadTextureFragment(TextureHandle tex, int index);
+        void UseTextureFragment(TextureHandle tex, int index, AccessFlags flags);
 
         /// <summary>
-        /// A shorthand of ReadTextureFragment(handle); WriteTextureFragment(handle); in that exact order. See documentation of ReadTextureFragment/WriteTextureFragment for more details.
-        /// </summary>
-        /// <param name="input">The Texture resource to act on.</param>
-        public void ReadWriteTextureFragment(in TextureHandle input, int index)
-        {
-            ReadTextureFragment(input, index);
-            WriteTextureFragment(input, index);
-        }
-
-        /// <summary>
-        /// Indicate a texture will be used as an input for the depth testing unit.
-        /// NOTE: The depth testing unit can only test against a single texture. Doing multiple ReadTextureFragmentDepth's in a single pass is an error.
-        /// Note you can only read and write from the same depth texture in a pass. You cannot test against one depth buffer but write to another buffer.
-        /// </summary>
-        /// <param name="tex"></param>
-        void ReadTextureFragmentDepth(TextureHandle tex);
-
-        /// <summary>
+        /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
+        /// If you want to write depth to more than one texture you will need to register the second texture as WriteTextureFragment and manually calculate
+        /// and write the depth value in the shader.
+        /// Calling UseTextureFragmentDepth twice on the same builder is an error.
+        /// Write:
         /// Indicate a texture will be witten with the current frament depth by the ROPs (but not for depth reading (i.e. z-test == always)).
-        /// NOTE: You can only write depth to a single texture in a pass. If you want to write depth to more than one texture
-        /// you will need to register the second texture as WriteTextureFragment and manually calculate and write the depth value in the shader.
-        /// Note you can only read and write from the same depth texture in a pass. You cannot test against one depth buffer but write to another buffer.
+        /// Read:
+        /// Indicate a texture will be used as an input for the depth testing unit.
         /// </summary>
         /// <param name="tex"></param>
-        void WriteTextureFragmentDepth(TextureHandle tex);
-
-        /// <summary>
-        /// A shorthand of ReadTextureFragment(handle); WriteTextureFragment(handle); in that exact order. See documentation of ReadTextureFragment/WriteTextureFragment for more details.
-        /// Note this is the common use case for a pass that does "traditional" z-buffer based rendering where it is both read (to do the comparison against the current nearest) and written (do register the newest nearest depth)
-        /// </summary>
-        /// <param name="input">The Texture resource to act on.</param>
-        public void ReadWriteTextureFragmentDepth(in TextureHandle input)
-        {
-            ReadTextureFragmentDepth(input);
-            WriteTextureFragmentDepth(input);
-        }
+        void UseTextureFragmentDepth(TextureHandle tex, AccessFlags flags);
 
         /// <summary>
         /// Specify the render function to use for this pass.

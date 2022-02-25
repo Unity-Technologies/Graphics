@@ -1240,7 +1240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky", out var passData, sampler))
                 {
-                    passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                    passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
                     passData.skyContext = skyContext;
                     // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
@@ -1258,6 +1258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.builtinParameters.depthBuffer = data.depthBuffer;
                             data.builtinParameters.commandBuffer = ctx.cmd;
 
+                            // There is no "UseColor" for this one!!!
                             CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
 
                             data.skyContext.skyRenderer.DoUpdate(data.builtinParameters);

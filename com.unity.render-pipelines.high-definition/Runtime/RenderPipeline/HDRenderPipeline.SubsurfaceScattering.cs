@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesZ = hdCamera.viewCount;
                 passData.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
 
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
                 passData.diffuseBuffer = builder.ReadTexture(lightingBuffers.diffuseLightingBuffer);
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);

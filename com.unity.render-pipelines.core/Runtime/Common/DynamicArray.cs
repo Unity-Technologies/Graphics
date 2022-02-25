@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
@@ -239,6 +240,98 @@ namespace UnityEngine.Rendering
                     m_Array = new T[newCapacity];
                 }
             }
+        }
+
+        public struct Iterator
+        {
+            private readonly DynamicArray<T> owner;
+            private int index;
+
+            public Iterator(DynamicArray<T> setOwner)
+            {
+                owner = setOwner;
+                index = -1;
+            }
+
+            public ref T Current
+            {
+                get
+                {
+                    return ref owner[index];
+                }
+            }
+
+            public bool MoveNext()
+            {
+                index++;
+                return index < owner.size;
+            }
+
+            public void Reset()
+            {
+                index = -1;
+            }
+        }
+
+        public struct RangeIterator
+        {
+            private readonly DynamicArray<T> owner;
+            private int index;
+            private int first;
+            private int last;
+
+
+            public RangeIterator(DynamicArray<T> setOwner, int first, int numItems)
+            {
+                owner = setOwner;
+                this.first = first;
+                index = first-1;
+                last = first + numItems;
+            }
+
+            public ref T Current
+            {
+                get
+                {
+                    return ref owner[index];
+                }
+            }
+
+            public bool MoveNext()
+            {
+                index++;
+                return index < last;
+            }
+
+            public void Reset()
+            {
+                index = first-1;
+            }
+        }
+
+
+        // NOTE: this does NOT implement IEnumarable/IEnmerator it just follows
+        // the same name conventions. This means foreach on the compiler level will pick it up
+        // But as it's a struct that is returned it won't generate garbage or anything funky.
+        public Iterator GetEnumerator()
+        {
+            return new Iterator(this);
+        }
+
+        public struct RangeEnumerable
+        {
+            public RangeIterator iterator;
+
+            public RangeIterator GetEnumerator()
+            {
+                return iterator;
+            }
+        }
+
+        public RangeEnumerable SubRange(int first, int numItems)
+        {
+            RangeEnumerable r = new RangeEnumerable { iterator = new RangeIterator(this, first, numItems) };
+            return r;
         }
 
         /// <summary>
