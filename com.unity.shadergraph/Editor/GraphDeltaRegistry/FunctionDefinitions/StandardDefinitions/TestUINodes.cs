@@ -29,9 +29,9 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIInt", // Name
-            "Out = float4(In, In, In, In);",
+            "Out = In;",
             new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
         );
     }
 
@@ -40,9 +40,20 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIFloat", // Name
-            "Out = float4(In, In, In, In);",
+            "Out = In;",
             new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUIBoolNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIBool", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Bool, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out)
         );
     }
 
