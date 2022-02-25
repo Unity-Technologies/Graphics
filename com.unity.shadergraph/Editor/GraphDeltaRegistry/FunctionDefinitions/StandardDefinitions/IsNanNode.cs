@@ -10,7 +10,7 @@ namespace com.unity.shadergraph.defs
             1,
             "IsNan",
             "Out = isnan(In);",
-            new ParameterDescriptor("In", TYPE.Bool, Usage.In),
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
         );
 

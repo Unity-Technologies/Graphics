@@ -16,7 +16,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "MatrixDeterminant" },
+            { "Name.Synonyms", "Determinant" },
             { "Tooltip", "returns the determinant of the matrix defined by the input" },
             { "Parameters.In.Tooltip", "input matrix" },
             { "Parameters.Out.Tooltip", "the determinant of the input matrix" },

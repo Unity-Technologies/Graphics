@@ -11,7 +11,7 @@ namespace com.unity.shadergraph.defs
             "Length",
             "Out = length(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

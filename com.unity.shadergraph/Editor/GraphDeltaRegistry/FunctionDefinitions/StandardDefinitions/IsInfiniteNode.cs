@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "IsInfinite",
             "Out = isinf(In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Float, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

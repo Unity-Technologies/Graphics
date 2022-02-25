@@ -18,7 +18,7 @@ namespace com.unity.shadergraph.defs
         {
             { "Name.Synonyms", "radtodeg, degrees, convert" },
             { "Tooltip", "converts radians to degrees" },
-            { "Parameters.In.Tooltip", "input value" },
+            { "Parameters.In.Tooltip", "a value in radians" },
             { "Parameters.Out.Tooltip", "the input converted to degrees" },
             { "Category", "Math, Trigonometry" },
             { "DisplayName", "Radians To Degrees" }
