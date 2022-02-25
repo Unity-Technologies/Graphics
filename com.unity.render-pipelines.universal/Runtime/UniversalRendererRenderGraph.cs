@@ -5,6 +5,9 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
+        private RTHandle m_RenderGraphCameraColorHandle;
+        private RTHandle m_RenderGraphCameraDepthHandle;
+
         internal class RenderGraphFrameResources
         {
             // backbuffer
@@ -24,6 +27,12 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle cameraNormalsTexture;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
+
+        private void CleanupRenderGraphResources()
+        {
+            m_RenderGraphCameraColorHandle?.Release();
+            m_RenderGraphCameraDepthHandle?.Release();
+        }
 
         internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
         {
@@ -65,7 +74,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.autoGenerateMips = false;
                 cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                frameResources.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, "_CameraTargetAttachment", cameraData.renderType == CameraRenderType.Base);
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
+                frameResources.cameraColor = renderGraph.ImportTexture(m_RenderGraphCameraColorHandle);
             }
 
             // if (createDepthTexture)
@@ -96,7 +106,8 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
 
-                frameResources.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthAttachment", cameraData.clearDepth);
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                frameResources.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle);
             }
             #endregion
         }
