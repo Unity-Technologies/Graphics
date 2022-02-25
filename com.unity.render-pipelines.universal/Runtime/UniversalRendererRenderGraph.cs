@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            m_RenderOpaqueForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
+            m_RenderOpaqueForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
@@ -163,12 +163,13 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
             }
 
-            m_RenderTransparentForwardPass.Render(frameResources.backBufferColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
+            m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
+
         }
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-
+            m_FinalBlitPass.Render(renderingData.renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
         }
 
     }

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -141,6 +142,47 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
 #pragma warning restore 0618
             }
+        }
+
+        class PassData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+
+            public int sourceID;
+
+            public RenderingData renderingData;
+        }
+
+        public void Render(RenderGraph graph, ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
+        {
+            using (var builder = graph.AddRenderPass<PassData>("Final Blit", out var passData, new ProfilingSampler("Final Blit")))
+            {
+                passData.source = src;
+                passData.destination = dest;
+                passData.renderingData = renderingData;
+                passData.sourceID = ShaderPropertyId.sourceTex;
+
+                builder.UseColorBuffer(passData.destination, 0);
+                builder.ReadTexture(passData.source);
+
+                CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.LinearToSRGBConversion,
+                    renderingData.cameraData.requireSrgbConversion);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    m_BlitMaterial.SetTexture(passData.sourceID, data.source);
+                    Camera camera = data.renderingData.cameraData.camera;
+                    CommandBuffer cmd = data.renderingData.commandBuffer;
+
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.SetViewport(data.renderingData.cameraData.pixelRect);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                });
+
+            }
+
         }
     }
 }
