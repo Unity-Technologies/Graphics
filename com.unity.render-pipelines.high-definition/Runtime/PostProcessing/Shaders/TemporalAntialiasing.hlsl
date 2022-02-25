@@ -1,5 +1,6 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
@@ -499,10 +500,10 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
 #if WIDE_NEIGHBOURHOOD
 
     // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
-    samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, 0), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0, 1), rtHandleScale).CTYPE_SWIZZLE);
 
     // Cross shape
     int2 fastOffset = -quadOffset;
@@ -510,42 +511,45 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
     int2 offset2 = int2(quadOffset.x, -quadOffset.y);
     int2 offset3 = quadOffset;
 
-    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, fastOffset, rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
+    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, -1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, -1), rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
 
 #ifdef UPSAMPLE
-    samples.offsets[0] = float2(0.0f, quadOffset.y);
-    samples.offsets[1] = float2(quadOffset.x, 0.0f);
-    samples.offsets[2] = float2(-quadOffset.x, 0.0f);
-    samples.offsets[3] = float2(0.0f, -quadOffset.y);
-    samples.offsets[4] = offset1;
-    samples.offsets[5] = offset2;
-    samples.offsets[6] = offset3;
-    samples.offsets[7] = fastOffset;
+    samples.offsets[0] = float2(0.0f, 1);
+    samples.offsets[1] = float2(1, 0.0f);
+    samples.offsets[2] = float2(-1, 0.0f);
+    samples.offsets[3] = float2(0.0f, -1);
+    samples.offsets[4] = float2(-1, 1);
+    samples.offsets[5] = float2(1, -1);
+    samples.offsets[6] = float2(1, 1);
+    samples.offsets[7] = float2(-1, -1);
 #endif
 
 #else // !WIDE_NEIGHBOURHOOD
 
 #if SMALL_NEIGHBOURHOOD_SHAPE == PLUS
 
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
-    samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, 0), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0, 1), rtHandleScale).CTYPE_SWIZZLE);
+
+#ifdef UPSAMPLE
+    samples.offsets[0] = float2(0.0f, 1);
+    samples.offsets[1] = float2(1, 0.0f);
+    samples.offsets[2] = float2(-1, 0.0f);
+    samples.offsets[3] = float2(0.0f, -1);
+#endif
 
 #else // SMALL_NEIGHBOURHOOD_SHAPE == CROSS
 
-    int2 fastOffset = -quadOffset;
-    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
-    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
-    int2 offset3 = quadOffset;
 
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[3] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, -1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1, 1), rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1, -1), rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
 
 #endif // SMALL_NEIGHBOURHOOD_SHAPE == 4
 
@@ -707,7 +711,7 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, 
     CTYPE filtered = 0;
     filtered += samples.central * totalWeight;
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
     {
         float w = GetSampleWeight(samples, i, filterParameters);
         filtered += samples.neighbours[i] * w;
@@ -856,4 +860,15 @@ float GetUpsampleConfidence(float2 inputToOutputVec, float confidenceThreshold, 
 #endif
 
     return 1;
+}
+
+// ---------------------------------------------------
+// RECOVER BAD PIXELS.
+// ---------------------------------------------------
+SAMPLER(sampler_LinearClamp);
+
+float3 AlternateAA(TEXTURE2D_X(InputTexture), float3 outColor, float2 posSS, float2 posNDC)
+{
+    RunFXAA(InputTexture, sampler_LinearClamp, outColor, posSS, posNDC);
+    return outColor;
 }
