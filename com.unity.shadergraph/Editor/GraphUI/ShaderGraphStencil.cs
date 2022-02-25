@@ -21,7 +21,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (typeHandle == TypeHandle.Vector2
                 || typeHandle == TypeHandle.Vector3
                 || typeHandle == TypeHandle.Vector4
-                || typeHandle == TypeHandle.Float)
+                || typeHandle == TypeHandle.Float
+                || typeHandle == TypeHandle.Bool
+                || typeHandle == TypeHandle.Int)
             {
                 return typeof(GraphTypeConstant);
             }
