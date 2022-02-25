@@ -25,16 +25,16 @@
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);
 TEXTURE2D(_BloomDirtTexture);
-TEXTURE2D(_AutoLensFlareSpectralLut);
 TEXTURE2D(_ChromaSpectralLut);
+TEXTURE2D(_AutoLensFlareSpectralLut);
 TEXTURE3D(_LogLut3D);
 TEXTURE2D(_VignetteMask);
 
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
-SAMPLER(sampler_AutoLensFlareSpectralLut);
 SAMPLER(sampler_ChromaSpectralLut);
+SAMPLER(sampler_AutoLensFlareSpectralLut);
 SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_VignetteMask);
 
@@ -183,9 +183,6 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
 
     float chromaIntensityDampen = 0.05f;            //0 and 1 max
 
-    // float blurSize = AutoLensFlareBlurSize; // 0 /8
-    // float blurSampleCount = AutoLensFlareBlurSample;        // 3 and 16 max
-
     uv = DistortUV(uv);
 
     //Chromatic
@@ -212,45 +209,9 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
         pos += sign*delta;
     }
 
-
-    //Debug
     float3 chromaTexture = chromaIntensityDampen * (sum / filterSum);
-/*
-   float3 blurTexture = float3(0,0,0);
-    
-    float2 uv1 = scaleUV(uv, float2(0.5f,0.5f), scale, invert, polar, polar);
-
-
-    for(float x = -blurSampleCount; x <= blurSampleCount; ++x){
-        if(abs(x) >= 1){
-            float2 uv2 = uv1 + float2((x/_PostProcessScreenSize.x) * blurSize/blurSampleCount, 0);
-            blurTexture +=  SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0).xyz;
-        }
-    }
-
-    for(float y = -blurSampleCount; y <= blurSampleCount; ++y){
-        if(abs(y) >= 1){
-            float2 uv2 = uv1 + float2(0, (y/_PostProcessScreenSize.y) * blurSize/blurSampleCount);
-            blurTexture += SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0).xyz;
-        }
-    }
-
-    // Intensity threshold
-    // blurTexture /= 100 * ((blurSampleCount*4) - 2); // Bad way to make a threshold
-    blurTexture /= 10*((blurSampleCount*4) - 2); // Bad way to make a threshold
-    // blurTexture = 0.1*SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv1), 0.0).xyz;
-*/
-
-
-    //Combine
-    // return lerp(float3(0,0,0), ca.xyz, mask.xyz) * intensity;
-
-    return (
-                /*blurTexture.xyz * AutoLensFlareBlurContribution
-                + */ pow(chromaTexture.xyz,1)
-            ) * intensity;
-    // return pow(ca.xyz,1) * intensity;
-    // return ca.xyz * mask.xyz * intensity;
+	
+    return chromaTexture.xyz * intensity;
 }
 
 #define GROUP_SIZE 8
@@ -395,20 +356,10 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         color += final.xyz;
 
-        // color = final;
-        // color = vignetteRound;
-        // color = GetFlareTexture(uv, 1.1f,AutoLensFlareFirstIntensity, false, false);;
-        // color = GetFlareTexture(uv, 1.1f,AutoLensFlareFirstIntensity, true, false);;
-        // color = (classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1);
-        // color = ((classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1) +  (polarInv + polar));
-        // color = AutoLensFlareAmount * ((classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1) +(polarInv + polar));
-        // color = vignetteRound;
-        // color = final;
-
-        // color += final;
-
-        //Debug
-        // color = vignette;
+#ifdef ENABLE_ALPHA
+		inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0);
+		color.w = inputColor.w;
+#endif
 
     }
 #endif
