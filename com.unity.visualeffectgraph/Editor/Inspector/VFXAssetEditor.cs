@@ -221,7 +221,7 @@ class VisualEffectAssetEditor : Editor
 
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
-            m_VisualEffect.pause = s_AnimatePreviewState == 0;
+            m_VisualEffect.pause = true;
             m_NeedsRender = true;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
@@ -323,13 +323,14 @@ class VisualEffectAssetEditor : Editor
     public override void OnPreviewSettings()
     {
         EditorGUI.BeginChangeCheck();
-        s_AnimatePreviewState = PreviewGUI.CycleButton(s_AnimatePreviewState, s_PlayPauseIcons);
+        int isAnimatedState = m_IsAnimated ? 1 : 0;
+        m_IsAnimated = PreviewGUI.CycleButton(isAnimatedState, s_PlayPauseIcons) == 1;
         if (EditorGUI.EndChangeCheck())
         {
-            m_VisualEffect.pause = s_AnimatePreviewState == 0;
+            m_VisualEffect.pause = !m_IsAnimated;
         }
 
-        GUI.enabled = IsAnimated;
+        GUI.enabled = m_IsAnimated;
         if (EditorGUILayout.IconButton(0, EditorGUIUtility.TrIconContent("Refresh", "Restart VFX"), EditorStyles.toolbarButton, null))
         {
             m_VisualEffect.Reinit();
@@ -338,11 +339,9 @@ class VisualEffectAssetEditor : Editor
     }
 
     private static GUIContent[] s_PlayPauseIcons;
-    private static int s_AnimatePreviewState;
+    private bool m_IsAnimated;
     private Texture m_PreviewTexture;
     private Rect m_LastArea;
-
-    private bool IsAnimated => s_AnimatePreviewState > 0;
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
     {
@@ -421,7 +420,7 @@ class VisualEffectAssetEditor : Editor
 
         m_LastArea = r;
         m_FrameCount++;
-        bool needsRender = IsAnimated || m_NeedsRender;
+        bool needsRender = m_IsAnimated || m_NeedsRender;
 
         if (m_PreviewTexture == null || needsRender)
         {
@@ -456,7 +455,7 @@ class VisualEffectAssetEditor : Editor
             EditorGUI.DrawPreviewTexture(r, m_PreviewTexture, null, ScaleMode.StretchToFill, 0, 0, ColorWriteMask.All, 0);
         }
 
-        if (IsAnimated)
+        if (m_IsAnimated)
             Repaint();
     }
 
