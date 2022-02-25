@@ -23,9 +23,11 @@ void Main(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 tileCoord = pixelCoord/8;
     uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowsTileBits, tileCoord);
 
-    float packedVisibility = 0.f;
+    float packedVisibility;
     if ((tileBits & (1U << _CapsuleDebugCasterIndex)) != 0)
         packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowsVisibility, pixelCoord, INDEX_TEXTURE2D_ARRAY_X(_CapsuleDebugCasterIndex)).x;
+    else
+        packedVisibility = PackCapsuleVisibility(((pixelCoord.x ^ pixelCoord.y) & 8) != 0 ? 0.8f : 0.7f);
 
     _CapsuleShadowsDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = packedVisibility;
 }
