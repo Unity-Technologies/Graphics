@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 
-        IGraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
+        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
         Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,

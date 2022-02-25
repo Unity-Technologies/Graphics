@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Registry
         }
 
         // need more information-- this is just... idk, something?
-        public static IEnumerable<string> GetReferences(this GraphDelta.IGraphHandler handler)
+        public static IEnumerable<string> GetReferences(this GraphDelta.GraphHandler handler)
         {
             HashSet<string> references = new HashSet<string>();
             foreach(var context in handler.GetNodes().Where(n => n.GetRegistryKey().Equals(Defs.ContextBuilder.kRegistryKey)))
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return references;
         }
 
-        public static void AddReferenceNode(this GraphDelta.IGraphHandler handler, string nodeName, string referenceName, Registry registry)
+        public static void AddReferenceNode(this GraphDelta.GraphHandler handler, string nodeName, string referenceName, Registry registry)
         {
             var node = handler.AddNode<Defs.ReferenceNodeBuilder>(nodeName, registry);
             node.SetField("_referenceName", referenceName);
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Registry
             // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
         }
 
-        internal static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
+        internal static void SetupContext(this GraphDelta.GraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
         {
             // only safe to call right now.
             GraphDelta.INodeWriter previousContextNode = null;
@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph.Registry
         //    funcBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
         //}
 
-        public static bool TestConnection(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static bool TestConnection(this GraphDelta.GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
         {
             var dstNodeReader = handler.GetNodeReader(dstNode);
             dstNodeReader.TryGetPort(dstPort, out var dstPortReader);
@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return registry.CastExists(dstPortReader.GetRegistryKey(), srcPortReader.GetRegistryKey());
         }
 
-        public static bool TryConnect(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static bool TryConnect(this GraphDelta.GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
         {
             var dstNodeWriter = handler.GetNodeWriter(dstNode);
             var dstPortWriter = dstNodeWriter.GetPort(dstPort);

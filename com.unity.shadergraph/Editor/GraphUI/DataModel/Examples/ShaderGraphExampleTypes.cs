@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class FieldConstant<T> : IConstant
     {
-        public GraphDelta.IGraphHandler graphHandler;
+        public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName, fieldPath;
 
         private GraphDelta.IFieldReader ResolveReader()
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool IsInitialized => graphHandler != null;
 
-        public void Initialize(GraphDelta.IGraphHandler handler, string nodeName, string portName, string fieldPath)
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName, string fieldPath)
         {
             graphHandler = handler;
             this.nodeName = nodeName;
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class GraphTypeConstant : IConstant
     {
-        public GraphDelta.IGraphHandler graphHandler;
+        public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
@@ -183,7 +183,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeReader.SetPortField(portName, $"c{i}", v);
         }
 
-        public void Initialize(GraphDelta.IGraphHandler handler, string nodeName, string portName)
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
         {
             graphHandler = handler;
             this.nodeName = nodeName;
