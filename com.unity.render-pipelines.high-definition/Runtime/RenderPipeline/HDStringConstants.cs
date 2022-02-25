@@ -289,6 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _TaaPostParameters = Shader.PropertyToID("_TaaPostParameters");
         public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");
+        public static readonly int _TaaPostParameters2 = Shader.PropertyToID("_TaaPostParameters2");
         public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
         public static readonly int _TaaFilterWeights1 = Shader.PropertyToID("_TaaFilterWeights1");

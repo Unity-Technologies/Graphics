@@ -270,6 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float taaMotionVectorRejection;
         internal float taaBaseBlendFactor;
         internal bool taaAntiRinging;
+        internal float taa_TestFactor1;
+        internal float taa_TestFactor2;
+
 
         internal Vector4 zBufferParams;
         internal Vector4 unity_OrthoParams;
@@ -1453,6 +1456,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
                     taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
                     taaBaseBlendFactor = m_AdditionalCameraData.taaBaseBlendFactor;
+                    taa_TestFactor1 = m_AdditionalCameraData.taa_TestFactor1;
+                    taa_TestFactor2 = m_AdditionalCameraData.taa_TestFactor2;
                 }
                 else
                     antialiasing = AntialiasingMode.None;

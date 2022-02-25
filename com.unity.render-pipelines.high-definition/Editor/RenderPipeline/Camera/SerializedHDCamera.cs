@@ -48,8 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaAntiFlicker;
         public SerializedProperty taaMotionVectorRejection;
         public SerializedProperty taaAntiRinging;
-        public SerializedProperty taaBaseBlendFactor;
         public SerializedProperty taaQualityLevel;
+        public SerializedProperty taaBaseBlendFactor;
+        public SerializedProperty taa_TestFactor1;
+        public SerializedProperty taa_TestFactor2;
 
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
@@ -108,13 +110,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
-            taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
             taaAntiFlicker = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiFlicker);
             taaMotionVectorRejection = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaMotionVectorRejection);
             taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             taaBaseBlendFactor = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaBaseBlendFactor);
+            taa_TestFactor1 = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taa_TestFactor1);
+            taa_TestFactor2 = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taa_TestFactor2);
 
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);

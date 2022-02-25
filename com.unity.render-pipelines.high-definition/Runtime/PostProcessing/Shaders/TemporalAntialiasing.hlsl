@@ -402,7 +402,9 @@ float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, out 
     closest = COMPARE_DEPTH(s1, closest.z) ? float3(int2(1, -1), s1) : closest;
     closest = COMPARE_DEPTH(s0, closest.z) ? float3(int2(1, 1), s0) : closest;
 
-    closestDepth = closest.z;
+    closestDepth = center;// closest.z;
+   // closestDepth = closest.z;
+
     return closest.xy;
 }
 
@@ -427,7 +429,7 @@ float2 GetClosestFragmentCompute(float2 positionSS)
 }
 
 
-float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale, float currDepth)
+float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale, float currDepth, float2 params, out float rej)
 {
     // TODO: This needs some refinement, it can lead to some annoying flickering coming back on strong camera movement.
 #if VELOCITY_REJECTION
@@ -437,10 +439,12 @@ float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture)
     float prevDepth = prevMVAndDepth.y;
     float diff = abs(mvLen - prevMVLen);
 
+
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
-    diff -= 0.015935382;
+    diff -= 0.015935382 * 0.5;
     float val = saturate(diff * speedRejectionFactor) /** (1-saturate(abs((currDepth - prevDepth))))**/;
-    return lerp(blendFactor, 0.97f, val*val);
+    rej = val * val;
+    return lerp(blendFactor, params.x, val*val);
 
 #else
     return blendFactor;
@@ -651,7 +655,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor, out float variance)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -683,7 +687,7 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
 #if ANTI_FLICKER_MV_DEPENDENT
     const float maxFactorScale = 2.25f
 #if VELOCITY_REJECTION
-        * 4 // We can be much more aggressive. 
+        * 4 // We can be much more aggressive.
 #endif
         ; // when stationary
     const float minFactorScale = 0.8f; // when moving more than slightly
@@ -703,14 +707,16 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
 
     samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
     samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
+    variance = stdDev;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor, out float v)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
+    v = 0;
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor, v);
 #endif
 }
 

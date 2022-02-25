@@ -245,6 +245,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(p.taaAntiRinging, Styles.TAAAntiRinging);
                 }
 
+                EditorGUILayout.PropertyField(p.taa_TestFactor1, Styles.TAAAntiRinging);
+                EditorGUILayout.PropertyField(p.taa_TestFactor2, Styles.TAAAntiFlicker);
+
+
                 if (k_AdditionalPropertiesState[AdditionalProperties.Rendering])
                 {
                     Draw_Rendering_Antialiasing_TAA_Advanced(p, owner);

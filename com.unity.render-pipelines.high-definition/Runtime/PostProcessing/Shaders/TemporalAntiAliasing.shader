@@ -82,7 +82,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
-    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE 0
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
 #elif defined(POST_DOF)
@@ -118,6 +118,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
         float4 _TaaPostParameters;
         float4 _TaaPostParameters1;
+        float4 _TaaPostParameters2;
         float4 _TaaHistorySize;
         float4 _TaaFilterWeights;
         float4 _TaaFilterWeights1;
@@ -152,9 +153,9 @@ Shader "Hidden/HDRP/TemporalAA"
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
         #ifdef SHADER_API_PSSL
-        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u1);
+        RW_TEXTURE2D_X(float4, _OutputVelocityMagnitudeHistory) : register(u1);
         #else
-        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u2);
+        RW_TEXTURE2D_X(float4, _OutputVelocityMagnitudeHistory) : register(u2);
         #endif
 #endif
 
@@ -248,6 +249,12 @@ Shader "Hidden/HDRP/TemporalAA"
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
+            float3 unclampedHistory = 0;
+            float f = 1;
+            float t;
+            float temporal_clamping_detail = 0;
+            float blendFactor = 0;
+            float confidence;
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
             if (!excludeTAABit)
             {
@@ -280,27 +287,27 @@ Shader "Hidden/HDRP/TemporalAA"
                 // --------------- Get neighbourhood information and clamp history ---------------
                 float colorLuma = GetLuma(filteredColor);
                 float historyLuma = GetLuma(history);
+                unclampedHistory = history;
 
                 float motionVectorLength = 0.0f;
                 float motionVectorLenInPixels = 0.0f;
 
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
                 motionVectorLength = length(motionVector
-#if 0
+#if 1
                     - GetCameraMV(uv, closestDepth)
 #endif
                 );
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
-
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale, f);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
                 // ------------------------------------------------------------------------------
 
                 // --------------- Compute blend factor for history ---------------
-                float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
+                blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
                 // --------------------------------------------------------
 
                 // ------------------- Alpha handling ---------------------------
@@ -319,14 +326,44 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
                 // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
+                float2 mv = motionVector;
+                DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv), 0), mv);
+
+
+                motionVectorLength = length(mv
+#if 1
+                    - GetCameraMV(uv, closestDepth)
+#endif
+                );
+
+                float2 uvForVel = uv - mv;
+                //uvForVel = prevUV;
+
                 lengthMV = motionVectorLength * 10;
-                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory, closestDepth);
+                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, uvForVel, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory, closestDepth, _TaaPostParameters2.xy, t);
 #endif
 
 #ifdef TAA_UPSCALE
                 blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
                 blendFactor = max(blendFactor, 0.03);
+
+#if VELOCITY_REJECTION && !defined(POST_DOF)
+                temporal_clamping_detail = length((unclampedHistory.x - history.x) / max(1e-3, f.x)) * 0.05;
+                bool hasBeenRejected = (abs(blendFactor - _BaseBlendFactor) > _TaaPostParameters2.y) || temporal_clamping_detail > 0.3;
+
+                confidence = Fetch(_InputVelocityMagnitudeHistory, uv, 0, _RTHandleScaleForTAAHistory).z;
+
+                if (confidence < 2 && !hasBeenRejected)
+                {
+                   // blendFactor = 0.001;
+                }
+
+                confidence = hasBeenRejected ? 0 : min(confidence + 1, 10);
+#endif
+
+
+
 
                 CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
@@ -336,8 +373,37 @@ Shader "Hidden/HDRP/TemporalAA"
                 finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
 #endif
 
+
                 color.xyz = ConvertToOutputSpace(finalColor.xyz);
                 color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
+#if VELOCITY_REJECTION
+
+
+    /*            if (t > _TaaPostParameters2.y)
+                {
+                    color.xyz = float3(3, 0, 0);
+                    color.xyz = samples.central;
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        color.xyz += samples.neighbours[i];
+                    }
+                    color.xyz /= 9;
+                    color.xyz = ConvertToOutputSpace(color.xyz);
+                }*/
+                //float2 prevMVAndDepth = Fetch(_InputVelocityMagnitudeHistory, prevUV, 0, _RTHandleScaleForTAAHistory).xy;
+                //float prevMVLen = prevMVAndDepth.x;
+                //float prevDepth = prevMVAndDepth.y;
+                //float diff = abs(lengthMV - prevMVLen);
+
+                //// We don't start rejecting until we have the equivalent of around 40 texels in 1080p
+                //diff -= 0.015935382 * rcp(_TAAUScale);
+                //float val = saturate(diff * _SpeedRejectionIntensity) /** (1-saturate(abs((currDepth - prevDepth))))**/;
+                //if ((val*val) > 0.1)
+                //    finalColor.xyz = (samples.central);
+#endif
+
+
+
 #if defined(ENABLE_ALPHA)
                 // Set output alpha to the antialiased alpha.
                 color.w = filteredColor.w;
@@ -345,9 +411,21 @@ Shader "Hidden/HDRP/TemporalAA"
             }
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
+
+
+
             outColor = color.CTYPE_SWIZZLE;
 #if VELOCITY_REJECTION && !defined(POST_DOF)
-            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = float2(lengthMV, closestDepth);
+
+
+            //if (confidence < 3)
+            //{
+            //    outColor.xyz = float3(3, 0, 0);
+            //}
+
+
+
+            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = float4(lengthMV, closestDepth, confidence, 0);
 #endif
             // -------------------------------------------------------------
         }
