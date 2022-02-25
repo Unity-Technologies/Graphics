@@ -12,11 +12,12 @@ namespace com.unity.shadergraph.defs
             @"
 {
     sinIn = sin(In);
-    Out = sinIn + lerp(MinMax.x, MinMax.y, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));
+    Out = sinIn + lerp(Min, Max, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));
 }
 ",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("MinMax", TYPE.Vec2, Usage.In, new float[] { -0.5f, 0.5f }),
+            new ParameterDescriptor("Min", TYPE.Float, Usage.In, new float[] { -0.5f }),
+            new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
             new ParameterDescriptor("sinIn", TYPE.Float, Usage.Local)
         );
@@ -27,7 +28,8 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Wave" },
             { "Name.Synonyms", "wave, noise, sine" },
             { "Tooltip", "creates a sine wave with noise added to the amplitude for randomness" },
-            { "Parameters.MinMax.Tooltip", "Minimum and Maximum values for noise intensity" },
+            { "Parameters.Min.Tooltip", "Minimum value for noise intensity" },
+            { "Parameters.Max.Tooltip", "Maximum value for noise intensity" },
             { "Parameters.Out.Tooltip", "a sine wave with noise added to the amplitude for randomness" }
         };
     }
