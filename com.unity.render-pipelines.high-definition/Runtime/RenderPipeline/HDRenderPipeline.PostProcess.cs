@@ -4513,7 +4513,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.lensFlarePostProcessSpectralLut = spectralLut;
             data.lensFlarePostProcessParameters1 = new Vector4(m_LensFlarePostProcess.intensityMultiplier.value, m_LensFlarePostProcess.firstFlareIntensity.value, m_LensFlarePostProcess.secondaryFlareIntensity.value, m_LensFlarePostProcess.warpedFlareIntensity.value);
-            data.lensFlarePostProcessParameters2 = new Vector4(m_LensFlarePostProcess.vignetteIntensity.value, m_LensFlarePostProcess.chromaticAbberationIntensity.value / 20f, m_LensFlarePostProcess.chromaticAbberationSampleCount.value, 0.0f);
+            data.lensFlarePostProcessParameters2 = new Vector4(Mathf.Pow(m_LensFlarePostProcess.vignetteIntensity.value,0.25f), m_LensFlarePostProcess.chromaticAbberationIntensity.value / 20f, m_LensFlarePostProcess.chromaticAbberationSampleCount.value, 0.0f);
 
         }
 

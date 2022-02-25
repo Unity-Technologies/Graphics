@@ -181,7 +181,8 @@ float2 scaleUV(float2 uv, float2 center, float scale, bool invert, bool logistic
 
 float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, bool polar){
 
-    float chromaIntensityDampen = 0.05f;            //0 and 1 max
+	// This parameter is hardcoded to keep it a simple effect
+    float chromaIntensityDampen = 0.05f;
 
     uv = DistortUV(uv);
 
@@ -332,27 +333,28 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         float vignetteY = pow(abs(2 * uvVignette.y - 1) , (vignetteSquaredness));
         float vignetteRound = pow((vignetteX + vignetteY),(vignettePow));
 
-        vignetteRound = lerp(1,vignetteRound,pow(abs(LensFlarePostProcessVignetteIntensity),0.25f));
+        vignetteRound = lerp(1,vignetteRound,LensFlarePostProcessVignetteIntensity);
 
-        float3 classicInv = GetFlareTexture(uv, 4.0f,LensFlarePostProcessFirstIntensity, true, false);
-        float3 classic = GetFlareTexture(uv, 4.0f,LensFlarePostProcessSecondaryIntensity, false, false);
+        
+		
+		float3 classic1 = GetFlareTexture(uv, 1.0f,LensFlarePostProcessSecondaryIntensity, false, false);
+		float3 classic2 = GetFlareTexture(uv, 2.0f,LensFlarePostProcessSecondaryIntensity, false, false);
+        float3 classic4 = GetFlareTexture(uv, 4.0f,LensFlarePostProcessSecondaryIntensity, false, false);
 
-        float3 polar = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, false, true);
-        float3 polarInv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, true, true);
-
+		float3 classic4Inv = GetFlareTexture(uv, 4.0f,LensFlarePostProcessFirstIntensity, true, false);
         float3 classic2Inv = GetFlareTexture(uv, 2.0f,LensFlarePostProcessFirstIntensity, true, false);
-        float3 classic2 = GetFlareTexture(uv, 2.0f,LensFlarePostProcessSecondaryIntensity, false, false);
-
         float3 classic1Inv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessFirstIntensity, true, false);
-        float3 classic1 = GetFlareTexture(uv, 1.0f,LensFlarePostProcessSecondaryIntensity, false, false);
+		
+		float3 polar = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, false, true);
+        float3 polarInv = GetFlareTexture(uv, 1.0f,LensFlarePostProcessPolarIntensity, true, true);
+        
 
         float3 final = (
-                            (classicInv + classic) * vignetteRound +
+                            (classic4Inv + classic4) * vignetteRound +
                             (classic2Inv + classic2) * vignetteRound +
                             (classic1Inv + classic1) * vignetteRound +
                             (polarInv + polar) * vignetteX*(vignetteX + vignetteY)
-
-                            ) * LensFlarePostProcessAmount;
+                        ) * LensFlarePostProcessAmount;
 
         color += final.xyz;
 
