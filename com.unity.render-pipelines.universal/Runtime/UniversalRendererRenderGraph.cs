@@ -163,13 +163,18 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
             }
 
+            //if (requiresColorCopyPass)
+            {
+                Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+                frameResources.cameraOpaqueTexture = m_CopyColorPass.Render(frameResources.cameraColor, downsamplingMethod, ref renderingData);
+            }
             m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
         }
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_FinalBlitPass.Render(renderingData.renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
+            m_FinalBlitPass.Render(ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
         }
 
     }

@@ -169,9 +169,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public RenderingData renderingData;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
+        public void Render(ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Final Blit", out var passData, new ProfilingSampler("Final Blit")))
+            using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Final Blit", out var passData, new ProfilingSampler("Final Blit")))
             {
                 passData.source = src;
                 passData.destination = dest;
@@ -190,9 +190,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     ExecutePass(data.renderingData, data.destination, data.source, true);
                 });
-
             }
-
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -11,13 +12,15 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyColorPass : ScriptableRenderPass
     {
-        int m_SampleOffsetShaderHandle;
-        Material m_SamplingMaterial;
-        Downsampling m_DownsamplingMethod;
-        Material m_CopyColorMaterial;
+        static int m_SampleOffsetShaderHandle;
+        static Material m_SamplingMaterial;
+        static Downsampling m_DownsamplingMethod;
+        static Material m_CopyColorMaterial;
 
         private RTHandle source { get; set; }
+
         private RTHandle destination { get; set; }
+
         // TODO: Remove when Obsolete Setup is removed
         private int destinationID { get; set; }
 
@@ -50,7 +53,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="Downsampling"/>
         /// <seealso cref="RenderTextureDescriptor"/>
         /// <seealso cref="FilterMode"/>
-        public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
+        public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor,
+            out FilterMode filterMode)
         {
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
@@ -107,13 +111,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                     descriptor.width /= 2;
                     descriptor.height /= 2;
                 }
-                else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
+                else if (m_DownsamplingMethod == Downsampling._4xBox ||
+                         m_DownsamplingMethod == Downsampling._4xBilinear)
                 {
                     descriptor.width /= 4;
                     descriptor.height /= 4;
                 }
 
-                cmd.GetTemporaryRT(destinationID, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+                cmd.GetTemporaryRT(destinationID, descriptor,
+                    m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
             }
             else
             {
@@ -126,7 +132,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_SamplingMaterial == null)
             {
-                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_SamplingMaterial, GetType().Name);
+                Debug.LogErrorFormat(
+                    "Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.",
+                    m_SamplingMaterial, GetType().Name);
                 return;
             }
 
@@ -143,23 +151,73 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
                     clearColor);
 
-                bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
-                switch (m_DownsamplingMethod)
+               ExecutePass(renderingData, source, destination);
+            }
+        }
+
+        private static void ExecutePass(RenderingData renderingData, RTHandle source, RTHandle destination)
+        {
+            bool useDrawProceduralBlit = renderingData.cameraData.xr.enabled;
+            var cmd = renderingData.commandBuffer;
+
+            switch (m_DownsamplingMethod)
+            {
+                case Downsampling.None:
+                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
+                        RenderBufferLoadAction.DontCare);
+                    break;
+                case Downsampling._2xBilinear:
+                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
+                        RenderBufferLoadAction.DontCare);
+                    break;
+                case Downsampling._4xBox:
+                    m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
+                    RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduralBlit,
+                        RenderBufferLoadAction.DontCare);
+                    break;
+                case Downsampling._4xBilinear:
+                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
+                        RenderBufferLoadAction.DontCare);
+                    break;
+            }
+        }
+
+    class PassData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+
+            public int copyID;
+
+            public RenderingData renderingData;
+        }
+
+        public TextureHandle Render(TextureHandle src, Downsampling downsampling, ref RenderingData renderingData)
+        {
+            using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Copy Color", out var passData, new ProfilingSampler("Copy Color Pass")))
+            {
+                passData.source = src;
+                passData.renderingData = renderingData;
+
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
+
+                passData.destination = UniversalRenderer.CreateRenderGraphTexture(renderingData.renderGraph, descriptor, "Camera Opaque Texture", true);
+                builder.UseColorBuffer(passData.destination, 0);
+                builder.ReadTexture(passData.source);
+
+                passData.copyID = Shader.PropertyToID("_CameraOpaqueTexture");
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
-                        break;
-                    case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
-                        break;
-                    case Downsampling._4xBox:
-                        m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
-                        break;
-                    case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
-                        break;
-                }
+                    ExecutePass(data.renderingData, data.source, data.destination);
+                    data.renderingData.commandBuffer.SetGlobalTexture(data.copyID, data.destination);
+
+                });
+
+                return passData.destination;
             }
         }
 
