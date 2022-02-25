@@ -346,6 +346,18 @@ Shader "Hidden/HDRP/TemporalAA"
 #endif
             }
 
+
+            bool rejectionEvent = blendFactor > 0.25;
+            //  rejectionEvent = false;
+            if (rejectionEvent)
+            {
+                color.xyz = AlternateAA(_InputTexture, color, samplePos, uv);
+            }
+            else
+            {
+                color = color.CTYPE_SWIZZLE + (rejectionEvent ? float4(10, 0, 0, 1).CTYPE_SWIZZLE : 0);
+            }
+
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
 #if VELOCITY_REJECTION && !defined(POST_DOF)
