@@ -17,34 +17,12 @@ uint _SliceOffset;
 
 struct VertexToFragment
 {
-    PackedVaryings packedVaryings;
-    UNITY_VERTEX_OUTPUT_STEREO
+    float4 positionCS : SV_POSITION;
+    float3 viewDirectionWS : TEXCOORD0;
+    float3 positionWS : TEXCOORD1;
     uint depthSlice : SV_RenderTargetArrayIndex;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
-
-// TODO: instance id and vertex id in Attributes
-VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint vertexId : SV_VERTEXID)
-{
-    VertexToFragment output;
-
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-    Varyings varyings;
-    varyings.positionCS = GetQuadVertexPosition(vertexId);
-    // varyings.positionCS.xy = varyings.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    varyings.positionCS.xy *= _ViewSpaceBounds.zw;
-    varyings.positionCS.xy += _ViewSpaceBounds.xy;
-
-
-    output.packedVaryings = PackVaryings(varyings);
-    output.depthSlice = _SliceOffset + instanceId;
-
-    // Apply view space bounding box to the fullscreen vertex pos:
-
-    return output;
-}
 
 uint DepthToSlice(float depth)
 {
@@ -70,17 +48,88 @@ float SliceToDepth(uint slice)
     return t0 + 0.5 * dt;
 }
 
+// float LinearEyeDepth(float depth, float4 zBufferParam)
+// {
+//     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+// }
+
+float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
+{
+    linearDepth = rcp(linearDepth);
+    linearDepth -= zBufferParam.w;
+
+    return linearDepth / zBufferParam.z;
+}
+
+// TODO: instance id and vertex id in Attributes
+VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint vertexId : SV_VERTEXID)
+{
+    VertexToFragment output;
+
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    output.depthSlice = _SliceOffset + instanceId;
+
+    output.positionCS = GetQuadVertexPosition(vertexId);
+    float distanceViewSpace = SliceToDepth(output.depthSlice);
+    // output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.positionCS.xy *= _ViewSpaceBounds.zw;
+    output.positionCS.xy += _ViewSpaceBounds.xy;
+    output.positionCS.z = EyeDepthToLinear(distanceViewSpace, _ZBufferParams);
+    output.positionCS.w = 1;
+
+
+
+    output.positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+    // Encode view direction in texCoord1
+    output.viewDirectionWS = GetWorldSpaceViewDir(output.positionWS);
+
+    output.positionWS = mul(output.positionWS, GetWorldToObjectMatrix());
+
+    // Apply view space bounding box to the fullscreen vertex pos:
+
+    return output;
+}
+
+FragInputs BuildFragInputs(VertexToFragment v2f)
+{
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
+
+    PositionInputs posInput = GetPositionInput(v2f.positionCS.xy, _ScreenSize.zw, v2f.positionCS.z, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    output.positionSS = v2f.positionCS;
+    output.positionRWS = output.positionPredisplacementRWS = posInput.positionWS;
+    output.positionPixel = posInput.positionSS;
+    output.texCoord0 = float4(posInput.positionNDC.xy, 0, 0);
+    output.tangentToWorld = k_identity3x3;
+
+    return output;
+}
+
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 {
-    Varyings unpacked = UnpackVaryings(v2f.packedVaryings);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
-    // GetVolumeData(input, V, scatteringColor, density);
-    outColor = float4(1, 0, 0, 1);
+    // Discard pixels outside of the volume bounds:
+
+    float3 scatteringColor;
+    float density;
+    
+    FragInputs fragInputs = BuildFragInputs(v2f);
+
+    if (any(fragInputs.positionRWS > 5) || any(fragInputs.positionRWS < -5))
+        clip(-1);
+    
+    outColor = float4(fragInputs.positionRWS, 1);
+    return;
+
+    GetVolumeData(fragInputs, v2f.viewDirectionWS, scatteringColor, density);
+    outColor = float4(scatteringColor, density);
 
     // input.positionSS is SV_Position
-    // PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
 // #ifdef VARYINGS_NEED_POSITION_WS
 //     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);

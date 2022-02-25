@@ -187,20 +187,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float EncodeLogarithmicDepthGeneralized(float z, Vector4 encodingParams)
         {
-            // Use max() to avoid NaNs.
             return encodingParams.x + encodingParams.y * Mathf.Log(Mathf.Max(0, z - encodingParams.z), 2);
         }
 
+        float DecodeLogarithmicDepthGeneralized(float d, Vector4 decodingParams)
+        {
+            return decodingParams.x * Mathf.Pow(2, d * decodingParams.y) + decodingParams.z;
+        }
 
         // Inverse of ComputeLastSliceDistance
-        internal int ComputeSliceIndexFromDistance(float distance, int sliceCount)
+        internal int ComputeSliceIndexFromDistance(float distance, int maxSliceCount)
         {
-            float vBufferNearPlane = 0;//DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+            // Avoid out of bounds access
+            distance = Mathf.Clamp(distance, 0f, ComputeLastSliceDistance((uint)maxSliceCount));
+
+            float vBufferNearPlane = DecodeLogarithmicDepthGeneralized(0, depthDecodingParams);
 
             float t = distance;
             float dt = t - vBufferNearPlane;
+            dt *= 2;
+            dt = t + vBufferNearPlane;
+            Debug.Log(vBufferNearPlane);
             float e1 = EncodeLogarithmicDepthGeneralized(dt, depthEncodingParams);
-            float rpcSliceCount = 1.0f / (float)sliceCount;
+            float rpcSliceCount = 1.0f / (float)maxSliceCount;
 
             float slice = (e1 - rpcSliceCount) / rpcSliceCount;
 
@@ -1043,8 +1052,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     p6 = hdCamera.mainViewConstants.viewMatrix * p6;
                                     p7 = hdCamera.mainViewConstants.viewMatrix * p7;
 
-                                    float minViewSpaceDepth = Mathf.Abs(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
-                                    float maxViewSpaceDepth = Mathf.Abs(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+                                    // Reverse Z
+                                    float minViewSpaceDepth = -(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+                                    float maxViewSpaceDepth = -(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
 
                                     float minViewSpaceX = (Mathf.Min(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
                                     float maxViewSpaceX = (Mathf.Max(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
@@ -1055,7 +1065,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     // Debug.Log(minViewSpaceDepth);
                                     // Debug.Log(maxViewSpaceDepth);
                                     var camDir = (volume.transform.position - cameraPosition).normalized;
-                                    Debug.DrawRay(cameraPosition + camDir * minViewSpaceDepth, camDir * (maxViewSpaceDepth - minViewSpaceDepth), Color.red, 0.1f);
+                                    // Debug.DrawRay(cameraPosition + camDir * minViewSpaceDepth, camDir * (maxViewSpaceDepth - minViewSpaceDepth), Color.red, 0.1f);
 
                                     // Apply camera relative rendering
                                     // if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -1082,22 +1092,32 @@ namespace UnityEngine.Rendering.HighDefinition
                                     // maxPositionCS.z = maxViewSpaceZ;
                                     // Debug.DrawLine(minPositionCS, maxPositionCS, Color.green, 0.1f);
 
+                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(0, fog.volumeSliceCount.value));
+                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(1, fog.volumeSliceCount.value));
+                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(fog.depthExtent.value - 1, fog.volumeSliceCount.value));
+                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(fog.depthExtent.value, fog.volumeSliceCount.value));
+                                    // Debug.Log(fog.depthExtent.value);
 
-                                    // // Debug.Log(minViewSpaceBounds + " | " + maxViewSpaceBounds);
-                                    // // float d = hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane;
+                                    int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, fog.volumeSliceCount.value);
+                                    int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, fog.volumeSliceCount.value);
+                                    // Debug.Log("Min: " + minViewSpaceDepth + ", " + startSlice + " | Max: " + maxViewSpaceDepth + ", " + stopSlice);
 
-                                    int startSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, minViewSpaceDepth), fog.volumeSliceCount.value);
-                                    int stopSlice = currParams.ComputeSliceIndexFromDistance(Mathf.Max(0, maxViewSpaceDepth), fog.volumeSliceCount.value);
-                                    Debug.Log("Min: " + minViewSpaceDepth + ", " + startSlice + " | Max: " + maxViewSpaceDepth + ", " + stopSlice);
+                                    if (startSlice == stopSlice)
+                                        continue;
 
                                     var props = new MaterialPropertyBlock();
                                     props.SetVector("_ViewSpaceBounds", new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY));
                                     props.SetInteger("_SliceOffset", startSlice);
-                                    Debug.Log(maxViewSpaceX - minViewSpaceX);
-                                    Debug.Log(maxViewSpaceY - minViewSpaceY);
+                                    // Debug.Log(maxViewSpaceX - minViewSpaceX);
+                                    // Debug.Log(maxViewSpaceY - minViewSpaceY);
+
 
                                     CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
-                                    ctx.cmd.DrawProcedural(Matrix4x4.identity, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
+                                    ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
+                                    // Debug.Log("Slice Count: " + (stopSlice - startSlice));
+                                    // Debug.Log("Start: " + startSlice);
+                                    // Debug.Log("Start: " + stopSlice);
+                                    ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
                                 }
                             });
                     }
