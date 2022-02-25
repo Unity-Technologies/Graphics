@@ -52,14 +52,14 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIColorRGB", // Name
-            "Out = float4(In.r, In.g, In.b, 1.0);",
+            "Out = In;",
             new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, float> UIParameters => new()
         {
-            {"In.UseColor", 0}
+            {"In.UseColor", 0}  // Use color picker for In
         };
     }
 
@@ -75,7 +75,40 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, float> UIParameters => new()
         {
-            {"In.UseColor", 0}
+            {"In.UseColor", 0} // Use color picker for In
         };
+    }
+
+    internal class TestUIVec2Node : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIVec2", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUIVec3Node : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIVec3", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUIVec4Node : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIVec4", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Registry;
@@ -26,11 +27,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (Model is not GraphDataNodeModel graphDataNodeModel) return;
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
+            var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
+            var hasUiParams = stencil.TryGetUIParameters(m_GraphDataNodeModel.registryKey, out var uiParams);
+
             foreach (var portReader in nodeReader.GetPorts())
             {
                 // Only add new node parts for static ports.
                 if (!portReader.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
                 if (portReader.GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+                var portName = portReader.GetName();
 
                 // Figure out the correct part to display based on the port's fields.
                 if (!portReader.GetField(GraphType.kHeight, out GraphType.Height height)) continue;
@@ -39,6 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (height > GraphType.Height.One)
                 {
                     PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
+                    continue;
                 }
 
                 if (length == GraphType.Length.One)
@@ -61,18 +67,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
 
-                if (length >= GraphType.Length.Three)  // TODO: ... && port wants to be displayed as a color
+                switch (length)
                 {
-                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive) ||
-                        primitive != GraphType.Primitive.Float) continue;
-
-                    PartList.InsertPartAfter(portContainerPartName,
-                        new ColorPart("sg-color",
-                            Model,
-                            this,
-                            ussClassName,
-                            portReader.GetName(),
-                            length is GraphType.Length.Four));
+                    case GraphType.Length.Two:
+                        PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
+                        break;
+                    case GraphType.Length.Three:
+                        if (hasUiParams && uiParams.ContainsKey(portName + ".UseColor"))
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
+                        }
+                        else
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new Vector3Part("sg-vector3", Model, this, ussClassName, portReader.GetName()));
+                        }
+                        break;
+                    case GraphType.Length.Four:
+                        if (hasUiParams && uiParams.ContainsKey(portName + ".UseColor"))
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
+                        }
+                        else
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new Vector4Part("sg-vector4", Model, this, ussClassName, portReader.GetName()));
+                        }
+                        break;
+                    case GraphType.Length.One:
+                    case GraphType.Length.Any:
+                    default:
+                        break;
                 }
             }
         }
