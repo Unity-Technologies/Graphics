@@ -159,7 +159,8 @@ namespace UnityEngine.Rendering.Universal
 
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
-            // TODO: Skybox
+            if (renderingData.cameraData.renderType == CameraRenderType.Base)
+                m_DrawSkyboxPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData);
 
             //if (requiresDepthCopyPass)
             {
