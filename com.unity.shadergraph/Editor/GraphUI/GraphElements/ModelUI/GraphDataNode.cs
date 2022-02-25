@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
-            var hasUiParams = stencil.TryGetUIParameters(m_GraphDataNodeModel.registryKey, out var uiParams);
+            var hasHints = stencil.TryGetUIHints(m_GraphDataNodeModel.registryKey, out var uiHints);
 
             foreach (var portReader in nodeReader.GetPorts())
             {
@@ -47,33 +47,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
 
-                if (length == GraphType.Length.One)
-                {
-                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
-                    switch (primitive)
-                    {
-                        case GraphType.Primitive.Bool:
-                            // TODO: Checkbox
-                            break;
-                        case GraphType.Primitive.Int:
-                            PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
-                            break;
-                        case GraphType.Primitive.Float:
-                            PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
-                            break;
-                        case GraphType.Primitive.Any:
-                        default:
-                            break;
-                    }
-                }
-
                 switch (length)
                 {
+                    case GraphType.Length.One:
+                    {
+                        if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
+                        switch (primitive)
+                        {
+                            case GraphType.Primitive.Bool:
+                                // TODO: Checkbox
+                                break;
+                            case GraphType.Primitive.Int:
+                                PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
+                                break;
+                            case GraphType.Primitive.Float:
+                                PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                                break;
+                            case GraphType.Primitive.Any:
+                            default:
+                                break;
+                        }
+
+                        break;
+                    }
                     case GraphType.Length.Two:
                         PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
                         break;
                     case GraphType.Length.Three:
-                        if (hasUiParams && uiParams.ContainsKey(portName + ".UseColor"))
+                        if (hasHints && uiHints.ContainsKey(portName + ".UseColor"))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
                         }
@@ -81,9 +82,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(portContainerPartName, new Vector3Part("sg-vector3", Model, this, ussClassName, portReader.GetName()));
                         }
+
                         break;
                     case GraphType.Length.Four:
-                        if (hasUiParams && uiParams.ContainsKey(portName + ".UseColor"))
+                        if (hasHints && uiHints.ContainsKey(portName + ".UseColor"))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
                         }
@@ -91,9 +93,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(portContainerPartName, new Vector4Part("sg-vector4", Model, this, ussClassName, portReader.GetName()));
                         }
+
                         break;
-                    case GraphType.Length.One:
                     case GraphType.Length.Any:
+                        // Not valid, the size should've been resolved.
+                        break;
                     default:
                         break;
                 }

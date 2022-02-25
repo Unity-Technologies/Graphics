@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     .Where(p => interfaceType.IsAssignableFrom(p));
 
                 var getFunctionDescriptor = $"get_{nameof(IStandardNode.FunctionDescriptor)}";
-                var getUIParameters = $"get_{nameof(IStandardNode.UIParameters)}";
+                var getUIHints = $"get_{nameof(IStandardNode.UIHints)}";
                 m_NodeUIParams = new Dictionary<RegistryKey, Dictionary<string, float>>();
 
                 foreach (var t in types)
@@ -73,10 +73,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
                         var key = RegistryInstance.Register(fd);
 
-                        var uiParamsMethod = t.GetMethod(getUIParameters);
-                        if (uiParamsMethod != null)
+                        var uiHintsMethod = t.GetMethod(getUIHints);
+                        if (uiHintsMethod != null)
                         {
-                            m_NodeUIParams[key] = (Dictionary<string, float>)uiParamsMethod.Invoke(null, null);
+                            m_NodeUIParams[key] = (Dictionary<string, float>)uiHintsMethod.Invoke(null, null);
                         }
                     }
                 }
@@ -84,11 +84,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
-        public bool TryGetUIParameters(RegistryKey nodeKey, out IReadOnlyDictionary<string, float> outUiParams)
+        public bool TryGetUIHints(RegistryKey nodeKey, out IReadOnlyDictionary<string, float> uiHints)
         {
-            var hasParams = m_NodeUIParams.TryGetValue(nodeKey, out var uiParams);
-            outUiParams = uiParams;
-            return hasParams;
+            var hasHints = m_NodeUIParams.TryGetValue(nodeKey, out var result);
+            uiHints = result;
+            return hasHints;
         }
 
         public override IGraphProcessor CreateGraphProcessor()

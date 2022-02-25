@@ -7,7 +7,7 @@ namespace com.unity.shadergraph.defs
     {
         static FunctionDescriptor FunctionDescriptor { get; }
         static Dictionary<string, string> UIStrings { get; }
-        static Dictionary<string, float> UIParameters { get; }
+        static Dictionary<string, float> UIHints { get; }
     }
 
 }
