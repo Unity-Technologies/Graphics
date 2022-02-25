@@ -1081,31 +1081,27 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
 
-            // FR
-            if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+            // Selectivey enable foveated rendering
+            if (cameraData.xr.enabled)
             {
-                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.EnableAndDistort);
+                if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+                {
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.EnableAndDistort);
+                }
             }
-                
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+            CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                 ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
             else
                 renderPass.Execute(context, ref renderingData);
 
-            
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            
             if (cameraData.xr.enabled)
             {
                 cmd = CommandBufferPool.Get();
-                
-                // FR
                 cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Off);
 
                 // Inform the late latching system for XR once we're done with a render pass
@@ -1114,10 +1110,6 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-#endif
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
