@@ -69,9 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -86,8 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

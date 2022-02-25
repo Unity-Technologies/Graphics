@@ -11,6 +11,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     name: URP_Foundation on iPhone_Metal_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::iPhone
+        model: SE
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
@@ -82,6 +83,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Foundation on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
+        model: SE
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:

@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                CommandBuffer cmd = CommandBufferPool.Get();
+                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     if (!m_CurrentSettings.AfterOpaque)
@@ -381,8 +381,8 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
                         CameraData cameraData = renderingData.cameraData;
-                        bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget);
-                        bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
+                        bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
+                        bool yflip = !isCameraColorFinalTarget;
                         float flipSign = yflip ? -1.0f : 1.0f;
                         scaleBiasRt = (flipSign < 0.0f)
                             ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
@@ -403,9 +403,6 @@ namespace UnityEngine.Rendering.Universal
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)ShaderPasses.AfterOpaque);
                     }
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
             private void Render(CommandBuffer cmd, RTHandle target, ShaderPasses pass)

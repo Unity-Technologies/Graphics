@@ -11,6 +11,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
+using Unity.Profiling;
 
 
 namespace UnityEngine.Rendering
@@ -53,6 +54,7 @@ namespace UnityEngine.Rendering
     /// Wrapper around CPU and GPU profiling samplers.
     /// Use this along ProfilingScope to profile a piece of code.
     /// </summary>
+    [IgnoredByDeepProfiler]
     public class ProfilingSampler
     {
         /// <summary>
@@ -221,6 +223,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Scoped Profiling markers
     /// </summary>
+    [IgnoredByDeepProfiler]
     public struct ProfilingScope : IDisposable
     {
         CommandBuffer       m_Cmd;
@@ -301,6 +304,7 @@ namespace UnityEngine.Rendering
     /// Profiling Sampler class.
     /// </summary>
     [System.Obsolete("Please use ProfilingScope")]
+    [IgnoredByDeepProfiler]
     public struct ProfilingSample : IDisposable
     {
         readonly CommandBuffer m_Cmd;
