@@ -20,6 +20,8 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Range" },
             { "Name.Synonyms", "least, littlest, smallest, lesser" },
             { "Tooltip", "returns the smaller of A and B" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the lesser of A or B" }
         };
     }

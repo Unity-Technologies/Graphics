@@ -20,6 +20,8 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Advanced" },
             { "Name.Synonyms", "fmod, %" },
             { "Tooltip", "returns the remainder of dividing A by B" },
+            { "Parameters.A.Tooltip", "the numerator" },
+            { "Parameters.B.Tooltip", "the denominator" },
             { "Parameters.Out.Tooltip", "the remainder of dividing input A by input B" }
         };
     }

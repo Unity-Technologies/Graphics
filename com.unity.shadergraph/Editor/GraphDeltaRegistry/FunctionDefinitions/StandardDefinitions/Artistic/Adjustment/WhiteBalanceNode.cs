@@ -57,6 +57,7 @@ namespace com.unity.shadergraph.defs
             { "DisplayName", "White Balance" },
             { "Category", "Artistic, Adjustment" },
             { "Tooltip", "adjusts temperature and tint" },
+            { "Parameters.In.Tooltip", "a color to adjust" },
             { "Parameters.Temperature.Tooltip", "shifts towards yellow or blue" },
             { "Parameters.Tint.Tooltip", "shifts towards pink or green" },
             { "Parameters.Out.Tooltip", "color with adjusted white balance" }

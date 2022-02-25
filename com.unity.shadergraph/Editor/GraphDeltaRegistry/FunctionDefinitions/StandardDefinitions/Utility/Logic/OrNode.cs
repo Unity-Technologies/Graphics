@@ -20,6 +20,8 @@ namespace com.unity.shadergraph.defs
             { "Category", "Utility, Logic" },
             { "Name.Synonyms", "||" },
             { "Tooltip", "returns true if either of the inputs are true" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "true if either A or B are true" }
         };
     }

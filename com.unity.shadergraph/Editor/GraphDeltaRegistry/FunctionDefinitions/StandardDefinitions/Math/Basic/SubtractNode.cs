@@ -20,6 +20,8 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Basic" },
             { "Name.Synonyms", "subtraction, remove, -, minus" },
             { "Tooltip", "removes the value of B from A" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "A minus B" }
         };
     }

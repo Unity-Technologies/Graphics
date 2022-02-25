@@ -19,6 +19,8 @@ namespace com.unity.shadergraph.defs
         {
             { "Category", "Math, Vector" },
             { "Tooltip", "returns the result of projecting A onto a straight line parallel to B" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "the result of projecting A onto a straight line parallel to B" }
         };
     }

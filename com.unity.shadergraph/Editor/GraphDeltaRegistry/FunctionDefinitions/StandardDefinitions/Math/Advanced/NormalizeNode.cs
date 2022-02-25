@@ -19,7 +19,7 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Advanced" },
             { "Name.Synonyms", "Unitize" },
             { "Tooltip", "adjusts the input vector to unit length" },
-            { "Parameters.In.Tooltip", "Input" },
+            { "Parameters.In.Tooltip", "a vector to normalize" },
             { "Parameters.Out.Tooltip", "In / Length(In)" }
         };
     }

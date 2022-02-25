@@ -24,7 +24,7 @@ namespace com.unity.shadergraph.defs
             { "Category", "Artistic, Normal" },
             { "Name.Synonyms", "intensity" },
             { "Tooltip", "changes the intensity of a tangent space normal" },
-            { "Parameters.In.Tooltip", "Minimum and Maximum values for noise intensity" },
+            { "Parameters.In.Tooltip", "a normal to adjust" },
             { "Parameters.Strength.Tooltip", "less than 1 is weaker, greater than 1 is stronger" },
             { "Parameters.Out.Tooltip", "normal with the intensity adjusted" }
         };
