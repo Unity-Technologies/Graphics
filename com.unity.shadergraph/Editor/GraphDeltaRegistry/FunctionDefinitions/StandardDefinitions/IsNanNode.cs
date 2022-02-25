@@ -9,7 +9,7 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
             "IsNan",
-            "Out = isnan(In) ? 1 : 0;",
+            "Out = isnan(In);",
             new ParameterDescriptor("In", TYPE.Bool, Usage.In),
             new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
         );
