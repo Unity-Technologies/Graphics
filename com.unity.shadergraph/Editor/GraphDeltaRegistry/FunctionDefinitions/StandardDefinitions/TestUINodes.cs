@@ -68,7 +68,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
         );
 
-        public static Dictionary<string, float> UIParameters => new()
+        public static Dictionary<string, float> UIHints => new()
         {
             {"In.UseColor", 0}  // Use color picker for In
         };
@@ -84,7 +84,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
 
-        public static Dictionary<string, float> UIParameters => new()
+        public static Dictionary<string, float> UIHints => new()
         {
             {"In.UseColor", 0} // Use color picker for In
         };
