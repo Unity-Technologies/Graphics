@@ -340,6 +340,7 @@ class VisualEffectAssetEditor : Editor
     private static GUIContent[] s_PlayPauseIcons;
     private static int s_AnimatePreviewState;
     private Texture m_PreviewTexture;
+    private Rect m_LastArea;
 
     private bool IsAnimated => s_AnimatePreviewState > 0;
 
@@ -348,11 +349,14 @@ class VisualEffectAssetEditor : Editor
         if (m_VisualEffectGO == null)
             OnEnable();
 
-        bool isRepaint = (Event.current.type == EventType.Repaint);
+        bool isRepaint = Event.current.type == EventType.Repaint;
 
         Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
         if (renderer == null)
             return;
+
+        if (isRepaint && r != m_LastArea)
+            m_NeedsRender = true;
 
         m_NeedsRender |= VFXPreviewGUI.TryDrag2D(ref m_Angles, r);
 
@@ -406,9 +410,16 @@ class VisualEffectAssetEditor : Editor
         if (m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
-        if (!isRepaint)
-            return;
+        m_NeedsRender |= m_FrameCount < kSafeFrame;
 
+        if (!isRepaint)
+        {
+            if (m_NeedsRender)
+                Repaint();
+            return;
+        }
+
+        m_LastArea = r;
         m_FrameCount++;
         bool needsRender = IsAnimated || m_NeedsRender;
 
@@ -439,12 +450,14 @@ class VisualEffectAssetEditor : Editor
         if (needsRender)
         {
             PreviewRenderUtility.DrawPreview(r, m_PreviewTexture);
-            Repaint();
         }
         else
         {
             EditorGUI.DrawPreviewTexture(r, m_PreviewTexture, null, ScaleMode.StretchToFill, 0, 0, ColorWriteMask.All, 0);
         }
+
+        if (IsAnimated)
+            Repaint();
     }
 
     Material m_Mat;
