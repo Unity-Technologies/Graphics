@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var property = cacheData.serializedProperty;
             int index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
-            SerializedProperty rendererList = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
+            SerializedProperty rendererList = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList));
             var isTop = index == 0;
             var isBottom = index == rendererList.arraySize - 1;
             var isDefault = index == property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex)).intValue;
@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
             var index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             var defaultIndex = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex));
-            var rendererList = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
+            var rendererList = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList));
 
             if (index < defaultIndex.intValue) defaultIndex.intValue -= 1;
 

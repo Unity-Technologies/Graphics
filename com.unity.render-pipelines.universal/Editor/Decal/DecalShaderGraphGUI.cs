@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             bool hasDecalScreenSpace = false;
-            var renderers = urp.m_RendererDataList;
+            var renderers = urp.m_RendererDataReferenceList;
             foreach (var renderer in renderers)
             {
                 if (renderer.TryGetRendererFeature(out DecalRendererFeature decalRendererFeature))

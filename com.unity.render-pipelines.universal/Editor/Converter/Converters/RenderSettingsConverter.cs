@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.Universal
                     defaultIndex = m_RenderingModes.IndexOf(RenderingMode.Deferred);
             }
 
-            asset.m_RendererDataList = renderers.ToArray();
+            asset.m_RendererDataReferenceList = renderers.ToArray();
             asset.m_DefaultRendererIndex = defaultIndex;
 
             // Create Pipeline asset on disk

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
@@ -74,6 +75,36 @@ namespace UnityEngine.Rendering.Universal
         {
             isActive = active;
         }
+
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+    }
+
+    /// <summary>
+    /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
+    /// </summary>
+    /// <seealso cref="ScriptableRenderer"/>
+    /// <seealso cref="ScriptableRenderPass"/>
+    [ExcludeFromPreset, Obsolete("ScriptableRendererFeature no longer uses ScriptableObject in order to avoid sub assets.")]
+    public abstract class ScriptableRendererFeatureAssetLegacy : ScriptableObject, IDisposable
+    {
+        [SerializeField, HideInInspector] private bool m_Active = true;
+
+        /// <summary>
+        /// Function is called to convert the asset settings into the URP asset such that setting wont be lost.
+        /// </summary>
+        /// <returns> Returns a new renderer feature version without sciptable object inheritance. </returns>
+        public virtual ScriptableRendererFeature UpgradeToRendererFeatureWithoutAsset(ref Dictionary<string, ScriptableRendererFeature> rendererFeatures) => null;
 
         /// <summary>
         /// Disposable pattern implementation.

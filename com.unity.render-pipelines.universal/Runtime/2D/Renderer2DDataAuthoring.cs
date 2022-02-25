@@ -101,6 +101,13 @@ namespace UnityEngine.Rendering.Universal
             m_LightBlendStyles[3].blendMode = Light2DBlendStyle.BlendMode.Additive;
             m_LightBlendStyles[3].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
         }
+
+        internal void UpdateFromAssetLegacyEditor(Renderer2DDataAssetLegacy oldRendererData)
+        {
+            m_DefaultLitMaterial = oldRendererData.m_DefaultLitMaterial;
+            m_DefaultUnlitMaterial = oldRendererData.m_DefaultUnlitMaterial;
+            m_DefaultMaskMaterial = oldRendererData.m_DefaultMaskMaterial;
+        }
 #endif
     }
 }

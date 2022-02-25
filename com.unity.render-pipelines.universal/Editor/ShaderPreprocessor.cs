@@ -841,7 +841,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (urp != null)
                 {
-                    int rendererCount = urp.m_RendererDataList.Length;
+                    int rendererCount = urp.m_RendererDataReferenceList.Length;
 
                     for (int i = 0; i < rendererCount; ++i)
                         s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
@@ -920,7 +920,7 @@ namespace UnityEditor.Rendering.Universal
 
                 var rendererClustered = false;
 
-                ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
+                ScriptableRendererData rendererData = pipelineAsset.m_RendererDataReferenceList[rendererIndex];
                 if (rendererData != null)
                 {
                     for (int rendererFeatureIndex = 0; rendererFeatureIndex < rendererData.rendererFeatures.Count; rendererFeatureIndex++)

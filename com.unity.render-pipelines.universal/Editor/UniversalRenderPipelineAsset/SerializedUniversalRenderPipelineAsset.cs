@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal
             asset = serializedObject.targetObject as UniversalRenderPipelineAsset;
             this.serializedObject = serializedObject;
 
-            rendererDataProp = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
+            rendererDataProp = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList));
             defaultRendererProp = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex));
 
 

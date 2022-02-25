@@ -148,16 +148,58 @@ namespace UnityEngine.Rendering.Universal
         internal ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 10;
-        [SerializeField] int k_AssetPreviousVersion = 10;
+        [SerializeField] int k_AssetVersion = 11;
+        [SerializeField] int k_AssetPreviousVersion = 11;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
+        [SerializeField] bool m_RequireDepthTexture = false;
+        [SerializeField] bool m_RequireOpaqueTexture = false;
+        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [SerializeReference] internal ScriptableRendererData m_RendererData = null;
+        [SerializeField] internal ScriptableRendererDataAssetLegacy m_RendererData = null;
+        //[FormerlySerializedAs("m_RendererDataList")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [SerializeField] internal ScriptableRendererDataAssetLegacy[] m_RendererDataList = null;
+
+        [SerializeField] bool m_SupportsTerrainHoles = true;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+
+        [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] bool m_MainLightShadowsSupported = true;
+        [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+
+        [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
+        [SerializeField] bool m_AdditionalLightShadowsSupported = false;
+
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierLow;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierMedium;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierHigh;
+        [SerializeField] float m_ShadowDistance = 50.0f;
+        [SerializeField] int m_ShadowCascadeCount = 1;
+        [SerializeField] float m_Cascade2Split = 0.25f;
+        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
+        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_CascadeBorder = 0.2f;
+        [SerializeField] float m_ShadowDepthBias = 1.0f;
+        [SerializeField] float m_ShadowNormalBias = 1.0f;
+        [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = true;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
+
+        [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] bool m_SupportsLightLayers = false;
+
+        [SerializeField] bool m_ReflectionProbeBlending = false;
+        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+
+        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
+        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
 
         // Renderer settings
-        [SerializeReference] internal ScriptableRendererData[] m_RendererDataList = { new UniversalRendererData() };
+        [SerializeReference] internal ScriptableRendererData[] m_RendererDataReferenceList = { new UniversalRendererData() };
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // Quality settings
@@ -198,9 +240,9 @@ namespace UnityEngine.Rendering.Universal
             var instance = CreateInstance<UniversalRenderPipelineAsset>();
             if (rendererData != null)
             {
-                instance.m_RendererDataList[0] = rendererData;
-                instance.m_RendererDataList[0].Awake();
-                instance.m_RendererDataList[0].OnEnable();
+                instance.m_RendererDataReferenceList[0] = rendererData;
+                instance.m_RendererDataReferenceList[0].Awake();
+                instance.m_RendererDataReferenceList[0].OnEnable();
             }
 
             // Initialize default Renderer
@@ -275,14 +317,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 #endif
-        /*
+
         /// <summary>
         /// Use this class to initialize the rendererData element that is required by the renderer.
         /// </summary>
         /// <param name="type">The <c>RendererType</c> of the new renderer that is initialized within this asset.</param>
         /// <returns></returns>
         /// <see cref="RendererType"/>
-        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
+        public ScriptableRendererDataAssetLegacy LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
@@ -293,7 +335,42 @@ namespace UnityEngine.Rendering.Universal
             return m_RendererDataList[0];
 #endif
         }
-        */
+
+        internal static ScriptableRendererDataAssetLegacy CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
+        {
+            ScriptableRendererDataAssetLegacy data = CreateRendererDataAssetLegacy(type);
+            string dataPath;
+            if (relativePath)
+                dataPath =
+                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
+            else
+                dataPath = path;
+            AssetDatabase.CreateAsset(data, dataPath);
+            ResourceReloader.ReloadAllNullIn(data, packagePath);
+            return data;
+        }
+
+        static ScriptableRendererDataAssetLegacy CreateRendererDataAssetLegacy(RendererType type)
+        {
+            switch (type)
+            {
+                case RendererType.UniversalRenderer:
+                default:
+                {
+                    var rendererData = CreateInstance<UniversalRendererDataAssetLegacy>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                }
+                // 2D renderer is experimental
+                case RendererType._2DRenderer:
+                {
+                    var rendererData = CreateInstance<Renderer2DDataAssetLegacy>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                    // Universal Renderer is the fallback renderer that works on all platforms
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a <c>UniversalRenderPipeline</c> from the <c>UniversalRenderPipelineAsset</c>.
@@ -302,17 +379,17 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="RenderPipeline"/>
         protected override RenderPipeline CreatePipeline()
         {
-            if (m_RendererDataList == null)
-                m_RendererDataList = new ScriptableRendererData[1];
+            if (m_RendererDataReferenceList == null)
+                m_RendererDataReferenceList = new ScriptableRendererData[1];
 
             // If no default data we can't create pipeline instance
-            if (m_RendererDataList[m_DefaultRendererIndex] == null || m_RendererDataList.Length <= 0)
+            if (m_RendererDataReferenceList[m_DefaultRendererIndex] == null || m_RendererDataReferenceList.Length <= 0)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
                     return null;
 
-                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                if (m_RendererDataReferenceList[m_DefaultRendererIndex].GetType().ToString()
                     .Contains("Universal.ForwardRendererData"))
                     return null;
 
@@ -348,14 +425,14 @@ namespace UnityEngine.Rendering.Universal
 
         void Awake()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.Awake();
         }
 
         /// <inheritdoc/>
         protected override void OnValidate()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.OnValidate();
             DestroyRenderers();
 
@@ -366,14 +443,14 @@ namespace UnityEngine.Rendering.Universal
 
         void OnEnable()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.OnEnable();
         }
 
         /// <inheritdoc/>
         protected override void OnDisable()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.OnDisable();
             DestroyRenderers();
 
@@ -393,13 +470,13 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
-                m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
+            if (m_Renderers == null || m_Renderers.Length != m_RendererDataReferenceList.Length)
+                m_Renderers = new ScriptableRenderer[m_RendererDataReferenceList.Length];
 
-            for (int i = 0; i < m_RendererDataList.Length; ++i)
+            for (int i = 0; i < m_RendererDataReferenceList.Length; ++i)
             {
-                if (m_RendererDataList[i] != null)
-                    m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
+                if (m_RendererDataReferenceList[i] != null)
+                    m_Renderers[i] = m_RendererDataReferenceList[i].InternalCreateRenderer();
             }
         }
 
@@ -443,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (m_RendererDataList?.Length > m_DefaultRendererIndex && m_RendererDataList[m_DefaultRendererIndex] == null)
+                if (m_RendererDataReferenceList?.Length > m_DefaultRendererIndex && m_RendererDataReferenceList[m_DefaultRendererIndex] == null)
                 {
                     Debug.LogError("Default renderer is missing from the current Pipeline Asset.", this);
                     return null;
@@ -469,16 +546,16 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1)
                 index = m_DefaultRendererIndex;
 
-            if (index >= m_RendererDataList.Length || index < 0 || m_RendererDataList[index] == null)
+            if (index >= m_RendererDataReferenceList.Length || index < 0 || m_RendererDataReferenceList[index] == null)
             {
                 Debug.LogWarning(
-                    $"Renderer at index {index.ToString()} is missing, falling back to Default Renderer {m_RendererDataList[m_DefaultRendererIndex].name}",
+                    $"Renderer at index {index.ToString()} is missing, falling back to Default Renderer {m_RendererDataReferenceList[m_DefaultRendererIndex].name}",
                     this);
                 index = m_DefaultRendererIndex;
             }
 
             // RendererData list differs from RendererList. Create RendererList.
-            if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+            if (m_Renderers == null || m_Renderers.Length < m_RendererDataReferenceList.Length)
             {
                 DestroyRenderers();
                 CreateRenderers();
@@ -486,10 +563,10 @@ namespace UnityEngine.Rendering.Universal
 
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data
-            if (m_RendererDataList[index].isInvalidated || m_Renderers[index] == null)
+            if (m_RendererDataReferenceList[index].isInvalidated || m_Renderers[index] == null)
             {
                 DestroyRenderer(ref m_Renderers[index]);
-                m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
+                m_Renderers[index] = m_RendererDataReferenceList[index].InternalCreateRenderer();
             }
 
             return m_Renderers[index];
@@ -499,10 +576,10 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (m_RendererDataList[m_DefaultRendererIndex] == null)
+                if (m_RendererDataReferenceList[m_DefaultRendererIndex] == null)
                     CreatePipeline();
 
-                return m_RendererDataList[m_DefaultRendererIndex];
+                return m_RendererDataReferenceList[m_DefaultRendererIndex];
             }
         }
 
@@ -511,12 +588,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                GUIContent[] list = new GUIContent[m_RendererDataList.Length + 1];
-                list[0] = new GUIContent($"Default Renderer ({RendererDataDisplayName(m_RendererDataList[m_DefaultRendererIndex])})");
+                GUIContent[] list = new GUIContent[m_RendererDataReferenceList.Length + 1];
+                list[0] = new GUIContent($"Default Renderer ({RendererDataDisplayName(m_RendererDataReferenceList[m_DefaultRendererIndex])})");
 
                 for (var i = 1; i < list.Length; i++)
                 {
-                    list[i] = new GUIContent($"{(i - 1).ToString()}: {RendererDataDisplayName(m_RendererDataList[i - 1])}");
+                    list[i] = new GUIContent($"{(i - 1).ToString()}: {RendererDataDisplayName(m_RendererDataReferenceList[i - 1])}");
                 }
                 return list;
             }
@@ -536,7 +613,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                int[] list = new int[m_RendererDataList.Length + 1];
+                int[] list = new int[m_RendererDataReferenceList.Length + 1];
                 for (int i = 0; i < list.Length; i++)
                 {
                     list[i] = i - 1;
@@ -1130,29 +1207,29 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.OnBeforeSerialize();
         }
 
         /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
-            foreach (var renderer in m_RendererDataList)
+            foreach (var renderer in m_RendererDataReferenceList)
                 renderer.OnAfterDeserialize();
             // TODO fix the upgrade.
             if (k_AssetVersion < 3)
             {
-                //m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
+                m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 3;
             }
 
             if (k_AssetVersion < 4)
             {
-                //m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
-                //m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
-                //m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
-                //m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
+                m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
+                m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
+                m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
+                m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 4;
             }
@@ -1175,11 +1252,11 @@ namespace UnityEngine.Rendering.Universal
                 int value = (int)m_ShadowCascades;
                 if (value == 2)
                 {
-                    //m_ShadowCascadeCount = 4;
+                    m_ShadowCascadeCount = 4;
                 }
                 else
                 {
-                    //m_ShadowCascadeCount = value + 1;
+                    m_ShadowCascadeCount = value + 1;
                 }
                 k_AssetVersion = 6;
 #pragma warning restore 618 // Obsolete warning
@@ -1194,24 +1271,24 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 8)
             {
                 k_AssetPreviousVersion = k_AssetVersion;
-                //m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
                 k_AssetVersion = 8;
             }
 
             if (k_AssetVersion < 9)
             {
-                //bool assetContainsCustomAdditionalLightShadowResolutions =
-                //    m_AdditionalLightsShadowResolutionTierHigh != AdditionalLightsDefaultShadowResolutionTierHigh ||
-                //    m_AdditionalLightsShadowResolutionTierMedium != AdditionalLightsDefaultShadowResolutionTierMedium ||
-                //    m_AdditionalLightsShadowResolutionTierLow != AdditionalLightsDefaultShadowResolutionTierLow;
+                bool assetContainsCustomAdditionalLightShadowResolutions =
+                    m_AdditionalLightsShadowResolutionTierHigh != UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierHigh ||
+                    m_AdditionalLightsShadowResolutionTierMedium != UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierMedium ||
+                    m_AdditionalLightsShadowResolutionTierLow != UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierLow;
 
-                //if (!assetContainsCustomAdditionalLightShadowResolutions)
-                //{
-                //    // if all resolutions are still the default values, we assume that they have never been customized and that it is safe to upgrade them to fit better the Additional Lights Shadow Atlas size
-                //    m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
-                //    m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
-                //    m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
-                //}
+                if (!assetContainsCustomAdditionalLightShadowResolutions)
+                {
+                    // if all resolutions are still the default values, we assume that they have never been customized and that it is safe to upgrade them to fit better the Additional Lights Shadow Atlas size
+                    m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
+                    m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                    m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                }
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 9;
@@ -1224,13 +1301,13 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            //if (k_AssetPreviousVersion != k_AssetVersion)
-            //{
-            //    EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
-            //}
+            if (k_AssetPreviousVersion != k_AssetVersion)
+            {
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
+            }
 #endif
         }
-        /*
+
 
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
@@ -1241,7 +1318,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (asset.m_RendererType == RendererType.UniversalRenderer)
                 {
-                    var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/UniversalRenderer.asset");
+                    var data = AssetDatabase.LoadAssetAtPath<UniversalRendererDataAssetLegacy>("Assets/UniversalRenderer.asset");
                     if (data)
                     {
                         asset.m_RendererDataList[0] = data;
@@ -1272,7 +1349,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
-        */
+
 
         /// <summary>
         /// Check to see if the RendererData list contains valid RendererData references.
@@ -1282,17 +1359,17 @@ namespace UnityEngine.Rendering.Universal
         internal bool ValidateRendererDataList(bool partial = false)
         {
             var emptyEntries = 0;
-            for (int i = 0; i < m_RendererDataList.Length; i++) emptyEntries += ValidateRendererData(i) ? 0 : 1;
+            for (int i = 0; i < m_RendererDataReferenceList.Length; i++) emptyEntries += ValidateRendererData(i) ? 0 : 1;
             if (partial)
                 return emptyEntries == 0;
-            return emptyEntries != m_RendererDataList.Length;
+            return emptyEntries != m_RendererDataReferenceList.Length;
         }
 
         internal bool ValidateRendererData(int index)
         {
             // Check to see if you are asking for the default renderer
             if (index == -1) index = m_DefaultRendererIndex;
-            return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
+            return index < m_RendererDataReferenceList.Length ? m_RendererDataReferenceList[index] != null : false;
         }
     }
 }

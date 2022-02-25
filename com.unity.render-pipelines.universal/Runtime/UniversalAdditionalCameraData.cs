@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int defaultIndex = UniversalRenderPipeline.asset.m_DefaultRendererIndex;
                     Debug.LogWarning(
-                        $"Renderer at <b>index {m_RendererIndex.ToString()}</b> is missing for camera <b>{camera.name}</b>, falling back to Default Renderer. <b>{UniversalRenderPipeline.asset.m_RendererDataList[defaultIndex].name}</b>",
+                        $"Renderer at <b>index {m_RendererIndex.ToString()}</b> is missing for camera <b>{camera.name}</b>, falling back to Default Renderer. <b>{UniversalRenderPipeline.asset.m_RendererDataReferenceList[defaultIndex].name}</b>",
                         UniversalRenderPipeline.asset);
                     return UniversalRenderPipeline.asset.GetRenderer(defaultIndex);
                 }

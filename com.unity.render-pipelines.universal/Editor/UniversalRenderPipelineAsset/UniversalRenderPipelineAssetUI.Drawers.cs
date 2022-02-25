@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.Universal
 
             BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
             GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
-            int rendererCount = pipelineAsset.m_RendererDataList.Length;
+            int rendererCount = pipelineAsset.m_RendererDataReferenceList.Length;
 
             for (int i = 0; i < rendererCount; i++)
             {

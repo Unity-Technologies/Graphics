@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (rendererAsset != null)
             {
-                ScriptableRendererData[] rendererDataList = rendererAsset.m_RendererDataList;
+                ScriptableRendererData[] rendererDataList = rendererAsset.m_RendererDataReferenceList;
 
                 List<string> mainLightMode = new List<string>();
                 List<string> additionalLightMode = new List<string>();
