@@ -24,5 +24,17 @@ namespace UnityEngine.Rendering.Universal
             start = Math.Min(start, index);
             end = Math.Max(end, index);
         }
+
+        public void Clamp(short min, short max)
+        {
+            start = Math.Max(min, start);
+            end = Math.Min(max, end);
+        }
+
+        public bool isEmpty => end < start;
+
+        public static InclusiveRange Merge(InclusiveRange a, InclusiveRange b) => new(Math.Min(a.start, b.start), Math.Max(a.end, b.end));
+
+        public static InclusiveRange empty => new InclusiveRange(short.MaxValue, short.MinValue);
     }
 }

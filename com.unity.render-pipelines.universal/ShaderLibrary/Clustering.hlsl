@@ -54,7 +54,10 @@ ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3
 #if LIGHTS_PER_TILE > 32
     state.wordMin = zBinWords.x;
     state.wordMax = zBinWords.y;
+    // state.wordMin = 0;
+    // state.wordMax = 0;
     state.wordIndex = zBinWords.x;
+    state.wordIndex = 0;
 #endif
 #if SHADER_TARGET < 45
     state.bitIndex = zBin.x & 0x1F;

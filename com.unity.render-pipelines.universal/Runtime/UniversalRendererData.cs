@@ -101,6 +101,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] bool m_ClusteredRendering = false;
+        [SerializeField] bool m_ImprovedTiling = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
 
@@ -222,6 +223,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_ClusteredRendering = value;
+            }
+        }
+
+        internal bool improvedTiling
+        {
+            get => m_ImprovedTiling;
+            set
+            {
+                SetDirty();
+                m_ImprovedTiling = value;
             }
         }
 
