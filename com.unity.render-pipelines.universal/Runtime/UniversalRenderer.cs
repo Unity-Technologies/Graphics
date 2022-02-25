@@ -336,6 +336,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_CameraMotionVecMaterial);
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
+            CleanupRenderGraphResources();
+
             Blitter.Cleanup();
 
             LensFlareCommonSRP.Dispose();
