@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
         {
             // backbuffer
             public TextureHandle backBufferColor;
-            public TextureHandle backBufferDepth;
+            //public TextureHandle backBufferDepth;
 
             // intermediate camera targets
             public TextureHandle cameraColor;
@@ -138,8 +138,15 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            RTClearFlags clearFlags = RTClearFlags.None;
+
             if (renderingData.cameraData.renderType == CameraRenderType.Base)
-                RenderGraphTestPass.Render(renderingData.renderGraph, this);
+                clearFlags = RTClearFlags.All;
+            else if (renderingData.cameraData.clearDepth)
+                clearFlags = RTClearFlags.Depth;
+
+            if (clearFlags != RTClearFlags.None)
+                ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags);
 
             // TODO: check require DepthPrepass
             //if (requiresDepthPrepass)
@@ -184,27 +191,27 @@ namespace UnityEngine.Rendering.Universal
     }
 
 
-    class RenderGraphTestPass
+    class ClearTargetsPass
     {
         public class PassData
         {
-            public TextureHandle m_Albedo;
-            public TextureHandle m_Depth;
+            public TextureHandle color;
+            public TextureHandle depth;
         }
 
-        static public PassData Render(RenderGraph graph, UniversalRenderer renderer)
+        static public PassData Render(RenderGraph graph, UniversalRenderer renderer, RTClearFlags clearFlags)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Test Pass", out var passData, new ProfilingSampler("Test Pass Profiler")))
+            using (var builder = graph.AddRenderPass<PassData>("Clear Targets Pass", out var passData, new ProfilingSampler("Clear Targets")))
             {
-                TextureHandle backbuffer = renderer.frameResources.cameraColor; //renderer.frameResources.cameraColor;
-                passData.m_Albedo = builder.UseColorBuffer(backbuffer, 0);
-                passData.m_Depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
+                TextureHandle color = renderer.frameResources.cameraColor;
+                passData.color = builder.UseColorBuffer(color, 0);
+                passData.depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(RTClearFlags.All, Color.red, 1, 0);
+                    context.cmd.ClearRenderTarget(clearFlags, Color.red, 1, 0);
                 });
 
                 return passData;
