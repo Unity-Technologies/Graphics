@@ -619,7 +619,7 @@ float VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLum
     // when stationary
     const float maxFactorScale = 2.25f
 #if VELOCITY_REJECTION
-        * lerp(1, 10, speedRejectionFactor)  // TODO: Do we instead want a fixed value?
+        * 4 //lerp(1, 10, speedRejectionFactor)  // TODO: Do we instead want a fixed value?
 #endif
         ;
     const float minFactorScale = 0.8f; // when moving more than slightly
@@ -634,7 +634,7 @@ float VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLum
     // We shrink the bounding box when upscaling as ghosting is more likely.
     // Ideally the shrinking should happen also (or just) when sampling the neighbours
     // This shrinking should also be investigated a bit further with more content. (TODO).
-    stDevMultiplier = lerp(stDevMultiplier, 0.9f, saturate(downsampleFactor));
+    //stDevMultiplier = lerp(stDevMultiplier, 0.9f, saturate(downsampleFactor));
 #endif
 
     samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
