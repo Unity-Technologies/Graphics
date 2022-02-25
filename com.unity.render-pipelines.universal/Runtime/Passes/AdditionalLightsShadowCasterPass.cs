@@ -1013,6 +1013,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public class PassData
         {
+            public AdditionalLightsShadowCasterPass pass;
+            public RenderGraph graph;
+
             public TextureHandle shadowmapTexture;
             public RenderingData renderingData;
             public int shadowmapID;
@@ -1024,9 +1027,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = graph.AddRenderPass<PassData>("Additional Lights Shadowmap", out var passData, new ProfilingSampler("Additional Lights Shadowmap")))
             {
-                passData.renderingData = renderingData;
+                passData.pass = this;
+                passData.graph = graph;
+
                 passData.emptyShadowmap = m_CreateEmptyShadowmap;
                 passData.shadowmapID = m_AdditionalLightsShadowmapID;
+                passData.renderingData = renderingData;
 
                 if (!m_CreateEmptyShadowmap)
                 {
@@ -1041,14 +1047,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (data.emptyShadowmap)
                     {
-                        SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
-                        data.shadowmapTexture = graph.defaultResources.blackTexture;
+                        data.pass.SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                        data.shadowmapTexture = data.graph.defaultResources.blackTexture;
                     }
                     else
                     {
-                        RenderAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                        data.pass.RenderAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
                     }
-                    data.renderingData.commandBuffer.SetGlobalTexture(passData.shadowmapID, passData.shadowmapTexture);
+                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
 
                 return passData.shadowmapTexture;
