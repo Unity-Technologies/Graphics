@@ -9,7 +9,7 @@ jobs:
       - .yamato/all-vfx.yml#PR_VFX_<TRACK>
       - .yamato/all-urp.yml#PR_URP_<TRACK>
       - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
-    #  - .yamato/all-lightmapper.yml#PR_LightMapper_<TRACK>
+      #  - .yamato/all-lightmapper.yml#PR_LightMapper_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     # triggers:
     #     expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
@@ -26,10 +26,10 @@ jobs:
       - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
-    triggers:
-        recurring:
-          -  branch: 2022.1/staging
-             frequency: 1 * * ?
+    # triggers:
+    #     recurring:
+    #       -  branch: 2022.1/staging
+    #          frequency: 1 * * ?
 
   - name: General Checks
     # triggers:
@@ -55,68 +55,68 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: URP_Foundation
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: URP_Lighting
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: URP_PostPro
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: URP_Terrain
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: ShaderGraph
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: HDRP
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: VFX_HDRP
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
-            - editmode
+          - playmode
+          - editmode
       - project: VFX_URP
         platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode
+          - playmode
