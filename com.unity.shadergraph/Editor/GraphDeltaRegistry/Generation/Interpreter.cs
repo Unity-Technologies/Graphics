@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetBlockCode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry.Registry registry)
         {
             var builder = new ShaderBuilder();
             var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(INodeReader node, GraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ToString();
         }
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -148,11 +148,11 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             //length by height
             string lxh = "";
-            if(entry.length > 1 || entry.height > 1)
+            if((int)entry.length > 1 || (int)entry.height > 1)
             {
                 lxh += entry.length;
             }
-            if(entry.height > 1)
+            if((int)entry.height > 1)
             {
                 lxh += "x" + entry.height;
             }

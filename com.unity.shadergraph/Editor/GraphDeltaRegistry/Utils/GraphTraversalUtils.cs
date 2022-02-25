@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Utils
 
     public static class GraphTraversalUtils
     {
-        public static IEnumerable<INodeReader> TraverseGraphFromNode(IGraphHandler activeGraph, INodeReader startingNode, PropagationDirection directionToTraverse)
+        public static IEnumerable<INodeReader> TraverseGraphFromNode(GraphHandler activeGraph, INodeReader startingNode, PropagationDirection directionToTraverse)
         {
             var traversedNodes = new List<INodeReader>();
             return traversedNodes;

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
     class TypeResolving
     {
         private Registry m_registry;
-        private IGraphHandler m_graph;
+        private GraphHandler m_graph;
 
         private void SetupGraph()
         {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             m_registry.Register<Types.GraphType>();
 
             // create the graph
-            m_graph = GraphUtil.CreateGraph();
+            m_graph = new GraphHandler();
         }
 
         [Test]

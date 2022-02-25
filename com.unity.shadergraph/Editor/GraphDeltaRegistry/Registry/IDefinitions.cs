@@ -43,14 +43,15 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     }
 
 
-    internal interface IContextDescriptor : IRegistryEntry
+    public interface IContextDescriptor : IRegistryEntry
     {
-        struct ContextEntry
+        public struct ContextEntry
         {
             public string fieldName;
             internal Types.GraphType.Precision precision;
             internal Types.GraphType.Primitive primitive;
-            public int length, height;
+            public Types.GraphType.Length length;
+            public Types.GraphType.Height height;
             public Matrix4x4 initialValue;
             public string interpolationSemantic;
             public bool isFlat;
@@ -94,11 +95,10 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
                 port.SetField(Types.GraphType.kPrecision, entry.precision);
                 port.SetField(Types.GraphType.kPrimitive, entry.primitive);
                 port.SetField(Types.GraphType.kEntry, entry);
-                for (int i = 0; i < entry.length * entry.height; ++i)
+                for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
                     port.SetField($"c{i}", entry.initialValue[i]);
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
                     port.SetField("semantic", entry.interpolationSemantic);
-                port.SetField("isFlat", entry.isFlat);
             }
             // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
