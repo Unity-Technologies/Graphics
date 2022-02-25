@@ -25,6 +25,7 @@
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);
 TEXTURE2D(_BloomDirtTexture);
+TEXTURE2D(_AutoLensFlareSpectralLut);
 TEXTURE2D(_ChromaSpectralLut);
 TEXTURE3D(_LogLut3D);
 TEXTURE2D(_VignetteMask);
@@ -32,6 +33,7 @@ TEXTURE2D(_VignetteMask);
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_AutoLensFlareSpectralLut);
 SAMPLER(sampler_ChromaSpectralLut);
 SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_VignetteMask);
@@ -203,7 +205,7 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
         float sign = invert ? -1 : 1;
         float t = (i + 0.5) / samples;
         float3 s = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(DistortUV(pos)), 0.0).xyz;
-        float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
+        float3 filter = SAMPLE_TEXTURE2D_LOD(_AutoLensFlareSpectralLut, sampler_AutoLensFlareSpectralLut, float2(t, 0.0), 0).xyz;
 
         sum += (s * filter) * ((samples-(i+0.5))/samples);
         filterSum += filter;
@@ -213,9 +215,9 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
 
     //Debug
     float3 chromaTexture = chromaIntensityDampen * (sum / filterSum);
-
-    float3 blurTexture = float3(0,0,0);
-    /*
+/*
+   float3 blurTexture = float3(0,0,0);
+    
     float2 uv1 = scaleUV(uv, float2(0.5f,0.5f), scale, invert, polar, polar);
 
 
@@ -271,7 +273,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef CHROMATIC_ABERRATION
 
     float2 coords = 2.0 * uv - 1.0;
-    float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
+    float2 end = uv - coords * dot(coords, coords) * (ChromaAmount + 0.001);
     float2 diff = end - uv;
     int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
     float2 delta = diff / samples;

@@ -940,6 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistortionParams1 = Shader.PropertyToID("_DistortionParams1");
         public static readonly int _DistortionParams2 = Shader.PropertyToID("_DistortionParams2");
 
+        public static readonly int _AutoLensFlareSpectralLut = Shader.PropertyToID("_AutoLensFlareSpectralLut");
         public static readonly int _AutoLensFlareParams1 = Shader.PropertyToID("_AutoLensFlareParams1");
         public static readonly int _AutoLensFlareParams2 = Shader.PropertyToID("_AutoLensFlareParams2");
         public static readonly int _LogLut3D = Shader.PropertyToID("_LogLut3D");

@@ -61,6 +61,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Chromatic aberration data
         Texture2D m_InternalSpectralLut;
+		
+		//Post Process Lens Flare
+        Texture2D m_AutoLensFlareSpectralLut;
 
         // Color grading data
         int m_LutSize;
@@ -288,6 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.Destroy(m_InternalSpectralLut);
+            CoreUtils.Destroy(m_AutoLensFlareSpectralLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
@@ -298,6 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ExposureCurveTexture = null;
             m_InternalSpectralLut = null;
+            m_AutoLensFlareSpectralLut = null;
             m_FinalPassMaterial = null;
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
@@ -4474,14 +4479,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.uberPostCS.EnableKeyword("AUTOLENSFLARE");
 
-            var spectralLut = m_ChromaticAberration.spectralLut.value;
+            var spectralLut = m_AutoLensFlare.spectralLut.value;
 
             // If no spectral lut is set, use a pre-generated one
             if (spectralLut == null)
             {
-                if (m_InternalSpectralLut == null)
+                if (m_AutoLensFlareSpectralLut == null)
                 {
-                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+                    m_AutoLensFlareSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                     {
                         name = "Chromatic Aberration Spectral LUT",
                         filterMode = FilterMode.Bilinear,
@@ -4490,25 +4495,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         hideFlags = HideFlags.DontSave
                     };
 
-                    m_InternalSpectralLut.SetPixels(new[]
+                    m_AutoLensFlareSpectralLut.SetPixels(new[]
                     {
                         new Color(1f, 0f, 0f, 1f),
                         new Color(0f, 1f, 0f, 1f),
                         new Color(0f, 0f, 1f, 1f)
                     });
 
-                    m_InternalSpectralLut.Apply();
+                    m_AutoLensFlareSpectralLut.Apply();
                 }
 
-                spectralLut = m_InternalSpectralLut;
+                spectralLut = m_AutoLensFlareSpectralLut;
             }
 
-            data.spectralLut = spectralLut;
-
-            // float k_Softness = 0.5f;
-            // float lthresh = Mathf.GammaToLinearSpace(m_AutoLensFlare.threshold.value);
-            // float knee = lthresh * k_Softness + 1e-5f;
-            // return new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
+            data.autoLensFlareSpectralLut = spectralLut;
             data.autoLensFlareParameters1 = new Vector4(m_AutoLensFlare.intensityMultiplier.value, m_AutoLensFlare.firstFlareIntensity.value, m_AutoLensFlare.secondaryFlareIntensity.value, m_AutoLensFlare.warpedFlareIntensity.value);
             data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.vignetteIntensity.value, m_AutoLensFlare.chromaticAbberationIntensity.value / 20f, m_AutoLensFlare.chromaticAbberationSampleCount.value, 1.0f);
 
@@ -4646,6 +4646,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture spectralLut;
             public Vector4 chromaticAberrationParameters;
 
+            public Texture autoLensFlareSpectralLut;
             public Vector4 autoLensFlareParameters1;
             public Vector4 autoLensFlareParameters2;
 
@@ -4746,6 +4747,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
                         // AutoLensFlare
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._AutoLensFlareSpectralLut, data.autoLensFlareSpectralLut);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams1, data.autoLensFlareParameters1);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AutoLensFlareParams2, data.autoLensFlareParameters2);
 
