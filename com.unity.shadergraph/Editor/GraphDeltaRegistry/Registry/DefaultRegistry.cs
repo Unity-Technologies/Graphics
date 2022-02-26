@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Registry.Default
 
     public static class DefaultRegistry
     {
-        public static Registry CreateDefaultRegistry()
+        public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
             var reg = new Registry();
             reg.Register<Types.GraphType>();
@@ -60,7 +60,8 @@ namespace UnityEditor.ShaderGraph.Registry.Default
                 if (t != interfaceType && fdMethod != null)
                 {
                     var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                    reg.Register(fd);
+                    var key = reg.Register(fd);
+                    afterNodeRegistered?.Invoke(key, t);
                 }
             }
             return reg;

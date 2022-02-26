@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
-using com.unity.shadergraph.defs;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string Name = "ShaderGraph";
 
         public string ToolName => Name;
+
+        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
@@ -44,20 +46,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         private Registry.Registry RegistryInstance = null;
+
         public Registry.Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
-                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+                m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+
+                void ReadUIInfo(RegistryKey key, Type type)
+                {
+                    const string uiHintsGetterName = "get_UIHints";
+
+                    var getUiHints = type.GetMethod(uiHintsGetterName);
+                    if (getUiHints != null)
+                    {
+                        m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
+                    }
+
+                    // TODO: Get and use UI strings
+                }
+
+                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
+
             return RegistryInstance;
+        }
+
+        public bool TryGetUIHints(RegistryKey nodeKey, out Dictionary<string, float> uiHints)
+        {
+            var hasHints = m_NodeUIHints.TryGetValue(nodeKey, out var result);
+            uiHints = result;
+            return hasHints;
         }
 
         public override IGraphProcessor CreateGraphProcessor()
         {
             return new ShaderGraphProcessor();
         }
-
 
         public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, IModelView view, IGraphModel graphModel, IGroupModel selectedGroup = null)
         {
