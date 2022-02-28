@@ -32,10 +32,8 @@ public class RenderRequestTestCamera : MonoBehaviour
     private int ReadbackDataIndex(float3 viewportSpace)
     {
         float2 uv = viewportSpace.xy;
-        uv.y = 1 - uv.y;
         float2 px = math.saturate(uv) * RenderTargetDimension;
         int2 xy = (int2)px;
-        //Debug.Log($"{viewportSpace} {uv} {px} {xy}");
         return xy.y * RenderTargetDimension.x + xy.x;
     }
 

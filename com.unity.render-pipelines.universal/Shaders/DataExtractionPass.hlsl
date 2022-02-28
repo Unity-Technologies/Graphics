@@ -100,29 +100,33 @@ float4 ExtractionFragment(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    SurfaceData surfaceData;
+    SurfaceData surfaceData = (SurfaceData)0;
     INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(input.uv, surfaceData);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+
+    #if _ALPHATEST_ON
+        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+    #endif
 
     ExtractionInputs extraction = (ExtractionInputs)0;
     extraction.vertexNormalWS = input.normalWS;
     extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
     extraction.deviceDepth = input.positionCS.z;
-    extraction.baseColor = surfaceData.albedo;
-    extraction.alpha = OutputAlpha(UniversalFragmentPBR(inputData, surfaceData).a);
-    #if 0
-    #ifdef _SPECULAR_SETUP
-    extraction.specular = surfaceData.specular;
-    #else
-    extraction.metallic = surfaceData.metallic;
-    #endif
-    extraction.smoothness = surfaceData.smoothness;
-    extraction.occlusion = surfaceData.occlusion;
-    extraction.emission = surfaceData.emission;
-    #endif
+
+    // TODO: Implement these when DataExtraction is intended to support all material properties
+    // extraction.baseColor = surfaceData.albedo;
+    // extraction.alpha = OutputAlpha(UniversalFragmentPBR(inputData, surfaceData).a);
+    // #ifdef _SPECULAR_SETUP
+    // extraction.specular = surfaceData.specular;
+    // #else
+    // extraction.metallic = surfaceData.metallic;
+    // #endif
+    // extraction.smoothness = surfaceData.smoothness;
+    // extraction.occlusion = surfaceData.occlusion;
+    // extraction.emission = surfaceData.emission;
 
     return OutputExtraction(extraction);
 }

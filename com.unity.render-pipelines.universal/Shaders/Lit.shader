@@ -362,12 +362,11 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
@@ -379,7 +378,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma vertex ExtractionVertex
             #pragma fragment ExtractionFragment
 
-            #define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA InitializeStandardLitSurfaceData
+            #define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(a, b)
+            //#define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA InitializeStandardLitSurfaceData
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DataExtractionPass.hlsl"

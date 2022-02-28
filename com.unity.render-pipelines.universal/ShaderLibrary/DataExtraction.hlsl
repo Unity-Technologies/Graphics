@@ -12,17 +12,18 @@ struct ExtractionInputs
     float3 positionWS;
     float deviceDepth;
 
-    float3 baseColor;
-    float  alpha;
-
-#ifdef _SPECULAR_SETUP
-    float3 specular;
-#else
-    float  metallic;
-#endif
-    float  smoothness;
-    float  occlusion;
-    float3 emission;
+// TODO: Implement these when DataExtraction is intended to support all material properties
+//     float3 baseColor;
+//     float  alpha;
+//
+// #ifdef _SPECULAR_SETUP
+//     float3 specular;
+// #else
+//     float  metallic;
+// #endif
+//     float  smoothness;
+//     float  occlusion;
+//     float3 emission;
 };
 
 // These used to be in CommonMaterial.hlsl but no longer are. They are still
@@ -65,15 +66,15 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
         return selectionMask;
 
-    #ifdef _SPECULAR_SETUP
-        specular = inputs.specular;
-        diffuse = inputs.baseColor;
-        ConvertSpecularToMetallic(inputs.baseColor, inputs.specular, baseColor, metallic);
-    #else
-        baseColor = inputs.baseColor;
-        metallic = inputs.metallic;
-        ConvertMetallicToSpecular(inputs.baseColor, inputs.metallic, diffuse, specular);
-    #endif
+    // #ifdef _SPECULAR_SETUP
+    //     specular = inputs.specular;
+    //     diffuse = inputs.baseColor;
+    //     ConvertSpecularToMetallic(inputs.baseColor, inputs.specular, baseColor, metallic);
+    // #else
+    //     baseColor = inputs.baseColor;
+    //     metallic = inputs.metallic;
+    //     ConvertMetallicToSpecular(inputs.baseColor, inputs.metallic, diffuse, specular);
+    // #endif
 
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID || UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return ComputePickingValue(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID);
@@ -81,24 +82,24 @@ float4 OutputExtraction(ExtractionInputs inputs)
         return float4(inputs.deviceDepth.xxx, 1);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
         return float4(PackNormalRGB(inputs.vertexNormalWS), 1.0f);
-    if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
-        return float4(inputs.positionWS, 1.0);
-    if (UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
-        return float4(baseColor, inputs.alpha);
-    if (UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
-        return float4(specular.xxx, 1);
-    if (UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
-        return float4(metallic.xxx, 1.0);
-    if (UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
-        return float4(inputs.emission, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
         return float4(PackNormalRGB(inputs.pixelNormalWS), 1.0f);
-    if (UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
-        return float4(inputs.smoothness.xxx, 1.0);
-    if (UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
-       return float4(inputs.occlusion.xxx, 1.0);
-    if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
-       return float4(diffuse, inputs.alpha);
+    if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
+        return float4(inputs.positionWS, 1.0);
+    // if (UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
+    //     return float4(baseColor, inputs.alpha);
+    // if (UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
+    //     return float4(specular.xxx, 1);
+    // if (UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
+    //     return float4(metallic.xxx, 1.0);
+    // if (UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
+    //     return float4(inputs.emission, 1.0);
+    // if (UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
+    //     return float4(inputs.smoothness.xxx, 1.0);
+    // if (UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
+    //    return float4(inputs.occlusion.xxx, 1.0);
+    // if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
+    //    return float4(diffuse, inputs.alpha);
 
     return 0;
 }

@@ -112,9 +112,9 @@ half4 frag(PackedVaryings packedInput, float4 positionCS : SV_POSITION) : SV_TAR
     extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
     extraction.deviceDepth = positionCS.z;
+    #if 0
     extraction.baseColor = surfaceDescription.BaseColor;
     extraction.alpha = alpha;
-    #if 0
     #ifdef _SPECULAR_SETUP
     extraction.specular = surfaceDescription.Specular;
     #else
