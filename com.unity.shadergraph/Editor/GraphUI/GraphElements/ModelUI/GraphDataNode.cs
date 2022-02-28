@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
-            var hasHints = stencil.TryGetUIHints(m_GraphDataNodeModel.registryKey, out var uiHints);
+            var uiHints = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
 
             foreach (var portReader in nodeReader.GetPorts())
             {
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
                         break;
                     case GraphType.Length.Three:
-                        if (hasHints && uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + colorHint))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
                         }
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         break;
                     case GraphType.Length.Four:
-                        if (hasHints && uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + colorHint))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
                         }

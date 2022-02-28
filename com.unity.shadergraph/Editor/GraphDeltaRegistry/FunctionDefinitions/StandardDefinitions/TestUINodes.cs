@@ -115,7 +115,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, float> UIHints => new()
         {
-            {"In.UseColor", 0} // Use color picker for In
+            {"In.UseColor", 1} // Use color picker for In (float value is ignored)
         };
     }
 
@@ -131,7 +131,7 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, float> UIHints => new()
         {
-            {"In.UseColor", 0} // Use color picker for In
+            {"In.UseColor", 1} // Use color picker for In (float value is ignored)
         };
     }
 }

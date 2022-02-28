@@ -16,6 +16,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
+        public ShaderGraphStencil()
+        {
+            m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+        }
+
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
@@ -51,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (RegistryInstance == null)
             {
-                m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+                m_NodeUIHints.Clear();
 
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
@@ -72,11 +77,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
-        public bool TryGetUIHints(RegistryKey nodeKey, out IReadOnlyDictionary<string, float> uiHints)
+        public IReadOnlyDictionary<string, float> GetUIHints(RegistryKey nodeKey)
         {
-            var hasHints = m_NodeUIHints.TryGetValue(nodeKey, out var result);
-            uiHints = result;
-            return hasHints;
+            return m_NodeUIHints.GetValueOrDefault(nodeKey, new Dictionary<string, float>());
         }
 
         public override IGraphProcessor CreateGraphProcessor()
