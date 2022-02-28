@@ -104,36 +104,39 @@ namespace UnityEngine.Rendering.Universal
             #endregion
         }
 
-        protected override void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
+        protected override void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
 
-            switch (renderPassBlock)
-            {
-                case RenderGraphRenderPassBlock.BeforeRendering:
-                    OnBeforeRendering(context, ref renderingData);
+            OnBeforeRendering(context, ref renderingData);
 
-                    break;
-                case RenderGraphRenderPassBlock.MainRendering:
-                    OnMainRendering(context, ref renderingData);
+            OnMainRendering(context, ref renderingData);
 
-                    break;
-                case RenderGraphRenderPassBlock.AfterRendering:
-                    OnAfterRendering(context, ref renderingData);
-
-                    break;
-            }
+            OnAfterRendering(context, ref renderingData);
         }
 
         private void OnBeforeRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
 
+            bool renderShadows = false;
+
             if (m_MainLightShadowCasterPass.Setup(ref renderingData))
+            {
+                renderShadows = true;
                 frameResources.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+            }
 
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
+            {
+                renderShadows = true;
                 frameResources.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+            }
+
+            // The camera need to be setup again after the shadows since those passes override some settings
+            // TODO RENDERGRAPH: move the setup code into the shadow passes
+            if (renderShadows)
+                SetupRenderGraphCameraProperties(ref renderingData);
         }
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)

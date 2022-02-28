@@ -502,13 +502,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
-        protected enum RenderGraphRenderPassBlock
-        {
-            BeforeRendering,
-            MainRendering,
-            AfterRendering
-        }
-
         private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
 
@@ -737,10 +730,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
         /// </summary>
-        /// <param name="renderPassBlock">Specifies the location in the frame where to execute the render graph code.</param>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        protected virtual void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
+        protected virtual void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }
 
@@ -775,7 +767,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void SetupRenderGraphCameraProperties(ref RenderingData renderingData)
+        protected void SetupRenderGraphCameraProperties(ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
 
@@ -790,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    // TODO: implement both branches
+                    // TODO RENDERGRAPH: implement both branches
 
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -803,14 +795,14 @@ namespace UnityEngine.Rendering.Universal
                     //if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.renderContext.SetupCameraProperties(data.cameraData.camera);
-                        //SetPerCameraShaderVariables(cmd, ref cameraData);
+                        //SetPerCameraShaderVariables(context.cmd, ref data.cameraData);
                     }
                     //else
                     {
                         // Set new properties
-                        //SetPerCameraShaderVariables(cmd, ref cameraData);
-                        //SetPerCameraClippingPlaneProperties(cmd, in cameraData);
-                        //SetPerCameraBillboardProperties(cmd, ref cameraData);
+                        //SetPerCameraShaderVariables(context.cmd, ref data.cameraData);
+                        //SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData);
+                        //SetPerCameraBillboardProperties(context.cmd, ref data.cameraData);
                     }
 
 #if UNITY_EDITOR
@@ -838,21 +830,16 @@ namespace UnityEngine.Rendering.Universal
 
 
         /// <summary>
-        /// TODO
+        /// TODO RENDERGRAPH
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             InitRenderGraphFrame(ref renderingData);
-
-            RecordRenderGraphBlock(RenderGraphRenderPassBlock.BeforeRendering, context, ref renderingData);
-
             SetupRenderGraphCameraProperties(ref renderingData);
 
-            RecordRenderGraphBlock(RenderGraphRenderPassBlock.MainRendering, context, ref renderingData);
-
-            RecordRenderGraphBlock(RenderGraphRenderPassBlock.AfterRendering, context, ref renderingData);
+            RecordRenderGraphInternal(context, ref renderingData);
         }
 
         /// <summary>
