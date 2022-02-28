@@ -35,11 +35,6 @@ all_project_ci_nightly_2020.3:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        recurring:
-          -  branch: 10.x.x/release
-             frequency: 1 * * ?
-
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2020.3
          rerun: on_new_revision
@@ -72,6 +67,10 @@ Trunk_verification_2020.3:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        recurring:
+          -  branch: 10.x.x/release
+             frequency: 1 * * ?
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2020.3
          rerun: on_new_revision
