@@ -30,4 +30,4 @@ editor-pinning-update:
     triggers:
         recurring:
           -  branch: 10.x.x/release
-             frequency: 23 * * ?
+             frequency: 21 * * ?
