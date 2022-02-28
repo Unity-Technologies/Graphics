@@ -30,4 +30,4 @@ editor-pinning-update:
     triggers:
         recurring:
           -  branch: master
-             frequency: 23 * * ?
+             frequency: 21 * * ?
