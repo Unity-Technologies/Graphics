@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 
@@ -6,11 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class ReflectionProbeCache2D
     {
-        enum ProbeFilteringState
-        {
-            Convolving,
-            Ready
-        }
+        const int k_CurrentFrameLRUIndex = 0;
+        const int k_PreviousFrameLRUIndex = 1;
 
         IBLFilterBSDF[] m_IBLFiltersBSDF;
 
@@ -21,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_FrameProbeIndex;
         Dictionary<int, uint> m_TextureHashes = new Dictionary<int, uint>();
-        Dictionary<Vector4, ProbeFilteringState> m_ProbeBakingState = new Dictionary<Vector4, ProbeFilteringState>();
+        Dictionary<int, uint> m_TextureLRU = new Dictionary<int, uint>();
 
         Material m_ConvertTextureMaterial;
 
@@ -34,6 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Resolution = resolution;
             m_Format = format;
 
+
+            //@ Real size must be larger as octahedral area must be equal to cube map area.
             int mipPadding = 0;
             m_TextureAtlas = new PowerOfTwoTextureAtlas(resolution, mipPadding, format, FilterMode.Trilinear, "ReflectionProbeCache2D Atlas", true);
 
@@ -136,44 +136,90 @@ namespace UnityEngine.Rendering.HighDefinition
             return convolvedTextureTemp;
         }
 
+        private bool TryAllocateTextureWithoutBlit(int textureId, int width, int height, ref Vector4 scaleOffset)
+        {
+            // The first attempt.
+            if (m_TextureAtlas.AllocateTextureWithoutBlit(textureId, width, height, ref scaleOffset))
+                return true;
+
+            m_TextureAtlas.ResetRequestedTexture();
+
+            // If no space try to remove least recently used entries and allocate again.
+            // The better way could be to put subtree min LRU index in atlas node.
+            // And remove nodes based on min subtree LRU index in the whole tree.
+            // Otherwise smaller entries can be far apart from each other and we will have useless removes.
+            var texturesLRUSorted = m_TextureLRU.OrderByDescending(x => x.Value);
+
+            foreach (var pair in texturesLRUSorted)
+            {
+                if(m_TextureAtlas.IsCached(out _, pair.Key))
+                {
+                    // Don't touch current and previous frame cached entries.
+                    if (pair.Value > k_PreviousFrameLRUIndex)
+                    {
+                        if (m_TextureAtlas.RemoveTexture(pair.Key))
+                        {
+                            if (m_TextureAtlas.AllocateTextureWithoutBlit(textureId, width, height, ref scaleOffset))
+                                return true;
+                        }
+                    }
+                    else
+                    {
+                        m_TextureAtlas.ReserveSpace(pair.Key);
+                    }
+                }
+            }
+
+            m_TextureAtlas.ReserveSpace(textureId, width, height);
+
+            Debug.LogWarning("Reflection probe atlas relayout. Try to increase the size of the Reflection Probe Atlas in the HDRP settings for better performance.");
+
+            if(m_TextureAtlas.RelayoutEntries())
+            {
+                if (m_TextureAtlas.IsCached(out scaleOffset, textureId))
+                    return true;
+            }
+
+            return false;
+        }
+
         private bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset)
         {
-            bool success = false;
-
-            m_ProbeBakingState[scaleOffset] = ProbeFilteringState.Convolving;
-
-            RenderTexture convolvedTextureTemp = ConvolveProbeTexture(cmd, texture);
-
-            if (convolvedTextureTemp == null)
-                return false;
-
-            //@ Add compression
-            //@ Get octahedral 2D texture and convert it in BC6H the same way as in EncodeBC6H.DefaultInstance.EncodeFastCubemap
-            if (m_Format == GraphicsFormat.RGB_BC6H_SFloat) 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateReflectionProbeAtlas)))
             {
-                Debug.Assert(false, "Not supported for now.");
-            }
+                RenderTexture convolvedTextureTemp = ConvolveProbeTexture(cmd, texture);
 
-            if (m_TextureAtlas.IsCached(out scaleOffset, GetTextureID(texture)))
-            {
-                if (m_TextureAtlas.NeedsUpdate(texture, false))
-                    m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, GetTextureID(texture));
-            }
-            else
-            {
-                if (!m_TextureAtlas.AllocateTextureWithoutBlit(GetTextureID(texture), convolvedTextureTemp.width, convolvedTextureTemp.height, ref scaleOffset))
+                if (convolvedTextureTemp == null)
                     return false;
 
-                m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, GetTextureID(texture));
+                //@ Add compression
+                //@ Get octahedral 2D texture and convert it in BC6H the same way as in EncodeBC6H.DefaultInstance.EncodeFastCubemap
+                if (m_Format == GraphicsFormat.RGB_BC6H_SFloat)
+                {
+                    Debug.Assert(false, "Not supported for now.");
+                }
 
-                success = true;
+                bool success = true;
+
+                int textureId = GetTextureID(texture);
+
+                if (m_TextureAtlas.IsCached(out scaleOffset, textureId))
+                {
+                    if (m_TextureAtlas.NeedsUpdate(texture, false))
+                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, textureId);
+                }
+                else
+                {
+                    if (TryAllocateTextureWithoutBlit(textureId, convolvedTextureTemp.width, convolvedTextureTemp.height, ref scaleOffset))
+                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, textureId);
+                    else
+                        success = false;
+                }
+
+                RenderTexture.ReleaseTemporary(convolvedTextureTemp);
+
+                return success;
             }
-
-            RenderTexture.ReleaseTemporary(convolvedTextureTemp);
-
-            m_ProbeBakingState[scaleOffset] = ProbeFilteringState.Ready;
-
-            return success;
         }
 
         public Vector4 GetAtlasDatas()
@@ -195,49 +241,58 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             m_IBLFiltersBSDF = null;
-
             m_TextureAtlas.Release();
-
             m_TextureHashes = null;
-            m_ProbeBakingState = null;
+            m_ConvertTextureMaterial = null;
         }
 
         public Vector4 FetchSlice(CommandBuffer cmd, Texture texture, out int fetchIndex)
         {
             Debug.Assert(texture.dimension == TextureDimension.Cube);
 
-            fetchIndex = m_FrameProbeIndex++;
-
-            bool updateTexture;
-
             Vector4 scaleOffset = Vector4.zero;
+            int textureId = GetTextureID(texture);
 
-            if (m_TextureAtlas.IsCached(out scaleOffset, GetTextureID(texture)))
-                updateTexture = NeedsUpdate(texture) || m_ProbeBakingState[scaleOffset] != ProbeFilteringState.Ready;
-            else
-                updateTexture = true;
+            bool updateTexture = true;
+
+            if (m_TextureAtlas.IsCached(out scaleOffset, textureId))
+                updateTexture = NeedsUpdate(texture);
 
             if (updateTexture)
             {
                 if(!UpdateTexture(cmd, texture, ref scaleOffset))
-                {
-                    //@ We should have eviction mechanism.
                     Debug.LogError("No more space in the reflection probe atlas. To solve this issue, increase the size of the Reflection Probe Atlas in the HDRP settings.");
-                }
             }
+
+            m_TextureLRU[textureId] = k_CurrentFrameLRUIndex;
+
+            fetchIndex = m_FrameProbeIndex++;
 
             return scaleOffset;
         }
 
         public void NewFrame()
         {
+            m_FrameProbeIndex = 0;
+
+            m_TextureLRU.Keys.ToList().ForEach(key =>
+            {
+                if (!m_TextureAtlas.IsCached(out _, key))
+                    m_TextureLRU.Remove(key);
+                else
+                    m_TextureLRU[key]++;
+            });
         }
 
         public void ClearAtlasAllocator()
         {
-            //@ Cache must be persistent.
-            m_FrameProbeIndex = 0;
             m_TextureAtlas.ResetAllocator();
+        }
+
+        public void Clear(CommandBuffer cmd)
+        {
+            m_TextureAtlas.ResetAllocator();
+            m_TextureAtlas.ClearTarget(cmd);
         }
     }
 }

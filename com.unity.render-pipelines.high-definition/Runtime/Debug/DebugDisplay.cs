@@ -1313,6 +1313,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip PlanarAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the planar reflection atlas." };
             public static readonly NameAndTooltip ClearPlanarAtlas = new() { name = "Clear Planar Atlas", tooltip = "Enable to clear the planar reflection atlas at each frame." };
 
+            // Reflection probe atlas
+            public static readonly NameAndTooltip DisplayReflectionProbeAtlas = new() { name = "Display Reflection Probe Atlas", tooltip = "Enable the checkbox to display an overlay of the reflection probe atlas." };
+            public static readonly NameAndTooltip ReflectionProbeAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the reflection probe atlas." };
+            public static readonly NameAndTooltip ClearReflectionProbeAtlas = new() { name = "Clear Reflection Probe Atlas", tooltip = "Enable to clear the reflection probe atlas at each frame." };
+
             // Volumetric fog atlas
             public static readonly NameAndTooltip DisplayLocalVolumetricFogAtlas = new() { name = "Display Local Volumetric Fog Atlas", tooltip = "Enable to display the 3D texture atlas used for the local volumetric fog masks." };
             public static readonly NameAndTooltip VolumetricFogSlice = new() { name = "Slice", tooltip = "Select which slice of the texture 3D to view." };
@@ -1712,6 +1717,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         new DebugUI.UIntField { nameAndTooltip = LightingStrings.CookieAtlasMipLevel, getter = () => data.lightingDebugSettings.cookieAtlasMipLevel, setter = value => data.lightingDebugSettings.cookieAtlasMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCookieAtlasMipCount()},
                         new DebugUI.BoolField { nameAndTooltip = LightingStrings.ClearCookieAtlas, getter = () => data.lightingDebugSettings.clearCookieAtlas, setter = value => data.lightingDebugSettings.clearCookieAtlas = value}
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayReflectionProbeAtlas, getter = () => data.lightingDebugSettings.displayReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug });
+            if (data.lightingDebugSettings.displayReflectionProbeAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.ReflectionProbeAtlasMipLevel, getter = () => data.lightingDebugSettings.reflectionProbeMipLevel, setter = value => data.lightingDebugSettings.reflectionProbeMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeMipCount()},
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.ClearReflectionProbeAtlas, getter = () => data.lightingDebugSettings.clearReflectionProbeAtlas, setter = value => data.lightingDebugSettings.clearReflectionProbeAtlas = value},
                     }
                 });
             }

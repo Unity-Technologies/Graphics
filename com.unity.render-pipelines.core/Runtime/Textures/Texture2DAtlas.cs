@@ -110,19 +110,25 @@ namespace UnityEngine.Rendering
             m_NodePool = new ObjectPool<AtlasNode>(_ => { }, _ => { });
         }
 
-        public bool Allocate(ref Vector4 result, int width, int height)
+        public object Allocate(ref Vector4 result, int width, int height)
         {
             AtlasNode node = m_Root.Allocate(ref m_NodePool, width, height, powerOfTwoPadding);
             if (node != null)
             {
                 result = node.m_Rect;
-                return true;
+                return node;
             }
             else
             {
                 result = Vector4.zero;
-                return false;
+                return null;
             }
+        }
+
+        public void Release(object node)
+        {
+            AtlasNode atlasNode = (AtlasNode)node;
+            atlasNode.Release(ref m_NodePool);
         }
 
         public void Reset()
@@ -183,7 +189,7 @@ namespace UnityEngine.Rendering
         private protected bool m_UseMipMaps;
         bool m_IsAtlasTextureOwner = false;
         private AtlasAllocator m_AtlasAllocator = null;
-        private Dictionary<int, (Vector4 scaleOffset, Vector2Int size)> m_AllocationCache = new Dictionary<int, (Vector4, Vector2Int)>();
+        private Dictionary<int, (Vector4 scaleOffset, Vector2Int size, object node)> m_AllocationCache = new Dictionary<int, (Vector4, Vector2Int, object)>();
         private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
         private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
@@ -504,10 +510,12 @@ namespace UnityEngine.Rendering
         {
             scaleOffset = Vector4.zero;
 
-            if (m_AtlasAllocator.Allocate(ref scaleOffset, width, height))
+            object node = m_AtlasAllocator.Allocate(ref scaleOffset, width, height);
+
+            if (node != null)
             {
                 scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-                m_AllocationCache[instanceId] = (scaleOffset, new Vector2Int(width, height));
+                m_AllocationCache[instanceId] = (scaleOffset, new Vector2Int(width, height), node);
                 MarkGPUTextureInvalid(instanceId); // the texture data haven't been uploaded
                 m_TextureHashes[instanceId] = -1;
                 return true;
@@ -761,12 +769,31 @@ namespace UnityEngine.Rendering
                 scaleBias = value.scaleOffset;
                 return true;
             }
-            if (!m_AtlasAllocator.Allocate(ref scaleBias, width, height))
+
+            object node = m_AtlasAllocator.Allocate(ref scaleBias, width, height);
+
+            if (node == null)
                 return false;
             isUploadNeeded = true;
             scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-            m_AllocationCache.Add(key, (scaleBias, new Vector2Int(width, height)));
+            m_AllocationCache.Add(key, (scaleBias, new Vector2Int(width, height), node));
             return true;
+        }
+
+        public bool RemoveTexture(int key)
+        {
+            if (m_AllocationCache.TryGetValue(key, out var value))
+            {
+                m_AtlasAllocator.Release(value.node);
+
+                m_AllocationCache.Remove(key);
+                m_IsGPUTextureUpToDate.Remove(key);
+                m_TextureHashes.Remove(key);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

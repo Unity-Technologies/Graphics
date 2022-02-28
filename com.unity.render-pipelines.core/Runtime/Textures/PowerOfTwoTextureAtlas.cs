@@ -260,6 +260,12 @@ namespace UnityEngine.Rendering
         public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
             => ReserveSpace(GetTextureID(textureA, textureB), width, height);
 
+        public bool ReserveSpace(int id)
+        {
+            var cachedSize = GetCachedTextureSize(id);
+            return ReserveSpace(id, cachedSize.x, cachedSize.y);
+        }
+
         /// <summary>
         /// Reserves the space on the texture atlas
         /// </summary>
@@ -267,7 +273,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <returns>True if the space is reserved</returns>
-        bool ReserveSpace(int id, int width, int height)
+        public bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
 

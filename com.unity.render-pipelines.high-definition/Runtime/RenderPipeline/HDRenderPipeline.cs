@@ -204,6 +204,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetCookieAtlasMipCount() => (int)Mathf.Log((int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
 
+        internal int GetReflectionProbeMipCount()
+        {
+            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeAtlasSize;
+            return (int)Mathf.Log(size, 2);
+        }
+
         internal int GetPlanarReflectionProbeMipCount()
         {
             int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize;
@@ -2030,6 +2036,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                     renderRequest.cullingResults.decalCullResults?.Clear();
                                     UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
                                 }
+                            }
+
+                            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.clearReflectionProbeAtlas)
+                            {
+                                m_TextureCaches.reflectionProbeCache2D.Clear(cmd);
                             }
 
                             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.clearPlanarReflectionProbeAtlas)

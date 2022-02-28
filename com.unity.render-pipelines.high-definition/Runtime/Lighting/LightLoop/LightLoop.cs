@@ -1261,6 +1261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // If the max number of reflection probes on screen is reached
                         if (fetchIndex >= m_MaxEnvLightsOnScreen)
                         {
+                            //@ Fix this
                             Debug.LogWarning("Maximum reflection probe on screen reached. To fix this error, increase the maximum number of reflections on screen in the HDRP asset.");
                             break;
                         }
@@ -1890,7 +1891,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Because we don't support baking planar reflection probe, we can clear the atlas.
                 // Every visible probe will be blitted again.
                 m_TextureCaches.reflectionPlanarProbeCache.ClearAtlasAllocator();
-                m_TextureCaches.reflectionProbeCache2D.ClearAtlasAllocator();
 
                 m_ScreenSpaceShadowIndex = 0;
                 m_ScreenSpaceShadowChannelSlot = 0;
@@ -2099,7 +2099,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
             cb._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
-            //cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache2D.GetEnvSliceSize();
+            cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache2D.GetEnvSliceSize();
 
             // Planar reflections
             for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen; ++i)

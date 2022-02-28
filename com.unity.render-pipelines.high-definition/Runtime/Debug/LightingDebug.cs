@@ -365,6 +365,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Clear planar reflection atlas each frame.</summary>
         public bool clearPlanarReflectionProbeAtlas = false;
 
+        /// <summary>Display the reflection probe atlas.</summary>
+        public bool displayReflectionProbeAtlas = false;
+        /// <summary>Mip level of the reflection probe atlas display.</summary>
+        public uint reflectionProbeMipLevel = 0;
+        /// <summary>Clear reflection probe atlas each frame.</summary>
+        public bool clearReflectionProbeAtlas = false;
+
         /// <summary>True if punctual lights should be displayed in the scene.</summary>
         public bool showPunctualLight = true;
         /// <summary>True if directional lights should be displayed in the scene.</summary>
