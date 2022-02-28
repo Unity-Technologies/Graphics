@@ -18,6 +18,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
   - name: OSX
     apis:
       - name: Metal
