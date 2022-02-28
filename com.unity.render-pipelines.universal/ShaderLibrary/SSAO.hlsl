@@ -186,6 +186,9 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
 half3 ReconstructViewPos(float2 uv, float depth)
 {
+    // Dynamic scaling
+    uv = uv / _BlitScaleBias.xy;
+
     // Screen is y-inverted.
     uv.y = 1.0 - uv.y;
 
@@ -321,7 +324,7 @@ half4 SSAO(Varyings input) : SV_Target
     for (int s = 0; s < SAMPLE_COUNT; s++)
     {
         // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s);
+        half3 v_s1 = PickSamplePoint(uv / _BlitScaleBias.xy, s);
 
         // Make it distributed between [0, _Radius]
         v_s1 *= sqrt((half(s) + half(1.0)) * rcpSampleCount) * RADIUS;
@@ -341,10 +344,10 @@ half4 SSAO(Varyings input) : SV_Target
         #endif
 
         // Depth at the sample point
-        float depth_s1 = SampleAndGetLinearEyeDepth(uv_s1_01);
+        float depth_s1 = SampleAndGetLinearEyeDepth(uv_s1_01 * _BlitScaleBias.xy);
 
         // Relative position of the sample point
-        half3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1);
+        half3 vpos_s2 = ReconstructViewPos(uv_s1_01 * _BlitScaleBias.xy, depth_s1);
         half3 v_s2 = vpos_s2 - vpos_o;
 
         // Estimate the obscurance value

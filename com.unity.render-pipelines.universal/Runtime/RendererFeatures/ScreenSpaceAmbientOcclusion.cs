@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -132,9 +133,6 @@ namespace UnityEngine.Rendering.Universal
             private RTHandle m_AOPassTexture;
             private RTHandle[] m_BlurPassTextures = new RTHandle[2];
             private RTHandle m_SSAOTextureFinal;
-            private RenderTextureDescriptor m_AOPassDescriptor;
-            private RenderTextureDescriptor m_BlurPassesDescriptor;
-            private RenderTextureDescriptor m_FinalDescriptor;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
             // Constants
@@ -149,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
             private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
             private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
+            private static readonly int s_ScreenSpaceOcclusionTextureScaleBiasID = Shader.PropertyToID("_ScreenSpaceOcclusionTextureScaleBias");
 
             private enum ShaderPasses
             {
@@ -303,26 +302,50 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                // Set up the descriptors
-                RenderTextureDescriptor descriptor = cameraTargetDescriptor;
-                descriptor.msaaSamples = 1;
-                descriptor.depthBufferBits = 0;
-
-                m_AOPassDescriptor = descriptor;
-                m_AOPassDescriptor.width /= downsampleDivider;
-                m_AOPassDescriptor.height /= downsampleDivider;
-                m_AOPassDescriptor.colorFormat = RenderTextureFormat.ARGB32;
-
-                m_BlurPassesDescriptor = descriptor;
-                m_BlurPassesDescriptor.colorFormat = RenderTextureFormat.ARGB32;
-
-                m_FinalDescriptor = descriptor;
-                m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
-
-                RenderingUtils.ReAllocateIfNeeded(ref m_AOPassTexture, m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
-                RenderingUtils.ReAllocateIfNeeded(ref m_BlurPassTextures[0], m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
-                RenderingUtils.ReAllocateIfNeeded(ref m_BlurPassTextures[1], m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture3");
-                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextureFinal, m_FinalDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
+                // Set up the targets
+                // TODO: Would be nice to move these without null check to a one-time call such as the constructor
+                if (m_AOPassTexture == null)
+                {
+                    m_AOPassTexture = RTHandles.Alloc(
+                        (Vector2Int size) => { return size / (m_CurrentSettings.Downsample ? 2 : 1); },
+                        colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                        filterMode: FilterMode.Bilinear,
+                        wrapMode: TextureWrapMode.Clamp,
+                        name: "_SSAO_OcclusionTexture1"
+                    );
+                }
+                if (m_BlurPassTextures[0] == null)
+                {
+                    m_BlurPassTextures[0] = RTHandles.Alloc(
+                        Vector2.one,
+                        colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                        filterMode: FilterMode.Bilinear,
+                        wrapMode: TextureWrapMode.Clamp,
+                        name: "_SSAO_OcclusionTexture2"
+                    );
+                }
+                if (m_BlurPassTextures[1] == null)
+                {
+                    m_BlurPassTextures[1] = RTHandles.Alloc(
+                        Vector2.one,
+                        colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                        filterMode: FilterMode.Bilinear,
+                        wrapMode: TextureWrapMode.Clamp,
+                        name: "_SSAO_OcclusionTexture3"
+                    );
+                }
+                if (m_SSAOTextureFinal == null)
+                {
+                    m_SSAOTextureFinal = RTHandles.Alloc(
+                        Vector2.one,
+                        colorFormat: SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
+                            ? GraphicsFormat.R8_UNorm
+                            : GraphicsFormat.R8G8B8A8_UNorm,
+                        filterMode: FilterMode.Bilinear,
+                        wrapMode: TextureWrapMode.Clamp,
+                        name: "_SSAO_OcclusionTexture"
+                    );
+                }
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_BlurPassTextures[0]);
@@ -365,6 +388,8 @@ namespace UnityEngine.Rendering.Universal
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextureFinal);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                    var screenSpaceOcclusionTextureScaleBias = m_SSAOTextureFinal.useScaling ? new Vector2(m_SSAOTextureFinal.rtHandleProperties.rtHandleScale.x, m_SSAOTextureFinal.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    cmd.SetGlobalVector(s_ScreenSpaceOcclusionTextureScaleBiasID, screenSpaceOcclusionTextureScaleBias);
 
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)

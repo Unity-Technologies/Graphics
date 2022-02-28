@@ -7,6 +7,7 @@
 // Ambient occlusion
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
+float4 _ScreenSpaceOcclusionTextureScaleBias;
 
 struct AmbientOcclusionFactor
 {
@@ -16,7 +17,7 @@ struct AmbientOcclusionFactor
 
 half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
 {
-    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV);
+    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV) * _ScreenSpaceOcclusionTextureScaleBias.xy + _ScreenSpaceOcclusionTextureScaleBias.wz;
     return half(SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x);
 }
 
