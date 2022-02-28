@@ -198,6 +198,62 @@ Shader "Hidden/HDRP/TemporalAA"
 #endif
         }
 
+        float mitchell_netravali(float x) {
+            float B = 1.0 / 3.0;
+            float C = 1.0 / 3.0;
+
+            float ax = abs(x);
+            if (ax < 1) {
+                return ((12 - 9 * B - 6 * C) * ax * ax * ax + (-18 + 12 * B + 6 * C) * ax * ax + (6 - 2 * B)) / 6;
+            }
+            else if ((ax >= 1) && (ax < 2)) {
+                return ((-B - 6 * C) * ax * ax * ax + (6 * B + 30 * C) * ax * ax + (-12 * B - 48 * C) * ax + (8 * B + 24 * C)) / 6;
+            }
+            else {
+                return 0;
+            }
+        }
+
+        float3 FilterColorTest(int2 output_px, float2 sample_offset_pixels)
+        {
+            sample_offset_pixels = _TaaJitterStrength.zw;
+
+            const float2 input_tex_size = _InputSize.xy;
+            const float2 input_resolution_scale = _TAAUScale;
+            const int2 base_src_px = int2((output_px + 0.5) * input_resolution_scale);
+            // In pixel units of the destination (upsampled)
+            const float2 dst_sample_loc = output_px + 0.5;
+            const float2 base_src_sample_loc =
+                (base_src_px + 0.5 + sample_offset_pixels * float2(1, -1)) / input_resolution_scale;
+
+            float3 res = 0.0;
+            float dev_wt_sum = 0.0;
+            float wt_sum = 0.0;
+
+            const float kernel_distance_mult = 1.0;
+            int k = 1;
+
+            for (int y = -k; y <= k; ++y)
+            {
+                for (int x = -k; x <= k; ++x)
+                {
+                    int2 src_px = base_src_px + int2(x, y);
+                    float2 src_sample_loc = base_src_sample_loc + float2(x, y) / input_resolution_scale;
+                    float3 col = _InputTexture[COORD_TEXTURE2D_X(src_px.xy)];
+                    float2 sample_center_offset = (src_sample_loc - dst_sample_loc);
+                    float dist2 = dot(sample_center_offset, sample_center_offset);
+                    float dist = sqrt(dist2);
+                    float wt = mitchell_netravali(2.5 * dist * input_resolution_scale.x);
+                    //float wt = exp2(-10 * dist2 * input_resolution_scale.x);
+                    res += col * wt;
+                    wt_sum += wt;
+                }
+            }
+
+            return res / wt_sum;
+        }
+
+
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -208,7 +264,14 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 uv = input.texcoord;
 
             #ifdef TAA_UPSCALE
-            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+
+            float2 outputPixInInput = input.texcoord * _InputSize.xy
+#if ANTI_RINGING
+                + 
+#else
+                -
+#endif
+                _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
             #endif
@@ -248,7 +311,14 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Gather neigbourhood data ---------------
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
-            if (!excludeTAABit)
+
+            color = FilterColorTest(input.positionCS.xy, _TaaJitterStrength.xy);
+
+            if (
+#if ANTI_RINGING
+                false &&
+#endif
+                !excludeTAABit)
             {
                 color = clamp(color, 0, CLAMP_MAX);
                 color = ConvertToWorkingSpace(color);
@@ -329,7 +399,7 @@ Shader "Hidden/HDRP/TemporalAA"
                 finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
                 finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
-                finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
+                finalColor.xyz = lerp(history.xyz, filteredColor.xyz, 1);
                 finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 

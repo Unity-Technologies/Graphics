@@ -1792,6 +1792,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+
+
+                if (taaAntiRinging)
+                {
+                    // The variance between 0 and the actual halton sequence values reveals noticeable
+                    // instability in Unity's shadow maps, so we avoid index 0.
+                    jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
+                    jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+
+                    float offsetX = jitterX * (2.0f / actualWidth);
+                    float offsetY = jitterY * (2.0f / actualHeight);
+
+                    var jitterMat = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
+
+                    return jitterMat * origProj;
+                }
+
                 var planes = origProj.decomposeProjection;
 
                 float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
