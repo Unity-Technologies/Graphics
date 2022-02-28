@@ -35,6 +35,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 
+#if UNITY_EDITOR
+        internal static bool buildPipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && (HDRenderPipeline.currentPipeline.m_AssetSupportsRayTracing && HDRenderPipeline.buildTargetSupportsRayTracing);
+#endif
+
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
 
 
@@ -353,6 +357,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_ColorResolveMaterial = null;
         Material m_MotionVectorResolve = null;
 
+        // Flag that defines if ray tracing is supporte	d by the current asset
+        bool m_AssetSupportsRayTracing = false;
+		
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
         /// <summary>
@@ -390,7 +397,8 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_Asset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
+            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+			m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
 
 #if UNITY_EDITOR
             // If defaultAsset is not ready (can happen due to loading order issue), then we should return
@@ -665,8 +673,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpgradeResourcesIfNeeded()
         {
-            // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_Asset.EvaluateSettings();
 
             // Check and fix both the default and current HDRP asset
             UpgradeResourcesInAssetIfNeeded(HDRenderPipeline.defaultAsset);

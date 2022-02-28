@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("Enable"));
 
             // The ray tracing enabling checkbox is only displayed if the asset supports ray tracing
-            bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
+            bool rayTracingSupported = HDRenderPipeline.buildPipelineSupportsRayTracing;
             if (rayTracingSupported)
                 PropertyField(m_RayTracing, k_RayTracingText);
 
@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings = new QualitySettingsBlob();
 
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
                 m_RayTracing.value.boolValue)
             {
                 settings.Save<float>(m_MinSmoothness);
@@ -253,7 +253,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
                 m_RayTracing.value.boolValue)
             {
                 settings.TryLoad<float>(ref m_MinSmoothness);
@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
                 m_RayTracing.value.boolValue)
             {
                 CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSR
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+            if (!HDRenderPipeline.buildTargetSupportsRayTracing || !m_RayTracing.value.boolValue)
                 return true;
 
             // Handle the quality usage for RTGI

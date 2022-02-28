@@ -527,7 +527,11 @@ namespace UnityEngine.Rendering.HighDefinition
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingIncludeSky = 1;
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingRayMaxLength = qrtidParameters.rayLength;
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingNumSamples = qrtidParameters.sampleCount;
+#if NO_RAY_RECURSION
+            qrtidParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = qrtidParameters.bounceCount;
+#endif
             qrtidParameters.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
             ConstantBuffer.PushGlobal(cmd, qrtidParameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 

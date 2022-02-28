@@ -978,7 +978,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1022,7 +1022,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1063,7 +1063,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1098,7 +1098,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1125,7 +1125,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
@@ -1158,7 +1158,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
 
             #pragma raytracing surface_shader
 
