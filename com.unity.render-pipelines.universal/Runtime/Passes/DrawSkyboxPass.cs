@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -88,6 +90,39 @@ namespace UnityEngine.Rendering.Universal
 #endif
             {
                 context.DrawSkybox(camera);
+            }
+        }
+
+        private class PassData
+        {
+            public TextureHandle color;
+            public TextureHandle depth;
+
+            public RenderingData renderingData;
+
+            public DrawSkyboxPass pass;
+        }
+
+        public void Render(TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+            Camera camera = renderingData.cameraData.camera;
+
+            using (var builder = graph.AddRenderPass<PassData>("Draw Skybox Pass", out var passData,
+                new ProfilingSampler("Draw Skybox Pass Profiler")))
+            {
+                passData.color = builder.UseColorBuffer(colorTarget, 0);
+                passData.depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Read);
+
+                passData.renderingData = renderingData;
+                passData.pass = this;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    data.pass.Execute(context.renderContext, ref data.renderingData);
+                });
             }
         }
     }

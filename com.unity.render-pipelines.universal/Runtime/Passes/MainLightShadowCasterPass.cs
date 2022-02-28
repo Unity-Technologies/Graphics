@@ -308,6 +308,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
         public class PassData
         {
+            public MainLightShadowCasterPass pass;
+            public RenderGraph graph;
+
             public TextureHandle shadowmapTexture;
             public RenderingData renderingData;
             public int shadowmapID;
@@ -319,6 +322,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, new ProfilingSampler("Main Light Shadowmap")))
             {
+                passData.pass = this;
+                passData.graph = graph;
 
                 passData.emptyShadowmap = m_CreateEmptyShadowmap;
                 passData.shadowmapID = m_MainLightShadowmapID;
@@ -337,14 +342,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (data.emptyShadowmap)
                     {
-                        SetEmptyMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
-                        data.shadowmapTexture = graph.defaultResources.blackTexture;
+                        data.pass.SetEmptyMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                        data.shadowmapTexture = data.graph.defaultResources.blackTexture;
                     }
                     else
                     {
-                        RenderMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                        data.pass.RenderMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
                     }
-                    data.renderingData.commandBuffer.SetGlobalTexture(passData.shadowmapID, passData.shadowmapTexture);
+                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
 
                 return passData.shadowmapTexture;

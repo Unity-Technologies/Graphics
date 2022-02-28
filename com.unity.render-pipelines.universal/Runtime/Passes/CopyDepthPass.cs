@@ -227,6 +227,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Render(out TextureHandle destination, in TextureHandle source, ref RenderingData renderingData)
         {
+            //TODO: should call the equivalent of Setup() to initialise everything correctly
+            MssaSamples = -1;
+
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("Copy Depth", out var passData, new ProfilingSampler("Copy Depth Pass")))

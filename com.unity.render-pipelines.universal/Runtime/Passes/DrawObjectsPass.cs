@@ -230,7 +230,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    bool renderToBackbuffer = true;
+                    // TODO RENDERGRAPH add proper yFlip logic
+                    bool renderToBackbuffer = false;
 
                     CameraSetup(context.cmd, data);
                     ExecutePass(context.renderContext, data, !renderToBackbuffer);
