@@ -734,7 +734,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
@@ -852,7 +852,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
             float uvMargin = (1.0f / m_Descriptor.height) * downSample;
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
@@ -976,7 +976,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, source);
 
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
         }
@@ -1336,7 +1336,7 @@ namespace UnityEngine.Rendering.Universal
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
-            PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
+            PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
 
             SetupGrain(cameraData, material);
             SetupDithering(cameraData, material);
@@ -1444,7 +1444,7 @@ namespace UnityEngine.Rendering.Universal
 
                                 // Update the source texture for the next operation
                                 sourceTex = m_UpscaledTarget;
-                                PostProcessUtils.SetSourceSize(cmd, upscaleRtDesc);
+                                PostProcessUtils.SetSourceSize(cmd, m_UpscaledTarget);
 
                                 break;
                             }

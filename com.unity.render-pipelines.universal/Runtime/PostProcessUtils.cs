@@ -74,11 +74,11 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
         }
 
-        internal static void SetSourceSize(CommandBuffer cmd, RenderTextureDescriptor desc)
+        internal static void SetSourceSize(CommandBuffer cmd, RTHandle source)
         {
-            float width = desc.width;
-            float height = desc.height;
-            if (desc.useDynamicScale)
+            float width = source.rt.width;
+            float height = source.rt.height;
+            if (source.rt.useDynamicScale)
             {
                 width *= ScalableBufferManager.widthScaleFactor;
                 height *= ScalableBufferManager.heightScaleFactor;

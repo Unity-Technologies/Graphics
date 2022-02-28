@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
                     }
-                    PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, m_AOPassTexture);
 
                     Vector4 scaleBiasRt = new Vector4(-1, 1.0f, -1.0f, 1.0f);
                     cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
@@ -358,7 +358,7 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the Blur Passes
                     RenderAndSetBaseMap(cmd, m_AOPassTexture, m_BlurPassTextures[0], ShaderPasses.BlurHorizontal);
 
-                    PostProcessUtils.SetSourceSize(cmd, m_BlurPassesDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, m_BlurPassTextures[0]);
                     RenderAndSetBaseMap(cmd, m_BlurPassTextures[0], m_BlurPassTextures[1], ShaderPasses.BlurVertical);
                     RenderAndSetBaseMap(cmd, m_BlurPassTextures[1], m_SSAOTextureFinal, ShaderPasses.BlurFinal);
 
