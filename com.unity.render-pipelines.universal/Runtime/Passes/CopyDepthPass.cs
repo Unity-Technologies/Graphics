@@ -249,6 +249,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.UseColorBuffer(destination, 0);
                 passData.passName = GetType().Name;
+
                 // TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
 
@@ -257,7 +258,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // TODO RENDERGRAPH: Fix warning "You can only call cameraColorTarget inside the scope of a ScriptableRenderPass."
                     //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped(); 
                     bool isSourceYflipped = false;
-                    ExecutePass(context.renderContext, passData, data.source, data.destination, isSourceYflipped);
+                    ExecutePass(context.renderContext, data, data.source, data.destination, isSourceYflipped);
                 });
 
                 return;
