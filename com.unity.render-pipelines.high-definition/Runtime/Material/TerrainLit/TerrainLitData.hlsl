@@ -7,6 +7,8 @@
 #define SURFACE_GRADIENT
 #endif
 
+#define HAVE_MESH_MODIFICATION
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
