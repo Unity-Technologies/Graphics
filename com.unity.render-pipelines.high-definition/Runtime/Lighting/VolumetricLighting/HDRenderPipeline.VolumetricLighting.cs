@@ -1009,6 +1009,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     if (volume.parameters.maskMode != LocalVolumetricFogMaskMode.Material)
                                         continue;
+                                    if (volume.parameters.materialMask == null)
+                                        continue;
 
                                     var volumePos = volume.transform.position;
                                     // Calculate how much volumetric fog slices are touched by the volume:
@@ -1062,108 +1064,41 @@ namespace UnityEngine.Rendering.HighDefinition
                                     float minViewSpaceY = (Mathf.Min(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
                                     float maxViewSpaceY = (Mathf.Max(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
 
-                                    // Debug.Log(minViewSpaceDepth);
-                                    // Debug.Log(maxViewSpaceDepth);
                                     var camDir = (volume.transform.position - cameraPosition).normalized;
-                                    // Debug.DrawRay(cameraPosition + camDir * minViewSpaceDepth, camDir * (maxViewSpaceDepth - minViewSpaceDepth), Color.red, 0.1f);
-
-                                    // Apply camera relative rendering
-                                    // if (ShaderConfig.s_CameraRelativeRendering != 0)
-                                    //     aabb.center -= cameraPosition;
-
-                                    // Debug.DrawLine(aabb.min, aabb.max, Color.blue, 0.1f);
-
-                                    // Debug.Log(aabb.min);
-                                    // Debug.Log(aabb.max);
-                                    // Vector4 m1 = new Vector4(aabb.min.x, aabb.min.y, aabb.min.z, 1);
-                                    // Vector4 m2 = new Vector4(aabb.max.x, aabb.max.y, aabb.max.z, 1);
-                                    // // var minViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m1;
-                                    // // var maxViewSpaceBounds = hdCamera.mainViewConstants.viewProjMatrix * m2;
-                                    // var minPositionCS = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(aabb.min);
-                                    // var maxPositionCS = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(aabb.max);
-
-                                    // // minViewSpaceBounds = new Vector3(minViewSpaceBounds.x, minViewSpaceBounds.y, minViewSpaceBounds.z) / minViewSpaceBounds.w;
-                                    // // maxViewSpaceBounds = new Vector3(maxViewSpaceBounds.x, maxViewSpaceBounds.y, maxViewSpaceBounds.z) / maxViewSpaceBounds.w;
-                                    // // Debug.DrawLine(minViewSpaceBounds, maxViewSpaceBounds, Color.red, 0.1f);
-
-                                    // float minViewSpaceZ = MathF.Abs(hdCamera.mainViewConstants.viewMatrix.MultiplyPoint(aabb.min).z);
-                                    // float maxViewSpaceZ = MathF.Abs(hdCamera.mainViewConstants.viewMatrix.MultiplyPoint(aabb.max).z);
-                                    // minPositionCS.z = minViewSpaceZ;
-                                    // maxPositionCS.z = maxViewSpaceZ;
-                                    // Debug.DrawLine(minPositionCS, maxPositionCS, Color.green, 0.1f);
-
-                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(0, fog.volumeSliceCount.value));
-                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(1, fog.volumeSliceCount.value));
-                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(fog.depthExtent.value - 1, fog.volumeSliceCount.value));
-                                    // Debug.Log(currParams.ComputeSliceIndexFromDistance(fog.depthExtent.value, fog.volumeSliceCount.value));
-                                    // Debug.Log(fog.depthExtent.value);
 
                                     int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, fog.volumeSliceCount.value);
                                     int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, fog.volumeSliceCount.value);
-                                    // Debug.Log("Min: " + minViewSpaceDepth + ", " + startSlice + " | Max: " + maxViewSpaceDepth + ", " + stopSlice);
-
                                     if (startSlice == stopSlice)
                                         continue;
 
-                                    var props = new MaterialPropertyBlock();
-                                    props.SetVector("_ViewSpaceBounds", new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY));
-                                    props.SetInteger("_SliceOffset", startSlice);
-                                    // Debug.Log(maxViewSpaceX - minViewSpaceX);
-                                    // Debug.Log(maxViewSpaceY - minViewSpaceY);
+                                    Vector3 rcpPosFade, rcpNegFade;
 
+                                    rcpPosFade.x = Mathf.Min(1.0f / volume.parameters.positiveFade.x, float.MaxValue);
+                                    rcpPosFade.y = Mathf.Min(1.0f / volume.parameters.positiveFade.y, float.MaxValue);
+                                    rcpPosFade.z = Mathf.Min(1.0f / volume.parameters.positiveFade.z, float.MaxValue);
+
+                                    rcpNegFade.y = Mathf.Min(1.0f / volume.parameters.negativeFade.y, float.MaxValue);
+                                    rcpNegFade.x = Mathf.Min(1.0f / volume.parameters.negativeFade.x, float.MaxValue);
+                                    rcpNegFade.z = Mathf.Min(1.0f / volume.parameters.negativeFade.z, float.MaxValue);
+
+                                    var props = new MaterialPropertyBlock();
+                                    var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
+                                    if (aabb.Contains(cameraPosition))
+                                        viewSpaceBounds = new Vector4(-1, -1, 2, 2);
+                                    props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
+                                    props.SetInteger("_SliceOffset", startSlice);
+                                    props.SetVector("_LocalDensityVolumeExtent", volume.parameters.size / 2.0f);
+                                    props.SetVector("_RcpPositiveFade", rcpPosFade);
+                                    props.SetVector("_RcpNegativeFade", rcpNegFade);
+                                    props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
+                                    props.SetFloat("_Extinction", VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath));
 
                                     CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                     ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
-                                    // Debug.Log("Slice Count: " + (stopSlice - startSlice));
-                                    // Debug.Log("Start: " + startSlice);
-                                    // Debug.Log("Start: " + stopSlice);
                                     ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
                                 }
                             });
                     }
-                    // else
-                    // {
-                    //     builder.SetRenderFunc(
-                    //         (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
-                    //         {
-                    //         });
-                    // }
-
-                    // var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
-                    // {
-                    //     rendererConfiguration = PerObjectData.None,
-                    //     renderQueueRange = HDRenderQueue.k_RenderQueue_All,
-                    //     sortingCriteria = SortingCriteria.CommonTransparent,
-                    //     excludeObjectMotionVectors = false
-                    // };
-
-                    // passData.fogVolumeRenderList = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
-
-                    // // Tell that this pass requires that at least one object in the scene is compatible with the fog volume mesh shader, otherwise the pass is culled.
-                    // builder.DependsOn(passData.fogVolumeRenderList);
-
-                    // passData.fogVolumeDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    // {
-                    //     colorFormat = GraphicsFormat.R16_SFloat,
-                    //     dimension = TextureXR.dimension,
-                    //     enableRandomWrite = true,
-                    //     name = "Fog Volume Depth" 
-                    // }));
-                    // passData.densityBuffer = builder.WriteTexture(densityBuffer);
-                    // passData.hdCamera = hdCamera;
-
-                    // builder.SetRenderFunc(
-                    // (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
-                    // {
-                    //     ctx.cmd.SetGlobalTexture(HDShaderIDs._FogVolumeDepth, data.fogVolumeDepth);
-                    //     ctx.cmd.SetRandomWriteTarget(1, data.densityBuffer);
-                    //     ctx.cmd.SetRandomWriteTarget(2, data.fogVolumeDepth);
-                    //     CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth, ClearFlag.Color, Color.clear);
-                    //     ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
-                    //     CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogVolumeRenderList);
-                    //     ctx.cmd.ClearRandomWriteTargets();
-                    // });
-
                 }
 
                 return densityBuffer;

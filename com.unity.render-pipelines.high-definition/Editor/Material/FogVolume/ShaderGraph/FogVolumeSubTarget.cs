@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                validVertexBlocks = null,
+                validVertexBlocks = new BlockFieldDescriptor[0],
                 validPixelBlocks = FogVolumeBlocks.FragmentDefault,
 
                 structs = HDShaderPasses.GenerateStructs(new StructCollection

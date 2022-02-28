@@ -185,10 +185,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_DensityMaskTextureContent(SerializedLocalVolumetricFog serialized, Editor owner)
         {
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
-            if (EditorGUI.EndChangeCheck())
-                serialized.UpdateTextureMaskCompatibility();
+            serialized.UpdateTextureMaskCompatibility(); // Can't use a change check because it doesn't handle undo
             if (!serialized.isTextureMaskCompatible && serialized.volumeTexture.objectReferenceValue != null)
                 EditorGUILayout.HelpBox(Styles.s_InvalidTextureMessage, MessageType.Error);
             EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
@@ -197,10 +195,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_MaterialMaskContent(SerializedLocalVolumetricFog serialized, Editor owner)
         {
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.materialMask, Styles.s_MaterialMask);
-            if (EditorGUI.EndChangeCheck())
-                serialized.UpdateMaterialMaskCompatibility();
+            serialized.UpdateMaterialMaskCompatibility(); // Can't use a change check because it doesn't handle undo
             if (!serialized.isMaterialMaskCompatible)
             {
                 EditorGUILayout.HelpBox(Styles.s_InvalidMaterialMessage, MessageType.Error);

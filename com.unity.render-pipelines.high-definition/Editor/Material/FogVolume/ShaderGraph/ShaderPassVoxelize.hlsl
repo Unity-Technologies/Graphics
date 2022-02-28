@@ -13,13 +13,18 @@ RW_TEXTURE3D(float4, _VBufferDensity) : register(u1); // RGB = sqrt(scattering),
 RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 
 float4 _ViewSpaceBounds;
+float3 _LocalDensityVolumeExtent;
 uint _SliceOffset;
+float3 _RcpPositiveFade;
+float3 _RcpNegativeFade;
+float _Extinction;
+uint _InvertFade;
 
 struct VertexToFragment
 {
     float4 positionCS : SV_POSITION;
     float3 viewDirectionWS : TEXCOORD0;
-    float3 positionWS : TEXCOORD1;
+    float3 positionOS : TEXCOORD1;
     uint depthSlice : SV_RenderTargetArrayIndex;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -73,20 +78,22 @@ VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint ve
     output.depthSlice = _SliceOffset + instanceId;
 
     output.positionCS = GetQuadVertexPosition(vertexId);
-    float distanceViewSpace = SliceToDepth(output.depthSlice);
+    float depthViewSpace = SliceToDepth(output.depthSlice);
+
+    float4 p = mul(UNITY_MATRIX_P, float4(0, 0, depthViewSpace, 1));
+
     // output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.positionCS.xy *= _ViewSpaceBounds.zw;
     output.positionCS.xy += _ViewSpaceBounds.xy;
-    output.positionCS.z = EyeDepthToLinear(distanceViewSpace, _ZBufferParams);
+    output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams)/2;
     output.positionCS.w = 1;
 
-
-
-    output.positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+    output.positionOS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+    output.positionOS = GetAbsolutePositionWS(output.positionOS);
     // Encode view direction in texCoord1
-    output.viewDirectionWS = GetWorldSpaceViewDir(output.positionWS);
+    output.viewDirectionWS = GetWorldSpaceViewDir(output.positionOS);
 
-    output.positionWS = mul(output.positionWS, GetWorldToObjectMatrix());
+    output.positionOS = mul(output.positionOS, GetWorldToObjectMatrix());
 
     // Apply view space bounding box to the fullscreen vertex pos:
 
@@ -98,14 +105,31 @@ FragInputs BuildFragInputs(VertexToFragment v2f)
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
 
+    float3 positionOS01 = v2f.positionOS / _LocalDensityVolumeExtent;
+
     PositionInputs posInput = GetPositionInput(v2f.positionCS.xy, _ScreenSize.zw, v2f.positionCS.z, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     output.positionSS = v2f.positionCS;
     output.positionRWS = output.positionPredisplacementRWS = posInput.positionWS;
     output.positionPixel = posInput.positionSS;
-    output.texCoord0 = float4(posInput.positionNDC.xy, 0, 0);
+    output.texCoord0 = float4(saturate(positionOS01 * 0.5 + 0.5), 0);
     output.tangentToWorld = k_identity3x3;
 
     return output;
+}
+
+float ComputeFadeFactor(float3 positionOS)
+{
+    float3 p = abs(positionOS) / _LocalDensityVolumeExtent;
+    float dstF = max(max(p.x, p.y), p.z);
+
+    float3 coordNDC = (positionOS / _LocalDensityVolumeExtent) * 0.5 + 0.5;
+    float3 posF = Remap10(coordNDC, _RcpPositiveFade, _RcpPositiveFade);
+    float3 negF = Remap01(coordNDC, _RcpNegativeFade, 0);
+    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
+
+    fade = dstF * (_InvertFade ? (1 - fade) : fade);
+
+    return fade;
 }
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
@@ -120,61 +144,15 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     
     FragInputs fragInputs = BuildFragInputs(v2f);
 
-    if (any(fragInputs.positionRWS > 5) || any(fragInputs.positionRWS < -5))
+    if (any(v2f.positionOS > _LocalDensityVolumeExtent) || any(v2f.positionOS < -_LocalDensityVolumeExtent))
         clip(-1);
-    
-    outColor = float4(fragInputs.positionRWS, 1);
-    return;
+
+    // outColor = float4(v2f.positionOS, 1);
+    // return;
 
     GetVolumeData(fragInputs, v2f.viewDirectionWS, scatteringColor, density);
-    outColor = float4(scatteringColor, density);
 
-    // input.positionSS is SV_Position
-
-// #ifdef VARYINGS_NEED_POSITION_WS
-//     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-// #else
-//     // Unused
-//     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-// #endif
-
-//     float3 scatteringColor;
-//     float density;
-
-//     // Sample the depth to know when to stop
-//     float startDistance = LOAD_TEXTURE2D_X_LOD(_FogVolumeDepth, input.positionSS.xy, 0);
-//     float stopDistance = length(input.positionRWS);
-
-//     // Calculate the number of voxels/froxels to write:
-//     int startVoxelIndex = DepthToSlice(startDistance);
-//     int stopVoxelIndex = DepthToSlice(stopDistance);
-
-//     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
-//     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
-
-//     // for (int voxelDepthIndex = startVoxelIndex; voxelDepthIndex <= stopVoxelIndex; voxelDepthIndex++)
-//     {
-//         // It's possible for objects to be outside of the vbuffer bounds (because depth clip is disabled)
-//         if (voxelDepthIndex < 0 || voxelDepthIndex >= _VBufferSliceCount)
-//             continue;
-
-//         float e1 = voxelDepthIndex * de + de; // (slice + 1) / sliceCount
-//         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
-//         float dt = t1 - t0;
-//         float t = t0 + 0.5 * dt;
-
-//         // compute world pos from voxel depth index:
-
-//         // TODO: patch position input for SG
-//         // input.positionRWS = - V * t;
-//         float t2 = (float)(voxelDepthIndex - startVoxelIndex) / max(0.0001, (float)(stopVoxelIndex - startVoxelIndex));
-//         input.positionRWS = -V * lerp(startDistance, stopDistance, t2);
-
-//         GetVolumeData(input, V, scatteringColor, density);
-
-//         uint3 voxelCoord = uint3(posInput.positionSS.xy, voxelDepthIndex + _VBufferSliceCount * unity_StereoEyeIndex);
-//         _VBufferDensity[voxelCoord] += max(0, float4(scatteringColor, density));
-//     }
-
-    // TODO: set color mask to 0 and remove this line
+    // Apply volume blending
+    float fade = ComputeFadeFactor(v2f.positionOS);
+    outColor = float4(scatteringColor, density * fade * _Extinction);
 }
