@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceRenderingGBuffer,
         WaterSurfaceRenderingSSR,
         WaterSurfaceRenderingDeferred,
+        WaterSurfaceRenderingUnderWater,
 
         // RT Cluster
         RaytracingBuildCluster,

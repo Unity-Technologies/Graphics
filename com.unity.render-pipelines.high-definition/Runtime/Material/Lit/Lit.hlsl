@@ -354,7 +354,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         normalData.normalWS = surfaceData.geomNormalWS;
-        normalData.perceptualRoughness = CLEAR_COAT_PERCEPTUAL_ROUGHNESS;
+        normalData.perceptualRoughness = CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS;
     }
     else
     #endif

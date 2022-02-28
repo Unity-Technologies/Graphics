@@ -23,7 +23,6 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -51,7 +50,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -60,10 +59,9 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -100,7 +98,6 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -128,7 +125,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_XR_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -137,10 +134,9 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -177,7 +173,6 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -205,7 +200,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -214,10 +209,9 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -254,7 +248,6 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -282,7 +275,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -291,10 +284,9 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2

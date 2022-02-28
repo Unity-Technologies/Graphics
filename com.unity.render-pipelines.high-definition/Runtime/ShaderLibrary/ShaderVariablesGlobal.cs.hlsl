@@ -12,6 +12,7 @@
 #define RENDERING_DECAL_LAYERS_MASK (65280)
 #define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
 #define DEFAULT_RENDERING_LAYER_MASK (257)
+#define DEFAULT_DECAL_LAYERS (255)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal

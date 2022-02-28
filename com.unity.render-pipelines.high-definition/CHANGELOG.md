@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 - Added an option for culling objects out of the ray tracing acceleration structure.
 - Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added public API for Diffusion Profile Override volume Component.
+- Added time slicing support for realtime reflection probes.
+- Added denoising for the path tracer.
+- Added an initial version of under water rendering for the water system.
+- Added option to animate APV sample noise to smooth it out when TAA is enabled.
+- Added default DOTS compatible loading shader (MaterialLoading.shader)
+- Add #pragma editor_sync_compilation directive to MaterialError.shader
+- Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
+- Added an optional CPU simulation for the water system.
+- Added new Unity material ball matching the new Unity logo.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -32,6 +42,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 - Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
 - Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
+- Disallow "Gradient Diffusion" parameter to be negative for the "Gradient Sky".
+- Disabled volumetric clouds in lens flares sample indoor scene.
+- Make Vertical gate fit the default for physical camera.
+- Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
+- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -93,6 +110,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
 - Fixed reflection probe rendering order when visible in multiple cameras.
+- Fixed performance penalty when hardware DRS was used between multiple views like editor or other gameviews (case 1354382)
+- Fixed Show/Hide all Additional Properties
+- Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
+- Fixed custom pass name being cut when too long in the inspector.
+- Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
+- Fixed APV loading data outside of the relevant area containing probes.
+- Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed editor issue with the LiftGammaGain and ShadowsMidtonesHighlights volume components.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with raytraced shadows being visible alongside shadowmask.
+- Fixed RTGI potentially reading from outside the half res pixels due to missing last pixel during the upscale pass (case 1400310).
+- Fixed couple bugs in the volumetric clouds shader code.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed the list of included HDRP asset used for stripping in the build process.
+- Fixed HDRP camera debug panel rendering foldout.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+- Fixed various issues with render graph viewer when entering playmode.
+- Fixed Probe Debug view misbehaving with fog.
+- Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
+- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
+- Fixed camera motion vector pass reading last frame depth texture
+- Fixed issue with shader graph custom velocity and VFX (case 1388149)
+- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
+- Fixed issue in APV with scenes saved only once when creating them.
+- Fixed probe volume baking not generating any probes on mac.
+- Fix a few UX issues in APV.
+- Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed compilation errors on ps5 shaders.
 
 ## [14.0.0] - 2021-11-17
 

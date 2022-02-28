@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
             normalsRenderTarget = RTHandles.Alloc(normalsRenderTargetId, "_NormalMap");
             shadowsRenderTargetId = Shader.PropertyToID("_ShadowTex");
             shadowsRenderTarget = RTHandles.Alloc(shadowsRenderTargetId, "_ShadowTex");
+            cameraSortingLayerRenderTargetId = Shader.PropertyToID("_CameraSortingLayerTexture");
+            cameraSortingLayerRenderTarget = RTHandles.Alloc(cameraSortingLayerRenderTargetId, "_CameraSortingLayerTexture");
 
             spriteSelfShadowMaterial = null;
             spriteUnshadowMaterial = null;

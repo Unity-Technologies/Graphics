@@ -245,7 +245,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
-        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
+        [Enum(None, 0, Multiply, 1, AddSubstract, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
         [ToggleUI]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
@@ -756,7 +756,7 @@ Shader "HDRP/LayeredLitTessellation"
         }
 
         // Extracts information for lightmapping, GI (emission, albedo, ...)
-        // This pass it not used during regular rendering.
+        // This pass is not used during regular rendering.
         Pass
         {
             Name "META"
@@ -1067,6 +1067,8 @@ Shader "HDRP/LayeredLitTessellation"
             ZTest LEqual
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"

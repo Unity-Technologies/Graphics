@@ -388,9 +388,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
             }
-            else // If no refraction probe, use sky
+            else // If no refraction probe, use sky with a default proxy extent.
             {
-                envLightData = InitSkyEnvLightData(0);
+                envLightData = InitDefaultRefractionEnvLightData(0);
             }
 
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);

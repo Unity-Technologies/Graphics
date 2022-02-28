@@ -611,6 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Directional light
         Light m_CurrentSunLight;
+        int m_CurrentSunLightDataIndex = -1;
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         HDProcessedVisibleLightsBuilder.ShadowMapFlags m_CurrentSunShadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
@@ -1236,9 +1237,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
                     break;
                 }
-                case HDAdditionalReflectionData _:
+                case HDAdditionalReflectionData reflectionData:
                 {
-                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
+                    uint textureHash = reflectionData.GetTextureHash();
+                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture, textureHash);
                     // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
                     envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
 
@@ -1623,8 +1625,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Sunlight is the directional casting shadows
                             // Fallback to the first non shadow casting directional light.
-                            if ((processedLightEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0 || m_CurrentSunLight == null)
+                            if (additionalLightData.ShadowsEnabled() || m_CurrentSunLight == null)
+                            {
+                                m_CurrentSunLightDataIndex = i;
                                 m_CurrentSunLight = additionalLightData.legacyLight;
+                            }
                         }
 
                         ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
@@ -1887,6 +1892,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightDataIndex = -1;
                 m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;

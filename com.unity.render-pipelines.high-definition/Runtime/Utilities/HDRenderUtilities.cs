@@ -209,14 +209,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="position">The probe position to use.</param>
         /// <param name="cameras">Will receives the camera settings.</param>
         /// <param name="cameraPositions">Will receives the camera position settings.</param>
+        /// <param name="cameraCubeFaces">Will receive the camera cube face settings.</param>
         /// <param name="overrideSceneCullingMask">Override of the scene culling mask.</param>
+        /// <param name="renderSteps">The rendering steps to perform for this probe.</param>
         /// <param name="forceFlipY">Whether to force the Y axis flipping.</param>
         /// <param name="referenceFieldOfView">The reference field of view.</param>
         /// <param name="referenceAspect">The reference aspect ratio.</param>
         public static void GenerateRenderingSettingsFor(
             ProbeSettings settings, ProbeCapturePositionSettings position,
-            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
+            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions, List<CubemapFace> cameraCubeFaces,
             ulong overrideSceneCullingMask,
+            ProbeRenderSteps renderSteps,
             bool forceFlipY = false,
             float referenceFieldOfView = 90,
             float referenceAspect = 1
@@ -238,18 +241,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cameras.Add(cameraSettings);
                     cameraPositions.Add(cameraPositionSettings);
+                    cameraCubeFaces.Add(CubemapFace.Unknown);
                     break;
                 }
                 case ProbeSettings.ProbeType.ReflectionProbe:
                 {
                     for (int i = 0; i < 6; ++i)
                     {
+                        CubemapFace face = (CubemapFace)i;
+                        if (!renderSteps.HasCubeFace(face))
+                            continue;
                         var cameraPositionCopy = cameraPositionSettings;
                         cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
                             s_GenerateRenderingSettingsFor_Rotations[i]
                         );
                         cameras.Add(cameraSettings);
                         cameraPositions.Add(cameraPositionCopy);
+                        cameraCubeFaces.Add(face);
                     }
                     break;
                 }
@@ -365,7 +373,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
             rt.Create();
             return rt;
@@ -384,7 +393,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 useMipMap = true,
-                autoGenerateMips = false
+                autoGenerateMips = false,
+                depth = 0
             };
             rt.Create();
             return rt;

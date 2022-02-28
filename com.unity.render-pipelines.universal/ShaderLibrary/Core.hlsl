@@ -18,34 +18,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-#if !defined(SHADER_HINT_NICE_QUALITY)
-    #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
-        #define SHADER_HINT_NICE_QUALITY 0
-    #else
-        #define SHADER_HINT_NICE_QUALITY 1
-    #endif
-#endif
-
-// Shader Quality Tiers in Universal.
-// SRP doesn't use Graphics Settings Quality Tiers.
-// We should expose shader quality tiers in the pipeline asset.
-// Meanwhile, it's forced to be:
-// High Quality: Non-mobile platforms or shader explicit defined SHADER_HINT_NICE_QUALITY
-// Medium: Mobile aside from GLES2
-// Low: GLES2
-#if SHADER_HINT_NICE_QUALITY
-    #define SHADER_QUALITY_HIGH
-#elif defined(SHADER_API_GLES)
-    #define SHADER_QUALITY_LOW
-#else
-    #define SHADER_QUALITY_MEDIUM
-#endif
-
-#ifndef BUMP_SCALE_NOT_SUPPORTED
-    #define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
-#endif
-
-
 #if UNITY_REVERSED_Z
     // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
     #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)

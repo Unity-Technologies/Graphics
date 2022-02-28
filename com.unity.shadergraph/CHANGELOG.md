@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
  - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
  - Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
+ - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
 
 ## [14.0.0] - 2021-11-17
 

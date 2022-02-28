@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
             }
-            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4 || device == GraphicsDeviceType.PlayStation5)
+            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4 || device == GraphicsDeviceType.PlayStation5 || device == GraphicsDeviceType.PlayStation5NGGC)
             {
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
@@ -1796,7 +1796,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static class RenderingStrings
         {
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
-            public static readonly NameAndTooltip MaxPixelCost = new() { name = "Max Pixel Cost", tooltip = "The scale of the transparency overdraw heat map." };
+            public static readonly NameAndTooltip MaxOverdrawCount = new() { name = "Max Overdraw Count", tooltip = "Maximum overdraw count allowed for a single pixel." };
             public static readonly NameAndTooltip MaxQuadCost = new() { name = "Max Quad Cost", tooltip = "The scale of the quad mode overdraw heat map." };
             public static readonly NameAndTooltip MaxVertexDensity = new() { name = "Max Vertex Density", tooltip = "The scale of the vertex density mode overdraw heat map." };
 
@@ -1834,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
-                        new DebugUI.FloatField { nameAndTooltip = RenderingStrings.MaxPixelCost, getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
+                        new DebugUI.FloatField { nameAndTooltip = RenderingStrings.MaxOverdrawCount, getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
                     }
                 });
             }
