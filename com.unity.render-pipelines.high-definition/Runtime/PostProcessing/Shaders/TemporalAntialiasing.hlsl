@@ -499,16 +499,40 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
 
 #if WIDE_NEIGHBOURHOOD
 
-    // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, 1.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, 0), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0, -1.0f), rtHandleScale).CTYPE_SWIZZLE);
+#ifdef UPSAMPLE
+    samples.offsets[0] = float2(0.0f, 1.0f);
+    samples.offsets[1] = float2(1.0f, 0.0f);
+    samples.offsets[2] = float2(-1.0f, 0.0f);
+    samples.offsets[3] = float2(0.0f, -1.0f);
+    samples.offsets[4] = float2(-1.0f, 1.0f);
+    samples.offsets[5] = float2(1.0f, -1.0f);
+    samples.offsets[6] = float2(1.0f, 1.0f);
+    samples.offsets[7] = float2(-1.0f, -1.0f);
+#endif
 
-    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, 1.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, -1.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, 1.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, -1.0f), rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
+    // Plus shape
+    samples.neighbours[0] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(0.0f, 1.0f), 0));
+    samples.neighbours[1] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(1.0f, 0.0f), 0));
+    samples.neighbours[2] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(-1.0f, 0.0f), 0));
+    samples.neighbours[3] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(0.0f, -1.0f), 0));
+    samples.neighbours[4] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(-1.0f, 1.0f), 0));
+    samples.neighbours[5] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(1.0f, -1.0f), 0));
+    samples.neighbours[6] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(1.0f, 1.0f), 0));
+    samples.neighbours[7] = ConvertToWorkingSpace(LOAD_TEXTURE2D_X_LOD(InputTexture, positionSS + float2(-1.0f, -1.0f), 0));
+
+    //samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
+    //samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, 0), rtHandleScale).CTYPE_SWIZZLE);
+    //samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0, -1.0f), rtHandleScale).CTYPE_SWIZZLE);
+
+    //samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, 1.0f), rtHandleScale).CTYPE_SWIZZLE);
+    //samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, -1.0f), rtHandleScale).CTYPE_SWIZZLE);
+    //samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(1.0f, 1.0f), rtHandleScale).CTYPE_SWIZZLE);
+    //samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(-1.0f, -1.0f), rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
+
+    //for (int i = 0; i < 8; ++i)
+    //{
+    //    samples.neighbours[i] = centralColor;
+    //}
 
 #ifdef UPSAMPLE
     samples.offsets[0] = float2(0.0f, 1.0f);
@@ -863,6 +887,7 @@ SAMPLER(sampler_LinearClamp);
 
 float3 AlternateAA(TEXTURE2D_X(InputTexture), float3 outColor, float2 posSS, float2 posNDC)
 {
+
     RunFXAA(InputTexture, sampler_LinearClamp, outColor, posSS, posNDC);
     return outColor;
 }

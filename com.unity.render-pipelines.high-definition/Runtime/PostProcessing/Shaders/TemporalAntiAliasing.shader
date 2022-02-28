@@ -206,10 +206,10 @@ Shader "Hidden/HDRP/TemporalAA"
             float sharpenStrength = _TaaFrameInfo.x;
             float2 jitter = _TaaJitterStrength.zw;
 
-            float2 uv = input.texcoord;
+            float2 uv = input.texcoord + jitter;
 
             #ifdef TAA_UPSCALE
-            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+            float2 outputPixInInput = input.texcoord * _InputSize.xy + _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
             #endif

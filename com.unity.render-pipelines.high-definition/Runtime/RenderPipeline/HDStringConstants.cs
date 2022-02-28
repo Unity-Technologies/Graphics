@@ -286,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
+        public static readonly int _OutputSize = Shader.PropertyToID("_OutputSize");
 
         public static readonly int _TaaPostParameters = Shader.PropertyToID("_TaaPostParameters");
         public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");

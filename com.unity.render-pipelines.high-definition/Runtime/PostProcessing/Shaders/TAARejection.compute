@@ -1,0 +1,197 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
+#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel TAARejectionCS
+
+//#pragma multi_compile _ TAA_UPSCALE
+#define TAA_UPSCALE
+
+#if UNITY_REVERSED_Z
+    #define COMPARE_DEPTH(a, b) step(b, a)
+#else
+    #define COMPARE_DEPTH(a, b) step(a, b)
+#endif
+
+RW_TEXTURE2D_X(uint, _RejectionPassData);
+TEXTURE2D_X(_DepthTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+TEXTURE2D_X(_SourceTexture);
+
+
+float4 _TaaPostParameters;
+float4 _TaaHistorySize;
+
+#define _HistorySharpening _TaaPostParameters.x
+#define _AntiFlickerIntensity _TaaPostParameters.y
+#define _SpeedRejectionIntensity _TaaPostParameters.z
+#define _ContrastForMaxAntiFlicker _TaaPostParameters.w
+
+// TAAU specific
+float4 _TaauParameters;
+#define _TAAUFilterRcpSigma2 _TaauParameters.x
+#define _TAAUScale _TaauParameters.y
+#define _TAAUBoxConfidenceThresh _TaauParameters.z
+#define _TAAURenderScale _TaauParameters.w
+#define _InputSize _ScreenSize
+
+float4 _OutputSize;
+
+float4 _TaaScales;
+// NOTE: We need to define custom scales instead of using the default ones for several reasons.
+// 1- This shader is shared by TAA and Temporal Upscaling, having a single scale defined in C# instead helps readability.
+// 2- Especially with history, when doing temporal upscaling we have an unusal situation in which the history size doesn't match the input size.
+//    This in turns lead to some rounding issue (final viewport is not rounded, while the render target size is) that cause artifacts.
+//    To fix said artifacts we recompute manually the scales as we need them.
+#define _RTHandleScaleForTAAHistory _TaaScales.xy
+#define _RTHandleScaleForTAA _TaaScales.zw
+
+
+// Vel magnitude and depth
+TEXTURE2D_X(_InputVelocityMagnitudeHistory);
+RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory);
+
+float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
+{
+	float2 maxCoord = 1.0f - _ScreenSize.zw;
+	return min(uv, maxCoord) * scale;
+}
+
+
+float2 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
+{
+	float2 uv = (coords + offset * _ScreenSize.zw);
+	uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
+	return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xy;
+}
+
+float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, int searchWidth, out float closestDepth, out float centralDepth)
+{
+	centralDepth = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
+
+	int2 o3 = int2(-searchWidth, -searchWidth);
+	int2 o2 = int2(-searchWidth, searchWidth);
+	int2 o1 = int2(searchWidth, -searchWidth);
+	int2 o0 = int2(searchWidth, searchWidth);
+
+	float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + o3, 0).r;
+	float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + o2, 0).r;
+	float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + o1, 0).r;
+	float s0 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + o0, 0).r;
+
+	float3 closest = float3(0.0, 0.0, centralDepth);
+	closest = COMPARE_DEPTH(s3, closest.z) ? float3(o3, s3) : closest;
+	closest = COMPARE_DEPTH(s2, closest.z) ? float3(o2, s2) : closest;
+	closest = COMPARE_DEPTH(s1, closest.z) ? float3(o1, s1) : closest;
+	closest = COMPARE_DEPTH(s0, closest.z) ? float3(o0, s0) : closest;
+
+	closestDepth = closest.z;
+
+	return closest.xy;
+}
+
+float2 GrabCameraMotionVec(float2 NDC, float centralDepth)
+{
+	float3 posWS = ComputeWorldSpacePosition(NDC, centralDepth, UNITY_MATRIX_I_VP);
+	float4 worldPos = float4(posWS, 1.0);
+	float4 prevPos = worldPos;
+
+	float4x4 prevVP = UNITY_MATRIX_PREV_VP;
+	float4x4 currVP = UNITY_MATRIX_VP;
+
+
+	float4 clipWP = mul(currVP, posWS);
+	float4 clipPrevWP = mul(prevVP, prevPos);
+
+	clipWP.xy /= clipWP.w;
+	clipPrevWP.xy /= clipPrevWP.w;
+
+	float2 outDeltaVec = (clipWP.xy - clipPrevWP.xy);
+	outDeltaVec *= 0.5f;
+
+#if UNITY_UV_STARTS_AT_TOP
+	outDeltaVec.y = -outDeltaVec.y;
+#endif
+
+	return outDeltaVec;
+}
+
+
+[numthreads(8, 8, 1)]
+void TAARejectionCS(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+	float2 outputUV = (float2(dispatchThreadId.xy) + 0.5f) * _OutputSize.zw;
+	float2 uv = outputUV;
+
+#ifdef TAA_UPSCALE
+	float2 outputPixInInput = (outputUV * _InputSize.xy) - _TaaJitterStrength.xy;
+
+	uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
+
+#endif
+
+	// --------------- Get closest motion vector ---------------
+	float2 motionVector;
+
+#ifdef TAA_UPSCALE
+	int2 inputSamplePos = outputPixInInput;
+#else
+	int2 inputSamplePos = dispatchThreadId.xy;
+#endif
+
+	float closestDepth, centralDepth;
+	int2 closestOffset = GetClosestFragmentOffset(_DepthTexture, inputSamplePos, 1, closestDepth, centralDepth);
+	closestOffset = 0;
+	DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
+
+	float motionVectorLength = length(motionVector);
+	float motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
+
+	float objOnlyMVLen = length(motionVector - GrabCameraMotionVec(uv + closestOffset * _InputSize.zw, closestDepth));
+
+	float2 prevUV = outputUV - motionVector;
+
+	float2 auxiliaryHistory = Fetch(_InputVelocityMagnitudeHistory, outputUV, 0, _RTHandleScaleForTAAHistory).xy;
+	float2 auxiliaryHistoryPrev = Fetch(_InputVelocityMagnitudeHistory, prevUV, 0, _RTHandleScaleForTAAHistory).xy;
+
+	float lengthMV = objOnlyMVLen * 10;
+	float prevMVLen = auxiliaryHistoryPrev.x;
+
+
+	// Velocity rejection.
+	float diff = abs(lengthMV - prevMVLen);
+	// We don't start rejecting until we have the equivalent of around 40 texels in 1080p
+	diff -= 0.015935382;
+	float val = saturate(diff * _SpeedRejectionIntensity);
+
+	float prevDepth = auxiliaryHistoryPrev.y;
+	float powDepthSimilarity = 1.0f;
+
+
+
+	float depthSimilarity = saturate(pow(prevDepth / centralDepth, 1) + 0.01);
+
+	float velWeight = 1.0f - saturate(diff * 3.0f);
+
+	if (centralDepth == UNITY_RAW_FAR_CLIP_VALUE )
+	{
+		depthSimilarity = 1;
+	//	centralDepth = -1;
+	}
+	float prevCoverage = _SourceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+	float coverage = (1 - depthSimilarity) > 0.1 ? 0 : min(1+prevCoverage, 8);
+
+	coverage = ((val * val) > 0.6) ? 0 : min(1 + prevCoverage, 8);
+
+	_OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(coverage, (val * val), 1.0f - (val * val), 0);
+
+//	_OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(max(1- depthSimilarity, (val * val)) , 1 - depthSimilarity, (val * val), coverage);
+	_OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(lengthMV, centralDepth);
+}

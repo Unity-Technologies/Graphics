@@ -1768,8 +1768,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            float jitterX = (HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f);
+            float jitterY = (HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f);
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
 
             Matrix4x4 proj;
@@ -1792,6 +1792,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+
+
+                // The variance between 0 and the actual halton sequence values reveals noticeable
+                // instability in Unity's shadow maps, so we avoid index 0.
+                jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
+                jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+
+                float offsetX = jitterX * (2.0f / actualWidth);
+                float offsetY = jitterY * (2.0f / actualHeight);
+
+                var jitterMat = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
+                return jitterMat * origProj;
+
                 var planes = origProj.decomposeProjection;
 
                 float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
@@ -1805,12 +1818,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
 
+
+                Matrix4x4 m = Matrix4x4.Translate(new Vector3(0.5f*(jitterX / actualWidth), 0.5f*(jitterY / actualHeight), 0));
+
                 // Reconstruct the far plane for the jittered matrix.
                 // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
                 if (float.IsInfinity(planes.zFar))
                     planes.zFar = frustum.planes[5].distance;
 
                 proj = Matrix4x4.Frustum(planes);
+
+                proj = origProj * m;
             }
 
             return proj;

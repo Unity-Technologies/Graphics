@@ -1498,7 +1498,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
-            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16_SFloat, out previous, out next);
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16G16_SFloat, out previous, out next);
+        }
+
+        bool GrabTAAExtraTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAExtra, "taa extra", GraphicsFormat.R16G16B16A16_SFloat, out previous, out next);
         }
 
         void ReleasePostDoFTAAHistoryTextures(HDCamera camera)
@@ -1537,6 +1542,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nextHistory;
             public TextureHandle prevMVLen;
             public TextureHandle nextMVLen;
+
+            //
+            public TextureHandle testingRejection;
+            public ComputeShader taaRejctionCS;
+            public Vector4 taaOutputSize;
+            public TextureHandle prevExtra;
+            public TextureHandle nextExtra;
+
         }
 
         static readonly Vector2Int[] TAASampleOffsets = new Vector2Int[]
@@ -1696,6 +1709,14 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
+
+            RTHandle prevExtra, nextExtra;
+            GrabTAAExtraTextures(camera, out prevExtra, out nextExtra);
+
+            passData.prevExtra = builder.ReadTexture(renderGraph.ImportTexture(prevExtra));
+            passData.nextExtra = builder.WriteTexture(renderGraph.ImportTexture(nextExtra));
+
+
             TextureHandle dest;
             if (TAAU && DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
@@ -1730,6 +1751,14 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
 
             passData.stencilBuffer = stencilTexture;
+
+
+
+            //
+            passData.taaRejctionCS = defaultResources.shaders.taaRejectionMask;
+            passData.testingRejection = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Rejection Test" });
+            passData.taaOutputSize = new Vector4(passData.finalViewport.width, passData.finalViewport.height, 1.0f / passData.finalViewport.width, 1.0f/ passData.finalViewport.height);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
@@ -1751,6 +1780,35 @@ namespace UnityEngine.Rendering.HighDefinition
                         const int excludeTaaPass = 1;
                         const int taauPass = 2;
                         const int copyHistoryPass = 3;
+
+
+                        ////////////////////////////////////////////
+
+                        var cs = data.taaRejctionCS;
+                        var kernel = 0;
+
+                        var cmd = ctx.cmd;
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._TaaPostParameters, data.taaParameters);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._TaaHistorySize, data.previousScreenSize);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._TaauParameters, data.taauParams);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._TaaScales, data.taaScales);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputSize, data.taaOutputSize);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthTexture, data.depthMipChain);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.nextExtra);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, data.prevExtra);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputVelocityMagnitudeHistory, data.nextMVLen);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputVelocityMagnitudeHistory, data.prevMVLen);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+
+                        int dispatchX = HDUtils.DivRoundUp((int)data.finalViewport.width, 8);
+                        int dispatchY = HDUtils.DivRoundUp((int)data.finalViewport.height, 8);
+
+                        // TODO: THIS BREAKS VR.
+                        cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+                        ////////////////////////////////////////////
 
                         if (data.resetPostProcessingHistory)
                         {
@@ -1776,6 +1834,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
                         mpb.SetTexture(HDShaderIDs._InputTexture, source);
                         mpb.SetTexture(HDShaderIDs._InputHistoryTexture, data.prevHistory);
+                        mpb.SetTexture(HDShaderIDs._OutputTexture, data.nextExtra);
+
                         if (prevMVLenTexture != null && data.motionVectorRejection)
                         {
                             mpb.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLenTexture);

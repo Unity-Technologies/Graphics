@@ -13,6 +13,9 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalAntialiasing,
         /// <summary>Velocity magnitude history used for TAA velocity weighting.</summary>
         TAAMotionVectorMagnitude,
+        /// <summary>Velocity magnitude history used for TAA velocity weighting.</summary>
+        TAAExtra,
+
         /// <summary>Depth of field CoC.</summary>
         DepthOfFieldCoC,
         /// <summary>Normal buffer.</summary>
