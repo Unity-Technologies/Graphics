@@ -148,6 +148,14 @@ namespace UnityEngine.Rendering.Universal
             if (clearFlags != RTClearFlags.None)
                 ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags);
 
+            // sort out:
+            // - cameraData.target texture
+            // - offscreen depth camera
+            // - current target to figure out if backbuffer or intermediate texture rendering
+            // - figure out if intermediate textures should ben created
+            // - depth priming?
+
+
             // TODO: check require DepthPrepass
             //if (requiresDepthPrepass)
             {
