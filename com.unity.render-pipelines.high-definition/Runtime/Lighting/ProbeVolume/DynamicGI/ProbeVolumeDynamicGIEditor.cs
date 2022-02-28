@@ -94,8 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < numProbes; ++i)
             {
                 var probePositionWS = probePositionsWS[i];
-                var validity = probeVolumeAsset.payload.dataValidity[i];
-                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], validity);
+                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], ref probeVolumeAsset.payload.dataValidity[i]);
             }
 
             ExecutePendingRequests();
@@ -170,25 +169,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return extraRequestsOutput[requestIndex];
         }
 
-        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, float validity)
+        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, ref float validity)
         {
             InitBakeNeighborData(ref neighborBakeData);
 
-            int hits = 0;
+            int anyHits = 0;
+            int backfaceHits = 0;
+            int hitsWithMaterial = 0;
             for (int i = 0; i < s_NeighborAxis.Length; ++i)
             {
                 var offsetVS = (Vector3)ProbeVolumeAsset.s_Offsets[i];
                 
-                float hitDistance = 0.0f;
-                Vector3 normal = Vector3.zero;
-                var requestIndex = GetRequestIndexForOccluder(positionWS, offsetVS, voxelTransform, inverseVoxelTransform, ref hitDistance, ref normal);
+                var requestIndex = GetRequestIndexForOccluder(positionWS, offsetVS, voxelTransform, inverseVoxelTransform, out float hitDistance, out Vector3 normal, out RaycastFaceSide faceSide);
 
+                if (faceSide != RaycastFaceSide.None)
+                    anyHits++;
+                if (faceSide == RaycastFaceSide.Backface)
+                    backfaceHits++;
+                
                 neighborBakeData.requestIndex[i] = requestIndex;
                 if (requestIndex != -1)
                 {
                     neighborBakeData.neighborDistance[i] = hitDistance;
                     neighborBakeData.neighborNormal[i] = normal;
-                    hits++;
+                    hitsWithMaterial++;
                 }
                 else
                 {
@@ -199,8 +203,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            validity = anyHits != 0 ? (float)backfaceHits / anyHits : 0f;
             neighborBakeData.validity = validity;
-            return hits;
+            
+            return hitsWithMaterial;
         }
 
         private void InitBakeNeighborData(ref ProbeBakeNeighborData bakeNeighborData)
@@ -254,79 +260,70 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref float outDistance, ref Vector3 normalWS)
+        enum RaycastFaceSide
+        {
+            None,
+            Frontface,
+            Backface
+        }
+        
+        private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, out float distance, out Vector3 normalWS, out RaycastFaceSide faceSide)
         {
             var offsetWS = voxelTransform.MultiplyVector(offsetVS);
             var neighborDistanceWS = offsetWS.magnitude;
             if (neighborDistanceWS == 0f)
+            {
+                distance = 0f;
+                normalWS = Vector3.zero;
+                faceSide = RaycastFaceSide.None;
                 return -1;
-            
+            }
+
             var directionWS = offsetWS / neighborDistanceWS;
             var collisionLayerMask = ~0;
 
             RaycastHit[] outBoundHits = Physics.RaycastAll(positionWS, directionWS, neighborDistanceWS, collisionLayerMask);
             RaycastHit[] inBoundHits = Physics.RaycastAll(positionWS + offsetWS, -1.0f * directionWS, neighborDistanceWS, collisionLayerMask);
 
-            bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits);
-            if (hasMeshColliderHits)
+            int outIndex = FindNearestHit(outBoundHits, neighborDistanceWS, false, out var outDistance);
+            int inIndex = FindNearestHit(inBoundHits, neighborDistanceWS, true, out var inDistance);
+
+            if (outIndex != -1)
             {
-                int outIndex = 0;
-                outDistance = FindDistance(outBoundHits, neighborDistanceWS, ref outIndex, false);
-                if (outBoundHits.Length > 0)
+                RaycastHit hit = outBoundHits[outIndex];
+                var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, positionWS + directionWS * outDistance);
+                if (requestIndex != -1)
                 {
-                    RaycastHit hit = outBoundHits[outIndex];
-                    MeshCollider collider = hit.collider as MeshCollider;
-                    if (collider != null)
-                    {
-                        var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, positionWS + directionWS * outDistance);
-                        if (requestIndex != -1)
-                        {
-                            normalWS = inverseVoxelTransform.MultiplyVector(outBoundHits[outIndex].normal).normalized;
-                            return requestIndex;
-                        }
-                    }
+                    distance = outDistance;
+                    normalWS = inverseVoxelTransform.MultiplyVector(outBoundHits[outIndex].normal).normalized;
+                    faceSide = outDistance < inDistance ? RaycastFaceSide.Frontface : RaycastFaceSide.Backface;
+                    return requestIndex;
                 }
             }
 
+            distance = 0f;
+            normalWS = Vector3.zero;
+            faceSide = inIndex != -1 ? RaycastFaceSide.Backface : RaycastFaceSide.None;
             return -1;
         }
 
-        private static float FindDistance(RaycastHit[] hits, float maxDist, ref int index, bool findInDistance)
+        private static int FindNearestHit(RaycastHit[] hits, float maxDist, bool rayIsInverted, out float distance)
         {
-            float distance = maxDist;
+            int index = -1;
+            distance = maxDist;
             for (int i = 0; i < hits.Length; ++i)
             {
                 RaycastHit hit = hits[i];
-                float hitDistance = findInDistance ? (maxDist - hit.distance) : hit.distance;
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject) && hitDistance < distance)
+                var hitDistance = rayIsInverted ? (maxDist - hit.distance) : hit.distance;
+                var collider = hit.collider;
+                if (collider is MeshCollider && IsValidForBaking(collider.gameObject) && hitDistance < distance)
                 {
                     distance = hitDistance;
                     index = i;
                 }
             }
 
-            return distance;
-        }
-
-        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits)
-        {
-            foreach (var hit in outBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    return true;
-                }
-            }
-
-            foreach (var hit in inBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return index;
         }
 
         private static bool IsValidForBaking(GameObject gameObject)
@@ -346,70 +343,67 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int requestTicket = -1;
 
-            MeshCollider collider = hit.collider as MeshCollider;
-            if (collider != null)
+            MeshCollider collider = (MeshCollider)hit.collider;
+            Mesh mesh = collider.sharedMesh;
+
+            uint limit = (uint)hit.triangleIndex * 3;
+            int submesh = 0;
+            bool foundSubMesh = false;
+            for (; submesh < mesh.subMeshCount; submesh++)
             {
-                Mesh mesh = collider.sharedMesh;
-
-                uint limit = (uint)hit.triangleIndex * 3;
-                int submesh = 0;
-                bool foundSubMesh = false;
-                for (; submesh < mesh.subMeshCount; submesh++)
+                uint numIndices = mesh.GetIndexCount(submesh);
+                if (numIndices > limit)
                 {
-                    uint numIndices = mesh.GetIndexCount(submesh);
-                    if (numIndices > limit)
-                    {
-                        foundSubMesh = true;
-                        break;
-                    }
-
-                    limit -= numIndices;
+                    foundSubMesh = true;
+                    break;
                 }
 
-                if (!foundSubMesh)
-                {
-                    submesh = mesh.subMeshCount - 1;
-                }
+                limit -= numIndices;
+            }
 
-                MeshRenderer renderer = collider.GetComponent<MeshRenderer>();
-                if (renderer != null && renderer.sharedMaterials[submesh] != null)
+            if (!foundSubMesh)
+            {
+                submesh = mesh.subMeshCount - 1;
+            }
+
+            MeshRenderer renderer = collider.GetComponent<MeshRenderer>();
+            if (renderer != null && renderer.sharedMaterials[submesh] != null)
+            {
+                RequestInput requestInput;
+                requestInput.mesh = mesh;
+                requestInput.renderer = renderer;
+                requestInput.subMesh = submesh;
+                
+                // World-space sample size
+                var hitNormalWS = hit.normal;
+                var hitNormalVS = inverseVoxelTransform.MultiplyVector(hitNormalWS);
+                Vector3 hitPositionDdxVS;
+                Vector3 hitPositionDdyVS;
+                if (hitNormalVS.x == 0f && hitNormalVS.z == 0f)
                 {
-                    RequestInput requestInput;
-                    requestInput.mesh = mesh;
-                    requestInput.renderer = renderer;
-                    requestInput.subMesh = submesh;
-                    
-                    // World-space sample size
-                    var hitNormalWS = hit.normal;
-                    var hitNormalVS = inverseVoxelTransform.MultiplyVector(hitNormalWS);
-                    Vector3 hitPositionDdxVS;
-                    Vector3 hitPositionDdyVS;
-                    if (hitNormalVS.x == 0f && hitNormalVS.z == 0f)
-                    {
-                        hitPositionDdxVS = Vector3.right;
-                        hitPositionDdyVS = Vector3.forward;
-                    }
-                    else
-                    {
-                        hitPositionDdxVS = ExtendToCubeBounds(Vector3.Cross(Vector3.down, hitNormalVS));
-                        hitPositionDdyVS = ExtendToCubeBounds(Vector3.Cross(hitPositionDdxVS, hitNormalVS));
-                    }
-                    var hitPositionDdxWS = voxelTransform.MultiplyVector(hitPositionDdxVS);
-                    var hitPositionDdyWS = voxelTransform.MultiplyVector(hitPositionDdyVS);
-                    
-                    // UV-space sample size
-                    var worldToRenderer = renderer.transform.worldToLocalMatrix;
-                    var hitPositionDdxOS = worldToRenderer.MultiplyVector(hitPositionDdxWS);
-                    var hitPositionDdyOS = worldToRenderer.MultiplyVector(hitPositionDdyWS);
-                    var sampleAreaOS = hitPositionDdxOS.magnitude * hitPositionDdyOS.magnitude;
-                    var uvDistributionMetric = mesh.GetUVDistributionMetric(0);
-                    var sampleSideUV = Mathf.Sqrt(sampleAreaOS / uvDistributionMetric);
-                    
-                    requestTicket = EnqueueRequest(requestInput,
-                        hit.textureCoord, new Vector2(sampleSideUV, 0f), new Vector2(0f, sampleSideUV),
-                        hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
-                        hitNormalWS);
+                    hitPositionDdxVS = Vector3.right;
+                    hitPositionDdyVS = Vector3.forward;
                 }
+                else
+                {
+                    hitPositionDdxVS = ExtendToCubeBounds(Vector3.Cross(Vector3.down, hitNormalVS));
+                    hitPositionDdyVS = ExtendToCubeBounds(Vector3.Cross(hitPositionDdxVS, hitNormalVS));
+                }
+                var hitPositionDdxWS = voxelTransform.MultiplyVector(hitPositionDdxVS);
+                var hitPositionDdyWS = voxelTransform.MultiplyVector(hitPositionDdyVS);
+                
+                // UV-space sample size
+                var worldToRenderer = renderer.transform.worldToLocalMatrix;
+                var hitPositionDdxOS = worldToRenderer.MultiplyVector(hitPositionDdxWS);
+                var hitPositionDdyOS = worldToRenderer.MultiplyVector(hitPositionDdyWS);
+                var sampleAreaOS = hitPositionDdxOS.magnitude * hitPositionDdyOS.magnitude;
+                var uvDistributionMetric = mesh.GetUVDistributionMetric(0);
+                var sampleSideUV = Mathf.Sqrt(sampleAreaOS / uvDistributionMetric);
+                
+                requestTicket = EnqueueRequest(requestInput,
+                    hit.textureCoord, new Vector2(sampleSideUV, 0f), new Vector2(0f, sampleSideUV),
+                    hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
+                    hitNormalWS);
             }
 
             return requestTicket;
