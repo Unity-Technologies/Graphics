@@ -23,12 +23,12 @@ jobs:
       - .yamato/all-urp.yml#Nightly_URP_<TRACK>
       - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
-    triggers:
-        recurring:
-          -  branch: 7.x.x/release
-             frequency: weekly
-        allow_on:
-          - 2019.4
+    # triggers:
+    #     recurring:
+    #       -  branch: 7.x.x/release
+    #          frequency: weekly
+    #     allow_on:
+    #       - 2019.4
 
   - name: General Checks
     triggers:
@@ -80,3 +80,9 @@ jobs:
         color_space: Linear
         test_platforms:
             - playmode
+    triggers:
+        recurring:
+          -  branch: 7.x.x/release
+             frequency: weekly
+        allow_on:
+          - 2019.4

@@ -26,10 +26,6 @@ all_project_ci_weekly_2019.4:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-    triggers:
-        recurring:
-          -  branch: 7.x.x/release
-             frequency: weekly
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2019.4
          rerun: on_new_revision
@@ -56,6 +52,10 @@ Trunk_verification_2019.4:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    triggers:
+        recurring:
+          -  branch: 7.x.x/release
+             frequency: weekly
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
