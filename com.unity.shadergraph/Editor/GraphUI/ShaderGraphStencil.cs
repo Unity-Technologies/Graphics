@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
-        public bool TryGetUIHints(RegistryKey nodeKey, out Dictionary<string, float> uiHints)
+        public bool TryGetUIHints(RegistryKey nodeKey, out IReadOnlyDictionary<string, float> uiHints)
         {
             var hasHints = m_NodeUIHints.TryGetValue(nodeKey, out var result);
             uiHints = result;
