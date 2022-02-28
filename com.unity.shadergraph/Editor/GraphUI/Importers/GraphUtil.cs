@@ -60,10 +60,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static bool GraphExists(string assetPath)
         {
-            string fileText = File.ReadAllText(assetPath, Encoding.UTF8);
-            ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
-            EditorJsonUtility.FromJsonOverwrite(fileText, helper);
-            return !string.IsNullOrEmpty(helper.GraphDeltaJSON);
+            if (File.Exists(assetPath))
+            {
+                string fileText = File.ReadAllText(assetPath, Encoding.UTF8);
+                ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
+                EditorJsonUtility.FromJsonOverwrite(fileText, helper);
+                return !string.IsNullOrEmpty(helper.GraphDeltaJSON);
+            }
+
+            return false;
         }
     }
 }
