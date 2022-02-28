@@ -16,9 +16,10 @@ namespace com.unity.shadergraph.defs
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "Normalize, Unitize" },
-            { "Tooltip", "Normalization Function" },
-            { "Parameters.In.Tooltip", "Input" },
+            { "Category", "Math, Advanced" },
+            { "Name.Synonyms", "Unitize" },
+            { "Tooltip", "adjusts the input vector to unit length" },
+            { "Parameters.In.Tooltip", "a vector to normalize" },
             { "Parameters.Out.Tooltip", "In / Length(In)" }
         };
     }

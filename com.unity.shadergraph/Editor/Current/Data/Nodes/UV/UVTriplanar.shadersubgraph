@@ -2450,7 +2450,7 @@
     "m_Group": {
         "m_Id": "f1f38166393b440dafeec816bf3b4e2e"
     },
-    "m_Name": "Triplanar Direction Masks",
+    "m_Name": "TriplanarDirectionMasks",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

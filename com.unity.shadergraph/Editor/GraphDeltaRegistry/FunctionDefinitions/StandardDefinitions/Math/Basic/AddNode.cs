@@ -10,17 +10,18 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Add", // Name
             "Out = A + B;",
-            new ParameterDescriptor("A", TYPE.Any, Usage.In),
-            new ParameterDescriptor("B", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("B", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
-            { "Name.Synonyms", "Addition, Sum" },
-            { "Tooltip", "Addition Function" },
-            { "Parameters.In.Tooltip", "Input A" },
-            { "Parameters.Exp.Tooltip", "Input B" },
+            { "Category", "Math, Basic" },
+            { "Name.Synonyms", "Addition, Sum, +, plus" },
+            { "Tooltip", "returns the sum of A and B" },
+            { "Parameters.A.Tooltip", "Input A" },
+            { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "A + B" }
         };
     }
