@@ -1792,42 +1792,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                float offsetX = jitterX * (2.0f / actualWidth);
+                float offsetY = jitterY * (2.0f / actualHeight);
 
-
-                if (taaAntiRinging)
-                {
-                    // The variance between 0 and the actual halton sequence values reveals noticeable
-                    // instability in Unity's shadow maps, so we avoid index 0.
-                    jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-                    jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
-
-                    float offsetX = jitterX * (2.0f / actualWidth);
-                    float offsetY = jitterY * (2.0f / actualHeight);
-
-                    var jitterMat = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
-
-                    return jitterMat * origProj;
-                }
-
-                var planes = origProj.decomposeProjection;
-
-                float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
-                float horizFov = Math.Abs(planes.left) + Math.Abs(planes.right);
-
-                var planeJitter = new Vector2(jitterX * horizFov / actualWidth,
-                    jitterY * vertFov / actualHeight);
-
-                planes.left += planeJitter.x;
-                planes.right += planeJitter.x;
-                planes.top += planeJitter.y;
-                planes.bottom += planeJitter.y;
-
-                // Reconstruct the far plane for the jittered matrix.
-                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
-                if (float.IsInfinity(planes.zFar))
-                    planes.zFar = frustum.planes[5].distance;
-
-                proj = Matrix4x4.Frustum(planes);
+                proj = origProj;
+                proj[0, 2] += offsetX;
+                proj[1, 2] += offsetY;
             }
 
             return proj;

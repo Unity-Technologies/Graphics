@@ -281,15 +281,15 @@ float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
 
     int2 quadOffset = GetQuadOffset(positionSS);
 
-    int2 fastOffset = -quadOffset;
-    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
-    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
-    int2 offset3 = quadOffset;
+    int2 fastOffset = int2(1,1);
+    int2 offset1 = int2(-1, 1);
+    int2 offset2 = int2(1, -1);
+    int2 offset3 = int2(-1, -1);
 
     float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset3, 0).r;
     float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset2, 0).r;
     float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset1, 0).r;
-    float s0 = QuadReadAcrossDiagonal(center, positionSS);
+    float s0 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + fastOffset, 0).r;
 
     float3 closest = float3(0.0, 0.0, center);
     closest = COMPARE_DEPTH(s0, closest.z) ? float3(fastOffset, s0) : closest;
@@ -383,13 +383,11 @@ CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
     float cw3 = (w3.x * w12.y);
     float cw4 = (w12.x *  w3.y);
 
-#ifdef ANTI_RINGING
     CTYPE min = Min3Color(s0, s1, s2);
     min = Min3Color(min, s3, s4);
 
     CTYPE max = Max3Color(s0, s1, s2);
     max = Max3Color(max, s3, s4);
-#endif
 
     s0 *= cw0;
     s1 *= cw1;
@@ -402,11 +400,9 @@ CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
 
     CTYPE filteredVal = historyFiltered.CTYPE_SWIZZLE * rcp(weightSum);
 
-#if ANTI_RINGING
     // This sortof neighbourhood clamping seems to work to avoid the appearance of overly dark outlines in case
     // sharpening of history is too strong.
     return clamp(filteredVal, min, max);
-#endif
 
     return filteredVal;
 }
@@ -446,10 +442,8 @@ struct NeighbourhoodSamples
     CTYPE maxNeighbour;
     CTYPE avgNeighbour;
 
-#ifdef UPSAMPLE
     // TODO: The way we handle offsets now will force this in VGPR. It is not good, will need to revisit. Now that we can sample stencil in compute, we should move to compute and all this nonsense is not needed anymore.
     float2 offsets[8];
-#endif
 };
 
 
@@ -478,33 +472,24 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
 
 #if WIDE_NEIGHBOURHOOD
 
+    samples.offsets[0] = float2(0, 1);
+    samples.offsets[1] = float2(1, 0);
+    samples.offsets[2] = float2(-1, 0);
+    samples.offsets[3] = float2(0, -1);
+    samples.offsets[4] = float2(-1, 1);
+    samples.offsets[5] = float2(1, -1);
+    samples.offsets[6] = float2(1, 1);
+    samples.offsets[7] = float2(-1, -1);
+
     // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
-    samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
-
-    // Cross shape
-    int2 fastOffset = -quadOffset;
-    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
-    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
-    int2 offset3 = quadOffset;
-
-    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, fastOffset, rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
-
-#ifdef UPSAMPLE
-    samples.offsets[0] = float2(0.0f, quadOffset.y);
-    samples.offsets[1] = float2(quadOffset.x, 0.0f);
-    samples.offsets[2] = float2(-quadOffset.x, 0.0f);
-    samples.offsets[3] = float2(0.0f, -quadOffset.y);
-    samples.offsets[4] = offset1;
-    samples.offsets[5] = offset2;
-    samples.offsets[6] = offset3;
-    samples.offsets[7] = fastOffset;
-#endif
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[0], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[1], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[2], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[3], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[4], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[5], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[6], rtHandleScale).CTYPE_SWIZZLE);
+    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, samples.offsets[7], rtHandleScale).CTYPE_SWIZZLE);
 
 #else // !WIDE_NEIGHBOURHOOD
 
