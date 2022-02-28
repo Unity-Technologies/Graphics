@@ -230,7 +230,7 @@ Shader "Hidden/HDRP/TemporalAA"
             float dev_wt_sum = 0.0;
             float wt_sum = 0.0;
 
-            const float kernel_distance_mult = 0.1;
+            const float kernel_distance_mult = 1;
             int k = 1;
 
             for (int y = -k; y <= k; ++y)
