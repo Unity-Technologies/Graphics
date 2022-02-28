@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace com.unity.shadergraph.defs
@@ -100,5 +101,37 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Local", TYPE.Vec4, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
         );
+    }
+
+    internal class TestUIColorRGBNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIColorRGB", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+        );
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            {"In.UseColor", 0} // Use color picker for In
+        };
+    }
+
+    internal class TestUIColorRGBANode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIColorRGBA", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            {"In.UseColor", 0} // Use color picker for In
+        };
     }
 }
