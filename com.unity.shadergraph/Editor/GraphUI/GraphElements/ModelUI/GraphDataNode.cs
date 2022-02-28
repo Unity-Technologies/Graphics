@@ -47,6 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
 
+                const string colorHint = ".UseColor";
                 switch (length)
                 {
                     case GraphType.Length.One:
@@ -74,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
                         break;
                     case GraphType.Length.Three:
-                        if (hasHints && uiHints.ContainsKey(portName + ".UseColor"))
+                        if (hasHints && uiHints.ContainsKey(portName + colorHint))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
                         }
@@ -85,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         break;
                     case GraphType.Length.Four:
-                        if (hasHints && uiHints.ContainsKey(portName + ".UseColor"))
+                        if (hasHints && uiHints.ContainsKey(portName + colorHint))
                         {
                             PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
                         }
