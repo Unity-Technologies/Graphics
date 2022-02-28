@@ -563,10 +563,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
+            
+            var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
-            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", hitNeighborAxisLength);
 
-            int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
+            int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, hitNeighborAxisLength);
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
@@ -605,7 +607,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
-            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.HitNeighborAxisLength);
 
             // TODO: replace with real one
             cmd.SetComputeTextureParam(shader, kernel, "_HierarchicalVarianceScreenSpaceShadowsTexture", TextureXR.GetWhiteTexture());
@@ -701,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
-            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+            cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.HitNeighborAxisLength);
 
             cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
             cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
@@ -827,8 +829,12 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
             probeVolume.EnsureVolumeBuffers();
+            
             var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
-            if (hitNeighborAxisLength != 0 && ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, hitNeighborAxisLength))
+            var hasHitNeighborAxes = hitNeighborAxisLength != 0;
+            var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
+            if (ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, hitNeighborAxisLengthOrOne)
+                && hasHitNeighborAxes)
             {
                 probeVolume.SetHitNeighborAxis(probeVolume.propagationBuffers.neighborHits);
             }
@@ -841,7 +847,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
 
-            bool previousRadianceCacheInvalid = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
+            bool previousRadianceCacheInvalid = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, hitNeighborAxisLengthOrOne);
             if (ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis0, numAxis))
             {
                 ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis1, numAxis);
