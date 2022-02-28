@@ -658,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Compute the displacement normalization factor
             float4 patchSizeRatio = wsd.patchSizes / wsd.patchSizes[0];
-            return wsd.amplitude * k_WaterAmplitudeNormalization / patchSizeRatio;
+            return wsd.amplitude * 10.0f / patchSizeRatio;
         }
 
         static int SignedMod(int x, int m)

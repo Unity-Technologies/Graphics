@@ -65,8 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // The number bands that we will be running the simulation at
         public int numBands = 0;
 
+        // The maximum amplitude of the water system
+        public float maxAmplitude = 0.0f;
+
         // The wind speed, orientation and weight used to evaluate the Phillips spectrum
-        public float windSpeed = 0;
+        public float lbAgitation = 0;
+        public float sbAgitation = 0;
         public float windOrientation = 0;
         public float windAffectCurrent = 0;
 
@@ -196,10 +200,12 @@ namespace UnityEngine.Rendering.HighDefinition
             deltaTime = 0;
 
             // Reset the simulation parameters
-            windSpeed = 0;
+            lbAgitation = 0;
+            sbAgitation = 0;
             windOrientation = 0;
             windAffectCurrent = 0;
             patchSizes = Vector4.zero;
+            maxAmplitude = 0.0f;
         }
     }
 }

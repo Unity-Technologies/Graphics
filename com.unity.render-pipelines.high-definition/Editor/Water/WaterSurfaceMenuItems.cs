@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering
 
             // Set the various parameters
             waterSurface.infinite = true;
-            waterSurface.windSpeed = 50.0f;
+            waterSurface.largeBandAgitation = 0.5f;
             waterSurface.choppiness = 3.0f;
             waterSurface.windAffectCurrent = 0.2f;
             waterSurface.causticsIntensity = 0.0f;
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering
             waterSurface.maxRefractionDistance = 1.0f;
             waterSurface.absorptionDistance = 1.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.3f, 0.25f);
-            waterSurface.windSpeed = 30.0f;
+            waterSurface.largeBandAgitation = 0.3f;
             waterSurface.causticsIntensity = 0.1f;
             waterSurface.causticsTiling = 0.8f;
             waterSurface.windAffectCurrent = 1.0f;
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering
             waterSurface.choppiness = 0.0f;
 
             // Wind is quite light on rivers
-            waterSurface.windSpeed = 50.0f;
+            waterSurface.largeBandAgitation = 0.5f;
 
             // Setup caustics for pools
             waterSurface.causticsIntensity = 0.4f;

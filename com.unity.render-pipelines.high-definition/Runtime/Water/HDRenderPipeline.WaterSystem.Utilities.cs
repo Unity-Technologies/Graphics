@@ -1,6 +1,4 @@
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -103,42 +101,27 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(directionX, directionY);
         }
 
-        // Function that guesses the maximal wave height from the wind speed
-        static internal float MaximumWaveHeightFunction(float windSpeed)
-        {
-            return 1.0f - Mathf.Exp(-k_PhillipsWindFalloffCoefficient * windSpeed * windSpeed);
-        }
-
         // Function that loops thought all the current waves and computes the maximal wave height
-        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
+        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float maxAmplitude, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
         {
             // Initialize the band data
             float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
 
             // Evaluate the wave height for each band (lower frequencies)
-            b0 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.x * MaximumWaveHeightFunction(waterWindSpeed);
-            b1 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.y * MaximumWaveHeightFunction(waterWindSpeed);
+            b0 = normalizedWaveAmplitude.x * maxAmplitude;
+            b1 = normalizedWaveAmplitude.y * maxAmplitude;
 
             // Evaluate the wave height for each band (higher frequencies)
             if (highBandCount)
             {
-                b2 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.z * MaximumWaveHeightFunction(waterWindSpeed);
-                b3 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.w * MaximumWaveHeightFunction(waterWindSpeed);
+                b2 = normalizedWaveAmplitude.z * maxAmplitude;
+                b3 = normalizedWaveAmplitude.w * maxAmplitude;
             }
 
             // Output the wave heights
             waveHeights = new Vector4(b0, b1, b2, b3);
             // TODO have a better estimation for this
-            maxWaveHeight = k_MaxWaterSurfaceElevation;
-        }
-
-        // Function that evaluates the maximum wind speed given a patch size
-        static internal float MaximumWindForPatch(float patchSize)
-        {
-            float a = Mathf.Sqrt(-1.0f / Mathf.Log(0.999f * 0.999f));
-            float b = (0.001f * Mathf.PI * 2.0f) / patchSize;
-            float c = k_PhillipsWindScalar * Mathf.Sqrt((1.0f / k_PhillipsGravityConstant) * (a / b));
-            return c;
+            maxWaveHeight = maxAmplitude * 2.0f;
         }
 
         // Function that evaluates the patch sizes of the 4 bands based on the max patch size
@@ -148,18 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float b0 = maxPatchSize;
             float b1 = maxPatchSize - 7.0f / 8.0f * range;
             float b2 = maxPatchSize - 31.0f / 32.0f * range;
-            float b3 = maxPatchSize - 63.0f / 64.0f * range;
-            return new Vector4(b0, b1, b2, b3);
-        }
-
-        // Function that evaluates the wind speed of each individual patch
-        static internal Vector4 ComputeWindSpeeds(float windSpeed, Vector4 patchSizes)
-        {
-            float normalizedWindSpeed = Mathf.Sqrt(windSpeed / 100.0f);
-            float b0 = MaximumWindForPatch(patchSizes.x) * normalizedWindSpeed;
-            float b1 = MaximumWindForPatch(patchSizes.y) * normalizedWindSpeed;
-            float b2 = MaximumWindForPatch(patchSizes.z) * normalizedWindSpeed;
-            float b3 = MaximumWindForPatch(patchSizes.w) * normalizedWindSpeed;
+            float b3 = maxPatchSize - 127.0f / 128.0f * range;
             return new Vector4(b0, b1, b2, b3);
         }
 

@@ -4,7 +4,7 @@
 // yield a Phillips spectrum distribution in the [-1, 1] range
 #define EARTH_GRAVITY 9.81
 #define ONE_OVER_SQRT2 0.70710678118
-#define PHILLIPS_AMPLITUDE_SCALAR 10.0
+#define PHILLIPS_AMPLITUDE_SCALAR 0.000001
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
 #define SURFACE_FOAM_BRIGHTNESS 0.7
@@ -93,7 +93,7 @@ struct WaterSimulationCoordinates
 
 void ComputeWaterUVs(float3 positionWS, out WaterSimulationCoordinates waterCoord)
 {
-    float2 uv = positionWS.xz;
+    float2 uv = positionWS.xz + _WindDirection * _CurrentSpeed * _SimulationTime;
     waterCoord.uvBand0 = uv / _BandPatchSize.x;
     waterCoord.uvBand1 = uv / _BandPatchSize.y;
     waterCoord.uvBand2 = uv / _BandPatchSize.z;
@@ -114,14 +114,14 @@ float EvaluateDisplacementNormalization(uint bandIndex)
 {
     // Compute the displacement normalization factor
     float patchSizeRatio = _BandPatchSize[bandIndex] / _BandPatchSize[0];
-    return _WaveAmplitude[bandIndex] * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
+    return _WaveAmplitude[bandIndex] / patchSizeRatio;
 }
 
 float4 EvaluateDisplacementNormalization()
 {
     // Compute the displacement normalization factor
     float4 patchSizeRatio = _BandPatchSize / _BandPatchSize[0];
-    return _WaveAmplitude * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
+    return _WaveAmplitude / patchSizeRatio;
 }
 
 void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
@@ -154,12 +154,6 @@ float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float pixelSize)
 float EvaluateFoam(float jacobian, float foamAmount)
 {
     return saturate(-jacobian + foamAmount);
-}
-
-// Fast random hash function
-float2 SimpleHash2(float2 p)
-{
-    return frac(sin(mul(float2x2(127.1, 311.7, 269.5, 183.3), p)) * 43758.5453);
 }
 
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -253,14 +247,14 @@ void EvaluateWaterDisplacement(float3 positionAWS, float4 bandsMultiplier, out W
     lowFrequencyHeight += rawDisplacement.x;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.x;
 
+    // We only apply the choppiness to the first band, doesn't behave very good past those
+    totalDisplacement.yz *= _Choppiness;
+
     // Second band
     rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand1, 1, 0).xyz * displacementNormalization.y * waterMask.x * bandsMultiplier.y;
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.y;
-
-    // We only apply the choppiness tot he first two bands, doesn't behave very good past those
-    totalDisplacement.yz *= _Choppiness;
 
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band

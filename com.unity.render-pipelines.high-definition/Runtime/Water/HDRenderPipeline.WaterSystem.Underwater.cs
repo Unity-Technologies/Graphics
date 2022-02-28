@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // If the surface is infinite, we need to check if the camera is between the top plane + max displacement  and the top plane - volume depth
-                if (currentWater.infinite)
+                if (currentWater.IsInfinite())
                 {
                     // If the resources are invalid, we cannot render this surface
                     if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, k_WaterHighBandCount))
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Maximal possible wave height of the current setup
                     float maxWaveHeight;
                     Vector4 waveAmpltiude;
-                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
+                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.maxAmplitude, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
 
                     // Evaluate the vertical boundaries of the volume
                     float topPlane = currentWater.transform.position.y + k_MaxWaterSurfaceElevation;

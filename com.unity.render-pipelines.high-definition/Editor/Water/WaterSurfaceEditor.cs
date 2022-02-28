@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
+using static UnityEngine.Rendering.HighDefinition.WaterSurface;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -8,10 +9,13 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class WaterSurfaceEditor : Editor
     {
         // Geometry parameters
+        SerializedProperty m_SurfaceType;
         SerializedProperty m_Infinite;
         SerializedProperty m_HighFrequencyBands;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
+        SerializedProperty m_LargeBandAgitation;
+        SerializedProperty m_SmallBandAgitation;
 
         // CPU Simulation
         SerializedProperty m_CPUSimulation;
@@ -20,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
+        SerializedProperty m_WaterWaveAmplitude;
         SerializedProperty m_Amplitude;
         SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
@@ -69,9 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Wind
         SerializedProperty m_WindOrientation;
-        SerializedProperty m_WindSpeed;
         SerializedProperty m_WindAffectCurrent;
         SerializedProperty m_WindFoamCurve;
+        SerializedProperty m_Current;
 
         // Rendering
         SerializedProperty m_DecalLayerMask;
@@ -90,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<WaterSurface>(serializedObject);
 
             // Geometry parameters
+            m_SurfaceType = o.Find(x => x.surfaceType);
             m_Infinite = o.Find(x => x.infinite);
             m_HighFrequencyBands = o.Find(x => x.highFrequencyBands);
             m_GeometryType = o.Find(x => x.geometryType);
@@ -102,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
+            m_WaterWaveAmplitude = o.Find(x => x.waterWaveAmplitude);
             m_Amplitude = o.Find(x => x.amplitude);
             m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
@@ -152,9 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Wind parameters
             m_WindOrientation = o.Find(x => x.windOrientation);
-            m_WindSpeed = o.Find(x => x.windSpeed);
+            m_LargeBandAgitation = o.Find(x => x.largeBandAgitation);
+            m_SmallBandAgitation = o.Find(x => x.smallBandAgitation);
             m_WindFoamCurve = o.Find(x => x.windFoamCurve);
             m_WindAffectCurrent = o.Find(x => x.windAffectCurrent);
+            m_Current = o.Find(x => x.current);
 
             // Rendering
             m_DecalLayerMask = o.Find(x => x.decalLayerMask);
@@ -192,7 +201,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.");
         static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.");
 
-        static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
+        static public readonly GUIContent k_LargeBandAgitation = EditorGUIUtility.TrTextContent("Large Band Agitation", "Controls the wind speed in kilometers per hour.");
+        static public readonly GUIContent k_SmallBandAgitation = EditorGUIUtility.TrTextContent("Small Band Agitation", "Controls the wind speed in kilometers per hour.");
         static public readonly GUIContent k_WindAffectsCurrent = EditorGUIUtility.TrTextContent("Wind Affects current", "Controls the proportion in which the wind affects the current of the water.");
 
         void SanitizeVector4(SerializedProperty property, float minValue, float maxValue)
@@ -222,18 +232,40 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(m_HighFrequencyBands);
-                highFrequencyBands = m_HighFrequencyBands.boolValue;
+                EditorGUILayout.PropertyField(m_SurfaceType);
+                WaterSurfaceType surfaceType = (WaterSurfaceType)(m_SurfaceType.enumValueIndex);
 
-                EditorGUILayout.PropertyField(m_Infinite);
                 using (new IndentLevelScope())
                 {
-                    if (!m_Infinite.boolValue)
+                    switch (surfaceType)
                     {
-                        EditorGUILayout.PropertyField(m_GeometryType);
-                        if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
-                            EditorGUILayout.PropertyField(m_Geometry);
-                    }
+                        case WaterSurfaceType.OceanSeaLake:
+                        {
+                            EditorGUILayout.PropertyField(m_HighFrequencyBands);
+                            highFrequencyBands = m_HighFrequencyBands.boolValue;
+
+                            EditorGUILayout.PropertyField(m_Infinite);
+
+                            using (new IndentLevelScope())
+                            {
+                                if (!m_Infinite.boolValue)
+                                {
+                                    EditorGUILayout.PropertyField(m_GeometryType);
+                                    if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
+                                        EditorGUILayout.PropertyField(m_Geometry);
+                                }
+                            }
+                        }
+                        break;
+                        case WaterSurfaceType.River:
+                        case WaterSurfaceType.Pool:
+                        {
+                            EditorGUILayout.PropertyField(m_GeometryType);
+                            if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
+                                EditorGUILayout.PropertyField(m_Geometry);
+                        }
+                        break;
+                    };
                 }
             }
 
@@ -295,6 +327,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_WaterMaxPatchSize);
                 m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 25.0f, 10000.0f);
 
+                EditorGUILayout.PropertyField(m_WaterWaveAmplitude);
+                m_WaterWaveAmplitude.floatValue = Mathf.Max(m_WaterWaveAmplitude.floatValue, 0.0f);
                 using (new IndentLevelScope())
                 {
                     if (m_HighFrequencyBands.boolValue)
@@ -418,8 +452,10 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WindOrientation);
-                m_WindSpeed.floatValue = EditorGUILayout.Slider(k_WindSpeed, m_WindSpeed.floatValue, 0.0f, 100.0f);
+                m_LargeBandAgitation.floatValue = EditorGUILayout.Slider(k_LargeBandAgitation, m_LargeBandAgitation.floatValue, 0.0f, 1.0f);
+                m_SmallBandAgitation.floatValue = EditorGUILayout.Slider(k_SmallBandAgitation, m_SmallBandAgitation.floatValue, 0.0f, 1.0f);
                 m_WindAffectCurrent.floatValue = EditorGUILayout.Slider(k_WindAffectsCurrent, m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
+                EditorGUILayout.PropertyField(m_Current);
                 EditorGUILayout.PropertyField(m_WindFoamCurve);
             }
 

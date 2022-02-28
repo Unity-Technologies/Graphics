@@ -19,9 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_PhillipsWindScalar = 1.0f / k_PhillipsGravityConstant; // Is this a coincidence? Found '0.10146f' by curve fitting
         const float k_PhillipsWindFalloffCoefficient = 0.00034060072f; // PI/(9.8^4);
 
-        // Maximum height of a wave
-        const float k_WaterAmplitudeNormalization = 10.0f;
-
         // Currently the max wave height function is broken and need to be evaluated in a better way
         // This values has been found experimentally
         const float k_MaxWaterSurfaceElevation = 16.0f;
@@ -230,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Amplitude multiplier (per band)
             cb._WaveAmplitude = currentWater.simulation.waveAmplitude;
+            cb._WaterMaxAmplitude = currentWater.simulation.maxAmplitude;
 
             // Max wave height for the system
             cb._MaxWaveHeight = currentWater.simulation.maxWaveHeight;
@@ -259,7 +257,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Manually set wind by the user
             cb._WindSpeed = currentWater.simulation.patchWindSpeed;
-            cb._WindSpeedMultiplier = currentWater.windSpeed / 100.0f;
 
             // Foam Jacobian offset depends on the number of bands
             if (currentWater.highFrequencyBands)
@@ -275,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FoamTilling = 1.0f / (currentWater.waterMaxPatchSize / 25.0f);
             float foamSpeed = currentWater.simulation.simulationTime * Mathf.Sqrt(cb._WindSpeed.x * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
             cb._FoamOffsets = new Vector2(cb._WindDirection.x * foamSpeed * 0.5f, cb._WindDirection.y * foamSpeed * 0.5f);
-            cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.windSpeed / 100.0f), 0.0f, 1.0f);
+            cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.largeBandAgitation / 100.0f), 0.0f, 1.0f);
 
             // We currently only support properly up to 16 unique water surfaces
             cb._SurfaceIndex = surfaceIndex & 0xF;
@@ -308,6 +305,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterSampleOffset = EvaluateWaterNoiseSampleOffset(m_WaterBandResolution);
             cb._WaterSpectrumOffset = EvaluateFrequencyOffset(m_WaterBandResolution);
             cb._WaterBandCount = currentWater.highFrequencyBands ? 4 : 2;
+
+
+            cb._CurrentSpeed = currentWater.current * 0.27777f;
         }
 
         void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid, ShaderVariablesWater shaderVariablesWater)
@@ -523,9 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.foamMaskOffset = currentWater.foamMaskOffset;
             parameters.waterMaskOffset = currentWater.waterMaskOffset;
 
-            // For now, we are disabling infinite surfaces for metal as there seems to be a bug in the API that
-            // breaks on the DrawMeshInstancedIndirect function.
-            if (currentWater.infinite && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal)
+            if (currentWater.IsInfinite())
             {
                 parameters.infinite = true;
                 parameters.targetMesh = m_TessellableMesh;
@@ -575,7 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsIntensity = currentWater.causticsIntensity;
             parameters.waterRenderingCB._CausticsTiling = currentWater.causticsTiling;
             parameters.waterRenderingCB._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
-            parameters.waterRenderingCB._InfiniteSurface = currentWater.infinite ? 1 : 0;
+            parameters.waterRenderingCB._InfiniteSurface = currentWater.IsInfinite() ? 1 : 0;
             parameters.waterRenderingCB._WaterCausticsType = parameters.causticsEnabled ? (parameters.simulationCaustics ? 0 : 1) : 0;
             parameters.waterRenderingCB._CameraInUnderwaterRegion = insideUnderWaterVolume ? 1 : 0;
 

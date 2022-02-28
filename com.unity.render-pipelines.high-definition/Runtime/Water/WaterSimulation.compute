@@ -8,7 +8,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 // Required for finding the vertical displacements
 #pragma multi_compile _ HIGH_RESOLUTION_WATER
@@ -37,7 +37,7 @@ void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
     float4 rn = WaterHashFunctionFloat4(sampleCoordinate);
 
     // First part of the phillips spectrum term
-    float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
+    float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.z));
 
     // Second part of the phillips spectrum term
     float2 nDC = (thread.xy / (float)_WaterRefSimRes - _WaterSpectrumOffset) * 2.0f;

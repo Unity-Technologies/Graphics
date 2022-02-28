@@ -12,6 +12,24 @@ namespace UnityEngine.Rendering.HighDefinition
     public class WaterSurface : MonoBehaviour
     {
         /// <summary>
+        /// </summary>
+        public enum WaterSurfaceType
+        {
+            /// <summary>
+            /// </summary>
+            [InspectorName("Ocean, Sea or Lake")]
+            OceanSeaLake,
+
+            /// <summary>
+            /// </summary>
+            River,
+
+            /// <summary>
+            /// </summary>
+            Pool,
+        }
+
+        /// <summary>
         /// Controls the type of geometry used to render the water surface when non infinite.
         /// </summary>
         public enum WaterGeometryType
@@ -66,6 +84,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water General
         /// <summary>
+        /// </summary>
+        [Tooltip("")]
+        public WaterSurfaceType surfaceType = WaterSurfaceType.OceanSeaLake;
+
+        /// <summary>
         /// When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.
         /// </summary>
         [Tooltip("When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.")]
@@ -116,6 +139,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.")]
         public float waterMaxPatchSize = 500.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float waterWaveAmplitude = 10.0f;
 
         /// <summary>
         /// Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).
@@ -364,10 +393,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float windOrientation = 0.0f;
 
         /// <summary>
-        /// Controls the wind speed in kilometers per hour.
+        /// Controls the agitation amount for the larger bands.
         /// </summary>
-        [Tooltip("Controls the wind speed in kilometers per hour.")]
-        public float windSpeed = 30.0f;
+        [Tooltip("Controls the agitation amount for the larger bands.")]
+        public float largeBandAgitation = 0.3f;
+
+        /// <summary>
+        /// Controls the agitation amount for the smaller bands.
+        /// </summary>
+        [Tooltip("Controls the agitation amount for the smaller bands.")]
+        public float smallBandAgitation = 0.3f;
 
         /// <summary>
         /// Controls the proportion in which the wind affects the current of the water.
@@ -380,6 +415,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the foam amount depending on the wind speed.")]
         public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float current = 0.0f;
         #endregion
 
         #region Water Rendering
@@ -489,10 +530,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // If the spectrum defining data changed, we need to invalidate the buffers
-            if (simulation.windSpeed != windSpeed
+            if (simulation.lbAgitation != largeBandAgitation
+                || simulation.sbAgitation != smallBandAgitation
                 || simulation.windOrientation != windOrientation
                 || simulation.windAffectCurrent != windAffectCurrent
-                || simulation.patchSizes.x != waterMaxPatchSize)
+                || simulation.patchSizes.x != waterMaxPatchSize
+                || simulation.maxWaveHeight != waterWaveAmplitude)
             {
                 gpuBuffersValid = false;
                 cpuBuffersValid = false;
@@ -603,12 +646,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSimulationData()
         {
-            simulation.windSpeed = windSpeed;
+            simulation.maxAmplitude = waterWaveAmplitude;
+            simulation.lbAgitation = largeBandAgitation * 100.0f * 0.277778f;
+            simulation.sbAgitation = smallBandAgitation * 100.0f * 0.277778f;
             simulation.windOrientation = windOrientation;
             simulation.windAffectCurrent = windAffectCurrent;
             simulation.patchSizes = HDRenderPipeline.ComputeBandPatchSizes(waterMaxPatchSize);
-            simulation.patchWindSpeed = HDRenderPipeline.ComputeWindSpeeds(simulation.windSpeed, simulation.patchSizes);
-            HDRenderPipeline.ComputeMaximumWaveHeight(amplitude, simulation.patchWindSpeed.x, highFrequencyBands, out simulation.waveAmplitude, out simulation.maxWaveHeight);
+            simulation.patchWindSpeed = new Vector4(simulation.lbAgitation, simulation.sbAgitation / 7, simulation.sbAgitation / 7, simulation.sbAgitation / 7);
+            HDRenderPipeline.ComputeMaximumWaveHeight(amplitude, waterWaveAmplitude, highFrequencyBands, out simulation.waveAmplitude, out simulation.maxWaveHeight);
+        }
+
+        public bool IsInfinite()
+        {
+            return (surfaceType == WaterSurface.WaterSurfaceType.OceanSeaLake) ? infinite : false;
         }
 
         void OnDestroy()

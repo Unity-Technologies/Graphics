@@ -67,11 +67,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Maximal horizontal displacement
         public float _MaxWaveDisplacement;
-        public float _ScatteringBlur;
         // Maximum refraction distance
         public float _MaxRefractionDistance;
         // Smoothness of the water part of the surface (non foam)
         public float _WaterSmoothness;
+        // 
+        public float _WaterMaxAmplitude;
 
         // Horizontal offsets of the foam texture
         public Vector2 _FoamOffsets;
@@ -97,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoefficient;
         public float _FoamSmoothness;
         public float _HeightBasedScattering;
-        public float _WindSpeedMultiplier;
+        public float _CurrentSpeed;
 
         public Vector4 _FoamJacobianLambda;
 

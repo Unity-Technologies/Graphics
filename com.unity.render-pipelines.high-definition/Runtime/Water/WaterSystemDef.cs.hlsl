@@ -39,9 +39,9 @@ CBUFFER_START(ShaderVariablesWater)
     float _SimulationFoamAmount;
     float _SSSMaskCoefficient;
     float _MaxWaveDisplacement;
-    float _ScatteringBlur;
     float _MaxRefractionDistance;
     float _WaterSmoothness;
+    float _WaterMaxAmplitude;
     float2 _FoamOffsets;
     float _FoamTilling;
     float _WindFoamAttenuation;
@@ -56,12 +56,12 @@ CBUFFER_START(ShaderVariablesWater)
     float _OutScatteringCoefficient;
     float _FoamSmoothness;
     float _HeightBasedScattering;
-    float _WindSpeedMultiplier;
+    float _CurrentSpeed;
     float4 _FoamJacobianLambda;
     int _WaterRefSimRes;
     float _WaterSpectrumOffset;
     int _WaterSampleOffset;
-    int _WaterBoundCount;
+    int _WaterBandCount;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
