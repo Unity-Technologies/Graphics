@@ -121,12 +121,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var descs = context.blocks.Select(x => x.descriptor);
 
-            context.AddField(StructFields.SurfaceDescriptionInputs.uv1);
-            context.AddField(StructFields.SurfaceDescriptionInputs.uv2);
-
-            context.AddField(TerrainStructFields.SurfaceDescriptionInputs.uvSplat01);
-            context.AddField(TerrainStructFields.SurfaceDescriptionInputs.uvSplat23);
-
             // TerrainLit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -345,7 +339,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { BlockFields.VertexDescription.Position, 8 },
                 { BlockFields.VertexDescription.Normal, 9 },
-                { BlockFields.VertexDescription.Tangent, 10 },
                 { BlockFields.SurfaceDescription.BaseColor, 0 },
                 { normalBlock, 1 },
                 { BlockFields.SurfaceDescription.Emission, 3 },
@@ -394,7 +387,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.positionCS,
                     StructFields.Varyings.positionWS,
                     StructFields.Varyings.normalWS,
-                    StructFields.Varyings.tangentWS,
                     StructFields.Varyings.texCoord0,
                     StructFields.Varyings.texCoord1,
                     StructFields.Varyings.texCoord2,
@@ -428,13 +420,72 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region StructCollections
+        static class TerrainStructFields
+        {
+            public struct Varyings
+            {
+                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
+                    StructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
+                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
+                    StructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD0", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
+            }
+
+            public struct SurfaceDescriptionInputs
+            {
+                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
+                    StructFields.SurfaceDescriptionInputs.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", "defined(UNIVERSAL_TERRAIN_SPLAT01)");
+                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
+                    StructFields.SurfaceDescriptionInputs.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD2", "defined(UNIVERSAL_TERRAIN_SPLAT23)");
+            }
+        }
+
+        internal static class TerrainStructs
+        {
+            public static StructDescriptor Attributes = new StructDescriptor()
+            {
+                name = "Attributes",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Attributes.positionOS,
+                    StructFields.Attributes.normalOS,
+                    StructFields.Attributes.uv0,
+                    StructFields.Attributes.color,
+                    StructFields.Attributes.instanceID,
+                    StructFields.Attributes.vertexID,
+                }
+            };
+
+            public static StructDescriptor SurfaceDescriptionInputs = new StructDescriptor()
+            {
+                name = "SurfaceDescriptionInputs",
+                packFields = false,
+                populateWithCustomInterpolators = true,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,
+                    StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,
+                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,
+                    StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,
+
+                    StructFields.SurfaceDescriptionInputs.uv0,
+                    StructFields.SurfaceDescriptionInputs.uv1,
+                    StructFields.SurfaceDescriptionInputs.uv2,
+                    StructFields.SurfaceDescriptionInputs.uv3,
+
+                    TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                    TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
+                }
+            };
+        }
+
         static class TerrainStructCollections
         {
             public static readonly StructCollection Default = new StructCollection
             {
-                { Structs.Attributes },
+                { TerrainStructs.Attributes },
                 { UniversalTerrainStructs.Varyings },
-                { Structs.SurfaceDescriptionInputs },
+                { TerrainStructs.SurfaceDescriptionInputs },
                 { Structs.VertexDescriptionInputs },
             };
         }
@@ -641,12 +692,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
-                    validPixelBlocks = LitBlockMasks.FragmentLit,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
+                    validPixelBlocks = TerrainBlockMasks.FragmentLit,
 
                     // Fields
                     structs = TerrainStructCollections.Default,
-                    requiredFields = LitRequiredFields.Forward,
+                    requiredFields = TerrainRequiredFields.Forward,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -691,12 +742,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
 
                     // Fields
                     structs = TerrainStructCollections.Default,
-                    requiredFields = CoreRequiredFields.DepthNormals,
+                    requiredFields = TerrainRequiredFields.DepthNormals,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -737,12 +788,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
-                    validPixelBlocks = LitBlockMasks.FragmentLit,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
+                    validPixelBlocks = TerrainBlockMasks.FragmentLit,
 
                     // Fields
                     structs = TerrainStructCollections.Default,
-                    requiredFields = LitRequiredFields.GBuffer,
+                    requiredFields = TerrainRequiredFields.GBuffer,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -786,7 +837,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
@@ -827,12 +878,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
                     structs = CoreStructCollections.Default,
-                    requiredFields = LitRequiredFields.Forward,
+                    requiredFields = TerrainRequiredFields.Forward,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -867,12 +918,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
-                    validPixelBlocks = LitBlockMasks.FragmentMeta,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
+                    validPixelBlocks = TerrainBlockMasks.FragmentMeta,
 
                     // Fields
-                    structs = TerrainStructCollections.Default,
-                    requiredFields = LitRequiredFields.Meta,
+                    structs = CoreStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.Meta,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -887,8 +938,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
@@ -912,7 +961,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
@@ -952,7 +1001,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = LitBlockMasks.Vertex,
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
@@ -975,27 +1024,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
-            }
-        }
-        #endregion
-
-        #region TerrainStructFields
-        static class TerrainStructFields
-        {
-            public struct Varyings
-            {
-                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
-                    UniversalStructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD0", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
-                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
-                    UniversalStructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
-            }
-
-            public static class SurfaceDescriptionInputs
-            {
-                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
-                    StructFields.SurfaceDescriptionInputs.name, "uvSplat01", "UNIVERSAL_TERRAIN_SPLAT01", ShaderValueType.Float4);
-                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
-                    StructFields.SurfaceDescriptionInputs.name, "uvSplat23", "UNIVERSAL_TERRAIN_SPLAT23", ShaderValueType.Float4);
             }
         }
         #endregion
@@ -1031,13 +1059,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region PortMasks
-        static class LitBlockMasks
+        static class TerrainBlockMasks
         {
             public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
             {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
@@ -1065,14 +1092,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region RequiredField
-        static class LitRequiredFields
+        static class TerrainRequiredFields
         {
             public static readonly FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
@@ -1081,6 +1107,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
+            };
+
+            public static readonly FieldCollection DepthNormals = new FieldCollection()
+            {
+                StructFields.Attributes.instanceID,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.instanceID,
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
@@ -1088,7 +1127,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
@@ -1097,6 +1135,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection Meta = new FieldCollection()
@@ -1112,14 +1152,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord1,                        // VizUV
                 StructFields.Varyings.texCoord2,                        // LightCoord
                 StructFields.Varyings.instanceID,
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
             };
         }
         #endregion
 
         #region Defines
-
         static class TerrainDefines
         {
             public static readonly KeywordDescriptor TerrainEnabled = new KeywordDescriptor()

@@ -84,6 +84,11 @@ Pass
     // Graph Includes
     $splice(GraphIncludes)
 
+    // -- Property used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
     // Graph Functions
     $splice(GraphFunctions)
 

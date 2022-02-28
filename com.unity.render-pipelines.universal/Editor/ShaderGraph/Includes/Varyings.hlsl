@@ -58,6 +58,10 @@ Varyings BuildVaryings(Attributes input)
 
 #if defined(FEATURES_GRAPH_VERTEX)
 
+#if defined(UNIVERSAL_TERRAIN_ENABLED)
+    TerrainFunc(input, output);
+#endif
+
 #if defined(HAVE_VFX_MODIFICATION)
     VertexDescription vertexDescription = BuildVertexDescription(input, element);
 #else
@@ -111,16 +115,6 @@ Varyings BuildVaryings(Attributes input)
 
 #ifdef VARYINGS_NEED_TANGENT_WS
     output.tangentWS = tangentWS;       // normalized in TransformObjectToWorldDir()
-#endif
-
-#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT01)
-    output.uvSplat01.xy = TRANSFORM_TEX(input.uv0, _Splat0);
-    output.uvSplat01.zw = TRANSFORM_TEX(input.uv0, _Splat1);
-#endif
-
-#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT23)
-    output.uvSplat23.xy = TRANSFORM_TEX(input.uv0, _Splat2);
-    output.uvSplat23.zw = TRANSFORM_TEX(input.uv0, _Splat3);
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)

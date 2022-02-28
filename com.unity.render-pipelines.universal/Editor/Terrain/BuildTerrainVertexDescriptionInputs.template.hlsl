@@ -1,13 +1,5 @@
 VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
 {
-    float4 positionOS = float4(input.positionOS, 1.0);
-#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_DEPTHNORMALS) || (SHADERPASS == SHADERPASS_GBUFFER) || (SHADERPASS == SHADERPASS_META)
-    TerrainInstancing(positionOS, input.normalOS, input.uv0.xy);
-#else
-    TerrainInstancing(positionOS, input.normalOS);
-#endif
-    input.positionOS = positionOS.xyz;
-
     VertexDescriptionInputs output;
     ZERO_INITIALIZE(VertexDescriptionInputs, output);
 
@@ -52,4 +44,24 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     $VertexDescriptionInputs.VertexID:                                  output.VertexID =                                   input.vertexID;
 
     return output;
+}
+
+void TerrainFunc(inout Attributes input, inout Varyings output)
+{
+    float4 positionOS = float4(input.positionOS, 1.0);
+    #ifdef VARYINGS_NEED_TEXCOORD0
+        TerrainInstancing(positionOS, input.normalOS, input.uv0.xy);
+    #else
+        TerrainInstancing(positionOS, input.normalOS);
+    #endif
+    input.positionOS = positionOS.xyz;
+
+#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT01)
+    output.uvSplat01.xy = TRANSFORM_TEX(input.uv0, _Splat0);
+    output.uvSplat01.zw = TRANSFORM_TEX(input.uv0, _Splat1);
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT23)
+    output.uvSplat23.xy = TRANSFORM_TEX(input.uv0, _Splat2);
+    output.uvSplat23.zw = TRANSFORM_TEX(input.uv0, _Splat3);
+#endif
 }

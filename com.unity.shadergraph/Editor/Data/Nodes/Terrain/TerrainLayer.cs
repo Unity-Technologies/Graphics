@@ -66,13 +66,28 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED)");
             if (inputLayerIndex == 0)
-                sb.AppendLine("half2 splat0uv = IN.uv1.xy;");
+            {
+                sb.AppendLine("#ifdef UNIVERSAL_TERRAIN_SPLAT01");
+                sb.AppendLine("half2 splat0uv = IN.uvSplat01.xy;");
+            }
             else if (inputLayerIndex == 1)
-                sb.AppendLine("half2 splat1uv = IN.uv1.zw;");
+            {
+                sb.AppendLine("#ifdef UNIVERSAL_TERRAIN_SPLAT01");
+                sb.AppendLine("half2 splat1uv = IN.uvSplat01.zw;");
+            }
             else if (inputLayerIndex == 2)
-                sb.AppendLine("half2 splat2uv = IN.uv2.xy;");
+            {
+                sb.AppendLine("#ifdef UNIVERSAL_TERRAIN_SPLAT23");
+                sb.AppendLine("half2 splat2uv = IN.uvSplat23.xy;");
+            }
             else if (inputLayerIndex == 3)
-                sb.AppendLine("half2 splat3uv = IN.uv2.zw;");
+            {
+                sb.AppendLine("#ifdef UNIVERSAL_TERRAIN_SPLAT23");
+                sb.AppendLine("half2 splat3uv = IN.uvSplat23.zw;");
+            }
+            sb.AppendLine("#else");
+            sb.AppendLine("half2 splat{0}uv = 0.0;", inputLayerIndex);
+            sb.AppendLine("#endif");
             sb.AppendLine("");
             sb.AppendLine("half4 albedoSmoothness{0} = SampleLayerAlbedo({0});", inputLayerIndexValue);
             sb.AppendLine("half3 normal{0} = SampleLayerNormal({0});", inputLayerIndexValue);
