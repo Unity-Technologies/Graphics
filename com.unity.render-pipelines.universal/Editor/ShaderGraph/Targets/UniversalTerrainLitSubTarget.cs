@@ -1319,6 +1319,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
 
             const string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
+            const string kTerrainPassUtils = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPassUtils.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
@@ -1328,6 +1329,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1340,6 +1342,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1352,6 +1355,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1364,6 +1368,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1378,6 +1383,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1392,6 +1398,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.ShaderGraphPregraph },
                 { kMetaInput, IncludeLocation.Pregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1404,6 +1411,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -1416,6 +1424,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kTerrainLitInput, IncludeLocation.Pregraph },
+                { kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
