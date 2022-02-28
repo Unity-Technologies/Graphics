@@ -52,6 +52,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewState);
             m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewState, m_PreviewManager);
 
+            shaderGraphView.schedule.Execute(() =>
+            {
+                var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
+                m_PreviewManager.Initialize(shaderGraphModel);
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
+            }).ExecuteLater(0);
+
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
 
             // TODO (Brett) Command registration or state handler creation belongs here.
@@ -69,13 +76,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override bool CanHandleAssetType(IGraphAssetModel asset)
         {
-            if (asset.GraphModel is ShaderGraphModel graphModel)
-            {
-                m_PreviewManager.Initialize(graphModel);
-
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, graphModel, GraphTool.Dispatcher);
-            }
-
             return asset is ShaderGraphAssetModel;
         }
 

@@ -1,10 +1,9 @@
 using System;
-using UnityEditor.EditorTools;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.Toolbars;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -107,6 +106,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
+            if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
+            {
+                var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                GraphUtil.SaveGraph(shaderGraphModel.GraphHandler, assetPath, true);
+            }
         }
 
         // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
