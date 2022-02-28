@@ -8,7 +8,6 @@ on:
     branches:
       # List of partner branches that needs to be synced
       - 'partner/crazyhunter**'
-      - 'partner-sync'
 
 jobs:
   trigger-sync:
@@ -28,7 +27,7 @@ jobs:
       SYNC_REPO_NAME: "bonfire-unity-graphics-sync"
       SYNC_API_URL: "https://api.github.cds.internal.unity3d.com"
       SYNC_WORKFLOW_PATH: "main.yml"
-      SYNC_WORKFLOW_BRANCH: "gh-action"
+      SYNC_WORKFLOW_BRANCH: "main"
 
     steps:
       - name: Trigger sync with partner
