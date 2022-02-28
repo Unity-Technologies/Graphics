@@ -1,3 +1,4 @@
+using System;
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Registry;
@@ -26,11 +27,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (Model is not GraphDataNodeModel graphDataNodeModel) return;
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
+            var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
+            var uiHints = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
+
             foreach (var portReader in nodeReader.GetPorts())
             {
                 // Only add new node parts for static ports.
                 if (!portReader.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
                 if (portReader.GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+                var portName = portReader.GetName();
 
                 // Figure out the correct part to display based on the port's fields.
                 if (!portReader.GetField(GraphType.kHeight, out GraphType.Height height)) continue;
@@ -39,26 +44,63 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (height > GraphType.Height.One)
                 {
                     PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", Model, this, ussClassName, portReader.GetName(), (int)height));
+                    continue;
                 }
 
-                if (length == GraphType.Length.One)
+                const string colorHint = ".UseColor";
+                switch (length)
                 {
-                    if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
-                    switch (primitive)
+                    case GraphType.Length.One:
                     {
-                        case GraphType.Primitive.Bool:
-                            // TODO: Checkbox
-                            break;
-                        case GraphType.Primitive.Int:
-                            PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
-                            break;
-                        case GraphType.Primitive.Float:
-                            PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
-                            break;
-                        case GraphType.Primitive.Any:
-                        default:
-                            break;
+                        if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
+                        switch (primitive)
+                        {
+                            case GraphType.Primitive.Bool:
+                                // TODO: Checkbox
+                                break;
+                            case GraphType.Primitive.Int:
+                                PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
+                                break;
+                            case GraphType.Primitive.Float:
+                                PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                                break;
+                            case GraphType.Primitive.Any:
+                            default:
+                                break;
+                        }
+
+                        break;
                     }
+                    case GraphType.Length.Two:
+                        PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
+                        break;
+                    case GraphType.Length.Three:
+                        if (uiHints.ContainsKey(portName + colorHint))
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
+                        }
+                        else
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new Vector3Part("sg-vector3", Model, this, ussClassName, portReader.GetName()));
+                        }
+
+                        break;
+                    case GraphType.Length.Four:
+                        if (uiHints.ContainsKey(portName + colorHint))
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
+                        }
+                        else
+                        {
+                            PartList.InsertPartAfter(portContainerPartName, new Vector4Part("sg-vector4", Model, this, ussClassName, portReader.GetName()));
+                        }
+
+                        break;
+                    case GraphType.Length.Any:
+                        // Not valid, the size should've been resolved.
+                        break;
+                    default:
+                        break;
                 }
             }
         }
