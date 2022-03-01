@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         Auto,
         /// <summary>
-        /// Forces rendering via an intermediate texture, enabling compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact on some platforms.
+        /// Forces rendering via an intermediate texture if any Render Feature is active, enabling compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact on some platforms.
         /// </summary>
         Always
     }
