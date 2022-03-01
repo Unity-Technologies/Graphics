@@ -44,6 +44,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 0
     #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
+    #define CLOSEST_VEL_SEARCH_WIDTH 1
 
 #elif defined(MEDIUM_QUALITY)
     #define YCOCG 1
@@ -57,7 +58,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-
+    #define CLOSEST_VEL_SEARCH_WIDTH 1
 
 #elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
     #define YCOCG 1
@@ -71,6 +72,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define CLOSEST_VEL_SEARCH_WIDTH 2
 
 #elif defined(TAA_UPSCALE)
     #define YCOCG 1
@@ -85,6 +87,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
     #define UPSCALE 
+    #define CLOSEST_VEL_SEARCH_WIDTH 2
 
 #elif defined(POST_DOF)
     #define YCOCG 1
@@ -98,7 +101,12 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define CLOSEST_VEL_SEARCH_WIDTH 1
 
+#endif
+
+#ifndef CLOSEST_VEL_SEARCH_WIDTH
+    #define CLOSEST_VEL_SEARCH_WIDTH 1
 #endif
 
 
@@ -207,12 +215,11 @@ Shader "Hidden/HDRP/TemporalAA"
             float sharpenStrength = _TaaFrameInfo.x;
             float2 jitter = _TaaJitterStrength.zw;
 
-            float2 uv = input.texcoord;
+            float2 velocityUV = input.texcoord;
 
             #ifdef TAA_UPSCALE
             float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
-
-            uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
+            velocityUV = input.positionCS.xy * _TAAURenderScale * _ScreenSize.zw;
             #endif
 
             // --------------- Get closest motion vector ---------------
@@ -227,7 +234,7 @@ Shader "Hidden/HDRP/TemporalAA"
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, 1);
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, CLOSEST_VEL_SEARCH_WIDTH);
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
@@ -237,7 +244,9 @@ Shader "Hidden/HDRP/TemporalAA"
 
             float lengthMV = 0;
 
-            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
+            // Looks like the speed rejection wants to use not the expanded velocity, but the properly central one.
+            // TODO: Investigate and if confirmed add option? I feel like the issue is somewhere else.
+            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, ClampAndScaleUVForPoint(velocityUV + closestOffset * _InputSize.zw), 0), motionVector);
             // --------------------------------------------------------
 
             // --------------- Get resampled history ---------------
