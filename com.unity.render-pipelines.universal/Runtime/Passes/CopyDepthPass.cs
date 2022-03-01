@@ -330,6 +330,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                         }
                     }
+
+                    cmd.SetGlobalTexture("_CameraDepthTexture", data.depthTo);
                 });
 
                 return;
