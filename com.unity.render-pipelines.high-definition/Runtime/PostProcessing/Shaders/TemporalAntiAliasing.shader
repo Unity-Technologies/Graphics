@@ -159,14 +159,12 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _RTHandleScaleForTAAHistory _TaaScales.xy
         #define _RTHandleScaleForTAA _TaaScales.zw
 
-#if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
         #ifdef SHADER_API_PSSL
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
+        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u1);
         #else
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
+        RW_TEXTURE2D_X(float2, _OutputVelocityMagnitudeHistory) : register(u2);
         #endif
-#endif
 
         struct Attributes
         {
@@ -241,8 +239,14 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 prevUV = input.texcoord - motionVector;
 
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize, _RTHandleScaleForTAAHistory);
+            CTYPE unclampedH = history;
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
+
+
+
+            float prevFactor = _InputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(int2(input.positionCS.xy))].g;
+
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
@@ -327,6 +331,39 @@ Shader "Hidden/HDRP/TemporalAA"
 #endif
                 blendFactor = max(blendFactor, 0.03);
 
+                /////////////////////////////////////////////
+
+               // blendFactor = lerp (_BaseBlendFactor, 1.0, prevFactor);
+
+                CTYPE bhistory = unclampedH;
+
+                const float clamping_event = length(max(0.0, max(bhistory - samples.maxNeighbour, samples.minNeighbour - bhistory)) / max(0.01, samples.moment1));
+
+                float clampDist = (max(abs(historyLuma - GetLuma(samples.minNeighbour)), abs(historyLuma - GetLuma(samples.maxNeighbour))))
+                    / max(historyLuma, 1e-5);
+
+                float dist = DistanceToClamp(historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
+                blendFactor *= lerp(0.2, 1.0, smoothstep(0.0, 2.0, clampDist));
+
+
+                const float initial_bclamp_amount = saturate(dot(
+                    history - unclampedH, samples.filteredCentral - unclampedH)
+                    / max(1e-5, length(history - unclampedH) * length(samples.filteredCentral - unclampedH)));
+
+               // blendFactor =  prevFactor * lerp(0.1, 1.0f, saturate(10* clamping_event));
+
+                dbg = initial_bclamp_amount* initial_bclamp_amount* initial_bclamp_amount * initial_bclamp_amount * initial_bclamp_amount;
+
+#if ANTI_RINGING
+                blendFactor = 1.0f - dbg.x;
+                blendFactor = max(blendFactor, 0.03);
+#endif
+                //dbg = saturate(initial_bclamp_amount);
+                _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = float2(lengthMV, blendFactor);
+
+                /////////////////////////////////////////////
+
+
                 CTYPE finalColor;
 
              //   filteredColor.xyz = samples.minNeighbour;
@@ -344,12 +381,20 @@ Shader "Hidden/HDRP/TemporalAA"
                 // Set output alpha to the antialiased alpha.
                 color.w = filteredColor.w;
 #endif
+
+             //   dbg = blendFactor;
             }
 
+            //if (dbg.x < 0.2)
+            //    color.xyz += float3(10, 0, 0);
+
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
+
             outColor = color.CTYPE_SWIZZLE;
+          //  outColor = dbg;
+
 #if VELOCITY_REJECTION && !defined(POST_DOF)
-            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
+  //          _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
 #endif
             // -------------------------------------------------------------
         }

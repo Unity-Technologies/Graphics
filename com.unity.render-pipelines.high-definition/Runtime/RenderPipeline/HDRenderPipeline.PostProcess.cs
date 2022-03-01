@@ -1498,7 +1498,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
-            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16_SFloat, out previous, out next);
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16G16_SFloat, out previous, out next);
         }
 
         void ReleasePostDoFTAAHistoryTextures(HDCamera camera)
