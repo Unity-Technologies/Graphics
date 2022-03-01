@@ -4,10 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.5] - 2022-01-14
+## [12.1.6] - 2022-02-09
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.5] - 2022-01-14
+
+### Added
+- Added common support code for FSR
+
+### Fixed
+- Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ## [12.1.4] - 2021-12-07
 

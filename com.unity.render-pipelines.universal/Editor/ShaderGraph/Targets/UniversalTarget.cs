@@ -675,11 +675,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        ScriptableObject IHasMetadata.GetMetadataObject()
+        ScriptableObject IHasMetadata.GetMetadataObject(GraphDataReadOnly graph)
         {
             // defer to subtarget
             if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
-                return subTargetHasMetaData.GetMetadataObject();
+                return subTargetHasMetaData.GetMetadataObject(graph);
             return null;
         }
 
@@ -1583,6 +1583,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Vertex,
         };
 
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
@@ -1607,6 +1608,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
@@ -1616,6 +1618,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
@@ -1625,6 +1628,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
@@ -1634,6 +1638,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
@@ -1670,6 +1675,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
@@ -1679,6 +1685,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
@@ -1738,6 +1745,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
@@ -1753,7 +1761,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
                 new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
                 new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
-            }
+            },
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
@@ -1763,6 +1772,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
@@ -1794,6 +1804,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
