@@ -70,6 +70,13 @@ namespace com.unity.shadergraph.defs
             Height.Any
         );
 
+        public static readonly TypeDescriptor Mat2 = new(
+            Precision.Any,
+            Primitive.Float,
+            Length.Two,
+            Height.Two
+        );
+
         public static readonly TypeDescriptor Mat3 = new(
             Precision.Any,
             Primitive.Float,
