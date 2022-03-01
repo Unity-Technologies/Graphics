@@ -80,16 +80,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     }
 
 
-
-
-
-
-
-
-    // Placeholder node for testing purposes-- technically this is a node w/a a hint to the UI that it should use
-    // a Gradient widget to modify InlineStatic-- this sort of thing is going to be very common-- probably makes sense to have
-    // a generalized- "ConstructorNode<ITypeDefinitionBuilder>..." or just add a ctor to the type definition- then it can control
-    // it's own node representation more concisely.
+    /// <summary>
+    /// Constructor node with a static gradient type input; this is purely so that the gradient UI Widget has a node to use.
+    /// </summary>
     internal class GradientNode : Defs.INodeDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
@@ -101,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
         {
             var input = generatedData.AddPort<GradientType>(userData, kInlineStatic, true, registry);
-            input.SetField<bool>("IsStatic", true);
+            input.SetField<bool>("IsStatic", true); // TODO: This is just the hint for UI to use the large gradient editor.
             var output = generatedData.AddPort<GradientType>(userData, kOutput, false, registry);
         }
 
@@ -120,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
     public static class GradientTypeHelpers
     {
-        public static Gradient GetToGradient(IFieldReader field)
+        public static Gradient GetGradient(IFieldReader field)
         {
             field.GetField<GradientMode>(GradientType.kGradientMode, out var mode);
             field.GetField<int>(GradientType.kColorCount, out var colorCount);
@@ -145,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             return result;
         }
 
-        public static void SetFromGradient(IFieldWriter field, Gradient gradient)
+        public static void SetGradient(IFieldWriter field, Gradient gradient)
         {
             field.SetField(GradientType.kGradientMode, gradient.mode);
             field.SetField(GradientType.kColorCount, gradient.colorKeys.Length);
@@ -160,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     }
 
     /// <summary>
-    /// Base 'GraphType' representing templated HLSL Types, eg. vector <float, 3>, matrix <float 4, 4>, int3, etc.
+    /// Represents the Gradient type found in Functions.hlsl, similar to the C# version, except it's key count is fixed to 8.
     /// </summary>
     internal class GradientType : Defs.ITypeDefinitionBuilder
     {
@@ -233,6 +226,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
+            // We could potentially support a much broader range of types, precision and array lengths,
+            // though GradientTypeAssignment would need to handle conversions.
+            // The underlying gradient type currently described in Functions.hlsl does not support variable precision- it's single precision only.
             var gradientBuilder = new ShaderFoundry.ShaderType.StructBuilder(container, "Gradient");
             gradientBuilder.DeclaredExternally();
             return gradientBuilder.Build();
