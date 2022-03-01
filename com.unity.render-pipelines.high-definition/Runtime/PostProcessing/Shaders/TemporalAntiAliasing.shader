@@ -18,7 +18,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
-       // #pragma enable_d3d11_debug_symbols
+        #pragma enable_d3d11_debug_symbols
 
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -64,7 +64,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING BLACKMAN_HARRIS
+    #define CENTRAL_FILTERING SHARP_FILTER
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
@@ -77,13 +77,14 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING UPSCALE
+    #define CENTRAL_FILTERING SHARP_FILTER
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define UPSCALE 
 
 #elif defined(POST_DOF)
     #define YCOCG 1
@@ -247,30 +248,14 @@ Shader "Hidden/HDRP/TemporalAA"
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
-            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
+
+            NeighbourhoodInfo samples;
+            
+            CTYPE filteredColor = GatherNeighbourhoodAndFilterColor(_InputTexture, input.positionCS.xy, _TaaJitterStrength.xy, _TAAURenderScale, _TaaFilterWeights.x, samples);
+            CTYPE color = filteredColor;
+
             if (!excludeTAABit)
             {
-                color = clamp(color, 0, CLAMP_MAX);
-                color = ConvertToWorkingSpace(color);
-
-                NeighbourhoodSamples samples;
-                GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, _RTHandleScaleForTAA, samples);
-                // --------------------------------------------------------
-
-                // --------------- Filter central sample ---------------
-                float4 filterParams = _TaaFilterWeights;
-                float4 filterParams1 = _TaaFilterWeights1;
-                float centralWeight = _CentralWeight;
-#ifdef TAA_UPSCALE
-                filterParams.x = _TAAUFilterRcpSigma2;
-                filterParams.y = _TAAUScale;
-                filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
-
-#elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
-                // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
-                SwizzleFilterWeights(floor(input.positionCS.xy), filterParams, filterParams1);
-#endif
-                CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
                 // ------------------------------------------------------
 
                 if (offScreen)
@@ -288,7 +273,7 @@ Shader "Hidden/HDRP/TemporalAA"
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
 
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+                ResolveNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
@@ -320,11 +305,14 @@ Shader "Hidden/HDRP/TemporalAA"
 #endif
 
 #ifdef TAA_UPSCALE
-                blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
+                // TODO_FCC: IMPORTANT BEFORE PR!! outputPixInInput - (floor(outputPixInInput) + 0.5f); rephrase this with new method.
+                blendFactor *= GetUpsampleConfidence(outputPixInInput - (floor(outputPixInInput) + 0.5f), _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
                 blendFactor = max(blendFactor, 0.03);
 
                 CTYPE finalColor;
+
+             //   filteredColor.xyz = samples.minNeighbour;
 #if PERCEPTUAL_SPACE_ONLY_END
                 finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
                 finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;

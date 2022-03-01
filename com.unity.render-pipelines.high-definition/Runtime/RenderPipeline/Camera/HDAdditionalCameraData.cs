@@ -333,6 +333,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
 
+        /// <summary> Determines how much the contribution from current frame is filtered. Higher values lead to a sharp filter. </summary>
+        [Range(0.0f, 1.0f)]
+        public float taaCentralFilterStrength = 0.1f;
+
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
@@ -609,6 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
             data.taaBaseBlendFactor = taaBaseBlendFactor;
+            data.taaCentralFilterStrength = taaCentralFilterStrength;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;

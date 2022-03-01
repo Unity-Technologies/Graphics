@@ -220,6 +220,10 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Draw_Rendering_Antialiasing_TAA_Advanced(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.taaBaseBlendFactor, Styles.TAABaseBlendFactor);
+                if (p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                {
+                    EditorGUILayout.PropertyField(p.taaCentralFilterStrength, Styles.TAACentralFilterStrength);
+                }
             }
 
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)

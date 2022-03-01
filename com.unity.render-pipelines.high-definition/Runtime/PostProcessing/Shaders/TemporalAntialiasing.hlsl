@@ -66,7 +66,7 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // Central value filtering options
 #define NO_FILTERING 0
 #define BOX_FILTER 1
-#define BLACKMAN_HARRIS 2
+#define SHARP_FILTER 2
 #define UPSCALE 3
 
 // Clip option
@@ -133,6 +133,26 @@ float3 Min3Float3(float3 a, float3 b, float3 c)
         Min3(a.z, b.z, c.z));
 }
 
+float3 MinFloat3(float3 a, float3 b)
+{
+    return float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
+}
+
+float4 MinFloat4(float4 a, float4 b)
+{
+    return float4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w));
+}
+
+float3 MaxFloat3(float3 a, float3 b)
+{
+    return float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
+}
+
+float4 MaxFloat4(float4 a, float4 b)
+{
+    return float4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
+}
+
 float3 Max3Float3(float3 a, float3 b, float3 c)
 {
     return float3(Max3(a.x, b.x, c.x),
@@ -162,6 +182,24 @@ CTYPE Max3Color(CTYPE a, CTYPE b, CTYPE c)
     return Max3Float4(a, b, c);
 #else
     return Max3Float3(a, b, c);
+#endif
+}
+
+CTYPE MaxColor(CTYPE a, CTYPE b)
+{
+#ifdef ENABLE_ALPHA
+    return MaxFloat4(a, b);
+#else
+    return MaxFloat3(a, b);
+#endif
+}
+
+CTYPE MinColor(CTYPE a, CTYPE b)
+{
+#ifdef ENABLE_ALPHA
+    return MinFloat4(a, b);
+#else
+    return MinFloat3(a, b);
 #endif
 }
 
@@ -420,162 +458,86 @@ CTYPE GetFilteredHistory(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
     return ConvertToWorkingSpace(history);
 }
 
+
 // ---------------------------------------------------
 // Neighbourhood related.
 // ---------------------------------------------------
 #define SMALL_NEIGHBOURHOOD_SIZE 4
 #define NEIGHBOUR_COUNT ((WIDE_NEIGHBOURHOOD == 0) ? SMALL_NEIGHBOURHOOD_SIZE : 8)
 
-struct NeighbourhoodSamples
+static const float2 sampleOffsets[9] =
 {
-#if WIDE_NEIGHBOURHOOD
-    CTYPE neighbours[8];
-#else
-    CTYPE neighbours[4];
-#endif
+    float2( 1,  0),
+    float2(-1,  0),
+    float2( 0,  1),
+    float2( 0, -1),
+    float2( 1,  1),
+    float2(-1,  1),
+    float2( 1, -1),
+    float2(-1, -1),
+    float2( 0,  0), // Kept last to be able to offset into it no matter the shape.
+};
 
-    CTYPE central;
+struct NeighbourhoodInfo
+{
+    CTYPE filteredCentral;
     CTYPE minNeighbour;
     CTYPE maxNeighbour;
-    CTYPE avgNeighbour;
+    CTYPE boxFiltered;
 
-#ifdef UPSAMPLE
-    // TODO: The way we handle offsets now will force this in VGPR. It is not good, will need to revisit. Now that we can sample stencil in compute, we should move to compute and all this nonsense is not needed anymore.
-    float2 offsets[8];
+#if NEIGHBOUROOD_CORNER_METHOD == VARIANCE
+    CTYPE moment1;
+    CTYPE moment2;
 #endif
 };
 
-
-void ConvertNeighboursToPerceptualSpace(inout NeighbourhoodSamples samples)
+// TODO: Can do better.
+void InitNeighbourhoodInfo(inout NeighbourhoodInfo info)
 {
-    samples.neighbours[0].xyz *= PerceptualWeight(samples.neighbours[0]);
-    samples.neighbours[1].xyz *= PerceptualWeight(samples.neighbours[1]);
-    samples.neighbours[2].xyz *= PerceptualWeight(samples.neighbours[2]);
-    samples.neighbours[3].xyz *= PerceptualWeight(samples.neighbours[3]);
-#if WIDE_NEIGHBOURHOOD
-    samples.neighbours[4].xyz *= PerceptualWeight(samples.neighbours[4]);
-    samples.neighbours[5].xyz *= PerceptualWeight(samples.neighbours[5]);
-    samples.neighbours[6].xyz *= PerceptualWeight(samples.neighbours[6]);
-    samples.neighbours[7].xyz *= PerceptualWeight(samples.neighbours[7]);
-#endif
-    samples.central.xyz       *= PerceptualWeight(samples.central);
+    info = (NeighbourhoodInfo)0;
+    info.minNeighbour = 10e10f;
+    info.maxNeighbour = -10e10f;
 }
 
-void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS, CTYPE centralColor, float2 rtHandleScale, out NeighbourhoodSamples samples)
+void UpdateNeighbourhoodCornersInfo(CTYPE currSample, inout NeighbourhoodInfo samples)
 {
-    samples = (NeighbourhoodSamples)0;
+#if NEIGHBOUROOD_CORNER_METHOD == VARIANCE
+    currSample.xyz = clamp(currSample.xyz, 0, CLAMP_MAX);
 
-    samples.central = centralColor;
+    samples.moment1 += currSample * rcp(NEIGHBOUR_COUNT + 1);
+    samples.moment2 += (currSample * currSample) * rcp(NEIGHBOUR_COUNT + 1);
 
-    float2 quadOffset = GetQuadOffset(positionSS);
+#elif NEIGHBOUROOD_CORNER_METHOD == MINMAX
 
-#if WIDE_NEIGHBOURHOOD
+    samples.minNeighbour = MinColor(currSample, samples.minNeighbour);
+    samples.maxNeighbour = MaxColor(currSample, samples.maxNeighbour);
 
-    // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
-    samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
-
-    // Cross shape
-    int2 fastOffset = -quadOffset;
-    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
-    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
-    int2 offset3 = quadOffset;
-
-    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, fastOffset, rtHandleScale).CTYPE_SWIZZLE); /* TODO: Why is this not good? QuadReadColorAcrossDiagonal(centralColor, positionSS); */
-
-#ifdef UPSAMPLE
-    samples.offsets[0] = float2(0.0f, quadOffset.y);
-    samples.offsets[1] = float2(quadOffset.x, 0.0f);
-    samples.offsets[2] = float2(-quadOffset.x, 0.0f);
-    samples.offsets[3] = float2(0.0f, -quadOffset.y);
-    samples.offsets[4] = offset1;
-    samples.offsets[5] = offset2;
-    samples.offsets[6] = offset3;
-    samples.offsets[7] = fastOffset;
 #endif
 
-#else // !WIDE_NEIGHBOURHOOD
-
-#if SMALL_NEIGHBOURHOOD_SHAPE == PLUS
-
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
-    samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
-
-#else // SMALL_NEIGHBOURHOOD_SHAPE == CROSS
-
-    int2 fastOffset = -quadOffset;
-    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
-    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
-    int2 offset3 = quadOffset;
-
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, rtHandleScale).CTYPE_SWIZZLE);
-    samples.neighbours[3] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
-
-#endif // SMALL_NEIGHBOURHOOD_SHAPE == 4
-
-#endif // !WIDE_NEIGHBOURHOOD
-
-#if PERCEPTUAL_SPACE
-    ConvertNeighboursToPerceptualSpace(samples);
-#endif
+    samples.boxFiltered += currSample * rcp(NEIGHBOUR_COUNT + 1);
 }
 
-
-void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
+void UpdateCentralColor(CTYPE currSample, float2 distToSampleCenter, float renderScale, float filterSharpness, inout CTYPE filteredColor, inout float totalWeight, out float currWeight)
 {
-    // We always have at least the first 4 neighbours.
-    samples.minNeighbour = Min3Color(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
-    samples.minNeighbour = Min3Color(samples.minNeighbour, samples.central, samples.neighbours[3]);
-
-    samples.maxNeighbour = Max3Color(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
-    samples.maxNeighbour = Max3Color(samples.maxNeighbour, samples.central, samples.neighbours[3]);
-
-#if WIDE_NEIGHBOURHOOD
-    samples.minNeighbour = Min3Color(samples.minNeighbour, samples.neighbours[4], samples.neighbours[5]);
-    samples.minNeighbour = Min3Color(samples.minNeighbour, samples.neighbours[6], samples.neighbours[7]);
-
-    samples.maxNeighbour = Max3Color(samples.maxNeighbour, samples.neighbours[4], samples.neighbours[5]);
-    samples.maxNeighbour = Max3Color(samples.maxNeighbour, samples.neighbours[6], samples.neighbours[7]);
+    currWeight = 1;
+#if CENTRAL_FILTERING == NO_FILTERING
+    totalWeight = 1;
+    return;
+#elif CENTRAL_FILTERING == BOX_FILTER
+    // Nothing to be done, currWeight default is box filter.
+#elif CENTRAL_FILTERING == SHARP_FILTER
+    const float sharpness = filterSharpness;
+    currWeight = (exp2(-sharpness * dot(distToSampleCenter, distToSampleCenter) * renderScale)); // renderScale is != 1 only for TAAU
 #endif
 
-    samples.avgNeighbour = 0;
-    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
-    {
-        samples.avgNeighbour += samples.neighbours[i];
-    }
-    samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
+    filteredColor += currWeight*currSample;
+    totalWeight += currWeight;
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+void ResolveNeighbourhoodCorners(inout NeighbourhoodInfo samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
 {
-    CTYPE moment1 = 0;
-    CTYPE moment2 = 0;
-
-    // UPDATE WITH TEMPORAL UP SHRINKAGE
-    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
-    {
-        moment1 += samples.neighbours[i];
-        moment2 += samples.neighbours[i] * samples.neighbours[i];
-    }
-    samples.avgNeighbour = moment1 * rcp(NEIGHBOUR_COUNT);
-
-    moment1 += samples.central;
-    moment2 += samples.central * samples.central;
-
-    const int sampleCount = NEIGHBOUR_COUNT + 1;
-    moment1 *= rcp(sampleCount);
-    moment2 *= rcp(sampleCount);
-
-    CTYPE stdDev = sqrt(abs(moment2 - moment1 * moment1));
+#if NEIGHBOUROOD_CORNER_METHOD == VARIANCE
+    CTYPE stdDev = sqrt(abs(samples.moment2 - samples.moment1 * samples.moment1));
 
     float stDevMultiplier = 1.5;
     // The reasoning behind the anti flicker is that if we have high spatial contrast (high standard deviation)
@@ -594,95 +556,88 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     stDevMultiplier += lerp(0.0, localizedAntiFlicker, smoothstep(0.05, antiFlickerParams.y, temporalContrast));
 #endif
 
-#if CENTRAL_FILTERING == UPSCALE
+#ifdef TAA_UPSCALE
     // We shrink the bounding box when upscaling as ghosting is more likely.
     // Ideally the shrinking should happen also (or just) when sampling the neighbours
     // This shrinking should also be investigated a bit further with more content. (TODO).
     stDevMultiplier = lerp(stDevMultiplier, 0.9f, saturate(downsampleFactor));
 #endif
 
-    samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
-    samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
-}
-
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
-{
-#if NEIGHBOUROOD_CORNER_METHOD == MINMAX
-    MinMaxNeighbourhood(samples);
-#else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor);
+    samples.minNeighbour = samples.moment1 - stdDev * stDevMultiplier;
+    samples.maxNeighbour = samples.moment1 + stdDev * stDevMultiplier;
 #endif
 }
 
-// ---------------------------------------------------
-// Filter main color
-// ---------------------------------------------------
-#define APPROX_WEIGHT 1
-float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
+// For portability reason we assume positionSS is int2 (so can be used with dispatchThreadId)
+CTYPE GatherNeighbourhoodAndFilterColor(TEXTURE2D_X(InputTexture), int2 positionSS, float2 jitterInPixels, float renderScale, float filterSharpness, inout NeighbourhoodInfo samples)
 {
-#ifdef UPSAMPLE
+    // Make sure we zero and init with starting values all of our infos.
+    InitNeighbourhoodInfo(samples);
 
-    const float2 inputToOutputVec = filterParameters.zw;
-    const float resolutionScale2 = filterParameters.y * filterParameters.y;
-    float2 d = (centralPixel ? 0 : samples.offsets[neighbourIdx]) - inputToOutputVec;
+    const int sampleCount = NEIGHBOUR_COUNT + 1;
 
-#if APPROX_WEIGHT
-    // A bit fatter and shorter tail, but significantly cheaper and close enough for the use case.
-    // https://www.desmos.com/calculator/g2hr2hzj84
-    float x2 = saturate(resolutionScale2 * dot(d, d));
-    float f = 0.9656852f * x2 - 1;
-    return f * f;
-#else
-    // Spiky gaussian (See for honor presentation)
-    const float rcpStdDev2 = filterParameters.x;  // (1/(sigma*sigma))
-    return exp2(-0.5f * dot(d, d) * resolutionScale2 * rcpStdDev2);
+    float2 dstPosSS = positionSS + 0.5f;
+    int2 posInInput = int2((positionSS + 0.5f) * renderScale);
+    // sample loc but in the upsampled space.
+    float2 centralPosInOutputSpace = (posInInput + 0.5f + jitterInPixels) / renderScale;
+
+    float totalWeight = 0;
+    CTYPE filteredColor = 0;
+
+    CTYPE centralUnfiltered = 0;
+    // TODO_FCC: FIX NO FILTERING.
+    float2 samplePosSS = 0;
+    float sampleWeight = 0;
+    CTYPE sampleVal = 0;
+    for (int i = 0; i < sampleCount-1; ++i)
+    {
+        int offsetIndex = i;
+#if (WIDE_NEIGHBOURHOOD == 0) && (SMALL_NEIGHBOURHOOD_SHAPE == CROSS)
+        offsetIndex += 4;
 #endif
+        int2 offset = sampleOffsets[offsetIndex];
 
-#else
-    return 1;
+        sampleVal = InputTexture[COORD_TEXTURE2D_X(posInInput + offset)];
+        sampleVal = ConvertToWorkingSpace(sampleVal);
+        sampleVal *= PerceptualWeight(sampleVal);
+
+        samplePosSS = centralPosInOutputSpace + offset * rcp(renderScale);
+
+#if CENTRAL_FILTERING != NO_FILTERING
+        UpdateCentralColor(sampleVal, (samplePosSS - dstPosSS), renderScale, filterSharpness, filteredColor, totalWeight, sampleWeight);
+        centralUnfiltered = sampleVal;
 #endif
-}
+        UpdateNeighbourhoodCornersInfo(sampleVal, samples);
+    }
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, float4 filterParameters2, float centralWeight)
-{
+    // We now process the central pixel slightly differently.
+    // If we are not filtering at all we need to use linear sampler.
+
 #if CENTRAL_FILTERING == NO_FILTERING
-
-    return samples.central;
-
-#elif CENTRAL_FILTERING == BOX_FILTER
-
-    CTYPE avg = samples.central;
-    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
-    {
-        avg += samples.neighbours[i];
-    }
-    return avg / (1 + NEIGHBOUR_COUNT);
-
-#elif CENTRAL_FILTERING == BLACKMAN_HARRIS
-    CTYPE filtered = samples.central * centralWeight;
-    filtered += (samples.neighbours[0] * filterParameters.x + samples.neighbours[1] * filterParameters.y + samples.neighbours[2] * filterParameters.z + samples.neighbours[3] * filterParameters.w);
-#if WIDE_NEIGHBOURHOOD
-    filtered += (samples.neighbours[4] * filterParameters2.x + samples.neighbours[5] * filterParameters2.y + samples.neighbours[6] * filterParameters2.z + samples.neighbours[7] * filterParameters2.w);
+    float2 uv = (posInInput + 0.5) * (renderScale * _ScreenSize.zw);
+    sampleVal = SAMPLE_TEXTURE2D_X_LOD(InputTexture, s_linear_clamp_sampler, uv, 0).xyz;
+#else
+    sampleVal = InputTexture[COORD_TEXTURE2D_X(posInInput)];
 #endif
-    return filtered;
+    sampleVal = ConvertToWorkingSpace(sampleVal);
+    sampleVal *= PerceptualWeight(sampleVal);
 
-#elif CENTRAL_FILTERING == UPSCALE
-
-    float totalWeight = GetSampleWeight(samples, 0, filterParameters, true);
-    CTYPE filtered = 0;
-    filtered += samples.central * totalWeight;
-
-    for (int i = 0; i < 8; ++i)
-    {
-        float w = GetSampleWeight(samples, i, filterParameters);
-        filtered += samples.neighbours[i] * w;
-        totalWeight += w;
-    }
-
-    filtered *= rcp(totalWeight);
-    return filtered;
+#if CENTRAL_FILTERING != NO_FILTERING
+    UpdateCentralColor(sampleVal, (centralPosInOutputSpace - dstPosSS), renderScale, filterSharpness, filteredColor, totalWeight, sampleWeight);
 #endif
+    UpdateNeighbourhoodCornersInfo(sampleVal, samples);
 
+    if (totalWeight < 1e-5f
+#if CENTRAL_FILTERING == NO_FILTERING
+        || true
+#endif
+        )
+        samples.filteredCentral = sampleVal;
+    else
+        samples.filteredCentral = filteredColor / totalWeight;
+
+
+    return samples.filteredCentral;
 }
 
 // ---------------------------------------------------
@@ -766,10 +721,10 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 // ---------------------------------------------------
 
 // TODO: This is not great and sub optimal since it really needs to be in linear and the data is already in perceptive space
-CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStrength)
+CTYPE SharpenColor(NeighbourhoodInfo samples, CTYPE color, float sharpenStrength)
 {
     CTYPE linearC = color * PerceptualInvWeight(color);
-    CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
+    CTYPE linearAvg = samples.boxFiltered * PerceptualInvWeight(samples.boxFiltered);
 
 #if YCOCG
     // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.

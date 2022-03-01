@@ -1730,6 +1730,8 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
 
             passData.stencilBuffer = stencilTexture;
+
+            passData.taaFilterWeights.x = Mathf.Lerp(2.0f, 80.0f, camera.taaCentralFilterStrength);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
