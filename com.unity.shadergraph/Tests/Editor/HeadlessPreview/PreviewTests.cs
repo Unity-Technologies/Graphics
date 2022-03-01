@@ -598,7 +598,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         }
 
         [Test]
-        public void Gradients_GetFuncAndBlockShaderCode()
+        public void Gradients_TestAll()
         {
             var graphHandler = new GraphHandler();
             var registry = new Registry.Registry();
@@ -626,12 +626,33 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
 
-            // our gradient comes from a connection now, so it should be black again.
-            graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
+            // our gradient comes from a connection now, let's pick a fun color (time is still 1).
+            var gradientNode = graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
+            var portField = (IFieldWriter)gradientNode.GetPort(Types.GradientNode.kInlineStatic);
+
+            // Setup the end color to be yellow.
+            var gradient = new Gradient();
+            gradient.mode = GradientMode.Blend;
+            gradient.SetKeys(
+                new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(0,0,0), 0),
+                    new GradientColorKey(new Color(1,1,0), 1)
+                },
+                new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 1)
+                });
+
+            Types.GradientTypeHelpers.SetGradient(portField, gradient);
+
             graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
-            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out string block, out _);
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
         }

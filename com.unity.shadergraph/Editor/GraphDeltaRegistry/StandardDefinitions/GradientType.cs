@@ -51,9 +51,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             PortToParam(kOutput, data, shaderFunctionBuilder, container, registry);
 
             var body =
-@"
-{
-    float3 color = Gradient.colors[0].rgb;
+@"float3 color = Gradient.colors[0].rgb;
     [unroll]
     for (int c = 1; c < Gradient.colorsLength; c++)
     {
@@ -70,9 +68,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         float alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
         alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type));
     }
-    Out = float4(color, alpha);
-}
-";
+    Out = float4(color, alpha);";
 
             shaderFunctionBuilder.AddLine(body);
             return shaderFunctionBuilder.Build();
