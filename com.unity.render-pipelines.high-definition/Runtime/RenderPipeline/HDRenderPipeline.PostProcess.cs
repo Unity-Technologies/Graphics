@@ -1517,8 +1517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 previousScreenSize;
             public Vector4 taaParameters;
             public Vector4 taaParameters1;
-            public Vector4 taaFilterWeights;
-            public Vector4 taaFilterWeights1;
+            public Vector4 taaFilterInfo;
             public bool motionVectorRejection;
             public Vector4 taauParams;
             public Rect finalViewport;
@@ -1605,8 +1604,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
             passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
-            passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
-            passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
@@ -1731,7 +1728,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passData.stencilBuffer = stencilTexture;
 
-            passData.taaFilterWeights.x = Mathf.Lerp(2.0f, 80.0f, camera.taaCentralFilterStrength);
+            passData.taaFilterInfo.x = Mathf.Lerp(2.0f, 80.0f, camera.taaCentralFilterStrength);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
@@ -1790,8 +1787,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
                         mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights1, data.taaFilterWeights1);
+                        mpb.SetVector(HDShaderIDs._TaaFilterInfo, data.taaFilterInfo);
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
                         mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
 

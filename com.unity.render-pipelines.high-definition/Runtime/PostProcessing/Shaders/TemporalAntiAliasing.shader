@@ -120,8 +120,7 @@ Shader "Hidden/HDRP/TemporalAA"
         float4 _TaaPostParameters;
         float4 _TaaPostParameters1;
         float4 _TaaHistorySize;
-        float4 _TaaFilterWeights;
-        float4 _TaaFilterWeights1;
+        float4 _TaaFilterInfo;
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -131,6 +130,8 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _BaseBlendFactor _TaaPostParameters1.x
         #define _CentralWeight _TaaPostParameters1.y
         #define _ExcludeTAABit (uint)_TaaPostParameters1.z
+
+        #define _CentralFilterSharpness _TaaFilterInfo.x
 
         // TAAU specific
         float4 _TaauParameters;
@@ -251,7 +252,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
             NeighbourhoodInfo samples;
             
-            CTYPE filteredColor = GatherNeighbourhoodAndFilterColor(_InputTexture, input.positionCS.xy, _TaaJitterStrength.xy, _TAAURenderScale, _TaaFilterWeights.x, samples);
+            CTYPE filteredColor = GatherNeighbourhoodAndFilterColor(_InputTexture, input.positionCS.xy, _TaaJitterStrength.xy, _TAAURenderScale, _CentralFilterSharpness, samples);
             CTYPE color = filteredColor;
 
             if (!excludeTAABit)

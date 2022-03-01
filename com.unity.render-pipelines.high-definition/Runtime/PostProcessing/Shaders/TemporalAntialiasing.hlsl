@@ -584,11 +584,10 @@ CTYPE GatherNeighbourhoodAndFilterColor(TEXTURE2D_X(InputTexture), int2 position
     float totalWeight = 0;
     CTYPE filteredColor = 0;
 
-    CTYPE centralUnfiltered = 0;
-    // TODO_FCC: FIX NO FILTERING.
     float2 samplePosSS = 0;
     float sampleWeight = 0;
     CTYPE sampleVal = 0;
+
     for (int i = 0; i < sampleCount-1; ++i)
     {
         int offsetIndex = i;
@@ -605,7 +604,6 @@ CTYPE GatherNeighbourhoodAndFilterColor(TEXTURE2D_X(InputTexture), int2 position
 
 #if CENTRAL_FILTERING != NO_FILTERING
         UpdateCentralColor(sampleVal, (samplePosSS - dstPosSS), renderScale, filterSharpness, filteredColor, totalWeight, sampleWeight);
-        centralUnfiltered = sampleVal;
 #endif
         UpdateNeighbourhoodCornersInfo(sampleVal, samples);
     }
