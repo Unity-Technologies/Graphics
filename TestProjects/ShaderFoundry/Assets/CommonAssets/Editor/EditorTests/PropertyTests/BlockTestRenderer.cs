@@ -42,9 +42,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
         internal int TestSurfaceBlockIsConstantColor(ShaderContainer container, string shaderName, Block block, Color32 expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
         {
-            // Currently the target doesn't output alpha. Temporarily hardcode this until we write a custom target.
-            expectedColor.a = 255;
-
             GraphicsFormat oldFormat = defaultFormat;
             defaultFormat = GraphicsFormat.R32G32B32A32_SFloat;
 

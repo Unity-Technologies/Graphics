@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [UnityTest]
         public IEnumerator Float3Property_DefaultPropertyValueUsed_IsExpectedColor()
         {
-            var expectedColor = new Color(1, 1, 1, 1);
+            var expectedColor = new Color(1, 1, 1, 0);
 
             var container = CreateContainer();
             var propBuilder = BuildWithoutNameOverrides("(1, 1, 1, 0)");
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         public IEnumerator Float3Property_MaterialColorSet_IsExpectedColor()
         {
             var inputValue = new Vector3(0.1f, 0.2f, 0.3f);
-            var expectedColor = new Color(inputValue.x, inputValue.y, inputValue.z, 1);
+            var expectedColor = new Color(inputValue.x, inputValue.y, inputValue.z, 0);
 
             var container = CreateContainer();
             var propBuilder = BuildWithNameOverrides("(1, 1, 1, 0)");

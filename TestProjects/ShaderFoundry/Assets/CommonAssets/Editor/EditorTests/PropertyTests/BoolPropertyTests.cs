@@ -43,7 +43,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
-
         }
 
         [UnityTest]

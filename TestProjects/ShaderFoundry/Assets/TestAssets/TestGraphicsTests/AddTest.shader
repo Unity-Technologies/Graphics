@@ -13,6 +13,11 @@ Shader "Hidden/Test/AddTest"
 
         Pass
         {
+            Tags
+            {
+                "LightMode"= "Foundry Unlit Forward"// LightMode: <None>
+            }
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
