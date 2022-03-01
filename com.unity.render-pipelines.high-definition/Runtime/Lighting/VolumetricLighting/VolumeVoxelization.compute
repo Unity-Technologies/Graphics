@@ -292,8 +292,66 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 }
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringMultiplier;
-                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
+                float3 resultScattering = _VolumeData[volumeIndex].scattering * scatteringMultiplier;
+                float resultExtinction = _VolumeData[volumeIndex].extinction;
+
+                
+                float baseMFP = 1.0 / voxelExtinction;
+                float resultMFP = 1.0 / resultExtinction;
+
+                float3 baseAlbedo = voxelScattering * baseMFP;
+                float3 resultAlbedo = resultScattering * resultMFP;
+
+                if (_VolumeData[volumeIndex].blendingMode == 0) // overwrite
+                {
+                    voxelScattering = lerp( voxelScattering, resultScattering, overlapFraction);
+                    voxelExtinction = lerp( voxelExtinction, resultExtinction, overlapFraction);
+                }
+                if (_VolumeData[volumeIndex].blendingMode == 1) // add
+                {
+                    voxelScattering += overlapFraction * resultScattering;
+                    voxelExtinction += overlapFraction * resultExtinction;
+                }
+                if (_VolumeData[volumeIndex].blendingMode == 2) // sub
+                {
+                    voxelScattering -= overlapFraction * resultScattering;
+                    voxelExtinction -= overlapFraction * resultExtinction;
+                }
+                if (_VolumeData[volumeIndex].blendingMode == 3) // mult
+                {
+                    resultAlbedo *= baseAlbedo;
+
+                    resultExtinction *= voxelExtinction;
+
+                    voxelExtinction = lerp( voxelExtinction, resultExtinction, overlapFraction);
+
+                    resultAlbedo = lerp(baseAlbedo, resultAlbedo, overlapFraction);
+                    voxelScattering = resultAlbedo * voxelExtinction;
+                }
+                if (_VolumeData[volumeIndex].blendingMode == 4) // min
+                {
+                    resultAlbedo = min(resultAlbedo, baseAlbedo);
+                    resultMFP = min(resultMFP, baseMFP);
+                    
+                    resultAlbedo = lerp(baseAlbedo, resultAlbedo, overlapFraction);
+                    
+                    resultExtinction = 1.0 / resultMFP;
+                    
+                    voxelExtinction = lerp( voxelExtinction, resultExtinction, overlapFraction);
+                    voxelScattering = resultAlbedo * voxelExtinction;
+                }
+                if (_VolumeData[volumeIndex].blendingMode == 5) // max
+                {
+                    resultAlbedo = max(resultAlbedo, baseAlbedo);
+                    resultMFP = max(resultMFP, baseMFP);
+                    
+                    resultAlbedo = lerp(baseAlbedo, resultAlbedo, overlapFraction);
+                    
+                    resultExtinction = 1.0 / resultMFP;
+                    
+                    voxelExtinction = lerp( voxelExtinction, resultExtinction, overlapFraction);
+                    voxelScattering = resultAlbedo * voxelExtinction;
+                }
             }
         }
 

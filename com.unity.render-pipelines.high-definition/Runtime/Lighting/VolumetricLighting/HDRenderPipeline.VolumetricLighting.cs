@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
@@ -13,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Vector3 scattering;    // [0, 1]
         public float extinction;    // [0, 1]
+        public int blendingMode;
+        public float priority;
         public Vector3 textureTiling;
         public int invertFade;    // bool...
         public Vector3 textureScroll;
@@ -31,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering = Vector3.zero;
             data.extinction = 0;
+            data.blendingMode = 0;
+            data.priority = 0;
             data.atlasOffset = Vector3.zero;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
@@ -813,6 +818,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_VisibleLocalVolumetricMaterialFogVolumes.Add(volume);
                     }
                 }
+
+                // order visible volumes by priory
+                m_VisibleVolumeData = m_VisibleVolumeData.OrderBy(v => v.priority).ToList();
 
                 m_VisibleVolumeBoundsBuffer.SetData(m_VisibleVolumeBounds);
                 m_VisibleVolumeDataBuffer.SetData(m_VisibleVolumeData);

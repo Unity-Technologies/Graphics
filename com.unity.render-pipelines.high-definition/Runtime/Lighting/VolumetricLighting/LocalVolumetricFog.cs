@@ -3,6 +3,16 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum LocalVolumetricFogBlendingModes
+    {
+        Overwrite,
+        Add,
+        Sub,
+        Mult,
+        Min,
+        Max
+    }
+
     /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
     public partial struct LocalVolumetricFogArtistParameters
@@ -12,6 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Color albedo;
         /// <summary>Mean free path, in meters: [1, inf].</summary>
         public float meanFreePath; // Should be chromatic - this is an optimization!
+
+        public LocalVolumetricFogBlendingModes blendingMode;
+        public float priority;
+
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
         public float anisotropy;   // . Not currently available for Local Volumetric Fog
@@ -72,6 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             albedo = color;
             meanFreePath = _meanFreePath;
+            blendingMode = LocalVolumetricFogBlendingModes.Overwrite;
+            priority = 0;
             anisotropy = _anisotropy;
 
             volumeMask = null;
@@ -131,6 +147,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
+
+            data.blendingMode = (int)blendingMode;
+            data.priority = priority;
 
             var atlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
             data.atlasOffset = LocalVolumetricFogManager.manager.volumeAtlas.GetTextureOffset(volumeMask);

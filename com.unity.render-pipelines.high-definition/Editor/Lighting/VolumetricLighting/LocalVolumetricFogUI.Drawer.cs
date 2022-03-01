@@ -61,6 +61,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
             EditorGUILayout.PropertyField(serialized.maskMode, Styles.s_MaskMode);
+            EditorGUILayout.PropertyField(serialized.blendingMode, Styles.s_BlendingModeLabel);
+            EditorGUILayout.PropertyField(serialized.priority, Styles.s_PriorityLabel);
         }
 
         static void Drawer_VolumeContent(SerializedLocalVolumetricFog serialized, Editor owner)
